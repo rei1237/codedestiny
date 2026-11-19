@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-19
-next: "U4 — 마무리(옛 이름·금지 표현 grep, check:pre-push, origin/main 머지, push, CI 1회 확인, status: done)"
+next: "없음 (운영 승격은 사용자 별도 요청 시)"
 ---
 
 # 용어 통일(꿀단지 이용권·월정석) + 처음 온 사람용 FAQ·서비스 설명 다듬기
@@ -63,7 +63,7 @@ next: "U4 — 마무리(옛 이름·금지 표현 grep, check:pre-push, origin/m
 - [x] U1b 결제 동결 문구 라벨만 교체: `payment.directModal.passBadge`·`musicTrackSub` 의 "달빛 이용권" → "꿀단지 이용권". 렌더러 3종(`app/_lib/billing-client.ts`, `index.html` `_cdChooseServicePaymentMode`, `js/destiny-profile.js`)과 `public/i18n/ko.json` 을 한 커밋에, `verify-payment-freeze --update` 로 매니페스트 갱신. 결제 로직·정규식·금액·순서는 바꾸지 않는다. 다른 로케일 값은 U2. 2026-11-19 사용자 요청 "용어 통일" 범위로 진행(위험: 결제창 라벨만, 롤백은 커밋 revert 1회).
 - [x] U2 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary.
 - [x] U3 FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검).
-- [ ] U4 마무리: 남은 옛 이름 grep(문서 역사 기록 제외) 0 확인, 금지 표현 grep, `npm run check:pre-push`, origin/main 머지(충돌 생성물은 theirs → `sync:public`·`sitemap:generate`), push, main CI 1회 확인, 이 문서 `status: done`, 최종 보고. 운영 승격은 하지 않는다.
+- [x] U4 마무리: 남은 옛 이름 grep(문서 역사 기록 제외) 0 확인, 금지 표현 grep, `npm run check:pre-push`, origin/main 머지(충돌 생성물은 theirs → `sync:public`·`sitemap:generate`), push, main CI 1회 확인, 이 문서 `status: done`, 최종 보고. 운영 승격은 하지 않는다.
 
 ## 결과
 ### U1 (2026-11-19, 커밋은 이 문서를 담은 커밋)
@@ -115,3 +115,12 @@ next: "U4 — 마무리(옛 이름·금지 표현 grep, check:pre-push, origin/m
   - sitemap: `sitemap:generate` 로 lastmod 갱신(원장 서명 다수 재계산, sitemap.xml 실제 변경 1곳). 내부 링크: ServiceGuide → /faq/ 1개 추가. 이미지·광고 적합성: 영향 없음.
 - 보고만(U4 또는 후속): consultation-methods.mjs 홈 메모의 "이용권·월정석·단건 결제"(홈 셸 인라인 — 재빌드 필요), ja 단독 "利用券" 표기, en/ja 로케일 FAQ "What do paid features add?" 가 공식 7번과 일부 겹침, 운영 CMS 덮어쓰기가 FAQS_DEFAULT 를 가릴 수 있음(옛 질문 억제 목록은 넣어 둠), en passMini primaryAction 뜻 차이(기존), 토글 JS 가 `btn.textContent` 로 i18n span 을 한국어로 덮어씀(기존 버그 — 다른 로케일에서 펼친 뒤 한국어로 바뀜), 차별점·공식 문항의 부정형 "보장되지 않습니다" 고지(기존, 금지 표현 아님).
 - 검증: `node --test scripts/seo/official-information.test.mjs` 3/3 통과. `sync:public`(셸 미러 7·정적 정책 6) → check:fast 1차 BLOCKED(verify:sitemap-drift) → `sitemap:generate` → check:fast(critical 자동) exit 0, jest 483 suites/8254 passed, 1 skipped. 추가한 줄에 금지 표현(보장·비법·비책·반드시·100%·운명이 바뀝) 0건.
+
+### U4 (2026-11-19)
+- 남은 오기 수정 4af9f694a `copy(i18n)`: ja/zh 화폐 표기 月定石·月光石 → 月精石 55곳/11파일(AstrologyAiClient·AuthShell·service-pack-copy·NamingAiClient·PointsClient·loadingMessages·feature-introductions·legalContent·master-love-codex copy·neo-war-room form/result-copy) + sitemap:generate. 결제 실행 파일·payment-freeze 대상 파일 해당 없음. 크리스털 타로의 보석 이름 月光石(CrystalSoulTarotClient.jsx:487·501)은 화폐가 아니라 유지. check:fast 1차 BLOCKED(sitemap drift) → sitemap:generate → 2차 exit 0(jest 483 suites/8254 passed, 1 skipped).
+- 옛 이름 grep(docs/ 제외, 대소문자 무시): 달빛 이용권 24·달빛이용권 0·문라이트 패스 5·Moonlight Pass 6·Moonlight Stone 6·月晶石 0·月光通行证/證 0. 남은 것은 전부 예외 — 호환 정규식 `달빛 이용권 결제|이용권 결제`(billing-client.ts:2926, index.html+셸 미러 7), 주석(billing-client.ts:1168, index.html 24826+미러, verify-paid-gate-ui-regression.mjs:406, worker/payments/passes.js:2, public/_redirects:66), glossary 폐기 이름 메모, 미참조 잔재 i18n/.rest.json·.w1-strings.json, shellCopy-04 `_comment`, 가사(musicLyrics·vtt), provenance.md, verify-mobile-runtime-readiness 검사 라벨, 코드 별칭 "moonlight stone"(PaymentProcessingContext·payment-service·profile)·worker 주석. 화면 노출 0.
+- 보고만: index.html 24826 주석 "이용권 제품명이 '달빛 이용권'이다"(+미러, verify-paid-gate-ui-regression.mjs:406 같은 취지)는 U1b 뒤로 사실이 아니게 됐다. 주석뿐이고 결제 분류 정규식 옆이라 손대지 않았다.
+- 금지 표현(`git diff 23b5c55c0..HEAD` 추가 줄 3,586): 보장 6(전부 "보장하지 않습니다"류 부정 고지 5 + 이 문서 자기 언급 1)·비법 1·비책 1(둘 다 이 문서 자기 언급). 약속형 0.
+- 머지 4152dd445: origin/main 3커밋(e3f3adfcc·95395e203·077718dcc) 머지. 충돌 6건 모두 생성물(config/sitemap-lastmod.json, public/static/policies/{about,contact,faq,refund,terms}) → theirs 후 sync:public·sitemap:generate 재생성, sitemap:check OK.
+- `npm run check:pre-push` exit 0. push 전 main CI(077718dcc) 녹색. 함께 push 되는 다른 세션 커밋: iOS 488b4774a·aa8f2b0bb·f72deb1a0·c5d4fb778(main 에 이미 커밋돼 있던 것, 배포 산출물 변화 없음이라고 커밋에 적혀 있음).
+- push: 이 문서 커밋을 포함한 HEAD 를 origin/main 으로(SHA·CI 결과는 최종 보고). 운영 승격·릴리스 워크플로는 하지 않았다.
