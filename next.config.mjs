@@ -158,6 +158,8 @@ function createNextConfig(phase) {
     // A nested worktree must not inherit its parent checkout's dependency root.
     outputFileTracingRoot: fileURLToPath(new URL('.', import.meta.url)),
     output: isProductionBuild ? "export" : undefined,
+    // Only Next dev discovers co-located page.dev.tsx demos; exports keep default extensions.
+    ...(isDevelopmentServer ? { pageExtensions: ["dev.tsx", "tsx", "ts", "jsx", "js"] } : {}),
     // deploymentId(?dpl=) 금지 — 2026-07-07 에 "엣지 404 오염 차단"을 노리고 넣었지만
     // 정확히 반대로 작동했다. 배포마다 모든 에셋 URL 이 새 캐시 키가 되어 전환 순간 전부
     // 콜드 MISS 로 오리진을 때리고, 그때 나온 404 가 max-age=172800(2일)로 캐시되면

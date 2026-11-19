@@ -1,37 +1,45 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import nextConfig from '../../next.config.mjs';
 
-const source = readFileSync(new URL('../../app/dev/guided-flow/page.tsx', import.meta.url), 'utf8');
-const code = ts.transpileModule(source, {
-  compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
-}).outputText;
+const require = createRequire(import.meta.url);
+const { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } = require('next/constants');
+const { createValidFileMatcher } = require('next/dist/server/lib/find-page-file');
+const app = fileURLToPath(new URL('../../app/', import.meta.url));
+const conventional = new URL('../../app/dev/guided-flow/page.tsx', import.meta.url);
+const devOnly = new URL('../../app/dev/guided-flow/page.dev.tsx', import.meta.url);
+const page = fileURLToPath(devOnly);
+const defaults = ['tsx', 'ts', 'jsx', 'js'];
 
-function loadPage(nodeEnv) {
+test('Next does not discover the dev-only page in the production router or static export', () => {
+  assert.equal(existsSync(conventional), false);
+  assert.equal(existsSync(devOnly), true);
+  const extensions = nextConfig(PHASE_PRODUCTION_BUILD).pageExtensions ?? defaults;
+  assert.deepEqual(extensions, defaults);
+  const matcher = createValidFileMatcher(extensions, app);
+  assert.equal(matcher.isAppRouterPage(page), false);
+  assert.equal(matcher.isAppRouterPage(fileURLToPath(new URL('../../app/page.js', import.meta.url))), true);
+});
+
+test('Next dev discovers the same route and the page keeps its noindex metadata and demo', () => {
+  const extensions = nextConfig(PHASE_DEVELOPMENT_SERVER).pageExtensions;
+  assert.deepEqual(extensions, ['dev.tsx', ...defaults]);
+  const matcher = createValidFileMatcher(extensions, app);
+  assert.equal(matcher.isAppRouterPage(page), true);
+  const code = ts.transpileModule(readFileSync(devOnly, 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText;
   const output = {};
-  const missing = new Error('next-not-found');
-  let misses = 0;
-  function require(name) {
-    if (name === 'next/navigation') return { notFound() { misses += 1; throw missing; } };
+  function load(name) {
     if (name === 'react/jsx-runtime') return { jsx: (type, props) => ({ type, props }) };
     if (name === './GuidedFlowDemo') return { default: function GuidedFlowDemo() {} };
     throw new Error('Unexpected import: ' + name);
   }
-  new Function('require', 'exports', 'process', code)(require, output, { env: { NODE_ENV: nodeEnv } });
-  return { output, missing, getMisses: () => misses };
-}
-
-test('production leaves a single automatic noindex to Next and never renders the demo', () => {
-  const { output, missing, getMisses } = loadPage('production');
-  assert.strictEqual(output.metadata.robots, null, 'explicit null suppresses inherited robots; undefined does not');
-  assert.throws(() => output.default(), (error) => error === missing);
-  assert.equal(getMisses(), 1);
-});
-
-test('development keeps the demo reachable and explicitly non-indexable', () => {
-  const { output, getMisses } = loadPage('development');
+  new Function('require', 'exports', code)(load, output);
   assert.deepEqual(output.metadata.robots, { index: false, follow: false });
   assert.equal(output.default().type, 'main');
-  assert.equal(getMisses(), 0);
 });
