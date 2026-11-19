@@ -124,6 +124,10 @@ class CodeDestinyViewController: CAPBridgeViewController {
               ua: navigator.userAgent,
               platform: root.dataset.platform || null,
               runtimeTarget: root.dataset.runtimeTarget || null,
+              runtimeGlobal: globalThis.__CODE_DESTINY_RUNTIME_TARGET || null,
+              bridgeTag: !!document.querySelector('script[src="/js/app-native-bridge.js"]'),
+              nativeBridge: typeof globalThis.CodeDestinyNative,
+              htmlAttributes: Array.from(root.attributes).map((a) => a.name).join(","),
               capacitorPlatform: globalThis.Capacitor && globalThis.Capacitor.getPlatform ? globalThis.Capacitor.getPlatform() : null,
               info: info
             });

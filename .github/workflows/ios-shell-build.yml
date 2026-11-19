@@ -25,7 +25,8 @@ jobs:
   simulator:
     name: Build and launch on iOS Simulator
     runs-on: macos-26
-    timeout-minutes: 60
+    # 2026-11-19 첫 실행 55m57s 중 45분이 웹 번들, 그중 34분이 앱 전용 이미지 재인코딩이었다(캐시 없음).
+    timeout-minutes: 90
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,6 +39,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      # build-mobile-app.mjs 의 이미지 재인코딩 결과는 입력 해시로 주소가 매겨진 캐시라, 이전 실행 것을 그대로 써도 된다.
+      - name: Restore mobile image cache
+        uses: actions/cache@v4
+        with:
+          path: build-cache/mobile-images-v2
+          key: mobile-images-v2-${{ runner.os }}-${{ runner.arch }}-${{ github.run_id }}
+          restore-keys: |
+            mobile-images-v2-${{ runner.os }}-${{ runner.arch }}-
 
       # 앱 번들(dist/). 웹 배포와 같은 빌드에 앱 전용 후처리를 더한다. 시크릿이 필요 없다.
       - name: Build mobile web bundle
@@ -105,6 +115,8 @@ jobs:
           xcrun simctl boot "$UDID"
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl install "$UDID" "$APP"
+          # print() 로 찍히는 Capacitor 콘솔이 파일로 바로 나가게 한다(파이프·파일이면 버퍼링돼 비어 보인다).
+          export SIMCTL_CHILD_NSUnbufferedIO=YES
           xcrun simctl launch --stdout="$OUT/app-stdout.log" --stderr="$OUT/app-stderr.log" "$UDID" com.codedestiny.app -cdSelfTest
           # 셀프 테스트는 capacitorDidLoad 15초 뒤에 찍힌다.
           sleep 30
@@ -114,7 +126,8 @@ jobs:
           else
             echo "not running" > "$OUT/process.txt"
           fi
-          # 커스텀 스킴 복귀 경로(로그인 복귀)가 앱을 깨우는지 본다. 웹이 처리하지 못해도 앱은 살아 있어야 한다.
+          # 커스텀 스킴이 이 앱에 등록됐는지 본다. 시뮬레이터는 "Open in ...?" 확인창을 띄우고 누르기 전까지 앱에 넘기지 않으므로
+          # appUrlOpen 수신 자체는 여기서 검증되지 않는다(확인창에 앱 이름이 뜨면 등록은 확인된 것이다).
           xcrun simctl openurl "$UDID" "com.codedestiny.app://auth?ci_probe=1" || echo "openurl failed" >> "$OUT/process.txt"
           sleep 8
           xcrun simctl io "$UDID" screenshot "$OUT/after-openurl.png"
