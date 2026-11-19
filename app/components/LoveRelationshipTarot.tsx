@@ -96,7 +96,7 @@ const LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS = {
     paymentApproved: (chargedCoins: number, balanceAfter: number) =>
       `What Are We? Tarot payment of ${Math.max(0, chargedCoins * 100).toLocaleString("en-US")} KRW was approved. Remaining KRW value: ${Math.max(0, balanceAfter * 100).toLocaleString("en-US")} KRW`,
     stoneOpened: (spentCredits: number, balanceCredits: number | null) =>
-      `What Are We? Tarot opened with Moonlight Stones worth ${Math.max(0, spentCredits * 10).toLocaleString("en-US")} KRW.${typeof balanceCredits === "number" ? ` Remaining Moonlight Stones: ${Math.max(0, balanceCredits * 10).toLocaleString("en-US")} KRW value` : ""}`,
+      `What Are We? Tarot opened with Moonstones worth ${Math.max(0, spentCredits * 10).toLocaleString("en-US")} KRW.${typeof balanceCredits === "number" ? ` Remaining Moonstones: ${Math.max(0, balanceCredits * 10).toLocaleString("en-US")} KRW value` : ""}`,
     authRequired: "Login is required. Please sign in and try again.",
     insufficientCoins: (requiredCoins: number) => `Your available payment balance is too low. ${Math.max(0, requiredCoins * 100).toLocaleString("en-US")} KRW is required.`,
     refunded: "The reading was not completed, so this payment has been refunded.",

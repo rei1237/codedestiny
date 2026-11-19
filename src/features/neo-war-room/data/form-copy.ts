@@ -413,7 +413,7 @@ const NEO_FORM_COPY_EN: NeoFormCopyTable = {
   "launchConfirm.ctaGenerating": "Generating expert consultation",
   "launchConfirm.ctaAnalyzing": "Analyzing the operation map",
   "launchConfirm.ctaStart": "Start consultation",
-  "launchConfirm.hint": "Use a pass, Moonlight Stones or a one-time payment. Lion Seals are consultation rewards.",
+  "launchConfirm.hint": "Use a pass, Moonstones or a one-time payment. Lion Seals are consultation rewards.",
   "readyPanel.title": "Operation briefing complete",
   "readyPanel.preflightMeta": "The same input leads to the same operation request.",
   "briefing.eyebrow": "1st Operation Briefing",

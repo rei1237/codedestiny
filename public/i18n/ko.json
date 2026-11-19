@@ -727,10 +727,10 @@
     },
     "passMini": {
       "aria": "꿀단지 이용권 안내",
-      "kicker": "MOONLIGHT PASS",
+      "kicker": "HONEY JAR PASS",
       "title": "자주 찾는 운세는 꿀단지 이용권으로 더 편안하게 이어가요",
       "desc": "꿀단지 이용권은 이용 한도를 다 쓸 때까지 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 이용권이에요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
-      "guideLabel": "MOONLIGHT GUIDE",
+      "guideLabel": "HONEY JAR PASS GUIDE",
       "guideTitle": "이용 한도를 다 쓸 때까지, 자주 여는 운세를 먼저 부드럽게",
       "guideText": "작은 꿀단지부터 패밀리 꿀단지까지, 선택한 꿀단지 한도 안에서 타로·신탁·사주 리딩이 결제 흐름 없이 먼저 열립니다. 범위 밖의 깊은 리딩은 필요한 순간에만 원화 단건 결제로 이어집니다.",
       "toggle": "달빛 혜택 펼치기",
@@ -799,7 +799,7 @@
     },
     "passFooter": {
       "aria": "이용권 하단 안내",
-      "eyebrow": "Moonlight Pass",
+      "eyebrow": "Honey Jar Pass",
       "savingsBadge": "이용권 사용 시 최대 3분의 1 수준",
       "title": "5,000원 리딩 세 번이면, 14,900원 이용권이 더 쌉니다",
       "desc": "고른 가격대 안의 리딩은 이용 한도를 다 쓸 때까지 열리고, 그보다 비싼 리딩만 필요할 때 단건으로 결제해요. 범위는 5천원급·1만원급·3만원급·이용권 대상 전체 네 단계라 자주 보는 가격대로 고르면 됩니다.",
@@ -809,7 +809,7 @@
       "point3": "자동결제 없는 이용권",
       "mascotAria": "꿀단지 이용권 혜택 보기 · 이용권 상점",
       "mascotAlt": "꿀단지 이용권 혜택 이미지",
-      "mascotKicker": "Moonlight Pass Guide",
+      "mascotKicker": "Honey Jar Pass Guide",
       "mascotText": "한 달에 몇 번, 얼마짜리를 보는지 — 그 두 가지만 정하면 맞는 범위가 나와요.",
       "cta": "이용권 4종 비교하고 고르기"
     },

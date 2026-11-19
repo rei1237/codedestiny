@@ -838,17 +838,17 @@
       "aria": "Moonlit destiny collection shortcuts"
     },
     "passMini": {
-      "aria": "Moonlight pass guide",
-      "kicker": "MOONLIGHT PASS",
-      "title": "Let your fortune routine flow more gently with a moonlight pass",
-      "desc": "The moonlight pass opens the readings you return to often, within a set range, until you use up its usage limit. Today's signs keep unfolding without interruption.",
-      "guideLabel": "MOONLIGHT GUIDE",
+      "aria": "Honey Jar pass guide",
+      "kicker": "HONEY JAR PASS",
+      "title": "Let your fortune routine flow more gently with a Honey Jar pass",
+      "desc": "The Honey Jar pass opens the readings you return to often, within a set range, until you use up its usage limit. Today's signs keep unfolding without interruption.",
+      "guideLabel": "HONEY JAR PASS GUIDE",
       "guideTitle": "Until you use up your usage limit, let the fortunes you open often unfold first",
       "guideText": "From the Small Honey Jar to the Family Honey Jar, tarot, oracle, and saju readings open first within your moonlight range. Deeper readings outside that range continue to one-time KRW payment only when needed.",
       "toggle": "Open moonlight benefits",
       "heroAria": "Check services available for free in the moonlight flow",
-      "heroTitle": "See the Moonlight Pass range",
-      "heroSub": "Keep the readings you return to most within your moonlight pass",
+      "heroTitle": "See the Honey Jar Pass range",
+      "heroSub": "Keep the readings you return to most within your Honey Jar pass",
       "heroCta": "View",
       "balanceLabel": "Monthly stone balance",
       "balanceEmpty": "0 left",
@@ -883,9 +883,9 @@
       "familyCta": "View Family Honey Jar",
       "premiumNote": "The Medium Honey Jar is the most balanced pick if you often use content around KRW 10,000.",
       "footnote": "Passes have no time limit and end when the usage limit is fully used. This pass is not an auto-renewing subscription. Services outside the pass range can be used with one-time KRW payment by product.",
-      "howtoAria": "How to use the moonlight pass",
-      "howtoTitle": "How the moonlight pass flows",
-      "step1Label": "Pick a moonlight range",
+      "howtoAria": "How to use the Honey Jar pass",
+      "howtoTitle": "How the Honey Jar pass flows",
+      "step1Label": "Pick your honey jar size",
       "step1Text": "With a pass that has no time limit and never auto-renews, first set the price range of the readings you check often.",
       "step2Label": "In-range readings open with no checkout",
       "step2Text": "Tarot, oracle, and saju readings inside your range open right away, with no payment window.",
@@ -933,7 +933,7 @@
     },
     "passFooter": {
       "aria": "Pass footer guide",
-      "eyebrow": "Moonlight Pass",
+      "eyebrow": "Honey Jar Pass",
       "savingsBadge": "Up to one-third the price with a pass",
       "title": "Three KRW 5,000 readings already cost more than the KRW 14,900 pass",
       "desc": "Readings inside the range you pick open until you use up your usage limit; only pricier readings are paid one by one when you need them. The four ranges are KRW 5,000 · 10,000 · 30,000 · all pass-eligible content, so pick the price you look at most.",
@@ -941,9 +941,9 @@
       "point1": "Opens right away, no checkout",
       "point2": "No time limit · No auto-renewal",
       "point3": "A pass with no auto-renewal",
-      "mascotAria": "See Moonlight Pass benefits · Moonlight pass store",
-      "mascotAlt": "Moonlight Pass benefits image",
-      "mascotKicker": "Moonlight Pass Guide",
+      "mascotAria": "See Honey Jar Pass benefits · Honey Jar pass store",
+      "mascotAlt": "Honey Jar Pass benefits image",
+      "mascotKicker": "Honey Jar Pass Guide",
       "mascotText": "How many times a month, and at what price — settle those two and the right range falls out.",
       "cta": "Compare all four passes and pick"
     },
@@ -2003,7 +2003,7 @@
     },
     "passCopy": {
       "myTitle": "My passes",
-      "flowerPass": "🌸 Flower Pig Moonlight Pass",
+      "flowerPass": "🌸 Flower Pig Honey Jar Pass",
       "packPass": "Yeongnyangi pass",
       "packTitle": "Yeongnyangi consultation passes",
       "packName": "{total}-use {fish} set",
@@ -2289,7 +2289,7 @@
       "pace": "No time limit. At your own pace.",
       "end": "Light Readings stay available even after the consultation allowance is used up.",
       "alt": "Yeoni the flower pig and Yeongnyangi holding one Honey Jar together",
-      "moon": "Moonlight Pass!",
+      "moon": "Honey Jar Pass!",
       "choose": "Choose your Honey Jar.",
       "value": "Value at single-purchase prices",
       "price": "Pass price",
@@ -2968,7 +2968,7 @@
       "monthlyTitle": "Open with moonstones",
       "requiredMonthly": "Required credits",
       "currentMonthly": "Current balance",
-      "musicTrackSub": "With a Moonlight Pass you can stream every track right away. MP3 downloads are only for tracks bought with a single purchase or with moonstones.",
+      "musicTrackSub": "With a Honey Jar Pass you can stream every track right away. MP3 downloads are only for tracks bought with a single purchase or with moonstones.",
       "defaultTitle": "Paid service",
       "passApplyFailed": "We couldn't apply your pass.",
       "passAppliedUiFailed": "Your pass was applied but the screen didn't update. Please don't pay — just tap this card once more.",
@@ -2992,8 +2992,8 @@
         "passMiss": "Your pass does not open this content for free, so here are the payment options.",
         "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
-      "passBadge": "Moonlight Pass",
-      "passStoreTitle": "Moonlight Pass Shop",
+      "passBadge": "Honey Jar Pass",
+      "passStoreTitle": "Honey Jar Pass Shop",
       "passRetryTitle": "Check pass again",
       "passHint": {
         "store": "Pay once and open many contents until you use up the usage limit. Already have one? Tap to check.",
@@ -3099,7 +3099,7 @@
       },
       "clean": {
         "pass": {
-          "eyebrow": "MOONLIGHT PASS CHECK",
+          "eyebrow": "HONEY JAR PASS CHECK",
           "title": "Checking your pass",
           "message": "Checking whether your pass can open this right away.",
           "meta": "If available, you will continue without a checkout window."
@@ -3135,13 +3135,13 @@
           "meta": "You can view it as soon as verification finishes."
         },
         "monthly": {
-          "eyebrow": "MOONLIGHT STONE CHECK",
+          "eyebrow": "MOONSTONE CHECK",
           "title": "Checking monthly credit payment",
           "message": "Opening content access with your monthly credit balance.",
           "meta": "Safely matching credit deduction and access rights."
         },
         "subscription": {
-          "eyebrow": "MOONLIGHT PASS ACTIVATION",
+          "eyebrow": "HONEY JAR PASS ACTIVATION",
           "title": "Checking KRW pass payment",
           "message": "Checking pass payment approval and activation.",
           "meta": "Safely applying pass tier and duration."
@@ -3170,7 +3170,7 @@
       },
       "default": {
         "pass": {
-          "eyebrow": "MOONLIGHT PASS CHECK",
+          "eyebrow": "HONEY JAR PASS CHECK",
           "title": "Checking your pass",
           "message": "Checking whether your pass can open this right away.",
           "meta": "If available, you will continue without a checkout window."
@@ -3206,13 +3206,13 @@
           "meta": "You can view it as soon as verification finishes."
         },
         "monthly": {
-          "eyebrow": "MOONLIGHT STONE CHECK",
+          "eyebrow": "MOONSTONE CHECK",
           "title": "Checking monthly credit payment",
           "message": "Opening content access with your monthly credit balance.",
           "meta": "Safely matching credit deduction and access rights."
         },
         "subscription": {
-          "eyebrow": "MOONLIGHT PASS ACTIVATION",
+          "eyebrow": "HONEY JAR PASS ACTIVATION",
           "title": "Checking KRW pass payment",
           "message": "Checking pass payment approval and activation.",
           "meta": "Safely applying pass tier and duration."
@@ -3264,9 +3264,9 @@
       "allFeatures": "All pass-eligible content",
       "upTo": "Available up to {amount}",
       "benefits": "Benefits at a glance",
-      "closeAria": "Close Moonlight Pass Shop guide",
-      "openAria": "Open Moonlight Pass Shop guide",
-      "title": "Moonlight Pass Shop Guide",
+      "closeAria": "Close Honey Jar Pass Shop guide",
+      "openAria": "Open Honey Jar Pass Shop guide",
+      "title": "Honey Jar Pass Shop Guide",
       "subtitle": "Passes are bought with a one-time KRW payment, and moonstones are used for individual paid features.",
       "footerNotice": "This pass is not an auto-renewing product. You need to purchase it again after its usage limit is used up.",
       "packages": {
@@ -3352,7 +3352,7 @@
       "signupButton": "Sign up"
     },
     "passCheckingGreeting": "Checking your Pass",
-    "passCheckingNote": "We're securely matching your Moonlight Pass and membership tier.",
+    "passCheckingNote": "We're securely matching your Honey Jar Pass and membership tier.",
     "exitBenefit": {
       "title": "Complete the free Manseryeok tutorial for {amount} moonstones",
       "copy": "Claim once after viewing free Manseryeok with your saved profile while signed in. Previous signup-gift recipients do not receive a second grant. Worth KRW 5,000. Use within {days} days on eligible services priced KRW 10,000 or more.",
@@ -6036,7 +6036,7 @@
       "passActiveUnlockDesc": "Your premium pass unlocks this permanently without a one-time payment.",
       "unlockTitle": "Permanent unlock: {amount}",
       "unlockDesc": "Unlock once and keep using it. A premium pass can also unlock it.",
-      "ziweiConsultDesc": "Input is free. When you tap the 'Generate Consultation' button, a single payment of ₩30,000 or Pass/Moonlight Stone check will proceed."
+      "ziweiConsultDesc": "Input is free. When you tap the 'Generate Consultation' button, a single payment of ₩30,000 or Pass/Moonstone check will proceed."
     }
   },
   "famousSaju": {
@@ -7719,7 +7719,7 @@
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {
         "k1yqmdmg": {
-          "ariaLabel": "Moonlight Pass Information"
+          "ariaLabel": "Honey Jar Pass Information"
         }
       }
     },
@@ -8135,7 +8135,7 @@
         "kxatr2b": "Choice-based flow to gently unravel your concerns",
         "kyk2x3o": "Choice advice based on luck cycle and annual cycle",
         "n12NPC": "Daily changing island weather and 12 Palace NPC conversations",
-        "n30000": "₩30,000 one-time payment or Pass · Moonlight Stone",
+        "n30000": "₩30,000 one-time payment or Pass · Moonstone",
         "kfib4kf": "Compare the energy of the two options at the fork",
         "k1vetwxt": "Your course in life, read through the luck cycle and year you are passing through",
         "k67hhx7": "A future simulation that sketches what follows each choice",
@@ -8367,7 +8367,7 @@
     },
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
-        "k1ubfgod": "300 Moonlight Stones"
+        "k1ubfgod": "300 Moonstones"
       },
       "cdFeedbackBody": {
         "k2a2ghh": "A bug, an awkward screen, a moment of \"I wish this existed\" — anything is welcome.",
@@ -8729,9 +8729,9 @@
       "011": "Temperature"
     },
     "message": {
-      "001": "Checking Moonlight Stone info",
-      "002": "Moonlight Stone is activating, it will be available soon",
-      "003": "Moonlight Stone is activating, it will be available soon",
+      "001": "Checking Moonstone info",
+      "002": "Moonstone is activating, it will be available soon",
+      "003": "Moonstone is activating, it will be available soon",
       "004": "Preparing for one-time card payment",
       "005": "Payment complete. Loading results",
       "006": "Checking Pass status",
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
+      "tagline": "A Honey Jar Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",

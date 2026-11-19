@@ -296,16 +296,16 @@
   "home.gardenCopy.shareReward": {
     "ko": "친구가 가입하면 월정석 100개",
     "en": "100 Moonstones when a friend signs up",
-    "ja": "友だちが登録すると月定石100個",
-    "zh-CN": "好友注册即得100颗月定石",
-    "zh-TW": "好友註冊即得100顆月定石",
+    "ja": "友だちが登録すると月精石100個",
+    "zh-CN": "好友注册即得100颗月精石",
+    "zh-TW": "好友註冊即得100顆月精石",
     "vi": "Nhận 100 Nguyệt Tinh Thạch khi bạn bè đăng ký",
-    "hi": "मित्र के साइन अप करने पर 100 मूनलाइट स्टोन",
-    "es": "100 Piedras de Luz Lunar cuando se registre un amigo",
-    "fr": "100 Pierres de Clair de Lune lorsqu’un ami s’inscrit",
-    "de": "100 Mondlichtsteine, wenn sich ein Freund registriert",
-    "nl": "100 Maanlichtstenen als een vriend zich registreert",
-    "ms": "100 Batu Cahaya Bulan apabila rakan mendaftar"
+    "hi": "मित्र के साइन अप करने पर 100 मूनस्टोन",
+    "es": "100 Piedras Lunares cuando se registre un amigo",
+    "fr": "100 Pierres de Lune lorsqu’un ami s’inscrit",
+    "de": "100 Mondsteine, wenn sich ein Freund registriert",
+    "nl": "100 Maanstenen als een vriend zich registreert",
+    "ms": "100 Batu Bulan apabila rakan mendaftar"
   },
   "home.gardenCopy.shareTerms": {
     "ko": "이 버튼으로 공유한 링크로 친구가 회원가입을 완료해야 지급돼요 · 하루 최대 500개 · 지급일부터 30일 사용",

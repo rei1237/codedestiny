@@ -838,17 +838,17 @@
       "aria": "Pintasan koleksi takdir terang bulan"
     },
     "passMini": {
-      "aria": "Panduan pas cahaya bulan",
-      "kicker": "LULUS CAHAYA BULAN",
-      "title": "Biarkan rutin rezeki anda mengalir dengan lebih lembut dengan cahaya bulan berlalu",
-      "desc": "Moonlight Pass membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, sehingga had penggunaannya habis. Petanda hari ini terus mengalir tanpa terputus.",
-      "guideLabel": "PANDUAN CAHAYA BULAN",
+      "aria": "Panduan Pas Balang Madu",
+      "kicker": "PAS BALANG MADU",
+      "title": "Teruskan bacaan yang kerap anda lihat dengan lebih selesa menggunakan Pas Balang Madu",
+      "desc": "Pas Balang Madu membuka bacaan yang kerap anda kembali kepadanya, dalam julat yang ditetapkan, sehingga had penggunaannya habis. Petanda hari ini terus mengalir tanpa terputus.",
+      "guideLabel": "PANDUAN PAS BALANG MADU",
       "guideTitle": "Sehingga had penggunaan habis, bacaan yang sering dibuka mengalir lebih lembut dahulu",
       "guideText": "Daripada Balang Madu Kecil hingga Balang Madu Keluarga, bacaan tarot, oracle dan saju dalam julat cahaya bulan anda dibuka dahulu tanpa aliran bayaran. Bacaan yang lebih mendalam di luar julat itu hanya diteruskan kepada bayaran sekali dalam KRW apabila diperlukan.",
       "toggle": "Faedah cahaya bulan terbuka",
       "heroAria": "Semak perkhidmatan tersedia secara percuma dalam aliran cahaya bulan",
-      "heroTitle": "Lihat julat Moonlight Pass",
-      "heroSub": "Teruskan bacaan yang paling kerap anda kembali kepadanya di dalam Moonlight Pass anda",
+      "heroTitle": "Lihat julat Pas Balang Madu",
+      "heroSub": "Teruskan bacaan yang paling kerap anda kembali kepadanya di dalam Pas Balang Madu anda",
       "heroCta": "Lihat",
       "balanceLabel": "Baki batu bulanan",
       "balanceEmpty": "0 lagi",
@@ -885,13 +885,13 @@
       "footnote": "Pas tiada had tempoh dan tamat apabila had penggunaan habis. Pas ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk.",
       "howtoAria": "Cara menggunakan pas moonlight",
       "howtoTitle": "Pas moonlight, begini ia diteruskan",
-      "step1Label": "Pilih julat moonlight",
+      "step1Label": "Pilih saiz balang madu anda",
       "step1Text": "Dengan pas tanpa had tempoh dan tanpa pembaharuan automatik, tetapkan dahulu julat harga bacaan yang kerap anda lihat.",
       "step2Label": "Bacaan dalam julat dibuka tanpa pembayaran",
       "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
       "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
       "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan.",
-      "terminationNote": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Cahaya Bulan.",
+      "terminationNote": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Bulan.",
       "noExpiryNote": "Tiada had tempoh · Tiada pembaharuan automatik"
     },
     "promptHub": {
@@ -933,7 +933,7 @@
     },
     "passFooter": {
       "aria": "Lulus panduan pengaki",
-      "eyebrow": "Pas Cahaya Bulan",
+      "eyebrow": "Pas Balang Madu",
       "savingsBadge": "Dengan pas, sehingga satu pertiga harga",
       "title": "Tiga bacaan KRW 5,000 sudah lebih mahal daripada pas KRW 14,900",
       "desc": "Bacaan dalam julat yang anda pilih terbuka sehingga had penggunaan anda habis; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Empat julat itu ialah KRW 5,000 · 10,000 · 30,000 dan semua kandungan yang dilindungi pas, jadi pilih harga yang paling kerap anda lihat.",
@@ -941,9 +941,9 @@
       "point1": "Terbuka terus, tanpa pembayaran",
       "point2": "Tiada had tempoh · Tiada pembaharuan automatik",
       "point3": "Pas tanpa pembaharuan automatik",
-      "mascotAria": "Lihat manfaat Moonlight Pass · Kedai Moonlight Pass",
-      "mascotAlt": "Imej manfaat Moonlight Pass",
-      "mascotKicker": "Moonlight Pass Guide",
+      "mascotAria": "Lihat manfaat Pas Balang Madu · Kedai Pas Balang Madu",
+      "mascotAlt": "Imej manfaat Pas Balang Madu",
+      "mascotKicker": "Honey Jar Pass Guide",
       "mascotText": "Berapa kali sebulan, pada harga berapa — tetapkan dua perkara itu, julat yang sesuai akan muncul.",
       "cta": "Banding empat pas dan pilih"
     },
@@ -1704,7 +1704,7 @@
       "searchPlaceholder": "Cinta, kewangan, pertukaran kerja… cari bacaan",
       "filterToggle": "Penapis",
       "filterMorePurpose": "Persoalan lain",
-      "shareReward": "100 Batu Cahaya Bulan apabila rakan mendaftar",
+      "shareReward": "100 Batu Bulan apabila rakan mendaftar",
       "shareTerms": "Diberikan hanya apabila rakan melengkapkan pendaftaran melalui pautan yang dikongsi dengan butang ini · Maksimum 500 sehari · Boleh digunakan selama 30 hari dari tarikh diterima",
       "todayGateCta": "Cipta profil dan lihat tuah hari ini",
       "todayGateDesc": "Tarikh lahir anda digunakan untuk mengira tiang harian Saju, 27 rumah bulan Sukuyo dan kedudukan bulan Veda berdasarkan carta kelahiran anda.",
@@ -2003,7 +2003,7 @@
     },
     "passCopy": {
       "myTitle": "Pas saya",
-      "flowerPass": "🌸 Moonlight Pass Babi Bunga",
+      "flowerPass": "🌸 Pas Balang Madu Babi Bunga",
       "packPass": "Pas Yeongnyangi",
       "packTitle": "Pas konsultasi Yeongnyangi",
       "packName": "Set {fish} {total} penggunaan",
@@ -2289,7 +2289,7 @@
       "pace": "Tanpa had masa, mengikut rentak anda.",
       "end": "Bacaan Ringan kekal tersedia walaupun had konsultasi telah habis.",
       "alt": "Yeoni si anak khinzir bunga dan Yeongnyangi memegang satu Balang Madu bersama-sama",
-      "moon": "Pas Cahaya Bulan!",
+      "moon": "Pas Balang Madu!",
       "choose": "Pilih Balang Madu anda.",
       "value": "Nilai pada harga pembelian tunggal",
       "price": "Harga pas",
@@ -2968,7 +2968,7 @@
       "monthlyTitle": "Buka dengan batu bulan",
       "requiredMonthly": "Kredit yang diperlukan",
       "currentMonthly": "Baki semasa",
-      "musicTrackSub": "Dengan Pas Cahaya Bulan, anda boleh terus mendengar semua lagu. Muat turun MP3 hanya untuk lagu yang dibeli secara tunggal atau dengan batu bulan.",
+      "musicTrackSub": "Dengan Pas Balang Madu, anda boleh terus mendengar semua lagu. Muat turun MP3 hanya untuk lagu yang dibeli secara tunggal atau dengan batu bulan.",
       "defaultTitle": "Perkhidmatan berbayar",
       "passApplyFailed": "Kami tidak dapat menggunakan Pas anda.",
       "passAppliedUiFailed": "Pas anda telah digunakan, tetapi paparan tidak dikemas kini. Jangan bayar — ketik kad ini sekali lagi.",
@@ -2992,8 +2992,8 @@
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
         "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
-      "passBadge": "Pas Cahaya Bulan",
-      "passStoreTitle": "Kedai Moonlight Pass",
+      "passBadge": "Pas Balang Madu",
+      "passStoreTitle": "Kedai Pas Balang Madu",
       "passRetryTitle": "Semak pas sekali lagi",
       "passHint": {
         "store": "Bayar sekali dan buka banyak kandungan sehingga had penggunaan habis. Sudah ada? Ketik untuk semak.",
@@ -3099,7 +3099,7 @@
       },
       "clean": {
         "pass": {
-          "eyebrow": "SEMAK LULUS CAHAYA BULAN",
+          "eyebrow": "SEMAK PAS BALANG MADU",
           "title": "Menyemak pas anda",
           "message": "Menyemak sama ada pas anda boleh membukanya dengan segera.",
           "meta": "Jika tersedia, anda akan meneruskan tanpa tetingkap daftar keluar."
@@ -3135,13 +3135,13 @@
           "meta": "Anda boleh melihatnya sebaik sahaja pengesahan selesai."
         },
         "monthly": {
-          "eyebrow": "SEMAK BATU CAHAYA BULAN",
+          "eyebrow": "SEMAK BATU BULAN",
           "title": "Menyemak pembayaran kredit bulanan",
           "message": "Membuka akses kandungan dengan baki kredit bulanan anda.",
           "meta": "Memadankan potongan kredit dan hak akses dengan selamat."
         },
         "subscription": {
-          "eyebrow": "PENGAKTIFAN PAS CAHAYA BULAN",
+          "eyebrow": "PENGAKTIFAN PAS BALANG MADU",
           "title": "Menyemak pembayaran pas KRW",
           "message": "Menyemak kelulusan pembayaran pas dan pengaktifan.",
           "meta": "Menggunakan peringkat dan tempoh pas dengan selamat."
@@ -3170,7 +3170,7 @@
       },
       "default": {
         "pass": {
-          "eyebrow": "SEMAK LULUS CAHAYA BULAN",
+          "eyebrow": "SEMAK PAS BALANG MADU",
           "title": "Menyemak pas anda",
           "message": "Menyemak sama ada pas anda boleh membukanya dengan segera.",
           "meta": "Jika tersedia, anda akan meneruskan tanpa tetingkap daftar keluar."
@@ -3206,13 +3206,13 @@
           "meta": "Anda boleh melihatnya sebaik sahaja pengesahan selesai."
         },
         "monthly": {
-          "eyebrow": "SEMAK BATU CAHAYA BULAN",
+          "eyebrow": "SEMAK BATU BULAN",
           "title": "Menyemak pembayaran kredit bulanan",
           "message": "Membuka akses kandungan dengan baki kredit bulanan anda.",
           "meta": "Memadankan potongan kredit dan hak akses dengan selamat."
         },
         "subscription": {
-          "eyebrow": "PENGAKTIFAN PAS CAHAYA BULAN",
+          "eyebrow": "PENGAKTIFAN PAS BALANG MADU",
           "title": "Menyemak pembayaran pas KRW",
           "message": "Menyemak kelulusan pembayaran pas dan pengaktifan.",
           "meta": "Menggunakan peringkat dan tempoh pas dengan selamat."
@@ -3264,10 +3264,10 @@
       "allFeatures": "Semua kandungan yang dilindungi pas",
       "upTo": "Tersedia sehingga {amount}",
       "benefits": "Manfaat sepintas lalu",
-      "closeAria": "Tutup panduan Kedai Moonlight Pass",
-      "openAria": "Panduan Kedai Buka Moonlight Pass",
-      "title": "Panduan Kedai Moonlight Pass",
-      "subtitle": "Pas dibeli dengan bayaran sekali dalam KRW, dan Batu Cahaya Bulan digunakan untuk ciri berbayar individu.",
+      "closeAria": "Tutup panduan Kedai Pas Balang Madu",
+      "openAria": "Panduan Kedai Buka Pas Balang Madu",
+      "title": "Panduan Kedai Pas Balang Madu",
+      "subtitle": "Pas dibeli dengan bayaran sekali dalam KRW, dan Batu Bulan digunakan untuk ciri berbayar individu.",
       "footerNotice": "Pas ini bukan produk yang diperbaharui secara automatik. Anda perlu membelinya semula selepas had penggunaan habis.",
       "packages": {
         "standard": {
@@ -3293,7 +3293,7 @@
       "monthlyButton": "Bayar dengan {credits} kredit bulanan",
       "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
       "monthlyButtonShort": "Perlu {credits} · baki tidak cukup",
-      "terminationNotice": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Cahaya Bulan."
+      "terminationNotice": "Pas kekal aktif walaupun had konsultasi habis digunakan, dan Bacaan Ringan masih boleh digunakan. Untuk lebih banyak konsultasi utama, beli pas baharu atau guna bayaran sekali atau Batu Bulan."
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."
@@ -3352,7 +3352,7 @@
       "signupButton": "Daftar"
     },
     "passCheckingGreeting": "Menyemak Pas anda",
-    "passCheckingNote": "Menyelaraskan Pas Batu Cahaya Bulan dan tahap keahlian anda dengan selamat.",
+    "passCheckingNote": "Menyelaraskan Pas Balang Madu dan tahap keahlian anda dengan selamat.",
     "exitBenefit": {
       "title": "Lengkapkan panduan Manseryeok percuma untuk {amount} batu bulan",
       "copy": "Tuntut sekali selepas log masuk dan melihat Manseryeok percuma dengan profil tersimpan. Penerima hadiah pendaftaran terdahulu tidak menerima pemberian kedua. Bernilai KRW 5,000. Sah {days} hari untuk diskaun perkhidmatan layak dari KRW 10,000.",
@@ -6036,7 +6036,7 @@
       "passActiveUnlockDesc": "Pas premium anda membuka kunci ini secara kekal tanpa bayaran sekali.",
       "unlockTitle": "Buka kunci kekal: {amount}",
       "unlockDesc": "Buka kunci sekali dan teruskan menggunakannya. Pas premium juga boleh membuka kuncinya.",
-      "ziweiConsultDesc": "Input adalah percuma. Apabila anda menekan butang 'Jana Perundingan', pembayaran sekali sebanyak 30,000 won atau pengesahan Pas/Batu Cahaya Bulan akan diproses."
+      "ziweiConsultDesc": "Input adalah percuma. Apabila anda menekan butang 'Jana Perundingan', pembayaran sekali sebanyak 30,000 won atau pengesahan Pas/Batu Bulan akan diproses."
     }
   },
   "famousSaju": {
@@ -7719,7 +7719,7 @@
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {
         "k1yqmdmg": {
-          "ariaLabel": "Maklumat Pas Cahaya Bulan"
+          "ariaLabel": "Maklumat Pas Balang Madu"
         }
       }
     },
@@ -8135,7 +8135,7 @@
         "kxatr2b": "Aliran pilihan yang melembutkan tekstur kebimbangan",
         "kyk2x3o": "Nasihat pilihan berdasarkan kitaran nasib dan nasib tahunan",
         "n12NPC": "Cuaca pulau yang berubah setiap hari dan perbualan NPC 12 Rumah",
-        "n30000": "Pembayaran sekali 30,000 won atau Pas · Batu Cahaya Bulan",
+        "n30000": "Pembayaran sekali 30,000 won atau Pas · Batu Bulan",
         "kfib4kf": "Bandingkan tenaga dua pilihan di persimpangan",
         "k1vetwxt": "Haluan hidup anda, dibaca melalui kitaran nasib dan tahun yang sedang anda lalui",
         "k67hhx7": "Simulasi masa depan yang melakar apa yang menyusul setiap pilihan",
@@ -8367,7 +8367,7 @@
     },
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
-        "k1ubfgod": "300 Batu Cahaya Bulan"
+        "k1ubfgod": "300 Batu Bulan"
       },
       "cdFeedbackBody": {
         "k2a2ghh": "A bug, an awkward screen, a moment of \"I wish this existed\" — anything is welcome.",
@@ -8729,9 +8729,9 @@
       "011": "Suhu"
     },
     "message": {
-      "001": "Menyemak maklumat Batu Cahaya Bulan",
-      "002": "Batu Cahaya Bulan sedang diaktifkan, akan tersedia tidak lama lagi",
-      "003": "Batu Cahaya Bulan sedang diaktifkan, akan tersedia tidak lama lagi",
+      "001": "Menyemak maklumat Batu Bulan",
+      "002": "Batu Bulan sedang diaktifkan, akan tersedia tidak lama lagi",
+      "003": "Batu Bulan sedang diaktifkan, akan tersedia tidak lama lagi",
       "004": "Menyediakan pembayaran kad sekali sahaja",
       "005": "Pembayaran selesai. Memuatkan hasil.",
       "006": "Menyemak Pas",
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
+      "tagline": "A Honey Jar Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",
@@ -21037,7 +21037,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Harga satu bacaan · termasuk 1 soalan susulan · Tarot tidak boleh guna Moonstone; Empat Tiang, keserasian dan Sukuyo boleh.",
+      "priceNote": "Harga satu bacaan · termasuk 1 soalan susulan · Tarot tidak boleh guna Batu Bulan; Empat Tiang, keserasian dan Sukuyo boleh.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -21068,7 +21068,7 @@
       "question": "My question",
       "price": "Single-reading price",
       "scope": "Jawapan utama · asas tafsiran · langkah tindakan · surat Yeoni · 1 soalan susulan",
-      "policy": "Tarot tidak boleh menggunakan Moonstone, dan kelayakan Pass disemak pada langkah seterusnya. Selepas menerima bacaan, anda boleh bertanya 1 soalan susulan tanpa caj tambahan, berdasarkan asas yang sama (carta kelahiran, kad atau rumah bulan kelahiran).",
+      "policy": "Tarot tidak boleh menggunakan Batu Bulan, dan kelayakan Pass disemak pada langkah seterusnya. Selepas menerima bacaan, anda boleh bertanya 1 soalan susulan tanpa caj tambahan, berdasarkan asas yang sama (carta kelahiran, kad atau rumah bulan kelahiran).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",

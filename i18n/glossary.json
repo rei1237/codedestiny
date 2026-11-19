@@ -142,17 +142,31 @@
     },
     "월정석": {
       "note": "이벤트로 지급되는 내부 재화. 구매 불가이며 구독이 아니다. 고유 재화명이므로 일관된 조어를 쓴다.",
-      "en": "Moonlight Stone",
+      "en": "Moonstone",
       "ja": "月精石",
       "zh-CN": "月精石",
       "zh-TW": "月精石",
       "vi": "Nguyệt Tinh Thạch",
-      "hi": "मूनलाइट स्टोन",
-      "es": "Piedra de Luz Lunar",
-      "fr": "Pierre de Clair de Lune",
-      "de": "Mondlichtstein",
-      "nl": "Maanlichtsteen",
-      "ms": "Batu Cahaya Bulan"
+      "hi": "मूनस्टोन",
+      "es": "Piedra Lunar",
+      "fr": "Pierre de Lune",
+      "de": "Mondstein",
+      "nl": "Maansteen",
+      "ms": "Batu Bulan"
+    },
+    "꿀단지 이용권": {
+      "note": "꿀꿀 운세의 상위 이용권 이름(옛 달빛 이용권·Moonlight Pass 폐기, 2026-11-19). 결제 상품명이므로 화면마다 같은 이름을 쓴다.",
+      "en": "Honey Jar Pass",
+      "ja": "はちみつ壺利用券",
+      "zh-CN": "蜜罐通行证",
+      "zh-TW": "蜜罐通行證",
+      "vi": "Vé Hũ Mật Ong",
+      "hi": "शहद जार पास",
+      "es": "Pase Tarro de Miel",
+      "fr": "Pass Pot de Miel",
+      "de": "Honigglas-Pass",
+      "nl": "Honingpot-pas",
+      "ms": "Pas Balang Madu"
     },
     "홍길동": {
       "note": "입력 예시용 가상 인명(영어권 John Doe 에 해당). 음차하지 말고 각 언어권에서 흔한 예시 이름으로 바꾼다.",

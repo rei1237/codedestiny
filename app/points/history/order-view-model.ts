@@ -70,7 +70,7 @@ const COPY = {
   },
   en: {
     moonstone: "Moonlight credit",
-    pass: "Moonlight Pass",
+    pass: "Honey Jar Pass",
     guardian: "Guardian Fortune conversation pass",
     fusion: "Fusion Fortune consultation pass",
     feature: "Feature pass",

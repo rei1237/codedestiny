@@ -20,11 +20,11 @@ const alliance: Record<LoadingLocale, PaymentAllianceCopy> = {
   },
   "en": {
     title: "A little alliance, thanks to Yeoni",
-    story: "Yeoni set Yeongnyangi’s favorite fish on the table. “Could you accept our guests’ Moonlight Stone too?” One look at the fish, one look at Yeoni… “All right. But I’ll count in fish!” That is how this Moonlight Stone alliance began.",
+    story: "Yeoni set Yeongnyangi’s favorite fish on the table. “Could you accept our guests’ Moonstone too?” One look at the fish, one look at Yeoni… “All right. But I’ll count in fish!” That is how this Moonstone alliance began.",
     imageAlt: "Yeoni the flower pig and Yeongnyangi agree to their alliance over tea",
-    moonstoneLabel: "With Moonlight Stone",
-    moonstones: amount => "{amount} Moonlight Stone".replace('{amount}', amount),
-    moonstoneValue: divisor => "At Yeongnyangi, each Moonlight Stone has 1/{divisor} of its Ggulggul Fortune value.".replace('{divisor}', String(divisor)),
+    moonstoneLabel: "With Moonstone",
+    moonstones: amount => "{amount} Moonstone".replace('{amount}', amount),
+    moonstoneValue: divisor => "At Yeongnyangi, each Moonstone has 1/{divisor} of its Ggulggul Fortune value.".replace('{divisor}', String(divisor)),
   },
   "ja": {
     title: "ヨニがつないだ小さな提携",
@@ -60,11 +60,11 @@ const alliance: Record<LoadingLocale, PaymentAllianceCopy> = {
   },
   "hi": {
     title: "येओनी ने मिलाए दो साथी",
-    story: "येओनी ने पसंदीदा मछली सामने रखी। “हमारे मेहमानों के मूनलाइट स्टोन भी लोगी?” येओंगन्यांगी ने मछली देखी, फिर येओनी को… “ठीक है, पर हिसाब मछली के दाम से होगा, म्याऊँ!” साझेदारी ऐसे शुरू हुई।",
+    story: "येओनी ने पसंदीदा मछली सामने रखी। “हमारे मेहमानों के मूनस्टोन भी लोगी?” येओंगन्यांगी ने मछली देखी, फिर येओनी को… “ठीक है, पर हिसाब मछली के दाम से होगा, म्याऊँ!” साझेदारी ऐसे शुरू हुई।",
     imageAlt: "फूलों वाली पिग येओनी और येओंगन्यांगी चाय पर साझेदारी तय करते हुए",
-    moonstoneLabel: "मूनलाइट स्टोन से",
-    moonstones: amount => "{amount} मूनलाइट स्टोन".replace('{amount}', amount),
-    moonstoneValue: divisor => "येओंगन्यांगी में मूनलाइट स्टोन की कीमत Ggulggul Fortune के मूल्य की 1/{divisor} है।".replace('{divisor}', String(divisor)),
+    moonstoneLabel: "मूनस्टोन से",
+    moonstones: amount => "{amount} मूनस्टोन".replace('{amount}', amount),
+    moonstoneValue: divisor => "येओंगन्यांगी में मूनस्टोन की कीमत Ggulggul Fortune के मूल्य की 1/{divisor} है।".replace('{divisor}', String(divisor)),
   },
   "es": {
     title: "Una alianza gracias a Yeoni",

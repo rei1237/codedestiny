@@ -838,17 +838,17 @@
       "aria": "Phím tắt sưu tập vận mệnh ánh trăng"
     },
     "passMini": {
-      "aria": "Hướng dẫn sử dụng thẻ Moonlight",
-      "kicker": "THƯ VIỆN NGĂNG",
-      "title": "Hãy để vận may của bạn trôi qua nhẹ nhàng hơn với ánh trăng trôi qua",
-      "desc": "Moonlight Pass mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, cho đến khi bạn dùng hết hạn mức sử dụng. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
-      "guideLabel": "HƯỚNG DẪN ÁNH TRĂNG",
+      "aria": "Hướng dẫn Vé Hũ Mật Ong",
+      "kicker": "VÉ HŨ MẬT ONG",
+      "title": "Tiếp tục những quẻ bạn hay xem thoải mái hơn với Vé Hũ Mật Ong",
+      "desc": "Vé Hũ Mật Ong mở trước những bài đọc bạn hay quay lại, trong một phạm vi đã định, cho đến khi bạn dùng hết hạn mức sử dụng. Điềm báo hôm nay cứ thế tiếp diễn mà không bị ngắt quãng.",
+      "guideLabel": "HƯỚNG DẪN VÉ HŨ MẬT ONG",
       "guideTitle": "Cho đến khi dùng hết hạn mức, những lần xem bạn thường mở sẽ được mở trước thật êm dịu",
       "guideText": "Từ Hũ mật ong nhỏ đến Hũ mật ong gia đình, các bài tarot, oracle và saju trong phạm vi ánh trăng bạn chọn sẽ mở trước mà không cần qua luồng thanh toán. Những bài xem sâu hơn ngoài phạm vi đó chỉ chuyển sang thanh toán một lần bằng KRW khi cần.",
       "toggle": "Mở lợi ích ánh trăng",
       "heroAria": "Kiểm tra các dịch vụ có sẵn miễn phí dưới ánh trăng",
-      "heroTitle": "Xem phạm vi Moonlight Pass",
-      "heroSub": "Tiếp tục những bài đọc bạn hay quay lại, ngay trong Moonlight Pass",
+      "heroTitle": "Xem phạm vi Vé Hũ Mật Ong",
+      "heroSub": "Tiếp tục những bài đọc bạn hay quay lại, ngay trong Vé Hũ Mật Ong",
       "heroCta": "Xem",
       "balanceLabel": "Số dư đá hàng tháng",
       "balanceEmpty": "0 còn lại",
@@ -883,9 +883,9 @@
       "familyCta": "Xem Hũ mật ong gia đình",
       "premiumNote": "Hũ mật ong vừa cân bằng nhất nếu bạn thường dùng nội dung khoảng 10.000 KRW.",
       "footnote": "Vé không giới hạn thời gian và kết thúc khi dùng hết hạn mức sử dụng. Vé này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vé có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
-      "howtoAria": "Cách dùng moonlight pass",
-      "howtoTitle": "Moonlight pass, tiếp nối như thế này",
-      "step1Label": "Chọn phạm vi moonlight",
+      "howtoAria": "Cách dùng Vé Hũ Mật Ong",
+      "howtoTitle": "Vé Hũ Mật Ong, tiếp nối như thế này",
+      "step1Label": "Chọn cỡ hũ mật ong",
       "step1Text": "Với vé không giới hạn thời gian và không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
       "step2Label": "Lượt đọc trong phạm vi mở ngay không cần thanh toán",
       "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
@@ -941,9 +941,9 @@
       "point1": "Mở ngay, không cần thanh toán",
       "point2": "Không giới hạn thời gian · Không tự động gia hạn",
       "point3": "Thẻ không tự động gia hạn",
-      "mascotAria": "Xem quyền lợi Moonlight Pass · Cửa hàng Moonlight Pass",
-      "mascotAlt": "Ảnh quyền lợi Moonlight Pass",
-      "mascotKicker": "Moonlight Pass Guide",
+      "mascotAria": "Xem quyền lợi Vé Hũ Mật Ong · Cửa hàng Vé Hũ Mật Ong",
+      "mascotAlt": "Ảnh quyền lợi Vé Hũ Mật Ong",
+      "mascotKicker": "Honey Jar Pass Guide",
       "mascotText": "Mỗi tháng xem mấy lần, ở mức giá nào — quyết hai điều đó là ra đúng phạm vi.",
       "cta": "So sánh 4 loại thẻ rồi chọn"
     },
@@ -1967,18 +1967,18 @@
       "all": "Xem tất cả nội dung",
       "light": "Thử xem nhẹ nhàng",
       "free": "Bắt đầu miễn phí · Chuyên sâu tính phí riêng",
-      "benefit": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 đá mặt trăng",
+      "benefit": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 Nguyệt Tinh Thạch",
       "benefitNote": "Có hiệu lực 30 ngày. Tương đương 5.000 KRW theo tỷ lệ thông thường; mức trừ tùy sản phẩm. Không phải tiền mặt và không dùng mua thẻ. Chỉ giảm giá dịch vụ áp dụng từ 10.000 KRW.",
       "join": "Đăng ký bằng Kakao hoặc email",
       "signatureDescription": "Xem tư vấn và kết quả mẫu phù hợp với điều bạn quan tâm.",
-      "member": "Kiểm tra Đá Mặt Trăng và hạn dùng. Áp dụng cho sản phẩm đủ điều kiện từ {minimum} KRW.",
-      "balance": "Xem Đá Mặt Trăng"
+      "member": "Kiểm tra Nguyệt Tinh Thạch và hạn dùng. Áp dụng cho sản phẩm đủ điều kiện từ {minimum} KRW.",
+      "balance": "Xem Nguyệt Tinh Thạch"
     },
     "refresh": {
-      "moonstone": "Tư vấn ánh trăng với Nguyệt thạch",
-      "gift": "{amount} Nguyệt thạch khi đăng ký lần đầu",
+      "moonstone": "Tư vấn ánh trăng với Nguyệt Tinh Thạch",
+      "gift": "{amount} Nguyệt Tinh Thạch khi đăng ký lần đầu",
       "giftTerms": "Trị giá {value} KRW · Hiệu lực {days} ngày từ ngày cấp · Giảm giá dịch vụ đủ điều kiện từ {minimum} KRW. Không dùng để mua vé.",
-      "terms": "Xem điều kiện Nguyệt thạch",
+      "terms": "Xem điều kiện Nguyệt Tinh Thạch",
       "rewards": "Hoạt động và phần thưởng"
     },
     "mv": {
@@ -2003,7 +2003,7 @@
     },
     "passCopy": {
       "myTitle": "Vé của tôi",
-      "flowerPass": "🌸 Moonlight Pass Heo Hoa",
+      "flowerPass": "🌸 Vé Hũ Mật Ong Heo Hoa",
       "packPass": "Vé Yeongnyangi",
       "packTitle": "Vé tư vấn riêng Yeongnyangi",
       "packName": "Bộ {fish} {total} lượt",
@@ -2117,7 +2117,7 @@
       "honeyPerUseRuleBody": "Xem tương hợp với người mới hoặc trải bài mới cần dùng giọt mật lần nữa. Luận giải Sukuyo chi tiết đã lưu có thể đọc lại nguyên văn trong lịch sử.",
       "honeyListOnly": "Áp dụng cho nội dung trong danh sách",
       "honeyOtherPayments": "Các cách thanh toán khác vẫn giữ nguyên",
-      "honeyOtherPaymentsBody": "Vé, đá mặt trăng và thanh toán từng lần theo chính sách của mỗi sản phẩm. Số giọt mật tách biệt với giá tiền.",
+      "honeyOtherPaymentsBody": "Vé, Nguyệt Tinh Thạch và thanh toán từng lần theo chính sách của mỗi sản phẩm. Số giọt mật tách biệt với giá tiền.",
       "honeyOpenTitle": "Mở nội dung",
       "close": "Đóng",
       "open": "Mở",
@@ -2214,11 +2214,11 @@
       "methodIntro": "Mọi lối vào đều dùng nguyên tắc luận giải do Byeongha Park (Neo) thiết kế.",
       "basisBody": "Yeongnyangi và Ggulggul áp dụng nguyên tắc của Byeongha Park (Neo). Tư vấn email Hỏi Neo cũng dựa trên kinh nghiệm đó; tên khác không có nghĩa là thầy khác. Saju, tarot và chiêm tinh vẫn theo từng hệ riêng; câu hỏi và độ sâu tùy sản phẩm.",
       "reviewBody": "Phòng Chiến lược Neo dùng AI giải thích dữ liệu. Với Hỏi Neo, Neo trực tiếp đọc nội dung, dùng phân tích AI để viết và duyệt rồi gửi email. Đây không phải chat trực tiếp, điện thoại hay gặp mặt. Việc thiết kế nguyên tắc không có nghĩa mọi kết quả AI đều được người duyệt.",
-      "termsBody": "Xem nội dung và mẫu, rồi kiểm tra giá và điều kiện vé, đá mặt trăng hoặc thanh toán từng lần.",
+      "termsBody": "Xem nội dung và mẫu, rồi kiểm tra giá và điều kiện vé, Nguyệt Tinh Thạch hoặc thanh toán từng lần.",
       "emailLead": "Mô tả hoàn cảnh và lựa chọn bạn đang cân nhắc. Neo trực tiếp đọc, viết và duyệt rồi gửi email.",
       "emailTiming": "Thường trả lời email trong 24 giờ, tối đa 3 ngày lúc đông · 30 câu hỏi/ngày",
       "smallLead": "Nghỉ một chút hoặc so kết quả với bạn bè. Bắt đầu từ trải nghiệm miễn phí.",
-      "smallPolicy": "Kiểm tra điều kiện trước khi trả tiền. Vé và đá mặt trăng áp dụng theo chính sách hiện tại của từng sản phẩm.",
+      "smallPolicy": "Kiểm tra điều kiện trước khi trả tiền. Vé và Nguyệt Tinh Thạch áp dụng theo chính sách hiện tại của từng sản phẩm.",
       "honeyScope": "Danh sách gồm các luận giải cơ bản được chọn. Xem điều kiện tính năng khác tại màn hình riêng. Kết quả và quyền đã có được giữ nguyên.",
       "cardLabel": "{title} — {action}",
       "sceneAlt": "Cảnh {name} tư vấn {title}",
@@ -2289,7 +2289,7 @@
       "pace": "Không giới hạn thời gian, theo nhịp của bạn.",
       "end": "Hết hạn mức tư vấn vẫn dùng tiếp được các bài xem nhẹ.",
       "alt": "Heo hoa Yeoni và Yeongnyangi cùng ôm một Hũ Mật Ong",
-      "moon": "Vé Ánh Trăng!",
+      "moon": "Vé Hũ Mật Ong!",
       "choose": "Chọn Hũ Mật phù hợp.",
       "value": "Giá trị theo giá mua lẻ",
       "price": "Giá vé",
@@ -2869,7 +2869,7 @@
       "close": "Đóng và kiểm tra trạng thái",
       "wait": "Xác nhận thanh toán trong PayPal, sau đó kiểm tra trạng thái tại đây.",
       "internationalLabel": "PayPal · Thanh toán quốc tế (USD)",
-      "internationalGuide": "Ngoài Hàn Quốc, hãy dùng PayPal để mua lượt luận giải hoặc gói sử dụng. Kiểm tra tổng tiền USD trước khi xác nhận. Gói và Đá Ánh Trăng đã có vẫn dùng theo điều kiện hiện tại."
+      "internationalGuide": "Ngoài Hàn Quốc, hãy dùng PayPal để mua lượt luận giải hoặc gói sử dụng. Kiểm tra tổng tiền USD trước khi xác nhận. Gói và Nguyệt Tinh Thạch đã có vẫn dùng theo điều kiện hiện tại."
     },
     "loader": {
       "eyebrow": "Séc thanh toán ánh trăng",
@@ -3099,7 +3099,7 @@
       },
       "clean": {
         "pass": {
-          "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
+          "eyebrow": "KIỂM TRA VÉ HŨ MẬT ONG",
           "title": "Đang kiểm tra thẻ của bạn",
           "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
@@ -3135,13 +3135,13 @@
           "meta": "Bạn có thể xem nó ngay sau khi quá trình xác minh kết thúc."
         },
         "monthly": {
-          "eyebrow": "ĐÁ ÁNH SÁNG KIỂM TRA",
+          "eyebrow": "KIỂM TRA NGUYỆT TINH THẠCH",
           "title": "Kiểm tra thanh toán tín dụng hàng tháng",
           "message": "Mở quyền truy cập nội dung bằng số dư tín dụng hàng tháng của bạn.",
           "meta": "Kết hợp an toàn các quyền truy cập và khấu trừ tín dụng."
         },
         "subscription": {
-          "eyebrow": "KÍCH HOẠT THẺ MẶT TRĂNG",
+          "eyebrow": "KÍCH HOẠT VÉ HŨ MẬT ONG",
           "title": "Kiểm tra thanh toán bằng KRW",
           "message": "Kiểm tra phê duyệt và kích hoạt thanh toán vượt qua.",
           "meta": "Áp dụng cấp độ và thời lượng vượt qua một cách an toàn."
@@ -3170,7 +3170,7 @@
       },
       "default": {
         "pass": {
-          "eyebrow": "KIỂM TRA VƯỢT QUA ÁNH SÁNG",
+          "eyebrow": "KIỂM TRA VÉ HŨ MẬT ONG",
           "title": "Đang kiểm tra thẻ của bạn",
           "message": "Đang kiểm tra xem thẻ pass của bạn có mở được nội dung này ngay hay không.",
           "meta": "Nếu có sẵn, bạn sẽ tiếp tục mà không cần cửa sổ thanh toán."
@@ -3206,13 +3206,13 @@
           "meta": "Bạn có thể xem nó ngay sau khi quá trình xác minh kết thúc."
         },
         "monthly": {
-          "eyebrow": "ĐÁ ÁNH SÁNG KIỂM TRA",
+          "eyebrow": "KIỂM TRA NGUYỆT TINH THẠCH",
           "title": "Kiểm tra thanh toán tín dụng hàng tháng",
           "message": "Mở quyền truy cập nội dung bằng số dư tín dụng hàng tháng của bạn.",
           "meta": "Kết hợp an toàn các quyền truy cập và khấu trừ tín dụng."
         },
         "subscription": {
-          "eyebrow": "KÍCH HOẠT THẺ MẶT TRĂNG",
+          "eyebrow": "KÍCH HOẠT VÉ HŨ MẬT ONG",
           "title": "Kiểm tra thanh toán bằng KRW",
           "message": "Kiểm tra phê duyệt và kích hoạt thanh toán vượt qua.",
           "meta": "Áp dụng cấp độ và thời lượng vượt qua một cách an toàn."
@@ -3264,9 +3264,9 @@
       "allFeatures": "Toàn bộ nội dung áp dụng gói",
       "upTo": "Có sẵn tới {amount}",
       "benefits": "Sơ lược về lợi ích",
-      "closeAria": "Đóng Hướng dẫn về cửa hàng Moonlight Pass",
-      "openAria": "Hướng dẫn mở cửa hàng Moonlight Pass",
-      "title": "Hướng dẫn mua thẻ Moonlight Pass",
+      "closeAria": "Đóng Hướng dẫn về cửa hàng Vé Hũ Mật Ong",
+      "openAria": "Hướng dẫn mở cửa hàng Vé Hũ Mật Ong",
+      "title": "Hướng dẫn mua thẻ Vé Hũ Mật Ong",
       "subtitle": "Vé được mua bằng thanh toán một lần theo KRW, còn Nguyệt Tinh Thạch dùng cho từng tính năng trả phí.",
       "footerNotice": "Thẻ này không phải là sản phẩm tự động gia hạn. Bạn cần mua lại sau khi dùng hết hạn mức.",
       "packages": {
@@ -3314,7 +3314,7 @@
     "neoSubline": "Không có thêm ý kiến gì. Chỉ có sự thật vẫn còn.",
     "signup": "Đăng ký",
     "login": "Đăng nhập",
-    "guestMoonstoneTeaser": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 đá mặt trăng · giảm giá dịch vụ đủ điều kiện từ 10.000 KRW",
+    "guestMoonstoneTeaser": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận 500 Nguyệt Tinh Thạch · giảm giá dịch vụ đủ điều kiện từ 10.000 KRW",
     "loadingGreeting": "Căn chỉnh ánh sao cho tài khoản của bạn",
     "loadingChip": "ĐỒNG BỘ PHIÊN",
     "loadingTitle": "Đang tải thông tin đăng nhập của bạn",
@@ -3352,9 +3352,9 @@
       "signupButton": "Đăng ký"
     },
     "passCheckingGreeting": "Đang kiểm tra Thẻ Pass",
-    "passCheckingNote": "Đang điều chỉnh Thẻ Pass Ánh Trăng và cấp độ thành viên một cách an toàn.",
+    "passCheckingNote": "Đang điều chỉnh Vé Hũ Mật Ong và cấp độ thành viên một cách an toàn.",
     "exitBenefit": {
-      "title": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận {amount} đá mặt trăng",
+      "title": "Hoàn thành hướng dẫn lịch vạn niên miễn phí để nhận {amount} Nguyệt Tinh Thạch",
       "copy": "Nhận một lần sau khi đăng nhập và xem lịch vạn niên miễn phí với hồ sơ đã lưu. Không cấp lại nếu đã nhận quà đăng ký. Trị giá 5.000 KRW. Dùng trong {days} ngày cho dịch vụ áp dụng từ 10.000 KRW.",
       "note": "Số đá cần dùng tùy sản phẩm. Không phải tiền mặt và không dùng để mua gói.",
       "join": "Đăng ký với Kakao",
@@ -7719,7 +7719,7 @@
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {
         "k1yqmdmg": {
-          "ariaLabel": "Thông tin Moonlight Pass"
+          "ariaLabel": "Thông tin Vé Hũ Mật Ong"
         }
       }
     },
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
+      "tagline": "A Honey Jar Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",
@@ -21037,7 +21037,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Giá cho một lần tư vấn · đã gồm 1 câu hỏi thêm · Tarot không dùng được Moonstone; Tứ Trụ, tương hợp và Sukuyo thì có thể dùng Moonstone.",
+      "priceNote": "Giá cho một lần tư vấn · đã gồm 1 câu hỏi thêm · Tarot không dùng được Nguyệt Tinh Thạch; Tứ Trụ, tương hợp và Sukuyo thì có thể dùng Nguyệt Tinh Thạch.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -21068,7 +21068,7 @@
       "question": "My question",
       "price": "Single-reading price",
       "scope": "Câu trả lời cốt lõi · căn cứ diễn giải · gợi ý hành động · thư của Yeoni · 1 câu hỏi thêm",
-      "policy": "Tarot không dùng được Moonstone, việc áp dụng Pass sẽ được kiểm tra ở bước tiếp theo. Sau khi nhận kết quả, bạn có thể hỏi thêm 1 câu miễn phí, dựa trên cùng căn cứ của buổi tư vấn (lá số, lá bài hoặc bản mệnh tú).",
+      "policy": "Tarot không dùng được Nguyệt Tinh Thạch, việc áp dụng Pass sẽ được kiểm tra ở bước tiếp theo. Sau khi nhận kết quả, bạn có thể hỏi thêm 1 câu miễn phí, dựa trên cùng căn cứ của buổi tư vấn (lá số, lá bài hoặc bản mệnh tú).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",

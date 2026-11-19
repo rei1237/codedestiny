@@ -113,18 +113,18 @@
     "ms": "SEMUA PERKHIDMATAN"
   },
   "home.passMini.guideLabel": {
-    "ko": "MOONLIGHT GUIDE",
-    "en": "MOONLIGHT GUIDE",
-    "ja": "月明かりのガイド",
-    "zh-CN": "月光指南",
-    "zh-TW": "月光指南",
-    "vi": "HƯỚNG DẪN ÁNH TRĂNG",
-    "hi": "चाँदनी मार्गदर्शिका",
-    "es": "GUÍA A LA LUZ DE LA LUNA",
-    "fr": "GUIDE AU CLAIR DE LUNE",
-    "de": "MONDLICHT-WEGWEISER",
-    "nl": "MAANLICHTGIDS",
-    "ms": "PANDUAN CAHAYA BULAN"
+    "ko": "HONEY JAR PASS GUIDE",
+    "en": "HONEY JAR PASS GUIDE",
+    "ja": "はちみつ壺利用券ガイド",
+    "zh-CN": "蜜罐通行证指南",
+    "zh-TW": "蜜罐通行證指南",
+    "vi": "HƯỚNG DẪN VÉ HŨ MẬT ONG",
+    "hi": "शहद जार पास गाइड",
+    "es": "GUÍA DEL PASE TARRO DE MIEL",
+    "fr": "GUIDE DU PASS POT DE MIEL",
+    "de": "HONIGGLAS-PASS-GUIDE",
+    "nl": "HONINGPOT-PASGIDS",
+    "ms": "PANDUAN PAS BALANG MADU"
   },
   "rd.aria-label.002": {
     "ko": "share hashtags",

@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: "U2 — 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary"
+next: "U3 — FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검)"
 ---
 
 # 용어 통일(꿀단지 이용권·월정석) + 처음 온 사람용 FAQ·서비스 설명 다듬기
@@ -61,7 +61,7 @@ next: "U2 — 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번
 ## 단계
 - [x] U1 한국어 용어 통일(꿀단지 이용권). 바꾼 파일·건수, 보고만 목록(결제 동결)을 아래 "결과"에.
 - [x] U1b 결제 동결 문구 라벨만 교체: `payment.directModal.passBadge`·`musicTrackSub` 의 "달빛 이용권" → "꿀단지 이용권". 렌더러 3종(`app/_lib/billing-client.ts`, `index.html` `_cdChooseServicePaymentMode`, `js/destiny-profile.js`)과 `public/i18n/ko.json` 을 한 커밋에, `verify-payment-freeze --update` 로 매니페스트 갱신. 결제 로직·정규식·금액·순서는 바꾸지 않는다. 다른 로케일 값은 U2. 2026-11-19 사용자 요청 "용어 통일" 범위로 진행(위험: 결제창 라벨만, 롤백은 커밋 revert 1회).
-- [ ] U2 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary.
+- [x] U2 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary.
 - [ ] U3 FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검).
 - [ ] U4 마무리: 남은 옛 이름 grep(문서 역사 기록 제외) 0 확인, 금지 표현 grep, `npm run check:pre-push`, origin/main 머지(충돌 생성물은 theirs → `sync:public`·`sitemap:generate`), push, main CI 1회 확인, 이 문서 `status: done`, 최종 보고. 운영 승격은 하지 않는다.
 
@@ -79,3 +79,14 @@ next: "U2 — 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번
 - destiny-profile.js 내용이 바뀌어 손으로 관리하는 런타임 핀 build-2179916719ec → build-8bac2dd89013(billing-client.ts PAID_SERVICE_RUNTIME_SRC, verify-paid-gate-ui-regression.mjs:234, 독립 정적 페이지 10 + public 미러 10). parity 가 요구한 값.
 - payment-freeze --update: _cdChooseServicePaymentMode·_dpRenderStandalonePaymentChoice region, billing-client.ts 해시 3개 갱신. sync:public(셸 미러 7·캐시 키)·sitemap:generate(lastmod 원장 42) 산출물 포함.
 - 검증: verify:payment-freeze·payment-choice-parity·payment-copy-dictionary·paid-gate-ui·locale-text-fit(카드 헤드 최대 272.1/290px) 통과, check:fast(paid-gate-suite 78/0 포함) 통과.
+
+### U2 (2026-11-19, 커밋은 이 문서를 담은 커밋)
+- 채택 용어(glossary 정본): 꿀단지 이용권 = en Honey Jar Pass · ja はちみつ壺利用券 · zh-CN 蜜罐通行证 · zh-TW 蜜罐通行證 · vi Vé Hũ Mật Ong · hi शहद जार पास · es Pase Tarro de Miel · fr Pass Pot de Miel · de Honigglas-Pass · nl Honingpot-pas · ms Pas Balang Madu. 월정석 = en Moonstone · ja/zh 月精石 · vi Nguyệt Tinh Thạch · hi मूनस्टोन · es Piedra Lunar · fr Pierre de Lune · de Mondstein · nl Maansteen · ms Batu Bulan.
+- `i18n/glossary.json`: 월정석 7로케일 값 교체(vi·ja·zh 유지), "꿀단지 이용권" 항목 신설.
+- i18n: authored 33파일 + public 사전(12 로케일 본 사전·shellRuntime) 토큰 단위 치환(키 추가·이름 변경 0). 영어 복사본인 비저작 로케일 값은 새 en 값으로. passMini kicker·guideLabel·step1Label·aria·title 과 payment.overlay 눈썹 문구는 로케일별로 손 번역. 옛 변종(月光通行证/證·月晶石·月光石·月長石·ムーンストーン·月明かり利用券·Đá Ánh Trăng·Đá Mặt Trăng·Maanlicht*·Mondlicht*/Mondschein-Pass·Cahaya Bulan·Clair de Lune·Luz Lunar·मूनलाइट 등)과 "돌 이름이 붙은 패스" 혼종(fr/ms/nl passCheckingNote)도 정리.
+- 컴포넌트 로컬 표: service-pack-copy·TarotPromptMakerClient·PointsClient·SubscriptionStatusCard·PointHistoryClient·order-view-model·payment-alliance-copy·checkout-copy·consultation-locale-copy·LoveRelationshipTarot·first-visit-copy·public-trust-copy·commerce-disclosure-copy·official-information·legalContent·TermsContent·neo-war-room form-copy, index.html(passMini 기본값, `_cdResolvePaymentOverlayCopy` 눈썹 폴백 — 동결 region 밖), destiny-profile.js:136 en 문구.
+- destiny-profile.js 내용 변경으로 런타임 핀 build-8bac2dd89013 → build-df6b3d1c4da1(billing-client.ts PAID_SERVICE_RUNTIME_SRC, verify-paid-gate-ui-regression.mjs, 독립 정적 페이지 10 + public 미러 10), `verify-payment-freeze --update`(billing-client.ts 파일 해시 1개). sync:public·sitemap:generate 산출물 포함.
+- 남긴 것(이유): 코드 식별자·별칭 매칭(MOONLIGHT_*, `_dpFetchMoonlightStoneBalance`, PaymentProcessingContext·worker payment-service/profile 의 "moonlight stone" 입력 별칭), worker 주석, 노래 가사(musicLyrics·vtt "moonlight pass"), 일반 "달빛" 묘사(月明かり·Mondlicht·Mondschein·Ánh Trăng·Clair de Lune·Cahaya Bulan 태그라인·음악·부적·소설), 옛 브랜드명 이력(native-home-copy), 역사 문서·provenance.md, verify-mobile-runtime-readiness 검사 라벨. hi monthlyReward.title "मूनस्टोन पास लाभ…"는 원래 문장 구조 그대로(“월정석: 이용권 혜택…” 뜻, 기존 문제).
+- 보고만: ko `home.passMini.toggle` "달빛 혜택 펼치기"(ja オープンムーンライト特典)·`heroAria` "달빛 흐름", index.html 월정석 폴백 "달빛의 결|달빛 잔량" — U3/U4 판단. en `home.passMini.primaryAction` 이 ko 와 뜻이 다름(기존). ko/shellRuntime f3376 은 소스 문자열이 없어 낡은 항목으로 보임.
+- 검증: verify:payment-freeze·payment-choice-parity·payment-copy-dictionary 통과, check:fast(결과 아래).
+- check:fast(standard 자동) exit 0 — jest 483 suites/8254 passed, 1 skipped. 그 뒤 손댄 public 사전 5값(passCheckingNote es·vi·fr·ms·nl)은 JSON 파싱·결제 verify 3종 재실행 통과.

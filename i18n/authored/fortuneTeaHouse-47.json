@@ -423,16 +423,16 @@
   "fortuneTeaHouse.homeV2.priceNote": {
     "ko": "단건 기준 · 추가 질문 1회 포함 · 타로는 월정석 없이, 사주·궁합·숙요는 월정석도 쓸 수 있어요.",
     "en": "Single-reading price · 1 follow-up question included · Moonstones can't be used for tarot, but can be used for Four Pillars, compatibility and Sukuyo.",
-    "ja": "単発料金・追加質問1回付き・タロットは月晶石なしで、四柱推命・相性・宿曜は月晶石も使えます。",
-    "zh-CN": "单次价格 · 含 1 次追问 · 塔罗不可使用月晶石，四柱、合婚、宿曜也可使用月晶石。",
-    "zh-TW": "單次價格 · 含 1 次追問 · 塔羅不可使用月晶石，四柱、合婚、宿曜也可使用月晶石。",
-    "vi": "Giá cho một lần tư vấn · đã gồm 1 câu hỏi thêm · Tarot không dùng được Moonstone; Tứ Trụ, tương hợp và Sukuyo thì có thể dùng Moonstone.",
-    "hi": "एक रीडिंग की कीमत · 1 अतिरिक्त प्रश्न शामिल · टैरो में Moonstone इस्तेमाल नहीं होता; फोर पिलर्स, अनुकूलता और सुकुयो में Moonstone भी इस्तेमाल किया जा सकता है।",
-    "es": "Precio por consulta · incluye 1 pregunta adicional · El tarot no admite Moonstone; Cuatro Pilares, compatibilidad y Sukuyo sí.",
-    "fr": "Prix pour une consultation · 1 question complémentaire incluse · Le tarot n'accepte pas les Moonstone ; les Quatre Piliers, la compatibilité et le Sukuyo, si.",
-    "de": "Preis pro Deutung · 1 Folgefrage inklusive · Für Tarot gilt kein Moonstone; für Vier Säulen, Kompatibilität und Sukuyo schon.",
-    "nl": "Prijs per consult · inclusief 1 vervolgvraag · Voor tarot geldt geen Moonstone; voor Vier Pilaren, compatibiliteit en Sukuyo wel.",
-    "ms": "Harga satu bacaan · termasuk 1 soalan susulan · Tarot tidak boleh guna Moonstone; Empat Tiang, keserasian dan Sukuyo boleh."
+    "ja": "単発料金・追加質問1回付き・タロットは月精石なしで、四柱推命・相性・宿曜は月精石も使えます。",
+    "zh-CN": "单次价格 · 含 1 次追问 · 塔罗不可使用月精石，四柱、合婚、宿曜也可使用月精石。",
+    "zh-TW": "單次價格 · 含 1 次追問 · 塔羅不可使用月精石，四柱、合婚、宿曜也可使用月精石。",
+    "vi": "Giá cho một lần tư vấn · đã gồm 1 câu hỏi thêm · Tarot không dùng được Nguyệt Tinh Thạch; Tứ Trụ, tương hợp và Sukuyo thì có thể dùng Nguyệt Tinh Thạch.",
+    "hi": "एक रीडिंग की कीमत · 1 अतिरिक्त प्रश्न शामिल · टैरो में मूनस्टोन इस्तेमाल नहीं होता; फोर पिलर्स, अनुकूलता और सुकुयो में मूनस्टोन भी इस्तेमाल किया जा सकता है।",
+    "es": "Precio por consulta · incluye 1 pregunta adicional · El tarot no admite Piedras Lunares; Cuatro Pilares, compatibilidad y Sukuyo sí.",
+    "fr": "Prix pour une consultation · 1 question complémentaire incluse · Le tarot n'accepte pas les Pierres de Lune ; les Quatre Piliers, la compatibilité et le Sukuyo, si.",
+    "de": "Preis pro Deutung · 1 Folgefrage inklusive · Für Tarot gilt kein Mondstein; für Vier Säulen, Kompatibilität und Sukuyo schon.",
+    "nl": "Prijs per consult · inclusief 1 vervolgvraag · Voor tarot geldt geen Maansteen; voor Vier Pilaren, compatibiliteit en Sukuyo wel.",
+    "ms": "Harga satu bacaan · termasuk 1 soalan susulan · Tarot tidak boleh guna Batu Bulan; Empat Tiang, keserasian dan Sukuyo boleh."
   },
   "fortuneTeaHouse.homeV2.previewTitle": {
     "ko": "상담은 이렇게 남아요",
@@ -759,16 +759,16 @@
   "fortuneTeaHouse.confirmation.policy": {
     "ko": "타로는 월정석을 쓸 수 없고, 이용권 적용은 다음 단계에서 확인해요. 결과를 받은 뒤 같은 상담 근거(명식·카드·본명숙)로 추가 질문 1회를 추가 비용 없이 할 수 있어요.",
     "en": "Moonstones can't be used for tarot, and pass eligibility is checked in the next step. After your reading arrives, you can ask 1 follow-up question on the same basis (birth chart, cards or natal lunar mansion) at no extra charge.",
-    "ja": "タロットには月晶石を使えず、利用券の適用は次の段階で確認します。結果を受け取ったあと、同じ鑑定の根拠(命式・カード・本命宿)で追加質問を1回、追加料金なしでできます。",
-    "zh-CN": "塔罗不可使用月晶石，通行证是否适用将在下一步确认。收到结果后，可依据同一份咨询依据（命盘、牌面或本命宿）免费追问 1 次。",
-    "zh-TW": "塔羅不可使用月晶石，通行證是否適用將在下一步確認。收到結果後，可依據同一份諮詢依據（命盤、牌面或本命宿）免費追問 1 次。",
-    "vi": "Tarot không dùng được Moonstone, việc áp dụng Pass sẽ được kiểm tra ở bước tiếp theo. Sau khi nhận kết quả, bạn có thể hỏi thêm 1 câu miễn phí, dựa trên cùng căn cứ của buổi tư vấn (lá số, lá bài hoặc bản mệnh tú).",
-    "hi": "टैरो में Moonstone इस्तेमाल नहीं हो सकता, और Pass की पात्रता अगले चरण में जाँची जाएगी। परिणाम मिलने के बाद, उसी आधार (जन्म-चार्ट, कार्ड या जन्म चंद्र-भवन) पर आप बिना अतिरिक्त शुल्क के 1 अतिरिक्त प्रश्न पूछ सकते हैं।",
-    "es": "El tarot no admite Moonstone, y la aplicación de Pass se comprueba en el siguiente paso. Cuando recibas tu consulta, podrás hacer 1 pregunta adicional sin coste extra, con la misma base (carta natal, cartas o mansión lunar natal).",
-    "fr": "Le tarot n'accepte pas les Moonstone, et l'éligibilité Pass est vérifiée à l'étape suivante. Une fois votre consultation reçue, vous pouvez poser 1 question complémentaire sans frais supplémentaires, sur la même base (thème de naissance, cartes ou demeure lunaire natale).",
-    "de": "Für Tarot gilt kein Moonstone; ob Pass gilt, wird im nächsten Schritt geprüft. Nach Erhalt Ihrer Deutung können Sie ohne Zusatzkosten 1 Folgefrage auf derselben Grundlage stellen (Geburtshoroskop, Karten oder Geburts-Mondstation).",
-    "nl": "Voor tarot geldt geen Moonstone; of Pass geldt, wordt in de volgende stap gecontroleerd. Na ontvangst van je consult kun je zonder extra kosten 1 vervolgvraag stellen op dezelfde basis (geboortekaart, kaarten of geboortemaanhuis).",
-    "ms": "Tarot tidak boleh menggunakan Moonstone, dan kelayakan Pass disemak pada langkah seterusnya. Selepas menerima bacaan, anda boleh bertanya 1 soalan susulan tanpa caj tambahan, berdasarkan asas yang sama (carta kelahiran, kad atau rumah bulan kelahiran)."
+    "ja": "タロットには月精石を使えず、利用券の適用は次の段階で確認します。結果を受け取ったあと、同じ鑑定の根拠(命式・カード・本命宿)で追加質問を1回、追加料金なしでできます。",
+    "zh-CN": "塔罗不可使用月精石，通行证是否适用将在下一步确认。收到结果后，可依据同一份咨询依据（命盘、牌面或本命宿）免费追问 1 次。",
+    "zh-TW": "塔羅不可使用月精石，通行證是否適用將在下一步確認。收到結果後，可依據同一份諮詢依據（命盤、牌面或本命宿）免費追問 1 次。",
+    "vi": "Tarot không dùng được Nguyệt Tinh Thạch, việc áp dụng Pass sẽ được kiểm tra ở bước tiếp theo. Sau khi nhận kết quả, bạn có thể hỏi thêm 1 câu miễn phí, dựa trên cùng căn cứ của buổi tư vấn (lá số, lá bài hoặc bản mệnh tú).",
+    "hi": "टैरो में मूनस्टोन इस्तेमाल नहीं हो सकता, और Pass की पात्रता अगले चरण में जाँची जाएगी। परिणाम मिलने के बाद, उसी आधार (जन्म-चार्ट, कार्ड या जन्म चंद्र-भवन) पर आप बिना अतिरिक्त शुल्क के 1 अतिरिक्त प्रश्न पूछ सकते हैं।",
+    "es": "El tarot no admite Piedras Lunares, y la aplicación de Pass se comprueba en el siguiente paso. Cuando recibas tu consulta, podrás hacer 1 pregunta adicional sin coste extra, con la misma base (carta natal, cartas o mansión lunar natal).",
+    "fr": "Le tarot n'accepte pas les Pierres de Lune, et l'éligibilité Pass est vérifiée à l'étape suivante. Une fois votre consultation reçue, vous pouvez poser 1 question complémentaire sans frais supplémentaires, sur la même base (thème de naissance, cartes ou demeure lunaire natale).",
+    "de": "Für Tarot gilt kein Mondstein; ob Pass gilt, wird im nächsten Schritt geprüft. Nach Erhalt Ihrer Deutung können Sie ohne Zusatzkosten 1 Folgefrage auf derselben Grundlage stellen (Geburtshoroskop, Karten oder Geburts-Mondstation).",
+    "nl": "Voor tarot geldt geen Maansteen; of Pass geldt, wordt in de volgende stap gecontroleerd. Na ontvangst van je consult kun je zonder extra kosten 1 vervolgvraag stellen op dezelfde basis (geboortekaart, kaarten of geboortemaanhuis).",
+    "ms": "Tarot tidak boleh menggunakan Batu Bulan, dan kelayakan Pass disemak pada langkah seterusnya. Selepas menerima bacaan, anda boleh bertanya 1 soalan susulan tanpa caj tambahan, berdasarkan asas yang sama (carta kelahiran, kad atau rumah bulan kelahiran)."
   },
   "fortuneTeaHouse.confirmation.edit": {
     "ko": "질문 수정하기",
