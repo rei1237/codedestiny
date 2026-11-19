@@ -72,6 +72,7 @@
 | 유니버설 링크 실수신(콜드·웜) | 실기기 | 미검증. Team ID·서명·AASA 배포가 모두 필요해 OS의 도메인 연결 단계는 시뮬레이션으로 대신했다(위 행) |
 | 콜드 스타트 경합 | 실행 [44562306732](https://github.com/rei1237/codedestiny/actions/runs/44562306732) | 첫 페이지 로드가 끝나기 전에 유니버설 링크가 오면 "Frame load interrupted" 뒤 index.html 로 다시 로드돼 이동이 사라졌다. 셀프 테스트는 페이지 안정 뒤 보내도록 고쳤고, 제품 동작(콜드 스타트 링크 유실 가능성)은 후속 과제 |
 | 상단 safe area(레이아웃 측정) | 셀프 테스트 layout probe, 실행 44585851632 | 홈: `env(safe-area-inset-top)` 62px, body padding 62px, 헤더 top 62 → 정상. `/about/`(정적 `public/static/policies/about/index.html`, `header.policy-site-header` sticky): `env()` **0px**, body padding 0, 헤더 top 0 → 스크린샷에서도 상태바와 겹침. 원인: 이 정적 페이지의 viewport 메타에 `viewport-fit=cover`가 없다(`width=device-width,initial-scale=1`). GlobalHeader CSS(6c9dfb1f3)와는 무관. 미수정(후속 과제) |
+| 상단 safe area — `/about/` 등 정적 정책 6쪽 수정 | 로컬 커밋 5f2b246f2, Chrome iPhone 15 Pro + CDP safe-area 59px 에뮬레이션 | 생성기(`scripts/design/build-static-policy-pages.mjs`) viewport에 `viewport-fit=cover`, `.policy-site-header`에 `padding-top: env(safe-area-inset-top)`, 앱(`html[data-platform]`)에서는 브릿지의 body 패딩을 0으로(GlobalHeader와 같은 방식). 에뮬레이션: 헤더 내용 top 59px(스크롤 후에도 59), body 0. 인셋 0(데스크톱·브라우저)은 헤더 padding 0으로 변화 없음. iOS CI 실측 확인은 push 뒤 |
 
 ## 5. 레드팀: 지금 제출하면 반려될 사유
 
