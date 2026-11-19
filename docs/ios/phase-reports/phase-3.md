@@ -102,9 +102,9 @@
 - 커스텀 스킴 `com.codedestiny.app://`이 이 앱에 등록됐다. 시뮬레이터가 `Open in "꿀꿀운세"?` 확인창을 띄운다. 누르기 전이라 `appUrlOpen` 수신은 확인하지 못했다
 
 CI가 찾은 결함 (이 Phase 범위 밖, 후속)
-- 🔴 **홈 `<html>`에 `data-platform`·`data-runtime-target`이 없다.** 브리지는 실행됐지만(`runtimeGlobal=mobile-app`) 홈에서 React 하이드레이션 오류 #418(`args[]=HTML`)이 나고, 남은 `<html>` 속성은 `lang,dir,class,data-cd-lang`뿐이다. 하이드레이션 실패 뒤 클라이언트 재렌더가 브리지가 찍은 속성을 지운 것으로 추정한다. `html[data-platform="ios"]`에 기대는 CSS(입력 확대 방지 16px 등)가 홈에서 적용되지 않는다. Android도 같은 홈을 쓰므로 같은 증상일 수 있다(미확인)
+- ✅ (be7c3671a에서 수정) **홈 `<html>`에 `data-platform`·`data-runtime-target`이 없다.** 원인(웹 빌드 `out/`에서 재현): 앱은 `appStartPath: "/index.html"`로 부팅하는데, 프리렌더는 `/` 기준이다. 그래서 `AppChrome`의 `usePathname()`이 클라이언트에서는 `/index.html`이 되어 `hideChrome`이 서버와 달라지고, `GlobalHeader`가 끼어들어 #418이 난다. React가 루트를 다시 렌더하면서 브리지가 찍은 `<html>` 속성을 지운다. 수정: 브리지가 하이드레이션 전에 주소의 `/index.html` 꼬리를 `history.replaceState`로 뗀다. 확인(run 44567360939): 홈 `htmlAttributes`에 `data-runtime-target,data-platform`이 있고 #418이 없다. Android도 같은 부팅 경로와 브리지를 쓰므로 함께 고쳐진다(코드로 추론, 기기 미확인)
 - `__cdNativeBridgeClient`는 홈에 로드되지 않는다(`info: "missing"`). `getInfo()` 확인은 그 스크립트를 싣는 화면에서 해야 한다
-- ⚠️ 헤더 위 약 70pt 빈 띠(스크린샷 픽셀 측정, 상단 safe-area 중복 추정). 실기기에서 확인한다
+- ⚠️ (일부 수정) 헤더 위 약 70pt 빈 띠. 원인: 브리지의 `body{padding-top:env(safe-area-inset-top)}`와 `GlobalHeader`의 자체 `padding-top:env(...)`가 겹쳤다. 홈에서만 보인 것은 위 #418 때문에 홈에 `GlobalHeader`가 끼어든 탓이다. 6c9dfb1f3은 `html[data-platform="ios"]`에서 `GlobalHeader`가 있는 페이지의 body 패딩을 0으로 둔다(Chrome 62px 인셋 에뮬레이션에서 헤더 top 0, 본문 68px로 웹과 같음). 그런데 run 44567360939의 `home.png`는 실제로는 `/about/` 화면이었고, 빈 띠는 사라졌지만 헤더 내용이 상태바와 겹쳤다. 기기에서 헤더의 `env()`가 0인지, 스크롤 상태 때문인지는 아직 측정하지 못했다. 다음 할 일: 셀프 테스트에 레이아웃 측정값(`scrollY`, `env(safe-area-inset-top)`, 헤더 `padding-top`·`top`)을 넣고, 홈 스크린샷을 링크 테스트 전에 찍도록 고친다. 측정값이 `env()`=0을 보이면 6c9dfb1f3을 되돌린다
 
 ## 5. 레드팀 (지금 제출하면 반려될 이유)
 
