@@ -106,6 +106,8 @@ class CodeDestinyViewController: CAPBridgeViewController {
     }
 
     #if DEBUG
+    private var selfTestObservers: [NSObjectProtocol] = []
+
     // Debug-only, opt-in with the launch argument -cdSelfTest (ios-shell-build.yml). Logs the values the
     // Mac checklist reads by hand in Web Inspector. Release builds never contain this code.
     private func scheduleSelfTest() {
@@ -132,10 +134,56 @@ class CodeDestinyViewController: CAPBridgeViewController {
               info: info
             });
             """
-            webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
+            webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { [weak self] result in
                 switch result {
                 case .success(let value): NSLog("%@", "[cd-selftest] \(value)")
                 case .failure(let error): NSLog("%@", "[cd-selftest] error \(error.localizedDescription)")
+                }
+                self?.selfTestLinks()
+            }
+        }
+    }
+
+    // Link delivery. `simctl openurl` from the host stops at SpringBoard's "Open in …?" confirmation, so the
+    // custom-scheme URL is opened by the app itself through UIApplication.open: it still goes through the OS
+    // (LaunchServices → AppDelegate → ApplicationDelegateProxy → @capacitor/app → appUrlOpen) with no prompt.
+    // A universal link needs a signed build and a served AASA (no Team ID yet), so iOS would route the https URL to
+    // Safari. The step hands the AppDelegate the same NSUserActivity iOS delivers for a universal link instead.
+    private func selfTestLinks() {
+        let center = NotificationCenter.default
+        for name in [Notification.Name.capacitorOpenURL, Notification.Name.capacitorOpenUniversalLink] {
+            selfTestObservers.append(center.addObserver(forName: name, object: nil, queue: .main) { note in
+                let url = ((note.object as? [String: Any])?["url"] as? URL)?.absoluteString ?? "?"
+                NSLog("%@", "[cd-selftest] link-native \(name.rawValue) \(url)")
+            })
+        }
+        guard let scheme = URL(string: "com.codedestiny.app://cd-selftest?probe=scheme") else { return }
+        UIApplication.shared.open(scheme, options: [:]) { opened in
+            NSLog("%@", "[cd-selftest] link-scheme-open \(opened)")
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            let activity = NSUserActivity(activityType: NSUserActivityTypeBrowsingWeb)
+            activity.webpageURL = URL(string: "https://code-destiny.com/about/?cd_selftest=universal")
+            let application = UIApplication.shared
+            let accepted = application.delegate?.application?(application, continue: activity, restorationHandler: { _ in }) ?? false
+            NSLog("%@", "[cd-selftest] link-universal-delivered \(accepted)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
+                guard let webView = self?.webView else { NSLog("%@", "[cd-selftest] link-result no webView"); return }
+                // The bridge's trace (localStorage, same origin) survives the navigation the universal link causes.
+                let script = """
+                let trace = [];
+                try { trace = JSON.parse(localStorage.getItem("cd_app_trace_v1") || "[]"); } catch (e) {}
+                return JSON.stringify({
+                  href: location.href,
+                  title: document.title,
+                  trace: trace.filter((e) => /appUrlOpen|universalLink|deepLink/.test(e.step)).slice(-6)
+                });
+                """
+                webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
+                    switch result {
+                    case .success(let value): NSLog("%@", "[cd-selftest] link-result \(value)")
+                    case .failure(let error): NSLog("%@", "[cd-selftest] link-result error \(error.localizedDescription)")
+                    }
                 }
             }
         }
