@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: "사용자 결정 2건(① 네오 첫 브리핑 다시 시도 우선 — 체크포인트 가드·실행 스위퍼·네오 환불 수집기 변경 필요 ② R1 다시 시도 창 의미) 확인 → R3 인생의 책 다시 시도 엔드포인트·UI(R1 reopenRetryableConsultation 사용). R1 은 R3·R4 없이 머지·push 금지"
+next: "R3 인생의 책 다시 시도(설계 'R3 설계' 절) → R4 신년운세 → R2b 네오 첫 브리핑. R1 은 R3·R4 없이 머지·push 금지"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -28,6 +28,9 @@ next: "사용자 결정 2건(① 네오 첫 브리핑 다시 시도 우선 — �
 - 🔴 **운영 승격은 승인 없음.** 끝나면 결과를 보고하고 사용자에게 1회 승인을 받은 뒤에만 Release production 을 dispatch 한다. push 를 승격 승인으로 확대하지 않는다.
 - 과금 LLM 실호출 승인 없음 → 전부 mock(`scripts/run-mock-tests.mjs`, LLM_DRY_RUN).
 - 실결제·운영 DB 쓰기·환불 실행 금지.
+- **사용자 결정 2026-11-19 (AskUserQuestion, 원문)**
+  1. 네오 첫 브리핑: **"다시 시도 먼저로 변경 (추천)"** → 승인됨. 이번 묶음(R1·R3·R4) 밖이라 R2b 단계로 둔다. 다시 묻지 않는다.
+  2. 환불 기한: **"결제(생성 시작) 후 7일 (추천)"** → `refundAt` 은 다시 시도 가능으로 바뀐 시각이 아니라 **상담 생성 시각 + 7일**, 늘리지 않는다. 복구 크론 7일 창과 같다. 반영 `3915323c7`.
 
 ## 설계 (가정 — 최종 보고에 명시하고 사용자 확인을 받는다)
 현재(S16): 대표 6종은 완성본만 전달하고, 진전 없이 약 1시간이면 `generation_failed` + 자동 전액 환불(`worker/lib/paid-delivery-stuck.js` `settleStuckConsultation`). 신년운세는 기존 구제·환불 경로.
@@ -48,6 +51,11 @@ next: "사용자 결정 2건(① 네오 첫 브리핑 다시 시도 우선 — �
 - [x] R0 지도: 대표 7종마다 실패·정체 시 상태/환불 호출 위치/클라이언트 표시/재시도 진입점(API·버튼)을 `파일:줄` 표로. 이 문서 아래 "실측"에 붙인다.
 - [x] R1 공용: `paid-delivery-stuck.js` 정체 → `retryable` 전환, 7일 뒤 환불로 이동. 공용 "다시 시도" 헬퍼(빠진 장만 재생성 대기로 되돌림, 결제 건 소유 확인). 테스트 먼저(TDD). — `e11840bf4`
 - [ ] R2 네오(첫 브리핑 + 수정 라운드 버튼 확인) — **부분 완료.** 수정 라운드 '같은 답변으로 다시 시도'는 완료(`e62ce85fd`). 첫 브리핑 다시 시도 우선은 기존 환불 장치와 충돌해 멈춤(실측 "R2 네오 첫 브리핑 차단 근거", 사용자 결정 대기).
+  - [x] R1 기한 정정(사용자 결정 2): 생성 + 7일, 연장 없음, 생성 7일 지난 첫 정체는 바로 환불. — `3915323c7`
+- [ ] R2b 네오 첫 브리핑 다시 시도 우선(사용자 승인 2026-11-19 "다시 시도 먼저로 변경 (추천)"). 차단 요소를 함께 고친다:
+  - `worker/lib/checkpoint-refund-guard.js:41` — `generation_failed` 를 '결과 없음'으로 분류해 `service-execution-task.js` `settleExecutionById`(:846)·`sweepStaleServiceExecutions`(:1484/:1502)가 약 10분 뒤 자동 환불한다. retryable 표지가 있고 창 안이면 결과 없음이 아니라 보류로 분류해야 한다.
+  - 네오가 `consultation-delivery-refund.js` `SERVICES` 에 없다 → 7일 뒤/고객 요청 환불 수집기가 없다(추가 또는 네오 전용 수집기).
+  - 핸들러 catch 의 즉시 환불 `refundNeoGenerationFailure`(:1957), 장당 8회 상한(:1070, :1864), 시작·재개 409 차단(:1801, GET /result :2006-2013).
 - [ ] R3 인생의 책
 - [ ] R4 신년운세 (S16 대상 밖이었으므로 완성본 판정·비노출 여부도 먼저 확인. 비노출 추가는 하지 않고 다시 시도만 붙인다 — 요청 범위)
 - [ ] R5 연애 비책
@@ -188,9 +196,16 @@ S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 
 
 ### 설계 가정·위험 (최종 보고에 명시)
 - (a) 새 상태 enum 을 추가하지 않고 `generation_failed` + `llmMeta.retryable` 표지로 '다시 시도 가능'을 나타낸다. 기존 화면·크론이 `generation_failed` 를 실패로 다루는 경로를 그대로 쓴다.
-- (b) 7일은 다시 시도 가능으로 바뀐 시각부터 센다. 그래서 `refundAt` 은 생성 기준 최대 약 13일까지 갈 수 있다. 복구 크론은 생성 7일 이내 문서만 보므로, 7일 뒤 다시 연 건은 클라이언트 재개 경로에만 기댄다. 또 생성 6일 뒤 다시 연 건은 경과일 기준 정체 확정에 바로 다시 걸린다(환불은 아니고 다시 retryable 로 돌아간다). 사용자가 '생성 기준 7일'을 원하면 `since` 대신 문서 생성 시각을 쓰도록 바꾼다.
+- (b) ~~7일은 다시 시도 가능으로 바뀐 시각부터 센다~~ → **사용자 결정(2026-11-19 "결제(생성 시작) 후 7일 (추천)")으로 생성 시각 + 7일**(`retryRefundAt(doc)`: createdAt → `_id` 시각 → now 순). 기존 `refundAt` 은 늘리지 않는다. `3915323c7`.
 - (c) 🔴 R1 단독 배포 금지(위 '지금 상태').
-- (d) 네오 첫 브리핑은 위 차단 근거 때문에 기존 즉시 환불을 유지한다.
+- (d) 네오 첫 브리핑은 이번 묶음에서는 기존 즉시 환불을 유지한다. 사용자가 '다시 시도 먼저'를 승인했으므로 R2b 에서 바꾼다.
+
+### R3 설계 (인생의 책, paid-gate-auditor 확인 반영)
+- 공용 헬퍼(`paid-delivery-stuck.js`): `retryableFailureMeta(doc, now, code)` — 창 안이고 환불 미시작이면 retryable 표지를 돌려주고, 아니면 null(호출부는 예전 즉시 환불로). `publicRetryState(doc, now)` — 응답용 `{retryable:true, refundAt}`. `reopenRetryableConsultation(..., {reset})` — 같은 CAS 로 추가 `$set`(실패 장의 attempts 0·failure null, waveCount 0).
+- 라우트: 요청 중 종결 실패(웨이브 catch, 바깥 catch, `finishLifeBookDelivery` 미완성)는 `retryableFailureMeta` 가 있으면 `refundEligibleAt`·환불·증빙 해제 없이 표지만 쓰고 503 `{reason:'LLM_ERROR', retryable:true, retry:{refundAt}}`. Toss(`accessSource==='toss'`/tossNative)는 다시 시도 UI 가 없어 기존 즉시 처리 유지(후속 보고).
+- `POST /api/life-book-ai/retry {sessionId}`: 소유자 확인 → reopen(reset) → 기존 재개(`handleStart` + `resumeSessionId`) 한 웨이브. 새 차감 없음(차감은 전달 시 `applyUsageOnce` 1회, 같은 멱등 키).
+- `POST /api/life-book-ai/refund-request {sessionId}`: `markRetryableRefundDue` → 즉시 `settleLifeBookFailureRefund`(크론은 예비).
+- 금지(감사): 새 `resolveBillingGateAccess`·`applyUsageOnce`·`claim*BillingEvidence` 호출 금지, 클라이언트 다시 시도가 결제창·/points 로 가지 않음, 환불 문구에 'N일 이내 환불 가능' 약속 금지, `restoreAccessBeforeGenerationFailure`·`cancelDeferredBillingUsage`·`settleFailedConsultationRefund` 참조 유지(검증기). worker 와 클라이언트를 한 커밋에(Paid Flow Gates 트리거).
 - (e) `expireRetryableConsultations` 는 공용 설정자(new-year-ai·life-book-ai)에만 걸려 있다. 전용 `settleStuckDelivery` 를 쓰는 5종(흑월·네오·찻집·코덱스·연애 비책)은 아직 즉시 환불이다(R5~R7 대상).
 
 ### R0~R2 최종 검사 (워크트리 HEAD `89c05a3bc`, --base=`bcce826eb`)
