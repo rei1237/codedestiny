@@ -8,16 +8,16 @@ import { progressSteps } from '@/lib/guided-flow/step-controller.mjs';
 import type { GuidedFlow, GuidedStep } from './useGuidedFlow';
 import yehwa from '../ServiceIntroSection.module.css';
 import masks from '../service-intro/yehwaIntroMasks.generated.module.css';
-// 영냥이 밤 예화 마스크(--yn-yehwa-mask-*). data-yn-night 루트에서만 값이 생긴다.
-import '@/app/yeongnyangi/yehwa-night.generated.css';
+// 영냥이 밤 예화 마스크(--yn-yehwa-mask-*, app/yeongnyangi/yehwa-night.generated.css)는 여기서 import 하지 않는다.
+// 꿀꿀 흐름(/today/·/tarot/healing/)이 영냥이 전용 CSS 를 받지 않게, brand='yeongnyangi' 를 쓰는 화면이 직접 import 한다.
 import styles from './guided-flow.module.css';
 
 /** 달빛 예화 브랜드. ggulggul = 꽃빛 정원(딥 플럼·샴페인 골드), yeongnyangi = 밤 점술방(--yn-*, 금빛). */
 export type GuidedFlowBrand = 'ggulggul' | 'yeongnyangi';
 
-function rootProps(brand: GuidedFlowBrand) {
+function rootProps(brand: GuidedFlowBrand, className?: string) {
   return {
-    className: styles.flow,
+    className: className ? `${styles.flow} ${className}` : styles.flow,
     'data-brand': brand,
     ...(brand === 'yeongnyangi' ? { 'data-yn-night': '' } : {}),
   };
@@ -41,9 +41,11 @@ type Props = {
   renderStep: (step: GuidedStep, flow: GuidedFlow) => ReactNode;
   /** 기본 ggulggul. */
   brand?: GuidedFlowBrand;
+  /** 루트에 덧붙일 클래스(페이지 안에 끼워 넣을 때 높이 등). */
+  className?: string;
 };
 
-export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, brand = 'ggulggul' }: Props) {
+export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, brand = 'ggulggul', className }: Props) {
   const { state, step, controller } = flow;
   const titleRef = useRef<HTMLHeadingElement>(null);
   const counted = progressSteps(controller.steps) as GuidedStep[];
@@ -54,7 +56,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, bra
     titleRef.current?.focus({ preventScroll: false });
   }, [step, state.source]);
 
-  if (!step) return <div {...rootProps(brand)}>{landing}</div>;
+  if (!step) return <div {...rootProps(brand, className)}>{landing}</div>;
 
   const title = titles[step.id] || '';
   const countedIndex = counted.findIndex((item) => item.id === step.id);
@@ -64,7 +66,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, bra
   const showNext = step.kind === 'input' || (step.kind === 'choice' && (reduced || answered));
 
   return (
-    <div {...rootProps(brand)} data-reduced={reduced ? 'true' : 'false'}>
+    <div {...rootProps(brand, className)} data-reduced={reduced ? 'true' : 'false'}>
       <div className={styles.topBar}>
         <button type="button" className={`cd-btn cd-btn--tertiary ${styles.back}`} onClick={flow.goBack}>
           <span aria-hidden="true">‹</span> {labels.back}
@@ -149,25 +151,29 @@ export type GuidedLandingProps = {
   aboutBody: string;
   guideTitle: string;
   guideSteps: { title: string; body: string }[];
+  /** 페이지에 이미 h1 이 있으면 'h2'(블록 제목은 h3 로 내려간다). 기본 'h1'. */
+  titleAs?: 'h1' | 'h2';
 };
 
 /** 랜딩: 히어로 → '이 기능은?' → 단계 안내, CTA 는 하단 고정. */
 export function GuidedLanding(props: GuidedLandingProps) {
+  const Title = props.titleAs ?? 'h1';
+  const Block = Title === 'h1' ? 'h2' : 'h3';
   return (
     <div className={styles.landing}>
       <header className={`${styles.hero} ${masks.masks}`}>
         <span className={yehwa.crest} aria-hidden="true"><span className={yehwa.halo}><span className={yehwa.moon} /></span></span>
         <p className={styles.eyebrow}>{props.eyebrow}</p>
-        <h1 className={styles.heroTitle}>{props.title}</h1>
+        <Title className={styles.heroTitle}>{props.title}</Title>
         <p className={styles.heroSub}>{props.subtitle}</p>
         <span className={yehwa.sprig} aria-hidden="true" />
       </header>
       <section className={styles.block} aria-labelledby="gf-about">
-        <h2 id="gf-about" className={styles.blockTitle}>{props.aboutTitle}</h2>
+        <Block id="gf-about" className={styles.blockTitle}>{props.aboutTitle}</Block>
         <p className={styles.blockBody}>{props.aboutBody}</p>
       </section>
       <section className={`${styles.block} ${styles.memo}`} aria-labelledby="gf-guide">
-        <h2 id="gf-guide" className={styles.blockTitle}>{props.guideTitle}</h2>
+        <Block id="gf-guide" className={styles.blockTitle}>{props.guideTitle}</Block>
         <ol className={styles.guide}>
           {props.guideSteps.map((item, index) => (
             <li key={item.title} className={styles.guideItem}>

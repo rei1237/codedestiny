@@ -7,6 +7,8 @@ import { GuidedChoiceList, GuidedFlowShell, GuidedLanding, type GuidedFlowBrand 
 import { type GuidedStep, useGuidedFlow } from '@/app/components/guided-flow/useGuidedFlow';
 import { useGuidedT } from '@/app/components/guided-flow/useGuidedT';
 import styles from '@/app/components/guided-flow/guided-flow.module.css';
+// 영냥이 브랜드 미리보기용 밤 예화 마스크 — 셸은 이 CSS 를 싣지 않는다(꿀꿀 흐름 번들 분리).
+import '@/app/yeongnyangi/yehwa-night.generated.css';
 
 const STEPS: GuidedStep[] = [
   { id: 'topic', kind: 'choice' },
