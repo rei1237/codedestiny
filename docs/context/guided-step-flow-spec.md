@@ -40,7 +40,7 @@
 
 | 항목 | 값 | 근거/결정 |
 |---|---|---|
-| 하단 고정 주 CTA | `position: sticky; bottom: 0`, `padding-bottom: calc(12px + env(safe-area-inset-bottom))` | 요청값. 실측(레퍼런스): 입력 시트의 '다음' 버튼이 top 858로 첫 화면 밖에 있었다. 고정이 이 문제를 막는다 |
+| 하단 고정 주 CTA | `position: sticky; bottom: 0`, `padding-bottom: calc(var(--cd-sp-sm) + env(safe-area-inset-bottom))`(10px + safe-area) | 요청값은 12px. 간격 스케일에 12px 토큰이 없어 `--cd-sp-sm`(10px, `styles/theme-tokens.css`)을 쓴다(2026-11-20 3c-A1 정정, 시간·간격은 토큰만 — `design-canon.md:45`). 실측(레퍼런스): 입력 시트의 '다음' 버튼이 top 858로 첫 화면 밖에 있었다. 고정이 이 문제를 막는다 |
 | 터치 대상 | 주 CTA 48px 이상, 그 밖 44px 이상 | 정본 `design-canon.md:86`(주 행동 48px), `docs/context/design-and-ui.md:19`(공용 래퍼 44px) |
 | 주 CTA 수 | 화면당 1개. 보조 행동은 텍스트 버튼 | 정본 `design-canon.md:88`(모든 행동을 똑같이 강하게 칠하지 않는다) |
 | CTA 문구 | 남은 행동을 알린다. 예: "2장 더 골라 주세요" → "풀이 보기" | 실측(레퍼런스): 비활성 동안 남은 장수를 안내하다가 3장이 차면 문구가 바뀐다 |
