@@ -140,18 +140,40 @@ describe('delivery plan v2 chapter acceptance', () => {
     expect(out.warning).toBe('서두르면 균열이 커져.');
     expect(out.evidenceIds).toEqual(['natal-saju']);
   });
-  test('final attempt keeps a chapter whose fields partly duplicate earlier chapters', async () => {
+  // S16: 빈 칸 장은 전달하지 않는다. 앞 장과 겹쳐 비워진 칸은 마지막 시도에서 원문으로 되살려 세 칸을 채운다.
+  test('final attempt restores a field emptied only by duplicate removal instead of delivering an empty field', async () => {
     const first = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], provider, v2({ finalAttempt: true }));
     const later = { ...value, warning: '이번 장의 새 경고는 약속의 속도를 늦추는 데서 시작해.' };
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[1], '질문', [first], providerOf(later), v2()))
       .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_INVALID' });
     const out = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[1], '질문', [first], providerOf(later), v2({ finalAttempt: true }));
     expect(out.warning).toBe(later.warning);
-    expect(out.interpretation).toBe('');
+    expect(out.interpretation).toBe(later.interpretation);
+    expect(out.strategy).toBe(later.strategy);
   });
-  test('a fully empty body is still rejected on the final attempt', async () => {
+  test('a fully empty body or a missing field is rejected on every attempt, final included', async () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf({ warning: '', interpretation: '', strategy: '', checkpoints: [], evidenceIds: [] }), v2({ finalAttempt: true })))
       .rejects.toThrow('HEUKWOL_CHAPTER_INVALID');
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf({ ...value, strategy: '' }), v2({ finalAttempt: true })))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_INVALID' });
+  });
+  // S16 완화 수용: 2번째 시도부터 장 하한의 60%면 받고, 확정 표현·근거 ID·점검 기준 수는 거절 대신 정리한다. 말투는 계속 고친다.
+  test('a relaxed attempt accepts 60% of the chapter minimum and cleans claims and evidence instead of rejecting', async () => {
+    const banmal = n => Array.from({ length: n }, (_, i) => `네오가 정리한 ${i + 1}번째 기준은 약속 범위를 먼저 적고 확인할 사람과 날짜를 정한 뒤 움직이는 거야.`).join(' ');
+    const yeoni = n => Array.from({ length: n }, (_, i) => `연이의 ${i + 1}번째 점검에서는 맡은 책임과 진행 중인 약속을 따로 기록하고 확인 가능한 근거를 바탕으로 행동의 순서를 정리합니다.`).join('\n');
+    const mid = { warning: '서두르면 균열이 커져. 반드시 사고가 난다.', interpretation: yeoni(9), strategy: banmal(7),
+      checkpoints: ['약속 조건을 문서로 확인하기'], evidenceIds: ['natal-saju', 'made-up-id'] };
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(mid), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHECKPOINTS_REQUIRED' });
+    const out = await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(mid), v2({ relaxed: true }));
+    expect(out.totalChars).toBeGreaterThanOrEqual(Math.round(HEUKWOL_CHAPTER_MIN_CHARS * 0.6));
+    expect(out.totalChars).toBeLessThan(HEUKWOL_CHAPTER_MIN_CHARS);
+    expect(out.warning).toBe('서두르면 균열이 커져.');
+    expect(out.evidenceIds).toEqual(['natal-saju']);
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf({ ...mid, interpretation: yeoni(2), strategy: banmal(2) }), v2({ relaxed: true })))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_SHORT' });
+    await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf({ ...mid, strategy: Array.from({ length: 7 }, (_, i) => `네오의 ${i + 1}번째 대응은 일정표를 다시 열고 미룰 약속과 지킬 약속을 나누어 적는 것입니다.`).join(' ') }), v2({ relaxed: true })))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_REGISTER' });
   });
   test('register drift is a soft issue that adds a repair hint only on the retry', async () => {
     const prompts = [];

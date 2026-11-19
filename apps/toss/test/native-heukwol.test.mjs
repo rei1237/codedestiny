@@ -57,3 +57,23 @@ test('paid waves freeze chapter evidence, fence competing writers and recheck ow
   await assert.rejects(generate(),/NO_ACCESS/);
   assert.equal(row.savedResult,null);
 });
+
+test('v2 never skips an exhausted chapter: rounds retry it, then the order closes as failed without a report',async()=>{
+  const auth={ownerId:'test-c'},row={_id:'test-intent-2',orderId:'test-order-2',nativeService:'heukwol',...auth,status:'paid',
+    generationStartedAt:null,savedResult:{chapters:[{key:'a',totalChars:8}],skipped:['b'],attempts:0},input:{planVersion:2,year:2027,question:'모의 질문',analysis:{}}};
+  const query=read=>({lean:async()=>structuredClone(read())});
+  const matches=filter=>Object.entries(filter).every(([k,v])=>k==='$or'?!row.generationStartedAt:isDeepStrictEqual(row[k],v));
+  mocks.findOne=filter=>query(()=>matches(filter)?row:null);
+  mocks.findOneAndUpdate=(filter,update)=>query(()=>matches(filter)?Object.assign(row,update.$set):null);
+  mocks.active=true;
+  const seen=[];
+  mocks.generate=async(env,basis,chapter,question,previous,u,options)=>{seen.push([chapter.key,options.relaxed,options.finalAttempt]);throw Object.assign(Error('weak'),{heukwolIssue:'모의 이슈'});};
+  let view;
+  for(let i=0;i<8;i++){view=await heukwolWave({},auth,row._id,true);assert.equal(view.status,'generating');assert.equal(view.report,undefined);}
+  view=await heukwolWave({},auth,row._id,true);
+  assert.equal(view.status,'failed');assert.equal(view.report,undefined);
+  assert.equal(seen.length,9);assert.ok(seen.every(([key])=>key==='b'));
+  assert.deepEqual(seen.slice(0,3),[['b',false,false],['b',true,false],['b',true,true]]);
+  assert.equal((await heukwolLibraryItem({},auth,{requestId:row._id,_id:row.orderId})).state,'GENERATION_FAILED');
+  assert.equal((await heukwolWave({},auth,row._id,true)).status,'failed');assert.equal(seen.length,9);
+});

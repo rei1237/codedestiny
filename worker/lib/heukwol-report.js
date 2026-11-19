@@ -121,35 +121,37 @@ const HEUKWOL_UNSUPPORTED = /100\s*[%％]|반드시\s*(?:사고|불행|재앙)|�
 const scrubUnsupported = text => String(text||'').split(/(?<=[.!?。？！]["'”’)\]」』]*)\s+/u)
   .filter(sentence=>!HEUKWOL_UNSUPPORTED.test(sentence)).join(' ').trim();
 const heukwolSoft = code => Object.assign(new Error(code),{heukwolIssue:code});
-export function validateHeukwolChapterV2(value, analysis, chapter, {finalAttempt=false}={}) {
+// S16 완화 수용(2번째 시도부터): 분량은 장 하한의 60%, 확정 표현은 문장만 덜고, 근거 ID는 거르고, 점검 기준 수·반복 구절은 묻지 않는다.
+// 말투는 마지막 시도 전까지 계속 고친다. 세 칸(warning·interpretation·strategy)은 어느 시도든 모두 있어야 받는다.
+export const HEUKWOL_RELAXED_MIN_CHARS = Math.round(HEUKWOL_CHAPTER_MIN_CHARS*0.6);
+export function validateHeukwolChapterV2(value, analysis, chapter, {finalAttempt=false,relaxed=false}={}) {
+  const lenient=finalAttempt||relaxed;
   const evidence=chapterEvidence(analysis,chapter);
   const monthlyIds=evidence.months.flatMap(m=>[...m.saju,...m.ziwei].map(e=>e.id));
   const allowed=new Set(['natal-saju','natal-ziwei',...monthlyIds]);
   const fields=['warning','interpretation','strategy'];
   const texts=Object.fromEntries(fields.map(k=>[k,typeof value?.[k]==='string'?value[k].trim():'']));
   let checkpoints=Array.isArray(value?.checkpoints)?value.checkpoints.filter(v=>typeof v==='string'&&v.trim()).map(v=>v.trim()).slice(0,6):[];
-  if(!finalAttempt) {
-    if(fields.some(k=>!texts[k]))throw heukwolSoft('HEUKWOL_CHAPTER_INVALID');
-    if(checkpoints.length<3)throw heukwolSoft('HEUKWOL_CHECKPOINTS_REQUIRED');
-  }
+  if(fields.some(k=>!texts[k]))throw heukwolSoft('HEUKWOL_CHAPTER_INVALID');
+  if(!lenient&&checkpoints.length<3)throw heukwolSoft('HEUKWOL_CHECKPOINTS_REQUIRED');
   const joined=()=>[...fields.map(k=>texts[k]),...checkpoints].filter(Boolean).join('\n\n');
   if(HEUKWOL_UNSUPPORTED.test(joined())) {
-    if(!finalAttempt)throw heukwolSoft('HEUKWOL_UNSUPPORTED_CLAIM');
+    if(!lenient)throw heukwolSoft('HEUKWOL_UNSUPPORTED_CLAIM');
     for(const k of fields)texts[k]=scrubUnsupported(texts[k]);
     checkpoints=checkpoints.filter(v=>!HEUKWOL_UNSUPPORTED.test(v));
   }
   const rawIds=Array.isArray(value?.evidenceIds)?value.evidenceIds:[];
   const evidenceIds=[...new Set(rawIds.filter(id=>allowed.has(id)))];
-  if(!finalAttempt) {
+  if(!lenient) {
     if(!rawIds.length||evidenceIds.length!==new Set(rawIds).size)throw heukwolSoft('HEUKWOL_EVIDENCE_INVALID');
     if(chapter.month&&!evidenceIds.some(id=>monthlyIds.includes(id)))throw heukwolSoft('HEUKWOL_MONTH_EVIDENCE_REQUIRED');
   }
-  // 본문이 한 칸도 없을 때만 이 장을 받을 수 없다.
-  if(!fields.some(k=>texts[k]))throw new Error('HEUKWOL_CHAPTER_INVALID');
+  // 확정 표현을 덜어 낸 뒤에도 세 칸이 모두 남아 있어야 받는다(빈 칸이 있는 장은 다시 쓴다).
+  if(fields.some(k=>!texts[k]))throw heukwolSoft('HEUKWOL_CHAPTER_INVALID');
   const content=joined();
   if(!finalAttempt) {
-    if(content.length<HEUKWOL_CHAPTER_MIN_CHARS)throw heukwolSoft('HEUKWOL_CHAPTER_SHORT');
-    if(hasRepeatedReportPassage(content))throw heukwolSoft('HEUKWOL_CHAPTER_REPEATED');
+    if(content.length<(relaxed?HEUKWOL_RELAXED_MIN_CHARS:HEUKWOL_CHAPTER_MIN_CHARS))throw heukwolSoft('HEUKWOL_CHAPTER_SHORT');
+    if(!relaxed&&hasRepeatedReportPassage(content))throw heukwolSoft('HEUKWOL_CHAPTER_REPEATED');
     if(banmalRegisterDrift(texts.interpretation).length||hapnidaDrift(texts.strategy))throw heukwolSoft('HEUKWOL_CHAPTER_REGISTER');
   }
   return {key:chapter.key,title:chapter.title,...texts,checkpoints,evidenceIds,content,totalChars:content.length};
@@ -167,9 +169,12 @@ export async function generateHeukwolChapter(env, analysis, chapter, question, p
   const value = JSON.parse(result.text);
   let prior = previous.map(item => item.content || '').join('\n');
   for (const field of ['warning', 'interpretation', 'strategy']) {
+    const raw = value[field];
     value[field] = dropRepeatedReportSentences(value[field], prior);
+    // S16: 2판 마지막 시도에서 앞 장과 겹친다는 이유만으로 칸이 비면 원문을 살린다(빈 칸 장은 전달하지 않으므로).
+    if (v2 && options?.finalAttempt === true && !String(value[field] || '').trim() && typeof raw === 'string' && raw.trim()) value[field] = raw;
     prior += '\n' + (value[field] || '');
   }
-  if(v2)return validateHeukwolChapterV2(value,analysis,chapter,{finalAttempt:options?.finalAttempt===true});
+  if(v2)return validateHeukwolChapterV2(value,analysis,chapter,{finalAttempt:options?.finalAttempt===true,relaxed:options?.relaxed===true});
   return validateHeukwolChapter(value,analysis,chapter);
 }

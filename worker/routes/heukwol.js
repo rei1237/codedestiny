@@ -10,17 +10,35 @@ import { startServiceExecution, completeServiceExecution, failServiceExecution }
 import { buildHeukwolAnalysis, heukwolProfileBirth } from '../lib/heukwol-analysis.js';
 import { HEUKWOL_FEATURE_KEY, HEUKWOL_CHAPTERS, HEUKWOL_MIN_CHARS, HEUKWOL_DELIVERY_PLAN_VERSION, heukwolDeliveryV2Enabled, generateHeukwolChapter } from "../lib/heukwol-report.js";
 import { json, readJson, handleRouteError } from '../lib/http.js';
+import { logStuckSettled } from '../lib/paid-delivery-stuck.js';
 
 const digest = value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const executionKey = requestId=>`heukwol:${digest(requestId)}`;
 const error = (status,code,message)=>json({ok:false,code,message},{status});
-const mayGenerate = doc=>doc.status==='pending'&&(!doc.refundStatus||doc.refundStatus==='none')&&(doc.metadata.attempts||0)<3;
+// 2판(새 세션만, S16 2026-11-19): 장마다 한 라운드 3번 시도(1번째 엄격, 2번째 완화 수용, 3번째 최종 완화).
+// 라운드당 3번은 checkpoint-refund-guard 의 "attempts<3 이면 이어쓰기 가능" 판정과 맞춘 값이다.
+// 라운드를 다 써도 장을 건너뛰지 않고 다음 라운드로 다시 쓴다. 라운드 상한을 넘기면 본문 없이 실패·환불한다.
+// 모든 장이 세 칸(warning·interpretation·strategy)을 다 채웠을 때만 완료로 전달한다 — 축소 전달 없음.
+export const HEUKWOL_V2_ATTEMPTS_PER_ROUND = 3;
+export const HEUKWOL_V2_MAX_CHAPTER_ROUNDS = 3;
+const isV2 = meta=>Number(meta?.deliveryPlanVersion)===HEUKWOL_DELIVERY_PLAN_VERSION;
+const MAX_ATTEMPTS = 3; // 1판 종결 기준이자 2판 라운드 크기
+const mayGenerate = doc=>doc.status==='pending'&&(!doc.refundStatus||doc.refundStatus==='none')&&(doc.metadata.attempts||0)<MAX_ATTEMPTS;
+const CHAPTER_FIELDS = ['warning','interpretation','strategy'];
+const chapterComplete = c=>Boolean(c)&&CHAPTER_FIELDS.every(k=>typeof c[k]==='string'&&c[k].trim());
+const completeKeys = meta=>new Set((meta?.chapters||[]).filter(chapterComplete).map(c=>c.key));
+/** 전달 가능한 완성본인가: 27장 전부 세 칸이 채워졌고, 1판은 전체 40,000자 관문까지 통과. */
+export function isHeukwolComplete(meta) {
+  const done=completeKeys(meta);
+  if(!HEUKWOL_CHAPTERS.every(c=>done.has(c.key)))return false;
+  return isV2(meta)||(meta.chapters||[]).reduce((n,c)=>n+(c.totalChars||0),0)>=HEUKWOL_MIN_CHARS;
+}
 // 실패로 닫힌 상담의 자동 환불 진행 상태. 화면은 이 값으로 환불 안내를 고른다.
 const refundState = doc=>doc.status==='refunded'||doc.refundStatus==='refunded'?'refunded':doc.refundStatus==='refund_failed'?'manual_review':'pending';
 function visible(doc) {
   const m=doc.metadata,status=doc.status==='success'?'completed':mayGenerate(doc)?'generating':'failed';
   return {ok:true,id:doc.executionKey,status,
-    completedChapters:m.chapters.length,totalChapters:HEUKWOL_CHAPTERS.length,year:m.input.year,
+    completedChapters:completeKeys(m).size,totalChapters:HEUKWOL_CHAPTERS.length,year:m.input.year,
     ...(doc.status==='success'?{report:m.archive}:{}),
     ...(status==='failed'?{refundStatus:refundState(doc)}:{}),
     recordsHref:`/heukwol/?result=${encodeURIComponent(doc.executionKey)}`};
@@ -36,14 +54,15 @@ async function closedFailure(userId,id,message) {
   const doc=await ServiceExecutionTransaction.findOne({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY}).lean();
   return doc?.generationFailedAt&&doc.status!=='success'?json(visible(doc)):error(404,'RESULT_NOT_AVAILABLE',message);
 }
-// 2판(새 세션만): 장 하나가 3번 다 실패하면 그 장만 비워 두고 다음 장으로 간다. 비운 장이 이만큼 쌓이면 있는 장으로 완료한다.
-export const HEUKWOL_V2_MAX_SKIPPED_CHAPTERS = 3;
-const isV2 = meta=>Number(meta?.deliveryPlanVersion)===HEUKWOL_DELIVERY_PLAN_VERSION;
-const pendingChapters = meta=>HEUKWOL_CHAPTERS.filter(c=>!meta.chapters.some(done=>done.key===c.key)&&!(meta.skippedChapters||[]).includes(c.key));
-async function completeHeukwol(env,userId,id,meta,chapters) {
-  const totalChars=chapters.reduce((n,c)=>n+c.totalChars,0);
+// 아직 세 칸을 다 채운 본문이 없는 장. 예전 판이 건너뛴 장(skippedChapters)·한 칸만 받은 장도 다시 쓴다.
+const pendingChapters = meta=>{const done=completeKeys(meta);return HEUKWOL_CHAPTERS.filter(c=>!done.has(c.key));};
+async function completeHeukwol(env,userId,id,meta,stored) {
+  const totalChars=stored.reduce((n,c)=>n+c.totalChars,0);
   // 1판만 전체 40,000자 관문을 둔다. 2판에서 분량은 치명이 아니다.
   if(!isV2(meta)&&totalChars<HEUKWOL_MIN_CHARS)throw new Error('HEUKWOL_REPORT_TOO_SHORT');
+  if(!isHeukwolComplete({...meta,chapters:stored}))throw new Error('HEUKWOL_REPORT_INCOMPLETE');
+  // 다시 쓴 장이 뒤에 붙어도 목차 순서로 묶는다.
+  const chapters=HEUKWOL_CHAPTERS.map(c=>stored.find(x=>x.key===c.key&&chapterComplete(x)));
   const archive={title:`${meta.input.year} 흑월의 주의 시기`,year:meta.input.year,analysis:meta.analysis,chapters,totalChars,
     reportId:id,generatedAt:new Date().toISOString(),question:meta.input.question};
   const completed=await completeServiceExecution(env,userId,{executionKey:id,reportId:id,result:archive,metadata:{...meta,chapters,archive}});
@@ -56,7 +75,7 @@ export async function advanceHeukwol(env,userId,id) {
   if(!mayGenerate(doc))return json(visible(doc));
   const now=new Date(),token=crypto.randomUUID();
   const owned={userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY,status:'pending','lock.token':token};
-  const claimed=await ServiceExecutionTransaction.findOneAndUpdate({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY,status:'pending',refundStatus:{$in:[null,'none']},'metadata.attempts':{$lt:3},
+  const claimed=await ServiceExecutionTransaction.findOneAndUpdate({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY,status:'pending',refundStatus:{$in:[null,'none']},'metadata.attempts':{$lt:MAX_ATTEMPTS},
     $or:[{'lock.until':null},{'lock.until':{$lt:now}}]},{$set:{'lock.token':token,'lock.until':new Date(+now+180000),heartbeatAt:now,
       timeoutAt:new Date(+now+3600000)}},{returnDocument:'after'}).lean();
   if(!claimed)return json(visible(doc),{status:202});
@@ -68,9 +87,9 @@ export async function advanceHeukwol(env,userId,id) {
     if(next) {
       const chapter=v2
         ?await generateHeukwolChapter(env,meta.analysis,next,meta.input.question,chapters,undefined,{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,
-          finalAttempt:(meta.attempts||0)>=2,repairIssue:meta.lastIssue||''})
+          relaxed:(meta.attempts||0)>=1,finalAttempt:(meta.attempts||0)>=HEUKWOL_V2_ATTEMPTS_PER_ROUND-1,repairIssue:meta.lastIssue||''})
         :await generateHeukwolChapter(env,meta.analysis,next,meta.input.question,chapters);
-      chapters=[...chapters,chapter];
+      chapters=[...chapters.filter(c=>c.key!==next.key),chapter];
       const checkpoint=await ServiceExecutionTransaction.updateOne(owned,{$set:{'metadata.chapters':chapters,'metadata.attempts':0,...(v2?{'metadata.lastIssue':''}:{}),heartbeatAt:new Date()}});
       if(checkpoint.modifiedCount!==1)throw new Error('HEUKWOL_SAVE_UNCONFIRMED');
     }
@@ -95,7 +114,8 @@ export async function advanceHeukwol(env,userId,id) {
 }
 /**
  * 2판 실패 물결. 시도가 남으면 이슈를 힌트로 남기고 202로 이어 가게 한다.
- * 장이 3번 다 실패하면 그 장만 비우고 다음 장으로 간다. 저장된 장이 하나도 없을 때만 환불한다.
+ * 한 라운드를 다 쓴 장은 건너뛰지 않고 시도를 되돌려 다음 라운드에 다시 쓴다.
+ * 라운드 상한(HEUKWOL_V2_MAX_CHAPTER_ROUNDS)을 넘긴 장이 나오면 본문 없이 실패로 닫고 기존 환불 경로로 1회 환불한다.
  */
 async function failHeukwolWaveV2(env,userId,id,owned,meta,attempts,cause) {
   const next=pendingChapters(meta)[0];
@@ -103,7 +123,7 @@ async function failHeukwolWaveV2(env,userId,id,owned,meta,attempts,cause) {
   const release=fields=>ServiceExecutionTransaction.updateOne(owned,{$set:{...fields,'lock.token':'','lock.until':null,reasonCode:'HEUKWOL_RETRYABLE'}});
   const changed=()=>error(409,'EXECUTION_CHANGED','진행 상태가 바뀌었어요. 저장된 상담을 다시 확인해 주세요.');
   const answer=async()=>{const saved=await readOwned(env,userId,id);return saved?json(visible(saved),{status:saved.status==='success'?200:202}):error(404,'RESULT_NOT_AVAILABLE','결과 접근을 확인해 주세요.');};
-  if(attempts<3) {
+  if(attempts<HEUKWOL_V2_ATTEMPTS_PER_ROUND) {
     if((await release({'metadata.attempts':attempts,'metadata.lastIssue':lastIssue})).matchedCount!==1)return changed();
     return answer();
   }
@@ -112,20 +132,49 @@ async function failHeukwolWaveV2(env,userId,id,owned,meta,attempts,cause) {
     if((await release({'metadata.attempts':0})).matchedCount!==1)return changed();
     return error(503,'HEUKWOL_RETRYABLE','완성된 장은 보관했어요. 이어서 작성하기를 눌러 주세요.');
   }
-  if(!meta.chapters.length) {
-    // 본문이 완전히 비었을 때만 환불하며 닫는다.
-    if((await release({'metadata.attempts':attempts})).matchedCount!==1)return changed();
+  const rounds=Number(meta.chapterRounds?.[next.key]||0)+1;
+  if(rounds>=HEUKWOL_V2_MAX_CHAPTER_ROUNDS) {
+    if((await release({'metadata.attempts':attempts,'metadata.chapterRounds':{...(meta.chapterRounds||{}),[next.key]:rounds}})).matchedCount!==1)return changed();
     await failServiceExecution(env,userId,{executionKey:id,reasonCode:'HEUKWOL_GENERATION_FAILED',reasonMessage:'흑월 리포트를 완성하지 못했습니다.',forceRefundOnClose:true});
     return error(503,'HEUKWOL_DELIVERY_FAILED','리포트를 완성하지 못했어요. 보관함에서 결제 및 처리 상태를 확인해 주세요.');
   }
-  const skippedChapters=[...(meta.skippedChapters||[]),next.key];
-  if((await release({'metadata.attempts':0,'metadata.lastIssue':'','metadata.skippedChapters':skippedChapters})).matchedCount!==1)return changed();
-  const after={...meta,skippedChapters};
-  if(skippedChapters.length>=HEUKWOL_V2_MAX_SKIPPED_CHAPTERS||!pendingChapters(after).length) {
-    try { await completeHeukwol(env,userId,id,after,meta.chapters); }
-    catch { return error(503,'HEUKWOL_RETRYABLE','완성된 장은 보관했어요. 이어서 작성하기를 눌러 주세요.'); }
-  }
+  // 다음 라운드: 시도를 되돌리고 마지막 이슈를 힌트로 남긴다. 장은 대기 목록에 그대로 남는다.
+  if((await release({'metadata.attempts':0,'metadata.lastIssue':lastIssue,'metadata.chapterRounds':{...(meta.chapterRounds||{}),[next.key]:rounds}})).matchedCount!==1)return changed();
   return answer();
+}
+/**
+ * 정체 확정(S16): 복구 cron 이 진전 없는 흑월 상담을 넘기면 완성본일 때만 전달하고, 아니면 본문 없이 실패·환불(1회)로 닫는다.
+ * 반환 { outcome: 'progressed'|'leased'|'rescued'|'failed', refundStatus? }. 본문·결제 ID·출생 정보는 로그에 남기지 않는다.
+ */
+export async function settleStuckDelivery(env,{doc,now=Date.now(),model=ServiceExecutionTransaction}={}) {
+  if(!doc?.userId||!doc?.executionKey)return {outcome:'progressed'};
+  const userId=String(doc.userId),id=String(doc.executionKey),sessionId=id;
+  const owner={userId:doc.userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY};
+  const fresh=await model.findOne(owner).lean();
+  if(!fresh||fresh.status!=='pending'||(fresh.refundStatus&&fresh.refundStatus!=='none'))return {outcome:'progressed'};
+  if(fresh.lock?.until&&new Date(fresh.lock.until).getTime()>now)return {outcome:'leased'};
+  const stalls=Number(fresh.deliveryWatch?.stalls||doc.deliveryWatch?.stalls||0);
+  // updatedAt CAS + 빈 잠금: 그 사이 브라우저·다른 워커가 진전을 저장했거나 잡았으면 확정하지 않는다.
+  const at=new Date(now),token=crypto.randomUUID();
+  const claimed=await model.findOneAndUpdate({...owner,status:'pending',refundStatus:{$in:[null,'none']},
+    ...(fresh.updatedAt?{updatedAt:fresh.updatedAt}:{}),$or:[{'lock.until':null},{'lock.until':{$lt:at}}]},
+    {$set:{'lock.token':token,'lock.until':new Date(now+180000),heartbeatAt:at}},{returnDocument:'after'}).lean();
+  if(!claimed)return {outcome:'progressed'};
+  if(isHeukwolComplete(claimed.metadata)) {
+    await completeHeukwol(env,userId,id,claimed.metadata,claimed.metadata.chapters);
+    logStuckSettled({service:'heukwol',sessionId,outcome:'rescued',stalls});
+    return {outcome:'rescued'};
+  }
+  // 환불 클레임(settleExecutionById)은 빈 잠금을 요구하므로 풀고 닫는다. 같은 CAS 로 시도를 상한에 묶어
+  // 그 틈에 브라우저·다른 워커가 다시 잡아 생성하지 못하게 한다(advance 의 claim 은 attempts<3 만 잡는다).
+  const sealed=await model.updateOne({...owner,status:'pending','lock.token':token},
+    {$set:{'lock.token':'','lock.until':null,'metadata.attempts':MAX_ATTEMPTS,reasonCode:'HEUKWOL_DELIVERY_STUCK'}});
+  if(sealed?.matchedCount!==1)return {outcome:'progressed'};
+  const failed=await failServiceExecution(env,userId,{executionKey:id,reasonCode:'HEUKWOL_DELIVERY_STUCK',reasonMessage:'흑월 리포트가 진전 없이 멈춰 완성하지 못했습니다.',forceRefundOnClose:true});
+  const reported=String(failed?.execution?.refundStatus||failed?.settlement?.refundStatus||'');
+  const refundStatus=reported&&reported!=='none'?reported:'pending';
+  logStuckSettled({service:'heukwol',sessionId,outcome:'failed',refundStatus,stalls});
+  return {outcome:'failed',refundStatus};
 }
 export async function handleHeukwolRoutes(request,env) {
   try {
@@ -168,7 +217,7 @@ export async function handleHeukwolRoutes(request,env) {
       profileId:input.profileId,sourceTransactionId:proof.transactionId||'',cost:pricing.cost,amountKRW:pricing.amountKRW,
       timeoutSeconds:3600,metadata:{input,inputHash,analysis,chapters:[],attempts:0,accessType:proof.source,
         // 새 세션만 2판. 진행 중인 1판 세션은 옛 동작으로 끝난다. 되돌리기: HEUKWOL_DELIVERY_V2_ENABLED=false
-        ...(heukwolDeliveryV2Enabled(env)?{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,skippedChapters:[],lastIssue:''}:{}),
+        ...(heukwolDeliveryV2Enabled(env)?{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,chapterRounds:{},lastIssue:''}:{}),
         archive:{title:`${input.year} 흑월의 주의 시기`,year:input.year,reportId:id,status:'generating'},
         ...(passEvidence?{passRefund:{cycleKey:passEvidence.metadata?.passCycleKey,cost:passEvidence.metadata?.coinCost||0}}:{})}});
     if(!started.ok)return error(503,'RESULT_STORAGE_UNAVAILABLE','상담 저장을 확인하지 못했어요. 같은 요청으로 다시 시도해 주세요.');
