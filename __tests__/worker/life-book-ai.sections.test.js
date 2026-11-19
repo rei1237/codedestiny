@@ -5,7 +5,7 @@
  * 이게 깨지면 섹션을 아무리 잘 생성해도 세션이 영원히 완료되지 않는다(2026-08-01 이전의 장애 형태).
  * 순수 함수만 검증하므로 모킹이 필요 없다.
  */
-import { __lifeBookAiTestUtils, nativeLifeBookContract } from "../../worker/routes/life-book-ai.js";
+import { __lifeBookAiTestUtils, nativeLifeBookContract, isStuckDeliveryComplete } from "../../worker/routes/life-book-ai.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 import { tokensRequiredForChars } from "../../worker/lib/llm-budget.js";
 import { createHash } from "node:crypto";
@@ -25,7 +25,12 @@ const {
   generationWaveCap,
   buildPriorHalfExcerpt,
   normalizeEvidenceRefs,
-  lifeBookV3HasChapterBody,
+  isLifeBookComplete,
+  isLifeBookSoftIssue,
+  publicSession,
+  scrubLifeBookSectionResult,
+  lifeBookLengthBoostTarget,
+  lifeBookSectionValid,
   dropPriorHalfRepeats,
 } = __lifeBookAiTestUtils;
 
@@ -477,16 +482,108 @@ ${sections["chapter-2-b"].body.content}`);
     expect(untouched.body.content).toBe(first);
   });
 
-  test("본문이 하나라도 있으면 V2·V3는 배달 가능, 비었거나 V1이면 아니다", () => {
-    const plan = planV3();
-    const sections = buildSectionsAtTarget(plan);
-    expect(lifeBookV3HasChapterBody(plan, { "chapter-5-b": sections["chapter-5-b"] })).toBe(true);
-    expect(lifeBookV3HasChapterBody(plan, { frame: sections.frame })).toBe(false);
-    const v2 = buildSectionPlan(lifeFortuneInput);
-    expect(lifeBookV3HasChapterBody(v2, buildSectionsAtTarget(v2))).toBe(true);
-    expect(lifeBookV3HasChapterBody(v2, {})).toBe(false);
-    const v1 = v2.map(({ planVersion, ...section }) => section);
-    expect(lifeBookV3HasChapterBody(v1, buildSectionsAtTarget(v2))).toBe(false);
+});
+
+// S16(2026-11-19): 전체가 완성돼야 전달한다. 분량은 완전성에 들지 않는다.
+describe("완전성 판정(S16)", () => {
+  const plans = () => [
+    [lifeFortuneInput, buildSectionPlan(lifeFortuneInput, { version: 3 })],
+    [lifeFortuneInput, buildSectionPlan(lifeFortuneInput)],
+    [lifeBookInput, buildSectionPlan(lifeBookInput)],
+    [lifeBookInput, buildSectionPlan(lifeBookInput, { version: 1 })],
+  ];
+
+  test("모든 판에서 필수 장·판독·프레임이 다 차면 완성이고, 짧아도 완성이다", () => {
+    for (const [input, plan] of plans()) {
+      expect(isLifeBookComplete(assembleReport(input, plan, buildSectionsAtTarget(plan)))).toBe(true);
+      expect(isLifeBookComplete(assembleReport(input, plan, buildSectionsAtTarget(plan, { scale: 0.1 })))).toBe(true);
+    }
+  });
+
+  test("장 하나가 빠지거나 요약·조언이 비거나 판독·프레임이 없으면 미완성이다", () => {
+    for (const [input, plan] of plans()) {
+      // 리포트만 보는 판정이다(V3 반쪽 결손은 handleStart 의 계획 단위 게이트가 막는다).
+      const missing = buildSectionsAtTarget(plan);
+      for (const section of plan.filter(row => row.kind === "chapter" && row.index === 4)) delete missing[section.id];
+      expect(isLifeBookComplete(assembleReport(input, plan, missing))).toBe(false);
+      const noSummary = buildSectionsAtTarget(plan);
+      for (const section of plan.filter(row => row.kind === "chapter" && row.index === 2)) noSummary[section.id].body.summary = "";
+      expect(isLifeBookComplete(assembleReport(input, plan, noSummary))).toBe(false);
+      const noAdvice = buildSectionsAtTarget(plan);
+      for (const section of plan.filter(row => row.kind === "chapter" && row.index === 6)) noAdvice[section.id].body.advice = [];
+      expect(isLifeBookComplete(assembleReport(input, plan, noAdvice))).toBe(false);
+      const noExpert = buildSectionsAtTarget(plan); delete noExpert["expert-3"];
+      expect(isLifeBookComplete(assembleReport(input, plan, noExpert))).toBe(false);
+      const noFrame = buildSectionsAtTarget(plan); delete noFrame.frame;
+      expect(isLifeBookComplete(assembleReport(input, plan, noFrame))).toBe(false);
+    }
+    expect(isLifeBookComplete(null)).toBe(false);
+  });
+
+  test("정체 설정자 훅은 저장된 reportJson 의 완전성을 그대로 따른다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const complete = assembleReport(lifeBookInput, plan, buildSectionsAtTarget(plan));
+    expect(isStuckDeliveryComplete({ status: "delivery_pending", llmMeta: { reportJson: complete } })).toBe(true);
+    expect(isStuckDeliveryComplete({ status: "delivery_pending", llmMeta: { reportJson: { ...complete, chapters: complete.chapters.slice(0, 9) } } })).toBe(false);
+    expect(isStuckDeliveryComplete({ status: "delivery_pending", llmMeta: {} })).toBe(false);
+  });
+
+  test("빈 프레임은 통과하지 않아 다시 쓴다", () => {
+    const frame = buildSectionPlan(lifeBookInput).find(section => section.kind === "frame");
+    expect(lifeBookSectionValid(frame, { title: "인생의 책", finalMessage: "", coreSummary: { oneLine: "" } }, lifeBookInput)).toBe(false);
+    expect(lifeBookSectionValid(frame, { finalMessage: "다음 장이 열립니다." }, lifeBookInput)).toBe(true);
+  });
+
+  test("반복·근거·제목·분량은 가벼운 결손, 빈 필드·금칙어·누락은 막는 결손이다", () => {
+    for (const issue of ["duplicate_narrative:4", "chapter_2_evidence_refs_missing", "expert_reading_1_evidence_refs_missing", "chapter_3_title_mismatch", "life_fortune_title_missing", "chapter_1_content_too_short", "total_content_too_short", "total_content_too_long"]) {
+      expect(isLifeBookSoftIssue(issue)).toBe(true);
+    }
+    for (const issue of ["forbidden_terms", "chapter_3_summary_missing", "chapter_2_content_missing", "chapter_count_mismatch", "expert_reading_2_guidance_missing", "report_json_missing", "empty_result", "expert_reading_count_too_short"]) {
+      expect(isLifeBookSoftIssue(issue)).toBe(false);
+    }
+  });
+
+  test("반복 문장은 반려 대신 지우고, 인생 총운 장 제목은 정본으로 맞춘다", () => {
+    const plan = buildSectionPlan(lifeFortuneInput);
+    const repeated = "당신의 일간은 땅의 기운이라 만물을 품고 길러 내는 성정이 깊습니다.";
+    const sections = { "chapter-1": { ok: true, body: { content: `${repeated} 그 성정은 관계에서 먼저 드러납니다, 오래 본 사람일수록 압니다.` } } };
+    const section = plan.find(row => row.id === "chapter-2");
+    const result = { ok: true, chars: 0, body: { title: "엉뚱한 제목", content: `${repeated} 이제 서른 중반의 대운이 선택의 문을 엽니다, 그때는 일의 자리를 먼저 다지세요.` } };
+    scrubLifeBookSectionResult(plan, sections, section, result, lifeFortuneInput);
+    expect(result.body.content).not.toContain(repeated);
+    expect(result.body.content).toContain("서른 중반");
+    expect(result.chars).toBeGreaterThan(0);
+    expect(result.body.title).toContain(section.title);
+  });
+
+  test("2번째 시도부터 하한 0.6배 이상이면 분량 보강을 하지 않는다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const target = plan.find(section => section.id === "chapter-3");
+    const sections = buildSectionsAtTarget(plan, { scale: 3 });
+    const short = filler("chapter-3-retry", Math.ceil(target.minChars * 0.65));
+    sections["chapter-3"] = { ...sections["chapter-3"], attempts: 2, chars: short.length, body: { ...sections["chapter-3"].body, content: short } };
+    expect(lifeBookLengthBoostTarget(plan, sections)).toBe(null);
+    sections["chapter-3"].attempts = 1;
+    expect(lifeBookLengthBoostTarget(plan, sections)).toBe("chapter-3");
+    const tiny = filler("chapter-3-tiny", Math.floor(target.minChars * 0.4));
+    sections["chapter-3"] = { ...sections["chapter-3"], attempts: 2, body: { ...sections["chapter-3"].body, content: tiny } };
+    expect(lifeBookLengthBoostTarget(plan, sections)).toBe("chapter-3");
+  });
+
+  test("완성 전 응답은 본문 없이 진행 표시만, 완성 뒤에만 본문을 낸다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const reportJson = assembleReport(lifeBookInput, plan, buildSectionsAtTarget(plan));
+    const doc = { id: "s1", status: "partial", title: "제목", keywords: ["k"], messages: [{ role: "assistant", content: "본문" }],
+      llmMeta: { plan, sections: { "chapter-1": { ok: true } }, reportJson, degraded: true } };
+    for (const status of ["generating", "partial", "delivery_pending", "generation_failed"]) {
+      const out = publicSession({ ...doc, status });
+      expect(out.reportJson).toBe(null); expect(out.messages).toEqual([]); expect(out.title).toBe(""); expect(out.keywords).toEqual([]);
+      expect(out.progress).toEqual({ completed: 1, total: plan.length }); expect(out.resumeSessionId).toBe("s1"); expect(out.saved).toBe(false);
+    }
+    const done = publicSession({ ...doc, status: "completed" });
+    expect(done.reportJson).toEqual(reportJson); expect(done.messages[0].content).toBe("본문"); expect(done.title).toBe("제목"); expect(done.saved).toBe(true);
+    // 예전 저하 전달로 완료된 기록은 그대로 다시 열린다.
+    expect(done.degraded).toBe(true);
   });
 });
 

@@ -102,12 +102,15 @@ function fixture(accessType = 'pass', env = {}) {
       return { ok: true, body: { content: `${section.id} 저장된 해설` }, chars: 2600, provider: 'mock', model: 'mock', error: '' };
     },
     assembleReport: (_input, _plan, sections) => ({ chapters: Object.values(sections).map(row => row.body) }),
+    // 완전성 판정 정본은 life-book-ai.sections.test.js 가 검증한다. 여기서는 15조각 본문이 모두 있으면 완성으로 본다.
+    isLifeBookComplete: report => Array.isArray(report?.chapters) && report.chapters.length === 15 && report.chapters.every(body => Boolean(String(body?.content || '').trim())),
+    LIFE_FORTUNE_CHAPTER_TITLES: [],
     getLifeBookReportQualityIssues: () => [], mapIssuesToSections: () => ({ targets: [] }),
     reportTotalContentChars: () => 25000, extractTitle: () => 'mock report', extractKeywords: () => [],
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'lifeBookV3HasChapterBody', 'lifeBookV3DeliverableSections', 'dropPriorHalfRepeats']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'isLifeBookSoftIssue', 'scrubLifeBookSectionResult', 'lifeBookDeliveryResponse', 'dropPriorHalfRepeats']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
@@ -683,7 +686,8 @@ test('F9: length-only final issues deliver, structural issues still fail', async
   assert.notEqual(bad.doc.status, 'completed');
 });
 
-// 2026-11-08 6e: 인생 총운 판 3은 장 본문이 하나라도 있으면 배달하고, 완전히 비었을 때만 실패(환불)한다.
+// 2026-11-19 S16: 줄인 전달(저하 배달)은 없다. 필수 조각이 하나라도 끝내 비면 generation_failed + 환불 1회, 본문은 내보내지 않는다.
+const noDeliveredBody = doc => !(doc.messages || []).some(message => message.role === 'assistant') && doc.llmMeta?.reportJson == null;
 function v3Fixture() {
   const f = fixture();
   f.ctx.buildSectionPlan = () => Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', planVersion: 3, chapterId: `chapter-${Math.floor(i / 2) + 1}`, half: i % 2 ? 'b' : 'a', evidenceRefs: [], minChars: 1200, targetChars: 2200 }));
@@ -692,19 +696,20 @@ function v3Fixture() {
 const terminalFailure = { ok: false, body: null, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',
   failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 400, providerCode: 'GEMINI_API_KEY_INVALID', retryable: false, message: 'Provider request failed.' } };
 
-test('6e: V3 structural final issues still deliver (degraded) while a chapter body exists', async () => {
+test('S16: V3 structural final issues fail with one refund instead of a reduced delivery', async () => {
   const f = v3Fixture();
   f.ctx.getLifeBookReportQualityIssues = () => ['chapter_3_summary_missing'];
   for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
-  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.degraded, true);
-  assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+  assert.equal(f.doc.status, 'generation_failed'); assert.ok(noDeliveredBody(f.doc));
+  assert.equal(f.charges, 0); assert.equal(f.refunds, 1);
 });
 
-test('6e: V3 terminal provider failure after a body gives up only that section; with no body it still refunds', async () => {
+test('S16: V3 terminal provider failure on one section fails the whole book with one refund; with no body it still refunds', async () => {
   const late = v3Fixture(); const base = late.ctx.generateSectionOnce;
   late.ctx.generateSectionOnce = async (env, section) => section.id === 'section5' ? (late.calls.push(section.id), terminalFailure) : base(env, section);
   for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(late.doc?.status); i++) await late.post();
-  assert.equal(late.doc.status, 'completed'); assert.equal(late.refunds, 0);
+  assert.equal(late.doc.status, 'generation_failed'); assert.ok(noDeliveredBody(late.doc));
+  assert.equal(late.refunds, 1); assert.equal(late.charges, 0);
   assert.equal(late.calls.filter(id => id === 'section5').length, 1);
   const early = v3Fixture();
   early.ctx.generateSectionOnce = async () => terminalFailure;
@@ -712,27 +717,35 @@ test('6e: V3 terminal provider failure after a body gives up only that section; 
   assert.equal(early.doc.status, 'generation_failed'); assert.equal(early.refunds, 1);
 });
 
-// 2026-11-18 S3-G: 인생의 책(판 2)도 장 하나가 끝내 실패했다고 책 전체를 환불하지 않는다. 장 본문이 하나라도 있으면
-// 그 장만 포기하고 축소 배달하며, 장 본문이 전혀 없을 때만 실패(환불)한다.
+// S16(2026-11-19)이 S3-G 의 축소 배달을 대체한다: 인생의 책(판 2)도 장 하나가 시도를 다 쓰면 전체 실패 + 환불 1회.
 function v2Fixture() {
   const f = fixture();
   f.ctx.buildSectionPlan = () => Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', planVersion: 2, evidenceRefs: [], minChars: 2000, targetChars: 4000 }));
   return f;
 }
 
-test('S3-G: V2 structural final issues still deliver (degraded) while a chapter body exists', async () => {
+test('S16: V2 structural final issues fail with one refund instead of a reduced delivery', async () => {
   const f = v2Fixture();
   f.ctx.getLifeBookReportQualityIssues = () => ['chapter_3_summary_missing'];
   for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
-  assert.equal(f.doc.status, 'completed'); assert.equal(f.doc.llmMeta.degraded, true);
-  assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+  assert.equal(f.doc.status, 'generation_failed'); assert.ok(noDeliveredBody(f.doc));
+  assert.equal(f.charges, 0); assert.equal(f.refunds, 1);
 });
 
-test('S3-G: V2 terminal provider failure after a body gives up only that chapter; with no body it still refunds', async () => {
+test('S16: soft final issues (repetition, evidence, title, length) still deliver the complete book', async () => {
+  const f = v2Fixture();
+  f.ctx.getLifeBookReportQualityIssues = () => ['duplicate_narrative:4', 'chapter_2_evidence_refs_missing', 'chapter_4_title_mismatch', 'chapter_3_content_too_short'];
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+  assert.equal(f.doc.llmMeta.degraded, undefined);
+});
+
+test('S16: V2 terminal provider failure on one chapter fails the whole book with one refund; with no body it still refunds', async () => {
   const late = v2Fixture(); const base = late.ctx.generateSectionOnce;
   late.ctx.generateSectionOnce = async (env, section) => section.id === 'section5' ? (late.calls.push(section.id), terminalFailure) : base(env, section);
   for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(late.doc?.status); i++) await late.post();
-  assert.equal(late.doc.status, 'completed'); assert.equal(late.refunds, 0); assert.equal(late.charges, 1);
+  assert.equal(late.doc.status, 'generation_failed'); assert.ok(noDeliveredBody(late.doc));
+  assert.equal(late.refunds, 1); assert.equal(late.charges, 0);
   assert.equal(late.calls.filter(id => id === 'section5').length, 1);
   const early = v2Fixture();
   early.ctx.generateSectionOnce = async () => terminalFailure;
@@ -740,12 +753,72 @@ test('S3-G: V2 terminal provider failure after a body gives up only that chapter
   assert.equal(early.doc.status, 'generation_failed'); assert.equal(early.refunds, 1);
 });
 
-test('S3-G: V2 chapter that keeps failing transiently is dropped after its retries instead of refunding the whole book', async () => {
-  const f = v2Fixture(); const base = f.ctx.generateSectionOnce; f.ctx.LIFE_BOOK_MAX_SECTION_ATTEMPTS = 2;
+test('S16: a chapter that keeps failing transiently retries up to its attempts, never completes, then fails with one refund', async () => {
+  const f = v2Fixture(); const base = f.ctx.generateSectionOnce; f.ctx.LIFE_BOOK_MAX_SECTION_ATTEMPTS = 4;
   const transient = { ok: false, body: null, error: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE',
     failure: { code: 'LLM_INPUT_TOKEN_COUNT_UNAVAILABLE', status: 503, providerCode: 'GEMINI_UNAVAILABLE', retryable: true, message: 'Provider request failed.' } };
   f.ctx.generateSectionOnce = async (env, section) => section.id === 'section9' ? (f.calls.push(section.id), transient) : base(env, section);
+  const seen = new Set();
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) {
+    const response = await f.post(); seen.add(f.doc.status);
+    if (f.doc.status !== 'generation_failed') assert.ok(noDeliveredBody(f.doc), `no body while ${f.doc.status}`);
+    if (response.status === 200) assert.fail('must not deliver while a chapter is missing');
+  }
+  assert.ok(!seen.has('completed'));
+  assert.equal(f.doc.status, 'generation_failed'); assert.ok(noDeliveredBody(f.doc));
+  assert.equal(f.refunds, 1); assert.equal(f.charges, 0);
+  assert.equal(f.calls.filter(id => id === 'section9').length, 4);
+  // 실패 확정 뒤 재요청은 다시 환불하지 않는다.
+  await f.post(); assert.equal(f.refunds, 1);
+});
+
+test('S16: a section that exhausted its attempts without a provider failure fails the book on the next wave with one refund', async () => {
+  const f = v2Fixture(); await f.post();
+  f.doc.llmMeta.sections.section0 = { ...f.doc.llmMeta.sections.section0, ok: false, attempts: 3, failure: null };
+  f.calls.length = 0;
+  for (let i = 0; i < 10 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
+  assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.refunds, 1); assert.equal(f.charges, 0);
+  assert.ok(!f.calls.includes('section0'));
+});
+
+test('S16: a section still invalid on its last attempt fails the book in that same wave even if the assembled report looks full', async () => {
+  const f = fixture(); f.ctx.LIFE_BOOK_MAX_SECTION_ATTEMPTS = 4;
+  // 조립 스텁은 무효 조각 본문도 장으로 넣는다 — V3 반쪽 결손처럼 리포트만으로는 차 보이는 경우.
+  f.ctx.lifeBookSectionValid = section => section?.id !== 'section7';
   for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
-  assert.equal(f.doc.status, 'completed'); assert.equal(f.refunds, 0); assert.equal(f.charges, 1);
-  assert.equal(f.calls.filter(id => id === 'section9').length, 2);
+  assert.equal(f.doc.status, 'generation_failed'); assert.ok(noDeliveredBody(f.doc));
+  assert.equal(f.refunds, 1); assert.equal(f.charges, 0);
+  assert.equal(f.doc.llmMeta.sections.section7.attempts, 4);
+});
+
+test('S16: a delivery_pending record whose stored report is incomplete refunds once instead of completing', async () => {
+  const f = fixture();
+  for (let i = 0; i < 10 && f.doc?.status !== 'completed'; i++) await f.post();
+  Object.assign(f.doc, { status: 'delivery_pending', usageAppliedAt: undefined });
+  f.doc.llmMeta.reportJson = { chapters: [{ content: '한 장만 남은 예전 저하 배달' }] };
+  const chargesBefore = f.charges;
+  const response = await f.post();
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.ok, false); assert.equal(body.reason, 'LLM_ERROR');
+  assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.doc.generationError.code, 'LIFE_BOOK_RESULT_INCOMPLETE');
+  assert.equal(f.refunds, 1); assert.equal(f.charges, chargesBefore);
+});
+
+test('S16: an in-progress 202 response carries progress only, no report body or messages', async () => {
+  const f = fixture();
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['publicSession', 'publicSessionFields', 'buildSectionProgress']);
+  f.ctx.FEATURE_KEY = 'life-book-ai-consultation';
+  const first = await f.post();
+  assert.equal(first.status, 202);
+  const body = await first.json();
+  assert.equal(body.status, 'partial');
+  assert.equal(body.reportJson, null); assert.deepEqual(body.messages, []); assert.equal(body.title, '');
+  assert.equal(body.progress.total, 15); assert.ok(body.progress.completed > 0 && body.progress.completed < 15);
+  assert.ok(body.resumeSessionId); assert.equal(f.doc.llmMeta.reportJson, undefined);
+  for (let i = 0; i < 10 && f.doc.status !== 'completed'; i++) await f.post();
+  assert.equal(f.doc.status, 'completed');
+  const done = await (await f.post()).json();
+  assert.equal(done.status, 'completed'); assert.ok(done.reportJson?.chapters?.length === 15);
+  assert.ok(done.messages.some(message => message.role === 'assistant' && message.content));
 });
