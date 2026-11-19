@@ -284,5 +284,11 @@ export async function runPendingConsultationRefunds(env, options = {}) {
     const retryTea = options.teaHousePassRefunds || (await import('../routes/fortune-tea-house.js')).retryPendingFortuneTeaHousePassRefunds;
     outcomes.push(...await retryTea(env));
   } catch { outcomes.push({ service: 'fortune-tea-house', refundStatus: 'pending' }); }
+  // 2026-11-19 R2b 네오 첫 브리핑 다시 시도: 창(생성 + 7일)이 지난 건과 고객이 환불을 요청한 건을 네오의 기존 멱등 환불로 정산한다.
+  // 네오 환불은 결제·이용권·실행 가드를 한 함수(refundNeoGenerationFailure)로 묶어 SERVICES 밖이다. 실패는 격리하고 다음 주기에 다시 돈다.
+  try {
+    const retryNeo = options.neoRetryRefunds || (await import('../routes/neo-operation-room.js')).settleDueNeoRetryRefunds;
+    outcomes.push(...await retryNeo(env));
+  } catch { outcomes.push({ service: 'neo-operation-room', refundStatus: 'pending' }); }
   return { outcomes };
 }
