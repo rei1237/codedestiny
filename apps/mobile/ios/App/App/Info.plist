@@ -6,6 +6,8 @@
     <array><dict><key>CFBundleURLSchemes</key><array><string>com.codedestiny.app</string></array></dict></array>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>선택한 달빛 부적 원본을 사진에 저장합니다.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>손금 사진이나 문의에 첨부할 사진을 찍을 때 카메라를 사용합니다.</string>
     <key>CAPACITOR_DEBUG</key>
 	<string>$(CAPACITOR_DEBUG)</string>
 	<key>CFBundleDevelopmentRegion</key>

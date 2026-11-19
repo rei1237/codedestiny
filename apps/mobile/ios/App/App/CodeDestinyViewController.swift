@@ -2,6 +2,7 @@ import UIKit
 import Capacitor
 import Photos
 import ImageIO
+import SafariServices
 import UniformTypeIdentifiers
 import WebKit
 
@@ -21,13 +22,160 @@ struct CodeDestinyRouter: Router {
     }
 }
 
+enum CodeDestinyLinks {
+    static let ownHosts: Set<String> = ["code-destiny.com", "www.code-destiny.com"]
+    static let shellBackground = UIColor(red: 0x1b / 255.0, green: 0x10 / 255.0, blue: 0x28 / 255.0, alpha: 1)
+
+    static func isWeb(_ url: URL) -> Bool { ["https", "http"].contains(url.scheme?.lowercased() ?? "") }
+    static func isOwnHost(_ url: URL) -> Bool { isWeb(url) && ownHosts.contains(url.host?.lowercased() ?? "") }
+    static func isAppOrigin(_ url: URL) -> Bool { url.scheme == "capacitor" && url.host == "localhost" }
+
+    // Own-site pages are served from the bundled shell, never from the network origin.
+    static func appURL(for url: URL) -> URL? {
+        var local = URLComponents()
+        local.scheme = "capacitor"
+        local.host = "localhost"
+        local.path = url.path.isEmpty ? "/" : url.path
+        local.query = url.query
+        local.fragment = url.fragment
+        return local.url
+    }
+
+    static func topPresenter(from root: UIViewController?) -> UIViewController? {
+        var top = root
+        while let presented = top?.presentedViewController, !presented.isBeingDismissed { top = presented }
+        return top
+    }
+
+    static func presentInAppBrowser(_ url: URL, from root: UIViewController?) {
+        guard isWeb(url), let presenter = topPresenter(from: root) else {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil); return
+        }
+        let safari = SFSafariViewController(url: url)
+        safari.dismissButtonStyle = .close
+        safari.preferredControlTintColor = UIColor(red: 0xff / 255.0, green: 0x9e / 255.0, blue: 0xc4 / 255.0, alpha: 1)
+        presenter.present(safari, animated: true)
+    }
+}
+
 @objc(CodeDestinyViewController)
 class CodeDestinyViewController: CAPBridgeViewController {
+    // Retained here because WKWebView.uiDelegate is weak.
+    private var uiDelegateProxy: CodeDestinyUIDelegate?
+
     override func router() -> Router { CodeDestinyRouter() }
+
+    override func webViewConfiguration(for instanceConfiguration: InstanceConfiguration) -> WKWebViewConfiguration {
+        let configuration = super.webViewConfiguration(for: instanceConfiguration)
+        // Log-only app marker; no server or web code branches on it. Platform detection uses the native bridge.
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+        let marker = "CodeDestinyApp/iOS/\(version)"
+        if let name = configuration.applicationNameForUserAgent, !name.isEmpty {
+            configuration.applicationNameForUserAgent = "\(name) \(marker)"
+        } else {
+            configuration.applicationNameForUserAgent = marker
+        }
+        return configuration
+    }
+
     override func capacitorDidLoad() {
         bridge?.registerPluginInstance(CodeDestinyWallpaperPlugin())
         bridge?.registerPluginInstance(CodeDestinyLocalePlugin())
         bridge?.registerPluginInstance(CodeDestinyNavigationPlugin())
+        bridge?.registerPluginInstance(CodeDestinyStatusBarPlugin())
+
+        guard let webView = webView else { return }
+        // Same color as the splash and the web boot gate so launch, overscroll and keyboard edges never flash white.
+        view.backgroundColor = CodeDestinyLinks.shellBackground
+        webView.isOpaque = false
+        webView.backgroundColor = CodeDestinyLinks.shellBackground
+        webView.scrollView.backgroundColor = CodeDestinyLinks.shellBackground
+        webView.underPageBackgroundColor = CodeDestinyLinks.shellBackground
+        webView.scrollView.keyboardDismissMode = .interactive
+        webView.allowsBackForwardNavigationGestures = true
+
+        // CAPBridgeProtocol does not expose the delegation handler; prepareWebView installs it as the UI delegate.
+        if let original = webView.uiDelegate as? WebViewDelegationHandler {
+            let proxy = CodeDestinyUIDelegate(original: original, owner: self)
+            uiDelegateProxy = proxy
+            webView.uiDelegate = proxy
+        }
+    }
+}
+
+// Replaces Capacitor's UI delegate: localized dialog buttons, completion handlers that always fire,
+// and window.open / target=_blank handling (Capacitor hands every new window to UIApplication.open,
+// which silently drops app-origin URLs).
+final class CodeDestinyUIDelegate: NSObject, WKUIDelegate {
+    private weak var original: WebViewDelegationHandler?
+    private weak var owner: UIViewController?
+
+    init(original: WebViewDelegationHandler, owner: UIViewController) {
+        self.original = original
+        self.owner = owner
+    }
+
+    private func text(_ key: String) -> String { NSLocalizedString(key, comment: "") }
+
+    private func present(_ alert: UIAlertController, onFailure: () -> Void) {
+        guard let presenter = CodeDestinyLinks.topPresenter(from: owner), presenter.view.window != nil else {
+            onFailure(); return
+        }
+        presenter.present(alert, animated: true)
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: text("dialog.ok"), style: .default) { _ in completionHandler() })
+        present(alert) { completionHandler() }
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: text("dialog.cancel"), style: .cancel) { _ in completionHandler(false) })
+        alert.addAction(UIAlertAction(title: text("dialog.ok"), style: .default) { _ in completionHandler(true) })
+        present(alert) { completionHandler(false) }
+    }
+
+    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+        // Capacitor's synchronous cookie/http bridge rides on prompt() with a JSON payload; keep that path intact.
+        if let data = prompt.data(using: .utf8),
+           let payload = try? JSONSerialization.jsonObject(with: data, options: .fragmentsAllowed) as? [String: Any],
+           let type = payload["type"] as? String, type.hasPrefix("CapacitorCookies") || type == "CapacitorHttp",
+           let original = original {
+            original.webView(webView, runJavaScriptTextInputPanelWithPrompt: prompt, defaultText: defaultText, initiatedByFrame: frame, completionHandler: completionHandler)
+            return
+        }
+        let alert = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
+        alert.addTextField { $0.text = defaultText }
+        alert.addAction(UIAlertAction(title: text("dialog.cancel"), style: .cancel) { _ in completionHandler(nil) })
+        alert.addAction(UIAlertAction(title: text("dialog.ok"), style: .default) { [weak alert] _ in
+            completionHandler(alert?.textFields?.first?.text ?? defaultText)
+        })
+        present(alert) { completionHandler(nil) }
+    }
+
+    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        // Only the bundled app origin may use the camera/microphone without WebKit's own prompt.
+        decisionHandler(origin.protocol == "capacitor" && origin.host == "localhost" ? .grant : .prompt)
+    }
+
+    func webView(_ webView: WKWebView, requestDeviceOrientationAndMotionPermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+        decisionHandler(origin.protocol == "capacitor" && origin.host == "localhost" ? .grant : .prompt)
+    }
+
+    func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
+        guard let url = navigationAction.request.url else { return nil }
+        if CodeDestinyLinks.isAppOrigin(url) {
+            webView.load(URLRequest(url: url))
+        } else if CodeDestinyLinks.isOwnHost(url), !url.path.hasPrefix("/api/"), let local = CodeDestinyLinks.appURL(for: url) {
+            webView.load(URLRequest(url: local))
+        } else if CodeDestinyLinks.isWeb(url) {
+            CodeDestinyLinks.presentInAppBrowser(url, from: owner)
+        } else {
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
+        return nil
     }
 }
 
@@ -39,18 +187,48 @@ class CodeDestinyNavigationPlugin: CAPPlugin, CAPBridgedPlugin {
     override func shouldOverrideLoad(_ navigationAction: WKNavigationAction) -> NSNumber? {
         guard navigationAction.targetFrame?.isMainFrame != false,
               let url = navigationAction.request.url,
-              ["https", "http"].contains(url.scheme ?? ""),
-              ["code-destiny.com", "www.code-destiny.com"].contains(url.host ?? ""),
-              !url.path.hasPrefix("/api/") else { return nil }
-        var local = URLComponents()
-        local.scheme = "capacitor"
-        local.host = "localhost"
-        local.path = url.path
-        local.query = url.query
-        local.fragment = url.fragment
-        guard let target = local.url else { return NSNumber(value: true) }
-        DispatchQueue.main.async { self.bridge?.webView?.load(URLRequest(url: target)) }
+              CodeDestinyLinks.isWeb(url) else { return nil }
+
+        if CodeDestinyLinks.isOwnHost(url) {
+            if url.path.hasPrefix("/api/auth/") {
+                // OAuth start URLs keep Capacitor's default (system browser) until Phase 5 moves them to ASWebAuthenticationSession.
+                return nil
+            }
+            if url.path.hasPrefix("/api/") {
+                // API responses are never documents for the shell; ignore the top-level navigation (Android parity).
+                return NSNumber(value: true)
+            }
+            guard let target = CodeDestinyLinks.appURL(for: url) else { return NSNumber(value: true) }
+            DispatchQueue.main.async { self.bridge?.webView?.load(URLRequest(url: target)) }
+            return NSNumber(value: true)
+        }
+
+        // Only a user-initiated top-level link to another site leaves the shell, and it opens in-app.
+        guard navigationAction.navigationType == .linkActivated || navigationAction.targetFrame == nil else { return nil }
+        DispatchQueue.main.async {
+            CodeDestinyLinks.presentInAppBrowser(url, from: self.bridge?.viewController)
+        }
         return NSNumber(value: true)
+    }
+}
+
+// Same JS surface as the Android CodeDestinyStatusBarPlugin: StatusBar.setStyle({ style: "DARK" | "LIGHT" | "DEFAULT" }).
+// DARK means a dark page (네오 theme) → light icons; LIGHT/DEFAULT (연이 theme) → dark icons.
+@objc(CodeDestinyStatusBarPlugin)
+class CodeDestinyStatusBarPlugin: CAPPlugin, CAPBridgedPlugin {
+    let identifier = "CodeDestinyStatusBarPlugin"
+    let jsName = "StatusBar"
+    let pluginMethods: [CAPPluginMethod] = [CAPPluginMethod(name: "setStyle", returnType: CAPPluginReturnPromise)]
+
+    @objc func setStyle(_ call: CAPPluginCall) {
+        let style = (call.getString("style") ?? "DEFAULT").uppercased()
+        DispatchQueue.main.async {
+            guard let controller = self.bridge?.viewController as? CAPBridgeViewController else {
+                call.reject("Status bar is unavailable", "STATUS_BAR_UNAVAILABLE"); return
+            }
+            controller.setStatusBarStyle(style == "DARK" ? .lightContent : .darkContent)
+            call.resolve(["style": style])
+        }
     }
 }
 

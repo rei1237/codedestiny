@@ -32,6 +32,13 @@ const config: CapacitorConfig = {
     html5mode: false,
   } as ServerConfig,
   android: androidConfig,
+  // iOS 전용. Android 런타임은 이 블록을 읽지 않는다.
+  ios: {
+    // 웹뷰가 칠해지기 전·오버스크롤 가장자리에 흰 화면이 보이지 않게 스플래시와 같은 색을 쓴다.
+    backgroundColor: "#1b1028",
+    // 링크 길게 누르기 미리보기는 앱 안 경로(capacitor://localhost)를 열 수 없어 끈다.
+    allowsLinkPreview: false,
+  },
   plugins: {
     SplashScreen: {
       launchAutoHide: true,

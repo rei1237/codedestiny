@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "꿀꿀운세";
 "NSPhotoLibraryAddUsageDescription" = "選んだお守り画像の原本を写真に保存します。";
+"NSCameraUsageDescription" = "手相の写真やお問い合わせに添付する写真を撮るときにカメラを使います。";

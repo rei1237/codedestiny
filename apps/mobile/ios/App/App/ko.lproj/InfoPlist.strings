@@ -1,2 +1,3 @@
 "CFBundleDisplayName" = "꿀꿀운세";
 "NSPhotoLibraryAddUsageDescription" = "선택한 달빛 부적 원본을 사진에 저장합니다.";
+"NSCameraUsageDescription" = "손금 사진이나 문의에 첨부할 사진을 찍을 때 카메라를 사용합니다.";
