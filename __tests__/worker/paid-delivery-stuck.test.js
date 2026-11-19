@@ -119,3 +119,54 @@ test('확정 실패 뒤 환불이 예외여도 generation_failed 는 남아 기�
   expect(model.doc.status).toBe('generation_failed');
   expect(model.doc.llmMeta.refundEligibleAt).toBeTruthy();
 });
+
+// S16: 공용 설정자는 완성 판정(isComplete)을 통과한 delivery_pending 만 구제 전달하고, 미완성은 실패+환불한다.
+test('완성 판정을 통과하지 못한 delivery_pending 정체는 구제 전달하지 않고 generation_failed + 공용 환불로 확정한다', async () => {
+  const model = memoryModel(baseDoc('delivery_pending', { deliveryWatch: { baseline: 1, stalls: 6 } }));
+  const refund = jest.fn(async () => ({ refundStatus: 'refunded' }));
+  const out = await stuck.settleStuckConsultation({}, { service: 'life-book-ai', model, doc: model.doc, now: START + 3600000, refund, isComplete: () => false });
+  expect(out).toEqual({ outcome: 'generation_failed', refundStatus: 'refunded' });
+  expect(model.doc.status).toBe('generation_failed');
+  expect(refund).toHaveBeenCalledWith({}, { service: 'life-book-ai', id: 'session-1', userId: 'owner' });
+});
+
+test('복구 크론은 어댑터의 isStuckDeliveryComplete 를 공용 설정자에 넘긴다', async () => {
+  const model = memoryModel(baseDoc('delivery_pending', { deliveryWatch: { baseline: 1, stalls: 6 } }));
+  const refund = jest.fn(async () => ({ refundStatus: 'refunded' }));
+  const isStuckDeliveryComplete = jest.fn(() => false);
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await runConsultationRecovery({}, { now: START + 3600000, connectDb: async () => {}, adapters: [['life-book-ai', 'M', {}]], models: { M: model },
+      loadAdapter: async () => ({ resumeConsultationOnServer: jest.fn(), isStuckDeliveryComplete }), settleRefund: refund });
+  } finally { warn.mockRestore(); log.mockRestore(); }
+  expect(isStuckDeliveryComplete).toHaveBeenCalled();
+  expect(model.doc.status).toBe('generation_failed');
+});
+
+test('공용 상태 환불이 아닌 정체 설정자는 어댑터의 settleStuckDelivery 로만 확정하고, 없으면 경보만 남긴다', async () => {
+  const doc = baseDoc('partial', { deliveryWatch: { baseline: 1, stalls: 6 } });
+  const model = memoryModel(doc);
+  const settleStuckDelivery = jest.fn(async () => ({ outcome: 'generation_failed', refundStatus: 'refunded' }));
+  const resume = jest.fn(async () => new Response('{}', { status: 202 }));
+  const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  let result;
+  try {
+    result = await runConsultationRecovery({}, { now: START + 3600000, connectDb: async () => {}, adapters: [[stuck.STUCK_SETTLERS[0], 'M', {}]], models: { M: model },
+      loadAdapter: async () => ({ resumeConsultationOnServer: resume, settleStuckDelivery }) });
+  } finally { warn.mockRestore(); log.mockRestore(); }
+  expect(settleStuckDelivery).toHaveBeenCalledWith({}, expect.objectContaining({ doc: expect.objectContaining({ id: 'session-1' }), now: START + 3600000, model }));
+  expect(resume).not.toHaveBeenCalled();
+  expect(result.outcomes).toContainEqual({ service: stuck.STUCK_SETTLERS[0], stuck: 'generation_failed', refundStatus: 'refunded' });
+});
+
+test('모델이 없는 어댑터는 자기 recordDeliveryWatch 로 진전을 기록한다', async () => {
+  const recordDeliveryWatch = jest.fn(async () => null);
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await runConsultationRecovery({}, { now: START, connectDb: async () => {}, adapters: [['fortune-tea-house', null, {}]], models: {},
+      loadAdapter: async () => ({ findRecoverableConsultations: async () => [{ resultId: 'r1', userId: 'owner' }], resumeConsultationOnServer: async () => new Response('{}', { status: 202 }), recordDeliveryWatch }) });
+  } finally { log.mockRestore(); }
+  expect(recordDeliveryWatch).toHaveBeenCalledWith({}, expect.objectContaining({ resultId: 'r1' }), START);
+});

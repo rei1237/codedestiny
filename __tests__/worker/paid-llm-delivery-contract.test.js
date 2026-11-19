@@ -17,7 +17,7 @@ import { makeFakePaymentDb } from '../fixtures/fake-payment-db.mjs';
 import { consumePassForFeature, passDenialCode } from '../../worker/lib/pass-consumption.js';
 import { settleFailedConsultationRefund, runPendingConsultationRefunds } from '../../worker/lib/consultation-delivery-refund.js';
 import { lateUsageSettlementFailure, usageSettlementSetFields } from '../../worker/lib/late-usage-settlement.js';
-import { STUCK_SETTLERS } from '../../worker/lib/paid-delivery-stuck.js';
+import { STUCK_SETTLERS, GENERIC_STUCK_SETTLERS } from '../../worker/lib/paid-delivery-stuck.js';
 import { PAID_LLM_DELIVERY_CONTRACT, PAID_LLM_DELIVERY_TESTS, CONSULTATION_RECOVERY_ADAPTERS } from '../../worker/lib/consultation-recovery-registry.js';
 import { NewYearAiConsultation, PointHistory, User } from '../../worker/lib/models.js';
 import { MONTHLY_PASS_LIMITS } from '../../worker/lib/profile-limits.js';
@@ -205,11 +205,13 @@ describe('(b) 커버리지: 계약의 모든 서비스가 자기 전달 테스�
     const needles = [...entry.files.map(f => f.replace(/^worker\//, '').replace(/\.(js|ts)$/, '')), ...entry.featureKeys.map(k => k.replace('*', ''))];
     expect(needles.some(needle => text.includes(needle))).toBe(true);
   });
-  test('정체 확정 서비스는 상태 기반 공용 환불을 쓰는 복구 어댑터다', () => {
+  test('정체 확정 서비스는 복구 어댑터이고, 상태 기반 공용 환불 또는 자기 settleStuckDelivery 로 확정한다', () => {
     const recovery = CONSULTATION_RECOVERY_ADAPTERS.map(([route]) => route);
     for (const service of STUCK_SETTLERS) {
       expect(recovery).toContain(service);
-      expect(PAID_LLM_DELIVERY_CONTRACT.find(entry => entry.service === service).refunds).toContain('settleFailedConsultationRefund');
+      const entry = PAID_LLM_DELIVERY_CONTRACT.find(row => row.service === service);
+      if (GENERIC_STUCK_SETTLERS.includes(service)) expect(entry.refunds).toContain('settleFailedConsultationRefund');
+      else expect(entry.files.some(f => /export\s+(?:async\s+)?function\s+settleStuckDelivery\b/.test(fs.readFileSync(path.join(ROOT, f), 'utf8')))).toBe(true);
     }
   });
 });

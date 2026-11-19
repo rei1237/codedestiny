@@ -3,7 +3,7 @@ import { connectDb, withMongoRetry } from './db.js';
 import * as models from './models.js';
 import { runWithAiLocale, storedAiLocale } from './ai-locale-context.js';
 import { runPendingConsultationRefunds } from './consultation-delivery-refund.js';
-import { STUCK_SETTLERS, shouldSettleStuck, settleStuckConsultation, recordDeliveryWatch, logStuckUnsettled } from './paid-delivery-stuck.js';
+import { STUCK_SETTLERS, GENERIC_STUCK_SETTLERS, shouldSettleStuck, settleStuckConsultation, recordDeliveryWatch, logStuckUnsettled } from './paid-delivery-stuck.js';
 
 // Each adapter resumes an existing owner-scoped record through its normal
 // payment, lease, persistence and per-part budget checks. No insert or grant here.
@@ -60,8 +60,13 @@ export async function runConsultationRecovery(env, options = {}) {
         if (!doc.userId || !(doc.id || doc._id || doc.resultId)) continue;
         // 정체 감시: 진전 없는 복구가 쌓이면 이어쓰기 대신 확정한다(같은 1건이라 처리량 불변).
         if (shouldSettleStuck(doc, now)) {
-          if (model && STUCK_SETTLERS.includes(route)) {
-            const settled = await settleStuckConsultation(env, { service: route, model, doc, now, refund: options.settleRefund });
+          // 상태 기반 공용 환불 서비스는 공용 설정자, 나머지는 어댑터 자신의 실패·환불 경로(settleStuckDelivery).
+          const ownSettler = typeof adapter.settleStuckDelivery === 'function' ? adapter.settleStuckDelivery : null;
+          if (STUCK_SETTLERS.includes(route) && (ownSettler || (model && GENERIC_STUCK_SETTLERS.includes(route)))) {
+            const settled = ownSettler
+              ? await ownSettler(env, { doc, now, model, refund: options.settleRefund })
+              : await settleStuckConsultation(env, { service: route, model, doc, now, refund: options.settleRefund,
+                isComplete: typeof adapter.isStuckDeliveryComplete === 'function' ? adapter.isStuckDeliveryComplete : undefined });
             outcomes.push({ service: route, stuck: settled.outcome, ...(settled.refundStatus ? { refundStatus: settled.refundStatus } : {}) });
             if (settled.outcome !== 'leased') continue;
           } else logStuckUnsettled(route, doc);
@@ -82,6 +87,7 @@ export async function runConsultationRecovery(env, options = {}) {
             await adapter.deferUnchangedConsultation(env, doc, now);
           }
           if (model) await recordDeliveryWatch(model, doc, now).catch(() => null);
+          else if (typeof adapter.recordDeliveryWatch === 'function') await adapter.recordDeliveryWatch(env, doc, now).catch(() => null);
         }
       }
     } catch (error) {

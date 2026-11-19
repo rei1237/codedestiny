@@ -14,7 +14,13 @@ export const STUCK_SETTLE_AGE_MS = 6 * 86400000; // 복구 창(7일) 전에 반�
 export const STUCK_PROGRESS_CHARS = 1000;        // 장 하나는 수천 자, 오류·시도 기록은 수백 자 미만
 const LIVE_LEASE_MS = 120000;
 const STUCK_STATUSES = ['generating', 'partial', 'delivery_pending'];
-export const STUCK_SETTLERS = Object.freeze(['new-year-ai', 'life-book-ai']);
+// 진전 기록은 결제 뒤 시작 전 대기(pending: 흑월·천상 화합)도 센다 — 확정 여부는 설정자가 판단한다.
+const WATCH_STATUSES = [...STUCK_STATUSES, 'pending'];
+// 상태 기반 공용 환불(settleFailedConsultationRefund)로 확정하는 서비스. 이 밖의 STUCK_SETTLERS 는 복구 어댑터
+// (라우트 모듈)가 settleStuckDelivery(env, { doc, now, model }) 를 내보내 자기 실패·환불 경로로 확정한다(S16).
+export const GENERIC_STUCK_SETTLERS = Object.freeze(['new-year-ai', 'life-book-ai']);
+export const STUCK_SETTLERS = Object.freeze([...GENERIC_STUCK_SETTLERS]);
+export const STUCK_LIVE_LEASE_MS = LIVE_LEASE_MS;
 
 // 진전 크기에서 빼는 필드: 시도마다 바뀌지만 본문이 아닌 것.
 const VOLATILE = new Set(['updatedAt', 'generationLease', 'generationError', 'deliveryWatch', 'lockedAt', 'lockToken', '__v']);
@@ -48,21 +54,23 @@ export async function recordDeliveryWatch(model, doc, now) {
   if (!collection || !doc?._id) return null;
   const owner = { _id: doc._id, userId: doc.userId };
   const fresh = await collection.findOne(owner);
-  if (!fresh || !STUCK_STATUSES.includes(fresh.status)) return null;
+  if (!fresh || !WATCH_STATUSES.includes(fresh.status)) return null;
   const watch = nextDeliveryWatch(fresh.deliveryWatch, deliveryProgressSize(fresh), now);
   await collection.updateOne(owner, { $set: { deliveryWatch: watch } });
   return watch;
 }
 
 const logSettled = fields => console.warn('paid_delivery_stuck_settled', fields);
+export const logStuckSettled = logSettled;
 export function logStuckUnsettled(service, doc) {
   console.warn('paid_delivery_stuck_unsettled', { service, sessionId: String(doc?.id || doc?.resultId || doc?._id || ''), stalls: Number(doc?.deliveryWatch?.stalls || 0) });
 }
 
-/** 정체 확정. 응답 본문·결제 ID·출생 정보는 로그에 남기지 않는다. */
-export async function settleStuckConsultation(env, { service, model, doc, now, refund }) {
+/** 정체 확정. 응답 본문·결제 ID·출생 정보는 로그에 남기지 않는다.
+ * isComplete(fresh) 가 주어지면 delivery_pending 도 완성일 때만 구제 전달하고, 미완성이면 실패+환불한다(S16). */
+export async function settleStuckConsultation(env, { service, model, doc, now, refund, isComplete }) {
   const sessionId = String(doc?.id || '');
-  if (!STUCK_SETTLERS.includes(service) || !model || !doc?.id || !doc.userId) return { outcome: 'unsupported' };
+  if (!GENERIC_STUCK_SETTLERS.includes(service) || !model || !doc?.id || !doc.userId) return { outcome: 'unsupported' };
   const owner = { id: doc.id, userId: doc.userId };
   const fresh = await model.findOne(owner).lean();
   if (!fresh || !STUCK_STATUSES.includes(fresh.status)) return { outcome: 'progressed' };
@@ -74,7 +82,7 @@ export async function settleStuckConsultation(env, { service, model, doc, now, r
   // updatedAt CAS: 그 사이 브라우저·다른 워커가 저장한 진전이 있으면 확정하지 않는다.
   const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
   const unlock = { 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '' };
-  if (fresh.status === 'delivery_pending') {
+  if (fresh.status === 'delivery_pending' && (typeof isComplete !== 'function' || isComplete(fresh))) {
     const result = await model.updateOne(cas, { $set: { status: 'completed', ...unlock, ...closeSupport,
       ...usageSettlementSetFields({ usageSettlement: 'failed', usageSettlementReason: 'DELIVERY_STUCK', usageSettlementFailedAt: at }) } });
     if (!result?.modifiedCount) return { outcome: 'progressed' };

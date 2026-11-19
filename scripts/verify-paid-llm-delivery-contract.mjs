@@ -12,6 +12,7 @@
 //   5. 계약 테스트(__tests__/worker/paid-llm-delivery-contract.test.js)가 있고 레지스트리를 import 해야 하며,
 //      PAID_LLM_DELIVERY_TESTS 가 계약 서비스 전부를 덮고 그 테스트 파일이 실재해야 한다.
 //   6. 정체 감시: 복구 어댑터 중 STUCK_SETTLERS(자동 확정) 밖의 서비스는 KNOWN_STUCK_SETTLE_GAPS 와 정확히 같아야 한다.
+//      공용 상태 환불(GENERIC_STUCK_SETTLERS) 밖의 설정자는 계약 파일이 settleStuckDelivery 를 export 해야 한다(S16).
 //   7. 자기 변이 검사: 계약 항목을 하나씩 뺀 판정이 매번 실패해야 한다(도는 가드가 아니라 무는 가드).
 import fs from "node:fs";
 import path from "node:path";
@@ -119,7 +120,9 @@ export function discoverPaidLlmFiles(src) {
 
 const keyMatches = (pattern, key) => pattern.endsWith("*") ? key.startsWith(pattern.slice(0, -1)) : pattern === key;
 
-export function checkContract({ contract, adapters, llmFeatureKeys, src, discovered, tests, testFiles, stuckSettlers, knownGaps = KNOWN_REFUND_GAPS, knownStuckGaps = KNOWN_STUCK_SETTLE_GAPS, exempt = EXEMPT_FILES, shared = SHARED_REFUND_PATHS }) {
+const OWN_STUCK_SETTLER_RE = /export\s+(?:async\s+)?function\s+settleStuckDelivery\b|export\s+const\s+settleStuckDelivery\b/;
+
+export function checkContract({ contract, adapters, llmFeatureKeys, src, discovered, tests, testFiles, stuckSettlers, genericStuckSettlers, knownGaps = KNOWN_REFUND_GAPS, knownStuckGaps = KNOWN_STUCK_SETTLE_GAPS, exempt = EXEMPT_FILES, shared = SHARED_REFUND_PATHS }) {
   const errors = [];
   // 필수 입력이 비면 통과가 아니라 실패(fail-closed).
   if (!tests || typeof tests !== "object") errors.push("PAID_LLM_DELIVERY_TESTS 를 읽지 못했다 — 레지스트리에 서비스→전달 테스트 표가 있어야 한다");
@@ -167,6 +170,15 @@ export function checkContract({ contract, adapters, llmFeatureKeys, src, discove
   if (Array.isArray(stuckSettlers) && stuckSettlers.length) {
     const adapterIds = adapters.map(([route]) => route);
     for (const s of stuckSettlers) if (!adapterIds.includes(s)) errors.push(`STUCK_SETTLERS '${s}' 가 복구 어댑터가 아니다`);
+    if (!Array.isArray(genericStuckSettlers)) errors.push("GENERIC_STUCK_SETTLERS 를 읽지 못했다 — worker/lib/paid-delivery-stuck.js");
+    for (const s of stuckSettlers) {
+      if (Array.isArray(genericStuckSettlers) && genericStuckSettlers.includes(s)) {
+        if (!contract.find(e => e?.service === s)?.refunds?.includes("settleFailedConsultationRefund")) errors.push(`${s}: 공용 정체 설정자인데 settleFailedConsultationRefund 를 계약 환불 경로로 갖지 않는다`);
+        continue;
+      }
+      const files = contract.find(e => e?.service === s)?.files || [];
+      if (!files.some(f => OWN_STUCK_SETTLER_RE.test(src[f] || ""))) errors.push(`${s}: STUCK_SETTLERS 인데 계약 파일이 settleStuckDelivery 를 export 하지 않는다 — 정체를 자기 실패·환불 경로로 확정할 설정자가 없다`);
+    }
     const stuckGaps = adapterIds.filter(r => !stuckSettlers.includes(r)).sort();
     const expected = [...knownStuckGaps].sort();
     for (const g of stuckGaps) if (!expected.includes(g)) errors.push(`${g}: 정체 자동 확정이 없는 새 복구 어댑터 — STUCK_SETTLERS 에 설정자를 붙이거나 KNOWN_STUCK_SETTLE_GAPS 에 사유와 함께 올린다`);
@@ -201,7 +213,7 @@ export async function loadInputs(root = ROOT) {
   const rows = inventory.rows || inventory.products || inventory;
   const llmFeatureKeys = rows.filter(r => LLM_DELIVERY_KINDS.includes(r.deliveryKind)).map(r => r.featureKey);
   const src = loadSources(root);
-  const { STUCK_SETTLERS } = await import(pathToFileURL(path.join(root, "worker/lib/paid-delivery-stuck.js")).href);
+  const { STUCK_SETTLERS, GENERIC_STUCK_SETTLERS } = await import(pathToFileURL(path.join(root, "worker/lib/paid-delivery-stuck.js")).href);
   // 테스트 파일은 작업 트리 실재로 판정한다(미추적 새 테스트도 존재로 본다; 지우면 실패).
   const tests = registry.PAID_LLM_DELIVERY_TESTS;
   const wanted = new Set([CONTRACT_TEST_FILE, ...Object.values(tests || {})]);
@@ -210,7 +222,7 @@ export async function loadInputs(root = ROOT) {
     const abs = path.join(root, f);
     if (typeof f === "string" && fs.existsSync(abs)) testFiles[f] = fs.readFileSync(abs, "utf8");
   }
-  return { contract: registry.PAID_LLM_DELIVERY_CONTRACT, adapters: registry.CONSULTATION_RECOVERY_ADAPTERS, llmFeatureKeys, src, discovered: discoverPaidLlmFiles(src), tests, testFiles, stuckSettlers: STUCK_SETTLERS };
+  return { contract: registry.PAID_LLM_DELIVERY_CONTRACT, adapters: registry.CONSULTATION_RECOVERY_ADAPTERS, llmFeatureKeys, src, discovered: discoverPaidLlmFiles(src), tests, testFiles, stuckSettlers: STUCK_SETTLERS, genericStuckSettlers: GENERIC_STUCK_SETTLERS };
 }
 
 async function main() {
