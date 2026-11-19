@@ -229,6 +229,17 @@ describe('delivery plan v2 chapter acceptance', () => {
     expect(seen.fallbackToWorkersAI).toBe(true);
     expect(seen.fallbackMinChars).toBe(Math.round(HEUKWOL_CHAPTER_MIN_CHARS * 0.3));
   });
+  // R6b: 공용 ko 지시가 존댓말을 최우선으로 강제하면 네오의 반말 대응이 합니다체가 되어 말투 판정에서 결정적으로 탈락한다.
+  test('every chapter call leaves the speech level to the personas (outputRegister persona) on v1 and v2', async () => {
+    const { buildOutputLanguageDirective } = await import('../../lib/i18n/ai-locale.js');
+    const seen = [];
+    const capture = async (_env, _prompt, options) => { seen.push(options.outputRegister); return { ok: true, text: JSON.stringify(value) }; };
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2()).catch(() => {});
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2({ finalAttempt: true })).catch(() => {});
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture).catch(() => {});
+    expect(seen).toEqual(['persona', 'persona', 'persona']);
+    expect(buildOutputLanguageDirective('ko', { register: 'persona' })).not.toContain('존댓말로 작성');
+  });
   test('without the v2 option the v1 validator still rejects short chapters', async () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue)))
       .rejects.toThrow('HEUKWOL_CHAPTER_QUALITY');

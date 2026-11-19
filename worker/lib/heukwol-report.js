@@ -193,6 +193,9 @@ export async function generateHeukwolChapter(env, analysis, chapter, question, p
   const hint=v2?HEUKWOL_REPAIR_HINTS[options?.repairIssue]||'':'';
   const result=await generate(env,heukwolPrompt(analysis,chapter,question,previous,hint),{
     attempts:1,baseTokens:16000,capTokens:16000,temperature:0.4,taskType:'fortune',
+    // R6b: 연이(존댓말)·네오(반말) 두 화자가 말투를 나눠 쓰므로 공용 ko "존댓말" 최우선 지시를 끈다(한국어 전용 계약은 유지).
+    // 켜 두면 네오 대응까지 합니다체가 되어 HEUKWOL_CHAPTER_REGISTER 로 결정적으로 탈락한다(영냥이 7757ef597 선례).
+    outputRegister:'persona',
     // 원칙 17: 폴백 하한은 장 하한의 30%. 장 하한과 같게 두면 쓸 만한 폴백 답변까지 버려 장이 비어 버린다.
     timeoutMs:60000,fallbackToWorkersAI:true,fallbackMinChars:Math.round(HEUKWOL_CHAPTER_MIN_CHARS*0.3),
     ...(v2 || typeof options.finalAttempt === 'boolean' ? { finalProviderAttempt: options.finalAttempt === true } : {}),
