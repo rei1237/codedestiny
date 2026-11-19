@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: "R4 신년운세 다시 시도(R3 패턴, NewYearAiClient LLM_ERROR_MESSAGE 정정 포함) → R2b 네오 첫 브리핑. R1·R3 은 R4 없이 머지·push 금지"
+next: "R2b 네오 첫 브리핑 다시 시도 우선(승인됨) → R5~R7. R1·R3·R4 묶음은 준비됨(R4 체인 통과)이나 머지·push 는 R9 에서"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -20,8 +20,8 @@ next: "R4 신년운세 다시 시도(R3 패턴, NewYearAiClient LLM_ERROR_MESSAG
 ## 지금 상태
 - main = `b3b77221c` 시점에 작성. 운영 = `25d9bc034`(2026-11-19 Release run 44501694109 성공, S13·S15·S16 반영).
 - 워크트리 `D:\Development\codedestiny-worktrees\paid-retry-20261119-195316`, 브랜치 `wt/paid-retry-20261119-195316`, 기점 `bcce826eb`.
-- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · 이 문서 갱신 커밋.
-- 🔴 R1 은 단독으로 머지·push 하지 않는다 — 신년·인생의 책에 다시 시도 UI·재개 엔드포인트(R3·R4)가 없어, 그 상태로 나가면 고객은 최대 7일간 실패 화면만 보고 환불도 받지 못한다.
+- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · 이 문서 갱신 커밋.
+- 🔴 R1 은 단독으로 머지·push 하지 않는다 — 신년·인생의 책에 다시 시도 UI·재개 엔드포인트(R3·R4)가 없어, 그 상태로 나가면 고객은 최대 7일간 실패 화면만 보고 환불도 받지 못한다. → 2026-11-19 R3·R4 완료로 R1·R3·R4 는 한 묶음으로 머지 가능(R9 에서, 묶음째로만).
 
 ## 승인 상태
 - 이 요청은 **코드 수정·main push(스테이징 배포까지)** 승인이다.
@@ -57,7 +57,7 @@ next: "R4 신년운세 다시 시도(R3 패턴, NewYearAiClient LLM_ERROR_MESSAG
   - 네오가 `consultation-delivery-refund.js` `SERVICES` 에 없다 → 7일 뒤/고객 요청 환불 수집기가 없다(추가 또는 네오 전용 수집기).
   - 핸들러 catch 의 즉시 환불 `refundNeoGenerationFailure`(:1957), 장당 8회 상한(:1070, :1864), 시작·재개 409 차단(:1801, GET /result :2006-2013).
 - [x] R3 인생의 책 — `9f725b7a3`(워커·클라이언트·테스트) + `39fcbd4a0`(sitemap 원장). 종결 실패 → generation_failed + llmMeta.retryable(생성+7일), 본문 비노출 유지. POST /api/life-book-ai/retry(실패·보수 대기 장만 시도 수 0 으로 열고 웨이브 예산 초기화, 같은 CAS) · POST /refund-request(markRetryableRefundDue → settle). 소개·결과 화면에 "다시 시도 · 추가 결제·차감 없음" + "다시 시도 대신 환불 요청", 다시 시도 가능할 때 새 책(새 결제) 링크 숨김. 즉시 환불 유지(가정): Toss 네이티브·supportRecovery·DEFERRED_USAGE_APPLY_FAILED·LIFE_BOOK_RESULT_INCOMPLETE(전달 단계 조립 실패, 다시 시도해도 같은 결과). 다시 시도 경로는 증빙 해제·차감 취소를 하지 않는다(같은 결제 건 이어 쓰기). 검증: life-book behavior 78/78, ux.static 10/10, wake-recovery 등 node --test 94/94, jest stuck·recovery-task·delivery-contract 75/75, verify life-book-flow·paid-llm-delivery·payment-freeze·legal-copy·paid-gate-scope·audit-ai-locale --check 통과, tsc 0.
-- [ ] R4 신년운세 (S16 대상 밖이었으므로 완성본 판정·비노출 여부도 먼저 확인. 비노출 추가는 하지 않고 다시 시도만 붙인다 — 요청 범위)
+- [x] R4 신년운세 — `14a12f0d1`(워커·클라이언트·테스트) + `d7eea47b5`(sitemap 원장) + `7ed35229a`(보안 분류기: `/retry`→start, `/refund-request`→ensure — R3 에서 빠졌던 것도 함께) + `0a3f1942d`(Toss 하네스 스텁). handleStart catch → generation_failed + llmMeta.retryable(생성+7일), 503 `{reason:'LLM_ERROR', refunded:false, retry:{available, refundAt, sessionId}}`(최상위 `retryable` 은 클라이언트에서 "계속 폴링"이라 쓰지 않음). handleStart·handleResult 409 에 같은 retry 표지. POST /api/new-year-ai/retry(소유자 확인 → reopen + `newYearRetryReset`: 받아들여지지 않은 savedSections 의 실패·사유 초기화, 다시 연 섹션 접두 attempts 삭제 → 한 웨이브) · POST /refund-request. 클라이언트: "다시 시도 · 추가 결제·차감 없음" + "다시 시도 대신 환불 요청"(웹 전용), 다시 시도 가능하면 폼 제출도 무료 다시 시도로 보냄(새 결제 없음), LLM_ERROR_MESSAGE 정정. 즉시 환불 유지(가정): Toss 네이티브·supportRecovery·DEFERRED_USAGE_APPLY_FAILED·창 만료.
 - [ ] R5 연애 비책
 - [ ] R6 흑월(웹 + `worker/toss/native-heukwol.js` Toss 경로)
 - [ ] R7 찻집 · 마스터 인연의 서
@@ -199,6 +199,15 @@ S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 
 - (b) ~~7일은 다시 시도 가능으로 바뀐 시각부터 센다~~ → **사용자 결정(2026-11-19 "결제(생성 시작) 후 7일 (추천)")으로 생성 시각 + 7일**(`retryRefundAt(doc)`: createdAt → `_id` 시각 → now 순). 기존 `refundAt` 은 늘리지 않는다. `3915323c7`.
 - (c) 🔴 R1 단독 배포 금지(위 '지금 상태').
 - (d) 네오 첫 브리핑은 이번 묶음에서는 기존 즉시 환불을 유지한다. 사용자가 '다시 시도 먼저'를 승인했으므로 R2b 에서 바꾼다.
+
+### R3·R4 최종 검사 (워크트리 HEAD `7ed35229a` + `0a3f1942d`, --base=`bcce826eb`)
+- 대상 실행: 신년 UI·관련 node --test 150/150, 신년 워커 jest 34/34, paid-delivery-stuck·consultation-recovery-task jest 32/32, 보안 jest 79/79, tsc --noEmit 0. verify new-year-ai-flow·llm-generation-resilience·paid-gate-ui-regression·payment-freeze·payment-legal-copy·no-nested-retry·paid-gate-no-dead-end·static-paid-gate-failsafe·report-paid-delivery-inventory 통과.
+- `npm run check:fast -- --base=bcce826eb` (HEAD `7ed35229a`) → exit 0 (1504s, jest 483 스위트 · 8266 통과 / 1 skip). 첫 회는 `security.ai-route-buckets` 실패 — `/api/{new-year,life-book}-ai/{retry,refund-request}` 미분류(R3 도 놓쳤음) → `7ed35229a`.
+- `node scripts/run-paid-gate-suite.mjs --base=bcce826eb` → exit 0 (1108s, 91 통과 / 0 실패).
+- `node scripts/verify-myeongri-tables.mjs` → exit 0 (검사 29건, 잔차 0).
+- `npm test --prefix apps/toss` → 첫 회 exit 1: 인생의 책 하네스 2건(`native-delivery-messages`·`native-result-permission` 의 vm 컨텍스트에 R3 의 `readLifeBookRetryOffer`·`FAILURE_COPY` 가 없어 ReferenceError). Toss 응답엔 retry 표지가 없으므로 실제 함수와 같은 판정의 스텁을 넣음(`0a3f1942d`). 둘째 회 `psychotest-shell` 1건 실패 — 이 브랜치는 apps/toss 소스 변경 0, 단독 3회 20/20 → 부하 플레이크. 셋째 회 exit 0 (1765/1765). 하네스 수정분 `npm run check:fast`(작업 트리) → exit 0 (jest 483 스위트 · 8266 통과 / 1 skip).
+- 🔴 함정: R5~R7 에서 클라이언트에 새 import 를 쓰면 `apps/toss/test/*` vm 하네스 컨텍스트에도 스텁을 넣어야 한다(R9 전에 Toss 테스트를 꼭 돌린다).
+- 보안 버킷(`/retry`=start, `/refund-request`=ensure)은 버튼 1회 1호출 기준으로 정했다. 운영 실측 아님.
 
 ### R3 설계 (인생의 책, paid-gate-auditor 확인 반영)
 - 공용 헬퍼(`paid-delivery-stuck.js`): `retryableFailureMeta(doc, now, code)` — 창 안이고 환불 미시작이면 retryable 표지를 돌려주고, 아니면 null(호출부는 예전 즉시 환불로). `publicRetryState(doc, now)` — 응답용 `{retryable:true, refundAt}`. `reopenRetryableConsultation(..., {reset})` — 같은 CAS 로 추가 `$set`(실패 장의 attempts 0·failure null, waveCount 0).
