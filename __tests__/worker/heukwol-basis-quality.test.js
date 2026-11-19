@@ -257,6 +257,21 @@ describe('delivery plan v2 chapter acceptance', () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf({ ...mid, strategy: Array.from({ length: 7 }, (_, i) => `네오의 ${i + 1}번째 대응은 일정표를 다시 열고 미룰 약속과 지킬 약속을 나누어 적는 것입니다.`).join(' ') }), v2({ relaxed: true })))
       .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_REGISTER' });
   });
+  // R6c: 실호출 strict 시도 4장이 evidenceIds 에 장 키·항목 이름을 넣어 탈락했다. 형식 실수는 거르고, 지어낸 구간 ID 만 다시 쓴다.
+  test('strict attempts drop chapter keys and field names from evidenceIds but still reject made-up segment IDs', async () => {
+    const opening = HEUKWOL_CHAPTERS.find(c => c.key === 'opening');
+    const segmentId = chapterEvidence(analysis, opening).months[0].saju[0].id;
+    const neo = Array.from({ length: 18 }, (_, i) => `네오가 정리한 ${i + 1}번째 기준은 약속 범위를 먼저 적고 확인할 사람과 날짜를 정한 뒤 움직이는 거야.`).join(' ');
+    const draft = { ...value, strategy: neo,
+      evidenceIds: ['natal-saju', segmentId, 'relationships', 'luckJudgement', 'domainGuides', 42] };
+    const out = await generateHeukwolChapter({}, analysis, opening, '질문', [], providerOf(draft), v2());
+    expect(out.evidenceIds).toEqual(['natal-saju', segmentId]);
+    await expect(generateHeukwolChapter({}, analysis, opening, '질문', [], providerOf({ ...draft, evidenceIds: ['natal-saju', 'saju-2099-month-1'] }), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_EVIDENCE_INVALID' });
+    await expect(generateHeukwolChapter({}, analysis, opening, '질문', [], providerOf({ ...draft, evidenceIds: ['luckJudgement'] }), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_EVIDENCE_INVALID' });
+    expect(HEUKWOL_PROMPT_PREFIX).toContain('장 이름이나 항목 이름(luckJudgement·domainGuides·periodLuck·relationships 등)은 ID가 아닙니다.');
+  });
   test('register drift is a soft issue that adds a repair hint only on the retry', async () => {
     const prompts = [];
     const drift = { ...value, interpretation: Array.from({ length: 6 }, (_, i) => `연이가 보기엔 ${i + 1}번째 조건부터 다시 봐야 해.`).join(' ') + prose('연이') };
