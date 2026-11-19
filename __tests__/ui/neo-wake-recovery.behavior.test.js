@@ -127,8 +127,14 @@ test('neo reality-check failure never withdraws the delivered briefing or promis
   const delivered = { ok: true, sessionId: 'neo-1', status: 'completed', refinementStatus: 'generating', initialBriefing: { operationTitle: '완료' } };
   const h = resultLoadHarness([{ progress: delivered, result: delivered }, { progress: delivered, fail: 'LLM_ERROR' }]);
   await h.settle();
-  assert.deepEqual(h.errors(), ['pending-delay']);
-  assert.notEqual(h.sessions.at(-1), null);
+  // 2026-11-19 다시 시도 우선: '오래 걸린다' 페이지 오류 대신 첫 브리핑을 그대로 두고 수정 라운드만 실패로 표시해
+  // '같은 답변으로 다시 시도' 안내를 띄운다(neo-refinement-retry.behavior.test.js).
+  assert.deepEqual(h.errors(), []);
+  const last = h.sessions.at(-1);
+  assert.equal(typeof last, 'function');
+  const marked = last(delivered);
+  assert.equal(marked.refinementStatus, 'generation_failed');
+  assert.equal(marked.initialBriefing, delivered.initialBriefing);
 });
 test('neo Toss surface does not promise the web refund on a failed briefing', async () => {
   const h = resultLoadHarness([{ progress: partial, fail: 'LLM_ERROR' }], 'toss');

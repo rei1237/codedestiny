@@ -15,6 +15,8 @@ export type NeoResultCopyKey =
   | "refineGenericError"
   | "refinePendingError"
   | "refineGenericErrorRetry"
+  | "refineRetrySameAnswer"
+  | "refineRetryFreeNote"
   | "previewUnlockNotice"
   | "missingSessionKeyError"
   | "unlockGenericHint"
@@ -103,6 +105,8 @@ const NEO_RESULT_COPY_KO: NeoResultCopyTable = {
   refineGenericError: "수정 작전 명령서 작성에 실패했다.",
   refinePendingError: "수정 작전 명령서를 아직 작성 중이다. 잠시 후 새로고침해라.",
   refineGenericErrorRetry: "수정 작전 명령서 작성에 실패했다. 답변은 남아 있으니 다시 시도해라.",
+  refineRetrySameAnswer: "같은 답변으로 다시 시도",
+  refineRetryFreeNote: "포함된 현실 점검 횟수는 쓰지 않는다. 추가 결제·차감 없음.",
   previewUnlockNotice: "미리보기에서는 사자 휘장이 실제로 움직이지 않는다.",
   missingSessionKeyError: "이 작전 명령서를 다시 확인한 뒤 휘장을 사용해라.",
   unlockGenericHint: "사자 휘장 5개가 모이면 PDF와 네오의 편지가 열린다.",
@@ -190,6 +194,8 @@ const NEO_RESULT_COPY_EN: NeoResultCopyTable = {
   refineGenericError: "Writing the revised operation order failed.",
   refinePendingError: "The revised operation order is still being written. Refresh shortly.",
   refineGenericErrorRetry: "Writing the revised operation order failed. Your answers are saved — try again.",
+  refineRetrySameAnswer: "Try again with the same answers",
+  refineRetryFreeNote: "Your included reality checks are not used. No extra payment or deduction.",
   previewUnlockNotice: "In preview mode, the Lion Seal doesn't actually move.",
   missingSessionKeyError: "Check this operation order again before using a seal.",
   unlockGenericHint: "Collect 5 Lion Seals to unlock the PDF and NEO's letter.",
@@ -277,6 +283,8 @@ const NEO_RESULT_COPY_JA: NeoResultCopyTable = {
   refineGenericError: "修正作戦命令書の作成に失敗した。",
   refinePendingError: "修正作戦命令書はまだ作成中だ。しばらくして更新しろ。",
   refineGenericErrorRetry: "修正作戦命令書の作成に失敗した。回答は残っているのでもう一度試せ。",
+  refineRetrySameAnswer: "同じ回答でもう一度試す",
+  refineRetryFreeNote: "含まれている現実チェック回数は使わない。追加決済・差し引きなし。",
   previewUnlockNotice: "プレビューでは獅子紋章は実際には動かない。",
   missingSessionKeyError: "この作戦命令書をもう一度確認してから紋章を使え。",
   unlockGenericHint: "獅子紋章5個が集まるとPDFとネオの手紙が開く。",
@@ -364,6 +372,8 @@ const NEO_RESULT_COPY_ZH_CN: NeoResultCopyTable = {
   refineGenericError: "修正作战命令书撰写失败。",
   refinePendingError: "修正作战命令书仍在撰写中，请稍后刷新。",
   refineGenericErrorRetry: "修正作战命令书撰写失败。你的回答仍会保留，请重试。",
+  refineRetrySameAnswer: "用相同回答重试",
+  refineRetryFreeNote: "不会占用已包含的现实检查次数。无需额外付款或扣除。",
   previewUnlockNotice: "预览模式下狮徽不会真的变动。",
   missingSessionKeyError: "请重新确认这份作战命令书后再使用徽章。",
   unlockGenericHint: "集齐5枚狮徽即可解锁PDF与尼奥的信。",
@@ -451,6 +461,8 @@ const NEO_RESULT_COPY_ZH_TW: NeoResultCopyTable = {
   refineGenericError: "修正作戰命令書撰寫失敗。",
   refinePendingError: "修正作戰命令書仍在撰寫中，請稍後重新整理。",
   refineGenericErrorRetry: "修正作戰命令書撰寫失敗。你的回答仍會保留，請重試。",
+  refineRetrySameAnswer: "用相同回答重試",
+  refineRetryFreeNote: "不會占用已包含的現實檢查次數。無需額外付款或扣除。",
   previewUnlockNotice: "預覽模式下獅徽不會真的變動。",
   missingSessionKeyError: "請重新確認這份作戰命令書後再使用徽章。",
   unlockGenericHint: "集齊5枚獅徽即可解鎖PDF與尼歐的信。",

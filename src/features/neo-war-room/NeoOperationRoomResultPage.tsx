@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import { BookOpen, Download, Loader2, Lock } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
-import { neoTossAccessError, receiveNeoBriefing } from "./paid-delivery";
+import { neoRefinementRetryable, neoTossAccessError, receiveNeoBriefing } from "./paid-delivery";
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
 import { buildResizedAssetUrl } from "@/lib/r2-public-url";
@@ -519,6 +519,8 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
         const code = caught instanceof Error ? caught.message : "";
         const accessDenied = ["ORDER_REFUNDED", "ORDER_MISMATCH", "REQUEST_INPUT_MISMATCH"].includes(code);
         const tossDenied = paymentSurface === "toss" && neoTossAccessError(caught);
+        // 2026-11-19: 수정 라운드 실패(포함 횟수 미차감)는 첫 브리핑을 그대로 두고 '같은 답변으로 다시 시도' 안내로 바꾼다.
+        if (phase === "refinement" && code === "LLM_ERROR" && !tossDenied) { setSession(current => current ? { ...current, refinementStatus: "generation_failed" } : current); return; }
         if (paymentSurface === "toss") { accessEpoch.current += 1; setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false); setRefining(false); setPdfLoading(false); setExportExpand(false); }
         // 2026-11-18 S3-H: 1차 브리핑이 서버에서 실패로 종결되면(generation_failed — 서버가 이용권·월정석·카드 결제를 자동으로 되돌린다)
         // '오래 걸린다'가 아니라 실패·환불 안내를 띄우고 부분 본문을 거둔다. 진행 중(GENERATION_PENDING)·2차 점검 실패·토스 표면은 기존 안내 그대로.
@@ -531,11 +533,19 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
     return () => { cancelled = true; };
   }, [attemptId, localPreviewMode, recoveryEpoch, captureAccess, resultCopy.loginRequiredError, resultCopy.pollTimeoutError, resultCopy.generationFailedRefundError, availability, dialogueLocale, paymentSurface]);
 
-  async function handleRefine() {
+  // 서버가 수정 라운드 실패를 확정했다: 세션을 실패로 표시해 다시 시도 안내를 띄운다(새로고침 뒤 GET 응답과 같은 모양).
+  function markRefinementFailed() {
+    setSession(current => current ? { ...current, refinementStatus: "generation_failed" } : current);
+    setRefineError("");
+  }
+
+  async function handleRefine(options?: { sameAnswer?: boolean }) {
     const isCurrent = captureAccess();
+    // 같은 답변 다시 시도는 sessionId 만 보낸다 — 서버가 저장된 답변을 재사용하고 실패한 라운드의 시도 수만 새로 연다.
+    const sameAnswer = options?.sameAnswer === true;
     if (!session?.sessionId) return;
     if(session.refinementAllowance?.remaining===0){setRefineError("현실 점검 질문 2회를 모두 마쳤어요. 저장된 답변을 확인해 주세요.");return;}
-    if (!selectedChecks.length && freeform.trim().length < 4) {
+    if (!sameAnswer && !selectedChecks.length && freeform.trim().length < 4) {
       setRefineError(resultCopy.refineMissingAnswerError);
       return;
     }
@@ -565,7 +575,7 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
         response = await authFetch("/api/neo-operation-room/refine", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+          body: JSON.stringify(sameAnswer ? { sessionId: session.sessionId } : {
             sessionId: session.sessionId,
             selectedChecks,
             freeform: freeform.trim(),
@@ -591,7 +601,8 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
       const retriable = !response || response.status === 202 || response.status === 503;
       // 서버가 수정 실패를 확정했다(시도 상한 소진). 폴링하지 않고 서버 안내(포함 횟수 보존·같은 답변 재요청)를 그대로 보인다.
       const refinementFailed = response?.status === 503 && (data as { refinementStatus?: string }).refinementStatus === "generation_failed";
-      if (!retriable || refinementFailed) {
+      if (refinementFailed) { markRefinementFailed(); return; }
+      if (!retriable) {
         throw new Error(asErrorMessage(data) || resultCopy.refineGenericError);
       }
       const refined = await pollRefinedOrder(session.sessionId);
@@ -602,6 +613,7 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
       if (isCurrent()) {
         const denied = paymentSurface === "toss" && neoTossAccessError(caught);
         if (denied) { accessEpoch.current += 1; setSession(null); setSelectedChecks([]); setFreeform(""); setShowRealityForm(false); setRefining(false); setPdfLoading(false); setExportExpand(false); setError(denied === "LOGIN_REQUIRED" ? resultCopy.loginRequiredError : getNeoBookCopy(dialogueLocale).unavailable); }
+        else if (caught instanceof Error && caught.message === "LLM_ERROR") markRefinementFailed();
         else setRefineError(caught instanceof Error ? caught.message : resultCopy.refineGenericError);
       }
     } finally {
@@ -864,6 +876,13 @@ export default function NeoOperationRoomResultPage({ availability, paymentSurfac
                 expandForExport={exportExpand}
                 locale={dialogueLocale}
               />
+            ) : null}
+            {!isGenerating && briefing && neoRefinementRetryable(session) ? (
+              <section className={styles.stateCard} role="status" aria-live="polite" data-neo-refinement-retry>
+                <p>{resultCopy.refineGenericErrorRetry}</p>
+                <button type="button" disabled={refining} onClick={() => void handleRefine({ sameAnswer: true })}>{resultCopy.refineRetrySameAnswer}</button>
+                <p>{resultCopy.refineRetryFreeNote}</p>
+              </section>
             ) : null}
             {!isGenerating && showRealityForm && session.refinementAllowance?.remaining!==0 && briefing ? (
               <RealityCheckForm

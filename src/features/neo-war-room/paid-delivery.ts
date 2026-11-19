@@ -10,6 +10,11 @@ export function neoTossAccessError(value: unknown): string {
   return codes.find(code => ["ACCESS_DENIED", "TOSS_ACCESS_DENIED", "ORDER_REFUNDED", "ORDER_NOT_PAID", "ORDER_MISMATCH", "ORDER_OWNERSHIP_MISMATCH", "REQUEST_INPUT_MISMATCH", "PAYMENT_VERIFY_FAILED", "PAYMENT_REVOKED", "RESULT_NOT_AVAILABLE"].includes(code || "")) || "";
 }
 
+/** 수정 라운드가 서버에서 실패로 끝났고(포함 횟수 미차감) 같은 답변으로 다시 요청할 수 있는가(2026-11-19). */
+export function neoRefinementRetryable(session: { status?: string; refinementStatus?: string; refinementAllowance?: { remaining?: number } | null } | null | undefined): boolean {
+  return Boolean(session && session.status === "completed" && session.refinementStatus === "generation_failed" && session.refinementAllowance?.remaining !== 0);
+}
+
 export async function receiveNeoBriefing<T extends { ok?: boolean; sessionId?: string; status?: string; refinementStatus?: string }>(
   resultId: string,
   onProgress: (data: T) => void,
