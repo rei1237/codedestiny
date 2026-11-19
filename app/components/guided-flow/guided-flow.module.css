@@ -1,16 +1,86 @@
-/* 공통 스텝 플로우 골격. 색·간격·시간은 --cd-* 토큰만 읽고, 이 모듈 전용 값은 --gf-* 로 둔다. */
+/* 공통 스텝 플로우 골격 — 달빛 예화(docs/context/design-canon.md "달빛 예화 기본 UI 계약").
+ * 색은 토큰에서만 읽는다. 이 모듈 전용 값은 사설 --gf-* 로 두고 --cd-* 를 재선언하지 않는다.
+ * 브랜드는 루트 data-brand 로 가른다.
+ *   ggulggul(기본): 연이 딥 플럼 표면 + 아이보리 종이 메모 + 샴페인 골드. 테마(연이·네오)와 무관한 --cd-nav-* 팔레트라
+ *     App Router 고정 바탕(#0a0818) 위에서도 표면과 글자가 한 벌로 움직인다(반쪽 오버라이드 금지).
+ *   yeongnyangi: 루트 data-yn-night 로 --yn-*(app/yeongnyangi/night-tokens.css) 밤 표면 + 금빛. 분홍을 쓰지 않는다.
+ * 대비는 scripts/design/verify-guided-flow-contrast.cjs 가 합성색으로 잰다(본문 4.5:1, UI 3:1). */
 .flow {
   --gf-max: 40rem;
   --gf-shift: var(--cd-sp-lg);
-  --gf-track: 4px;
+  --gf-track: 6px;
+  --gf-surface: var(--cd-nav-bg);
+  --gf-raised: var(--cd-nav-surface);
+  --gf-ink: var(--cd-nav-ink);
+  --gf-muted: var(--cd-nav-muted);
+  --gf-gold: var(--cd-nav-active);
+  --gf-gold-fill: var(--cd-nav-active);
+  --gf-on-gold: var(--cd-nav-bg);
+  --gf-line: var(--cd-nav-line);
+  --gf-line-soft: color-mix(in srgb, var(--cd-nav-gold) 26%, transparent);
+  --gf-track-bg: var(--cd-nav-line);
+  --gf-selected: var(--cd-nav-active-bg);
+  --gf-paper: var(--cd-nav-ink);
+  --gf-paper-ink: var(--cd-nav-bg);
+  --gf-paper-muted: var(--cd-nav-active-bg);
+  --gf-paper-line: var(--cd-nav-gold);
+  --gf-ornament: var(--cd-nav-gold);
+  /* ServiceIntroSection 초승달·꽃가지 색(--si-*)도 같은 토큰으로 준다. */
+  --si-ink: var(--cd-nav-gold);
+  --si-moon-hi: var(--cd-nav-ink);
+  --si-moon-mid: var(--cd-nav-ink);
+  --si-moon-lo: var(--cd-nav-gold);
   display: flex;
   flex-direction: column;
   gap: var(--cd-sp-md);
+  box-sizing: border-box;
   width: 100%;
   max-width: var(--gf-max);
+  min-height: 100dvh;
   margin: 0 auto;
   padding: var(--cd-sp-md) var(--cd-sp-md) 0;
-  color: var(--cd-text);
+  background: var(--gf-surface);
+  color: var(--gf-ink);
+  font-family: var(--font-body);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.flow[data-brand='yeongnyangi'] {
+  --gf-surface: var(--yn-night);
+  --gf-raised: var(--yn-surface);
+  --gf-ink: var(--yn-ivory);
+  --gf-muted: var(--yn-muted);
+  --gf-gold: var(--yn-gold);
+  --gf-gold-fill: var(--yn-gold-hover);
+  --gf-on-gold: var(--yn-deep);
+  /* --yn-line 은 밤 표면 대비 3:1 미만이라 경계는 금빛 혼합으로 긋는다. */
+  --gf-line: color-mix(in srgb, var(--yn-gold) 55%, var(--yn-night));
+  --gf-line-soft: color-mix(in srgb, var(--yn-gold) 24%, transparent);
+  --gf-track-bg: color-mix(in srgb, var(--yn-gold) 50%, var(--yn-night));
+  --gf-selected: var(--yn-raised);
+  /* 달빛 메모의 밤 변형: 종이 대신 한 단 밝은 밤 표면. */
+  --gf-paper: var(--yn-surface);
+  --gf-paper-ink: var(--yn-ivory);
+  --gf-paper-muted: var(--yn-muted);
+  --gf-paper-line: var(--yn-gold);
+  --gf-ornament: var(--yn-gold);
+  --si-ink: var(--yn-gold);
+  --si-moon-hi: var(--yn-ivory);
+  --si-moon-mid: var(--yn-ivory);
+  --si-moon-lo: var(--yn-gold);
+  /* 영냥이 밤 예화 마스크(yehwa-night.generated.css)로 바꿔 끼운다 — 홈 마스크와 섞지 않는다. */
+  --si-mask-vine: var(--yn-yehwa-mask-branch-h);
+  --si-mask-sprig: var(--yn-yehwa-mask-branch-spray);
+}
+@media (min-width: 48rem) {
+  .flow {
+    min-height: 0;
+    margin-block: var(--cd-sp-lg);
+    padding: var(--cd-sp-lg) var(--cd-sp-lg) 0;
+    border: 1px solid var(--gf-line);
+    border-radius: var(--cd-r-section);
+    box-shadow: inset 0 0 0 5px var(--gf-surface), inset 0 0 0 6px var(--gf-line-soft);
+  }
 }
 
 .srOnly {
@@ -24,15 +94,19 @@
   border: 0;
 }
 
-/* ── 진행 표시 ── */
+/* ── 진행 표시: 샴페인 골드(영냥이 금빛) 채움, 빈 트랙도 표면 대비 3:1 ── */
 .topBar {
   display: flex;
   align-items: center;
   gap: var(--cd-sp-sm);
 }
-.back {
+.flow .back {
   flex: none;
   min-height: var(--cd-btn-h);
+  color: var(--gf-ink);
+}
+.flow .ghost {
+  color: var(--gf-ink);
 }
 .progress {
   flex: 1;
@@ -43,30 +117,48 @@
 }
 .progressText {
   font-size: var(--cd-t-caption);
-  color: var(--cd-text-muted);
+  font-variant-numeric: tabular-nums;
+  color: var(--gf-muted);
   text-align: right;
 }
 .progressTrack {
   display: block;
   height: var(--gf-track);
   border-radius: var(--cd-r-pill);
-  background: var(--cd-accent-soft);
+  background: var(--gf-track-bg);
   overflow: hidden;
 }
 .progressFill {
   display: block;
   height: 100%;
-  background: var(--cd-accent);
+  background: var(--gf-gold-fill);
   transform-origin: left center;
   transition: transform var(--cd-dur-base) var(--cd-ease-out);
 }
 
-/* ── 단계 본문: 220ms, transform/opacity 만 ── */
+/* ── 단계 카드: 가는 이중 테두리, 220ms, transform/opacity 만 ── */
 .step {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--cd-sp-md);
+  padding: var(--cd-sp-lg) var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-card);
   animation: gf-enter var(--cd-dur-base) var(--cd-ease-out) both;
+}
+.step::before,
+.hero::before,
+.block::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid var(--gf-line-soft);
+  border-radius: calc(var(--cd-r-card) - 5px);
+  pointer-events: none;
+}
+.step > * {
+  position: relative;
 }
 .step[data-dir='back'] {
   --gf-shift: calc(var(--cd-sp-lg) * -1);
@@ -96,58 +188,110 @@
 
 .title {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--cd-t-section);
+  font-weight: 400;
   line-height: 1.35;
+  color: var(--gf-ink);
   outline: none;
 }
 .title:focus-visible {
-  outline: 2px solid var(--cd-focus-ring);
+  outline: 2px solid var(--gf-gold);
   outline-offset: 4px;
   border-radius: var(--cd-r-sm);
 }
 .slowLine {
   margin: 0;
-  color: var(--cd-text-muted);
+  color: var(--gf-muted);
   font-size: var(--cd-t-body);
 }
+/* 결과·긴 설명 본문: 모바일 17px·데스크톱 18px, 행간 1.8, 최대 38rem. */
+.reading {
+  margin: 0;
+  max-width: var(--type-reading-measure);
+  font-size: var(--type-reading-size);
+  line-height: var(--type-reading-leading);
+  color: var(--gf-ink);
+}
 
-/* ── 단일 선택 칩 ── */
+/* ── 단일 선택 칩: 선택은 금 테두리 + 체크 + 한 단 밝은 바탕(색에만 기대지 않는다) ── */
 .choices {
   display: grid;
   gap: var(--cd-sp-sm);
 }
 .choice {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--cd-sp-xs);
   min-height: var(--cd-btn-h);
-  padding: var(--cd-sp-sm) var(--cd-sp-md);
-  border: 1px solid var(--cd-border);
+  padding: var(--cd-sp-sm) calc(var(--cd-sp-md) + 28px) var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
   border-radius: var(--cd-r-control);
-  background: var(--cd-surface);
-  color: var(--cd-text);
+  background: var(--gf-raised);
+  color: var(--gf-ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  touch-action: manipulation;
+}
+/* 오른쪽 표시 자리: 빈 원 → 선택 시 금빛 원 + 체크. */
+.choice::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 10px);
+  inset-inline-end: var(--cd-sp-md);
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--gf-muted);
+  border-radius: 50%;
 }
 .choice[aria-pressed='true'] {
-  border-color: var(--cd-accent);
-  box-shadow: inset 0 0 0 1px var(--cd-accent);
+  border-color: var(--gf-gold);
+  box-shadow: inset 0 0 0 1px var(--gf-gold);
+  background: var(--gf-selected);
+}
+.choice[aria-pressed='true']::after {
+  border-color: var(--gf-gold);
+  background: var(--gf-gold);
+}
+.choice[aria-pressed='true']::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: calc(50% - 5px);
+  inset-inline-end: calc(var(--cd-sp-md) + 6px);
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--gf-on-gold);
+  border-bottom: 2px solid var(--gf-on-gold);
+  transform: rotate(-45deg);
 }
 .choice:focus-visible {
-  outline: 2px solid var(--cd-focus-ring);
+  outline: 2px solid var(--gf-gold);
   outline-offset: 2px;
+}
+@media (hover: hover) {
+  .choice:not([aria-pressed='true']):hover {
+    border-color: var(--gf-gold);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .choice {
+    transition: background-color var(--cd-dur-fast) var(--cd-ease-out), border-color var(--cd-dur-fast) var(--cd-ease-out);
+  }
 }
 .choiceLabel {
   font-weight: 600;
 }
 .choiceHint {
   font-size: var(--cd-t-caption);
-  color: var(--cd-text-muted);
+  color: var(--gf-muted);
 }
 
-/* ── 하단 고정 CTA: safe-area, 48px 이상 ── */
+/* ── 하단 고정 CTA: safe-area, 48px 이상, 주 행동 하나만 금 채움 + 꽃가지 ── */
 .cta {
   position: sticky;
   bottom: 0;
@@ -157,65 +301,127 @@
   gap: var(--cd-sp-xs);
   margin: 0 calc(var(--cd-sp-md) * -1);
   padding: var(--cd-sp-sm) var(--cd-sp-md) calc(var(--cd-sp-sm) + env(safe-area-inset-bottom));
-  background: var(--cd-surface);
-  border-top: 1px solid var(--cd-border);
+  background: var(--gf-surface);
+  border-top: 1px solid var(--gf-line);
+}
+@media (min-width: 48rem) {
+  .cta {
+    margin: 0 calc(var(--cd-sp-lg) * -1);
+    padding-inline: var(--cd-sp-lg);
+    border-radius: 0 0 var(--cd-r-section) var(--cd-r-section);
+  }
 }
 :global(body.cd-mnav-mounted) .cta {
   bottom: var(--cd-mnav-offset);
 }
+.flow .primary {
+  width: 100%;
+  min-height: var(--cd-btn-h);
+  background: var(--gf-gold-fill);
+  border-color: var(--gf-gold-fill);
+  color: var(--gf-on-gold);
+  font-size: var(--cd-t-body);
+}
+.flow .primary::after {
+  background: currentColor;
+  opacity: 0.55;
+}
+.flow .primary:focus-visible {
+  outline-color: var(--gf-ink);
+}
 .ctaHint {
   margin: 0;
   font-size: var(--cd-t-caption);
-  color: var(--cd-text-muted);
+  color: var(--gf-muted);
   text-align: center;
 }
 
-/* ── 랜딩 ── */
+/* ── 랜딩: 이중 테두리 히어로(초승달·꽃가지 띠 + 맺음 가지) → '이 기능은?' → 달빛 메모 단계 안내 ── */
 .landing {
   display: flex;
   flex-direction: column;
   gap: var(--cd-sp-lg);
 }
 .hero {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: var(--cd-sp-sm);
-  padding-top: var(--cd-sp-md);
+  padding: 60px var(--cd-sp-md) 60px;
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-card);
+  background: var(--gf-raised);
+  text-align: center;
+}
+.hero > :not([aria-hidden='true']) {
+  position: relative;
+  z-index: 1;
 }
 .eyebrow {
   margin: 0;
   font-size: var(--cd-t-caption);
-  color: var(--cd-accent);
+  color: var(--gf-gold);
   font-weight: 600;
+  letter-spacing: 0.02em;
 }
 .heroTitle {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--cd-t-display);
+  font-weight: 400;
   line-height: 1.3;
+  color: var(--gf-ink);
+  text-wrap: balance;
 }
 .heroSub {
   margin: 0;
-  color: var(--cd-text-muted);
+  color: var(--gf-muted);
+  text-wrap: pretty;
 }
 .block {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--cd-sp-sm);
-  padding: var(--cd-sp-md);
-  border: 1px solid var(--cd-border);
+  padding: var(--cd-sp-lg) var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
   border-radius: var(--cd-r-card);
-  background: var(--cd-surface);
+  background: var(--gf-raised);
+}
+.block > * {
+  position: relative;
 }
 .blockTitle {
   margin: 0;
+  font-family: var(--font-display);
   font-size: var(--cd-t-card);
+  font-weight: 400;
+  color: var(--gf-ink);
 }
 .blockBody {
   margin: 0;
+  font-size: var(--type-reading-size);
+  line-height: var(--type-reading-leading);
+  color: var(--gf-ink);
+}
+/* 달빛 메모: 옅은 종이 표면 + 이중 테두리(꿀꿀). 영냥이는 같은 구조를 밤 표면으로. */
+.memo {
+  background: var(--gf-paper);
+  border-color: var(--gf-paper-line);
+  color: var(--gf-paper-ink);
+}
+.memo::before {
+  border-color: color-mix(in srgb, var(--gf-paper-line) 45%, transparent);
+}
+.memo .blockTitle,
+.memo .guideTitle {
+  color: var(--gf-paper-ink);
 }
 .guide {
   display: grid;
-  gap: var(--cd-sp-sm);
+  gap: var(--cd-sp-md);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -225,39 +431,50 @@
   gap: var(--cd-sp-sm);
   align-items: flex-start;
 }
+/* 연꽃 인장 자리: 금선 원 안의 번호. */
 .guideNo {
   flex: none;
   display: inline-grid;
   place-items: center;
-  width: var(--cd-sp-lg);
-  height: var(--cd-sp-lg);
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  border: 1.5px solid var(--gf-paper-line);
   border-radius: var(--cd-r-pill);
-  background: var(--cd-accent-soft);
-  color: var(--cd-text);
+  background: var(--gf-paper);
+  color: var(--gf-paper-ink);
+  font-family: var(--font-display);
   font-size: var(--cd-t-caption);
-  font-weight: 700;
 }
 .guideTitle {
   display: block;
+  font-weight: 700;
 }
 .guideBody {
   display: block;
   font-size: var(--cd-t-body);
-  color: var(--cd-text-muted);
+  line-height: 1.7;
+  color: var(--gf-paper-muted);
 }
 
 /* 데모·입력 단계 공통 */
 .field {
+  box-sizing: border-box;
   width: 100%;
   min-height: var(--cd-btn-h);
   padding: var(--cd-sp-sm) var(--cd-sp-md);
-  border: 1px solid var(--cd-border);
+  border: 1px solid var(--gf-line);
   border-radius: var(--cd-r-control);
-  background: var(--cd-surface);
-  color: var(--cd-text);
+  background: var(--gf-raised);
+  color: var(--gf-ink);
   font: inherit;
+  font-size: max(16px, 1rem);
+}
+.field::placeholder {
+  color: var(--gf-muted);
+  opacity: 1;
 }
 .field:focus-visible {
-  outline: 2px solid var(--cd-focus-ring);
+  outline: 2px solid var(--gf-gold);
   outline-offset: 2px;
 }

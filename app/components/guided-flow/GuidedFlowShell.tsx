@@ -6,7 +6,22 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { progressSteps } from '@/lib/guided-flow/step-controller.mjs';
 import type { GuidedFlow, GuidedStep } from './useGuidedFlow';
+import yehwa from '../ServiceIntroSection.module.css';
+import masks from '../service-intro/yehwaIntroMasks.generated.module.css';
+// 영냥이 밤 예화 마스크(--yn-yehwa-mask-*). data-yn-night 루트에서만 값이 생긴다.
+import '@/app/yeongnyangi/yehwa-night.generated.css';
 import styles from './guided-flow.module.css';
+
+/** 달빛 예화 브랜드. ggulggul = 꽃빛 정원(딥 플럼·샴페인 골드), yeongnyangi = 밤 점술방(--yn-*, 금빛). */
+export type GuidedFlowBrand = 'ggulggul' | 'yeongnyangi';
+
+function rootProps(brand: GuidedFlowBrand) {
+  return {
+    className: styles.flow,
+    'data-brand': brand,
+    ...(brand === 'yeongnyangi' ? { 'data-yn-night': '' } : {}),
+  };
+}
 
 export type GuidedFlowLabels = {
   back: string;
@@ -24,9 +39,11 @@ type Props = {
   titles: Record<string, string>;
   landing: ReactNode;
   renderStep: (step: GuidedStep, flow: GuidedFlow) => ReactNode;
+  /** 기본 ggulggul. */
+  brand?: GuidedFlowBrand;
 };
 
-export function GuidedFlowShell({ flow, labels, titles, landing, renderStep }: Props) {
+export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, brand = 'ggulggul' }: Props) {
   const { state, step, controller } = flow;
   const titleRef = useRef<HTMLHeadingElement>(null);
   const counted = progressSteps(controller.steps) as GuidedStep[];
@@ -37,7 +54,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep }: P
     titleRef.current?.focus({ preventScroll: false });
   }, [step, state.source]);
 
-  if (!step) return <div className={styles.flow}>{landing}</div>;
+  if (!step) return <div {...rootProps(brand)}>{landing}</div>;
 
   const title = titles[step.id] || '';
   const countedIndex = counted.findIndex((item) => item.id === step.id);
@@ -47,7 +64,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep }: P
   const showNext = step.kind === 'input' || (step.kind === 'choice' && (reduced || answered));
 
   return (
-    <div className={styles.flow} data-reduced={reduced ? 'true' : 'false'}>
+    <div {...rootProps(brand)} data-reduced={reduced ? 'true' : 'false'}>
       <div className={styles.topBar}>
         <button type="button" className={`cd-btn cd-btn--tertiary ${styles.back}`} onClick={flow.goBack}>
           <span aria-hidden="true">‹</span> {labels.back}
@@ -77,7 +94,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep }: P
           {showNext ? (
             <button
               type="button"
-              className="cd-btn cd-btn--primary cd-btn--block"
+              className={`cd-yehwa-button cd-yehwa-button--primary ${styles.primary}`}
               disabled={!answered}
               onClick={() => { controller.cancelAutoAdvance(); controller.next('cta'); }}
             >
@@ -85,7 +102,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep }: P
             </button>
           ) : null}
           {state.waiting && !state.waiting.minDone ? (
-            <button type="button" className="cd-btn cd-btn--tertiary cd-btn--block" onClick={() => controller.skipWait()}>
+            <button type="button" className={`cd-btn cd-btn--tertiary cd-btn--block ${styles.ghost}`} onClick={() => controller.skipWait()}>
               {labels.skip}
             </button>
           ) : null}
@@ -138,16 +155,18 @@ export type GuidedLandingProps = {
 export function GuidedLanding(props: GuidedLandingProps) {
   return (
     <div className={styles.landing}>
-      <header className={styles.hero}>
+      <header className={`${styles.hero} ${masks.masks}`}>
+        <span className={yehwa.crest} aria-hidden="true"><span className={yehwa.halo}><span className={yehwa.moon} /></span></span>
         <p className={styles.eyebrow}>{props.eyebrow}</p>
         <h1 className={styles.heroTitle}>{props.title}</h1>
         <p className={styles.heroSub}>{props.subtitle}</p>
+        <span className={yehwa.sprig} aria-hidden="true" />
       </header>
       <section className={styles.block} aria-labelledby="gf-about">
         <h2 id="gf-about" className={styles.blockTitle}>{props.aboutTitle}</h2>
         <p className={styles.blockBody}>{props.aboutBody}</p>
       </section>
-      <section className={styles.block} aria-labelledby="gf-guide">
+      <section className={`${styles.block} ${styles.memo}`} aria-labelledby="gf-guide">
         <h2 id="gf-guide" className={styles.blockTitle}>{props.guideTitle}</h2>
         <ol className={styles.guide}>
           {props.guideSteps.map((item, index) => (
@@ -162,7 +181,7 @@ export function GuidedLanding(props: GuidedLandingProps) {
         </ol>
       </section>
       <div className={styles.cta}>
-        <button type="button" className="cd-btn cd-btn--primary cd-btn--block" onClick={props.onStart}>{props.ctaLabel}</button>
+        <button type="button" className={`cd-yehwa-button cd-yehwa-button--primary ${styles.primary}`} onClick={props.onStart}>{props.ctaLabel}</button>
         {props.freeHint ? <p className={styles.ctaHint}>{props.freeHint}</p> : null}
         {props.trustLine ? <p className={styles.ctaHint}>{props.trustLine}</p> : null}
       </div>
