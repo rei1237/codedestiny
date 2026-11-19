@@ -7,6 +7,7 @@ const { webcrypto } = require('node:crypto');
 const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
 const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
 const { consultationRefundState } = require('../../worker/lib/consultation-refund-state.js');
+const { retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } = require('../../worker/lib/paid-delivery-stuck.js');
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -14,13 +15,17 @@ function set(value, key, data) {
   for (const part of parts) value = value[part] ||= {};
   value[last] = clone(data);
 }
+const num = v => v instanceof Date ? v.getTime() : typeof v === 'string' && /^\d{4}-\d\d-\d\dT/.test(v) ? Date.parse(v) : v;
+const OPS = { $lt: (a, v) => num(a) < num(v), $lte: (a, v) => num(a) <= num(v), $in: (a, v) => v.includes(a),
+  $exists: (a, v) => (a !== undefined) === Boolean(v), $ne: (a, v) => (v === null ? a != null : String(a) !== String(v)) };
 function matches(doc, filter) {
   return Object.entries(filter).every(([key, value]) => {
     if (key === '$or') return value.some(row => matches(doc, row));
     const actual = get(doc, key);
-    if (value && typeof value === 'object' && '$lt' in value) return actual < value.$lt;
     if (value === null) return actual == null;
-    if (value && typeof value === 'object' && '$in' in value) return value.$in.includes(actual);
+    if (value && typeof value === 'object' && !(value instanceof Date) && Object.keys(value).some(op => op.startsWith('$'))) {
+      return Object.entries(value).every(([op, v]) => OPS[op] ? OPS[op](actual, v) : false);
+    }
     return String(actual) === String(value);
   });
 }
@@ -48,7 +53,8 @@ function fixture(accessType = 'pass') {
     readIdempotencyKey: (request, body) => body.idempotencyKey || request.headers.get('idempotency-key'),
     normalizeRequestBody: body => ({ ok: true, inputHash: body.inputHash || 'same-input', input: { myInfo: {}, relationshipStatus: 'single', topic: '관계', userQuestion: '질문' } }),
     resolveStartAccess: async () => ((accessQueue.length ? accessQueue.shift() : permitted) ? { ok: true, accessType } : { ok: false, reason: 'PAYMENT_REQUIRED' }),
-    consultationRefundState,
+    consultationRefundState, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations,
+    notFound: () => new Response('', { status: 404 }), LLM_RETRY_MESSAGE: 'mock retry available',
     User: { findOne: () => chain({ _id: owner, status: withdrawn ? 'withdrawn' : 'active' }) },
     Payment: { findOne: filter => chain(filter.paymentType === 'membership_pass' ? passOrder : null) },
     PaidExecutionRecord: { findOne: () => chain(null) }, MonthlyCreditLedger: { findOne: () => chain(null) },
@@ -72,7 +78,8 @@ function fixture(accessType = 'pass') {
     },
     LoveSecretAiConsultation: {
       findOne: filter => chain(doc && matches(doc, filter) ? doc : null),
-      create: async seed => { if (doc) throw Object.assign(new Error('duplicate'), { code: 11000 }); doc = { ...clone(seed), updatedAt: new Date().toISOString() }; return clone(doc); },
+      create: async seed => { if (doc) throw Object.assign(new Error('duplicate'), { code: 11000 }); const at = new Date().toISOString(); doc = { ...clone(seed), createdAt: at, updatedAt: at }; return clone(doc); },
+      find: filter => { const rows = doc && matches(doc, filter) ? [doc] : []; const c = { limit: () => c, select: () => c, sort: () => c, lean: async () => clone(rows) }; return c; },
       findOneAndUpdate: (filter, update) => ({ lean: async () => {
         if (fault && (fault === update.$set?.status || fault === 'checkpoint' && update.$set?.['llmMeta.delivery'])) { fault = null; return null; }
         if (!doc || !matches(doc, filter)) return null;
@@ -80,9 +87,10 @@ function fixture(accessType = 'pass') {
         doc.updatedAt = new Date().toISOString(); return clone(doc);
       } }),
       updateOne: async (filter, update) => {
-        if (fault === 'mark' && update.$set?.status === 'generation_failed') { fault = null; throw new Error('MARK_WRITE_FAILED'); }
-        if (!doc || !matches(doc, filter)) return { matchedCount: 0 };
-        Object.assign(doc, clone(update.$set)); return { matchedCount: 1 };
+        if ((fault === 'mark' || fault === 'mark-all') && update.$set?.status === 'generation_failed') { if (fault === 'mark') fault = null; throw new Error('MARK_WRITE_FAILED'); }
+        if (!doc || !matches(doc, filter)) return { matchedCount: 0, modifiedCount: 0 };
+        for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value);
+        doc.updatedAt = new Date(Date.parse(doc.updatedAt || 0) + 1).toISOString(); return { matchedCount: 1, modifiedCount: 1 };
       },
     },
     generateFirstConsultation: async (_env, _input, _saju, _log, options) => {
@@ -99,11 +107,15 @@ function fixture(accessType = 'pass') {
   load(ctx, 'worker/lib/representative-consumer-facts.js', ['pinRepresentativeFacts', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
-  load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery', 'isStuckDeliveryComplete', 'settleStuckDelivery']);
+  load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery', 'isStuckDeliveryComplete', 'settleStuckDelivery',
+    'loveSecretRetryMeta', 'loveSecretRetryPayload', 'loveSecretRetryReset', 'storedLoveSecretRefundAccess', 'settleLoveSecretRetryRefund',
+    'settleDueLoveSecretRetryRefunds', 'handleRetry', 'handleRefundRequest']);
   const post = (body = {}, env = {}) => ctx.handleStart(new Request('https://mock.test/api/love-secret-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
-  return { ctx, post, get doc() { return doc; }, get calls() { return providerCalls; }, get refunds() { return refunds; }, get usage() { return usage; },
+  const route = (suffix, body) => ctx[suffix === '/retry' ? 'handleRetry' : 'handleRefundRequest'](new Request(`https://mock.test/api/love-secret-ai${suffix}`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }), {});
+  return { ctx, post, route, get doc() { return doc; }, get calls() { return providerCalls; }, get refunds() { return refunds; }, get usage() { return usage; },
     fault: value => { fault = value; }, permitted: value => { permitted = value; }, owner: value => { owner = value; },
     accessSequence: (...values) => { accessQueue.push(...values); }, passOrder: value => { passOrder = value; }, withdrawn: value => { withdrawn = value; }, revokedUse: value => { revokedUse = value; } };
 }
@@ -349,11 +361,11 @@ for (const revoked of ['execution', 'payment', 'points']) {
   });
 }
 
-test('실패 표시 저장이 실패하면 기록을 남기고, 환불 뒤 같은 키 재시도는 다시 생성하지 않는다', async () => {
+test('다시 시도 표시도 실패 표시도 저장하지 못하면 기존 즉시 환불로 되돌리고 기록을 남기며, 환불 뒤 같은 키 재시도는 다시 생성하지 않는다', async () => {
   const f = fixture('paid'); const logs = [];
   f.ctx.logLoveSecretAi = (event, payload, level) => { logs.push({ event, payload, level }); };
   f.ctx.generateFirstConsultation = async () => { throw Object.assign(new Error('provider down'), { code: 'LLM_GENERATION_FAILED' }); };
-  f.fault('mark');
+  f.fault('mark-all');
   assert.equal((await f.post()).status, 503);
   assert.equal(f.refunds, 1); assert.equal(f.doc.status, 'generating');
   const marked = logs.find(row => row.event === 'LLM Failure Mark Failed');
@@ -362,6 +374,76 @@ test('실패 표시 저장이 실패하면 기록을 남기고, 환불 뒤 같�
   // 환불 증빙이 접근 재확인을 거절시키면 잘려 남은 "generating" 문서도 재생성하지 않는다.
   f.doc.updatedAt = new Date(Date.now() - 600000).toISOString(); f.permitted(false);
   assert.equal((await f.post()).status, 402); assert.equal(f.calls, 0); assert.equal(f.refunds, 1);
+});
+
+// 2026-11-19 R5 다시 시도 우선(승인: "다시 시도 먼저", 환불 시각 = 결제(생성 시작) + 7일).
+const providerDown = () => async () => { throw Object.assign(new Error('provider down'), { code: 'LLM_GENERATION_FAILED' }); };
+test('웹 생성 실패는 바로 환불하지 않고 7일 다시 시도 창을 열며, 같은 키 재요청은 자동 재생성하지 않는다', async () => {
+  const f = fixture('paid'); let attempts = 0; const down = providerDown();
+  f.ctx.generateFirstConsultation = (...args) => { attempts++; return down(...args); };
+  const failed = await f.post(); assert.equal(failed.status, 503);
+  const body = await failed.json();
+  assert.equal(body.reason, 'LLM_ERROR'); assert.equal(body.refunded, false); assert.equal(body.message, 'mock retry available');
+  assert.equal(body.retry.available, true); assert.equal(body.retry.sessionId, f.doc.id); assert.equal(body.retryable, undefined);
+  assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.refunds, 0);
+  assert.equal(Date.parse(f.doc.llmMeta.retryable.refundAt) - Date.parse(f.doc.createdAt), 7 * 86400000);
+  const again = await f.post(); assert.equal(again.status, 409); assert.equal((await again.json()).retry.available, true);
+  assert.equal(attempts, 1); assert.equal(f.refunds, 0);
+});
+test('Toss 생성 실패는 다시 시도 창 없이 기존 즉시 복구 경로를 유지한다', async () => {
+  const f = fixture('paid'); f.ctx.generateFirstConsultation = providerDown();
+  f.ctx.resolveStartAccess = async () => ({ ok: true, accessType: 'paid', accessSource: 'toss' });
+  f.ctx.nativeTossContext = () => ({ assertStored: async () => {} });
+  f.ctx.claimRequestBillingEvidence = () => { throw Error('WEB_CLAIM_FORBIDDEN'); };
+  const failed = await f.post(); assert.equal(failed.status, 503);
+  assert.equal((await failed.json()).retry, undefined); assert.equal(f.doc.llmMeta.retryable, undefined); assert.equal(f.refunds, 1);
+  assert.equal((await f.route('/retry', { sessionId: f.doc.id })).status, 409);
+});
+test('다시 시도는 같은 결제 건을 추가 결제·차감 없이 이어 쓰고, 한도에 닿은 묶음만 시도 수를 새로 연다', async () => {
+  const f = fixture('paid'); await f.post();
+  const original = f.ctx.generateFirstConsultation; f.ctx.generateFirstConsultation = providerDown();
+  assert.equal((await f.post()).status, 503);
+  f.doc.llmMeta.delivery.attempts.pattern = 12;
+  f.ctx.generateFirstConsultation = original;
+  const retried = await f.route('/retry', { sessionId: f.doc.id });
+  assert.equal(retried.status, 202, await retried.clone().text());
+  assert.equal(f.doc.llmMeta.delivery.attempts.pattern, 1); assert.equal(f.doc.llmMeta.delivery.attempts.core, 1);
+  assert.equal(f.doc.llmMeta.retryable.reopens, 1); assert.equal(f.calls, 2);
+  for (let i = 0; i < 10 && f.doc.status !== 'completed'; i++) await f.post({ resumeSessionId: f.doc.id });
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.usage, 1); assert.equal(f.refunds, 0);
+  f.owner('other'); assert.equal((await f.route('/retry', { sessionId: f.doc.id })).status, 404);
+});
+test('고객 환불 요청은 다시 시도를 닫고 같은 키로 한 번만 환불하며, 그 뒤 다시 시도는 거절한다', async () => {
+  const f = fixture('paid'); f.ctx.generateFirstConsultation = providerDown();
+  await f.post();
+  const refunded = await f.route('/refund-request', { sessionId: f.doc.id });
+  assert.deepEqual(await refunded.json(), { ok: true, sessionId: f.doc.id, refunded: true, refundStatus: 'refunded' });
+  assert.equal(f.refunds, 1); assert.ok(f.doc.llmMeta.refundEligibleAt); assert.equal(f.doc.llmMeta.retryable.refundReason, 'CUSTOMER_REQUEST');
+  assert.equal((await f.route('/refund-request', { sessionId: f.doc.id })).status, 200); assert.equal(f.refunds, 1);
+  const retry = await f.route('/retry', { sessionId: f.doc.id }); assert.equal(retry.status, 409);
+  assert.equal((await retry.json()).reason, 'REFUND_STARTED'); assert.equal(f.refunds, 1);
+});
+test('창이 지난 다시 시도 건은 복구 크론이 환불하고, 카드 환불 실패는 다음 회차에 다시 정산한다', async () => {
+  const f = fixture('paid'); f.ctx.generateFirstConsultation = providerDown();
+  await f.post();
+  assert.deepEqual(clone(await f.ctx.settleDueLoveSecretRetryRefunds({}, { now: Date.now() })), []);
+  let restores = 0; f.ctx.restoreBillingGateAccessOnFailure = async () => (++restores === 1 ? { restored: false, refundFailed: true } : { restored: true });
+  const due = Date.now() + 8 * 86400000;
+  assert.deepEqual(clone(await f.ctx.settleDueLoveSecretRetryRefunds({}, { now: due })), [{ service: 'love-secret-ai', refundStatus: 'failed' }]);
+  assert.equal(f.doc.llmMeta.retryable.refundReason, 'RETRY_WINDOW_EXPIRED'); assert.equal(f.doc.llmMeta.retryable.refundSettledAt, undefined);
+  assert.deepEqual(clone(await f.ctx.settleDueLoveSecretRetryRefunds({}, { now: due })), [{ service: 'love-secret-ai', refundStatus: 'refunded' }]);
+  assert.deepEqual(clone(await f.ctx.settleDueLoveSecretRetryRefunds({}, { now: due })), []); assert.equal(restores, 2);
+  // 다시 연 뒤 지금 생성 중인 건은 창이 지나도 끊지 않는다.
+  const g = fixture('paid'); g.ctx.generateFirstConsultation = providerDown(); await g.post();
+  g.doc.status = 'generating'; g.doc.updatedAt = new Date(due).toISOString();
+  assert.deepEqual(clone(await g.ctx.settleDueLoveSecretRetryRefunds({}, { now: due })), []); assert.equal(g.doc.status, 'generating');
+});
+test('결과 조회는 다시 시도 가능 실패에 다시 시도 안내를 싣는다', async () => {
+  const f = fixture('paid'); f.ctx.generateFirstConsultation = providerDown(); await f.post();
+  load(f.ctx, 'worker/routes/love-secret-ai.js', ['handleResult']);
+  const response = await f.ctx.handleResult(new Request(`https://mock.test/api/love-secret-ai/result?sessionId=${f.doc.id}`), {});
+  assert.equal(response.status, 503); const body = await response.json();
+  assert.equal(body.status, 'generation_failed'); assert.equal(body.retry.available, true); assert.equal(body.message, 'mock retry available');
 });
 
 test('코인 생성 실패 환급 표식은 같은 요청 키의 재시작을 거절한다(무료 재생성 차단)', async () => {
@@ -572,16 +654,21 @@ test('정체 확정은 이미 끝난 상담을 건드리지 않고, 살아 있�
   assert.equal((await g.ctx.settleStuckDelivery({}, { doc: g.doc, now: Date.now() })).outcome, 'leased');
   assert.equal(f.refunds + g.refunds, 0);
 });
-test('정체된 미완성 상담은 본문 없이 generation_failed 로 확정하고 한 번만 환불한다', async () => {
+test('정체된 미완성 상담은 창 안이면 환불하지 않고 다시 시도 가능 실패로 확정하고, 창이 지나면 한 번만 환불한다', async () => {
   const f = fixture();
   for (let index = 0; index < 3; index++) await f.post();
   assert.notEqual(f.doc.status, 'completed');
   const settled = clone(await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later() }));
-  assert.deepEqual(settled, { outcome: 'generation_failed', refundStatus: 'refunded' });
+  assert.equal(settled.outcome, 'retryable'); assert.equal(settled.refundAt, f.doc.llmMeta.retryable.refundAt);
   assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.doc.generationError.code, 'DELIVERY_STUCK');
-  assert.equal(f.refunds, 1); assert.equal(f.calls, 3);
+  assert.equal(f.refunds, 0); assert.equal(f.calls, 3);
   assert.equal((await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later() })).outcome, 'progressed');
-  assert.equal(f.refunds, 1);
+  // 다시 연 뒤 또 멈춘 채 창이 지나면 다시 시도를 닫고 환불한다(창 만료 정산이 다시 고르지 않게 정산 표시).
+  assert.equal((await f.route('/retry', { sessionId: f.doc.id })).status, 202);
+  f.doc.status = 'partial'; const expired = Date.now() + 8 * 86400000;
+  assert.deepEqual(clone(await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: expired })), { outcome: 'generation_failed', refundStatus: 'refunded' });
+  assert.equal(f.refunds, 1); assert.ok(f.doc.llmMeta.retryable.refundSettledAt);
+  assert.deepEqual(clone(await f.ctx.settleDueLoveSecretRetryRefunds({}, { now: expired })), []); assert.equal(f.refunds, 1);
 });
 test('정체 확정은 그 사이 다른 저장이 있으면(updatedAt CAS) 실패 표시·환불하지 않는다', async () => {
   const f = fixture();
@@ -591,7 +678,7 @@ test('정체 확정은 그 사이 다른 저장이 있으면(updatedAt CAS) 실�
   assert.equal((await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later(), model })).outcome, 'progressed');
   assert.notEqual(f.doc.status, 'generation_failed'); assert.equal(f.refunds, 0);
 });
-test('정체된 delivery_pending 은 여섯 묶음이 다 있으면 재생성 없이 정상 완료로 전달하고, 빠진 묶음이 있으면 실패·환불한다', async () => {
+test('정체된 delivery_pending 은 여섯 묶음이 다 있으면 재생성 없이 정상 완료로 전달하고, 빠진 묶음이 있으면 다시 시도 가능 실패로 둔다', async () => {
   const f = fixture();
   for (let index = 0; index < 5; index++) await f.post();
   f.fault('completed');
@@ -604,6 +691,6 @@ test('정체된 delivery_pending 은 여섯 묶음이 다 있으면 재생성 �
   g.fault('completed'); await g.post();
   g.doc.llmMeta.delivery.groups = g.doc.llmMeta.delivery.groups.slice(0, 4);
   assert.equal(g.ctx.isStuckDeliveryComplete(g.doc), false);
-  assert.deepEqual(clone(await g.ctx.settleStuckDelivery({}, { doc: g.doc, now: later() })), { outcome: 'generation_failed', refundStatus: 'refunded' });
-  assert.equal(g.doc.status, 'generation_failed'); assert.equal(g.refunds, 1);
+  assert.equal((await g.ctx.settleStuckDelivery({}, { doc: g.doc, now: later() })).outcome, 'retryable');
+  assert.equal(g.doc.status, 'generation_failed'); assert.equal(g.refunds, 0);
 });

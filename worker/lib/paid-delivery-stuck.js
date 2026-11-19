@@ -213,9 +213,9 @@ export async function markRetryableRefundDue(model, { id, userId } = {}, now = D
   return result?.modifiedCount ? { ok: true } : { ok: false, reason: 'CONFLICT' };
 }
 
-/** 다시 시도 창이 지난 건을 환불 대상으로 넘긴다. 다시 연 뒤 방치된 partial·generating 도 포함한다(살아 있는 lease 는 제외).
+/** 다시 시도 창이 지난 건을 환불 대상으로 넘긴다. 다시 연 뒤 방치된 partial·generating 도 포함한다(살아 있는 lease·isLive 는 제외).
  * 복구 크론이 공용 환불 크론보다 먼저 부른다. */
-export async function expireRetryableConsultations(model, now = Date.now(), { limit = 50 } = {}) {
+export async function expireRetryableConsultations(model, now = Date.now(), { limit = 50, isLive } = {}) {
   if (!model) return { expired: 0 };
   const docs = await model.find({ status: { $in: ['generation_failed', 'partial', 'generating'] },
     'llmMeta.retryable.refundAt': { $lte: new Date(now) }, 'llmMeta.refundEligibleAt': { $exists: false },
@@ -228,7 +228,8 @@ export async function expireRetryableConsultations(model, now = Date.now(), { li
     if (!doc?.id || !doc.userId || !meta?.retryable || refundStarted(meta)) continue;
     if (!['generation_failed', 'partial', 'generating'].includes(doc.status)) continue;
     if (!(ms(meta.retryable.refundAt) <= now)) continue;
-    if (ms(meta.lockedAt) > now - LIVE_LEASE_MS) continue;
+    // lockedAt 을 쓰지 않는 서비스(연애 비책: delivery.lease + updatedAt)는 isLive 로 살아 있는 생성을 알려 준다.
+    if (ms(meta.lockedAt) > now - LIVE_LEASE_MS || (typeof isLive === 'function' && isLive(doc, now))) continue;
     const at = new Date(now).toISOString();
     const result = await model.updateOne({ id: doc.id, userId: doc.userId, status: doc.status, updatedAt: doc.updatedAt }, { $set: {
       status: 'generation_failed', 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '', 'llmMeta.refundEligibleAt': at,

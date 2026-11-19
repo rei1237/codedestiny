@@ -290,5 +290,11 @@ export async function runPendingConsultationRefunds(env, options = {}) {
     const retryNeo = options.neoRetryRefunds || (await import('../routes/neo-operation-room.js')).settleDueNeoRetryRefunds;
     outcomes.push(...await retryNeo(env));
   } catch { outcomes.push({ service: 'neo-operation-room', refundStatus: 'pending' }); }
+  // 2026-11-19 R5 연애 비책 다시 시도: 창이 지난 건과 고객 환불 요청 건을 연애 비책의 기존 멱등 환불(restoreBillingGateAccessOnFailure)로 정산한다.
+  // 연애 비책은 SERVICES 밖(자체 환불 함수)이다. 실패는 격리하고 다음 주기에 다시 돈다.
+  try {
+    const retryLove = options.loveSecretRetryRefunds || (await import('../routes/love-secret-ai.js')).settleDueLoveSecretRetryRefunds;
+    outcomes.push(...await retryLove(env));
+  } catch { outcomes.push({ service: 'love-secret-ai', refundStatus: 'pending' }); }
   return { outcomes };
 }

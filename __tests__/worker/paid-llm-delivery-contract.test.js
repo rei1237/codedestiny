@@ -98,8 +98,8 @@ function seedConsultation(db, status, extra = {}) {
   return doc;
 }
 const consultation = db => db.rows(NewYearAiConsultation)[0];
-// 네오 다시 시도 환불(2026-11-19 R2b)은 별도 저장소라 이 new-year 계약에서는 비운다(실제 배선은 consultation-delivery-refund 테스트).
-const refundDeps = db => ({ now: START + 7200000, withDb: async (_env, _ctx, work) => work(db), neoRetryRefunds: async () => [],
+// 네오(R2b)·연애 비책(R5) 다시 시도 환불은 별도 저장소라 이 new-year 계약에서는 비운다(실제 배선은 consultation-delivery-refund 테스트).
+const refundDeps = db => ({ now: START + 7200000, withDb: async (_env, _ctx, work) => work(db), neoRetryRefunds: async () => [], loveSecretRetryRefunds: async () => [],
   fetchPayment: async () => { throw new Error('PG 호출 금지: 이용권 경로'); }, cancelPayment: async () => { throw new Error('PG 호출 금지: 이용권 경로'); } });
 
 // 계약 단언: 종결 상태만 허용한다.

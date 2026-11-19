@@ -56,7 +56,7 @@ import {
 } from "../lib/love-secret-ai-prompt.js";
 import { buildLoveSecretGroundingFacts } from "../lib/love-secret-ai-facts.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
-import { STUCK_LIVE_LEASE_MS, logStuckSettled } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "love-secret-ai";
 const FEATURE_KEY = "love-secret-ai-consultation";
@@ -158,6 +158,7 @@ const QUESTION_REQUIRED_MESSAGE = "지금 가장 궁금한 연애 질문을 한 
 const CALCULATION_FAILED_MESSAGE = "연애 흐름 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.";
 const SERVER_ERROR_MESSAGE = "연애 비책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.";
 const LLM_ERROR_MESSAGE = "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
+const LLM_RETRY_MESSAGE = "전문가 상담문을 생성하는 중 문제가 발생했어요. 추가 결제나 차감 없이 다시 시도할 수 있어요.";
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -1765,6 +1766,11 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
+  // 2026-11-19 R5: 다시 시도 가능 실패는 같은 키 재요청으로 새로 만들지 않는다. 다시 시도는 /retry 로만 연다(환불 창·표지 보존).
+  if (existing?.status === "generation_failed" && existing.llmMeta?.retryable && !nativeTossContext(request)) {
+    const retry = loveSecretRetryPayload(request, existing);
+    return json({ ok: false, reason: "LLM_ERROR", message: retry.retry ? LLM_RETRY_MESSAGE : LLM_ERROR_MESSAGE, ...retry }, { status: 409 });
+  }
   // 완성된 delivery_pending 만 전달 확정한다. 예전 축소 전달로 남은 미완성 문서는 아래에서 이어 쓴다(claim CAS 가 상태를 잡는다).
   if (existing?.status === "delivery_pending" && isStuckDeliveryComplete(existing)) {
     const confirmed = await confirmLoveSecretDelivery(auth.userId, existing);
@@ -1923,6 +1929,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
             groupStatus: generated.groupStatus,
             totalChars: generated.totalChars,
             residualIssues: generated.residualIssues,
+            // 다시 시도로 완성된 상담도 환불 창 기록(재개 횟수 등)을 남긴다.
+            ...(seed.llmMeta.retryable ? { retryable: seed.llmMeta.retryable } : {}),
           },
           generationError: null,
         },
@@ -1952,6 +1960,24 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     const owned = await LoveSecretAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease }).lean();
     if (!owned) return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
+    // 2026-11-19 R5 다시 시도 우선: 웹 결제 건은 바로 환불하지 않고 창(생성 + 7일) 안에서 무료 다시 시도를 연다.
+    // 표시를 못 남기면 아래 기존 즉시 환불로 간다(fail-closed: 고객이 결과도 환불도 못 받는 상태를 만들지 않는다).
+    const retryable = loveSecretRetryMeta(request, owned, error);
+    if (retryable) {
+      const kept = await LoveSecretAiConsultation.updateOne(
+        { id: sessionId, userId: clean(auth.userId), status: "generating", "llmMeta.delivery.lease": seed.llmMeta.delivery.lease },
+        { $set: {
+          status: "generation_failed",
+          generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message || error, 500), at: new Date().toISOString() },
+          "llmMeta.retryable": retryable,
+        } },
+      ).catch((markError) => ({ markError }));
+      if (!kept?.markError && Number(kept?.modifiedCount ?? kept?.matchedCount ?? 0) > 0) {
+        logLoveSecretAi("LLM Failure Retryable", { ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }), sessionId });
+        const failed = { ...owned, status: "generation_failed", llmMeta: { ...(owned.llmMeta || {}), retryable } };
+        return json({ ok: false, reason: "LLM_ERROR", message: LLM_RETRY_MESSAGE, ...loveSecretRetryPayload(request, failed) }, { status: 503 });
+      }
+    }
     const restored = await restoreBillingGateAccessOnFailure({ env, userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
     logLoveSecretAi("LLM Refund Or Restore", {
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
@@ -2055,12 +2081,14 @@ async function handleResult(request, env, pathId = "") {
     }, { status: 202 });
   }
   if (consultation.status === "generation_failed") {
+    const retry = loveSecretRetryPayload(request, consultation);
     return json({
       ok: false,
       sessionId: clean(consultation.id),
       status: "generation_failed",
       reason: "LLM_ERROR",
-      message: LLM_ERROR_MESSAGE,
+      message: retry.retry ? LLM_RETRY_MESSAGE : LLM_ERROR_MESSAGE,
+      ...retry,
     }, { status: 503 });
   }
 
@@ -2102,6 +2130,75 @@ async function handleMessage(request, env) {
   return await deliverExpertFollowUp({ request, env, auth, consultation: native ? {...consultation, accessSource:'toss'} : consultation, message, featureKey: FEATURE_KEY, model: LoveSecretAiConsultation, generate: (original, question) => generateFollowUp(env, original, question), render: publicSession, ...(native ? { verifyAccess: () => native.assertStored(consultation) } : {}) });
 }
 
+// 2026-11-19 R5 다시 시도 우선(사용자 승인 "다시 시도 먼저", 환불 시각 = 결제(생성 시작) + 7일).
+// Toss 네이티브와 계산 실패(handleStart 의 calculationFailed 경로)는 기존 즉시 환불을 유지한다.
+// 창이 지났거나 환불이 시작됐으면 retryableFailureMeta 가 null 이라 기존 즉시 환불로 간다(fail-closed).
+function loveSecretRetryMeta(request, doc, error) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return null;
+  return retryableFailureMeta(doc || {}, Date.now(), clean(error?.code || "LLM_GENERATION_FAILED", 40));
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function loveSecretRetryPayload(request, doc) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return {};
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc?.id || "");
+  return state ? { sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+// 다시 시도는 상한을 다 쓴 묶음만 시도 수를 새로 연다. 완성된 묶음·분량 보완 기록(length:*)은 그대로 둔다.
+function loveSecretRetryReset(fresh) {
+  const attempts = { ...(fresh?.llmMeta?.delivery?.attempts || {}) };
+  for (const [key, value] of Object.entries(attempts)) {
+    if (key.includes(":") || Number(value || 0) < LOVE_SECRET_AI_GROUP_HARD_CAP) continue;
+    attempts[key] = 0;
+  }
+  return { "llmMeta.delivery.attempts": attempts };
+}
+
+// 다시 시도(무료): 같은 소유자의 다시 시도 가능 실패만 이어쓰기(partial)로 되돌리고 기존 재개 경로(resumeSessionId)로 돈다.
+// 새 결제·차감을 하지 않는다 — 재개 경로가 같은 멱등 키로 기존 접근을 재확인하고, 차감은 전달 때 한 번뿐이다.
+async function handleRetry(request, env, ctx) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request)) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 120);
+  if (!sessionId) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const stored = await LoveSecretAiConsultation.findOne(owner).lean();
+  if (!stored || stored.accessSource === "toss") return notFound();
+  const reopened = await reopenRetryableConsultation(LoveSecretAiConsultation, owner, Date.now(), { reset: loveSecretRetryReset });
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const latest = await LoveSecretAiConsultation.findOne(owner).lean().catch(() => null);
+    if (!latest) return notFound();
+    if (latest.status === "completed") return json(publicSession(latest));
+    return json({ ok: false, reason: reopened.reason, message: LLM_ERROR_MESSAGE, ...loveSecretRetryPayload(request, latest) }, { status: 409 });
+  }
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  return handleStart(new Request(request.url, { method: "POST", headers, body: JSON.stringify({ resumeSessionId: sessionId }) }), env, "/api/love-secret-ai/retry", ctx);
+}
+
+// 고객 환불 요청: 다시 시도 가능 실패를 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 복구 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request)) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 120);
+  if (!sessionId) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const stored = await LoveSecretAiConsultation.findOne(owner).lean();
+  if (!stored || stored.accessSource === "toss") return notFound();
+  const marked = await markRetryableRefundDue(LoveSecretAiConsultation, owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  let refundStatus = "pending";
+  try { refundStatus = (await settleLoveSecretRetryRefund(env, owner)).refundStatus; }
+  catch (error) { console.error("[love-secret-ai] retry refund failed", { message: clean(error?.message || error, 300) }); }
+  return json({ ok: true, sessionId, refunded: refundStatus === "refunded", refundStatus });
+}
+
 export async function handleLoveSecretAiRoutes(request, env = {}, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/love-secret-ai");
@@ -2117,6 +2214,8 @@ export async function handleLoveSecretAiRoutes(request, env = {}, ctx) {
       return await handleStart(request, env, path === "/generate" ? "/api/love-secret-ai/generate" : "/api/love-secret-ai/start", ctx);
     }
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env, ctx);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
@@ -2178,23 +2277,25 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model = 
   // 환불에 쓸 접근 정보는 실패 표시 전에 저장된 원래 요청으로 다시 푼다(표시·환불 뒤엔 회수 증빙이 접근을 막는다).
   const pricing = getPricing();
   const idempotencyKey = clean(fresh.idempotencyKey, 180);
-  const stored = { ok: true, accessType: clean(fresh.accessType), paymentId: clean(fresh.paymentId, 160),
-    accessSource: fresh.accessSource === "toss" ? "toss"
-      : fresh.accessType === "pass" ? "billing_gate_pass"
-        : fresh.accessType === "subscription" ? "billing_gate_membership_credit"
-          : fresh.accessType === "paid" ? "billing_gate_paid" : clean(fresh.accessSource) };
-  let access = stored;
-  const resumeBody = fresh.llmMeta?.delivery?.resumeBody;
-  if (fresh.accessSource !== "toss" && resumeBody) {
-    const body = { ...resumeBody, accessToken: undefined, idempotencyKey, requestId: idempotencyKey };
-    const request = new Request("https://internal.invalid/api/love-secret-ai/settle", { method: "POST", headers: { "content-type": "application/json" } });
-    const resolved = await resolveStartAccess({ request, env, auth: { userId }, body, normalized: normalizeRequestBody(body), pricing, idempotencyKey }).catch(() => null);
-    if (resolved?.ok) access = resolved;
+  const { access, resolved } = await storedLoveSecretRefundAccess(env, fresh);
+  const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
+  const generationError = { code: "DELIVERY_STUCK", message: "recovery made no progress", at };
+
+  // 2026-11-19 R5: 웹 결제 건은 창(생성 + 7일) 안이면 환불하지 않고 다시 시도 가능으로 둔다.
+  // 접근이 다시 풀리지 않는 건(환불·탈퇴·회수)과 네이티브는 기존 확정·환불로 간다(fail-closed).
+  const retryable = fresh.accessSource !== "toss" && resolved ? retryableFailureMeta(fresh, now, "DELIVERY_STUCK") : null;
+  if (retryable) {
+    const kept = await model.updateOne(cas, { $set: { status: "generation_failed", generationError, "llmMeta.retryable": retryable } });
+    if (!Number(kept?.modifiedCount ?? kept?.matchedCount ?? 0)) return { outcome: "progressed" };
+    logStuckSettled({ service: "love-secret-ai", sessionId, outcome: "retryable", stalls });
+    return { outcome: "retryable", refundAt: retryable.refundAt.toISOString() };
   }
+  // 다시 시도 표지가 있던 건(창 만료)은 여기서 바로 환불하므로 창 만료 정산(settleDueLoveSecretRetryRefunds)이 다시 고르지 않게 표시한다.
+  const closeRetry = fresh.llmMeta?.retryable ? { "llmMeta.refundEligibleAt": at, "llmMeta.retryable.refundSettledAt": at,
+    "llmMeta.retryable.refundReason": "RETRY_WINDOW_EXPIRED" } : {};
 
   // updatedAt CAS: 그 사이 브라우저·다른 워커가 저장한 진전이 있으면 확정하지 않는다.
-  const marked = await model.updateOne({ ...owner, status: fresh.status, updatedAt: fresh.updatedAt },
-    { $set: { status: "generation_failed", generationError: { code: "DELIVERY_STUCK", message: "recovery made no progress", at } } });
+  const marked = await model.updateOne(cas, { $set: { status: "generation_failed", generationError, ...closeRetry } });
   if (!Number(marked?.modifiedCount ?? marked?.matchedCount ?? 0)) return { outcome: "progressed" };
   const error = Object.assign(new Error("love secret delivery stuck"), { code: "DELIVERY_STUCK" });
   const restored = await restoreBillingGateAccessOnFailure({ env, userId, access, idempotencyKey, pricing, error })
@@ -2202,6 +2303,66 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model = 
   const refundStatus = restored?.restored || restored?.refunded ? "refunded" : restored?.refundFailed ? "failed" : "pending";
   logStuckSettled({ service: "love-secret-ai", sessionId, outcome: "generation_failed", refundStatus, stalls });
   return { outcome: "generation_failed", refundStatus };
+}
+
+// 저장된 상담의 환불용 접근: 저장값을 기본으로 두고, 원래 요청으로 다시 풀리면 그 결과를 쓴다(resolved 로 알린다).
+async function storedLoveSecretRefundAccess(env, fresh) {
+  const userId = clean(fresh?.userId);
+  const idempotencyKey = clean(fresh?.idempotencyKey, 180);
+  const stored = { ok: true, accessType: clean(fresh?.accessType), paymentId: clean(fresh?.paymentId, 160),
+    accessSource: fresh?.accessSource === "toss" ? "toss"
+      : fresh?.accessType === "pass" ? "billing_gate_pass"
+        : fresh?.accessType === "subscription" ? "billing_gate_membership_credit"
+          : fresh?.accessType === "paid" ? "billing_gate_paid" : clean(fresh?.accessSource) };
+  const resumeBody = fresh?.llmMeta?.delivery?.resumeBody;
+  if (fresh?.accessSource !== "toss" && resumeBody) {
+    const body = { ...resumeBody, accessToken: undefined, idempotencyKey, requestId: idempotencyKey };
+    const request = new Request("https://internal.invalid/api/love-secret-ai/settle", { method: "POST", headers: { "content-type": "application/json" } });
+    const resolved = await resolveStartAccess({ request, env, auth: { userId }, body, normalized: normalizeRequestBody(body), pricing: getPricing(), idempotencyKey }).catch(() => null);
+    if (resolved?.ok) return { access: resolved, resolved: true };
+  }
+  return { access: stored, resolved: false };
+}
+
+// 다시 시도 가능 실패의 환불 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 환불은 같은 멱등 키로 멱등이다(restoreBillingGateAccessOnFailure). 카드 환불이 실패하면 표시하지 않아 다음 크론이 다시 시도한다.
+async function settleLoveSecretRetryRefund(env, { id, userId }, model = LoveSecretAiConsultation, now = Date.now()) {
+  const owner = { id: clean(id, 120), userId: clean(userId) };
+  const fresh = await model.findOne(owner).lean();
+  const meta = fresh?.llmMeta;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || fresh.accessSource === "toss") return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
+  const { access } = await storedLoveSecretRefundAccess(env, fresh);
+  const error = Object.assign(new Error("retry closed without delivery"), { code: clean(meta.retryable.refundReason || "RETRY_REFUND", 80) });
+  const restored = await restoreBillingGateAccessOnFailure({ env, userId: owner.userId, access, idempotencyKey: clean(fresh.idempotencyKey, 180), pricing: getPricing(), error })
+    .catch(() => ({ restored: false, refundFailed: true }));
+  let refundStatus = "requested";
+  if (restored?.restored || restored?.refunded) refundStatus = "refunded";
+  else if (restored?.refundFailed) refundStatus = "failed";
+  else if (access.accessType === "admin") refundStatus = "not_required";
+  if (refundStatus === "failed") return { refundStatus };
+  await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+    "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": refundStatus } });
+  logStuckSettled({ service: "love-secret-ai", sessionId: owner.id, outcome: "retry_refund", refundStatus });
+  return { refundStatus };
+}
+
+// 복구 크론(공용 환불 정산 뒤): 창이 지난 다시 시도 가능 건을 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// 연애 비책은 lockedAt 대신 delivery.lease + updatedAt 으로 생성 중을 표시하므로 isLive 로 살아 있는 생성을 제외한다.
+export async function settleDueLoveSecretRetryRefunds(env, { now = Date.now(), model = LoveSecretAiConsultation, limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  const isLive = (doc, at) => doc.status === "generating" && at - new Date(doc.updatedAt || doc.createdAt || 0).getTime() < STUCK_LIVE_LEASE_MS;
+  try { await expireRetryableConsultations(model, now, { isLive }); }
+  catch { outcomes.push({ service: "love-secret-ai", refundStatus: "pending" }); }
+  const due = await model.find({ status: "generation_failed", "llmMeta.retryable": { $exists: true }, "llmMeta.refundEligibleAt": { $exists: true },
+    "llmMeta.retryable.refundSettledAt": { $exists: false }, accessSource: { $ne: "toss" }, userId: { $exists: true, $ne: null } })
+    .sort({ updatedAt: 1 }).limit(limit).select("id userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: "love-secret-ai", refundStatus: (await settleLoveSecretRetryRefund(env, doc, model, now)).refundStatus }); }
+    catch { outcomes.push({ service: "love-secret-ai", refundStatus: "pending" }); }
+  }
+  return outcomes;
 }
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
