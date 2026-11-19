@@ -113,6 +113,11 @@ const userSchema = new mongoose.Schema({
       id: { type: String, default: "" },
       connectedAt: { type: Date, default: null },
     },
+    // 웹 Sign in with Apple(2026-11-19). 이메일로 자동 연결하지 않고 /account/apple/ 에서만 잇는다.
+    apple: {
+      id: { type: String, default: "" },
+      connectedAt: { type: Date, default: null },
+    },
   },
   destinyProfiles: { type: [mongoose.Schema.Types.Mixed], default: [] },
   destinyProfilesCurrentId: { type: String, default: "" },
@@ -2019,7 +2024,7 @@ fusionFortuneConsultationSchema.index({ userId: 1, createdAt: -1 });
 // NOTE: db.js connects with autoIndex:false, so this declaration alone does not create the
 // index in production — re-run `npm run migrate:auth-core-indexes` once against the DB
 // (scripts/migrations/20260705-add-auth-core-indexes.mjs already targets User.createIndexes()).
-["google", "naver", "kakao"].forEach((provider) => {
+["google", "naver", "kakao", "apple"].forEach((provider) => {
   userSchema.index(
     { [`socialAccounts.${provider}.id`]: 1 },
     {
