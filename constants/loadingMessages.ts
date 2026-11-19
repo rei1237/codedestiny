@@ -69,51 +69,51 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
   },
   ja: {
     pg_processing: {
-      subscription: { title: "月光石のお支払いを処理しています", sub: "少しだけお待ちください" },
+      subscription: { title: "月精石のお支払いを処理しています", sub: "少しだけお待ちください" },
       single: { title: "お支払いを処理しています", sub: "この画面を閉じずにお待ちください" },
       pass: { title: "利用券の適用を確認しています", sub: "少しだけお待ちください" },
     },
     result_loading: {
-      subscription: { title: "月光石がそっと灯っています", sub: "まもなくご利用いただけます" },
+      subscription: { title: "月精石がそっと灯っています", sub: "まもなくご利用いただけます" },
       single: { title: "お支払いが完了しました", sub: "結果を読み込んでいます" },
       pass: { title: "利用券を確認しました", sub: "結果を読み込んでいます" },
     },
     access_check: {
-      subscription: { title: "月光石の情報を確認しています", sub: "安全にご利用状況を確認しています" },
+      subscription: { title: "月精石の情報を確認しています", sub: "安全にご利用状況を確認しています" },
       single: { title: "カード決済を準備しています", sub: "お支払いに進めるか確認しています" },
       pass: { title: "利用券を確認しています", sub: "利用券を使えるか確認しています" },
     },
   },
   "zh-CN": {
     pg_processing: {
-      subscription: { title: "正在处理月光石支付", sub: "请稍候" },
+      subscription: { title: "正在处理月精石支付", sub: "请稍候" },
       single: { title: "正在处理支付", sub: "请不要关闭窗口" },
       pass: { title: "正在确认通行券权限", sub: "请稍候" },
     },
     result_loading: {
-      subscription: { title: "月光石正在点亮", sub: "即将可以使用" },
+      subscription: { title: "月精石正在点亮", sub: "即将可以使用" },
       single: { title: "支付已完成", sub: "正在载入结果" },
       pass: { title: "已确认通行券", sub: "正在载入结果" },
     },
     access_check: {
-      subscription: { title: "正在确认月光石信息", sub: "正在安全确认使用权限" },
+      subscription: { title: "正在确认月精石信息", sub: "正在安全确认使用权限" },
       single: { title: "正在准备银行卡支付", sub: "正在确认是否可以继续支付" },
       pass: { title: "正在确认通行券", sub: "正在确认通行券是否可用" },
     },
   },
   "zh-TW": {
     pg_processing: {
-      subscription: { title: "正在處理月光石付款", sub: "請稍候" },
+      subscription: { title: "正在處理月精石付款", sub: "請稍候" },
       single: { title: "正在處理付款", sub: "請不要關閉視窗" },
       pass: { title: "正在確認通行券權限", sub: "請稍候" },
     },
     result_loading: {
-      subscription: { title: "月光石正在點亮", sub: "即將可以使用" },
+      subscription: { title: "月精石正在點亮", sub: "即將可以使用" },
       single: { title: "付款已完成", sub: "正在載入結果" },
       pass: { title: "已確認通行券", sub: "正在載入結果" },
     },
     access_check: {
-      subscription: { title: "正在確認月光石資訊", sub: "正在安全確認使用權限" },
+      subscription: { title: "正在確認月精石資訊", sub: "正在安全確認使用權限" },
       single: { title: "正在準備信用卡付款", sub: "正在確認是否可以繼續付款" },
       pass: { title: "正在確認通行券", sub: "正在確認通行券是否可用" },
     },

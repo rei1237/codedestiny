@@ -948,7 +948,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     resultResumeRetry: "続きを書き直す",
     birthTimeUnknownShort: "生まれた時刻は不明",
     passIncludedNote: "利用券に含まれています",
-    monthlyCreditUsedNote: "月定石を使用",
+    monthlyCreditUsedNote: "月精石を使用",
 
     sealAriaLabel: "封印",
     narratorReadingAlt: "本を読んでいる恋愛の達人",

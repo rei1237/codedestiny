@@ -608,7 +608,7 @@ const ASTROLOGY_CLIENT_COPY: Partial<Record<LoadingLocale, AstrologyClientCopy>>
     },
     progressSteps: [
       { title: "整理輸入值", description: "正在將出生日期、出生時間、出生地座標整理為可諮詢的形式。" },
-      { title: "確認權限", description: "正在依序確認使用權、月定石、單次付款權限。" },
+      { title: "確認權限", description: "正在依序確認使用權、月精石、單次付款權限。" },
       { title: "計算星盤", description: "正在展開星座星盤，計算出生那一刻的太陽、月亮、行星、上升星座與宮位軸。" },
       { title: "篩選核心依據", description: "只挑選實際計算出的行星·宮位·角度，編織進諮詢流程。" },
       { title: "撰寫諮詢內容", description: "正在解讀行星與星座的走勢，先觸及您的問題，再銜接星盤依據與現實建議。" },
