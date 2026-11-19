@@ -35,3 +35,13 @@ test('/tarot/healing/ 은 플래그로 공통 플로우판과 원본 SunHealingT
   assert.match(read('app/components/SunHealingTarot.tsx'), /export function SunHealingResultBody/);
   assert.match(read('app/components/SunHealingTarotGuided.tsx'), /SunHealingResultBody/);
 });
+
+test('/today/ 공통 플로우는 history 를 쌓지 않는다(허브가 popstate 마다 열람 권한을 초기화)', () => {
+  const src = read('app/today/DailyTarotGuided.tsx');
+  assert.match(read('app/_lib/use-reading-identity-reset.ts'), /'popstate'/);
+  const steps = src.match(/const STEPS[^;]*?\];/s)?.[0] || '';
+  assert.ok(steps, 'STEPS 정의를 찾지 못함');
+  for (const line of steps.split('\n').filter((l) => /\{id:'/.test(l))) {
+    assert.match(line, /history:'(replace|none)'/, `push 기본값 단계: ${line.trim()}`);
+  }
+});

@@ -32,10 +32,12 @@ const FLOW_ID='yeoni-daily-three';
 const STEPS:GuidedStep[]=[
  // 셔플은 URL 에 남기지 않는다(뒤로가기가 셔플을 다시 틀지 않게). 새로고침하면 저장된 덱으로 고르기부터.
  {id:'shuffle',kind:'wait',history:'none',transient:true,restoreTo:'pick'},
- {id:'pick',kind:'input'},
- {id:'reveal',kind:'input'},
+ // /today/ 허브는 popstate 마다 열람 권한을 초기화한다(useReadingIdentityReset). 단계마다 history 를 쌓으면
+ // 브라우저 뒤로가 패널 전체를 닫으므로 이 흐름은 ?step= 만 교체한다. 앱 안 '이전'은 제자리 교체, 브라우저 뒤로는 원본처럼 페이지 이탈.
+ {id:'pick',kind:'input',history:'replace'},
+ {id:'reveal',kind:'input',history:'replace'},
  {id:'reading',kind:'wait',history:'none',transient:true,restoreTo:'result',awaitWork:true},
- {id:'result',kind:'result'},
+ {id:'result',kind:'result',history:'replace'},
 ];
 const AUTO_MS=450,FIRST_FLIP_MS=500,FLIP_GAP_MS=350,FLIP_MS=800;
 
