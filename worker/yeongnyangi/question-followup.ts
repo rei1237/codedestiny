@@ -87,6 +87,11 @@ export async function questionConversation(env:any,userId:string,id:string,body:
   console.log('[followup-context]',JSON.stringify({feature:'yeongnyangi',event:'continuation_offered',requestId:id,chars:context.chars,used:current?.used||0}));
   return saveConversation(env,userId,id,current,offerConversationContinuation(next,current?.calls||0,Date.now()));
  }
+ // 기록을 비워도 하드 상한을 넘으면 횟수·호출을 쓰지 않고 지원 안내로 돌린다.
+ if(context.tooLarge){
+  console.log('[followup-context]',JSON.stringify({feature:'yeongnyangi',event:'context_too_large',requestId:id,chars:context.chars,used:current?.used||0}));
+  throw new FortuneError('QUESTION_FOLLOWUP_SUPPORT',409);
+ }
  const input=context.input;
  row=await saveConversation(env,userId,id,current,next);
  // Followup explanations use the ordinary model, without synthesis escalation.

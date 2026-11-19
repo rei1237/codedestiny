@@ -2465,7 +2465,7 @@ function publicSession(doc) {
     status: clean(doc.status),
     saved: doc.status === "completed",
     resumeSessionId: clean(doc.id),
-    progress: { completed: (doc.llmMeta?.savedSections || []).filter(row => row.ok && !row.truncated && countPaidReportBodyChars(row.text) >= 4000).length, total: newYearSectionsForPlan(doc.llmMeta?.sectionPlanVersion).length },
+    progress: { completed: (doc.llmMeta?.savedSections || []).filter(row => row.ok && !row.truncated && countPaidReportBodyChars(row.text) >= (newYearSectionsForPlan(doc.llmMeta?.sectionPlanVersion).find(section => section.key === row.key)?.minChars || 4000)).length, total: newYearSectionsForPlan(doc.llmMeta?.sectionPlanVersion).length },
     sajuProfile: buildBasicSajuProfile(doc),
     targetYear: {
       year: Number(target.year || doc.year || 0) || null,
@@ -2886,7 +2886,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   let fortuneData;
   try {
     fortuneData = existing?.llmMeta?.fortuneData
-      ? readRepresentativeFacts(existing.llmMeta.fortuneData, 'new-year')
+      ? readRepresentativeFacts(existing.llmMeta.fortuneData, 'new-year', { recompute: () => connectNewYearTiming(
+        calculateNewYearFortuneData(normalized.input, { authorityEnabled: sajuAuthorityOn(env) }), normalized.input.birthInfo, { SAJU_CONSUMER_FACTS_V1: 'true' }) })
       : connectNewYearTiming(calculateNewYearFortuneData(normalized.input, { authorityEnabled: !existing && sajuAuthorityOn(env) }), normalized.input.birthInfo, existing ? {} : env);
   }
   catch (error) {

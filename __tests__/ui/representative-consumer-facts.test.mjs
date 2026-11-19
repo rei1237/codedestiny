@@ -10,6 +10,7 @@ import * as temperament from '../../worker/lib/saju-temperament.js';
 import * as life from '../../worker/lib/life-book-ai-saju.js';
 import * as prevention from '../../worker/lib/fortune-prevention.js';
 import {connectNewYearTiming,pinRepresentativeFacts,readRepresentativeFacts} from '../../worker/lib/representative-consumer-facts.js';
+import {engineFactDigest} from '../../worker/lib/engine-fact-snapshot.js';
 const source=fs.readFileSync('worker/routes/new-year-ai.js','utf8');
 const ast=ts.createSourceFile('new-year.js',source,ts.ScriptTarget.Latest,true);
 const declarations=new Map();
@@ -41,4 +42,22 @@ test('representative pin rejects different natal and preserves legacy/candidate 
  const legacy={candidate:['a'],final:null,status:'pending'};assert.equal(readRepresentativeFacts(legacy,'love-secret'),legacy);
  const saved=JSON.parse(JSON.stringify(pinRepresentativeFacts(legacy,{SAJU_CONSUMER_FACTS_V1:'true'},'love-secret')));
  assert.equal(readRepresentativeFacts(saved,'love-secret').final,null);assert.throws(()=>readRepresentativeFacts(saved,'new-year'),/MISMATCH/);
+});
+// Mongo stores undefined fields as null; JSON.stringify drops them. Resume must survive the real storage shape.
+const mongoShape=value=>JSON.parse(JSON.stringify(value,(_k,v)=>v===undefined?null:v));
+test('representative pin survives Mongo storage (undefined -> null) and repairs legacy v1 only by recompute',()=>{
+ const raw={...context.calculateNewYearFortuneData({birthInfo:birth,targetYear:2026}),probe:{start:undefined,end:undefined,month:3}};
+ const pinned=connectNewYearTiming(raw,birth,{SAJU_CONSUMER_FACTS_V1:'true'});
+ assert.equal(pinned.consumerFactIdentity.version,'representative-facts-v2');
+ const stored=mongoShape(pinned);assert.equal(stored.probe.start,null);
+ assert.deepEqual(readRepresentativeFacts(stored,'new-year'),stored);
+ const tampered=structuredClone(stored);tampered.probe.month=4;assert.throws(()=>readRepresentativeFacts(tampered,'new-year'),/MISMATCH/);
+ // Legacy v1: digest of the pre-storage value (the 2026-11 stuck sessions).
+ const {consumerFactIdentity:_p,...facts}=pinned;
+ const legacy=mongoShape({...facts,consumerFactIdentity:{version:'representative-facts-v1',kind:'new-year',digest:engineFactDigest(facts)}});
+ assert.throws(()=>readRepresentativeFacts(legacy,'new-year'),/MISMATCH/);
+ const repaired=readRepresentativeFacts(legacy,'new-year',{recompute:()=>pinned});
+ assert.equal(repaired.consumerFactIdentity.digest,legacy.consumerFactIdentity.digest);assert.equal(repaired.probe.month,3);
+ assert.throws(()=>readRepresentativeFacts(legacy,'new-year',{recompute:()=>({...pinned,probe:{month:4}})}),/MISMATCH/);
+ assert.throws(()=>readRepresentativeFacts(legacy,'love-secret',{recompute:()=>pinned}),/MISMATCH/);
 });
