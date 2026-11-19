@@ -140,7 +140,8 @@ async function postConsultOnce(body) {
 }
 
 async function postConsult(body) {
-  for (let wave = 0; wave < 12; wave += 1) {
+  // S16: 그룹당 라운드 3회 × 최대 3라운드까지 이어 쓰므로 여유 있게 반복한다.
+  for (let wave = 0; wave < 40; wave += 1) {
     const response = await postConsultOnce(body);
     if (response.status !== 202 || response.payload.retryable === false) return response;
   }
@@ -182,7 +183,7 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
     expectEveryCardExplained(payload.result, count);
   });
 
-  test("LLM이 카드별 해석을 빠뜨리면 제한된 재시도 뒤 미완료로 보존한다", async () => {
+  test("LLM이 카드별 해석을 빠뜨리면 라운드 상한 뒤 본문 없이 generation_failed 로 종결한다", async () => {
     const payloadWithoutCards = buildLlmPayload("five");
     delete payloadWithoutCards.tarotCardReadings;
     callGeminiTextMock.mockImplementation(async () => ({
@@ -194,10 +195,13 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
 
     const { status, payload } = await postConsult(consultBody({ spread: "five", attemptId: "cardwise-missing" }));
 
-    expect(status).toBe(202);
-    expect(payload.retryable).toBe(false);
+    expect(status).toBe(409);
+    expect(payload).toMatchObject({ ok: false, retryable: false, status: 'generation_failed', reason: 'GENERATION_FAILED' });
     expect(payload.result).toBeUndefined();
-    expect(payload.completedSections.some(section => section.key.startsWith('tarot-card'))).toBe(false);
+    expect(payload.completedSections).toBeUndefined();
+    const saved = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    expect(saved.status).toBe('generation_failed');
+    expect(saved.result).toBeUndefined();
     const count = callGeminiTextMock.mock.calls.length;
     await postConsultOnce(consultBody({ spread: 'five', attemptId: 'cardwise-missing' }));
     expect(callGeminiTextMock).toHaveBeenCalledTimes(count);

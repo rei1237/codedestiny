@@ -240,7 +240,8 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
     expect(response.payload.result.saju.usefulGodEvidence).toEqual(body.draftResult.saju.usefulGodEvidence);
     expect(response.payload.result.saju.guests.length).toBeGreaterThan(0);
     expect(response.payload.result.saju.guests.some(guest => guest.id === "invented")).toBe(false);
-    expect(callGeminiTextMock).toHaveBeenCalledTimes(19);
+    // S16: 근거와 어긋난 문장은 그룹을 다시 생성하지 않고 그 문장만 뺀다(이전 19회 → 18회).
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(18);
     expect(response.payload.result.saju.deepSections[0].body).not.toContain('경금은 정관');
   });
   test("일부 섹션만 부실해도 나머지 LLM 섹션은 살아남는다", async () => {

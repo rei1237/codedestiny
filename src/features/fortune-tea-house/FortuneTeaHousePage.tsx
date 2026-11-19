@@ -117,7 +117,8 @@ type FortuneTeaHouseConsultApiResponse = {
   code?: string;
   error?: string;
   retryable?: boolean;
-  completedSections?: Array<{ key: string; title: string; body: string }>;
+  completedSections?: Array<{ key: string; title: string; body?: string }>;
+  completedCount?: number;
   totalSections?: number;
   requestPayload?: FortuneTeaConsultPostBody;
   result?: FortuneTeaHouseConsultResponse;
@@ -628,7 +629,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     if (!draftRestored.current || stage !== "questionInput" || !selectedCup || (recoveryOwnerRef.current && recoveryOwnerRef.current !== recoveryOwner)) return;
     try { sessionStorage.setItem("cd_tea_question_draft", JSON.stringify({owner: recoveryOwner || "guest", at: Date.now(), cupId:selectedCup.id, input:questionInput})); } catch { /* Optional draft recovery. */ }
   }, [questionInput, selectedCup, stage, recoveryOwner]);
-  const [partialSections, setPartialSections] = useState<Array<{key:string;title:string;body:string}>>([]);
+  const [partialSections, setPartialSections] = useState<Array<{key:string;title:string;body?:string}>>([]);
   const [consultResult, setConsultResult] = useState<FortuneTeaHouseConsultResponse | null>(null);
   const [honeyDrops, setHoneyDrops] = useState<FortuneTeaHouseHoneyDropsState | null>(null);
   const [isTarotAlbumOpen, setIsTarotAlbumOpen] = useState(false);
@@ -1399,7 +1400,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
           ...previous,
           percent: Math.min(95, Math.round(completed / Math.max(1, total) * 95)),
           label: completed ? (total ? `${completed}/${total} 부분 저장` : `${completed}개 장 저장`) : "상담문 준비 중",
-          message: completed ? "저장된 부분을 읽는 동안 나머지를 작성하고 있어요." : "입력한 질문과 근거를 차분히 살펴보고 있어요.",
+          message: completed ? "저장된 부분을 보존하고 나머지를 작성하고 있어요." : "입력한 질문과 근거를 차분히 살펴보고 있어요.",
         }));
       };
       if (isFortuneTeaGenerationPending(response, payload) || response.status === 503) {
@@ -1431,7 +1432,8 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
       if (!response.ok || !payload.ok || !payload.result) {
         const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
         // 서버가 한도 복구를 확정한 요청만 종료한다. 응답 유실·저장 지연은 기존 증빙을 유지한다.
-        if (payload.reason === "PASS_ALREADY_REFUNDED") {
+        // S16: 라운드 상한 종결(GENERATION_FAILED)도 서버가 환불을 마친 최종 상태라 같은 시도를 끝낸다.
+        if (payload.reason === "PASS_ALREADY_REFUNDED" || payload.reason === "GENERATION_FAILED") {
           clearFortuneTeaRecovery(attemptOwnerId, attemptId);
           if (unusedPaidAttemptRef.current?.attemptId === attemptId) unusedPaidAttemptRef.current = null;
           setQuestionInput({ ...nextQuestionInput, attemptId: undefined });
@@ -1554,15 +1556,12 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     );
   }
 
+  // S16: 완성 전에는 본문을 보여 주지 않는다. 저장된 부분 수만 알리고, 완성되면 전체 상담을 한 번에 보여 준다.
   function renderSavedSections() {
     if (!partialSections.length) return null;
-    return <section className={`${styles.consultErrorCard} ${styles.checkpointReading}`} aria-label="저장된 상담 본문">
-      <h2>먼저 준비된 상담</h2>
-      <p>아직 완성 전인 상담입니다. 저장된 부분부터 읽을 수 있어요.</p>
-      {partialSections.map(section => <details key={section.key}>
-        <summary style={{ padding: '12px 0', cursor: 'pointer' }}>{section.title}</summary>
-        <p style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.85 }}>{section.body}</p>
-      </details>)}
+    return <section className={`${styles.consultErrorCard} ${styles.checkpointReading}`} aria-label="상담 생성 진행">
+      <h2>상담을 이어서 작성하고 있어요</h2>
+      <p>{partialSections.length}개 부분을 저장했어요. 모두 완성되면 전체 상담을 한 번에 보여 드려요.</p>
     </section>;
   }
 

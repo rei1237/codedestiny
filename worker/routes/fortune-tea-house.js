@@ -55,7 +55,9 @@ import {
   validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { STUCK_LIVE_LEASE_MS, deliveryProgressSize, logStuckSettled, nextDeliveryWatch } from "../lib/paid-delivery-stuck.js";
+import { usageSettlementSetFields } from "../lib/late-usage-settlement.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { getAmbientAiLocale, runWithAiLocale } from "../lib/ai-locale-context.js";
@@ -4412,7 +4414,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
  * 그룹 하나를 생성한다. **절대 throw 하지 않는다** — 한 그룹의 실패가 나머지를 죽이면
  * 결제한 상담이 통째로 사라진다(love-secret-ai.js 와 같은 계약).
  */
-async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, answerVoice = null, cacheAllowed = true }) {
+async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, finalAttempt = false, answerVoice = null, cacheAllowed = true }) {
   const fail = (reason, provider = "", model = "") => ({ key: group.key, ok: false, parsed: null, chars: 0, reason, provider, model });
   // 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아간다 — 그 앞에서 막아야 한다.
   if (!(timeoutMs > 0)) return fail("BUDGET_EXHAUSTED");
@@ -4429,7 +4431,8 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
       responseMimeType: "application/json",
       // 그룹 최소 분량 × 0.4. 통짜 시절의 600 은 그룹 단위에서 아무것도 막지 못한다.
       fallbackMinChars: Math.round(group.minChars * 0.4),
-      fallbackToWorkersAI: false,
+      // S16: Workers AI 폴백은 라운드 마지막 시도에만 쓴다.
+      fallbackToWorkersAI: finalAttempt === true,
       // 이 라우트는 캐시도 in-flight dedup 도 없어 같은 입력의 재요청이 전 그룹을 다시 생성했다.
       // 웨이브 2 의 재생성은 attempt 와 qualityHint 가 프롬프트·temperature 를 함께 바꾸므로
       // 실패한 시도의 응답이 같은 키를 차지하지 않는다.
@@ -4573,16 +4576,89 @@ async function saveTeaCheckpoint(auth, resultId, lockToken, state) {
         throw Object.assign(new Error('RESULT_STORAGE_UNAVAILABLE'), { code: 'RESULT_STORAGE_UNAVAILABLE' });
     }
 }
+// S16: 그룹 시도 한도는 라운드당 3회다. 한도를 다 쓴 그룹은 다음 라운드에서 다시 대기로 돌아가고(축소 전달 없음),
+// 라운드 상한을 넘기면 최종 실패(generation_failed + 기존 환불 경로)다. 정체는 복구 크론의 정체 감시가 확정한다.
+const TEA_GROUP_ATTEMPTS_PER_ROUND = 3;
+const TEA_MAX_ROUNDS = 3;
+function teaRound(state) { return Math.max(1, Number(state?.round) || 1); }
+function teaGroupNeedsWork(state, group) { return !state.parts?.[group.key] || Boolean(state.repairs?.includes(group.key)); }
+function teaGroupHasAttempts(state, group) { return (state.attempts?.[group.key] || 0) < TEA_GROUP_ATTEMPTS_PER_ROUND * teaRound(state); }
+function teaCheckpointRetryable(state) {
+    const open = state.groups.filter(group => teaGroupNeedsWork(state, group));
+    return !open.length || open.some(group => teaGroupHasAttempts(state, group)) || teaRound(state) < TEA_MAX_ROUNDS;
+}
+// 라운드의 마지막 시도(3·6·9번째). Workers AI 폴백과 0.3배 길이 하한은 이 시도에만 쓴다.
+function teaIsFinalAttempt(attempts) { return attempts >= 1 && attempts % TEA_GROUP_ATTEMPTS_PER_ROUND === 0; }
+// 길이 하한: 첫 시도는 기존 기준(minChars/0.8), 2번째부터 minChars×0.6, 라운드 마지막 시도는 ×0.3.
+function teaLengthFloor(group, attempts) {
+    if (teaIsFinalAttempt(attempts)) return Math.ceil(group.minChars * 0.3);
+    if (attempts >= 2) return Math.ceil(group.minChars * 0.6);
+    return Math.ceil(group.minChars / 0.8);
+}
+/** S16 완성 판정: 모든 체크포인트 그룹에 필수 필드가 비지 않은 본문이 있어야 한다. 분량은 보지 않는다.
+ * 체크포인트 상태 또는 저장 문서를 받는다. 체크포인트가 없는 문서(로컬 결정론 경로)는 공개 가능한 저장 본문이 있을 때만. */
+export function isFortuneTeaHouseComplete(value) {
+    const state = Array.isArray(value?.groups) ? value : value?.generationCheckpoint;
+    if (Array.isArray(state?.groups) && state.groups.length) {
+        return state.groups.every(group => {
+            const part = state.parts?.[group.key];
+            return Boolean(part && pickTeaCheckpointFields(part, group));
+        });
+    }
+    return Boolean(value?.result && publicFortuneTeaStoredResult(value));
+}
+// S16: 더 시도할 수 없는 미완성(마지막 라운드 소진)은 '재시도 불가 202' 대신 최종 실패로 넘긴다(generation_failed + 환불).
+function teaPartialOrExhausted(state, resultId) {
+    if (!teaCheckpointRetryable(state))
+        throw Object.assign(new Error('fortune tea house generation attempts exhausted'), { code: 'FORTUNE_TEA_HOUSE_GENERATION_EXHAUSTED' });
+    return { partial: teaCheckpointProgress(state, resultId) };
+}
+// S16: 완성 전 응답에는 본문을 싣지 않는다 — 진행 수와 식별자만.
 function teaCheckpointProgress(state, resultId) {
-    return { ok: true, status: 'generating', retryable: state.groups.some(group => (!state.parts[group.key] || state.repairs?.includes(group.key)) && (state.attempts[group.key] || 0) < 2), resultId,
-        completedSections: state.groups.filter(group => state.parts[group.key]).map(group => ({ key: group.key, title: group.label, body: teaNarrativeText(state.parts[group.key]) })), totalSections: state.groups.length,
+    const completedSections = state.groups.filter(group => state.parts[group.key]).map(group => ({ key: group.key, title: group.label }));
+    return { ok: true, status: 'generating', retryable: teaCheckpointRetryable(state), resultId,
+        completedSections, completedCount: completedSections.length, totalSections: state.groups.length,
         message: '정상 생성한 부분을 저장했어요. 같은 요청으로 나머지를 이어서 작성합니다.' };
+}
+// 같은 문장 반복·근거 오류 문장은 반려 대신 그 문장만 뺀다(이름·식별자 필드는 건드리지 않는다).
+function mapTeaPartStrings(value, mapper, key = '') {
+    if (typeof value === 'string')
+        return /^(?:id|.*Id|title|label|name|nameKo|nameEn|positionId|pair|tone|category|value|score|available|orientation)$/.test(key) ? value : mapper(value);
+    if (Array.isArray(value))
+        return value.map(item => mapTeaPartStrings(item, mapper, key));
+    if (value && typeof value === 'object')
+        return Object.fromEntries(Object.entries(value).map(([name, part]) => [name, mapTeaPartStrings(part, mapper, name)]));
+    return value;
+}
+function scrubTeaSentences(text, isBad) {
+    const pieces = /[^.!?。！？\n]+(?:[.!?。！？]+["'”’)\]」』]*)?\s*/gu;
+    if (typeof text !== "string" || !text) return text;
+    return text.split("\n").map(line => {
+        const found = line.match(pieces) || [];
+        return found.length ? found.filter(piece => !piece.trim() || !isBad(piece.trim())).join("").trimEnd() : line;
+    }).join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+function scrubTeaRepeatedSentences(part, prior) {
+    let seen = String(prior || '');
+    return mapTeaPartStrings(part, text => {
+        const kept = dropRepeatedReportSentences(text, seen);
+        seen += '\n' + kept;
+        return kept;
+    });
 }
 async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, lockToken, checkpoint, body }) {
     const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko', answerVoice: selectAnswerVoice(env),
         requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
-    if (state.qualityError === 'report body length' || /quality failed: (?:saju|tarot|sukuyo) length /.test(state.qualityError || '')) state.repairs = [];
-    const eligible = state.groups.filter(group => (!state.parts[group.key] || state.repairs.includes(group.key)) && (state.attempts[group.key] || 0) < 2).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    state.repairs ||= [];
+    const pickEligible = () => state.groups.filter(group => teaGroupNeedsWork(state, group) && teaGroupHasAttempts(state, group)).slice(0, PAID_LLM_PARTS_PER_REQUEST);
+    let eligible = pickEligible();
+    // S16: 이번 라운드 시도를 다 쓴 미완성 그룹은 다음 라운드로 다시 대기한다. 라운드 상한이면 최종 실패(환불).
+    if (!eligible.length && state.groups.some(group => teaGroupNeedsWork(state, group))) {
+        if (teaRound(state) >= TEA_MAX_ROUNDS)
+            throw Object.assign(new Error('fortune tea house generation attempts exhausted'), { code: 'FORTUNE_TEA_HOUSE_GENERATION_EXHAUSTED' });
+        state.round = teaRound(state) + 1;
+        eligible = pickEligible();
+    }
     if (eligible.length && !hasGeminiKey(env)) {
         return { partial: { ...teaCheckpointProgress(state, resultId), reason: 'LLM_UNAVAILABLE' } };
     }
@@ -4604,21 +4680,36 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
         return [...new Set(errors)];
     };
     const outcomes = await Promise.allSettled(eligible.map(async (group) => {
-        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env), cacheAllowed: auth?.tossNative !== true }));
+        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, finalAttempt: teaIsFinalAttempt(state.attempts[group.key]), qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env), cacheAllowed: auth?.tossNative !== true }));
         if (!output.ok)
             return;
         // Required provider fields must exist before the deterministic fallback is merged.
         if (!pickTeaCheckpointFields(output.parsed, group)) return;
         if (isTeaSajuSpecialist(state.request) && hasSajuHealthPrediction(teaNarrativeText(output.parsed))) return;
         const rendered = mergeLlmResult(state.fallback, output.parsed, { lengthRepair: true });
-            const normalized = group.positionId ? { tarotCardReadings: rendered.tarotSpreadCards.map((card, i) => i === group.cardIndex ? { positionId: group.positionId, ...card.detail } : null) } : pickTeaCheckpointFields(rendered, group);
-            if (!normalized || !countPaidReportBodyChars(teaNarrativeText(normalized)) || hasRepeatedReportPassage(teaNarrativeText(normalized)))
+            let normalized = group.positionId ? { tarotCardReadings: rendered.tarotSpreadCards.map((card, i) => i === group.cardIndex ? { positionId: group.positionId, ...card.detail } : null) } : pickTeaCheckpointFields(rendered, group);
+            if (!normalized)
                 return;
-            if (state.request.consultationMode === 'saju' && !validateSajuMyeongsikTenGodText(
-                teaNarrativeText(normalized), buildFortuneTeaSajuMyeongsikFacts(state.request, state.fallback.saju),
-            ).ok) return;
+            // S16: 그룹 안 반복 문장은 반려 대신 뒤 사본만 뺀다.
+            if (hasRepeatedReportPassage(teaNarrativeText(normalized)))
+                normalized = scrubTeaRepeatedSentences(normalized, '');
+            // 명식 십성 오기(사실 오류)는 그 문장만 뺀다. 빼고도 남으면 반려한다(하드 규칙).
+            if (state.request.consultationMode === 'saju') {
+                const facts = buildFortuneTeaSajuMyeongsikFacts(state.request, state.fallback.saju);
+                if (!validateSajuMyeongsikTenGodText(teaNarrativeText(normalized), facts).ok)
+                    normalized = mapTeaPartStrings(normalized, text => scrubTeaSentences(text, sentence => !validateSajuMyeongsikTenGodText(sentence, facts).ok));
+                if (!validateSajuMyeongsikTenGodText(teaNarrativeText(normalized), facts).ok) return;
+            }
+            if (!pickTeaCheckpointFields(normalized, group) || !countPaidReportBodyChars(teaNarrativeText(normalized)) || hasRepeatedReportPassage(teaNarrativeText(normalized)))
+                return;
         const accept = async () => {
             const previous = state.parts[group.key];
+            // S16: 다른 장과 겹치는 문장은 이 후보에서 뺀다(장 간 반복 반려의 구제).
+            const others = state.groups.filter(item => item.key !== group.key).map(item => teaNarrativeText(state.parts[item.key])).join('\n');
+            if (hasRepeatedReportPassage(others + '\n' + teaNarrativeText(normalized))) {
+                const scrubbed = scrubTeaRepeatedSentences(normalized, others);
+                if (pickTeaCheckpointFields(scrubbed, group) && countPaidReportBodyChars(teaNarrativeText(scrubbed))) normalized = scrubbed;
+            }
             const candidateParts = { ...state.parts, [group.key]: normalized };
             if (hasRepeatedReportPassage(state.groups.map(item => teaNarrativeText(candidateParts[item.key])).join('\n'))) return;
             const before = contentError(state.parts), after = contentError(candidateParts);
@@ -4635,10 +4726,11 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
     if (rejected)
         throw rejected.reason;
     if (state.groups.some(group => !state.parts[group.key]))
-        return { partial: teaCheckpointProgress(state, resultId) };
+        return teaPartialOrExhausted(state, resultId);
     let result = state.fallback;
     for (const group of state.groups)
         result = mergeLlmResult(result, state.parts[group.key], { lengthRepair: true });
+    let qualityError = '';
     try {
         assertConsultQuality(result, state.fallback, { lengthRepair: true, contentOnly: true });
         const bodyText = state.groups.map(group => teaNarrativeText(state.parts[group.key])).join('\n');
@@ -4646,16 +4738,23 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
             throw Error('repeated narrative across sections');
     }
     catch (error) {
-        state.qualityError = String(error.message || error);
-        const exact = state.groups.filter(group => state.qualityError.includes(group.label));
-        const scoped = state.groups.filter(group => group.paths.some(path => state.qualityError.includes(path.split('.')[0])));
-        const lengthOnly = state.qualityError === 'report body length' || /quality failed: (?:saju|tarot|sukuyo) length /.test(state.qualityError);
-        state.repairs = (lengthOnly
-            ? state.groups.filter(group => countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < Math.ceil(group.minChars / 0.8))
-            : exact.length ? exact : scoped.length ? scoped : state.groups).map(group => group.key);
-        await saveTeaCheckpoint(auth, resultId, lockToken, state);
-        return { partial: teaCheckpointProgress(state, resultId) };
+        qualityError = String(error.message || error);
     }
+    if (qualityError) {
+        const lengthOnly = qualityError === 'report body length' || /quality failed: (?:saju|tarot|sukuyo) length /.test(qualityError);
+        // S16: 분량만 모자랄 때는 시도 횟수에 따른 완화 하한(2번째부터 ×0.6, 라운드 마지막 ×0.3)을 넘은 그룹은 다시 쓰지 않는다.
+        const short = state.groups.filter(group => countPaidReportBodyChars(teaNarrativeText(state.parts[group.key])) < teaLengthFloor(group, state.attempts[group.key] || 0));
+        if (!lengthOnly || short.length) {
+            state.qualityError = qualityError;
+            const exact = state.groups.filter(group => qualityError.includes(group.label));
+            const scoped = state.groups.filter(group => group.paths.some(path => qualityError.includes(path.split('.')[0])));
+            state.repairs = (lengthOnly ? short : exact.length ? exact : scoped.length ? scoped : state.groups).map(group => group.key);
+            await saveTeaCheckpoint(auth, resultId, lockToken, state);
+            return teaPartialOrExhausted(state, resultId);
+        }
+    }
+    if (!isFortuneTeaHouseComplete(state))
+        return teaPartialOrExhausted(state, resultId);
     return { result, generationMeta: { mode: 'gemini', checkpointVersion: 1, generatedAt: new Date().toISOString(), completedGroups: state.groups.map(group => group.key) } };
 }
 
@@ -4781,8 +4880,9 @@ async function generateConsultResult(request, fallback, env) {
   console.warn("[fortune-tea-house/consult] LLM fallback used", lastError);
   // 경량 보장 계약: 결제가 확인된 상담은 품질 게이트를 못 넘겨도 결과를 버리지 않는다.
   // LLM 병합 후보(있으면) 또는 결정론 fallback 중 렌더 가능한 텍스트가 있으면 degrade로 전달한다.
+  // S16: 축소·대체 본문 전달은 로컬·무비용 스테이징에서만. 운영은 재시도 신호로 떨어져 실패·환불 경로를 탄다.
   const degradeCandidate = lastCandidate || fallback;
-  if (hasRenderableLlmText(degradeCandidate)) {
+  if ((isLocalLikeEnv(env) || isStagingNoCostFallbackEnv(env)) && hasRenderableLlmText(degradeCandidate)) {
     return {
       result: degradeCandidate,
       generationMeta: {
@@ -5058,7 +5158,7 @@ async function markFortuneTeaHouseGenerationFailed({ env, auth, resultId, code, 
   const checkpoint = stored.generationCheckpoint;
   const progress = checkpoint?.requestBody && checkpoint.groups?.length
     ? teaCheckpointProgress(checkpoint, resultId) : null;
-  const retryable = Boolean(progress?.retryable) && !/BASIS_MISSING|INVALID_INPUT/.test(code || "");
+  const retryable = Boolean(progress?.retryable) && !/BASIS_MISSING|INVALID_INPUT|GENERATION_EXHAUSTED/.test(code || "");
   const failed = await results.updateOne(
     filter,
     {
@@ -5212,6 +5312,9 @@ async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, resul
 async function completeFortuneTeaHouseDelivery({ auth, resultId, lockToken }) {
   const { results } = honeyCollections();
   const userId = String(auth.userId);
+  // S16: completed 는 완성 판정을 통과한 저장본만 받는다.
+  const pendingDoc = await results.findOne({ userId, resultId, status: "delivery_pending", "generationLock.token": lockToken });
+  if (!isFortuneTeaHouseComplete(pendingDoc)) throw new Error("RESULT_STORAGE_UNAVAILABLE");
   const saved = await results.updateOne(
     { userId, resultId, status: "delivery_pending", "generationLock.token": lockToken },
     { $set: { status: "completed", updatedAt: new Date() }, $unset: { generationLock: "", generationError: "" } },
@@ -6457,6 +6560,11 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
       });
     }
 
+    if (failedCurrentGeneration.marked && cleanText(error?.code, 80) === "FORTUNE_TEA_HOUSE_GENERATION_EXHAUSTED") {
+      // S16: 라운드 상한 — 본문 없이 종결한다. 환불·증빙 해제·이용 보류 취소는 위에서 한 번 처리했다.
+      return json({ ok: false, retryable: false, status: "generation_failed", reason: "GENERATION_FAILED", resultId,
+        message: "연이가 상담문을 끝까지 완성하지 못했어요. 이번 상담의 이용 권한은 자동으로 돌려드려요. 새 상담으로 다시 신청해 주세요." }, { status: 409 });
+    }
     if (cleanText(error?.code, 80) === "FORTUNE_TEA_HOUSE_LLM_RETRYABLE") {
       return json({
         ok: false,
@@ -6622,7 +6730,8 @@ export async function findRecoverableConsultations(env, filter) {
   return withMongoRetry(env, () => honeyCollections().results.find({ ...filter,
     _id: { $gte: "fortune-tea-house-result:", $lt: "fortune-tea-house-result;" },
     serviceScope: FORTUNE_TEA_HOUSE_SCOPE, 'generationCheckpoint.requestBody': { $exists: true },
-  }).sort({ updatedAt: 1 }).limit(1).project({ userId: 1, resultId: 1, updatedAt: 1 }).toArray());
+  // shouldSettleStuck 가 deliveryWatch·createdAt 을 본다.
+  }).sort({ updatedAt: 1 }).limit(1).project({ _id: 1, userId: 1, resultId: 1, status: 1, createdAt: 1, updatedAt: 1, deliveryWatch: 1 }).toArray());
 }
 export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.resultId) throw new Error("RECOVERY_IDENTITY_REQUIRED");
@@ -6643,6 +6752,67 @@ export async function deferUnchangedConsultation(env, doc, now) {
     { $set: { updatedAt: new Date(now) } }), { retries: 0 });
 }
 
+// S16 정체 감시. 원시 컬렉션이라 공용 recordDeliveryWatch(model) 대신 같은 계산을 여기서 한다. updatedAt 은 건드리지 않는다.
+const TEA_WATCH_STATUSES = ["generating", "partial", "delivery_pending", "pending"];
+export async function recordDeliveryWatch(env, doc, now) {
+  if (!doc?._id || !doc.userId) return null;
+  const { results } = honeyCollections();
+  const owner = { _id: doc._id, userId: String(doc.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE };
+  const fresh = await withMongoRetry(env, () => results.findOne(owner));
+  if (!fresh || !TEA_WATCH_STATUSES.includes(fresh.status)) return null;
+  const watch = nextDeliveryWatch(fresh.deliveryWatch, deliveryProgressSize(fresh), now);
+  await withMongoRetry(env, () => results.updateOne(owner, { $set: { deliveryWatch: watch } }));
+  return watch;
+}
+
+/** S16 정체 확정. 완성본(delivery_pending)은 미차감 표시와 함께 전달하고, 미완성은 generation_failed 로 닫은 뒤
+ * 핸들러 실패 경로와 같은 환불(이용권 refundId=resultId 멱등·이용 보류 취소)을 한 번만 돌린다. 본문은 응답·로그에 없다.
+ * 결제 증빙 해제(releaseRequestBillingEvidence)는 claimEvidenceIds 가 문서에 없어 여기서 할 수 없다. */
+export async function settleStuckDelivery(env, { doc, now = Date.now() } = {}) {
+  const sessionId = String(doc?.resultId || doc?._id || "");
+  if (!doc?._id || !doc.userId) return { outcome: "unsupported" };
+  const { results } = honeyCollections();
+  const userId = String(doc.userId);
+  const owner = { _id: doc._id, userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE };
+  const fresh = await withMongoRetry(env, () => results.findOne(owner));
+  if (!fresh || !TEA_WATCH_STATUSES.includes(fresh.status)) return { outcome: "progressed" };
+  const leaseAt = new Date(fresh.generationLock?.startedAt || 0).getTime();
+  if (fresh.generationLock?.token && leaseAt > now - STUCK_LIVE_LEASE_MS) return { outcome: "leased" };
+  const at = new Date(now);
+  const stalls = Number(fresh.deliveryWatch?.stalls || 0);
+  // CAS: 그 사이 브라우저·다른 워커가 진전을 저장했거나 잠금을 잡았으면 확정하지 않는다.
+  const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt ?? null,
+    "generationLock.token": fresh.generationLock?.token || { $exists: false } };
+  if (fresh.status === "delivery_pending" && isFortuneTeaHouseComplete(fresh)) {
+    const rescued = await withMongoRetry(env, () => results.updateOne(cas, {
+      $set: { status: "completed", updatedAt: at,
+        ...usageSettlementSetFields({ usageSettlement: "failed", usageSettlementReason: "DELIVERY_STUCK", usageSettlementFailedAt: at.toISOString() }) },
+      $unset: { generationLock: "", generationError: "" } }));
+    if (!rescued?.modifiedCount) return { outcome: "progressed" };
+    logStuckSettled({ service: "fortune-tea-house", sessionId, outcome: "rescued", stalls });
+    return { outcome: "rescued" };
+  }
+  const failed = await withMongoRetry(env, () => results.updateOne(cas, {
+    $set: { status: "generation_failed", updatedAt: at,
+      generationError: { code: "DELIVERY_STUCK", message: "recovery made no progress", at: at.toISOString(), retryable: false } },
+    $unset: { generationLock: "" } }));
+  if (!failed?.modifiedCount) return { outcome: "progressed" };
+  let refundStatus = "refunded";
+  try {
+    await refundFortuneTeaHousePassSettlement({ auth: { userId }, resultId: fresh.resultId });
+  } catch {
+    refundStatus = "pending"; // passRefund.pendingAt → retryPendingFortuneTeaHousePassRefunds 가 같은 refundId 로 이어 돌려준다.
+  }
+  // 이용 보류(deferred) 취소: apply 는 delivery_pending 저장 뒤에만 일어나므로 그 전 상태에서만 취소한다.
+  if (fresh.status !== "delivery_pending" && fresh.deliveryRequestId && fresh.featureKey) {
+    const request = new Request("https://internal.invalid/api/fortune-tea-house/consult", { method: "POST", headers: { "content-type": "application/json" } });
+    await callFortuneTeaDeferredUsageRoute({ request, env, auth: { userId }, path: "cancel", featureKey: fresh.featureKey, pricing: fresh.pricing || {},
+      requestId: fresh.deliveryRequestId, resultId: fresh.resultId, code: "DELIVERY_STUCK", message: "recovery made no progress" }).catch(() => null);
+  }
+  logStuckSettled({ service: "fortune-tea-house", sessionId, outcome: "generation_failed", refundStatus, stalls });
+  return { outcome: "generation_failed", refundStatus };
+}
+
 export const __fortuneTeaHouseTestUtils = {
   resolveFortuneTeaHouseFeatureKey,
   pickTeaCheckpointFields,
@@ -6658,4 +6828,5 @@ export const __fortuneTeaHouseTestUtils = {
   normalizeDraftResult,
   normalizeRequest,
   resolveSajuCategoryRule,
+  teaLengthFloor,
 };

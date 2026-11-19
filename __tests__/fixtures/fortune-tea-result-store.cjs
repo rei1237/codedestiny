@@ -43,7 +43,7 @@ module.exports = function createResultStore() {
       Object.entries(update.$set || {}).forEach(([key, value]) => assign(doc, key, value));
       Object.keys(update.$unset || {}).forEach(key => assign(doc, key, undefined, true));
       rows.set(doc._id, doc);
-      return { matchedCount: inserting ? 0 : 1, upsertedCount: inserting ? 1 : 0 };
+      return { matchedCount: inserting ? 0 : 1, modifiedCount: inserting ? 0 : 1, upsertedCount: inserting ? 1 : 0 };
     },
   };
 };

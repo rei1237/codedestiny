@@ -29,7 +29,11 @@ function teaHarness(state) {
     saveTeaCheckpoint: async (_auth, _id, _lock, value) => saved.push(clone(value)),
     TAROT_CARD_DETAIL_FIELDS: ["coreMeaning", "currentSituation", "questionLink", "advice", "caution"],
   };
-  load(ctx, "../../worker/routes/fortune-tea-house.js", ["teaField", "teaSet", "teaNarrativeText", "pickTeaCheckpointFields", "teaCheckpointProgress", "generateTeaCheckpoint"]);
+  // S16: 라운드 재시도·완화 하한·문장 정리 도우미도 함께 싣는다(그룹당 라운드 3회 × 최대 3라운드).
+  Object.assign(ctx, { TEA_GROUP_ATTEMPTS_PER_ROUND: 3, TEA_MAX_ROUNDS: 3 });
+  load(ctx, "../../worker/routes/fortune-tea-house.js", ["teaField", "teaSet", "teaNarrativeText", "pickTeaCheckpointFields", "teaCheckpointProgress", "generateTeaCheckpoint",
+    "teaRound", "teaGroupNeedsWork", "teaGroupHasAttempts", "teaCheckpointRetryable", "teaIsFinalAttempt", "teaLengthFloor", "isFortuneTeaHouseComplete", "teaPartialOrExhausted",
+    "mapTeaPartStrings", "scrubTeaSentences", "scrubTeaRepeatedSentences"]);
   const run = () => ctx.generateTeaCheckpoint({}, {}, {}, { auth: {}, resultId: "same", lockToken: "lock", checkpoint: state, body: {} });
   return { ctx, run, saved };
 }
@@ -73,7 +77,9 @@ describe("tea checkpoint length recovery", () => {
     const h = teaHarness(state);
     h.ctx.generateFortuneTeaGroup.mockResolvedValue({ ok: true, parsed: { closingLine: prose("fixed", 20000) } });
     expect((await h.run()).result).toBeDefined();
-    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(0);
+    // S16: 라운드당 3회 — a(소진, 완화 하한 통과)는 막지 않고 b 만 남은 3번째 시도로 총량을 채운다.
+    expect(h.ctx.generateFortuneTeaGroup).toHaveBeenCalledTimes(1);
+    expect(h.ctx.generateFortuneTeaGroup.mock.calls[0][1].group.key).toBe("b");
   });
   test("short total is delivered without spending the remaining budget", async () => {
     const state = teaState(500, 500); const h = teaHarness(state);
@@ -99,6 +105,8 @@ function loveHarness(rows, attempts = {}) {
     LOVE_SECRET_AI_GROUPS: groups, LOVE_SECRET_AI_GROUP_TIMEOUT_MS: 54000, LOVE_SECRET_AI_REPAIR_TIMEOUT_MS: 24000,
     LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS: 22000,
     LOVE_SECRET_AI_MIN_USABLE_GROUPS: groups.length, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 20000,
+    // S16: 완성 판정(모든 갈래 ok)과 그룹 시도 상한. 섹션 단위 판정은 rejection-repair 단위 테스트가 본다.
+    isLoveSecretComplete: data => data.every(row => row.ok), LOVE_SECRET_AI_GROUP_ATTEMPTS: 4, LOVE_SECRET_AI_GROUP_HARD_CAP: 12, LOVE_SECRET_AI_QUALITY_REPAIR_ATTEMPTS: 2,
     createLlmCacheStore: () => null, cmsPromptText: async () => "", LOVE_SECRET_AI_SYSTEM_PROMPT: "",
     buildLoveSecretGroundingTerms: () => [], logLoveSecretAi() {}, clean: value => String(value || ""),
     assembleLoveSecretConsultation: data => ({ answer: data.filter(row => row.ok).map(row => row.sections[0].body).join("\n"), rows: data }),
