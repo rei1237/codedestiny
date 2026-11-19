@@ -522,6 +522,8 @@
     "mobile:android:add": "cd apps/mobile && npx cap add android",
     "mobile:android:sync": "npm run build:mobile:app && cd apps/mobile && npx cap sync android",
     "mobile:android:open": "cd apps/mobile && npx cap open android",
+    "mobile:ios:sync": "npm run build:mobile:app && cd apps/mobile && npx cap sync ios",
+    "mobile:ios:open": "cd apps/mobile && npx cap open ios",
     "preview:worker": "node scripts/preview-worker.mjs",
     "start": "next start",
     "lint": "eslint --quiet --cache --cache-strategy content --cache-location build-cache/eslint/ app components lib pages src",
