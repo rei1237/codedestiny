@@ -71,6 +71,52 @@ test('the twelve-month digest keeps every monthly evidence ID once; month and na
   expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'nature-love')).months).toEqual([]);
 });
 
+// R6c: 실호출에서 "12월(음력 11월)"처럼 음력 월을 잘못 붙이고, 같은 자미 구간을 두 달에 나눠 이중 표기했다.
+test('the twelve-month digest pairs each lunar segment with its full solar range once, and marks saju segments as solar-term months', () => {
+  const evidence = chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'health'));
+  const source = new Map();
+  for (const m of analysis.months) for (const z of m.ziwei) {
+    const seen = source.get(z.id);
+    source.set(z.id, seen ? { ...seen, end: z.end } : z);
+  }
+  const ziwei = evidence.months.flatMap(m => m.ziwei);
+  expect(ziwei.map(z => z.id)).toEqual([...source.keys()]);
+  for (const z of ziwei) {
+    const s = source.get(z.id);
+    const label = `음력 ${s.lunarYear !== analysis.year ? `${s.lunarYear}년 ` : ''}${s.leap ? '윤' : ''}${s.lunarMonth}월`;
+    const lastDay = new Date(Date.parse(`${s.end.slice(0, 10)}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
+    expect(z.when).toBe(`양력 ${s.start.slice(0, 10)}~${lastDay} = ${label}`);
+  }
+  expect(ziwei[0].when).toContain(`음력 ${analysis.year - 1}년 `);
+  const saju = evidence.months.flatMap(m => m.saju);
+  expect(new Set(saju.map(s => s.id)).size).toBe(saju.length);
+  saju.forEach(s => expect(s.when).toMatch(/^양력 .+ 전 = 절기 .월\(.+ 기준, 음력 월 아님\)$/));
+  expect(evidence.digestRules.join(' ')).toContain('음력 월은 ziwei');
+});
+
+// R6c: 압축이 충합의 운 종류·글자를 빼서 "일간 을신충"·"대운 vs 세운 축미충" 같은 근거 밖 귀속이 나왔다.
+test('the twelve-month digest names both pillars, the luck kind and the characters of every relation', () => {
+  const evidence = chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'money'));
+  const json = JSON.stringify(evidence.months) + JSON.stringify(evidence.periodLuck);
+  expect(json).not.toMatch(/\(운·|·운\)/);
+  const segments = evidence.months.flatMap(m => m.saju);
+  for (const seg of segments) {
+    const raw = analysis.months.flatMap(m => m.saju).find(s => s.id === seg.id);
+    const relations = [...(raw.tensions || []), ...(raw.supports || [])];
+    if (!relations.length) { expect(seg.relations).toBe('원국과 맺는 합충형파해 없음'); continue; }
+    for (const t of relations) {
+      const text = [...seg.tensions, ...seg.supports].find(line => line.startsWith(`${t.label}`));
+      expect(text).toBeDefined();
+      expect(text).toContain('월운');
+      t.pillarLabels.filter(p => p !== '운').forEach(p => expect(text).toContain(`원국 ${p}`));
+      (t.values || []).forEach(v => expect(text).toContain(v));
+    }
+  }
+  expect(segments.some(seg => seg.tensions?.length)).toBe(true);
+  const major = evidence.periodLuck.find(p => p.label === '대운');
+  [...(major.tensions || []), ...(major.supports || [])].forEach(line => expect(line).toMatch(/대운|원국/));
+});
+
 test('the saved location reaches both existing engines at a DST and night-Zi boundary', () => {
   expect(birth.birthPlace).toEqual({ name: 'New York', timezone: 'America/New_York', longitude: -74.006, latitude: 40.7128 });
   const input = { birthDate: birth.date, birthTime: birth.time, calendarType: 'solar', gender: 'female', birthPlace: birth.birthPlace };
