@@ -790,7 +790,22 @@ function trimToLastCompleteSentence(text) {
 /**
  * 그룹 응답 파싱. **절대 throw 하지 않는다** — 실패는 값으로 돌려 한 그룹이 나머지를 죽이지 못하게 한다.
  */
-export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false, scrubUnsafe = false, salvage = false } = {}) {
+/**
+ * 완성 판정(S16, 2026-11-19): 계획의 모든 그룹이 ok 이고, 그룹마다 필수 섹션 제목이 전부 있으며 본문이 비어 있지 않다.
+ * 분량은 보지 않는다. completed 로 가는 모든 경로(생성 종결·전달 확정·정체 구제)가 이 판정을 통과해야 한다.
+ */
+export function isLoveSecretComplete(groupResults = [], planGroups = LOVE_SECRET_AI_GROUPS) {
+  if (!Array.isArray(planGroups) || !planGroups.length) return false;
+  const rows = Array.isArray(groupResults) ? groupResults : [];
+  return planGroups.every((group) => {
+    const row = rows.find((item) => item?.key === group?.key);
+    if (!row?.ok || !Array.isArray(row.sections) || !row.sections.length) return false;
+    return (group.sections || []).every((section) => row.sections.some((item) => item?.title === section.title
+      && typeof item.body === "string" && countPaidReportBodyChars(item.body) > 0));
+  });
+}
+
+export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false, scrubUnsafe = false, salvage = false, salvageFloorRatio = 0.3 } = {}) {
   const base = { key: group?.key || "", ok: false, sections: [], extras: {}, chars: 0, issues: [], reason: "" };
   const raw = clean(text);
   if (!raw) return { ...base, reason: "EMPTY_RESPONSE", issues: ["EMPTY_LLM_RESPONSE"] };
@@ -887,12 +902,14 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
   }
 
   const ok = requiredSectionsPresent && issues.length === 0;
-  if (!ok && salvage && !issues.some(textFlag)) {
-    // 마지막 시도(2026-11-18 S3-F): 그룹을 통째로 비우면 세션이 멈추거나 환불로 끝난다. 되풀이 문장은 뒤 사본만 덜고,
-    // 빈 섹션은 빼고, 같은 제목은 합친 뒤 남은 본문이 그룹 하한의 30%(Workers AI 폴백 하한과 같다) 이상이면 받는다.
+  if (!ok && salvage) {
+    // 둘째 시도부터(2026-11-18 S3-F, S16 2026-11-19): 그룹을 통째로 비우면 세션이 멈추거나 환불로 끝난다. 금지·위험 문장과
+    // 되풀이 문장은 덜어 내고, 같은 제목은 합친 뒤 필수 섹션이 모두 남고 본문이 그룹 하한 × salvageFloorRatio
+    // (중간 시도 0.6, 마지막 시도 0.3 — Workers AI 폴백 하한과 같다) 이상이면 받는다. 금지 표현이 남으면 받지 않는다.
     const kept = [];
     trimmed.forEach((section) => {
-      const body = dropRepeatedReportSentences(section.body, kept.map((item) => item.body).join("\n"));
+      const scrubbedBody = scrubUnsafe && issues.some(textFlag) ? scrubFlaggedSentences(section.body).body : section.body;
+      const body = dropRepeatedReportSentences(scrubbedBody, kept.map((item) => item.body).join("\n"));
       if (!countPaidReportBodyChars(body)) return;
       const same = kept.find((item) => item.title === section.title);
       if (same) same.body = `${same.body}\n\n${body}`;
@@ -900,7 +917,9 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
     });
     const keptText = kept.map((section) => section.body).join("\n");
     const keptChars = countSectionBodyChars(kept);
-    if (keptChars >= Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.3) && !hasRepeatedReportPassage(keptText) && !scanConsultationTextIssues(keptText).length) {
+    const floorRatio = Number(salvageFloorRatio) > 0 ? Number(salvageFloorRatio) : 0.3;
+    const allTitles = titles.every((title) => kept.some((section) => section.title === title));
+    if (allTitles && keptChars >= Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * floorRatio) && !hasRepeatedReportPassage(keptText) && !scanConsultationTextIssues(keptText).length) {
       const salvaged = { ...base, ok: true, salvaged: true, salvageIssues: issues.slice(0, 6), sections: kept, extras, chars: keptChars, issues: [], lengthShort: true };
       if (flagged.length) salvaged.flagged = flagged;
       if (scrubbed) salvaged.scrubbed = scrubbed;

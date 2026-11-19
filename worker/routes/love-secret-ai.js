@@ -47,6 +47,7 @@ import {
   buildLoveSecretRejectionRepairLines,
   countLoveSecretConsultationBodyChars,
   dedupeLoveSecretSections,
+  isLoveSecretComplete,
   loveSecretGroupsForPlan,
   mapLoveSecretIssuesToGroups,
   normalizeFollowUpResponse,
@@ -55,6 +56,7 @@ import {
 } from "../lib/love-secret-ai-prompt.js";
 import { buildLoveSecretGroundingFacts } from "../lib/love-secret-ai-facts.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "love-secret-ai";
 const FEATURE_KEY = "love-secret-ai-consultation";
@@ -73,8 +75,13 @@ const LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS = 22000;
 // handleStart 진입 시각 기준 총예산. 인증·DB 변동분을 LLM 예산이 흡수한다.
 const LOVE_SECRET_AI_LLM_DEADLINE_MS = 86000;
 const LOVE_SECRET_AI_MIN_USABLE_GROUPS = LOVE_SECRET_AI_GROUPS.length;
-// 그룹 시도가 다 끝났을 때 축소 전달할 최소 그룹 수(신년 NEW_YEAR_AI_MIN_USABLE_SECTIONS 와 같은 기준). 아래면 환불로 끝낸다.
-const LOVE_SECRET_AI_MIN_DELIVERABLE_GROUPS = 2;
+// 그룹 시도(S16, 2026-11-19): 한 바퀴 4회. 1회차는 원래 기준, 2·3회차는 걸린 문장을 덜어 내고 그룹 하한의 0.6 이상이면 받고,
+// 4회차(바퀴의 마지막)는 0.3 하한·끊긴 응답 수용·Workers AI 폴백을 허용한다. 바퀴를 다 써도 비면 그룹은 다시 대기로 돌아가
+// 다음 바퀴를 쓴다. 3바퀴(12회)를 다 쓰면 LLM_GENERATION_FAILED → generation_failed + 기존 환불. 축소 전달은 없다.
+const LOVE_SECRET_AI_GROUP_ATTEMPTS = 4;
+const LOVE_SECRET_AI_GROUP_HARD_CAP = LOVE_SECRET_AI_GROUP_ATTEMPTS * 3;
+// 품질 이슈 수리는 그룹당 1회(2회차)까지. 그 뒤 남은 근거·체크포인트·되풀이 이슈는 전달을 막지 않는다(금지·위험 표현은 예외).
+const LOVE_SECRET_AI_QUALITY_REPAIR_ATTEMPTS = 2;
 // 생성이 요청 안에서 끝나므로 엣지 컷보다 오래된 "generating"은 진행이 아니라 잘린 시체다.
 const LOVE_SECRET_AI_GENERATING_FRESH_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
 const ACCESS_TOKEN_TYPE = "love-secret-ai-access";
@@ -790,6 +797,9 @@ async function generateLoveSecretGroup(env, {
   previousResult = null,
   clipped = false,
   scrubUnsafe = false,
+  // S16: 둘째 시도부터의 구제 하한 비율(중간 0.6, 마지막 0.3). finalAttempt 가 boolean 이면 Workers AI 폴백을 그 값대로 정한다.
+  salvageFloorRatio = 0.3,
+  finalAttempt = null,
 }) {
   const startedAt = Date.now();
   // 앞 시도가 토큰 상한에서 끊겼으면 이번 시도만 예산 2배(최대 32768)로 산다. 기본 예산은 비용 추정·검증 스크립트가 쓴다.
@@ -834,6 +844,8 @@ async function generateLoveSecretGroup(env, {
       // 그룹 최소 분량 × 0.3. 단일 호출 시절의 3,000은 2만자 목표에서 도달 불가능해 무용지물이었다.
       fallbackMinChars: Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.3),
       maxProviderAttempts: 1,
+      // Workers AI 폴백은 바퀴의 마지막 시도만(S16). 체크포인트 밖 호출(null)은 종전 동작을 그대로 둔다.
+      ...(typeof finalAttempt === "boolean" && { finalProviderAttempt: finalAttempt }),
       cache,
     });
     // lib/llm-client.ts 는 Gemini 타임아웃 뒤 Workers AI 폴백을 타임아웃 없이 돌린다.
@@ -853,7 +865,7 @@ async function generateLoveSecretGroup(env, {
       return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model, ...(cutOff && { truncated: true }) };
     }
 
-    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe, salvage: scrubUnsafe });
+    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe, salvage: scrubUnsafe, salvageFloorRatio });
     if (!parsed.ok) {
       // 🔴 사유를 버리지 않는다 — 섹션은 읽혔지만 이슈로 반려된 경우 parsed.reason 은 빈 문자열이다.
       const reason = clean(parsed.reason || parsed.issues?.[0] || "PARSE_FAILED", 60);
@@ -960,12 +972,14 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       .filter(row => (attempts[row.key] || 0) < 2 && !attempts[`length:${row.key}`] && row.chars < LOVE_SECRET_AI_GROUP_MIN_CHARS)
       .sort((a, b) => a.chars - b.chars)[0]?.key || "";
   };
-  // 체크포인트 모드에서 다음에 쓸 그룹: 빈 그룹 → 품질 이슈 책임 그룹 → 분량 수리 후보. 그룹당 2회가 한도.
+  // 체크포인트 모드에서 다음에 쓸 그룹: 빈 그룹 → 품질 이슈 책임 그룹 → 분량 수리 후보.
+  // 빈 그룹은 하드 한도(3바퀴 × 4회)까지 다시 대기로 돌아가고, 품질 수리는 그룹당 2회차까지다(S16).
   // 🔴 빈 문자열이면 더 쓸 그룹이 없다 — 미완료로 두면 세션이 partial 로 영구히 남으므로 종결 판정으로 넘긴다.
   const nextCheckpointKey = (rows, quality) => {
     const repairKeys = mapLoveSecretIssuesToGroups({ ...quality, issues: contentIssues(quality) }, rows);
-    const available = key => (attempts[key] || 0) < 2;
-    const key = rows.find(row => !row.ok && available(row.key))?.key || [...repairKeys.keys()].find(available);
+    const pending = key => (attempts[key] || 0) < LOVE_SECRET_AI_GROUP_HARD_CAP;
+    const repairable = key => (attempts[key] || 0) < LOVE_SECRET_AI_QUALITY_REPAIR_ATTEMPTS;
+    const key = rows.find(row => !row.ok && pending(row.key))?.key || [...repairKeys.keys()].find(repairable);
     if (key) return { key, repairKeys, lengthRepairKey: "" };
     const lengthRepairKey = lengthRepairCandidate(rows, quality) || "";
     return { key: lengthRepairKey, repairKeys, lengthRepairKey };
@@ -977,6 +991,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     if (selected.length) {
       const key = selected[0].key;
       const used = attempts[key] || 0;
+      const position = (used % LOVE_SECRET_AI_GROUP_ATTEMPTS) + 1;
+      const finalInRound = position >= LOVE_SECRET_AI_GROUP_ATTEMPTS;
       const prior = results.find(row => row.key === key);
       // 체크포인트 모드도 수리 지시를 싣는다: 품질 이슈 매핑 + 직전 반려 사유(걸린 표현을 짚어서).
       selectedRepair = {
@@ -988,8 +1004,10 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
           ...(lengthRepairKey ? [`이 부분이 너무 짧습니다(지금 약 ${Number(prior?.chars || 0).toLocaleString("ko-KR")}자). 이미 쓴 내용은 살리되 새 근거·새 생활 장면·구체적 행동을 더해 섹션마다 문단을 늘려 ${loveSecretGroupCharRange(selected[0])[0].toLocaleString("ko-KR")}~${loveSecretGroupCharRange(selected[0])[1].toLocaleString("ko-KR")}자로 다시 쓰세요.`] : []),
         ],
         previousResult: prior?.ok ? prior : null,
-        // 마지막 시도면 걸린 문장만 덜어 내고 받는다(그룹을 통째로 비우지 않게).
-        scrubUnsafe: used + 1 >= 2,
+        // 바퀴 안 위치(1~4). 2회차부터 걸린 문장·되풀이를 덜어 내고 받는다(그룹을 통째로 비우지 않게).
+        scrubUnsafe: position >= 2,
+        salvageFloorRatio: finalInRound ? 0.3 : 0.6,
+        finalAttempt: finalInRound,
       };
       if (lengthRepairKey) {
         attempts[`length:${key}`] = 1;
@@ -1015,6 +1033,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       repairLines: selectedRepair.lines,
       previousResult: selectedRepair.previousResult,
       scrubUnsafe: selectedRepair.scrubUnsafe,
+      salvageFloorRatio: selectedRepair.salvageFloorRatio,
+      finalAttempt: selectedRepair.finalAttempt,
     }),
     });
     const row = choose(previous, generated);
@@ -1105,20 +1125,23 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
   const completionIssues = contentIssues(quality);
   // 분량은 치명적이지 않다: 아직 분량 수리 후보가 남아 있을 때만 다음 요청으로 미룬다.
   const lengthPending = checkpointed && Boolean(lengthRepairCandidate(results, quality));
-  let complete = usableGroups === minUsableGroups && renderable && completionIssues.length === 0 && !lengthPending;
-  // 종결 판정(2026-11-18 S3-F): 더 쓸 그룹이 없는데 미완료로 두면 세션이 partial 로 영구히 남는다.
-  // 남은 그룹이 하한(신년 축소 전달과 같은 2개) 이상이고 금지·위험 표현이 없으면 그 그룹을 뺀 채 전달하고,
-  // 아니면 LLM_GENERATION_FAILED 로 던져 handleStart 의 catch 가 generation_failed + 전 결제수단 복구를 하게 한다.
+  // 완성 판정(S16): 모든 그룹·필수 섹션이 비어 있지 않아야 한다. 분량은 보지 않는다.
+  const whole = usableGroups === minUsableGroups && isLoveSecretComplete(results, planGroups);
+  let complete = whole && renderable && completionIssues.length === 0 && !lengthPending;
+  // 종결 판정(S16, 2026-11-19): 더 쓸 그룹이 없는데 미완료로 두면 세션이 partial 로 영구히 남는다.
+  // 모든 그룹이 완성이고 금지·위험 표현이 없으면 남은 품질 이슈(근거·날짜·되풀이)는 받아 전달한다.
+  // 빈 그룹이 하드 한도를 다 썼거나 금지·위험 표현이 남으면 LLM_GENERATION_FAILED 로 던져 handleStart 의 catch 가
+  // generation_failed + 전 결제수단 복구를 하게 한다. 그룹을 뺀 축소 전달은 없다.
   if (checkpointed && !complete && !nextCheckpointKey(results, quality).key) {
     const unsafe = completionIssues.filter(issue => issue === "FORBIDDEN_RESULT_TEXT" || issue === "UNSAFE_RELATIONSHIP_ADVICE");
-    if (usableGroups < LOVE_SECRET_AI_MIN_DELIVERABLE_GROUPS || !renderable || unsafe.length) {
+    if (!whole || !renderable || unsafe.length) {
       logLoveSecretAi("Generation Exhausted", { ...logContext, usableGroups, totalChars, unsafe, missing: results.filter(row => !row.ok).map(row => row.key) }, "warn");
       const error = new Error(`love secret generation exhausted (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
       error.code = "LLM_GENERATION_FAILED";
       throw error;
     }
     complete = true;
-    logLoveSecretAi("Delivered Degraded", { ...logContext, usableGroups, totalChars, missing: results.filter(row => !row.ok).map(row => row.key), residualIssues: completionIssues }, "warn");
+    if (completionIssues.length) logLoveSecretAi("Delivered With Residual Issues", { ...logContext, usableGroups, totalChars, residualIssues: completionIssues }, "warn");
   }
   if (!checkpointed && !complete) {
     const error = new Error(`love secret generation incomplete (groups ${usableGroups}/${results.length}, chars ${totalChars})`);
@@ -1134,7 +1157,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     ...assembled,
     complete,
     savedGroups: results,
-    degraded: usableGroups < results.length,
+    // S16: 완성본만 전달하므로 전달된 결과는 축소본이 아니다. 미완료(partial)도 축소 표시를 남기지 않는다.
+    degraded: complete && usableGroups < results.length,
     provider: results.find((result) => result.ok)?.provider || "",
     model: results.find((result) => result.ok)?.model || "",
     residualIssues: quality.issues,
@@ -1365,10 +1389,28 @@ function publicSession(doc) {
   const storedMeta = raw?.llmMeta || {};
   // groupPlanVersion 이 없는 예전 세션은 V1(6개 그룹) 계획이다.
   const planGroups = loveSecretGroupsForPlan(storedMeta.delivery?.groupPlanVersion);
-  const meta = !["generating", "partial", "delivery_pending"].includes(raw?.status) ? storedMeta : {
-    ...storedMeta,
-    sections: (storedMeta.delivery?.groups || []).filter(row => row.ok).flatMap(row => row.sections || []),
+  const meta = storedMeta;
+  const progress = {
+    ok: true,
+    id: clean(raw?.id),
+    sessionId: clean(raw?.id),
+    attemptId: clean(raw?.attemptId, 180),
+    requestId: clean(raw?.idempotencyKey, 180),
+    accessType: clean(raw?.accessType),
+    status: clean(raw?.status),
+    saved: clean(raw?.status) === "completed",
+    // partial 은 늘 이어 쓸 수 있다: 다음 요청이 남은 그룹을 쓰거나, 시도 한도를 다 쓰면 실패·환불로 종결한다(S16).
+    retryable: ["partial", "delivery_pending", "generating"].includes(raw?.status),
+    resumeSessionId: clean(raw?.id),
+    completedGroups: (meta.delivery?.groups || []).filter(row => row.ok).map(row => row.key),
+    totalGroups: planGroups.length,
   };
+  // 완료 전 본문 비노출(S16, 2026-11-19): 생성 중·부분·전달 대기 응답은 진행 수와 식별자만 싣는다.
+  // 본문(섹션·리딩·키워드·전략·마지막 한 줄·메시지)은 completed 일 때 한 번에 전달한다. 빈 배열은 예전 클라이언트 호환용이다.
+  if (clean(raw?.status) !== "completed") {
+    return { ...progress, keywords: [], strategy: "", sections: [], finalLine: "", reading: null, pdfSections: [], messages: [],
+      createdAt: raw?.createdAt, updatedAt: raw?.updatedAt };
+  }
   return {
     ok: true,
     id: clean(raw?.id),
@@ -1627,7 +1669,19 @@ async function saveLoveSecretCheckpoint(userId, id, delivery) {
   } catch { throw resultStorageUnavailable(id); }
 }
 
+// 전달 완성 판정(S16): 계획의 모든 그룹·필수 섹션이 비어 있지 않고 조립된 본문이 있어야 completed 로 넘긴다.
+// 분량은 보지 않는다. 정체 설정자와 모든 completed 전환 경로가 같은 판정을 쓴다.
+export function isStuckDeliveryComplete(doc) {
+  const delivery = doc?.llmMeta?.delivery;
+  const assistant = (doc?.messages || []).find(message => message?.role === "assistant");
+  return isLoveSecretComplete(delivery?.groups, loveSecretGroupsForPlan(delivery?.groupPlanVersion))
+    && Array.isArray(doc?.llmMeta?.sections) && doc.llmMeta.sections.length > 0
+    && Boolean(clean(assistant?.content));
+}
+
 async function confirmLoveSecretDelivery(userId, pending, settlement = null) {
+  // 미완성 본문은 completed 로 넘기지 않는다 — 다시 이어 쓰거나 실패·환불로 종결한다.
+  if (!isStuckDeliveryComplete(pending)) throw resultStorageUnavailable(pending?.id);
   try {
     // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
     // 접근 재확인이 이미 한도 거절로 정산(settlement)됐으면 차감을 다시 시도하지 않는다.
@@ -1698,7 +1752,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     const settlement = pending && pending.accessSource !== "toss" && clean(pending.inputHash) === normalized.inputHash
       ? await lateAccessDenialSettlement({ fresh: access, doc: pending, userId: auth.userId, idempotencyKey, service: "love-secret-ai", models: { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger } })
       : null;
-    if (!settlement) return paymentVerifyFailed();
+    if (!settlement || !isStuckDeliveryComplete(pending)) return paymentVerifyFailed();
     return json(publicSession(await confirmLoveSecretDelivery(auth.userId, pending, settlement)));
   }
   logLoveSecretAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
@@ -1711,7 +1765,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "delivery_pending") {
+  // 완성된 delivery_pending 만 전달 확정한다. 예전 축소 전달로 남은 미완성 문서는 아래에서 이어 쓴다(claim CAS 가 상태를 잡는다).
+  if (existing?.status === "delivery_pending" && isStuckDeliveryComplete(existing)) {
     const confirmed = await confirmLoveSecretDelivery(auth.userId, existing);
     return json(publicSession(confirmed));
   }
@@ -1826,7 +1881,7 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
       answerVoice: seed.llmMeta.delivery.answerVoice,
       onReserve: async (key) => {
         const attempts = seed.llmMeta.delivery.attempts;
-        if ((attempts[key] || 0) >= 2) throw Object.assign(new Error("보완 호출 한도에 도달했습니다."), { code: "LLM_GENERATION_FAILED" });
+        if ((attempts[key] || 0) >= LOVE_SECRET_AI_GROUP_HARD_CAP) throw Object.assign(new Error("보완 호출 한도에 도달했습니다."), { code: "LLM_GENERATION_FAILED" });
         attempts[key] = (attempts[key] || 0) + 1;
         await saveLoveSecretCheckpoint(auth.userId, sessionId, seed.llmMeta.delivery);
       },
@@ -2086,7 +2141,68 @@ export const __loveSecretAiTestUtils = {
   SERVICE_KEY,
   normalizeRequestBody,
   getPricing,
+  isStuckDeliveryComplete,
 };
+
+const LOVE_SECRET_STUCK_STATUSES = ["generating", "partial", "delivery_pending"];
+
+// 정체 확정(S16): 복구 크론이 진전 없는 상담을 이어쓰기 대신 끝낸다. 본문은 응답·로그에 내지 않는다.
+// 완성된 delivery_pending 은 정상 완료 경로(confirmLoveSecretDelivery)로 전달하고, 나머지는 generation_failed 로
+// 확정한 뒤 handleStart 실패 경로와 같은 환불(restoreBillingGateAccessOnFailure, 같은 멱등 키)을 돌린다.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model = LoveSecretAiConsultation } = {}) {
+  const sessionId = clean(doc?.id, 120);
+  const userId = clean(doc?.userId);
+  if (!sessionId || !userId || !model) return { outcome: "unsupported" };
+  const owner = { id: sessionId, userId };
+  const fresh = await model.findOne(owner).lean();
+  if (!fresh || !LOVE_SECRET_STUCK_STATUSES.includes(fresh.status)) return { outcome: "progressed" };
+  const updatedAt = new Date(fresh.updatedAt || fresh.createdAt || 0).getTime();
+  if (fresh.status === "generating" && now - updatedAt < STUCK_LIVE_LEASE_MS) return { outcome: "leased" };
+  const stalls = Number(fresh.deliveryWatch?.stalls || doc?.deliveryWatch?.stalls || 0);
+  const at = new Date(now).toISOString();
+
+  if (fresh.status === "delivery_pending" && isStuckDeliveryComplete(fresh)) {
+    let outcome = "completed";
+    try { await confirmLoveSecretDelivery(userId, fresh); }
+    catch {
+      // 차감이 계속 막히면 만든 결과는 전달하고 미차감을 표시한다(공용 설정자의 rescued 와 같은 표식).
+      try {
+        await confirmLoveSecretDelivery(userId, fresh, { usageSettlement: "failed", usageSettlementReason: "DELIVERY_STUCK", usageSettlementFailedAt: at });
+        outcome = "rescued";
+      } catch { return { outcome: "progressed" }; }
+    }
+    logStuckSettled({ service: "love-secret-ai", sessionId, outcome, stalls });
+    return { outcome };
+  }
+
+  // 환불에 쓸 접근 정보는 실패 표시 전에 저장된 원래 요청으로 다시 푼다(표시·환불 뒤엔 회수 증빙이 접근을 막는다).
+  const pricing = getPricing();
+  const idempotencyKey = clean(fresh.idempotencyKey, 180);
+  const stored = { ok: true, accessType: clean(fresh.accessType), paymentId: clean(fresh.paymentId, 160),
+    accessSource: fresh.accessSource === "toss" ? "toss"
+      : fresh.accessType === "pass" ? "billing_gate_pass"
+        : fresh.accessType === "subscription" ? "billing_gate_membership_credit"
+          : fresh.accessType === "paid" ? "billing_gate_paid" : clean(fresh.accessSource) };
+  let access = stored;
+  const resumeBody = fresh.llmMeta?.delivery?.resumeBody;
+  if (fresh.accessSource !== "toss" && resumeBody) {
+    const body = { ...resumeBody, accessToken: undefined, idempotencyKey, requestId: idempotencyKey };
+    const request = new Request("https://internal.invalid/api/love-secret-ai/settle", { method: "POST", headers: { "content-type": "application/json" } });
+    const resolved = await resolveStartAccess({ request, env, auth: { userId }, body, normalized: normalizeRequestBody(body), pricing, idempotencyKey }).catch(() => null);
+    if (resolved?.ok) access = resolved;
+  }
+
+  // updatedAt CAS: 그 사이 브라우저·다른 워커가 저장한 진전이 있으면 확정하지 않는다.
+  const marked = await model.updateOne({ ...owner, status: fresh.status, updatedAt: fresh.updatedAt },
+    { $set: { status: "generation_failed", generationError: { code: "DELIVERY_STUCK", message: "recovery made no progress", at } } });
+  if (!Number(marked?.modifiedCount ?? marked?.matchedCount ?? 0)) return { outcome: "progressed" };
+  const error = Object.assign(new Error("love secret delivery stuck"), { code: "DELIVERY_STUCK" });
+  const restored = await restoreBillingGateAccessOnFailure({ env, userId, access, idempotencyKey, pricing, error })
+    .catch(() => ({ restored: false, refundFailed: true }));
+  const refundStatus = restored?.restored || restored?.refunded ? "refunded" : restored?.refundFailed ? "failed" : "pending";
+  logStuckSettled({ service: "love-secret-ai", sessionId, outcome: "generation_failed", refundStatus, stalls });
+  return { outcome: "generation_failed", refundStatus };
+}
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.

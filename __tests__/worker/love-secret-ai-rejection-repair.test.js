@@ -12,6 +12,7 @@ import {
   buildLoveSecretGroupSystemPrompt,
   buildLoveSecretRejectionRepairLines,
   explainLoveSecretTextIssues,
+  isLoveSecretComplete,
   parseLoveSecretGroupResponse,
   scanConsultationTextIssues,
   __loveSecretAiPromptTestUtils,
@@ -90,21 +91,37 @@ describe("반려 사유와 걸린 문맥을 남기고 표적 수리 지시로 �
     expect(parsed.sections.map((section) => section.body).join("\n")).not.toContain("감시하면서");
   });
 
-  // 2026-11-18 S3-F: 마지막 시도가 되풀이 문장·빈 섹션으로 또 반려되면 그룹이 통째로 비어 세션이 멈췄다.
-  test("마지막 시도(salvage)는 되풀이 문장을 덜어 내고 빈 섹션을 빼고 남은 본문으로 그룹을 살린다", () => {
-    const repeated = "같은 위로 문장이 두 번 나오면 반복 문장으로 걸리는 긴 문장이에요.";
-    const text = groupJson(risk, (index) => (index === 1 ? "" : `${prose(index === 0 ? 2400 : 500)}${repeated} ${prose(100)}${repeated} `));
+  // 2026-11-18 S3-F → S16(2026-11-19): 2회차부터 되풀이 문장을 덜어 내고 받는다. 단 필수 섹션이 하나라도 비면 받지 않는다
+  // (완성 판정 isLoveSecretComplete 를 못 넘는 그룹은 전달하지 않고 다시 쓴다).
+  const repeated = "같은 위로 문장이 두 번 나오면 반복 문장으로 걸리는 긴 문장이에요.";
+  test("salvage 는 되풀이 문장을 덜어 내고 모든 섹션이 남은 그룹을 살린다", () => {
+    const text = groupJson(risk, (index) => `${prose(index === 0 ? 2400 : 500)}${repeated} ${prose(100)}${repeated} `);
     const strict = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true });
     expect(strict.ok).toBe(false);
-    expect(strict.issues).toEqual(expect.arrayContaining(["REPEATED_PASSAGE", "REQUIRED_SECTIONS_INCOMPLETE"]));
+    expect(strict.issues).toEqual(expect.arrayContaining(["REPEATED_PASSAGE"]));
     const parsed = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true });
     expect(parsed.ok).toBe(true);
     expect(parsed.salvaged).toBe(true);
-    expect(parsed.salvageIssues).toEqual(expect.arrayContaining(["REPEATED_PASSAGE", "REQUIRED_SECTIONS_INCOMPLETE"]));
-    const body = parsed.sections.map((section) => section.body).join("\n");
+    const body = parsed.sections.map((section) => section.body).join(" ");
     expect(body.split(repeated).length - 1).toBe(1);
-    expect(parsed.sections.every((section) => section.body.trim())).toBe(true);
-    expect(parsed.chars).toBeGreaterThanOrEqual(1500);
+    expect(risk.sections.every((section) => parsed.sections.some((row) => row.title === section.title && row.body.trim()))).toBe(true);
+    expect(isLoveSecretComplete([parsed], [risk])).toBe(true);
+  });
+
+  test("salvage 여도 필수 섹션이 비면 살리지 않는다(빈 섹션을 뺀 축소 그룹 없음)", () => {
+    const text = groupJson(risk, (index) => (index === 1 ? "" : `${prose(index === 0 ? 2400 : 500)}${repeated} ${prose(100)}${repeated} `));
+    const parsed = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true });
+    expect(parsed.ok).toBe(false);
+  });
+
+  test("salvage 하한은 중간 시도 그룹 하한의 0.6배, 마지막 시도 0.3배다", () => {
+    const text = groupJson(risk, () => `${prose(420)}${repeated} ${prose(80)}${repeated} `);
+    const last = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true, salvageFloorRatio: 0.3 });
+    expect(last.ok).toBe(true);
+    expect(last.chars).toBeGreaterThanOrEqual(1500);
+    expect(last.chars).toBeLessThan(3000);
+    const middle = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true, salvageFloorRatio: 0.6 });
+    expect(middle.ok).toBe(false);
   });
 
   test("salvage 여도 금지·위험 표현이 남거나 본문이 너무 적으면 살리지 않는다", () => {

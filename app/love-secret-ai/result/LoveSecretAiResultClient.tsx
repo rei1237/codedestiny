@@ -846,6 +846,8 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(false);
+  // 완료 전 진행 표시(S16): 서버가 돌려준 완성 갈래 수만 담는다. 본문은 completed 에서 한 번에 그린다.
+  const [groupProgress, setGroupProgress] = useState<{ completed: number; total: number } | null>(null);
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -875,8 +877,9 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
     // 생성은 요청 안에서 끝나지만(최대 ~90초) 네트워크·재시도 여지를 두고 상한을 넉넉히 잡는다.
     // 2.5s 간격이라 CF rate-limit(10초당 100회)에는 여유가 크다.
     const maxAttempts = 140;
-    // 서버는 이어 쓰기 요청마다 남은 그룹을 쓰거나 축소 전달·환불로 끝낸다(2026-11-18 S3-F). 상한은 그보다 넉넉한 안전장치다.
-    const maxResumes = 24;
+    // 서버는 이어 쓰기 요청마다 남은 그룹을 쓰거나, 그룹 하드 한도(12회)를 다 쓰면 실패·환불로 끝낸다(S16).
+    // 상한은 서버가 낼 수 있는 이어 쓰기 수(7그룹×12회+품질 보완)보다 넉넉한 안전장치다.
+    const maxResumes = 100;
     // 생성 실패 종결은 일시 장애(503 재폴링)가 아니다. 부분 본문을 거두고 실패·자동 복구 안내를 바로 보여 준다.
     const isGenerationFailed = (body: Consultation) => body?.status === "generation_failed" || (body?.ok === false && body?.reason === "LLM_ERROR");
     const showGenerationFailed = () => {
@@ -896,8 +899,10 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
         if (isGenerationFailed(payload)) { showGenerationFailed(); return; }
         const resumeId = payload.sessionId || payload.resultId;
         if ((payload.status === "partial" || payload.reason === "RESULT_STORAGE_UNAVAILABLE") && resumeId) {
-          if (payload.status === "partial") setConsultation(payload);
-          setPending(true); setLoading(false);
+          // 완료 전에는 본문을 그리지 않는다(S16). 생성 중 화면에 완성 갈래 수만 보여 준다.
+          setConsultation(null);
+          if (payload.status === "partial") setGroupProgress({ completed: payload.completedGroups?.length || 0, total: payload.totalGroups || 0 });
+          setPending(true);
           if (!document.hidden && resumes >= maxResumes) { setPending(false); setError(copy.genResultTimeoutError); return; }
           if (!document.hidden) {
             resumes += 1;
@@ -912,9 +917,9 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
             if (isGenerationFailed(next)) { showGenerationFailed(); return; }
             if (!resumed.ok) throw new Error(next.message || copy.loadResultFailedError);
             if (next.status === "completed" && next.saved === true) {
-              setConsultation(next); setPending(false); return;
+              setConsultation(next); setGroupProgress(null); setPending(false); return;
             }
-            if (next.status === "partial") setConsultation(next);
+            if (next.status === "partial") setGroupProgress({ completed: next.completedGroups?.length || 0, total: next.totalGroups || 0 });
             timer = window.setTimeout(loadResult, 500);
           }
           return;
@@ -939,6 +944,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
         if (!response.ok || payload?.ok === false) throw new Error(toText(payload?.message) || copy.loadResultFailedError);
         if (alive && isCurrent()) {
           setConsultation(payload);
+          setGroupProgress(null);
           setPending(false);
         }
       } catch (caught) {
@@ -1120,9 +1126,9 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
           )}
         </div>
 
-        {loading && (
+        {(loading || (pending && !error)) && (
           <div className="grid min-h-[62vh] place-items-center rounded-3xl border border-[var(--ls-line)] bg-[var(--ls-surface)] p-8 text-center">
-            <div>
+            <div role="status">
               <Loader2 className="mx-auto h-9 w-9 animate-spin text-[var(--ls-accent)] motion-reduce:animate-none" aria-hidden="true" />
               <h1 className="mt-5 text-2xl font-black text-[var(--ls-text)]">
                 {pending ? copy.openingReportHeading : copy.loadingSavedHeading}
@@ -1130,6 +1136,14 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
               <p className="mt-3 text-sm leading-7 text-[var(--ls-text-muted)]">
                 {copy.loadingHint}
               </p>
+              {pending && groupProgress && groupProgress.total > 0 && (
+                <>
+                  <p className="mt-3 text-sm font-bold text-[var(--ls-text)]">{groupProgress.completed} / {groupProgress.total}</p>
+                  <button type="button" onClick={() => setReloadEpoch(value => value + 1)} className={`${theme.focusRing} mt-2 min-h-11 rounded-full px-4 font-bold`}>
+                    {copy.retryCheckLabel}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -1152,15 +1166,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
           </div>
         )}
 
-        {!loading && consultation?.status === "partial" && (
-          <div role="status" className="mb-4 rounded-2xl border border-[var(--ls-line)] p-4 text-[var(--ls-text)]">
-            <p>{consultation.completedGroups?.length || 0} / {consultation.totalGroups || 6}</p>
-            <button type="button" onClick={() => setReloadEpoch(value => value + 1)} className={`${theme.focusRing} mt-2 min-h-11 rounded-full px-4 font-bold`}>
-              {copy.retryCheckLabel}
-            </button>
-          </div>
-        )}
-        {!loading && consultation && <>
+        {!loading && !pending && consultation && (!consultation.status || consultation.status === "completed") && <>
           {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
           <LoveSecretResultPageContent
             consultation={consultation}

@@ -2154,11 +2154,11 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
 
     if (paymentNotice && generationResponse.status === 403) throw new Error(permissionFailure);
 
-    // 서버는 이어 쓰기 요청마다 남은 그룹을 하나 쓰거나, 더 쓸 그룹이 없으면 축소 전달·환불로 끝낸다(2026-11-18 S3-F).
-    // 그래서 부분 상태인 동안은 생성 중 화면을 유지하고, 탭이 숨으면 끊지 않고 돌아올 때까지 기다린다.
-    // 상한은 서버가 낼 수 있는 이어 쓰기 수(7그룹×2회+분량 보강 2회)보다 넉넉한 안전장치다.
+    // 서버는 이어 쓰기 요청마다 남은 그룹을 하나 쓰거나, 그룹 하드 한도(12회)를 다 쓰면 실패·환불로 끝낸다(S16).
+    // 전체가 완성되기 전에는 본문을 받지 않으므로 생성 중 화면과 진행 수만 유지하고, 탭이 숨으면 끊지 않고 돌아올 때까지 기다린다.
+    // 상한은 서버가 낼 수 있는 이어 쓰기 수(7그룹×12회+품질 보완)보다 넉넉한 안전장치다.
     let partialUrl = "";
-    for (let cycle = 0; cycle < 24; cycle += 1) {
+    for (let cycle = 0; cycle < 100; cycle += 1) {
       if (result.status === "completed" && result.saved === true) break;
       if (result.status === "generating") result = await pollResult(result.sessionId || idempotencyKey);
       if (!isCurrent()) return false;

@@ -58,6 +58,10 @@ function fixture(accessType = 'pass') {
     paymentVerifyFailed: () => new Response('', { status: 402 }), calculationFailed: () => new Response('', { status: 422 }),
     LOVE_SECRET_AI_GENERATING_FRESH_MS: 120000, LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LLM_ERROR_MESSAGE: 'mock generation failed',
     LOVE_SECRET_AI_GROUP_PLAN_VERSION: 2, loveSecretGroupsForPlan: version => (Number(version) >= 2 ? 'v2' : 'v1'),
+    // S16 완성 판정: 이 픽스처의 생성기는 여섯 갈래를 ok 로 채운다(실제 섹션 판정은 rejection-repair 단위 테스트가 본다).
+    isLoveSecretComplete: rows => Array.isArray(rows) && rows.length >= 6 && rows.every(row => row.ok),
+    LOVE_SECRET_AI_GROUP_HARD_CAP: 12, LOVE_SECRET_STUCK_STATUSES: ['generating', 'partial', 'delivery_pending'],
+    STUCK_LIVE_LEASE_MS: 120000, logStuckSettled: () => {},
     publicSession: row => ({ ok: true, sessionId: row.id, status: row.status, saved: row.status === 'completed', messages: row.messages }),
     restoreBillingGateAccessOnFailure: async () => { refunds++; return { restored: true }; },
     applyUsageOnce: async () => {
@@ -95,7 +99,7 @@ function fixture(accessType = 'pass') {
   load(ctx, 'worker/lib/representative-consumer-facts.js', ['pinRepresentativeFacts', 'readRepresentativeFacts']);
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
-  load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery']);
+  load(ctx, 'worker/routes/love-secret-ai.js', ['handleStart', 'saveLoveSecretCheckpoint', 'confirmLoveSecretDelivery', 'isStuckDeliveryComplete', 'settleStuckDelivery']);
   const post = (body = {}, env = {}) => ctx.handleStart(new Request('https://mock.test/api/love-secret-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
@@ -303,6 +307,8 @@ for (const failed of [false, true]) {
       LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS: 22000,
       LOVE_SECRET_AI_MIN_USABLE_GROUPS: 6, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 20000,
       LOVE_SECRET_AI_GROUP_MIN_CHARS: 5000, LOVE_SECRET_AI_GROUP_MAX_CHARS: 6500, loveSecretGroupCharRange: group => group?.perspective ? [6000, 7500] : [5000, 6500], buildLoveSecretRejectionRepairLines: () => [],
+      LOVE_SECRET_AI_GROUP_ATTEMPTS: 4, LOVE_SECRET_AI_GROUP_HARD_CAP: 12, LOVE_SECRET_AI_QUALITY_REPAIR_ATTEMPTS: 2,
+      isLoveSecretComplete: rows => rows.every(row => row.ok),
       createLlmCacheStore: () => null, cmsPromptText: async () => '', LOVE_SECRET_AI_SYSTEM_PROMPT: '',
       buildLoveSecretGroundingTerms: () => [], logLoveSecretAi() {}, clean: value => String(value || ''),
       assembleLoveSecretConsultation: rows => ({ answer: '가'.repeat(21000), rows }),
@@ -553,4 +559,51 @@ test('S5: 카드 단건으로 연 상담이 본문 없이 실패하면 공용 �
   // PG 가 취소를 확인하지 않으면 복원으로 보고하지 않는다(결제는 refund_failed 로 남아 지원 검토).
   ctx.autoRefundSinglePaymentDeliveryFailure = async () => ({ refunded: false, refundFailed: true });
   assert.equal((await ctx.restoreBillingGateAccessOnFailure({ env: {}, userId: 'owner', access, idempotencyKey: 'req' })).restored, false);
+});
+
+// S16 정체 확정: 복구 크론이 진전 없는 상담을 끝낸다(완성분은 정상 완료, 미완성은 실패 + 같은 키 환불 1회).
+const later = () => Date.now() + 10 * 60 * 1000;
+test('정체 확정은 이미 끝난 상담을 건드리지 않고, 살아 있는 생성 임대는 기다린다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 6; index++) await f.post();
+  assert.equal(f.doc.status, 'completed');
+  assert.deepEqual(clone(await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later() })), { outcome: 'progressed' });
+  const g = fixture(); await g.post(); g.doc.status = 'generating'; g.doc.updatedAt = new Date().toISOString();
+  assert.equal((await g.ctx.settleStuckDelivery({}, { doc: g.doc, now: Date.now() })).outcome, 'leased');
+  assert.equal(f.refunds + g.refunds, 0);
+});
+test('정체된 미완성 상담은 본문 없이 generation_failed 로 확정하고 한 번만 환불한다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 3; index++) await f.post();
+  assert.notEqual(f.doc.status, 'completed');
+  const settled = clone(await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later() }));
+  assert.deepEqual(settled, { outcome: 'generation_failed', refundStatus: 'refunded' });
+  assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.doc.generationError.code, 'DELIVERY_STUCK');
+  assert.equal(f.refunds, 1); assert.equal(f.calls, 3);
+  assert.equal((await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later() })).outcome, 'progressed');
+  assert.equal(f.refunds, 1);
+});
+test('정체 확정은 그 사이 다른 저장이 있으면(updatedAt CAS) 실패 표시·환불하지 않는다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 3; index++) await f.post();
+  const stale = { ...clone(f.doc), updatedAt: '2000-01-01T00:00:00.000Z' };
+  const model = { findOne: () => ({ lean: async () => clone(stale) }), updateOne: f.ctx.LoveSecretAiConsultation.updateOne };
+  assert.equal((await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later(), model })).outcome, 'progressed');
+  assert.notEqual(f.doc.status, 'generation_failed'); assert.equal(f.refunds, 0);
+});
+test('정체된 delivery_pending 은 여섯 묶음이 다 있으면 재생성 없이 정상 완료로 전달하고, 빠진 묶음이 있으면 실패·환불한다', async () => {
+  const f = fixture();
+  for (let index = 0; index < 5; index++) await f.post();
+  f.fault('completed');
+  assert.equal((await f.post()).status, 503); assert.equal(f.doc.status, 'delivery_pending');
+  assert.deepEqual(clone(await f.ctx.settleStuckDelivery({}, { doc: f.doc, now: later() })), { outcome: 'completed' });
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.calls, 6); assert.equal(f.refunds, 0);
+
+  const g = fixture();
+  for (let index = 0; index < 5; index++) await g.post();
+  g.fault('completed'); await g.post();
+  g.doc.llmMeta.delivery.groups = g.doc.llmMeta.delivery.groups.slice(0, 4);
+  assert.equal(g.ctx.isStuckDeliveryComplete(g.doc), false);
+  assert.deepEqual(clone(await g.ctx.settleStuckDelivery({}, { doc: g.doc, now: later() })), { outcome: 'generation_failed', refundStatus: 'refunded' });
+  assert.equal(g.doc.status, 'generation_failed'); assert.equal(g.refunds, 1);
 });

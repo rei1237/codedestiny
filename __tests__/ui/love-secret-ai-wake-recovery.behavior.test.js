@@ -76,6 +76,7 @@ test('actual love-secret-ai result-screen polling effect re-fetches on every for
     setPending: () => {},
     setLoading: () => {},
     setConsultation: () => {},
+    setGroupProgress: () => {},
     setReloadEpoch: (updater) => epochCalls.push(updater),
   };
   const transpiled = ts.transpileModule('(' + effect + ')()', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -112,7 +113,7 @@ test('actual love-secret-ai result-screen polling effect re-fetches on every for
 // 생성 실패 종결(generation_failed)은 지연 안내가 아니라 실패·자동 복구 안내로 바로 보여 준다.
 function resultEffectHarness(reply) {
   const effect = extractEffect('app/love-secret-ai/result/LoveSecretAiResultClient.tsx', 'setReloadEpoch(value => value + 1)');
-  const timers = [], gets = [], posts = [], errors = [], pending = [], consultations = [];
+  const timers = [], gets = [], posts = [], errors = [], pending = [], consultations = [], progress = [];
   const respond = (status, body) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
   const context = {
     paymentSurface: undefined,
@@ -136,13 +137,14 @@ function resultEffectHarness(reply) {
     setPending: (value) => pending.push(value),
     setLoading: () => {},
     setConsultation: (value) => consultations.push(value),
+    setGroupProgress: (value) => progress.push(value),
     setReloadEpoch: () => {},
   };
   const transpiled = ts.transpileModule('(' + effect + ')()', { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
   vm.runInNewContext(transpiled, context);
   const settle = async () => { for (let i = 0; i < 20; i += 1) await new Promise(resolve => setImmediate(resolve)); };
   const drain = async (limit = 60) => { await settle(); for (let i = 0; i < limit && timers.length; i += 1) { timers.shift()(); await settle(); } };
-  return { timers, gets, posts, errors: () => errors.filter(Boolean), pending, consultations, drain };
+  return { timers, gets, posts, errors: () => errors.filter(Boolean), pending, consultations, progress, drain };
 }
 const failedBody = { ok: false, sessionId: 's1', status: 'generation_failed', reason: 'LLM_ERROR', message: '서버 문구' };
 const partialBody = (n) => ({ ok: true, sessionId: 's1', status: 'partial', saved: false, completedGroups: Array(Math.min(n, 7)).fill('g'), totalGroups: 7 });
@@ -168,6 +170,10 @@ test('연애 결과 화면은 이어 쓰기가 8번을 넘어도 서버가 진�
   await h.drain();
   assert.equal(h.posts.length, 12);
   assert.equal(h.consultations.at(-1).status, 'completed');
+  // S16: 완료 전에는 부분 본문을 화면에 올리지 않고 진행 수만 갱신한다.
+  assert.equal(h.consultations.some((value) => value?.status === 'partial'), false);
+  assert.ok(h.progress.some((value) => value?.completed === 5 && value?.total === 7));
+  assert.equal(h.progress.at(-1), null);
   assert.equal(h.pending.at(-1), false);
   assert.deepEqual(h.errors(), []);
 });

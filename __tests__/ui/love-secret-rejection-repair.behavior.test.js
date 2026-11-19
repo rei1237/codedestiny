@@ -20,7 +20,9 @@ async function harness({ savedGroups, attempts = {}, generate, perspective = '',
   const ctx = vm.createContext({ Date, Promise, Map, Set, Number, Object, Array, String,
     LOVE_SECRET_AI_GROUPS: groups, LOVE_SECRET_AI_GROUP_TIMEOUT_MS: 54000, LOVE_SECRET_AI_REPAIR_TIMEOUT_MS: 24000,
     LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS: 22000,
-    LOVE_SECRET_AI_MIN_USABLE_GROUPS: 6, LOVE_SECRET_AI_MIN_DELIVERABLE_GROUPS: 2, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 20000,
+    LOVE_SECRET_AI_MIN_USABLE_GROUPS: 6, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 20000,
+    LOVE_SECRET_AI_GROUP_ATTEMPTS: 4, LOVE_SECRET_AI_GROUP_HARD_CAP: 12, LOVE_SECRET_AI_QUALITY_REPAIR_ATTEMPTS: 2,
+    isLoveSecretComplete: rows => rows.every(row => row.ok),
     LOVE_SECRET_AI_GROUP_MIN_CHARS: 5000, LOVE_SECRET_AI_GROUP_MAX_CHARS: 6500, loveSecretGroupCharRange: prompt.loveSecretGroupCharRange,
     buildLoveSecretRejectionRepairLines: prompt.buildLoveSecretRejectionRepairLines,
     createLlmCacheStore: () => null, cmsPromptText: async () => '', LOVE_SECRET_AI_SYSTEM_PROMPT: '',
@@ -67,6 +69,9 @@ test('다음 시도는 직전 반려 표현을 짚는 수리 지시와 마지막
   assert.equal(call.group.key, 'b');
   assert.ok(call.repairLines.some(line => line.includes("'감시하'")), call.repairLines.join('\n'));
   assert.equal(call.scrubUnsafe, true);
+  // S16: 2회차부터 하한 0.6배로 덜어 내고 받는다. Workers AI 대체는 바퀴의 마지막 시도에서만.
+  assert.equal(call.salvageFloorRatio, 0.6);
+  assert.equal(call.finalAttempt, false);
   assert.equal(h.result.complete, true);
 });
 
@@ -105,32 +110,53 @@ test('분량 수리 후보가 남아 있으면 이번 요청은 미완료로 두
   assert.equal(h.result.complete, false);
 });
 
-// 2026-11-18 S3-F: 그룹이 2회 시도를 다 쓰면 세션이 partial 로 영구히 남던 결함. 이제 같은 요청에서
-// 남은 그룹으로 축소 전달하거나(하한 2그룹) generation_failed(호출부가 전 결제수단 환불)로 끝낸다.
+// S16(2026-11-19): 그룹을 뺀 축소 전달은 없다. 빈 그룹은 바퀴(4회)를 다 써도 다시 대기로 돌아가고,
+// 하드 한도(3바퀴 = 12회)를 다 쓰면 LLM_GENERATION_FAILED(호출부가 generation_failed + 전 결제수단 환불)로 끝낸다.
 const emptyRow = key => ({ key, ok: false, sections: [], chars: 0, reason: 'LLM_FAILED' });
+const fiveOk = () => ['a', 'c', 'd', 'e', 'f'].map(key => okRow(key, 5200));
 
-test('2회를 다 쓴 그룹이 있어도 남은 그룹으로 충분하면 그 그룹을 빼고 축소 전달한다', async () => {
-  const savedGroups = [...['a', 'c', 'd', 'e', 'f'].map(key => okRow(key, 5200)), emptyRow('b')];
-  const h = await harness({ savedGroups, attempts: { b: 2 }, generate: () => { throw new Error('UNEXPECTED_CALL'); } });
-  assert.equal(h.calls.length, 0);
-  assert.equal(h.result.complete, true);
-  assert.equal(h.result.degraded, true);
-  assert.ok(h.logs.some(log => log.marker === 'Delivered Degraded'), JSON.stringify(h.logs.map(log => log.marker)));
-});
-
-test('마지막 시도가 또 반려되면 다음 요청을 기다리지 않고 이번 요청에서 축소 전달한다', async () => {
-  const savedGroups = [...['a', 'c', 'd', 'e', 'f'].map(key => okRow(key, 5200)), emptyRow('b')];
-  const h = await harness({ savedGroups, attempts: { b: 1 }, generate: options => ({ ...emptyRow(options.group.key), reason: 'REQUIRED_SECTIONS_INCOMPLETE' }) });
-  assert.equal(h.calls.length, 1);
+test('2회를 쓴 빈 그룹은 축소 전달하지 않고 3회차(하한 0.6배, 대체 없음)로 다시 쓴다', async () => {
+  const h = await harness({ savedGroups: [...fiveOk(), emptyRow('b')], attempts: { b: 2 }, generate: options => emptyRow(options.group.key) });
+  assert.deepEqual(h.reserved, ['b']);
   assert.equal(h.calls[0].scrubUnsafe, true);
-  assert.equal(h.result.complete, true);
-  assert.equal(h.result.degraded, true);
+  assert.equal(h.calls[0].salvageFloorRatio, 0.6);
+  assert.equal(h.calls[0].finalAttempt, false);
+  assert.equal(h.result.complete, false);
+  assert.equal(h.result.degraded, false);
+  assert.ok(!h.logs.some(log => /Degraded/.test(log.marker)), JSON.stringify(h.logs.map(log => log.marker)));
 });
 
-test('쓸 수 있는 그룹이 하한(2) 아래인 채 모두 소진되면 LLM_GENERATION_FAILED 로 끝낸다(호출부가 환불)', async () => {
-  const savedGroups = [okRow('a', 5200), ...['b', 'c', 'd', 'e', 'f'].map(emptyRow)];
-  const attempts = Object.fromEntries(['b', 'c', 'd', 'e', 'f'].map(key => [key, 2]));
-  await assert.rejects(harness({ savedGroups, attempts, generate: () => { throw new Error('UNEXPECTED_CALL'); } }), error => error.code === 'LLM_GENERATION_FAILED');
+test('바퀴의 마지막(4회차) 시도는 하한 0.3배로 받고 Workers AI 대체를 허용하며, 또 비면 다음 바퀴로 돌아간다', async () => {
+  const h = await harness({ savedGroups: [...fiveOk(), emptyRow('b')], attempts: { b: 3 }, generate: options => emptyRow(options.group.key) });
+  assert.equal(h.calls.length, 1);
+  assert.equal(h.calls[0].salvageFloorRatio, 0.3);
+  assert.equal(h.calls[0].finalAttempt, true);
+  assert.equal(h.result.complete, false);
+  // 다음 바퀴 첫 시도는 다시 엄격(덜어 내기 없음)·대체 없음.
+  const next = await harness({ savedGroups: [...fiveOk(), emptyRow('b')], attempts: { b: 4 }, generate: options => okRow(options.group.key, 5100) });
+  assert.equal(next.calls[0].scrubUnsafe, false);
+  assert.equal(next.calls[0].finalAttempt, false);
+  assert.equal(next.result.complete, true);
+});
+
+test('다섯 갈래가 완성이어도 빈 그룹이 하드 한도(12회)를 다 쓰면 전달하지 않고 LLM_GENERATION_FAILED 로 끝낸다', async () => {
+  await assert.rejects(harness({ savedGroups: [...fiveOk(), emptyRow('b')], attempts: { b: 12 }, generate: () => { throw new Error('UNEXPECTED_CALL'); } }),
+    error => error.code === 'LLM_GENERATION_FAILED');
+});
+
+test('완성 판정(isLoveSecretComplete)을 못 넘으면 이슈가 없어도 complete 가 아니다', async () => {
+  const savedGroups = ['a', 'b', 'c', 'd', 'e', 'f'].map(key => okRow(key, 5200));
+  const h = await harness({ savedGroups, generate: () => { throw new Error('UNEXPECTED_CALL'); } });
+  assert.equal(h.result.complete, true);
+  const prompt = await import('../../worker/lib/love-secret-ai-prompt.js');
+  // 실제 판정: 계획의 모든 섹션 제목이 비어 있지 않은 본문으로 있어야 한다.
+  const group = prompt.LOVE_SECRET_AI_GROUPS[0];
+  const full = { key: group.key, ok: true, sections: group.sections.map(section => ({ title: section.title, body: '본문.' })) };
+  assert.equal(prompt.isLoveSecretComplete([full], [group]), true);
+  assert.equal(prompt.isLoveSecretComplete([{ ...full, sections: full.sections.slice(1) }], [group]), false);
+  assert.equal(prompt.isLoveSecretComplete([{ ...full, sections: full.sections.map((section, i) => (i ? section : { ...section, body: '  ' })) }], [group]), false);
+  assert.equal(prompt.isLoveSecretComplete([{ ...full, ok: false }], [group]), false);
+  assert.equal(prompt.isLoveSecretComplete([], [group]), false);
 });
 
 test('모든 그룹이 통과했는데 수리 한도를 다 쓴 품질 이슈만 남으면 그대로 전달한다', async () => {
