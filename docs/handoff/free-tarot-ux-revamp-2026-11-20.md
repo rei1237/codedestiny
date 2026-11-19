@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: 3단계 — 공통 스텝 플로우 엔진 구현(기존 기능에 연결하지 않음, 개발 전용 데모 경로)
+next: 3단계 마무리(데모 커밋·분석 발화 재측정·push·정리) → 3b 예화 재스타일·대비
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -12,8 +12,9 @@ next: 3단계 — 공통 스텝 플로우 엔진 구현(기존 기능에 연결�
 3. 스펙 정본: [guided-step-flow-spec](../context/guided-step-flow-spec.md), [narrator-webtoon-result-spec](../context/narrator-webtoon-result-spec.md). 근거: [free-tarot-ux-audit](../context/free-tarot-ux-audit.md).
 
 ## 지금 상태
-- 브랜치 main, 워크트리 없음. 1·2단계 문서 커밋 `1a6e80eae`, `c93c999b7` (push 완료). 승인 반영 커밋은 이 문서와 함께 들어간다.
-- 제품 코드 변경 0.
+- 브랜치 main. 1·2단계 문서 커밋 `1a6e80eae`, `c93c999b7`, `858671988` push 완료.
+- 3단계 로컬 커밋(push 전): `f4322b203` 컨트롤러(`lib/guided-flow/step-controller.mjs`), `d4c1fe4c5` 셸·훅·i18n(`app/components/guided-flow/`), `bd54671ef` 분석 이벤트 + verify ⑭.
+- 옆 세션 미커밋(건드리지 말 것): `docs/ios/phase-reports/phase-4.md`, `.claude/skills/fire-your-seo-agency/`.
 
 ## 승인 상태 (원문·날짜)
 - 2026-11-20 사용자: "권장안대로 승인, 구현 계획 진행해줘" → 1단계 감사, 2단계 스펙 D1~D13·N1~N7 의 **추천 열 확정**.
@@ -50,6 +51,9 @@ next: 3단계 — 공통 스텝 플로우 엔진 구현(기존 기능에 연결�
 
 ## 단계
 - [ ] 3. 공통 스텝 플로우 엔진 — 위치 제안(재사용 유틸 먼저: `src/features/fortune-tea-house/lib/usePrefersReducedMotion.ts` 등) → 구현 → 개발 전용 데모(390·960px) → 단위 테스트(자동 진행 타이머·뒤로가기·reduced-motion·새로고침 복원) → perf:home 전후. 기존 기능에 연결하지 않음.
+  - 3단계 남은 일(계획 §0): 미커밋 데모 `app/dev/guided-flow/{page.tsx,GuidedFlowDemo.tsx}` 커밋, 분석 이벤트 실제 발화 재측정(앞선 탐침 0건 — `cdTrack` 가로채기 경로부터 확인), check:fast → check:pre-push → main CI 1회 → push. 정리: 이전 dev 서버 PID 17632(PID 로만, 명령줄 확인 후), 워크트리 `D:\Development\codedestiny-worktrees\perf-guided-flow-20261120-033158` 를 main 체크아웃에서 `npm run worktree:remove -- <경로>`, `.tmp/` 내 이 작업 파일 삭제. perf:home 전 측정값: 성능 49, LCP 12127ms, TBT 185ms, CLS 0.145.
+- [ ] 3b. 스텝 셸 달빛 예화 재스타일 + 대비(계획 §1·§2, GREEN 바로 진행). 대비 원인: `.flow` 에 표면 없이 분홍 `--cd-*` 글자 토큰 → `#0a0818` 위 제목 1.29:1. 브랜드 `data-brand` 꿀꿀/영냥이 사설 `--gf-*` 팔레트, 주아체 제목, 이중 테두리·꽃가지 마스크 재사용, `.cd-yehwa-button--primary`, 진행 막대 금빛. 검증: 새 `scripts/design/verify-guided-flow-contrast.cjs`(verify-home-funnel 패턴, 두 브랜드 × 360/390/430/960), 정적 테스트, measure:touch-targets, visual-checker.
+- [ ] 3c. 서비스 전반 웨이브 계획 보고(계획 §3: A React 무료, B 정적 셸 무료, C 유료 입력 표현만; 결제·인증·DB 제외) → **사용자 승인 대기**. 5·6단계와 합쳐 진행.
 - [ ] 4. 캐릭터 웹툰 결과 렌더러 — **계획 보고 후 승인 대기**(재사용/신규, 컷 데이터 구조, 수정 파일 경로).
 - [ ] 5. 타로 UX 통합 — **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식).
 - [ ] 6. 무료 운세 섹션 재구성 — **계획 보고 후 승인 대기**(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검).
