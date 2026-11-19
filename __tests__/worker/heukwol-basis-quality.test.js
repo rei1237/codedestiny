@@ -55,8 +55,8 @@ test.each([
   for (const [key, bound] of Object.entries(bounds)) expect([key, bound <= WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95]).toEqual([key, true]);
 });
 
-test('the twelve-month digest keeps every monthly evidence ID; month and natal chapters keep the original evidence', () => {
-  const allIds = analysis.months.flatMap(m => [...m.saju, ...m.ziwei].map(e => e.id)).sort();
+test('the twelve-month digest keeps every monthly evidence ID once; month and natal chapters keep the original evidence', () => {
+  const allIds = [...new Set(analysis.months.flatMap(m => [...m.saju, ...m.ziwei].map(e => e.id)))].sort();
   for (const chapter of HEUKWOL_CHAPTERS.filter(c => !c.phase && !c.month)) {
     const evidence = chapterEvidence(analysis, chapter);
     expect(evidence.months.flatMap(m => [...m.saju, ...m.ziwei].map(e => e.id)).sort()).toEqual(allIds);
@@ -263,7 +263,10 @@ test('S15 luck judgement: natal once, month chapters get scoped month verdicts, 
   });
   const money = byKey('money');
   expect(money.months).toHaveLength(12);
-  // R6b: 12개월 장은 구간별 판정 한 단어만 싣는다(한 줄 설명은 입력 상한 때문에 뺐다).
-  money.months.flatMap(m => m.saju).forEach(seg => expect(Object.keys(seg.luckJudgement)).toEqual(['verdict']));
+  // R6c: 12개월 장은 구간별 판정과 그 이유를 싣는다(R6b 에서 뺀 이유가 없어 근거 밖 충 해석이 나왔다). 한 줄 설명은 뺀다.
+  money.months.flatMap(m => m.saju).forEach(seg => {
+    expect(Object.keys(seg.luckJudgement)).toEqual(['verdict', 'reasons']);
+    expect(seg.luckJudgement.reasons.length).toBeGreaterThan(0);
+  });
   expect(money.luckJudgement.year).toBeDefined();
 });

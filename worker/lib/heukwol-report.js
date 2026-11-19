@@ -39,26 +39,51 @@ function chapterLuckJudgement(lj, chapter) {
 
 // R6b: 12개월을 모두 싣는 주제 장(opening·money·love·relationships·work·safety·health·alternatives·closing)은
 // 월별 원본(구간마다 반복되는 세운·대운, 달마다 반복되는 영역 문구)이 Workers AI 입력 상한(50k)을 넘겨
-// 마지막 시도의 폴백이 결정적으로 막혔다. 구간 ID·간지·십성·충합 이름·월 판정·장 주제의 궁 표식만 남기고,
-// 세운·대운과 영역 문구는 장 머리에 한 번만 싣는다. 월별 장(month-N)과 성향 장은 원본 그대로다.
+// 마지막 시도의 폴백이 결정적으로 막혔다. 세운·대운과 영역 문구는 장 머리에 한 번만 싣는다. 월별 장(month-N)과 성향 장은 원본 그대로다.
+// R6c: 실호출에서 음력 월 오기·근거 밖 충 귀속·같은 기간 이중 표기가 나왔다. 그래서
+//  - 같은 구간 ID 는 시작한 달에 한 번만, 달력월로 자르지 않은 전체 범위로 싣는다(이중 표기 원인).
+//  - 자미 구간은 양력 범위와 음력 월 라벨을 한 줄로 짝짓고, 사주 구간은 절기 월(지지)임을 밝힌다.
+//  - 충합은 어느 운(월운·세운·대운)과 원국 어느 기둥 사이인지, 글자·오행까지 적고, 구간 판정 이유를 복원한다.
 const DIGEST_DOMAINS = ['money','love','relationships','work'];
 const MARK_LABELS = { huaLu:'화록', huaQuan:'화권', huaKe:'화과', huaJi:'화기' };
-const relationLabel = t => `${t.label}${t.pillarLabels?.length?`(${t.pillarLabels.join('·')})`:''}`;
+const SOLAR_TERM_BY_BRANCH = { 寅:'입춘', 卯:'경칩', 辰:'청명', 巳:'입하', 午:'망종', 未:'소서', 申:'입추', 酉:'백로', 戌:'한로', 亥:'입동', 子:'대설', 丑:'소한' };
+// 관계 표기: "을신충: 월운 乙 ↔ 원국 월주 辛". 원본의 '운'은 그 항목의 운(월운·세운·대운)이다.
+const relationLabel = (t, luckName) => {
+  const names = (t.pillarLabels||[]).map(p => p==='운' ? luckName : `원국 ${p}`);
+  const sides = names.map((n,i) => t.values?.[i] ? `${n} ${t.values[i]}` : n);
+  // 두 기둥은 ↔, 방합·삼합처럼 셋 이상은 · 로 잇는다.
+  return `${t.label}${t.element?`(${t.element})`:''}: ${sides.join(sides.length>2?'·':' ↔ ')}`;
+};
+const relationsDigest = (p, luckName) => {
+  const tensions = (p.tensions||[]).map(t=>relationLabel(t,luckName)), supports = (p.supports||[]).map(t=>relationLabel(t,luckName));
+  return tensions.length||supports.length ? {tensions,supports} : {relations:'원국과 맺는 합충형파해 없음'};
+};
 const markLabel = m => `${MARK_LABELS[m.type]||m.type} ${m.star}(${(m.palaces||[]).join('·')})`;
 const periodDigest = p => ({label:p.label,pillar:p.pillar,tenGod:p.tenGod,
-  tensions:(p.tensions||[]).map(relationLabel),supports:(p.supports||[]).map(relationLabel)});
+  ...relationsDigest(p, p.id==='major'?'대운':'세운')});
+const dateOnly = t => t.slice(0,10);
+const previousDay = t => new Date(Date.parse(`${dateOnly(t)}T00:00:00Z`)-86400000).toISOString().slice(0,10);
+// 자미 구간 경계는 자정이므로 끝을 포함 날짜로 적는다. 사주 절입은 시각까지 있으므로 끝 시각 미포함으로 적는다.
+const lunarLabel = (z, year) => `음력 ${z.lunarYear!==year?`${z.lunarYear}년 `:''}${z.leap?'윤':''}${z.lunarMonth}월`;
+const ziweiWhen = (z, year) => `양력 ${dateOnly(z.start)}~${previousDay(z.end)} = ${lunarLabel(z,year)}`;
+const sajuWhen = s => `양력 ${s.start}~${s.end} 전 = 절기 ${s.pillar?.[1]||''}월(${SOLAR_TERM_BY_BRANCH[s.pillar?.[1]]||'절입'} 기준, 음력 월 아님)`;
 // 영역별 자미 표식은 아래 ziwei 표식(궁 이름 포함)과 겹치므로 영역은 사주 우선도만 싣는다. 안전·건강 장은 네 영역과 무관하다.
 const digestDomainIds = chapter => DIGEST_DOMAINS.includes(chapter.key) ? [chapter.key] : ['safety','health'].includes(chapter.key) ? [] : DIGEST_DOMAINS;
-function monthDigest(m, chapter, palaceNames) {
-  const domainIds = digestDomainIds(chapter);
-  const keepMark = mark => !palaceNames || mark.palaces.some(p=>palaceNames.includes(p));
-  return {month:m.month,start:m.start,end:m.end,
-    saju:m.saju.map(s=>({id:s.id,label:s.label,pillar:s.pillar,tenGod:s.tenGod,start:s.start,end:s.end,
-      tensions:(s.tensions||[]).map(relationLabel),supports:(s.supports||[]).map(relationLabel),
-      ...(s.luckJudgement?{luckJudgement:{verdict:s.luckJudgement.verdict}}:{})})),
-    ziwei:m.ziwei.map(z=>({id:z.id,start:z.start,end:z.end,marks:z.marks.filter(keepMark).map(markLabel)})),
-    ...(domainIds.length?{sajuPriority:Object.fromEntries(m.domains.filter(d=>domainIds.includes(d.id)).map(d=>[d.id,d.sajuPriority]))}:{})};
+// 달력월로 잘린 같은 구간을 하나로 합친다(시작은 가장 이른 값, 끝은 가장 늦은 값). 첫 등장 달에만 싣는다.
+function mergedSegments(analysis, system) {
+  const merged = new Map();
+  for (const m of analysis.months) for (const seg of m[system]) {
+    const seen = merged.get(seg.id);
+    if (!seen) merged.set(seg.id, {seg:{...seg}, month:m.month});
+    else { if (seg.start<seen.seg.start) seen.seg.start=seg.start; if (seg.end>seen.seg.end) seen.seg.end=seg.end; }
+  }
+  return [...merged.values()];
 }
+const DIGEST_RULES = [
+  '각 구간은 시작한 달에 한 번만 싣고 when 의 끝까지 다음 달로 이어집니다. 같은 구간을 달마다 나눠 다시 적지 마세요.',
+  'saju 구간은 절기(절입) 기준 월운이며 음력 월이 아닙니다. 음력 월은 ziwei 구간 when 의 음력 라벨만 쓰세요.',
+  '합충형파해는 적힌 두 기둥 사이에만 있습니다. 일간·다른 운으로 옮기지 마세요. 운끼리의 관계는 luckJudgement 이유 문장에 적힌 그대로만 인용하세요.',
+];
 function yearDigest(analysis, chapter, palaceNames) {
   const periods = new Map();
   for (const s of analysis.months.flatMap(m=>m.saju)) for (const p of [s.annual,s.major]) {
@@ -67,8 +92,15 @@ function yearDigest(analysis, chapter, palaceNames) {
   const domainIds = digestDomainIds(chapter);
   const guides = (analysis.months[0]?.domains||[]).filter(d=>domainIds.includes(d.id))
     .map(d=>({id:d.id,title:d.title,action:d.action,sign:d.sign,change:d.change}));
-  return {periodLuck:[...periods.values()],...(guides.length?{domainGuides:guides}:{}),
-    months:analysis.months.map(m=>monthDigest(m,chapter,palaceNames))};
+  const keepMark = mark => !palaceNames || mark.palaces.some(p=>palaceNames.includes(p));
+  const saju = mergedSegments(analysis,'saju'), ziwei = mergedSegments(analysis,'ziwei');
+  const months = analysis.months.map(m => ({month:m.month,
+    saju:saju.filter(x=>x.month===m.month).map(({seg:s})=>({id:s.id,when:sajuWhen(s),pillar:s.pillar,tenGod:s.tenGod,
+      ...relationsDigest(s,'월운'),
+      ...(s.luckJudgement?{luckJudgement:{verdict:s.luckJudgement.verdict,reasons:s.luckJudgement.reasons||[]}}:{})})),
+    ziwei:ziwei.filter(x=>x.month===m.month).map(({seg:z})=>({id:z.id,when:ziweiWhen(z,analysis.year),marks:z.marks.filter(keepMark).map(markLabel)})),
+    ...(domainIds.length?{sajuPriority:Object.fromEntries(m.domains.filter(d=>domainIds.includes(d.id)).map(d=>[d.id,d.sajuPriority]))}:{})}));
+  return {digestRules:DIGEST_RULES,periodLuck:[...periods.values()],...(guides.length?{domainGuides:guides}:{}),months};
 }
 
 export function chapterEvidence(analysis, chapter) {
