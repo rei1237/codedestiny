@@ -8,7 +8,9 @@ body.cd-policy-static { margin:0; background:var(--policy-bg); color:var(--polic
 .policy-skip { position:absolute; top:0; left:12px; z-index:5; padding:8px; transform:translateY(-150%); background:var(--policy-bg); }
 .policy-skip:focus { transform:none; }
 .policy-nojs { width:min(calc(100% - 32px),960px); margin-inline:auto; }
-.policy-site-header { position:sticky; top:0; z-index:10; border-bottom:1px solid var(--policy-line); background:color-mix(in srgb,var(--policy-bg) 94%,transparent); box-shadow:0 10px 30px rgba(119,31,68,.06); backdrop-filter:blur(16px) saturate(1.08); }
+.policy-site-header { position:sticky; top:0; z-index:10; padding-top:env(safe-area-inset-top,0px); border-bottom:1px solid var(--policy-line); background:color-mix(in srgb,var(--policy-bg) 94%,transparent); box-shadow:0 10px 30px rgba(119,31,68,.06); backdrop-filter:blur(16px) saturate(1.08); }
+/* 앱(iOS·Android): 상단 안전 영역은 sticky 헤더가 맡는다. 앱 브릿지(scripts/app-native-bridge.js)의 body padding-top 과 겹치지 않게 body 쪽을 0 으로 둔다(GlobalHeader 와 같은 방식). 웹에는 data-platform 이 없어 영향이 없다. */
+html[data-platform] body.cd-policy-static { padding-top:0; }
 .policy-header-shell { display:flex; align-items:center; gap:18px; width:min(calc(100% - 24px),1240px); min-height:66px; margin-inline:auto; }
 .policy-brand { display:inline-flex; align-items:center; gap:10px; min-height:48px; color:var(--policy-ink)!important; text-decoration:none; }
 .policy-brand img { width:42px; height:42px; object-fit:contain; filter:drop-shadow(0 7px 10px rgba(119,31,68,.14)); }
