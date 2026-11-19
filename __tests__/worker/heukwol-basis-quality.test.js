@@ -4,7 +4,8 @@ import { buildHeukwolAnalysis, heukwolProfileBirth } from '../../worker/lib/heuk
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
 import { buildNeoBasisPayload } from '../../worker/lib/neo-operation-room-basis.js';
-import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
+import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
+import { assertWorkersAiInputTokenLimit, workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 const now = new Date('2026-11-06T00:00:00Z');
 const card = {
@@ -33,6 +34,41 @@ test('all chapters share a cacheable instruction prefix while personal evidence 
     expect(prompt.slice(HEUKWOL_PROMPT_PREFIX.length)).toContain('이전 조언');
   }
   expect(HEUKWOL_PROMPT_PREFIX).not.toContain('검수 질문');
+});
+
+// R6b: 12개월 근거를 싣는 주제 장이 Workers AI 입력 상한(50k)을 넘어 마지막 시도의 폴백이 결정적으로 막혔다.
+// 최대 질문(3,000자 한글)·이전 26장·가장 긴 보완 요청까지 실어도 모든 장이 상한의 95% 안에 들어야 한다.
+test.each([
+  ['New York 2027', analysis],
+  ['Seoul 1984 / 2026', buildHeukwolAnalysis(heukwolProfileBirth({ gender: 'M', birth: { year: 1984, month: 2, day: 3, hour: 4, minute: 10, timeUnknown: false, calType: 'solar' } }), 2026, now)],
+  ['New York 2028', buildHeukwolAnalysis(birth, 2028, now)],
+])('every chapter prompt fits the Workers AI fallback input limit with the longest question (%s)', (_label, target) => {
+  const question = '흑'.repeat(3000);
+  const longestHint = Object.values(HEUKWOL_REPAIR_HINTS).sort((a, b) => b.length - a.length)[0];
+  const bounds = {};
+  for (const chapter of HEUKWOL_CHAPTERS) {
+    const previous = HEUKWOL_CHAPTERS.filter(c => c.key !== chapter.key).map(c => ({ title: c.title, strategy: '대응'.repeat(400) }));
+    const messages = [{ role: 'user', content: heukwolPrompt(target, chapter, question, previous, longestHint) }];
+    bounds[chapter.key] = workersAiInputTokenUpperBound(messages);
+    expect(() => assertWorkersAiInputTokenLimit({ model: '@cf/zai-org/glm-4.7-flash', messages, maxOutputTokens: 16000 })).not.toThrow();
+  }
+  for (const [key, bound] of Object.entries(bounds)) expect([key, bound <= WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95]).toEqual([key, true]);
+});
+
+test('the twelve-month digest keeps every monthly evidence ID; month and natal chapters keep the original evidence', () => {
+  const allIds = analysis.months.flatMap(m => [...m.saju, ...m.ziwei].map(e => e.id)).sort();
+  for (const chapter of HEUKWOL_CHAPTERS.filter(c => !c.phase && !c.month)) {
+    const evidence = chapterEvidence(analysis, chapter);
+    expect(evidence.months.flatMap(m => [...m.saju, ...m.ziwei].map(e => e.id)).sort()).toEqual(allIds);
+    expect(evidence.periodLuck.length).toBeGreaterThan(0);
+    const json = JSON.stringify(evidence.months);
+    expect(json).not.toContain('"annual"');
+    expect(json).not.toContain('"action"');
+  }
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'money')).domainGuides.map(d => d.id)).toEqual(['money']);
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'safety')).domainGuides).toBeUndefined();
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'month-3')).months).toEqual(analysis.months.filter(m => m.month === 3));
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'nature-love')).months).toEqual([]);
 });
 
 test('the saved location reaches both existing engines at a DST and night-Zi boundary', () => {
@@ -216,5 +252,7 @@ test('S15 luck judgement: natal once, month chapters get scoped month verdicts, 
   });
   const money = byKey('money');
   expect(money.months).toHaveLength(12);
-  money.months.flatMap(m => m.saju).forEach(seg => expect(Object.keys(seg.luckJudgement).sort()).toEqual(['headline', 'verdict']));
+  // R6b: 12개월 장은 구간별 판정 한 단어만 싣는다(한 줄 설명은 입력 상한 때문에 뺐다).
+  money.months.flatMap(m => m.saju).forEach(seg => expect(Object.keys(seg.luckJudgement)).toEqual(['verdict']));
+  expect(money.luckJudgement.year).toBeDefined();
 });

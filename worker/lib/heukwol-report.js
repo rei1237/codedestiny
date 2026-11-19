@@ -36,10 +36,43 @@ function chapterLuckJudgement(lj, chapter) {
   const periods = { ...(lj.daeun ? { daeun: lj.daeun } : {}), year: lj.year };
   return chapter.key === 'opening' ? { natal: lj.natal, ...periods } : chapter.month ? periods : { year: lj.year };
 }
-const briefSegmentLuck = s => s.luckJudgement ? { ...s, luckJudgement: { verdict: s.luckJudgement.verdict, headline: s.luckJudgement.headline } } : s;
+
+// R6b: 12개월을 모두 싣는 주제 장(opening·money·love·relationships·work·safety·health·alternatives·closing)은
+// 월별 원본(구간마다 반복되는 세운·대운, 달마다 반복되는 영역 문구)이 Workers AI 입력 상한(50k)을 넘겨
+// 마지막 시도의 폴백이 결정적으로 막혔다. 구간 ID·간지·십성·충합 이름·월 판정·장 주제의 궁 표식만 남기고,
+// 세운·대운과 영역 문구는 장 머리에 한 번만 싣는다. 월별 장(month-N)과 성향 장은 원본 그대로다.
+const DIGEST_DOMAINS = ['money','love','relationships','work'];
+const MARK_LABELS = { huaLu:'화록', huaQuan:'화권', huaKe:'화과', huaJi:'화기' };
+const relationLabel = t => `${t.label}${t.pillarLabels?.length?`(${t.pillarLabels.join('·')})`:''}`;
+const markLabel = m => `${MARK_LABELS[m.type]||m.type} ${m.star}(${(m.palaces||[]).join('·')})`;
+const periodDigest = p => ({label:p.label,pillar:p.pillar,tenGod:p.tenGod,
+  tensions:(p.tensions||[]).map(relationLabel),supports:(p.supports||[]).map(relationLabel)});
+// 영역별 자미 표식은 아래 ziwei 표식(궁 이름 포함)과 겹치므로 영역은 사주 우선도만 싣는다. 안전·건강 장은 네 영역과 무관하다.
+const digestDomainIds = chapter => DIGEST_DOMAINS.includes(chapter.key) ? [chapter.key] : ['safety','health'].includes(chapter.key) ? [] : DIGEST_DOMAINS;
+function monthDigest(m, chapter, palaceNames) {
+  const domainIds = digestDomainIds(chapter);
+  const keepMark = mark => !palaceNames || mark.palaces.some(p=>palaceNames.includes(p));
+  return {month:m.month,start:m.start,end:m.end,
+    saju:m.saju.map(s=>({id:s.id,label:s.label,pillar:s.pillar,tenGod:s.tenGod,start:s.start,end:s.end,
+      tensions:(s.tensions||[]).map(relationLabel),supports:(s.supports||[]).map(relationLabel),
+      ...(s.luckJudgement?{luckJudgement:{verdict:s.luckJudgement.verdict}}:{})})),
+    ziwei:m.ziwei.map(z=>({id:z.id,start:z.start,end:z.end,marks:z.marks.filter(keepMark).map(markLabel)})),
+    ...(domainIds.length?{sajuPriority:Object.fromEntries(m.domains.filter(d=>domainIds.includes(d.id)).map(d=>[d.id,d.sajuPriority]))}:{})};
+}
+function yearDigest(analysis, chapter, palaceNames) {
+  const periods = new Map();
+  for (const s of analysis.months.flatMap(m=>m.saju)) for (const p of [s.annual,s.major]) {
+    if (p && !periods.has(`${p.label}:${p.pillar}`)) periods.set(`${p.label}:${p.pillar}`, periodDigest(p));
+  }
+  const domainIds = digestDomainIds(chapter);
+  const guides = (analysis.months[0]?.domains||[]).filter(d=>domainIds.includes(d.id))
+    .map(d=>({id:d.id,title:d.title,action:d.action,sign:d.sign,change:d.change}));
+  return {periodLuck:[...periods.values()],...(guides.length?{domainGuides:guides}:{}),
+    months:analysis.months.map(m=>monthDigest(m,chapter,palaceNames))};
+}
 
 export function chapterEvidence(analysis, chapter) {
-  const months = chapter.phase==='natal'?[]:chapter.month ? analysis.months.filter(m=>m.month===chapter.month) : analysis.months;
+  const months = chapter.phase==='natal'?[]:chapter.month ? analysis.months.filter(m=>m.month===chapter.month) : null;
   const topic=chapter.key.replace('nature-','');
   const palaceNames={love:['명궁','복덕궁','부부궁'],money:['명궁','재백궁','전택궁'],relationships:['명궁','형제궁','노복궁'],safety:['명궁','천이궁','질액궁'],health:['명궁','복덕궁','질액궁'],work:['명궁','관록궁','천이궁']}[topic];
   const palaces=analysis.chart.palaces.filter(p=>!palaceNames?chapter.key==='temperament'||p.name==='명궁':palaceNames.includes(p.name));
@@ -49,9 +82,8 @@ export function chapterEvidence(analysis, chapter) {
     neoBasis:Object.fromEntries(Object.entries(analysis.neoBasis||{}).map(([method,payload])=>[method,
       sliceNeoBasisPayload(payload,chapter.phase==='natal'?'*':['core'])])),
     natalEvidence:[{id:'natal-saju',pillars:analysis.pillars,natal:analysis.natal},{id:'natal-ziwei',palaces,fourTransformations:analysis.chart.fourTransformations}],
-    pillars:analysis.pillars,natal:analysis.natal,...(luckJudgement?{luckJudgement}:{}),months:months.map(m=>({...m,
-      ...(chapter.month?{}:{saju:m.saju.map(briefSegmentLuck)}),
-      domains:['money','love','relationships','work'].includes(chapter.key)?m.domains.filter(d=>d.id===chapter.key):m.domains})),
+    pillars:analysis.pillars,natal:analysis.natal,...(luckJudgement?{luckJudgement}:{}),
+    ...(months?{months}:yearDigest(analysis,chapter,palaceNames)),
     // Whole natal chart is reserved for the temperament chapter; monthly passages use their actual marks.
     ...(chapter.key==='temperament'?{chart:analysis.chart}:{})};
 }
