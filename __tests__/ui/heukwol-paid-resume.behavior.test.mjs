@@ -189,3 +189,34 @@ test('a paid start the user must fix (4xx) returns to the form with the reason',
   assert.ok(document.querySelector('textarea'));
  }finally{await f.close();}
 });
+
+// 2026-11-19 R6 다시 시도 우선: 무료 다시 시도가 열린 실패는 환불 안내 대신 다시 시도·환불 요청을 고르게 한다. 둘 다 상담 id 만 보내고 결제창을 열지 않는다.
+const held={...generating(4),status:'failed',retry:{available:true,refundAt:'2026-11-26T00:00:00.000Z',sessionId:'heukwol:paid'}};
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+test('a held failure offers a free retry that reopens the same session and keeps writing without a payment gate',async()=>{
+ let reopened=false;
+ const f=await fixture({url:resultUrl,respond:async url=>url.includes('/result?')?{data:reopened?generating(4):held}
+  :url.endsWith('/retry')?(reopened=true,{status:202,data:generating(4)}):url.endsWith('/continue')?{data:completed}:null});
+ try{
+  await until(()=>/추가 결제·차감은 없어요/.test(document.body.textContent));
+  assert.doesNotMatch(document.body.textContent,/자동 환불을 진행하고 있어요/);
+  await act(async()=>button('다시 시도 · 추가 결제·차감 없음').click());
+  await until(()=>/저장된 상담 본문/.test(document.body.textContent));
+  assert.deepEqual(f.calls.find(c=>c.url.endsWith('/retry')).body,{id:'heukwol:paid'});
+  assert.equal(f.calls.filter(c=>c.url.endsWith('/continue')).length,1);
+  assert.equal(f.runtime.gateCalls,0);
+ }finally{await f.close();}
+});
+test('a held failure can ask for a refund instead, sending only the session id',async()=>{
+ const f=await fixture({url:resultUrl,respond:async url=>url.includes('/result?')?{data:held}
+  :url.endsWith('/refund-request')?{data:{...generating(4),status:'failed',refundStatus:'pending'}}:null});
+ try{
+  await until(()=>Boolean(button('다시 시도 대신 환불 요청')));
+  await act(async()=>button('다시 시도 대신 환불 요청').click());
+  await until(()=>/자동 환불을 진행하고 있어요/.test(document.body.textContent));
+  assert.deepEqual(f.calls.find(c=>c.url.endsWith('/refund-request')).body,{id:'heukwol:paid'});
+  assert.equal(button('다시 시도 · 추가 결제·차감 없음'),undefined);
+  assert.equal(f.calls.filter(c=>c.url.endsWith('/retry')||c.url.endsWith('/continue')).length,0);
+  assert.equal(f.runtime.gateCalls,0);
+ }finally{await f.close();}
+});
