@@ -32,6 +32,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { safeGeminiFailure } from "../../lib/gemini-provider-errors.mjs";
 import { reserveSupportRecoveryAttempt, supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } from "../lib/support-recovery-budget.js";
 import { consultationRefundResponse } from "../lib/consultation-refund-state.js";
+import { markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
@@ -2827,6 +2828,37 @@ async function resolveNewYearRequestAccess(args) {
   return native ? native.access(args.body, args.normalized, args.idempotencyKey) : resolveStartAccess(args);
 }
 
+// 2026-11-19 다시 시도 우선(R4): 요청 중 종결 실패는 환불하지 않고 생성 + 7일 안에서 무료 다시 시도를 연다.
+// Toss 네이티브·운영 구제(supportRecovery)·이연 차감 확정 실패 건은 다시 시도 화면·근거가 없어 기존 즉시 환불을 유지한다.
+function newYearRetryMeta(request, auth, doc, code) {
+  if (auth?.tossNative || nativeTossContext(request) || doc?.accessSource === 'toss' || doc?.llmMeta?.supportRecovery) return null;
+  if (clean(code) === 'DEFERRED_USAGE_APPLY_FAILED') return null;
+  return retryableFailureMeta(doc || {}, Date.now(), clean(code || 'LLM_GENERATION_FAILED', 40));
+}
+
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function newYearRetryPayload(doc) {
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc?.id || '');
+  return state ? { sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+
+// 다시 시도는 빠진 분야만 다시 쓴다: 통과한 분야는 그대로, 실패·미완성 분야만 저장된 오류를 지우고 시도 수를 새로 연다.
+function newYearRetryReset(fresh) {
+  const rows = Array.isArray(fresh?.llmMeta?.savedSections) ? fresh.llmMeta.savedSections : [];
+  const reopen = new Set();
+  const savedSections = rows.map(row => {
+    if (!row || typeof row !== 'object') return row;
+    if (row.ok && !row.failure && !row.truncated && clean(row.text)) return row;
+    reopen.add(String(row.key || ''));
+    const { failure: _failure, reason: _reason, ...rest } = row;
+    return rest;
+  });
+  const attempts = {};
+  for (const [key, value] of Object.entries(fresh?.llmMeta?.attempts || {})) if (!reopen.has(key.split(':')[0])) attempts[key] = value;
+  return { 'llmMeta.savedSections': savedSections, 'llmMeta.attempts': attempts };
+}
+
 async function settleNewYearFailureRefund(env, id, userId) {
   try {
     const { settleFailedConsultationRefund } = await import('../lib/consultation-delivery-refund.js');
@@ -2870,7 +2902,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if (refund) return json(refund.body, { status: refund.status });
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput('같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.', 409);
   if (existing?.status === 'completed') return json(publicSession(existing));
-  if (existing?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: LLM_ERROR_MESSAGE }, { status: 409 });
+  if (existing?.status === 'generation_failed') return json({ ok: false, reason: 'GENERATION_FAILED', message: LLM_ERROR_MESSAGE, ...newYearRetryPayload(existing) }, { status: 409 });
   const pricing = getPricing();
   const access = await resolveNewYearRequestAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
   if (!access.ok && access.reason === 'LOGIN_REQUIRED') return loginRequired();
@@ -2985,11 +3017,17 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       return json({ ok: false, reason: error.code, retryable: true, sessionId, message: LLM_ERROR_MESSAGE }, { status: 503 });
     }
     const failedAt = new Date().toISOString();
-    await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'generation_failed', 'llmMeta.refundEligibleAt': failedAt,
+    const retry = newYearRetryMeta(request, auth, claimed, error?.code);
+    await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'generation_failed', ...(retry ? { 'llmMeta.retryable': retry } : { 'llmMeta.refundEligibleAt': failedAt }),
       ...(claimed.llmMeta?.supportRecovery ? { 'llmMeta.supportRecovery.active': false, 'llmMeta.supportRecovery.finishedAt': failedAt } : {}), generationError: {
       code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500), at: new Date().toISOString(),
       ...failure,
     } } });
+    if (retry) {
+      // 다시 시도 가능: 환불·증빙 해제·이연 차감 취소를 하지 않는다(같은 결제 건으로 이어 쓴다). 결과는 숨긴 채 다시 시도 안내만.
+      return json({ ok: false, reason: 'LLM_ERROR', message: LLM_ERROR_MESSAGE, sessionId, refunded: false,
+        retry: { available: true, refundAt: new Date(retry.refundAt).toISOString(), sessionId } }, { status: 503 });
+    }
     refundAfterUnlock = true;
     if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if (access.deferredUsage) {
@@ -3083,12 +3121,60 @@ async function handleResult(request, env) {
     return json({ ...publicSession(doc), status: busy ? "generating" : doc.status === "delivery_pending" ? "delivery_pending" : "partial", retryable: true }, { status: 202 });
   }
   if (doc.status !== "completed") {
-    return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
+    return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE, ...newYearRetryPayload(doc) }, { status: 409 });
   }
   if (await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, doc)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json(publicSession(doc));
+}
+
+// 다시 시도(무료): 같은 소유자의 다시 시도 가능 실패만 빠진 분야 이어쓰기로 되돌리고, 기존 재개(resumeSessionId)로 한 웨이브를 돈다.
+// 새 결제·차감·증빙 청구를 하지 않는다 — 재개 경로가 같은 멱등 키로 기존 접근을 재확인하고, 차감은 전달 때 한 번뿐이다.
+async function handleRetry(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request)) return json({ ok: false, reason: 'RETRY_NOT_AVAILABLE', message: LLM_ERROR_MESSAGE }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resumeSessionId, 180);
+  if (!sessionId) return invalidInput('다시 시도할 상담을 확인하지 못했습니다.');
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const reopened = await reopenRetryableConsultation(NewYearAiConsultation, owner, Date.now(), { reset: newYearRetryReset });
+  if (!reopened.ok && reopened.reason !== 'CONFLICT') {
+    const stored = await NewYearAiConsultation.findOne(owner).lean().catch(() => null);
+    if (!stored || stored.accessSource === 'toss') return notFound();
+    const refund = consultationRefundResponse(stored);
+    if (refund) return json(refund.body, { status: refund.status });
+    if (stored.status === 'completed') return json(publicSession(stored));
+    return json({ ok: false, reason: reopened.reason, message: LLM_ERROR_MESSAGE, ...newYearRetryPayload(stored) }, { status: 409 });
+  }
+  const headers = new Headers(request.headers);
+  headers.set('content-type', 'application/json');
+  return handleStart(new Request(request.url, { method: 'POST', headers, body: JSON.stringify({ resumeSessionId: sessionId }) }), env);
+}
+
+// 고객 환불 요청: 다시 시도 가능 실패를 공용 환불로 넘기고 바로 정산을 시도한다(실패해도 복구 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  if (!auth) return loginRequired();
+  if (nativeTossContext(request)) return json({ ok: false, reason: 'REFUND_REQUEST_NOT_AVAILABLE' }, { status: 409 });
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId, 180);
+  if (!sessionId) return invalidInput('환불을 요청할 상담을 확인하지 못했습니다.');
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const marked = await markRetryableRefundDue(NewYearAiConsultation, owner, Date.now(), 'CUSTOMER_REQUEST');
+  if (!marked.ok) {
+    const stored = await NewYearAiConsultation.findOne(owner).lean().catch(() => null);
+    if (!stored || stored.accessSource === 'toss') return notFound();
+    const refund = consultationRefundResponse(stored);
+    if (refund) return json(refund.body, { status: refund.status });
+    return json({ ok: false, reason: marked.reason || 'NOT_RETRYABLE' }, { status: 409 });
+  }
+  const settlement = await settleNewYearFailureRefund(env, sessionId, auth.userId);
+  const refundStatus = settlement?.refundStatus || 'pending';
+  return json({ ok: true, sessionId, refunded: refundStatus === 'refunded', refundStatus });
 }
 
 async function handleTossNewYearResult(request, env) {
@@ -3117,6 +3203,8 @@ export async function handleNewYearAiRoutes(request, env = {}, ctx) {
   try {
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (method === "GET" && path === "/result") return await (nativeTossContext(request) ? handleTossNewYearResult(request, env) : handleResult(request, env));
     if (["GET", "POST"].includes(method)) return notFound();

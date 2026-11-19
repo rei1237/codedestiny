@@ -72,7 +72,7 @@ async function submit({ failAccessOnce = false, generationError = false, denied 
     paymentSurface: 'web',
     setTimeout, clearTimeout,
     captureDeliveryScope: () => () => true, startLockRef: { current: false }, isBusy: false,
-    pendingGenerationRef: { current: null }, readDevPreviewState: () => null,
+    pendingGenerationRef: { current: null }, readDevPreviewState: () => null, retryOffer: '', handleFreeRetry: async () => { throw new Error('unexpected free retry'); },
     validateConsultationForm: () => '', form: {}, idempotencyKeyRef: { current: 'saved-request' },
     buildConsultationPayload: () => ({ question: '이직해도 될까요?' }),
     buildBillingGateInput: () => ({}), primePaymentEligibility: async () => {},

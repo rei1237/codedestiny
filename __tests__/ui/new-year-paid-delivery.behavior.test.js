@@ -8,6 +8,9 @@ const { supportRecoveryGenerationOptions, assertSupportRecoveryPreserved } = req
 const { consultationRefundResponse, consultationRefundState } = require('../../worker/lib/consultation-refund-state.js');
 const { runWithAiLocale, getAmbientAiLocale, storedAiLocale } = require('../../worker/lib/ai-locale-context.js');
 const { toAiLocale, AI_OUTPUT_LOCALES } = require('../../lib/i18n/ai-locale.js');
+const { retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue } = require('../../worker/lib/paid-delivery-stuck.js');
+// 2026-11-19 다시 시도 우선(R4): 종결 실패는 즉시 환불하지 않고 생성 + 7일 무료 다시 시도를 연다(환불 0회, refundEligibleAt 없음).
+const retryOpen = doc => doc?.status === 'generation_failed' && Boolean(doc.llmMeta?.retryable?.refundAt) && doc.llmMeta?.refundEligibleAt === undefined;
 const clone = value => value == null ? value : JSON.parse(JSON.stringify(value));
 const get = (value, key) => key.split('.').reduce((at, part) => at?.[part], value);
 function set(value, key, data) {
@@ -49,7 +52,11 @@ function fixture(accessType = 'pass', currentSections = null) {
       for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value);
       return clone(doc);
     } }),
-    updateOne: async (filter, update) => { if (doc && matches(doc, filter)) for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); },
+    updateOne: async (filter, update) => {
+      if (!doc || !matches(doc, filter)) return { modifiedCount: 0 };
+      for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value);
+      return { modifiedCount: 1 };
+    },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
   const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), nativeTossContext: () => null, nativeNewYearStoredState: async () => clone(doc), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {}, warn() {} }, normalizeConsultAccessType: value => value,
@@ -59,6 +66,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     reserveSupportRecoveryAttempt: async () => {},
     supportRecoveryGenerationOptions, assertSupportRecoveryPreserved,
     consultationRefundResponse, consultationRefundState, User: {}, Payment: {}, PaidExecutionRecord: {}, PointHistory: {},
+    retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue,
     isStoredPaidResultRevoked: async () => false,
     settleNewYearFailureRefund: async () => { assert.equal(doc.status, 'generation_failed'); assert.equal(doc.llmMeta.lockedAt, null); return { ok: true, refundStatus: 'refunded' }; },
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
@@ -101,7 +109,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars', 'newYearRetryMeta', 'newYearRetryPayload', 'newYearRetryReset', 'handleRetry', 'handleRefundRequest']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}, env = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -135,8 +143,9 @@ test('temporary provider failure resumes the same section with a bounded saved b
     assert.deepEqual(f.doc.llmMeta.attempts, { overview: i });
   }
   assert.equal(calls, 3);
-  assert.equal((await f.post()).status, 409);
-  assert.equal(f.refunds, 1);
+  const again = await f.post();
+  assert.equal(again.status, 409); assert.equal((await again.json()).retry?.available, true);
+  assert.equal(f.refunds, 0); assert.ok(retryOpen(f.doc));
 });
 
 test('a provider failure in the next section does not erase an accepted chapter', async () => {
@@ -170,17 +179,83 @@ for (const state of ['pending', 'refunded', 'manual_review']) test(`new year ${s
   assert.equal(f.calls, calls);
 });
 
-test('new year terminal failure records refund eligibility before unlocking and settling', async () => {
+test('new year terminal failure opens a free retry window instead of refunding', async () => {
   const f = fixture('paid'); let settled = 0;
   f.ctx.generateConsultationSection = async () => ({ ok: false, failure: { status: 400, retryable: false, message: 'Provider rejected.' } });
-  f.ctx.settleNewYearFailureRefund = async () => {
-    settled++;
-    assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.doc.llmMeta.lockedAt, null);
-    assert.ok(f.doc.llmMeta.refundEligibleAt);
-    return { ok: false, refundStatus: 'pending', retryable: true };
-  };
-  assert.equal((await f.post()).status, 503); assert.equal(settled, 1);
-  assert.ok(f.doc.llmMeta.refundEligibleAt);
+  f.ctx.settleNewYearFailureRefund = async () => { settled++; return { ok: true, refundStatus: 'refunded' }; };
+  const failed = await f.post();
+  assert.equal(failed.status, 503); assert.equal(settled, 0); assert.equal(f.refunds, 0);
+  const body = await failed.json();
+  assert.equal(body.reason, 'LLM_ERROR'); assert.equal(body.refunded, false); assert.equal(body.retryable, undefined);
+  assert.equal(body.retry.available, true); assert.equal(body.retry.sessionId, f.doc.id); assert.ok(body.retry.refundAt);
+  assert.ok(retryOpen(f.doc)); assert.equal(f.doc.llmMeta.lockedAt, null);
+  load(f.ctx, 'worker/routes/new-year-ai.js', ['handleResult']);
+  const result = await f.ctx.handleResult(new Request(`https://fixture.invalid/api/new-year-ai/result?sessionId=${f.doc.id}`), {});
+  assert.equal(result.status, 409); assert.equal((await result.json()).retry?.available, true);
+});
+
+test('R4: Toss native, support recovery and deferred apply failures keep the immediate refund', () => {
+  const f = fixture('paid'); const request = new Request('https://mock.test/api/new-year-ai/start');
+  const doc = { id: 'nyai_1', createdAt: new Date().toISOString(), llmMeta: {} };
+  assert.ok(f.ctx.newYearRetryMeta(request, { userId: 'owner' }, doc, 'LLM_ERROR')?.refundAt);
+  assert.equal(f.ctx.newYearRetryMeta(request, { userId: 'owner', tossNative: true }, doc, 'LLM_ERROR'), null);
+  assert.equal(f.ctx.newYearRetryMeta(request, { userId: 'owner' }, { ...doc, accessSource: 'toss' }, 'LLM_ERROR'), null);
+  assert.equal(f.ctx.newYearRetryMeta(request, { userId: 'owner' }, { ...doc, llmMeta: { supportRecovery: { by: 'ops' } } }, 'LLM_ERROR'), null);
+  assert.equal(f.ctx.newYearRetryMeta(request, { userId: 'owner' }, doc, 'DEFERRED_USAGE_APPLY_FAILED'), null);
+  assert.equal(f.ctx.newYearRetryMeta(request, { userId: 'owner' }, { ...doc, llmMeta: { refundEligibleAt: new Date().toISOString() } }, 'LLM_ERROR'), null);
+  // 창이 지난 건(생성 + 7일 경과)은 다시 시도 대신 즉시 환불로 간다.
+  assert.equal(f.ctx.newYearRetryMeta(request, { userId: 'owner' }, { ...doc, createdAt: new Date(Date.now() - 8 * 86400000).toISOString() }, 'LLM_ERROR'), null);
+});
+
+// R4 다시 시도: 같은 소유자는 무료로 빠진 분야만 다시 쓰고 완성, 차감은 전달 때 1회뿐이다.
+test('R4: retry reopens a failed reading, regenerates only the missing field, completes with one charge and no refund', async () => {
+  const f = fixture('pass'); const base = f.ctx.generateConsultationSection; let broken = true; const keys = [];
+  f.ctx.generateConsultationSection = async (env, args) => { keys.push(args.section.key);
+    return args.section.key === 'romance' && broken ? { key: 'romance', ok: false, text: '', failure: { status: 400, retryable: false, message: 'Provider rejected.' } } : base(env, args); };
+  for (let i = 0; i < 12 && f.doc?.status !== 'generation_failed'; i++) await f.post(f.doc ? { resumeSessionId: f.doc.id } : {});
+  assert.ok(retryOpen(f.doc)); assert.equal(f.charges, 0);
+  const kept = f.doc.llmMeta.savedSections.filter(row => row.ok).map(row => row.key);
+  assert.ok(kept.length >= 1); assert.ok(!kept.includes('romance'));
+  broken = false; keys.length = 0;
+  const retried = await f.ctx.handleRetry(new Request('https://mock.test/api/new-year-ai/retry', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: f.doc.id }) }), {});
+  assert.ok([200, 202].includes(retried.status), await retried.text());
+  assert.equal(f.doc.llmMeta.retryable.reopens, 1);
+  for (let i = 0; i < 12 && f.doc.status !== 'completed'; i++) await f.post({ resumeSessionId: f.doc.id });
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+  assert.ok(keys.includes('romance')); assert.ok(kept.every(key => !keys.includes(key)));
+});
+
+test('R4: retry is refused for another user and after the retry window, without reopening or refunding', async () => {
+  const f = fixture('paid');
+  f.ctx.generateConsultationSection = async () => ({ ok: false, failure: { status: 400, retryable: false, message: 'Provider rejected.' } });
+  await f.post(); assert.ok(retryOpen(f.doc));
+  const retry = () => f.ctx.handleRetry(new Request('https://mock.test/api/new-year-ai/retry', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: f.doc.id }) }), {});
+  f.owner('stranger');
+  assert.equal((await retry()).status, 404); assert.equal(f.doc.status, 'generation_failed');
+  f.owner('owner');
+  f.doc.llmMeta.retryable.refundAt = new Date(Date.now() - 1000).toISOString();
+  const expired = await retry();
+  assert.equal(expired.status, 409); assert.equal((await expired.json()).reason, 'RETRY_WINDOW_EXPIRED');
+  assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.refunds, 0);
+});
+
+test('R4: a customer refund request marks the retryable reading due and settles it', async () => {
+  const f = fixture('paid'); let settled = 0;
+  f.ctx.generateConsultationSection = async () => ({ ok: false, failure: { status: 400, retryable: false, message: 'Provider rejected.' } });
+  f.ctx.settleNewYearFailureRefund = async () => { settled++; assert.ok(f.doc.llmMeta.refundEligibleAt); return { ok: true, refundStatus: 'refunded' }; };
+  await f.post(); assert.ok(retryOpen(f.doc));
+  const ask = () => f.ctx.handleRefundRequest(new Request('https://mock.test/api/new-year-ai/refund-request', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: f.doc.id }) }), {});
+  const first = await ask();
+  assert.equal(first.status, 200); const body = await first.json();
+  assert.equal(body.ok, true); assert.equal(body.refundStatus, 'refunded'); assert.equal(settled, 1);
+  assert.equal(f.doc.llmMeta.retryable.refundReason, 'CUSTOMER_REQUEST');
+  // 환불이 시작되면 다시 시도는 닫힌다.
+  const retried = await f.ctx.handleRetry(new Request('https://mock.test/api/new-year-ai/retry', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: f.doc.id }) }), {});
+  assert.equal(retried.status, 409); assert.equal(f.doc.status, 'generation_failed');
 });
 
 test('a completed new year report remains readable after its support job closes', async () => {
@@ -335,7 +410,7 @@ test('실제 신년 화면은 부분 결과를 완료로 오인하지 않고 결
   const ctx = vm.createContext({ document: { hidden: false }, captureDeliveryScope: () => () => true, READING_SECTION_TOTAL: 6,
     setStatus() {}, setNotice() {}, setError() {}, pendingGenerationRef, applyResult: result => states.push(result.status),
     window: { clearTimeout() {} }, autoResumeRef: { current: { timer: 0, rounds: 0, best: 0 } }, rememberNewYearSession() {},
-    isRetriableResultPollFailure: () => false, scheduleAutoResume: () => false, newYearRefundNotice: () => '',
+    isRetriableResultPollFailure: () => false, scheduleAutoResume: () => false, newYearRefundNotice: () => '', newYearRetryOffer: () => '', setRetryOffer() {},
     postJson: async (_path, payload, key) => {
       requests.push({ payload, key });
       return { response: { status: requests.length === 5 ? 200 : 202, ok: true }, payload: {
@@ -591,13 +666,14 @@ function newYearSource(file, names) {
   return ts.transpileModule(names.map(name => found.get(name)).join('\n'), { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
 }
 const POLLING_SOURCE = () => newYearSource('app/_lib/consultationResultPolling.ts', ['RETRYABLE_POLL_REASONS', 'isRetriableResultPollFailure']);
-const NY_COPY = ['SERVER_ERROR_MESSAGE', 'LLM_ERROR_MESSAGE', 'NEW_YEAR_PAUSED_NOTICE', 'NEW_YEAR_SLOW_NOTICE', 'NEW_YEAR_STALLED_MESSAGE', 'NEW_YEAR_REFUND_NOTICE', 'NEW_YEAR_PAID_NOTICE', 'newYearRefundNotice'];
+const NY_COPY = ['SERVER_ERROR_MESSAGE', 'LLM_ERROR_MESSAGE', 'NEW_YEAR_PAUSED_NOTICE', 'NEW_YEAR_SLOW_NOTICE', 'NEW_YEAR_STALLED_MESSAGE', 'NEW_YEAR_REFUND_NOTICE', 'NEW_YEAR_PAID_NOTICE', 'newYearRefundNotice',
+  'NEW_YEAR_RETRY_MESSAGE', 'NEW_YEAR_RETRY_STARTED_NOTICE', 'NEW_YEAR_RETRY_FAILED_MESSAGE', 'NEW_YEAR_REFUND_REQUESTED_MESSAGE', 'NEW_YEAR_REFUNDED_MESSAGE', 'NEW_YEAR_REFUND_REQUEST_FAILED_MESSAGE', 'newYearRetryOffer'];
 const friendly = (caught, fallback) => caught && /[가-힣]/.test(caught.message || '') ? caught.message : fallback;
 function trail() {
-  const log = { status: [], notice: [], error: [], events: [], requests: [], scheduled: 0, remembered: [] };
+  const log = { status: [], notice: [], error: [], retryOffer: [], events: [], requests: [], scheduled: 0, remembered: [] };
   const last = key => log[key][log[key].length - 1];
   const setter = key => value => { const next = typeof value === 'function' ? value(last(key)) : value; log[key].push(next); log.events.push(`${key}:${next}`); };
-  return { log, last, setStatus: setter('status'), setNotice: setter('notice'), setError: setter('error') };
+  return { log, last, setStatus: setter('status'), setNotice: setter('notice'), setError: setter('error'), setRetryOffer: setter('retryOffer') };
 }
 function newYearStart({ responses, hidden = () => false, poll } = {}) {
   const t = trail(), pendingGenerationRef = { current: null };
@@ -605,7 +681,7 @@ function newYearStart({ responses, hidden = () => false, poll } = {}) {
     document: { get hidden() { return hidden(t.log); } },
     captureDeliveryScope: () => () => true, READING_SECTION_TOTAL: 6, pendingGenerationRef,
     autoResumeRef: { current: { timer: 0, rounds: 0, best: 0 } }, window: { clearTimeout() {} },
-    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError,
+    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError, setRetryOffer: t.setRetryOffer,
     applyResult: result => { t.setNotice(''); t.setError(''); t.setStatus(result.status && result.status !== 'completed' ? 'reading' : 'ready'); },
     sleep: async () => {}, rememberNewYearSession: id => t.log.remembered.push(id),
     scheduleAutoResume: () => { t.log.scheduled += 1; t.setStatus('reading'); return false; },
@@ -704,7 +780,7 @@ function newYearLoad({ status, body, pending = null, before = 'reading' }) {
     idempotencyKeyRef: { current: 'paid-request' }, pendingGenerationRef: { current: pending },
     authFetch: async () => ({ status, ok: status >= 200 && status < 300, json: async () => body }),
     applyResult: () => {}, startConsultation: async (...args) => { starts.push(args); return true; },
-    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError, friendlyErrorMessage: friendly,
+    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError, setRetryOffer: t.setRetryOffer, friendlyErrorMessage: friendly,
     scheduleAutoResume: () => { t.log.scheduled += 1; return false; },
   });
   vm.runInContext(POLLING_SOURCE() + newYearSource(NY_CLIENT, [...NY_COPY, 'loadSession']), ctx);
@@ -751,6 +827,80 @@ for (const [label, response, expected] of terminalCases) {
     assert.equal(h.ctx.pendingGenerationRef.current, null);
   });
 }
+// 2026-11-19 다시 시도 우선(R4): 서버가 무료 다시 시도를 열면 환불 안내 대신 다시 시도 안내와 버튼(retryOffer)을 보인다.
+const retryFailure = { status: 503, body: { ok: false, reason: 'LLM_ERROR', message: '권한은 보존되었으니 다시 시도해 주세요.', sessionId: 'ny-1', refunded: false, retry: { available: true, refundAt: '2026-11-26T00:00:00.000Z', sessionId: 'ny-1' } } };
+test('R4: 신년 결제 생성이 다시 시도 가능 실패면 환불 안내 대신 무료 다시 시도를 연다', async () => {
+  const h = newYearStart({ responses: [retryFailure] });
+  assert.equal(await h.run(), false);
+  assert.equal(h.log.requests.length, 1); assert.equal(h.log.scheduled, 0);
+  assert.equal(h.last('status'), 'error');
+  assert.equal(h.last('error'), vm.runInContext('NEW_YEAR_RETRY_MESSAGE', h.ctx));
+  assert.match(h.last('error'), /추가 결제·차감은 없어요/);
+  assert.equal(h.last('retryOffer'), 'ny-1'); assert.equal(h.pendingGenerationRef.current, null);
+});
+test('R4: 신년 상담을 다시 열었을 때 다시 시도 가능 실패면 다시 시도 버튼을 연다', async () => {
+  const h = newYearLoad({ status: 409, body: { ...retryFailure.body, reason: 'GENERATION_FAILED' } });
+  assert.equal(await h.run(), false);
+  assert.equal(h.starts.length, 0);
+  assert.equal(h.last('error'), vm.runInContext('NEW_YEAR_RETRY_MESSAGE', h.ctx));
+  assert.equal(h.last('retryOffer'), 'ny-1');
+});
+function newYearRetryHandlers(responses, offer = 'ny-1') {
+  const t = trail(), starts = [], busy = [], refundNotice = [];
+  const ctx = vm.createContext({
+    retryOffer: offer, retryBusy: false, startLockRef: { current: false }, idempotencyKeyRef: { current: 'paid-request' },
+    captureDeliveryScope: () => () => true, friendlyErrorMessage: friendly,
+    setStatus: t.setStatus, setNotice: t.setNotice, setError: t.setError, setRetryOffer: t.setRetryOffer,
+    setRetryBusy: value => busy.push(value), setRefundRequestNotice: value => refundNotice.push(value),
+    startConsultation: async (...args) => { starts.push(args); return true; },
+    postJson: async (path, payload, key) => {
+      t.log.requests.push({ path, payload, key });
+      const next = responses.shift(); assert.ok(next, 'unexpected request');
+      return { response: { status: next.status, ok: next.status >= 200 && next.status < 300 }, payload: next.body };
+    },
+  });
+  vm.runInContext(newYearSource(NY_CLIENT, [...NY_COPY, 'handleFreeRetry', 'handleNewYearRefundRequest']), ctx);
+  return { ctx, ...t, starts, busy, refundNotice };
+}
+test('R4: 무료 다시 시도는 /retry 로 같은 상담을 다시 연 뒤 같은 상담 이어쓰기로 마저 완성한다(새 결제 없음)', async () => {
+  const h = newYearRetryHandlers([partial(3)]);
+  assert.equal(await h.ctx.handleFreeRetry(), true);
+  assert.deepEqual(h.log.requests.map(row => row.path), ['/api/new-year-ai/retry']);
+  assert.deepEqual(JSON.parse(JSON.stringify(h.log.requests[0].payload)), { sessionId: 'ny-1' });
+  assert.equal(h.starts.length, 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(h.starts[0].slice(0, 3))), [{ resumeSessionId: 'ny-1' }, 'paid-request', {}]);
+  assert.equal(h.last('retryOffer'), '');
+  assert.equal(h.ctx.startLockRef.current, false);
+});
+test('R4: 다시 시도가 또 실패하면 버튼을 그대로 두고, 기간이 지났으면 환불 안내로 닫는다', async () => {
+  const again = newYearRetryHandlers([retryFailure]);
+  assert.equal(await again.ctx.handleFreeRetry(), false);
+  assert.equal(again.starts.length, 0); assert.equal(again.last('retryOffer'), 'ny-1');
+  assert.equal(again.last('error'), vm.runInContext('NEW_YEAR_RETRY_MESSAGE', again.ctx));
+  const expired = newYearRetryHandlers([{ status: 409, body: { ok: false, reason: 'RETRY_WINDOW_EXPIRED' } }]);
+  assert.equal(await expired.ctx.handleFreeRetry(), false);
+  assert.equal(expired.starts.length, 0); assert.equal(expired.last('retryOffer'), '');
+  assert.equal(expired.last('error'), vm.runInContext('NEW_YEAR_REFUND_NOTICE', expired.ctx));
+});
+test('R4: 다시 시도 대신 환불 요청은 /refund-request 로 보내고 접수 안내로 바꾼다', async () => {
+  const h = newYearRetryHandlers([{ status: 200, body: { ok: true, sessionId: 'ny-1', refunded: false, refundStatus: 'pending' } }]);
+  await h.ctx.handleNewYearRefundRequest();
+  assert.deepEqual(h.log.requests.map(row => row.path), ['/api/new-year-ai/refund-request']);
+  assert.equal(h.last('retryOffer'), '');
+  assert.equal(h.last('error'), vm.runInContext('NEW_YEAR_REFUND_REQUESTED_MESSAGE', h.ctx));
+  const failed = newYearRetryHandlers([{ status: 409, body: { ok: false, reason: 'NOT_RETRYABLE' } }]);
+  await failed.ctx.handleNewYearRefundRequest();
+  assert.equal(failed.refundNotice.at(-1), vm.runInContext('NEW_YEAR_REFUND_REQUEST_FAILED_MESSAGE', failed.ctx));
+});
+test('R4: 신년 생성 오류 문구는 서버가 하지 않는 자동 이어쓰기를 약속하지 않는다', () => {
+  const ctx = vm.createContext({});
+  vm.runInContext(newYearSource(NY_CLIENT, NY_COPY), ctx);
+  assert.doesNotMatch(ctx.LLM_ERROR_MESSAGE, /다시 이어집니다|이어집니다/);
+  assert.match(ctx.LLM_ERROR_MESSAGE, /기록 보관함|결제 내역/);
+  assert.equal(ctx.newYearRetryOffer({ ok: false, reason: 'LLM_ERROR' }), '');
+  assert.equal(ctx.newYearRetryOffer({ ok: false, retry: { available: true, sessionId: 'ny-9' } }), 'ny-9');
+});
+
 test('신년 환불 안내는 결제·이용권 자동 환불과 확인 위치를 알린다', () => {
   const ctx = vm.createContext({});
   vm.runInContext(newYearSource(NY_CLIENT, NY_COPY), ctx);

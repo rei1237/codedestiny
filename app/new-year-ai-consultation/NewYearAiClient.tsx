@@ -328,6 +328,9 @@ type ConsultationResult = {
   message?: string;
   refundStatus?: string;
   retryable?: boolean;
+  refunded?: boolean;
+  // 2026-11-19 다시 시도 우선: 서버가 같은 결제 건의 무료 다시 시도를 열면 내려 준다(최상위 retryable 과 다르다).
+  retry?: { available?: boolean; refundAt?: string; sessionId?: string };
 };
 
 async function readTossNewYearResponse(response:Response):Promise<ConsultationResult> {
@@ -346,7 +349,8 @@ const PAYMENT_REQUIRED_MESSAGE = "신년운세 전문가 상담 이용권이 필
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하다 연결이 중단됐어요. 같은 상담에서 다시 시도해 주세요. 저장된 내용과 이용 내역을 먼저 확인합니다.";
-const LLM_ERROR_MESSAGE = "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 같은 요청 권한으로 다시 이어집니다.";
+// 서버는 실패한 생성을 스스로 이어 쓰지 않는다 — 다시 시도·환불 여부는 아래 안내와 버튼으로만 알린다.
+const LLM_ERROR_MESSAGE = "전문가 상담문을 생성하지 못했어요. 결제·이용권 처리 상태는 기록 보관함과 결제 내역에서 확인할 수 있어요.";
 const REQUIRED_INPUT_MESSAGE = "신년운세 상담에 필요한 정보가 부족해요. 생년월일, 성별, 달력 기준을 다시 확인해 주세요.";
 const TARGET_YEAR_REQUIRED_MESSAGE = "상담할 연도를 선택해 주세요.";
 const CUSTOM_QUESTION_REQUIRED_MESSAGE = "직접 질문을 선택했다면 궁금한 내용을 짧게 적어 주세요.";
@@ -620,9 +624,24 @@ const NEW_YEAR_STALLED_MESSAGE = "생성이 예상보다 오래 멈춰 있어요
 // 생성이 실패로 닫히면 서버가 결제·이용권을 자동으로 되돌린다(settleNewYearFailureRefund·consultationRefundResponse).
 const NEW_YEAR_REFUND_NOTICE = "새해 상담문을 완성하지 못해 결제·이용권을 자동으로 되돌리고 있어요. 처리 상태는 기록 보관함과 결제 내역에서 확인할 수 있어요.";
 // 결제(단건·월정석·PG 복귀)·이용권 확인이 끝나 생성을 시작할 때 결제 안내를 이 문구로 바꾼다.
+// 2026-11-19 다시 시도 우선: 생성 실패는 바로 환불하지 않고 같은 결제 건으로 빠진 분야만 무료로 다시 쓴다. 기한(일수)은 약속하지 않는다.
+const NEW_YEAR_RETRY_MESSAGE = "새해 상담문 일부를 완성하지 못했어요. 이미 쓴 분야는 그대로 두고 빠진 분야만 다시 써 드려요. 추가 결제·차감은 없어요.";
+const NEW_YEAR_RETRY_LABEL = "다시 시도 · 추가 결제·차감 없음";
+const NEW_YEAR_RETRY_STARTED_NOTICE = "빠진 분야를 다시 쓰고 있어요. 추가 결제·차감은 없어요.";
+const NEW_YEAR_RETRY_FAILED_MESSAGE = "다시 시도를 시작하지 못했어요. 잠시 뒤 다시 눌러 주세요. 추가 결제·차감은 없어요.";
+const NEW_YEAR_REFUND_REQUEST_LABEL = "다시 시도 대신 환불 요청";
+const NEW_YEAR_REFUND_REQUESTED_MESSAGE = "환불 요청을 받았습니다. 처리가 끝나면 이용권과 결제가 되돌아갑니다.";
+const NEW_YEAR_REFUNDED_MESSAGE = "이용권과 결제를 되돌려 드렸습니다.";
+const NEW_YEAR_REFUND_REQUEST_FAILED_MESSAGE = "환불 요청을 전하지 못했습니다. 잠시 뒤 다시 눌러 주세요.";
 const NEW_YEAR_PAID_NOTICE = "결제·이용권 확인이 끝났어요. 새해 상담문을 쓰기 시작했어요. 다 쓴 분야는 바로 저장돼요.";
 const NEW_YEAR_AUTO_RESUME_ROUNDS = 4;
 const NEW_YEAR_AUTO_RESUME_DELAY_MS = 15000;
+
+// 무료 다시 시도가 열린 실패면 그 상담 id 를 돌려준다. 환불 안내(newYearRefundNotice)보다 먼저 본다.
+function newYearRetryOffer(result: ConsultationResult) {
+  if (result.ok || result.retry?.available !== true) return "";
+  return String(result.retry.sessionId || result.sessionId || "");
+}
 
 // 종결 실패면 이어 쓰지 않고 환불 안내로 끝낸다. 환불 상태 응답은 서버 문구(진행·확인 중·완료)를 그대로 쓴다.
 // REFUND_PENDING 은 retryable 일 수 있어 일시 장애 판정보다 먼저 본다.
@@ -1583,6 +1602,10 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const pendingGenerationRef = useRef<{ payload: Record<string, unknown>; key: string; access: Record<string, unknown> } | null>(null);
   const autoResumeRef = useRef({ timer: 0, rounds: 0, best: 0 });
+  // 서버가 연 무료 다시 시도(같은 결제 건)의 상담 id. 있으면 새 결제 대신 빠진 분야 다시 쓰기·환불 요청만 보여 준다.
+  const [retryOffer, setRetryOffer] = useState("");
+  const [retryBusy, setRetryBusy] = useState(false);
+  const [refundRequestNotice, setRefundRequestNotice] = useState("");
   const resumeGenerationRef = useRef<() => void>(() => {});
   const [reloadEpoch, setReloadEpoch] = useState(0);
   const [tossRecovery,setTossRecovery]=useState<'none'|'checking'|'allowed'|'denied'|'error'>(()=>paymentSurface==='toss'&&typeof window!=='undefined'&&Boolean(new URLSearchParams(window.location.search).get('sid'))?'checking':'none');
@@ -1684,10 +1707,12 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         pendingGenerationRef.current = { payload: { resumeSessionId: sessionId }, key: idempotencyKey, access: {} };
         rememberNewYearSession(sessionId);
       }
-      const refund = newYearRefundNotice(result);
+      const offer = newYearRetryOffer(result);
+      const refund = offer ? NEW_YEAR_RETRY_MESSAGE : newYearRefundNotice(result);
       if (refund) {
         pendingGenerationRef.current = null;
         window.clearTimeout(autoResumeRef.current.timer); autoResumeRef.current = { timer: 0, rounds: 0, best: 0 };
+        setRetryOffer(offer);
         setNotice(""); setError(refund); setStatus("error");
         return false;
       }
@@ -1738,9 +1763,11 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         return await startConsultation({ resumeSessionId: sessionId }, idempotencyKeyRef.current, {});
       }
       if (response.ok && result.ok && result.status === "completed") { applyResult(result); return true; }
-      const refund = newYearRefundNotice(result);
+      const offer = newYearRetryOffer(result);
+      const refund = offer ? NEW_YEAR_RETRY_MESSAGE : newYearRefundNotice(result);
       if (refund) {
         pendingGenerationRef.current = null;
+        setRetryOffer(offer);
         setNotice(""); setError(refund); setStatus("error");
         return false;
       }
@@ -1777,6 +1804,64 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     }
   }, [captureDeliveryScope, startConsultation]);
   useEffect(() => { resumeGenerationRef.current = () => { void continuePendingGeneration(); }; }, [continuePendingGeneration]);
+
+  // 무료 다시 시도: 같은 결제 건을 빠진 분야 이어쓰기로 되돌린 뒤, 기존 이어쓰기(resumeSessionId)로 마저 완성한다.
+  // 새 결제·차감을 하지 않는다 — 차감은 전달 때 한 번뿐이다.
+  const handleFreeRetry = useCallback(async () => {
+    const sessionId = retryOffer;
+    if (!sessionId || retryBusy || startLockRef.current) return false;
+    const isCurrent = captureDeliveryScope();
+    startLockRef.current = true;
+    setRetryBusy(true); setRefundRequestNotice("");
+    setError(""); setNotice(NEW_YEAR_RETRY_STARTED_NOTICE); setStatus("reading");
+    try {
+      const { response, payload } = await postJson<ConsultationResult>("/api/new-year-ai/retry", { sessionId }, idempotencyKeyRef.current);
+      if (!isCurrent()) return false;
+      const again = newYearRetryOffer(payload);
+      if (again) { setRetryOffer(again); setNotice(""); setError(NEW_YEAR_RETRY_MESSAGE); setStatus("error"); return false; }
+      const refund = newYearRefundNotice(payload);
+      if (refund || payload.reason === "RETRY_WINDOW_EXPIRED" || payload.reason === "REFUND_STARTED") {
+        // 다시 시도 기간이 지났거나 환불이 시작된 건은 환불로 닫힌다(기한이 지나면 서버가 자동으로 되돌린다).
+        setRetryOffer(""); setNotice(""); setError(refund || NEW_YEAR_REFUND_NOTICE); setStatus("error");
+        return false;
+      }
+      if (response.ok || response.status === 202 || payload.reason === "GENERATION_IN_PROGRESS") {
+        setRetryOffer("");
+        return await startConsultation({ resumeSessionId: sessionId }, idempotencyKeyRef.current, {});
+      }
+      setNotice(""); setError(NEW_YEAR_RETRY_FAILED_MESSAGE); setStatus("error");
+    } catch (caught) {
+      if (isCurrent()) { setNotice(""); setError(friendlyErrorMessage(caught, NEW_YEAR_RETRY_FAILED_MESSAGE)); setStatus("error"); }
+    } finally {
+      if (isCurrent()) startLockRef.current = false;
+      setRetryBusy(false);
+    }
+    return false;
+  }, [captureDeliveryScope, retryBusy, retryOffer, startConsultation]);
+
+  // 다시 시도 대신 환불 요청: 서버가 공용 환불로 넘기고 바로 정산을 시도한다.
+  const handleNewYearRefundRequest = useCallback(async () => {
+    const sessionId = retryOffer;
+    if (!sessionId || retryBusy) return;
+    setRetryBusy(true);
+    try {
+      const { payload } = await postJson<ConsultationResult>("/api/new-year-ai/refund-request", { sessionId });
+      if (payload.ok === true) {
+        setRetryOffer(""); setRefundRequestNotice("");
+        setError(payload.refunded === true ? NEW_YEAR_REFUNDED_MESSAGE : NEW_YEAR_REFUND_REQUESTED_MESSAGE);
+        return;
+      }
+      if (payload.reason === "PAYMENT_REFUNDED" || payload.reason === "REFUND_PENDING") {
+        setRetryOffer(""); setRefundRequestNotice(""); setError(newYearRefundNotice(payload));
+        return;
+      }
+      setRefundRequestNotice(NEW_YEAR_REFUND_REQUEST_FAILED_MESSAGE);
+    } catch {
+      setRefundRequestNotice(NEW_YEAR_REFUND_REQUEST_FAILED_MESSAGE);
+    } finally {
+      setRetryBusy(false);
+    }
+  }, [retryBusy, retryOffer]);
   useEffect(() => {
     const autoResume = autoResumeRef;
     return () => window.clearTimeout(autoResume.current.timer);
@@ -1986,6 +2071,11 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     event.preventDefault();
     const isCurrent = captureDeliveryScope();
     if (startLockRef.current || isBusy) return;
+    if (retryOffer) {
+      // 무료 다시 시도가 열려 있으면 새 결제로 가지 않고 같은 결제 건으로 빠진 분야만 다시 쓴다.
+      await handleFreeRetry();
+      return;
+    }
     if (pendingGenerationRef.current) {
       // 사용자가 직접 다시 누르면 자동 이어쓰기 횟수를 새로 센다.
       window.clearTimeout(autoResumeRef.current.timer);
@@ -2401,6 +2491,16 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           </fieldset>
           {notice && <p className="nyai-notice">{notice}</p>}
           {error && <p ref={errorRef} role="alert" className="nyai-error">{error}</p>}
+          {paymentSurface!=='toss'&&retryOffer&&(
+            <div className="nyai-retry">
+              <button type="button" className="nyai-primary" disabled={retryBusy||isBusy} onClick={()=>void handleFreeRetry()}>
+                {retryBusy ? <Loader2 size={18} className="nyai-spin" /> : null}
+                <span>{NEW_YEAR_RETRY_LABEL}</span>
+              </button>
+              <button type="button" className="nyai-retry-refund" disabled={retryBusy||isBusy} onClick={()=>void handleNewYearRefundRequest()}>{NEW_YEAR_REFUND_REQUEST_LABEL}</button>
+              {refundRequestNotice&&<p role="status" className="nyai-notice">{refundRequestNotice}</p>}
+            </div>
+          )}
           {paymentSurface==='toss'&&tossRecovery==='checking'&&<p role="status">{tossCopy.checking}</p>}
           {paymentSurface==='toss'&&tossRecovery==='allowed'&&status!=='ready'&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>void retryTossNewYear()}>{tossCopy.resume}</button>}
           {paymentSurface==='toss'&&error&&new URLSearchParams(typeof window!=='undefined'?window.location.search:'').get('sid')&&<button type="button" style={{minHeight:44}} disabled={isBusy} onClick={()=>setReloadEpoch(value=>value+1)}>{tossCopy.retryAuthority}</button>}
@@ -3249,6 +3349,31 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           color: var(--nyai-danger);
           background: rgba(96, 20, 38, .34);
           border: 1px solid rgba(224, 138, 138, .28);
+        }
+
+        .nyai-retry {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 8px;
+          margin: 12px 0 0;
+        }
+
+        .nyai-retry-refund {
+          min-height: 44px;
+          border: 0;
+          background: none;
+          color: var(--nyai-gold-bright);
+          font-size: 14px;
+          font-weight: 600;
+          text-decoration: underline;
+          text-underline-offset: 4px;
+          cursor: pointer;
+        }
+
+        .nyai-retry-refund:disabled {
+          cursor: not-allowed;
+          opacity: .6;
         }
 
         .nyai-primary {
