@@ -52,9 +52,9 @@
 4. 사용자가 `단건 결제`를 선택하면 V2 `worker/payments/index.js`(`POST /api/payments/prepare`, `/api/billing/checkout` 도 같은 어댑터)가 PortOne 주문을 준비한다. 구 `/single/start` 는 닫혔다(410).
 5. `단건 결제`와 `월정석` 경로는 이용권 DB를 조회하거나 이용권 방식으로 자동 전환하지 않는다.
 
-### 달빛 이용권 상품 구매 정책
+### 꿀단지 이용권 상품 구매 정책
 
-- 달빛 이용권 상품 자체는 `단건 결제`(원화 PG)로만 구매할 수 있다. 보유 월정석은 이용권 구매 수단이 아니다.
+- 꿀단지 이용권 상품 자체는 `단건 결제`(원화 PG)로만 구매할 수 있다. 보유 월정석은 이용권 구매 수단이 아니다.
 - `/api/payments/subscription/prepare`와 `/api/payments/subscription/confirm`은 `monthly_credit` 및 월정석 별칭 요청을 `SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED`로 거부한다.
 - 월정석은 유료 기능 이용과 서버가 별도로 허용한 소비 흐름에만 사용하며, 이용권 구매 UI에는 구매 선택지로 노출하지 않는다. 이용권 가격·환불 정책은 변경하지 않는다.
 

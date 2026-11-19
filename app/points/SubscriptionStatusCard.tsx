@@ -121,7 +121,7 @@ type SubscriptionStatusCopy = {
 const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = {
   ko: {
     ariaLabel: "현재 이용권 상태",
-    eyebrow: "나의 달빛 이용권 혜택",
+    eyebrow: "나의 꿀단지 이용권 혜택",
     fallbackBenefit: "단건 결제 가능",
     currentUsing: (label) => `현재 ${label} 이용 중 · 이용 한도 안에서 이용 가능`,
     summary: ({ label, benefit, value }) => `${label} · ${benefit} · ${value}`,

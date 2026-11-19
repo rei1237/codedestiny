@@ -969,12 +969,12 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       failed: "실패",
       pending: "대기",
     },
-    subscriptionAria: "달빛 이용권",
+    subscriptionAria: "꿀단지 이용권",
     toastCloseLabel: "알림 닫기",
     monthlyBonusAria: "월정석 보너스 잔량과 사용 내역",
     walletAria: "이용권 상점 안내",
     refundAgreement: "원화 결제된 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.",
-    passAlt: "달빛 이용권",
+    passAlt: "꿀단지 이용권",
     wonSinglePaymentAria: "원화 결제 안내",
     paymentFailureGuide: [
       "창 닫기/취소: 결제가 취소되어 이용권 권한이 생성되지 않습니다.",
@@ -982,8 +982,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       "카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.",
     ],
     accountInfoAria: "계정 정보",
-    currentPassAria: "현재 달빛 이용권",
-    passRemainingTitle: "달빛 이용권 상태",
+    currentPassAria: "현재 꿀단지 이용권",
+    passRemainingTitle: "꿀단지 이용권 상태",
     monthlyBonusPendingTitle: "월정석 정보 대기",
     monthlyBonusEmptyTitle: "월정석 사용 내역 없음",
     passOrderHistoryPendingTitle: "이용권 주문 내역 대기",
@@ -1001,7 +1001,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     passCycleTitle: "이번 이용권 이용 한도",
     passCycleSummary: (spent, cap) => `${spent} / ${cap} 사용`,
     passCycleRemaining: (remaining) => `${remaining} 남음`,
-    subscriptionPaymentChoiceTitle: "달빛 이용권 결제 방식 선택",
+    subscriptionPaymentChoiceTitle: "꿀단지 이용권 결제 방식 선택",
     passWonOnlyNotice: "이용권은 원화 단건 결제로만 구매할 수 있습니다.",
     passConditionsTitle: "이용권 조건",
     giftActivationNotice: "서버 결제 확인 후 선물 링크를 만들 수 있으며, 받는 사람이 로그인하여 수령한 날부터 이용권이 활성화됩니다.",
@@ -1341,7 +1341,7 @@ function formatMonthlyCreditLedgerAmount(entry: MonthlyCreditLedgerItem, copy: P
 function formatMonthlyCreditLedgerReason(entry: MonthlyCreditLedgerItem) {
   const reason = String(entry.reason || "").trim();
   if (reason.includes("membership_credit_access")) return "유료 기능 이용";
-  if (reason.includes("monthly-credit membership pass purchase")) return "달빛 이용권 활성화";
+  if (reason.includes("monthly-credit membership pass purchase")) return "꿀단지 이용권 활성화";
   if (reason) return reason;
   if (entry.type === "MONTHLY_CREDIT_GRANT") return "보너스 월정석 지급";
   if (entry.type === "MONTHLY_CREDIT_SPEND") return "보너스 월정석 사용";
@@ -1973,7 +1973,7 @@ function MonthlyCreditBonusCard({
           <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">보너스 월정석</p>
           <h3 className="mt-1 text-lg font-black text-white">월정석 잔량</h3>
           <p className="mt-1 text-sm text-slate-200">
-            월정석은 달빛 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다. 받은 날로부터 30일간만 유효하고, 그 안에 쓰지 않은 지급분은 소멸합니다.
+            월정석은 꿀단지 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다. 받은 날로부터 30일간만 유효하고, 그 안에 쓰지 않은 지급분은 소멸합니다.
           </p>
         </div>
         <div className="rounded-[18px] border border-[#f3dd9a]/48 bg-[#f3dd9a]/18 px-4 py-3 text-left sm:text-right">
@@ -2058,9 +2058,9 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
             </div>
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">
-                연이의 달빛 이용권 상점
+                연이의 꿀단지 이용권 상점
               </p>
-              <p className="mt-1 text-[17px] font-black leading-tight text-white">{name} 님의 달빛 이용권 상점</p>
+              <p className="mt-1 text-[17px] font-black leading-tight text-white">{name} 님의 꿀단지 이용권 상점</p>
             </div>
           </div>
 
@@ -2169,7 +2169,7 @@ function MoonlightActivePassCard({
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">나의 달빛 이용권 혜택</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">나의 꿀단지 이용권 혜택</p>
               <h2 className="mt-1 text-xl font-black leading-tight text-white">{title}</h2>
               <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--moon-teal)]">
                 <span className="h-2 w-2 rounded-full bg-[color:var(--moon-teal)] shadow-[0_0_12px_rgba(94,234,212,0.76)]" aria-hidden="true" />
@@ -2257,7 +2257,7 @@ function MoonlightMonthlyCreditCard({
             <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">보너스 월정석</p>
             <h2 className="mt-2 text-2xl font-black text-white">월정석의 흐름을 불러오는 중이에요</h2>
             <p className="mt-3 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-              달빛 이용권과 보너스 혜택을 조용히 정돈하고 있어요.
+              꿀단지 이용권과 보너스 혜택을 조용히 정돈하고 있어요.
             </p>
           </div>
           <div className="moonstone-counter flex min-h-[168px] min-w-[196px] flex-col items-center justify-center rounded-[22px] px-8 py-6 text-center">
@@ -2332,7 +2332,7 @@ function MoonlightMonthlyCreditCard({
             <MoonIcon phase="crescent" className="h-14 w-14" title={copy.monthlyBonusEmptyTitle} />
             <p className="mt-3 text-base font-black text-white">아직 달빛이 흐르지 않았어요</p>
             <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
-              달빛 이용권을 구매하면 보너스 월정석을 받을 수 있어요.
+              꿀단지 이용권을 구매하면 보너스 월정석을 받을 수 있어요.
             </p>
           </div>
         ) : (
@@ -2436,7 +2436,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
 
-          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스(꿀단지 이용권)</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">꿀단지 이용권</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -2628,7 +2628,7 @@ function MoonlightOrderHistory({
       ) : payments.length === 0 ? (
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
           <ShopPigImage className="h-[72px] w-[72px] object-contain drop-shadow-[0_6px_14px_rgba(3,4,18,0.5)]" />
-          <p className="mt-3 text-base font-black text-white">첫 번째 달빛 이용권을 구매해보세요</p>
+          <p className="mt-3 text-base font-black text-white">첫 번째 꿀단지 이용권을 구매해보세요</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             이용권 주문 내역이 이곳에 차분히 쌓입니다.
           </p>
@@ -2722,7 +2722,7 @@ export default function PointsPage() {
   const authState = useAuthStore();
   const userAccess = useUserAccess();
   const authStoreUserId = authState.user?.id || "";
-  // 영냥이 세트 카드도 달빛 이용권 카드와 같은 원화 청구 고지를 쓴다(문구 정본은 이 파일의 useOverseasCharge 하나).
+  // 영냥이 세트 카드도 꿀단지 이용권 카드와 같은 원화 청구 고지를 쓴다(문구 정본은 이 파일의 useOverseasCharge 하나).
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
@@ -3031,7 +3031,7 @@ export default function PointsPage() {
       destination.searchParams.set("paid_pass_resume", "1");
       destination.searchParams.set("paymentId", orderId);
     }
-    pushToast("success", "달빛 이용권이 적용되었습니다. 원래 보시던 화면으로 돌아갈게요.");
+    pushToast("success", "꿀단지 이용권이 적용되었습니다. 원래 보시던 화면으로 돌아갈게요.");
     // 🔴 예전에는 스냅샷을 지우고 떠났다. 그러면 목적지의 재예열이 idle(1200~2200ms)이라, 도착 직후
     // 첫 클릭이 snapshotVerdictOnly 진입 판정에서 indeterminate 로 떨어져 **방금 이용권을 산 사용자에게
     // 결제창이 다시 뜨는** 레이스가 났다(이중구매 노출). 인증이 가장 뜨거운 지금 서버 정본을 직접 받아
@@ -4876,17 +4876,17 @@ export default function PointsPage() {
                 />
                 <div>
                   <p className="text-xs font-extrabold tracking-[0.22em] text-[#ded4ff] uppercase">
-                    연이의 달빛 이용권 상점
+                    연이의 꿀단지 이용권 상점
                   </p>
                   {/* 🔴 h1 이 아니라 h2 다(2026-09-07). 이 블록은 `{false &&}` 로 죽어 있지만
                       verify:hydrated-h1-integrity 는 파일을 정적으로 읽으므로, 여기 h1 이 남아 있으면
                       "서버 h1(MoonShopFrame 히어로) + ssr:false 클라이언트 h1" 으로 잡힌다.
                       /points 의 h1 정본은 app/points/MoonShopFrame.tsx 의 MoonlightShopHero 하나다. */}
                   <h2 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
-                    연이의 달빛 이용권 상점
+                    연이의 꿀단지 이용권 상점
                   </h2>
                   <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
-                    달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
+                    꿀단지 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[13px] font-semibold text-[#ffe8a3]">
                     이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.

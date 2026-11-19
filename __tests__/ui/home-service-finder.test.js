@@ -490,7 +490,7 @@ test("추천 카드는 결제 게이트를 무장하지 않고 결제 여부 표
     return hit;
   };
 
-  const points = byPrice("vvip", "달빛 이용권");
+  const points = byPrice("vvip", "꿀단지 이용권");
   assert.ok(points, "이용권 상점 카드를 못 찾았다 — 경계 대조가 공회전한다(fail-open)");
   assert.equal(points.getAttribute("data-pvw-paid"), null, "이용권 상점이 유료로 분류됐다 — /points 앵커가 가로채인다");
   assert.equal(points.getAttribute("data-feature-key"), null, "이용권 상점에 featureKey 가 실렸다");

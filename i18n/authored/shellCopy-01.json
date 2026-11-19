@@ -29,7 +29,7 @@
     "ms": "Bayaran sekali di luar julat"
   },
   "home.passMini.heroTitle": {
-    "ko": "문라이트 패스 범위 보기",
+    "ko": "꿀단지 이용권 범위 보기",
     "en": "See the Moonlight Pass range",
     "ja": "ムーンライトパスの範囲を見る",
     "zh-CN": "查看月光通行证范围",
@@ -43,7 +43,7 @@
     "ms": "Lihat julat Moonlight Pass"
   },
   "home.passMini.heroSub": {
-    "ko": "반복해서 찾는 리딩을 달빛 이용권 안에서 먼저 이어가요",
+    "ko": "반복해서 찾는 리딩을 꿀단지 이용권 안에서 먼저 이어가요",
     "en": "Keep the readings you return to most within your moonlight pass",
     "ja": "繰り返し訪れるリーディングを、月明かりの利用券の中で先に読み継げます",
     "zh-CN": "把您常回来看的解读，先放进月光通行证里继续",
@@ -57,7 +57,7 @@
     "ms": "Teruskan bacaan yang paling kerap anda kembali kepadanya di dalam Moonlight Pass anda"
   },
   "home.passMini.desc": {
-    "ko": "달빛 이용권은 이용 한도를 다 쓸 때까지 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 문라이트 패스예요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
+    "ko": "꿀단지 이용권은 이용 한도를 다 쓸 때까지 반복해서 찾는 리딩을 정해진 범위 안에서 먼저 열어 주는 이용권이에요. 오늘의 징조를 멈추지 않고 차분히 이어볼 수 있습니다.",
     "en": "The moonlight pass opens the readings you return to often, within a set range, until you use up its usage limit. Today's signs keep unfolding without interruption.",
     "ja": "月明かりの利用券は、利用上限を使い切るまで、繰り返し訪れるリーディングを決められた範囲の中で先に開いてくれるムーンライトパスです。今日の兆しを止めずに、静かに読み継ぐことができます。",
     "zh-CN": "月光通行证会在额度用完之前，把您常回来看的解读，先在设定的范围内为您打开。今日的征兆不必中断，可以安静地一路读下去。",

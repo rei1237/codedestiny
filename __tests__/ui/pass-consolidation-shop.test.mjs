@@ -32,7 +32,7 @@ test('the shop states one rule and no longer splits the sites',()=>{
 });
 test('the pass carries one name that fits both sites',async()=>{
  const {MOONLIGHT_PASS_NAME}=await import('../../lib/brand/moonlight-guide.mjs');
- assert.equal(MOONLIGHT_PASS_NAME,'문라이트 패스(꿀단지 이용권)');
+ assert.equal(MOONLIGHT_PASS_NAME,'꿀단지 이용권');
  assert.equal(points.includes('꿀꿀운세 이용권'),false);
 });
 test('every tier has an account label, and no pass reads as none rather than 0 days',()=>{

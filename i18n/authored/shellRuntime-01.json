@@ -338,7 +338,7 @@
     "ms": "Mula secara percuma"
   },
   "shellRuntime.w1_24": {
-    "ko": "이용권 · 문라이트 패스 안내",
+    "ko": "꿀단지 이용권 안내",
     "en": "Pass & Moonlight Pass guide",
     "ja": "パス・ムーンライトパスのご案内",
     "zh-CN": "通行证 · 月光通行证说明",
@@ -352,7 +352,7 @@
     "ms": "Panduan Pas & Moonlight Pass"
   },
   "shellRuntime.w1_25": {
-    "ko": "문라이트 패스 범위 보기",
+    "ko": "꿀단지 이용권 범위 보기",
     "en": "See what Moonlight Pass covers",
     "ja": "ムーンライトパスの範囲を見る",
     "zh-CN": "查看月光通行证涵盖范围",
@@ -366,7 +366,7 @@
     "ms": "Lihat liputan Moonlight Pass"
   },
   "shellRuntime.w1_26": {
-    "ko": "반복해서 찾는 리딩을 달빛 이용권 안에서 먼저 이어가요",
+    "ko": "반복해서 찾는 리딩을 꿀단지 이용권 안에서 먼저 이어가요",
     "en": "Keep the readings you return to inside your Moonlight Pass",
     "ja": "何度も見に来る鑑定は、ムーンライトパスの中で続けられます",
     "zh-CN": "常看的解读，先在月光通行证内继续",

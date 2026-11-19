@@ -82,7 +82,7 @@
 
 ### 이용권 상품 자체의 구매 흐름
 
-위 공통 흐름은 유료 콘텐츠 이용 결제창의 정책이다. 달빛 이용권 상품 자체를 구매하는 흐름은 별도로 다음을 따른다.
+위 공통 흐름은 유료 콘텐츠 이용 결제창의 정책이다. 꿀단지 이용권 상품 자체를 구매하는 흐름은 별도로 다음을 따른다.
 
 1. `/points`와 앱 이용권 상점에는 `원화 단건 결제`만 구매 수단으로 표시한다.
 2. `/api/payments/subscription/prepare`와 `/api/payments/subscription/confirm`은 `monthly_credit` 및 월정석 별칭을 `SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED`로 거부한다.

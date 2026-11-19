@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: "U1 — 한국어 화면의 이용권 상위 이름을 꿀단지 이용권으로 통일"
+next: "U2 — 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary"
 ---
 
 # 용어 통일(꿀단지 이용권·월정석) + 처음 온 사람용 FAQ·서비스 설명 다듬기
@@ -59,10 +59,16 @@ next: "U1 — 한국어 화면의 이용권 상위 이름을 꿀단지 이용권
 - 큰 화면 개편이 아니라 문안 개편이다. 레이아웃·컴포넌트 구조는 바꾸지 않는다. 문항 수를 줄여 테스트가 개수를 단언하면 갱신한다.
 
 ## 단계
-- [ ] U1 한국어 용어 통일(꿀단지 이용권). 바꾼 파일·건수, 보고만 목록(결제 동결)을 아래 "결과"에.
+- [x] U1 한국어 용어 통일(꿀단지 이용권). 바꾼 파일·건수, 보고만 목록(결제 동결)을 아래 "결과"에.
 - [ ] U2 번역 용어 통일(Moonstone·月精石·꿀단지 이용권 번역) + glossary.
 - [ ] U3 FAQ·서비스 설명 개편(+ 해당 로케일 번역 동기화, SEO 점검).
 - [ ] U4 마무리: 남은 옛 이름 grep(문서 역사 기록 제외) 0 확인, 금지 표현 grep, `npm run check:pre-push`, origin/main 머지(충돌 생성물은 theirs → `sync:public`·`sitemap:generate`), push, main CI 1회 확인, 이 문서 `status: done`, 최종 보고. 운영 승격은 하지 않는다.
 
 ## 결과
-(단계별로 여기에 추가)
+### U1 (2026-11-19, 커밋은 이 문서를 담은 커밋)
+- 바꾼 소스: app 10파일(points 화면·service-pack-copy·page.js 등), index.html 25곳, js/core 2, lib 4(moonlight-guide `MOONLIGHT_PASS_NAME`=꿀단지 이용권, pass-benefits h2, pass-pricing 주석), worker/routes/fortune.js 오류 문구, vedic-astrology.html, authored ko 값 10파일, `public/i18n/ko.json` 24값, `public/i18n/ko/shellRuntime.json` 6값(역인덱스 — 셸 런타임 리터럴과 같은 문장으로 맞춤), `i18n/pending/shellRuntime.ko.json` 3값, 테스트 3·verify 주석 2, 정책 문서 4(payment-gating:9, design-canon:34-35, PAYMENT_AND_ACCESS, payment-policy-flow:85). 생성물은 `sync:public`(셸 미러 7·public js·marketing generated 3)·`sitemap:generate` 로 재생성.
+- 파생 표현: "달빛 범위" → "꿀단지 한도", "달빛 범위를 골라요" → "꿀단지 크기를 골라요", "문라이트 패스가 닿으면" → "꿀단지 이용권이 있으면".
+- 🔴 보고만(결제 동결, 화면에 "달빛 이용권"이 남는다): `payment.directModal.passBadge`(billing-client.ts:1175 · index.html `_cdChooseServicePaymentMode` · destiny-profile.js:12425 · ko.json 값), `payment.directModal.musicTrackSub`(billing-client.ts:1134 · ko.json 값). 세 렌더러 폴백과 ko.json 값이 같아야 하는 verify-payment-copy-dictionary·payment-choice-parity 가 묶여 있어 ko.json 값도 그대로 뒀다. 바꾸려면 payment-freeze 절차(`verify-payment-freeze --update`)로 세 렌더러+ko.json 을 한 커밋에.
+- 보고만(로직·주석): billing-client.ts:2926·index.html 대기 종류 정규식 `달빛 이용권 결제|이용권 결제`(옛 문구 호환, 동결) 와 그 설명 주석(index.html, verify-paid-gate-ui-regression.mjs:406 — passBadge 가 아직 달빛 이용권이라 사실), billing-client.ts:1168 주석(동결 파일), worker/payments/passes.js:2 JSDoc(결제 실행 파일), public/_redirects:66 주석(라우팅 파일).
+- 역사·스냅샷이라 둠: docs/ 의 감사·인벤토리·SEO 기록·adsense baseline·toss 인벤토리·inicis 신청 사실 문서, payment-gating:345·349 와 payment-policy-flow:123(날짜 결정), shellCopy-04 `_comment`, 미참조 잔재 `i18n/.rest.json`·`i18n/.w1-strings.json`.
+- 다른 로케일 값(Moonlight Pass 등)은 U2.

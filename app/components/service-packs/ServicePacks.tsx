@@ -160,7 +160,7 @@ export function OwnedServicePacks({locale,onWalletChange,context=null}:{context?
  </section>;
 }
 
-// 상담 결제 화면의 '내 이용권' 두 칸. 표시 전용 — 달빛 이용권은 결제 진입 로컬 스냅샷, 세트는 이 상담 quote 후보로만 그린다.
+// 상담 결제 화면의 '내 이용권' 두 칸. 표시 전용 — 꿀단지 이용권은 결제 진입 로컬 스냅샷, 세트는 이 상담 quote 후보로만 그린다.
 // 어느 수단이 실제로 차감되는지는 서버가 판정하므로 '적용 중'을 단정하지 않는다.
 function CheckoutPassSummary({locale,flower,pack,applied}:{locale:LoadingLocale;flower:SubscriptionSnapshot|null;pack?:OwnedServicePack;applied:number|null}){
  const copy=servicePackCopy(locale),owned=!!flower&&flower.state==='active'&&flower.tier!=='free';

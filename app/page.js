@@ -157,7 +157,7 @@ export default function HomePage() {
             <Link prefetch={IS_APP_BUILD ? false : undefined} href="/records/"><NativeHomeText>꿀꿀 운세 기록</NativeHomeText></Link>
             <Link prefetch={IS_APP_BUILD ? false : undefined} href="/yeongnyangi/library/"><NativeHomeText>영냥이 상담 기록</NativeHomeText></Link>
             <p className={styles.entryNote}>{IS_APP_BUILD ? <NativeHomeText>이용권과 상담 기록은 서비스별로 확인해 주세요.</NativeHomeText>
-              : <a href="/points/#moonlight-plans">문라이트 패스(꿀단지 이용권) 살펴보기</a>}</p>
+              : <a href="/points/#moonlight-plans">꿀단지 이용권 살펴보기</a>}</p>
           </nav>
           <div className={styles.policyGroup}>
             {!IS_APP_BUILD && <h2>정책과 문의</h2>}
