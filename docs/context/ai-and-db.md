@@ -179,7 +179,11 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
   - 환불 경로가 아직 없는 서비스는 `KNOWN_REFUND_GAPS` 와 정확히 같아야 한다 — 새 구멍은 실패, 메운 구멍은 목록에서 지운다.
 - **정체 감시**(`worker/lib/paid-delivery-stuck.js`, 복구 cron `consultation-recovery-task.js` 배선):
   - 시도마다 진전 크기(휘발 필드 제외 문서 JSON 길이)를 기록하고, 1,000자 이상 늘지 않은 시도가 6회 쌓이거나 문서 나이가 6일(7일 복구 창 전)이 되면 정체로 본다.
-  - 자동 확정(`STUCK_SETTLERS`)은 `new-year-ai`·`life-book-ai` 둘뿐이다: `delivery_pending` → 구제 전달(`usageSettlementReason: 'DELIVERY_STUCK'`), `generating|partial` → `generation_failed` + `llmMeta.refundEligibleAt` + `settleFailedConsultationRefund`(실패하면 cron 이 이어서 환불). 로그 `paid_delivery_stuck_settled`.
+  - 자동 확정(`STUCK_SETTLERS`)은 두 갈래다.
+    - 공용 상태 환불(`GENERIC_STUCK_SETTLERS`: `new-year-ai`·`life-book-ai`): `delivery_pending` → 구제 전달(`usageSettlementReason: 'DELIVERY_STUCK'`), `generating|partial` → `generation_failed` + `llmMeta.refundEligibleAt` + `settleFailedConsultationRefund`(실패하면 cron 이 이어서 환불). life-book 은 `isStuckDeliveryComplete` 로 완성본일 때만 구제 전달한다(S16).
+    - 자기 실패·환불 경로(S16, 2026-11-19): `love-secret-ai`·`neo-operation-room`·`heukwol`·`fortune-tea-house` 는 라우트 모듈이 `settleStuckDelivery(env, { doc, now, model })` 를 내보내고 cron 이 그것을 부른다. 완성본이면 전달, 아니면 본문 없이 `generation_failed` + 기존 환불 경로(1회). 모델 없는 찻집은 `recordDeliveryWatch` 도 내보낸다. 검증기는 공용 밖 설정자의 계약 파일에 이 export 가 없으면 실패한다.
+    - `master-love-codex` 는 복구 어댑터가 아니라 자체 복구 작업(`worker/lib/master-love-codex-recovery-task.js`)에서 정체·상한을 실패+환불로 닫는다.
+    - 로그 `paid_delivery_stuck_settled`.
   - 나머지 복구 어댑터는 경보 로그 `paid_delivery_stuck_unsettled` 만 내고 상태를 바꾸지 않는다. 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로, 바깥에서 상태만 `generation_failed` 로 바꾸면 "차감됐는데 환불 없음"을 새로 만든다. 목록은 검증기 `KNOWN_STUCK_SETTLE_GAPS` 와 정확히 같아야 한다.
 
   | 정체 자동 확정 없음(경보만) | 핸들러 자체 종결 경로(근거) |
@@ -188,18 +192,20 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
   | vedic-ai | catch → `generation_failed` + 이용권 복원·카드 환불 (`vedic-ai.js` 1753) |
   | ziwei-ai | catch → `generation_failed` + 이용권 복원 (`ziwei-ai.js` 2860) |
   | sukuyo-compatibility-ai | 본문 없음 → `generation_failed` + 복원 (2301). 저장 본문 있음 → `partial` + `recoveryReviewRequired`(수동 검토), 선결제 복원 실패 → `REFUND_REVIEW_REQUIRED` |
-  | love-secret-ai | catch → 복원·환불 후 `generation_failed` (`love-secret-ai.js` 1896) |
-  | neo-operation-room | catch → `generation_failed` + 실행·이용권·카드 환불 (`neo-operation-room.js` 1886) |
   | nakshatra-ai | catch → `generation_failed` + 실행·이용권 환불 (`nakshatra-ai.js` 1011) |
   | human-design-report | 분량 미달·빈 본문 → `generation_failed` + `failServiceExecution` (`human-design-report.js` 746·766, 237) |
   | destiny-compass-ai | `generation_failed` + `failServiceExecution`·이용권 (`destiny-compass-ai.js` 373·570, 280) |
   | relationship-boundary-test | `READING_INCOMPLETE` → `generation_failed` + `failServiceExecution` (`worker/lib/relationship-delivery-store.js` 106) |
   | naming-prompt | `markNamingGenerationFailed` + 월정석·이용권 환불 (`naming-prompt.js` 1479) |
-  | heukwol | 3회 소진 → 저장 장 없으면 `failServiceExecution`(환불), 있으면 그 장을 비우고 다음 장으로 (`heukwol.js` 90·118) |
   | celestial-harmony | 파트 시도 소진 → 축소 전달 또는 `failServiceExecution` 환불 (`worker/lib/celestial-delivery-store.js` 45, S3-K f60489b5b) |
   | fortune | `generation_failed` + 카드·이용권 환불 (`fortune.js` 1700, 1600·1643) |
   | karma-destiny-ai | catch → `generation_failed` + 이용권 복원·지연 차감 취소 (`karma-destiny-ai.js` 3131) |
-  | fortune-tea-house | 재시도 예산(그룹당 2회, 저장된 체크포인트 기준) 안이면 `partial`, 소진 → `generation_failed` + 이용권 환불 (`fortune-tea-house.js` 5045·5013) |
 
   공통 예외: `RESULT_STORAGE_UNAVAILABLE`·`delivery_pending` 은 환불하지 않고 503 으로 같은 전달을 다시 시도한다. 저장 장애가 계속되면 경보만 남으므로 서비스별 정체 설정자를 붙이는 것이 후속 과제다.
+- **대표 상담 완성본 전달**(S16, 2026-11-19 사용자 요청 "결제 후 전체가 제대로 생성되어야 고객에게 전달"): 인생의 책·연애 비책·흑월(웹·토스)·네오 팩폭 전략실·운명의 찻집·마스터 인연의 서.
+  - 서비스별 `is<Service>Complete`(필수 장·필드가 모두 비어 있지 않음, 분량은 보지 않음)를 통과해야만 `completed` 가 된다. 정상·구제·정체·늦은 차감·복구 cron 경로 모두 같다.
+  - 완료 전 응답은 진행 수치만 낸다(본문·장·브리핑 없음). 화면은 완료 뒤 한 번에 그린다.
+  - 축소 전달(장 건너뛰기·부분 전달·대체 문구) 없음. 시도를 다 쓴 장은 다음 라운드로 다시 쓰고, 라운드·상한·정체를 넘기면 본문 없이 `generation_failed` + 기존 자동 환불(1회).
+  - 관문 완화: 2번째 시도부터 최소 분량 ×0.6, 마지막 시도 ×0.3. 근거·체크포인트·반복 문제는 거부 대신 정리 후 수용. 금지어·꾸며낸 날짜/주장·빈 필수 칸·말투 이탈은 그대로 막는다.
+  - 신년운세·영냥이는 이 규칙 밖이다(동작 불변). 이미 저장된 완료 결과(옛 축소본 포함)는 그대로 다시 열린다.
 - **스테이징 실호출 확인**: 위 [스테이징 허용 계정 실호출](#스테이징-허용-계정-실호출-2026-11-18-사용자-결정) 절을 따른다(회차마다 1회 승인, 원문 전달).

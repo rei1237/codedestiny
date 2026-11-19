@@ -3,8 +3,9 @@
 // 진전 없는 시도가 STUCK_SETTLE_STALLS 회 쌓이거나 문서가 7일 무시 창에 가까워지면 확정한다.
 //   - 본문 완성(delivery_pending) → 구제 전달: completed + 미차감 표시(late-usage-settlement 재사용)
 //   - 미완성(generating·partial) → generation_failed + refundEligibleAt → 공용 환불 settleFailedConsultationRefund
-// 확정은 상태 기반 공용 환불이 있는 서비스(STUCK_SETTLERS)만 한다. 나머지는 환불을 핸들러 실패 경로 안에서
-// 하므로 바깥에서 상태만 바꾸면 "차감됐는데 결과·환불 없음"을 만든다 — 경보 로그만 남긴다.
+// 확정은 STUCK_SETTLERS 만 한다: 상태 기반 공용 환불(GENERIC) 서비스는 여기서, 나머지는 어댑터의 settleStuckDelivery 로.
+// 그 밖의 서비스는 환불을 핸들러 실패 경로 안에서 하므로 바깥에서 상태만 바꾸면 "차감됐는데 결과·환불 없음"을
+// 만든다 — 경보 로그만 남긴다.
 // 이 목록 밖 복구 어댑터는 verify:paid-llm-delivery 의 KNOWN_STUCK_SETTLE_GAPS 와 정확히 같아야 한다.
 import { Types } from 'mongoose';
 import { usageSettlementSetFields } from './late-usage-settlement.js';
@@ -19,7 +20,7 @@ const WATCH_STATUSES = [...STUCK_STATUSES, 'pending'];
 // 상태 기반 공용 환불(settleFailedConsultationRefund)로 확정하는 서비스. 이 밖의 STUCK_SETTLERS 는 복구 어댑터
 // (라우트 모듈)가 settleStuckDelivery(env, { doc, now, model }) 를 내보내 자기 실패·환불 경로로 확정한다(S16).
 export const GENERIC_STUCK_SETTLERS = Object.freeze(['new-year-ai', 'life-book-ai']);
-export const STUCK_SETTLERS = Object.freeze([...GENERIC_STUCK_SETTLERS]);
+export const STUCK_SETTLERS = Object.freeze([...GENERIC_STUCK_SETTLERS, 'love-secret-ai', 'neo-operation-room', 'heukwol', 'fortune-tea-house']);
 export const STUCK_LIVE_LEASE_MS = LIVE_LEASE_MS;
 
 // 진전 크기에서 빼는 필드: 시도마다 바뀌지만 본문이 아닌 것.
