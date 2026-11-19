@@ -19,6 +19,8 @@ async function generate({ tossNative, attempts = 0 }) {
   const context = {
     Promise, Date, setTimeout, clearTimeout,
     PAID_LLM_PARTS_PER_REQUEST: 1,
+    TEA_GROUP_ATTEMPTS_PER_ROUND: 3,
+    TEA_MAX_ROUNDS: 3,
     FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS: 1024,
     FORTUNE_TEA_PROMPT_REV: 1,
     hasGeminiKey: () => true,
@@ -40,7 +42,8 @@ async function generate({ tossNative, attempts = 0 }) {
     teaCheckpointProgress: (state, resultId) => ({ resultId, attempts: state.attempts.first }),
   };
   vm.createContext(context);
-  vm.runInContext(['generateFortuneTeaGroup', 'generateTeaCheckpoint'].map(declaration).join('\n'), context);
+  // S16 round helpers are real so the retry budget is the shipped one.
+  vm.runInContext(['teaRound', 'teaGroupNeedsWork', 'teaGroupHasAttempts', 'teaCheckpointRetryable', 'teaIsFinalAttempt', 'teaPartialOrExhausted', 'generateFortuneTeaGroup', 'generateTeaCheckpoint'].map(declaration).join('\n'), context);
   const checkpoint = {
     request: { consultationMode: 'tarot' }, fallback: {}, locale: 'ko',
     groups: [{ key: 'first', minChars: 100 }], parts: {}, attempts: { first: attempts }, repairs: [],
