@@ -296,17 +296,17 @@
   },
   "fortuneTeaHouse.guests.grades.gu": {
     "ko": "조심할 손님",
-    "en": "Guest to consider together",
-    "ja": "一緒に考えるお客さま",
-    "zh-CN": "需要一同考察的客人",
-    "zh-TW": "需要一同考察的客人",
-    "vi": "Khách cần xem xét cùng",
-    "hi": "साथ में समझने वाले अतिथि",
-    "es": "Invitado a considerar en conjunto",
-    "fr": "Invité à considérer ensemble",
-    "de": "Gemeinsam zu betrachtender Gast",
-    "nl": "Gast om samen te bekijken",
-    "ms": "Tetamu untuk diteliti bersama"
+    "en": "Guest to be careful with",
+    "ja": "気をつけたいお客さま",
+    "zh-CN": "需要留心的客人",
+    "zh-TW": "需要留心的客人",
+    "vi": "Khách cần dè chừng",
+    "hi": "सावधानी रखने योग्य अतिथि",
+    "es": "Invitado con quien tener cuidado",
+    "fr": "Invité avec qui rester prudent",
+    "de": "Gast, bei dem Vorsicht geboten ist",
+    "nl": "Gast om voorzichtig mee te zijn",
+    "ms": "Tetamu yang perlu diwaspadai"
   },
   "fortuneTeaHouse.guests.grades.han": {
     "ko": "지나가는 손님",

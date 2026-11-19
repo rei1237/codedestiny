@@ -86,3 +86,22 @@ next: 없음 — 완료. 후속은 각 리포트 "Phase 2 적용 결과"의 보�
 - [x] C1 `C-paid-signature.md` — 적용 33·부분 3·보류 6(+적용 행 일부 2)·보고만 1, registry reason 변경 0(확인 필요 4), 번역 동기화 2키, check:fast PASS
 - [x] C2 `C-paid-catalog.md` — 적용 29(부분 2: /points 이름 유지, 바람기 reason·ORDER_NAME 제외)·보류 20(palm 손금 카테고리는 새 번역 키 필요)·유지 4·보고만 13, registry reason 변경 0, 번역 동기화 12키(🔴 tea receives.1.detail en·ja·zh 5카드 5,000원 잔존), ko.json 6값 직접 수정(merge-authored --core 는 12개 사전 대량 변경이라 되돌림). 결과는 리포트 "Phase 2 적용 결과" 절 check:fast PASS
 - [x] 마무리 — 금지 표현 추가 0(내 커밋 11개의 추가 줄 grep), payment-freeze 통과, 엔진 계산 코드·sajuAdapter·normalizeSaju·결제 실행 파일·registry diff 0(엔진 파일 안 사용자 노출 문구 리터럴만 B2에서 5곳 수정), origin/main 머지 c511702ea(생성물 충돌은 origin 채택 후 sync:public·sitemap:generate 재생성), novel-i18n·story-sync·sitemap 검증 OK, check:pre-push PASS, push 0cbdc2095..c511702ea (2026-11-19)
+
+## 번역 동기화 결과 (2026-11-19)
+
+ko 의미가 바뀐 43키를 en·ja·zh-CN·zh-TW(직접 작성)와 보조 7개 로케일에 맞췄다. 키 이름·키 추가 없음, 값만 수정. 대량 병합(`i18n-merge-authored --core`)은 쓰지 않고 `i18n/authored/*.json` 원본과 `public/i18n/<loc>.json`·`public/i18n/<loc>/shellRuntime.json`의 해당 값만 고쳤다. 보조 로케일은 영어 복사였던 값은 새 en으로, 실제 번역이 있던 값(s111·f42·guests.grades.gu·chaptersValue·guarantee·chipIncluded·svcDesc 2·priceNote·policy)은 직접 번역했다. 외부 API·LLM 호출 없음.
+
+- 동기화 37
+  - 찻집 B1: speakerLabel.pig("작은 꽃돼지"), waiting(차를 우리는 중), entryIdleLines.0–7(ja 8줄 존댓말로 재작성; 2번은 전 언어에서 둘째 문장 삭제), guests.grades.gu("조심할 손님"), entryScenes.0–5.eyebrow("첫 번째 장면"… — 유효 원본 fortuneTeaHouse-48)
+  - B2: shellRuntime f42(운세 읽을거리 모음)·s111(이모지·과장 제거)·f3185(en·ja "이 명반으로", 보조 7은 새 en)·f3555(ja 평서·권유형), home.myGarden.emptyDescription, moduleCopy.animalTotem.share.copied(en·ja 💬 제거, skeleton 만 — 공개 사전에 키 없음)
+  - C1: karmaDestiny.deliverable.chaptersValue 15→16장, premiumUnlock.deliverable.guarantee(실패·환불 → "부족한 장은 한 번 자동 보강, 그래도 짧으면 그대로 전달"; authored 원본 없음 → 공개 사전 11개 직접)
+  - C2: fortune_tea_house badge·headline(authored 만 — 공개 사전에 키 없음, 키 추가 금지라 사전은 안 건드림)·tagline·feats.2·receives.1.detail(5카드 5,000→7,000, 전 로케일), fortune_chat.receives.2.detail, points.tagline(기간 제한 없음), home.passMini.chipIncluded, home.svcDesc 2, fortuneTeaHouse.homeV2.priceNote·confirmation.policy(타로는 월정석 불가)
+- 네오 대사 표: `src/features/neo-war-room/data/dialogues.ts` en·ja·zh-CN·zh-TW 36키(143줄; hero.core en 은 이미 맞음) — 작전·전선·무기 표현을 전략·고민으로, 에러 3종은 존댓말. `welcome.ts` 4번째 장면에 "잃어버릴 걱정은 하지 마" 대응 문장 추가
+- 이미 맞음 5: speakerLabel.narration, shellRuntime f3300·f976·f2111·f2585(ko 어투만 바뀜)
+- 건너뜀 1: moduleCopy.indexRuntime2.indexRuntime.confirm.006(skeleton 에 ko 만 존재, 동기화할 번역 없음)
+- 남은 확인
+  - 용어 표류: 찻집 문구는 월정석을 Moonstone/月晶石 으로 쓰고 glossary 는 Moonlight Stone/月精石. 기존 기능 용어를 유지했다. 달빛 이용권도 points.tagline 은 月明かり利用券·月光使用券(사전 다수는 月光利用券·月光通行证) — 기존 문구 유지
+  - `lib/i18n/siteFooterHubCopy.ts` 의 `/insights/` 라벨(en "Destiny insights hub" 등)은 f42 와 같은 대상인데 43키 밖이라 그대로 둠
+  - fortuneTeaHouse-28.json 의 entryScenes.*.eyebrow 는 낡은 별도 값(무효 원본) — 그대로 둠. fortuneTeaHouse-03 의 pig `_comment` 는 아직 "?" 이름을 설명
+  - 보조 7개 로케일 직접 번역(vi·hi·es·fr·de·nl·ms)은 원어민 검수 전
+- 사이트맵: 사전·네오 대사 변경으로 `config/sitemap-lastmod.json` 서명과 `/neo-operation-room/` lastmod 가 바뀌어 `verify:sitemap-drift` 가 막았다 → `npm run sitemap:generate` 결과(sitemap.xml·sitemap-ko.xml 와 public 미러, 원장)를 같은 커밋에 담음

@@ -171,8 +171,8 @@
   },
   "moduleCopy.animalTotem.share.copied": {
     "ko": "카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여 넣어 주세요.",
-    "en": "KakaoTalk is not available or you are on PC, so the link was copied. Paste it into KakaoTalk 💬",
-    "ja": "KakaoTalkアプリがない、またはPCのためリンクをコピーしました。KakaoTalkに貼り付けてください 💬"
+    "en": "KakaoTalk is not available or you are on PC, so the link was copied. Paste it into KakaoTalk.",
+    "ja": "KakaoTalkアプリがない、またはPCのためリンクをコピーしました。KakaoTalkに貼り付けてください。"
   },
   "moduleCopy.coinGate.premiumPdf": {
     "ko": "프리미엄 PDF",

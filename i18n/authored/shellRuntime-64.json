@@ -199,7 +199,7 @@
   "shellRuntime.f3555": {
     "ko": "책이 쓰이는 동안 창을 닫아도 괜찮습니다. 완성된 장은 남아 있고, 다시 들어오면 남은 장부터 이어 씁니다. 한 번에 다 읽지 않아도 되니, 목차에서 원하는 장으로 바로 건너뛰어 보세요.",
     "en": "It is fine to close the window while the book is being written. Chapters already finished are kept as they are, and when you come back the remaining chapters are filled in from where it left off. You do not have to read it all at once, and you can jump straight to any chapter from the table of contents.",
-    "ja": "本が書かれているあいだにウィンドウを閉じられても大丈夫です。すでに完成した章はそのまま保管され、再び入られると残りの章から続けて埋まっていきます。一度に読み切る必要はなく、目次から好きな章へすぐ飛べます。",
+    "ja": "本が書かれているあいだにウィンドウを閉じても大丈夫です。完成した章は残り、再び開くと残りの章から続けて書きます。一度に読み切らなくてもよいので、目次から読みたい章へすぐ移ってみてください。",
     "zh-CN": "书在书写过程中关闭窗口也没关系。已完成的章节会原样保存，重新进入后会自剩下的章节接着补齐。你不必一次读完，也可以从目录直接跳到想看的章节。",
     "zh-TW": "書在書寫過程中關閉視窗也沒關係。已完成的章節會原樣保存，重新進入後會自剩下的章節接著補齊。你不必一次讀完，也可以從目錄直接跳到想看的章節。",
     "vi": "It is fine to close the window while the book is being written. Chapters already finished are kept as they are, and when you come back the remaining chapters are filled in from where it left off. You do not have to read it all at once, and you can jump straight to any chapter from the table of contents.",

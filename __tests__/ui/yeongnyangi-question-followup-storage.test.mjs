@@ -199,3 +199,38 @@ test('oversized history offers a same-entitlement thread before provider call an
  assert.equal(t.calls,1);assert.equal(t.row.generationCheckpoint.conversation.used,3);
  assert.equal(t.row.generationCheckpoint.conversation.archivedThreads[0].exchanges.length,2);
 });
+
+// 2026-11 참치 장애: 기록 0건이어도 기본 맥락(계산 근거·장 요약)이 50,000자를 넘으면 같은 이어가기가 반복 제안됐다.
+const bigChapters=count=>Array.from({length:count},(_,index)=>({id:`big-${index}`,title:`장 ${index}`,summary:'기존 상담의 정확한 요약입니다. '.repeat(120),highlights:Array.from({length:6},()=>'하이라이트 문장입니다. '.repeat(30))}));
+test('large base context with no history answers directly instead of re-offering a new thread',async()=>{
+ const t=globalThis.__conversationTest;
+ t.row.snapshot.questionContract={...t.row.snapshot.questionContract,followups:6};
+ t.row.chapters=bigChapters(24);
+ t.row.generationCheckpoint={conversation:{revision:5,used:4,closed:false,calls:4,exchanges:[],threadId:'thread-1',threadIndex:1,archivedThreads:[{id:'thread-0',index:0,exchanges:[],closedAt:1}]}};
+ await questionConversation({},user,id,{id:'55555555-5555-4555-8555-555555555555',question:'제가 가장 먼저 바꿔 볼 행동은 무엇인가요?'});
+ const c=t.row.generationCheckpoint.conversation;
+ assert.ok(JSON.stringify(t.sent.input).length>50000,'fixture must exceed the safe context');
+ assert.equal(t.calls,1);assert.equal(c.used,5);assert.equal(c.continuation,undefined);assert.equal(c.threadIndex,1);
+});
+test('a customer stuck on a re-offered continuation gets the draft back without another archived thread',async()=>{
+ const t=globalThis.__conversationTest;
+ const stuckId='66666666-6666-4666-8666-666666666666',question='주의해야 할 선택의 종류를 알려 주세요.';
+ t.row.snapshot.questionContract={...t.row.snapshot.questionContract,followups:6};
+ t.row.chapters=bigChapters(24);
+ t.row.generationCheckpoint={conversation:{revision:6,used:4,closed:false,calls:4,exchanges:[],threadId:'thread-1',threadIndex:1,
+  archivedThreads:[{id:'thread-0',index:0,exchanges:[],closedAt:1}],continuation:{id:stuckId,reason:'context_limit',question,createdAt:2},lastContinuation:{id:stuckId,threadId:'thread-1'}}};
+ await questionConversation({},user,id,{action:'continue',id:stuckId});
+ let c=t.row.generationCheckpoint.conversation;
+ assert.equal(c.continuation,undefined);assert.deepEqual(c.draft,{id:stuckId,question});assert.equal(c.archivedThreads.length,1);assert.equal(c.threadIndex,1);
+ await questionConversation({},user,id,{id:stuckId,question});
+ c=t.row.generationCheckpoint.conversation;
+ assert.equal(t.calls,1);assert.equal(c.used,5);assert.equal(c.continuation,undefined);
+});
+test('context above the hard limit routes to support without a provider call or used count',async()=>{
+ const t=globalThis.__conversationTest;
+ t.row.snapshot.questionContract={...t.row.snapshot.questionContract,followups:6};
+ t.row.chapters=bigChapters(60);
+ t.row.generationCheckpoint={conversation:{revision:1,used:1,closed:false,calls:1,exchanges:[],threadId:'thread-0',threadIndex:0}};
+ await assert.rejects(questionConversation({},user,id,{id:'77777777-7777-4777-8777-777777777777',question:'다음 행동을 알려 주세요.'}),/QUESTION_FOLLOWUP_SUPPORT/);
+ assert.equal(t.calls,0);assert.equal(t.row.generationCheckpoint.conversation.used,1);
+});

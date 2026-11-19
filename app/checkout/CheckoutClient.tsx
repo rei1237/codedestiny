@@ -26,7 +26,7 @@ import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy'
 import type {FishId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { isMobileAppRuntime, loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
+import { isIosAppRuntime, isMobileAppRuntime, loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
 import { authFetch } from "@/app/_lib/auth-client";
 import { queryAppProducts } from "@/app/app/_lib/native-billing";
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
@@ -177,6 +177,9 @@ function PreparedCheckoutClient() {
   const [checked,setChecked]=useState(false);
   const [reading,setReading]=useState<FortuneRecord|null>(null);
   const [nativePrice,setNativePrice]=useState<string|null>(process.env.NEXT_PUBLIC_RUNTIME_TARGET === 'mobile-app' ? '' : null);
+  // iOS(R2, 2026-11-18 승인): StoreKit 가격(Phase 6)을 받기 전에는 금액 줄을 숨기고 "Google Play" 를 대신 쓰지 않는다.
+  const [iosApp,setIosApp]=useState(false);
+  useEffect(()=>{setIosApp(isIosAppRuntime());},[]);
   const [gate, setGate] = useState<GateState>({ phase: "idle" });
   const [moonstoneInput,setMoonstoneInput]=useState('0');
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
@@ -371,7 +374,7 @@ function PreparedCheckoutClient() {
               {isSoulCatMode&&<dl className={styles.receipt}>
                 <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(reading?.manifest?.length ?? product.chapterCount)}</dd></div>
                 <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
-                <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play'}</dd></div>
+                {!(iosApp && !nativePrice) && <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play'}</dd></div>}
 
               </dl>}
               <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
@@ -402,7 +405,7 @@ function PreparedCheckoutClient() {
                 disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : lang==='ko'&&!isSoulCatMode&&nativePrice===null ? `${formatKrw(validDiscount ? discountedAmount : pricing.amountKRW)} 결제하기` : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || 'Google Play')}
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : lang==='ko'&&!isSoulCatMode&&nativePrice===null ? `${formatKrw(validDiscount ? discountedAmount : pricing.amountKRW)} 결제하기` : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || (iosApp ? '' : 'Google Play'))}
               </button>
 
               <p className={styles.security}>{copy.methodNote}</p>

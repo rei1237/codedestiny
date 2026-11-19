@@ -1,3 +1,9 @@
+## 2026-11-18 승인(R2): iOS 앱 결제창 예외 — StoreKit 연결(Phase 6) 전까지
+
+- iOS 앱(Capacitor `getPlatform()==='ios'`)에서는 결제창 렌더러 3종(셸 `_cdChooseServicePaymentMode`·독립 `_dpRenderStandalonePaymentChoice`·React `openReactPaymentChoiceModalInner`)이 결제창을 그리지 않는다. 서버 원화·"Google Play 결제" 배지·웹 결제 유도 문구를 iOS 에 보이지 않기 위해서다(사용자 승인 원문 "모두 승인하고 추천안으로 진행해줘", 2026-11-18, `docs/handoff/ios-phase2-2026-11-18.md`).
+- 순서: 이용권 스냅샷 판정은 그대로 먼저 → 렌더러가 `scripts/app-payment-guard.js` `resolveIosPaymentChoice` 에 맡긴다 → 앱 무료(`freeInApp`)면 `free-grant`, 아니면 중립 문구(`native-billing.ts` 와 같은 문장) 뒤 취소. iOS 에서는 `/api/app-store/google/*` 를 부르지 않는다.
+- 감수한 대가: iOS 에서는 결제창의 [이용권] 구조 카드와 월정석 선택이 Phase 6(StoreKit 가격 표시 결제창 복원)까지 빠진다. 웹·Android 경로는 바뀌지 않는다. 정합성은 `scripts/verify-app-store-billing-policy.mjs` [7] 이 막는다.
+
 ## 2026-11-13 재확인: 30일 이용권 표기 폐기
 
 - 일반 달빛 이용권은 기간형 상품이 아니라 **이용권**이다. 사용자 화면·결제 상품명·설명에는 "30일 이용권"을 쓰지 않고, "기간 제한 없음 · 이용 한도 소진 시 종료 · 자동결제 아님"으로 안내한다.

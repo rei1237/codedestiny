@@ -855,7 +855,7 @@
       "balanceHint": "Kiểm tra số dư đá hàng tháng của bạn. Chia sẻ trên KakaoTalk sẽ bổ sung thêm đá hàng tháng.",
       "primaryAction": "Tìm pass phù hợp với tôi",
       "chipsAria": "Lợi ích của thẻ cốt lõi",
-      "chipIncluded": "Miễn phí trong phạm vi vượt qua",
+      "chipIncluded": "Mở ngay bằng hạn mức Pass",
       "chipThirtyDays": "Thẻ pass",
       "chipShareReward": "Ngoài phạm vi: thanh toán từng lần",
       "plansAria": "Vượt qua thẻ tóm tắt kế hoạch",
@@ -1550,7 +1550,7 @@
     },
     "svcDesc": {
       "master-love-codex": "Luận giải tình duyên sâu về dòng chảy nhân duyên và thời điểm gặp gỡ",
-      "fortune-tea-house": "Buổi tâm sự ấm áp cùng Yeoni",
+      "fortune-tea-house": "Tư vấn trả lời câu hỏi bằng tarot, Tứ Trụ hoặc tương hợp",
       "love-secret-ai": "Tư vấn AI về dòng chảy và tâm ý trong chuyện tình hiện tại",
       "compatibility": "Xem hợp duyên bằng cách chồng hai lá số vận mệnh",
       "fortune-chat": "Cuộc trò chuyện về vận mệnh cùng Yeoni và Neo",
@@ -1586,7 +1586,7 @@
       "neville-meditation": "Hướng dẫn tập trung để sáng tạo tưởng tượng",
       "yoga-guru": "Thói quen thiền và yoga cá nhân",
       "tarot-numerology": "Đọc 5 lá bài số cuộc đời và số ngày",
-      "dream-psycho-analysis": "Báo cáo phân tích giấc mơ theo góc nhìn Freud",
+      "dream-psycho-analysis": "Báo cáo phân tích giấc mơ từ ba góc nhìn tâm lý",
       "animal-totem": "Đọc thẻ động vật giám hộ",
       "mbti-animal-compat": "16 đường dẫn tương thích vật tổ",
       "luck-sync-diary": "Nhật ký dòng chảy hôm nay · sổ kế hoạch tháng",
@@ -1837,7 +1837,7 @@
       "settings": "Account settings",
       "garden": "My moonlit garden",
       "profileDescription": "Explore your profile and nurture everyday habits.",
-      "emptyDescription": "Create a profile and begin learning about yourself.",
+      "emptyDescription": "Create a profile, and your Saju readings will be collected here.",
       "next": "{exp} EXP to the next level",
       "today": "Today’s practices {done}/{total}",
       "max": "You reached the highest level. Keep nurturing your daily habits.",
@@ -9211,7 +9211,7 @@
       "chaptersValue": "10 chương · mỗi chương trên 2.400 ký tự",
       "keepLabel": "Lưu giữ",
       "keepValue": "Xuất PDF và giữ vĩnh viễn",
-      "guarantee": "Nếu không đạt độ dài trên, bài luận sẽ được viết lại tự động. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
+      "guarantee": "Chương nào chưa đạt độ dài tiêu chuẩn sẽ được tự động bổ sung thêm một lần. Nếu sau đó vẫn ngắn, chương sẽ được gửi nguyên trạng."
     }
   },
   "karmaDestiny": {
@@ -9220,7 +9220,7 @@
       "volumeLabel": "Độ dài",
       "volumeValue": "Nội dung tư vấn dài",
       "chaptersLabel": "Cấu trúc",
-      "chaptersValue": "15 chương · diễn giải theo chủ đề và thư cuối",
+      "chaptersValue": "16 chương · diễn giải theo chủ đề và thư cuối",
       "keepLabel": "Lưu giữ",
       "keepValue": "Lưu PDF · sao chép từng chương",
       "guarantee": "Phạm vi diễn giải phụ thuộc vào thông tin sinh và dữ liệu tính toán hiện có. Bạn có thể xem lại nội dung đã hoàn thành trong buổi tư vấn đã lưu."
@@ -16119,11 +16119,11 @@
       }
     },
     "fortune_tea_house": {
-      "tagline": "Yeoni listens first, then draws on tarot and Four Pillars symbols in a conversational consultation to help you understand where your heart is and find your next step.",
+      "tagline": "Choose one consultation — tarot, Four Pillars, compatibility or Sukuyo — and ask your question; Yeoni sets out the answer and its reasoning. You can also ask 1 follow-up question after the result.",
       "feats": [
         "When it is hard to share what you truly feel",
         "When you need to untangle your thoughts before reaching a conclusion",
-        "When you need someone to listen, rather than more advice"
+        "When you need a well-grounded answer to your worry"
       ],
       "premiumIntro": "Rather than giving a definitive answer, we begin by exploring where your heart feels caught.",
       "premiumAudience": [
@@ -16144,7 +16144,7 @@
         },
         "1": {
           "title": "Choose a three- or five-card spread",
-          "detail": "Choose three cards for a quick focus on the essentials (KRW 5,000) or five cards for a deeper reading (KRW 5,000)."
+          "detail": "Choose three cards for a quick focus on the essentials (KRW 5,000) or five cards for a deeper reading (KRW 7,000)."
         },
         "2": {
           "title": "A reading tailored to your question",
@@ -16216,7 +16216,7 @@
         },
         "2": {
           "title": "An answer to one question",
-          "detail": "After signing in, prepare your question and the required information, and check the usage conditions on the existing screen."
+          "detail": "Each question costs KRW 5,000 per use; question consultations where you choose the depth start from KRW 10,000."
         },
         "3": {
           "title": "Records by adviser",
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A moonlight pass lets you use paid features for a set period. You can check what you hold and how you've used it here.",
+      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",
@@ -17783,14 +17783,14 @@
       "speakerLabel": {
         "narration": "Narration",
         "yeoni": "Yeoni",
-        "pig": "Flower Pig?"
+        "pig": "Little Flower Pig"
       },
       "speakerIcon": {
         "yeoni": "Y",
         "pig": "H",
         "moon": "M"
       },
-      "waiting": "Moonlight is rising…",
+      "waiting": "Brewing the tea…",
       "next": "Next ▾"
     },
     "storyIntro": {
@@ -19049,7 +19049,7 @@
     },
     "entryScenes": {
       "0": {
-        "eyebrow": "The last light in the moonlit lane",
+        "eyebrow": "Scene One",
         "title": "The last light in the moonlit lane",
         "lines": {
           "0": {
@@ -19075,7 +19075,7 @@
         }
       },
       "1": {
-        "eyebrow": "A little keeper wearing a flower",
+        "eyebrow": "Scene Two",
         "title": "A little keeper wearing a flower",
         "lines": {
           "0": {
@@ -19102,7 +19102,7 @@
         }
       },
       "2": {
-        "eyebrow": "A feeling without a name",
+        "eyebrow": "Scene Three",
         "title": "A feeling without a name",
         "lines": {
           "0": {
@@ -19130,7 +19130,7 @@
         }
       },
       "3": {
-        "eyebrow": "When moonlight touches the cup",
+        "eyebrow": "Scene Four",
         "title": "When moonlight touches the cup",
         "lines": {
           "0": {
@@ -19156,7 +19156,7 @@
         }
       },
       "4": {
-        "eyebrow": "Across the table from Yeoni",
+        "eyebrow": "Scene Five",
         "title": "Across the table from Yeoni",
         "lines": {
           "0": {
@@ -19184,7 +19184,7 @@
         }
       },
       "5": {
-        "eyebrow": "Six cups for tonight’s thoughts",
+        "eyebrow": "Scene Six",
         "title": "Six cups for tonight’s thoughts",
         "lines": {
           "0": {
@@ -19219,7 +19219,7 @@
         "text": "The moonlight just swayed a little.\nWhen someone turns an unsaid word over in their heart, the tea house notices before anyone else."
       },
       "2": {
-        "text": "A worry that stays a long time usually means the heart has not given up yet.\nI rather like hearts like that. This tea house is exactly the place that reads such sincerity slowly, instead of pushing it away."
+        "text": "A worry that stays a long time usually means the heart has not given up yet.\nI rather like hearts like that."
       },
       "3": {
         "text": "It is fine if you cannot find the words.\nHere even silence steeps slowly, like tea leaves. Swallow it too fast and you miss the scent."
@@ -20982,7 +20982,7 @@
         "yong": "Khách quý",
         "hee": "Khách được chào đón",
         "gi": "Khách cần tiếp đón thận trọng",
-        "gu": "Khách cần xem xét cùng",
+        "gu": "Khách cần dè chừng",
         "han": "Khách qua đường",
         "unavailable": "Chưa có phân hạng"
       },
@@ -21037,7 +21037,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Giá cho một lần tư vấn · đã gồm 1 câu hỏi thêm. Việc áp dụng Pass và Moonstone sẽ được thông báo ở bước xác nhận tư vấn.",
+      "priceNote": "Giá cho một lần tư vấn · đã gồm 1 câu hỏi thêm · Tarot không dùng được Moonstone; Tứ Trụ, tương hợp và Sukuyo thì có thể dùng Moonstone.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -21068,7 +21068,7 @@
       "question": "My question",
       "price": "Single-reading price",
       "scope": "Câu trả lời cốt lõi · căn cứ diễn giải · gợi ý hành động · thư của Yeoni · 1 câu hỏi thêm",
-      "policy": "Việc áp dụng Pass và Moonstone sẽ được kiểm tra ở bước tiếp theo. Sau khi nhận kết quả, bạn có thể hỏi thêm 1 câu miễn phí, dựa trên cùng căn cứ của buổi tư vấn (lá số, lá bài hoặc bản mệnh tú).",
+      "policy": "Tarot không dùng được Moonstone, việc áp dụng Pass sẽ được kiểm tra ở bước tiếp theo. Sau khi nhận kết quả, bạn có thể hỏi thêm 1 câu miễn phí, dựa trên cùng căn cứ của buổi tư vấn (lá số, lá bài hoặc bản mệnh tú).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",

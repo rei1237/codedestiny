@@ -164,6 +164,36 @@ check(
     && iosBranchAt < runtimePaymentFn.indexOf("APP_SKU_NOT_VERIFIED")
     && iosBranchAt < runtimePaymentFn.indexOf("amountKRW = appAmountKRW"),
 );
+// iOS(R2) 셸·독립 정적 경로: 가드가 Google Play 의도 전에 iOS 분기로 빠지고, 문구는 React 와 같다.
+const guardSource = await fs.readFile(path.join(ROOT, "scripts", "app-payment-guard.js"), "utf8");
+const guardCore = guardSource.slice(
+  guardSource.indexOf("async function runPlayBillingCheckoutCore"),
+  guardSource.indexOf("var inFlight = null"),
+);
+const guardIosAt = guardCore.indexOf("if (isIosApp()) return runIosCheckout(opts);");
+check(
+  "가드: iOS 는 Google Play 의도(/google/intent)·네이티브 결제 전에 iOS 분기로 빠진다",
+  guardIosAt > 0 && guardIosAt < guardCore.indexOf("/google/intent") && guardIosAt < guardCore.indexOf("nativeBilling()"),
+);
+const nativeBillingSource = await fs.readFile(path.join(ROOT, "app", "app", "_lib", "native-billing.ts"), "utf8");
+const iosMessages = (source) => (source.match(/"iPhone[^"]+"/g) || []).sort().join("|");
+check(
+  "가드·native-billing.ts 의 iOS 중립 문구가 같다 (복제 drift 차단)",
+  iosMessages(guardSource) !== "" && iosMessages(guardSource) === iosMessages(nativeBillingSource),
+  `guard=${iosMessages(guardSource)} native=${iosMessages(nativeBillingSource)}`,
+);
+// iOS(R2) 결제창 렌더러 3종: 서버 원화·"Google Play 결제" 배지(pgBadgeApp)를 그리기 전에 iOS 분기로 빠진다.
+const rendererSources = [
+  ["셸 index.html _cdChooseServicePaymentMode", await fs.readFile(path.join(ROOT, "index.html"), "utf8"), "function _cdChooseServicePaymentMode"],
+  ["독립 js/destiny-profile.js _dpRenderStandalonePaymentChoice", await fs.readFile(path.join(ROOT, "js", "destiny-profile.js"), "utf8"), "function _dpRenderStandalonePaymentChoice"],
+  ["React billing-client.ts openReactPaymentChoiceModalInner", billingClient, "async function openReactPaymentChoiceModalInner"],
+];
+for (const [label, source, marker] of rendererSources) {
+  const fnAt = source.indexOf(marker);
+  const iosAt = fnAt >= 0 ? source.indexOf(".resolveIosPaymentChoice(", fnAt) : -1;
+  const badgeAt = fnAt >= 0 ? source.indexOf("pgBadgeApp", fnAt) : -1;
+  check(`${label}: iOS 분기(resolveIosPaymentChoice)가 Google Play 배지보다 먼저다`, fnAt >= 0 && iosAt > fnAt && badgeAt > iosAt);
+}
 
 console.log("\n[8] 이용권 커버 금액이 앱 기준으로 파생되는가");
 for (const [tier, expectedKRW] of [["standard", 5000], ["premium", 10000], ["vvip", 20000]]) {

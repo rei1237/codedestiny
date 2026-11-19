@@ -141,17 +141,17 @@
   },
   "home.myGarden.emptyDescription": {
     "ko": "프로필을 만들면 내 사주 풀이가 여기에 모여요.",
-    "en": "Create a profile and begin learning about yourself.",
-    "ja": "プロフィールを作り、自分を知る旅を始めましょう。",
-    "zh-CN": "创建档案，开始了解自己的旅程。",
-    "zh-TW": "建立檔案，開始了解自己的旅程。",
-    "vi": "Create a profile and begin learning about yourself.",
-    "hi": "Create a profile and begin learning about yourself.",
-    "es": "Create a profile and begin learning about yourself.",
-    "fr": "Create a profile and begin learning about yourself.",
-    "de": "Create a profile and begin learning about yourself.",
-    "nl": "Create a profile and begin learning about yourself.",
-    "ms": "Create a profile and begin learning about yourself."
+    "en": "Create a profile, and your Saju readings will be collected here.",
+    "ja": "プロフィールを作ると、あなたの四柱推命の解説がここに集まります。",
+    "zh-CN": "创建档案后，你的四柱八字解读会汇集在这里。",
+    "zh-TW": "建立檔案後，你的四柱八字解讀會匯集在這裡。",
+    "vi": "Create a profile, and your Saju readings will be collected here.",
+    "hi": "Create a profile, and your Saju readings will be collected here.",
+    "es": "Create a profile, and your Saju readings will be collected here.",
+    "fr": "Create a profile, and your Saju readings will be collected here.",
+    "de": "Create a profile, and your Saju readings will be collected here.",
+    "nl": "Create a profile, and your Saju readings will be collected here.",
+    "ms": "Create a profile, and your Saju readings will be collected here."
   },
   "home.myGarden.next": {
     "ko": "다음 레벨까지 경험치 {exp}",

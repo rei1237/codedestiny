@@ -305,7 +305,7 @@ type RuntimeApiWindow = Window & {
   };
   // 앱 결제 가드(scripts/app-payment-guard.js). 앱 빌드에서만 주입되며, 정본 게이트의
   // 단건 결제 leaf를 Play Billing으로 바꿔친다.
-  __cdAppPaymentGuard?: { installed?: boolean };
+  __cdAppPaymentGuard?: { installed?: boolean; resolveIosPaymentChoice?: (options: Record<string, unknown>) => Promise<string> };
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
   // 셸이 세우는 공용 판정의 정본. 대기 오버레이를 띄우면 안 되는 구간이면 true
   // (미커버 확정→결제창 노출 / 결제창이 떠 있는 동안 / 단건 확정→PG창).
@@ -466,7 +466,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-880cbe28c6c4";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2179916719ec";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1079,6 +1079,13 @@ async function openReactPaymentChoiceModal(options: Record<string, unknown>): Pr
 async function openReactPaymentChoiceModalInner(options: Record<string, unknown>): Promise<PaymentChoiceMode> {
   if (typeof window === "undefined" || typeof document === "undefined" || !document.body) {
     return Promise.resolve("cancel");
+  }
+  // iOS(R2, 2026-11-18 승인): 셸·독립 렌더러와 같은 분기 — 결제창(서버 원화·Google Play 배지)을 그리지 않고
+  // scripts/app-payment-guard.js resolveIosPaymentChoice 에 맡긴다(앱 무료면 'direct', 아니면 중립 문구 뒤 'cancel').
+  if (isIosAppRuntime()) {
+    const iosGuard = (window as RuntimeApiWindow).__cdAppPaymentGuard;
+    if (typeof iosGuard?.resolveIosPaymentChoice !== "function") return "cancel";
+    return (await iosGuard.resolveIosPaymentChoice(options || {})) === "direct" ? "direct" : "cancel";
   }
 
   ensureReactPaymentChoiceStyles();

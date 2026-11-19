@@ -551,6 +551,26 @@ test('new-year actual major luck survives mock partial persistence and OFF resum
  assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.llmMeta.fortuneData,saved);assert.equal(f.charges,1);
 });
 
+// 2026-11 장애: Mongo 는 undefined 필드를 null 로 저장해 이어쓰기마다 사실 고정 불일치 500 이 났다(1장만 전달).
+test('new-year resume survives Mongo null storage for v2 pins and recomputed legacy v1 pins', async () => {
+ const helper=await import('../../worker/lib/representative-consumer-facts.js');const {engineFactDigest}=await import('../../worker/lib/engine-fact-snapshot.js');
+ const {calculateLifeBookAiSaju}=await import('../../worker/lib/life-book-ai-saju.js');
+ const birth={birthDate:'2000-05-15',birthTime:'08:30',calendarType:'solar',gender:'male'};const actual=calculateLifeBookAiSaju(birth,{year:2026});
+ const mongo=value=>JSON.parse(JSON.stringify(value,(_k,v)=>v===undefined?null:v));
+ const facts=()=>({targetYear:{year:2026},saju:actual,calculationMeta:actual.calculationMeta,advancedSajuSummary:{daewoonSewoon:{}},prevention:{candidates:[{period:{start:undefined,end:undefined}}]}});
+ for(const legacy of [false,true]){
+  const f=fixture('paid');Object.assign(f.ctx,helper);
+  f.ctx.normalizeConsultationInput=()=>({ok:true,inputHash:'same-input',input:{birthInfo:birth,year:2026,topic:'신년'}});
+  f.ctx.calculateNewYearFortuneData=facts;
+  await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});
+  if(legacy){const {consumerFactIdentity:_p,...raw}=f.doc.llmMeta.fortuneData;f.doc.llmMeta.fortuneData={...raw,consumerFactIdentity:{version:'representative-facts-v1',kind:'new-year',digest:engineFactDigest(raw)}};}
+  f.doc.llmMeta.fortuneData=mongo(f.doc.llmMeta.fortuneData);
+  const first=(await f.post({resumeSessionId:f.doc.id})).status;assert.notEqual(first,500,'legacy='+legacy);
+  for(let i=0;i<20&&f.doc.status!=='completed';i++)await f.post({resumeSessionId:f.doc.id});
+  assert.equal(f.doc.status,'completed','legacy='+legacy);assert.equal(f.charges,1);
+ }
+});
+
 // ── 결제 뒤 신년 생성 화면: 일시 장애·숨은 탭·긴 생성에서 멈추지 않고, 종결 실패면 환불 안내 ──
 const NY_CLIENT = 'app/new-year-ai-consultation/NewYearAiClient.tsx';
 // 파일에서 이름으로 최상위 함수·상수와 컴포넌트 안 useCallback 본문을 꺼내 `var 이름 = …` 으로 싣는다.

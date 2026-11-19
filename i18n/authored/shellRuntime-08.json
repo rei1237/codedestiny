@@ -221,9 +221,9 @@
     "de": "Content-Methodik", "nl": "Contentmethodologie", "ms": "Metodologi kandungan"
   },
   "shellRuntime.f42": {
-    "ko": "운세 읽을거리 모음", "en": "Destiny Insight Hub", "ja": "運命インサイトハブ", "zh-CN": "命运洞察中心", "zh-TW": "命運洞察中心",
-    "vi": "Trung tâm chiêm nghiệm vận mệnh", "hi": "डेस्टिनी इनसाइट हब", "es": "Centro de perspectivas del destino", "fr": "Hub d'analyses du destin",
-    "de": "Schicksals-Insight-Hub", "nl": "Destiny Insight Hub", "ms": "Hab Wawasan Takdir"
+    "ko": "운세 읽을거리 모음", "en": "Fortune Articles", "ja": "運勢の読みもの", "zh-CN": "运势读物合集", "zh-TW": "運勢讀物合集",
+    "vi": "Bài đọc về vận mệnh", "hi": "भाग्य से जुड़े लेख", "es": "Artículos sobre la fortuna", "fr": "Articles sur la chance et le destin",
+    "de": "Artikel zu Glück und Schicksal", "nl": "Fortune Articles", "ms": "Artikel tentang nasib"
   },
   "shellRuntime.f43": {
     "ko": "인사이트 아카이브", "en": "Insight Archive", "ja": "インサイトアーカイブ", "zh-CN": "洞察归档", "zh-TW": "洞察典藏",

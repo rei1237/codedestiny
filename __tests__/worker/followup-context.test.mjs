@@ -15,7 +15,10 @@ test('message compaction retains role order and context budget fails closed',()=
  const messages=Array.from({length:12},(_,index)=>({role:index%2?'assistant':'user',content:'문장 '.repeat(1000)}));
  const compacted=compactFollowupMessages(messages,{maxChars:9000,recent:2});
  assert.ok(compacted.length>=4);assert.equal(compacted.at(-2).role,'user');assert.equal(compacted.at(-1).role,'assistant');
- assert.equal(buildFollowupContextInput({large:'x'.repeat(51000)}).requiresContinuation,true);
+ assert.equal(buildFollowupContextInput({large:'x'.repeat(51000)}).requiresContinuation,false,'no history to drop: answer directly');
+ assert.equal(buildFollowupContextInput({base:'x'.repeat(30000),history:[{text:'y'.repeat(25000)}]}).requiresContinuation,true);
+ assert.equal(buildFollowupContextInput({base:'x'.repeat(51000),history:[{text:'y'}]}).requiresContinuation,false,'dropping history would not help');
+ assert.equal(buildFollowupContextInput({large:'x'.repeat(121000)}).tooLarge,true);
  assert.equal(buildFollowupContextInput({small:'x'.repeat(1000)}).requiresContinuation,false);
 });
 
