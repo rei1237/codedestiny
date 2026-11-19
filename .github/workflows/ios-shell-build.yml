@@ -118,15 +118,19 @@ jobs:
           # print() 로 찍히는 Capacitor 콘솔이 파일로 바로 나가게 한다(파이프·파일이면 버퍼링돼 비어 보인다).
           export SIMCTL_CHILD_NSUnbufferedIO=YES
           xcrun simctl launch --stdout="$OUT/app-stdout.log" --stderr="$OUT/app-stderr.log" "$UDID" com.codedestiny.app -cdSelfTest
-          # 셀프 테스트는 capacitorDidLoad 15초 뒤에 홈 값을 찍고, 이어서 링크 전달(커스텀 스킴 → 유니버설 링크)을 13초 동안 본다.
-          sleep 20
+          # 셀프 테스트는 첫 페이지 로드가 끝나 URL 이 멈춘 뒤(최대 약 90초) 홈 값을 찍고, 5초 뒤 링크 전달
+          # (커스텀 스킴 → 유니버설 링크)을 보내 /about/ 도착까지(최대 30초) 기다린다. 고정 sleep 대신 그 로그 줄을 기다린다.
+          # 2026-11-20 실행(44562306732)은 첫 로드가 15초를 넘겨 고정 지연이 about:blank 를 찍었다.
+          wait_for() { for _ in $(seq 1 "$2"); do grep -q "$1" "$OUT/app-stderr.log" 2>/dev/null && return 0; sleep 1; done; return 1; }
+          wait_for "\[cd-selftest\] {" 120 || echo "no home snapshot within 120s" >> "$OUT/process.txt"
           xcrun simctl io "$UDID" screenshot "$OUT/home.png"
-          sleep 25
+          wait_for "\[cd-selftest\] link-result" 60 || echo "no link-result within 60s" >> "$OUT/process.txt"
+          sleep 2
           xcrun simctl io "$UDID" screenshot "$OUT/after-links.png"
           if xcrun simctl spawn "$UDID" launchctl list | grep -q "com.codedestiny.app"; then
-            echo "running" > "$OUT/process.txt"
+            echo "running" >> "$OUT/process.txt"
           else
-            echo "not running" > "$OUT/process.txt"
+            echo "not running" >> "$OUT/process.txt"
           fi
           # 바깥(호스트)에서 연 커스텀 스킴은 SpringBoard 의 "Open in ...?" 확인창에서 멈춘다. 확인창에 앱 이름이 뜨면 스킴 등록은
           # 확인된 것이다. 앱까지의 전달은 위 셀프 테스트(link-*)가 따로 확인하고 아래 Assert link delivery 가 판정한다.
@@ -138,7 +142,7 @@ jobs:
           else
             echo "not running after openurl" >> "$OUT/process.txt"
           fi
-          xcrun simctl spawn "$UDID" log show --last 5m --style compact --predicate 'process == "App"' > "$OUT/app-oslog.log" || true
+          xcrun simctl spawn "$UDID" log show --last 10m --style compact --predicate 'process == "App"' > "$OUT/app-oslog.log" || true
           grep -h "cd-selftest" "$OUT/app-oslog.log" "$OUT/app-stderr.log" "$OUT/app-stdout.log" | sort -u > "$OUT/selftest.txt" || true
           grep -hE "⚡️|ERROR|Error|error" "$OUT/app-stdout.log" "$OUT/app-stderr.log" | head -n 200 > "$OUT/console-highlights.txt" || true
           {
@@ -178,8 +182,16 @@ jobs:
             check("web listener got the scheme URL (appUrlOpen)", trace.some((e) => e.step === "appUrlOpen" && urlOf(e).startsWith("com.codedestiny.app://cd-selftest")));
             check("web listener got the universal link (appUrlOpen)", trace.some((e) => e.step === "appUrlOpen" && urlOf(e).startsWith("https://code-destiny.com/about/")));
             check("bridge routed it in-app (universalLink /about/)", trace.some((e) => e.step === "universalLink" && urlOf(e) === "/about/"));
-            check("webview navigated to the bundled /about/", !!result && /^capacitor:\/\/localhost\/about\/\?cd_selftest=universal$/.test(String(result.href)));
-            const report = [...checks, `href: ${result ? result.href : "(no link-result)"}`, `title: ${result ? result.title : ""}`].join("\n");
+            // 브리지의 applyLanguage 가 &lang=<code> 를 덧붙인다(실행 44567360939). 다른 쿼리는 허용한다.
+            check("webview navigated to the bundled /about/", !!result && /^capacitor:\/\/localhost\/about\/\?cd_selftest=universal(&|#|$)/.test(String(result.href)));
+            let home = null;
+            for (const line of lines.filter((l) => l.includes("[cd-selftest] {"))) {
+              try { home = JSON.parse(line.slice(line.indexOf("{", line.indexOf("[cd-selftest]")))); break; } catch (e) { /* next */ }
+            }
+            const report = [...checks, `href: ${result ? result.href : "(no link-result)"}`, `title: ${result ? result.title : ""}`,
+              `home href: ${home ? home.href : "(no home snapshot)"}`,
+              `home layout: ${JSON.stringify(home && home.layout)}`,
+              `about layout: ${JSON.stringify(result && result.layout)}`].join("\n");
             require("fs").writeFileSync(process.argv[2], report + "\n");
             console.log(report);
             process.exit(checks.every((line) => line.startsWith("PASS")) ? 0 : 1);

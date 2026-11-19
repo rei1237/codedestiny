@@ -112,9 +112,53 @@ class CodeDestinyViewController: CAPBridgeViewController {
     // Mac checklist reads by hand in Web Inspector. Release builds never contain this code.
     private func scheduleSelfTest() {
         guard ProcessInfo.processInfo.arguments.contains("-cdSelfTest") else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
-            guard let webView = self?.webView else { NSLog("%@", "[cd-selftest] no webView"); return }
-            let script = """
+        selfTestWhenSettled(previous: "", deadline: Date().addingTimeInterval(90))
+    }
+
+    // The first load on a cold CI simulator can take longer than a fixed delay (run 44562306732: still about:blank
+    // at 15 s), and the home page may replace its own URL after boot (?lang=). Wait until the bundled page has
+    // finished loading and its URL has stayed the same for one interval.
+    private func selfTestWhenSettled(previous: String, deadline: Date) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            guard let self = self, let webView = self.webView else { NSLog("%@", "[cd-selftest] no webView"); return }
+            webView.evaluateJavaScript("document.readyState + ' ' + location.href") { value, _ in
+                let state = (value as? String) ?? ""
+                let settled = state.hasPrefix("complete capacitor:") && state == previous
+                if settled || Date() > deadline {
+                    if !settled { NSLog("%@", "[cd-selftest] page did not settle: \(state)") }
+                    self.selfTestSnapshot()
+                } else {
+                    self.selfTestWhenSettled(previous: state, deadline: deadline)
+                }
+            }
+        }
+    }
+
+    // Top-inset numbers for the iOS header/status-bar check: env(safe-area-inset-top) read through a fixed probe,
+    // body padding, and the first <header> (GlobalHeader root) padding and position.
+    private static let layoutProbe = """
+    const layout = (() => {
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:fixed;top:0;left:0;width:1px;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top)";
+      document.documentElement.appendChild(probe);
+      const safeAreaTop = getComputedStyle(probe).paddingTop;
+      probe.remove();
+      const header = document.querySelector("header");
+      const rect = header ? header.getBoundingClientRect() : null;
+      return {
+        scrollY: window.scrollY,
+        safeAreaTop: safeAreaTop,
+        bodyPaddingTop: document.body ? getComputedStyle(document.body).paddingTop : null,
+        dataPlatform: document.documentElement.dataset.platform || null,
+        header: header ? { className: String(header.className), paddingTop: getComputedStyle(header).paddingTop, rectTop: rect.top, height: rect.height } : null
+      };
+    })();
+    """
+
+    private func selfTestSnapshot() {
+        guard let webView = webView else { return }
+        do {
+            let script = Self.layoutProbe + """
             const root = document.documentElement;
             const client = globalThis.__cdNativeBridgeClient;
             let info = "missing";
@@ -131,7 +175,8 @@ class CodeDestinyViewController: CAPBridgeViewController {
               nativeBridge: typeof globalThis.CodeDestinyNative,
               htmlAttributes: Array.from(root.attributes).map((a) => a.name).join(","),
               capacitorPlatform: globalThis.Capacitor && globalThis.Capacitor.getPlatform ? globalThis.Capacitor.getPlatform() : null,
-              info: info
+              info: info,
+              layout: layout
             });
             """
             webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { [weak self] result in
@@ -139,7 +184,8 @@ class CodeDestinyViewController: CAPBridgeViewController {
                 case .success(let value): NSLog("%@", "[cd-selftest] \(value)")
                 case .failure(let error): NSLog("%@", "[cd-selftest] error \(error.localizedDescription)")
                 }
-                self?.selfTestLinks()
+                // A gap so the workflow's home screenshot is taken before the links move the page.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self?.selfTestLinks() }
             }
         }
     }
@@ -167,23 +213,37 @@ class CodeDestinyViewController: CAPBridgeViewController {
             let application = UIApplication.shared
             let accepted = application.delegate?.application?(application, continue: activity, restorationHandler: { _ in }) ?? false
             NSLog("%@", "[cd-selftest] link-universal-delivered \(accepted)")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 8) { [weak self] in
-                guard let webView = self?.webView else { NSLog("%@", "[cd-selftest] link-result no webView"); return }
-                // The bridge's trace (localStorage, same origin) survives the navigation the universal link causes.
-                let script = """
-                let trace = [];
-                try { trace = JSON.parse(localStorage.getItem("cd_app_trace_v1") || "[]"); } catch (e) {}
-                return JSON.stringify({
-                  href: location.href,
-                  title: document.title,
-                  trace: trace.filter((e) => /appUrlOpen|universalLink|deepLink/.test(e.step)).slice(-6)
-                });
-                """
-                webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
-                    switch result {
-                    case .success(let value): NSLog("%@", "[cd-selftest] link-result \(value)")
-                    case .failure(let error): NSLog("%@", "[cd-selftest] link-result error \(error.localizedDescription)")
-                    }
+            self?.selfTestLinkResult(deadline: Date().addingTimeInterval(30))
+        }
+    }
+
+    // Logs once the page is the bundled /about/ (or when the deadline passes, with whatever page is showing).
+    private func selfTestLinkResult(deadline: Date) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self = self, let webView = self.webView else { NSLog("%@", "[cd-selftest] link-result no webView"); return }
+            // The bridge's trace (localStorage, same origin) survives the navigation the universal link causes.
+            let script = Self.layoutProbe + """
+            let trace = [];
+            try { trace = JSON.parse(localStorage.getItem("cd_app_trace_v1") || "[]"); } catch (e) {}
+            return JSON.stringify({
+              href: location.href,
+              readyState: document.readyState,
+              title: document.title,
+              layout: layout,
+              trace: trace.filter((e) => /appUrlOpen|universalLink|deepLink/.test(e.step)).slice(-6)
+            });
+            """
+            webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
+                let value: String
+                switch result {
+                case .success(let output): value = "\(output)"
+                case .failure(let error): value = "error \(error.localizedDescription)"
+                }
+                let arrived = value.contains("\"href\":\"capacitor://localhost/about/") && value.contains("\"readyState\":\"complete\"")
+                if arrived || Date() > deadline {
+                    NSLog("%@", "[cd-selftest] link-result \(value)")
+                } else {
+                    self.selfTestLinkResult(deadline: deadline)
                 }
             }
         }
