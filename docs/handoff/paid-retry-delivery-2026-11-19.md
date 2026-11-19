@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-19
-next: "R3 인생의 책 다시 시도(설계 'R3 설계' 절) → R4 신년운세 → R2b 네오 첫 브리핑. R1 은 R3·R4 없이 머지·push 금지"
+next: "R4 신년운세 다시 시도(R3 패턴, NewYearAiClient LLM_ERROR_MESSAGE 정정 포함) → R2b 네오 첫 브리핑. R1·R3 은 R4 없이 머지·push 금지"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -56,7 +56,7 @@ next: "R3 인생의 책 다시 시도(설계 'R3 설계' 절) → R4 신년운�
   - `worker/lib/checkpoint-refund-guard.js:41` — `generation_failed` 를 '결과 없음'으로 분류해 `service-execution-task.js` `settleExecutionById`(:846)·`sweepStaleServiceExecutions`(:1484/:1502)가 약 10분 뒤 자동 환불한다. retryable 표지가 있고 창 안이면 결과 없음이 아니라 보류로 분류해야 한다.
   - 네오가 `consultation-delivery-refund.js` `SERVICES` 에 없다 → 7일 뒤/고객 요청 환불 수집기가 없다(추가 또는 네오 전용 수집기).
   - 핸들러 catch 의 즉시 환불 `refundNeoGenerationFailure`(:1957), 장당 8회 상한(:1070, :1864), 시작·재개 409 차단(:1801, GET /result :2006-2013).
-- [ ] R3 인생의 책
+- [x] R3 인생의 책 — `9f725b7a3`(워커·클라이언트·테스트) + `39fcbd4a0`(sitemap 원장). 종결 실패 → generation_failed + llmMeta.retryable(생성+7일), 본문 비노출 유지. POST /api/life-book-ai/retry(실패·보수 대기 장만 시도 수 0 으로 열고 웨이브 예산 초기화, 같은 CAS) · POST /refund-request(markRetryableRefundDue → settle). 소개·결과 화면에 "다시 시도 · 추가 결제·차감 없음" + "다시 시도 대신 환불 요청", 다시 시도 가능할 때 새 책(새 결제) 링크 숨김. 즉시 환불 유지(가정): Toss 네이티브·supportRecovery·DEFERRED_USAGE_APPLY_FAILED·LIFE_BOOK_RESULT_INCOMPLETE(전달 단계 조립 실패, 다시 시도해도 같은 결과). 다시 시도 경로는 증빙 해제·차감 취소를 하지 않는다(같은 결제 건 이어 쓰기). 검증: life-book behavior 78/78, ux.static 10/10, wake-recovery 등 node --test 94/94, jest stuck·recovery-task·delivery-contract 75/75, verify life-book-flow·paid-llm-delivery·payment-freeze·legal-copy·paid-gate-scope·audit-ai-locale --check 통과, tsc 0.
 - [ ] R4 신년운세 (S16 대상 밖이었으므로 완성본 판정·비노출 여부도 먼저 확인. 비노출 추가는 하지 않고 다시 시도만 붙인다 — 요청 범위)
 - [ ] R5 연애 비책
 - [ ] R6 흑월(웹 + `worker/toss/native-heukwol.js` Toss 경로)
