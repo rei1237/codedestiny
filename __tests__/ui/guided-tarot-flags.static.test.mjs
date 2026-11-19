@@ -19,3 +19,10 @@ test('셸은 영냥이 전용 밤 예화 CSS 를 싣지 않는다(꿀꿀 흐름 
   assert.equal(/^import\s+['"][^'"]*yehwa-night\.generated\.css['"]/m.test(shell), false);
   assert.match(read('app/dev/guided-flow/GuidedFlowDemo.tsx'), /^import '@\/app\/yeongnyangi\/yehwa-night\.generated\.css';/m);
 });
+
+test('/today/ 는 플래그로 공통 플로우판과 원본 DailyTarot 사이를 고른다', () => {
+  const hub = read('app/today/TodayHubClient.tsx');
+  assert.match(hub, /GUIDED_DAILY_TAROT_ENABLED\s*\?\s*dynamic\(\(\) => import\("\.\/DailyTarotGuided"\)/);
+  assert.match(hub, /:\s*dynamic\(\(\) => import\("\.\/DailyTarot"\)/);
+  assert.match(read('app/today/DailyTarotGuided.tsx'), /DAILY_TAROT_KEY/);
+});
