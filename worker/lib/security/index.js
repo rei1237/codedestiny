@@ -504,14 +504,18 @@ export async function enforceSensitiveEndpointSecurity(options = {}) {
  * 그래서 `/generate` 를 `/start` 와 같은 일일 버킷에 넣으면 **리포트 1건이 일일 예산을 6~11건씩
  * 먹어** 60건 예산이 사용자당 하루 8~10건으로 쪼그라든다(2026-08-30 확인).
  *
- * 🔴 여기 없는 서비스의 `/generate` 는 `/start` 별칭으로 본다 — 실제로 ziwei-ai·life-book-ai·
+ * 🔴 여기 없는 서비스의 `/generate` 는 `/start` 별칭으로 본다 — 실제로 ziwei-ai·
  *    love-secret-ai·ziwei-island-ai·sukuyo-compatibility-ai 는 두 경로가 같은 handleStart 로
  *    가므로, 따로 버킷을 주면 일일 천장이 두 배가 된다. 즉 기본값이 엄격한 쪽이다.
+ *    이 서비스들의 이어쓰기는 resumeSessionId 를 보내 isOwnedCheckpointResume 가 batch(일일 상한 없음)로 돌린다.
+ * 🔴 인생의 책(2026-11-21)은 웨이브마다 resumeSessionId 없이 입력 전체를 보내 그 면제를 못 탄다 — 책 1권이
+ *    웨이브 15~60여 회라 /start 버킷(하루 60)이면 결제 뒤 429 로 끊겼다. 그래서 handleGenerate 로 분리해 여기 둔다.
  * 🔴 이 목록이 낡으면 verify:worker-security-guards 가 라우트 소스를 전수 훑어 실패시킨다
  *    (`/generate` 디스패치가 handleGenerate 인지 handleStart 인지로 판별).
  */
 export const WAVE_GENERATE_SERVICE_KEYS = Object.freeze([
   "human-design-report",
+  "life-book-ai",
   "master-love-codex",
   "nakshatra-ai",
   "naming-prompt",
