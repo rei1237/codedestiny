@@ -11119,7 +11119,7 @@
   var _dpHomeEntryMemory = '';
   var _dpHomeFormOriginal = null;
   var _dpHomeSectionKey = 'cd:home-fortune-section:v1';
-  var _dpHomeSections = {sajuCard:'명식·12신살',terms24Card:'절기 리듬',sajuFourCutCard:'사주 네컷',dopamineCard:'도파민·집중력','hormone-vibe-section':'테토·에겐 바이브',tTestCard:'극T 테스트',lottoCard:'사주 로또 리추얼',aiPromptCard:'AI 프롬프트 카드',skillTreeCard:'인생 스킬 트리',compatCard:'사주 궁합'};
+  var _dpHomeSections = {sajuCard:'명식·12신살',terms24Card:'절기 리듬',sajuFourCutCard:'사주 네컷',dopamineCard:'도파민·집중력','hormone-vibe-section':'테토·에겐 바이브',tTestCard:'극T 테스트',lottoCard:'사주 로또 리추얼',aiPromptCard:'AI 프롬프트 카드',skillTreeCard:'인생 스킬 트리',compatCard:'사주 궁합',destinyAnatomyCard:'나의 뇌구조'};
   var _dpHomeSection = '';
   var _dpHomeSectionObserver = null;
   try {

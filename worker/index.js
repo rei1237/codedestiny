@@ -451,6 +451,7 @@ const handleLoveSecretAiRoutes = createLazyRouteHandler("./routes/love-secret-ai
 const handleRelationshipBoundaryTestRoutes = createLazyRouteHandler("./routes/relationship-boundary-test.js", () => import("./routes/relationship-boundary-test.js"), "handleRelationshipBoundaryTestRoutes", "api/relationship-boundary-test");
 const handleSajuNewYearRoutes = createLazyRouteHandler("./routes/saju-new-year.js", () => import("./routes/saju-new-year.js"), "handleSajuNewYearRoutes");
 const handleNewYearAiRoutes = createLazyRouteHandler("./routes/new-year-ai.js", () => import("./routes/new-year-ai.js"), "handleNewYearAiRoutes", "api/new-year-ai");
+const handleSajuCompatPremiumRoutes = createLazyRouteHandler("./routes/saju-compat-premium.js", () => import("./routes/saju-compat-premium.js"), "handleSajuCompatPremiumRoutes", "api/saju-compat-premium");
 const handleVedicAiRoutes = createLazyRouteHandler("./routes/vedic-ai.js", () => import("./routes/vedic-ai.js"), "handleVedicAiRoutes", "api/vedic-ai");
 const handleKarmaDestinyAiRoutes = createLazyRouteHandler("./routes/karma-destiny-ai.js", () => import("./routes/karma-destiny-ai.js"), "handleKarmaDestinyAiRoutes", "api/karma-destiny-ai");
 const handleZiweiAiRoutes = createLazyRouteHandler("./routes/ziwei-ai.js", () => import("./routes/ziwei-ai.js"), "handleZiweiAiRoutes", "api/ziwei-ai");
@@ -1718,6 +1719,9 @@ const app = {
       }
       if (url.pathname === "/api/new-year-ai" || url.pathname.startsWith("/api/new-year-ai/")) {
         return runAiRouteWithSecurity(request, env, "new-year-ai", handleNewYearAiRoutes, ctx);
+      }
+      if (url.pathname === "/api/saju-compat-premium" || url.pathname.startsWith("/api/saju-compat-premium/")) {
+        return runAiRouteWithSecurity(request, env, "saju-compat-premium", handleSajuCompatPremiumRoutes, ctx);
       }
 
       if (url.pathname === "/api/karma-destiny-ai" || url.pathname.startsWith("/api/karma-destiny-ai/")) {

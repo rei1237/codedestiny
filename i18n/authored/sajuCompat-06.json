@@ -138,5 +138,61 @@
     "de": "Vom Boot aus hebt jemand eine Laterne zur Person am Ufer",
     "nl": "Iemand op de veerboot heft een lantaarn naar de persoon op de oever",
     "ms": "Seseorang di atas perahu mengangkat tanglung ke arah orang di tebing"
+  },
+  "sajuCompat.entry.freeBadge": {
+    "ko": "무료",
+    "en": "Free",
+    "ja": "無料",
+    "zh-CN": "免费",
+    "zh-TW": "免費",
+    "vi": "Free",
+    "hi": "Free",
+    "es": "Free",
+    "fr": "Free",
+    "de": "Free",
+    "nl": "Free",
+    "ms": "Free"
+  },
+  "sajuCompat.entry.showcaseBadge": {
+    "ko": "기본 무료",
+    "en": "Basic free",
+    "ja": "基本無料",
+    "zh-CN": "基础免费",
+    "zh-TW": "基礎免費",
+    "vi": "Basic free",
+    "hi": "Basic free",
+    "es": "Basic free",
+    "fr": "Basic free",
+    "de": "Basic free",
+    "nl": "Basic free",
+    "ms": "Basic free"
+  },
+  "sajuCompat.entry.showcasePrice": {
+    "ko": "무료",
+    "en": "Free",
+    "ja": "無料",
+    "zh-CN": "免费",
+    "zh-TW": "免費",
+    "vi": "Free",
+    "hi": "Free",
+    "es": "Free",
+    "fr": "Free",
+    "de": "Free",
+    "nl": "Free",
+    "ms": "Free"
+  },
+  "sajuCompat.entry.showcaseNote": {
+    "ko": "고급 궁합 10,000원",
+    "en": "Premium reading ₩10,000",
+    "ja": "高級相性 10,000ウォン",
+    "zh-CN": "高级合盘 10,000韩元",
+    "zh-TW": "高級合盤 10,000韓元",
+    "vi": "Premium reading ₩10,000",
+    "hi": "Premium reading ₩10,000",
+    "es": "Premium reading ₩10,000",
+    "fr": "Premium reading ₩10,000",
+    "de": "Premium reading ₩10,000",
+    "nl": "Premium reading ₩10,000",
+    "ms": "Premium reading ₩10,000"
   }
 }

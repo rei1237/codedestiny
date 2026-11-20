@@ -61,3 +61,16 @@ test('/today/ 결과는 웹툰 플래그로 캐릭터 웹툰과 이전 섹션 �
   assert.match(src, /<NarratorWebtoon /);
   assert.match(src, /dailyTarot\.positionsTitle/);
 });
+
+test('/saju/animal-destiny/ 는 플래그로 입력만 공통 플로우판으로 바꾸고 결과·유료 풀이 확인은 원본을 쓴다(3c-A3)', async () => {
+  const flags = await import('../../lib/guided-flow/flags.mjs');
+  assert.equal(typeof flags.GUIDED_ANIMAL_DESTINY_ENABLED, 'boolean');
+  const page = read('app/saju/animal-destiny/components/AnimalDestinyPage.tsx');
+  assert.match(page, /GUIDED_ANIMAL_DESTINY_ENABLED \? dynamic\(\(\) => import\("\.\/AnimalDestinyGuided"\)/);
+  assert.match(page, /AnimalDestinyGuided \? null : <TwelveAnimalHero /);
+  assert.match(page, /!AnimalDestinyGuided && \(status === "idle" \|\| status === "input" \|\| status === "error"\) \? \(/);
+  assert.match(page, /<AnimalResultScreen[\s\S]*paid=\{paid\}[\s\S]*onRetryPaid=\{loadPaid\}/);
+  const guided = read('app/saju/animal-destiny/components/AnimalDestinyGuided.tsx');
+  assert.match(guided, /calculate\(\)/);
+  assert.equal(/authFetch|\/api\//.test(guided), false, '입력 플로우는 서버를 직접 부르지 않는다(유료 확인은 스토어 calculate 안)');
+});

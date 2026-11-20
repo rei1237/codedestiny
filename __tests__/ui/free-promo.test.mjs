@@ -96,7 +96,7 @@ test('campaign entries use existing actions and existing result sections', async
   if(item.action)assert.equal(new URL(freePromoItemHref(item),'https://example.test').searchParams.get('action'),item.action);
   if(item.target)assert.ok(doc.getElementById(item.target)||dynamic.includes(item.target),'missing section '+item.target);
  }
- assert.equal(FREE_PROMO_GROUPS.flatMap(g=>g.items).length,22);
+ assert.equal(FREE_PROMO_GROUPS.flatMap(g=>g.items).length,23);
  assert.equal(FREE_PROMO_FEATURED.length,6);
  const {freePromoEndDateIso}=await import('../../lib/marketing/free-promo.mjs');
  assert.equal(freePromoEndDateIso('2027-02-12T23:59:59+09:00'),'2027-02-12');

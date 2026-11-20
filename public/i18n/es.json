@@ -17650,7 +17650,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22369,7 +22369,11 @@
       "love": "Explora vuestro ritmo de contacto y cómo acercaros después de discutir.",
       "business": "Explora cómo repartís responsabilidades y tomáis decisiones.",
       "friend": "Encuentra un ritmo de contacto y un espacio cómodos para ambos.",
-      "preview": "Ver el contenido del informe"
+      "preview": "Ver el contenido del informe",
+      "freeBadge": "Free",
+      "showcaseBadge": "Basic free",
+      "showcasePrice": "Free",
+      "showcaseNote": "Premium reading ₩10,000"
     },
     "reading": {
       "contents": "Índice de la lectura",
@@ -22592,7 +22596,8 @@
       "vedic": "Astrología védica",
       "astro": "Astrología",
       "humanDesign": "Diseño Humano",
-      "promptHub": "Generador de prompts"
+      "promptHub": "Generador de prompts",
+      "brain": "My brain map"
     },
     "all": "Ver todas las lecturas gratis",
     "start": "Comenzar",

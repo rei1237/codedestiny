@@ -18,11 +18,15 @@ const mocks = {
   'PublicInsightCard': 'export default function PublicInsightCard() { return null; }',
   'QuestionJourney': 'export function FreeQuestionNext() { return null; }',
 };
+// flagsOff: GUIDED_WEBTOON_RESULT_ENABLED=false 롤백 경로(원래 결과 마크업)를 같은 하네스로 확인한다.
+async function load(flagsOff = false) {
 const output = await build({
   entryPoints: ['app/today/DailyTarotGuided.tsx'], bundle: true, write: false, format: 'cjs', platform: 'node',
   jsx: 'automatic', alias: { '@': process.cwd() }, logLevel: 'silent', loader: { '.json': 'json' },
   external: ['react', 'react/jsx-runtime', 'react-dom'],
   plugins: [{ name: 'daily-mocks', setup(b) {
+    if (flagsOff) b.onResolve({ filter: /guided-flow\/flags\.mjs$/ }, () => ({ path: 'flags', namespace: 'flags-off' }));
+    b.onLoad({ filter: /.*/, namespace: 'flags-off' }, () => ({ contents: 'export const GUIDED_WEBTOON_RESULT_ENABLED = false;', loader: 'js' }));
     b.onResolve({ filter: /(\/useT|\/analytics|PublicInsightCard|QuestionJourney)$/ }, (args) => ({ path: args.path.split('/').pop(), namespace: 'mock' }));
     b.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({ contents: mocks[args.path], loader: 'js', resolveDir: process.cwd() }));
     b.onLoad({ filter: /\.css$/ }, () => ({ contents: 'export default new Proxy({}, { get: (_, k) => String(k) });', loader: 'js' }));
@@ -30,13 +34,16 @@ const output = await build({
 });
 const mod = { exports: {} };
 new Function('require', 'module', 'exports', output.outputFiles[0].text)(require, mod, mod.exports);
-const DailyTarotGuided = mod.exports.default;
+return mod.exports.default;
+}
+const DailyTarotGuided = await load();
+const DailyTarotGuidedFlagOff = await load(true);
 const KEY = 'cd:yeoni:daily-three:v1';
 const cards = Array.from({ length: 22 }, (_, id) => ({ id, name: `카드${id}`, code: ['fool', 'magician', 'highpriestess', 'empress', 'emperor', 'hierophant', 'lovers', 'chariot', 'strength', 'hermit', 'wheel', 'justice', 'hangedman', 'death', 'temperance', 'devil', 'tower', 'star', 'moon', 'sun', 'judgement', 'world'][id], thumb: `/t${id}.webp`, image: `/i${id}.webp`, fallback: `/f${id}.webp` }));
 
 const flush = async (rounds = 30) => { for (let i = 0; i < rounds; i += 1) await act(async () => { await new Promise((r) => setTimeout(r, 0)); }); };
 
-async function mount(url = 'http://localhost/today/', storage = {}) {
+async function mount(url = 'http://localhost/today/', storage = {}, Component = DailyTarotGuided) {
   const dom = new JSDOM('<div id="root"></div>', { url });
   const w = dom.window;
   Object.assign(w.localStorage, {});
@@ -47,7 +54,7 @@ async function mount(url = 'http://localhost/today/', storage = {}) {
   globalThis.HTMLElement = w.HTMLElement; globalThis.IS_REACT_ACT_ENVIRONMENT = true;
   globalThis.__events = [];
   const root = createRoot(w.document.getElementById('root'));
-  await act(async () => root.render(React.createElement(DailyTarotGuided, { cards })));
+  await act(async () => root.render(React.createElement(Component, { cards })));
   await flush();
   const buttons = () => [...w.document.querySelectorAll('button')];
   return {
@@ -137,4 +144,16 @@ test('지난날 카드는 "어제 카드 마저 보기"로 이어 읽고, 첫 CT
   assert.notEqual(n.saved().date, '2020-01-01', '첫 CTA 는 오늘 날짜로 새로 시작한다');
   assert.equal(n.saved().picks.length, 0);
   await n.close();
+});
+
+test('웹툰 플래그를 끄면(롤백) 원래 결과 마크업 "자리별 읽기"로 돌아가고 웹툰은 없다', async () => {
+  const done = JSON.stringify({ version: 1, date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date()), deck: Array.from({ length: 22 }, (_, i) => i), picks: [1, 18, 16], revealed: 3 });
+  const off = await mount('http://localhost/today/?step=result', { [KEY]: done }, DailyTarotGuidedFlagOff);
+  assert.equal(off.heading(), '오늘의 세 장');
+  assert.ok(off.w.document.body.textContent.includes('자리별 읽기'));
+  assert.equal(off.w.document.querySelector('[data-narrator]'), null);
+  await off.close();
+  const on = await mount('http://localhost/today/?step=result', { [KEY]: done });
+  assert.ok(on.w.document.querySelector('[data-narrator="yeoni"]'));
+  await on.close();
 });

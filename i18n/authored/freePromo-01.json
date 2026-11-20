@@ -713,5 +713,19 @@
     "de": "Mein Geburtshoroskop ansehen",
     "nl": "Mijn geboortehoroscoop bekijken",
     "ms": "Lihat carta kelahiran saya"
+  },
+  "freePromo.item.brain": {
+    "ko": "나의 뇌구조",
+    "en": "My brain map",
+    "ja": "わたしの脳内マップ",
+    "zh-CN": "我的脑内图",
+    "zh-TW": "我的腦內圖",
+    "vi": "My brain map",
+    "hi": "My brain map",
+    "es": "My brain map",
+    "fr": "My brain map",
+    "de": "My brain map",
+    "nl": "My brain map",
+    "ms": "My brain map"
   }
 }
