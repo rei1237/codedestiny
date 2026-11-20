@@ -38,12 +38,14 @@ test('free promo end date never gates access', () => {
   }
 });
 
-test('entry and Yeongnyangi surfaces reuse the policy banner with their own character treatment', () => {
+test('main and Kkulkkul keep the campaign banner, independent of Yeongnyangi', () => {
   const root = read('app/page.js');
+  const shell = read('index.html');
   const yeongnyangi = read('app/yeongnyangi/_home/FortuneHome.tsx');
   const banner = read('app/components/FreePromoBanner.tsx');
   assert.match(root, /<FreePromoBanner\s*\/>/);
-  assert.match(yeongnyangi, /<FreePromoBanner variant="yeongnyangi" compact\/>/);
+  assert.match(shell, /class="cdh-promo"/);
+  assert.doesNotMatch(yeongnyangi, /FreePromoBanner/);
   assert.match(banner, /yeoni-cheer\.webp|FREE_PROMO_YEONI\.image/);
   assert.match(banner, /hero-480\.webp/);
   assert.match(banner, /<details className=\{styles\.list\}/);
