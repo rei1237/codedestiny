@@ -40,7 +40,7 @@ export function consultationRecoveryFilter(now, extra) {
 // 다시 시도 동안 붙잡아 둔 결제 증빙 claim(llmMeta.claimEvidenceIds)을 기한 만료로 닫힐 때 푼다. 토스 네이티브는 claim 을 쓰지 않는다.
 // 지연 차감 취소는 요청 컨텍스트가 필요해 여기서 하지 않는다(환불 요청 경로·실행 가드 타임아웃이 맡는다).
 async function releaseHeldRetryClaim(env, doc, release) {
-  const evidenceIds = [...new Set((Array.isArray(doc?.llmMeta?.claimEvidenceIds) ? doc.llmMeta.claimEvidenceIds : []).map(id => String(id || '').trim()).filter(Boolean))];
+  const evidenceIds = [...new Set([].concat(doc?.llmMeta?.claimEvidenceIds || []).map(id => String(id || '').trim()).filter(Boolean))];
   if (!evidenceIds.length || doc?.accessSource === 'toss') return;
   const releaseClaim = release || (await import('./billing-evidence-claim.js')).releaseRequestBillingEvidence;
   await releaseClaim(env, { userId: String(doc.userId), requestId: String(doc.idempotencyKey || ''), evidenceIds });
