@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-20
-next: "R10 남은 2종(naming-prompt(PG 단건, 실측 'R10 작명 감사'의 조건 6개 필수) → fusion-fortune(24시간 → 7일 창))을 서비스마다 TDD·커밋. 끝나면 R9 절차로 머지·체인·push"
+updated: 2026-11-21
+next: "R9 push 보류: 라이트 운세 핫픽스 운영 반영 뒤 push"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -81,9 +81,9 @@ next: "R10 남은 2종(naming-prompt(PG 단건, 실측 'R10 작명 감사'의 �
   - [x] ziwei-ai — `ac855a7d1`(워커·환불 크론·보관함·검증기·테스트) + `835dc1e75`(단일 화면 패널) + `cf8e4f6c4`(sitemap 원장). 실측 "R10 자미두수"
   - [x] sukuyo-compatibility-ai — `507567a56`(워커·PG 단건 7일 환불·크론·검증기·테스트) + `d62ca2d77`(웹 패널·보존 해시·sitemap). 실측 "R10 숙요 궁합·카르마"
   - [x] karma-destiny-ai — `e59c36a1b`(워커·7일 차감 보류·크론·보관함·검증기·테스트) + `22a543a4f`(결과 화면 패널). 실측 "R10 숙요 궁합·카르마"
-  - [ ] naming-prompt
-  - [ ] fusion-fortune
-  - [ ] 6종 끝 → R9 절차(origin/main 머지·미러/sitemap 재생성·체인·check:pre-push·조상 확인·push·CI 1회). 그 전에는 push 하지 않는다(지시).
+  - [x] naming-prompt — `99d6fdce0`(워커·PG 단건 7일 환불·크론·보관함·검증기·테스트) + `33551cacc`(결과 화면 패널). 실측 "R10 작명·초융합"
+  - [x] fusion-fortune — `06ec74221`(워커 24시간 → 7일 창·/retry·/refund-request·크론·검증기·테스트) + `c7fc09491`(결과 화면 패널). 실측 "R10 작명·초융합"
+  - [ ] (push 만 남음 — 2026-11-21 코디네이터 지시로 보류: 라이트 운세 핫픽스를 작게 내보내기 위해 이 묶음은 아직 main 에 올리지 않는다. 핫픽스 운영 반영 뒤 다시 fetch·머지·체인·push) 6종 끝 → R9 절차(origin/main 머지·미러/sitemap 재생성·체인·check:pre-push·조상 확인·push·CI 1회). 그 전에는 push 하지 않는다(지시).
 - [ ] R11 최종 보고 + 운영 승격 승인 질문(AskUserQuestion, 추천 "CI 녹색 뒤 1회 승격"). 승격 직전 `git log 25d9bc034..origin/main` 으로 다른 세션 커밋을 확인해 질문에 적는다.
 - [ ] R12 정리: 워크트리 배수(`npm run worktree:remove -- <경로>`, 다른 체크아웃에서), 스크래치 삭제, 이 문서 `status: done`.
 
@@ -102,6 +102,13 @@ next: "R10 남은 2종(naming-prompt(PG 단건, 실측 'R10 작명 감사'의 �
 S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 불일치, 흑월 근거 실패 3→5, '조심'인데 '기회' 톤. 연애 비책 정체 환불 재시도가 `refundEligibleAt` 미사용(R5: 창 안 정체는 해소, 생성 7일 경과 정체는 기존 경로). 마스터 인연의 서 운영 스크립트 재개방 위험 미확인. S14 프롬프트 최적화 대기.
 
 ## 실측
+### R10 작명·초융합 + R9 체인 (2026-11-20~21, push 보류)
+- 커밋: 작명 `99d6fdce0`·`33551cacc`, 초융합 `06ec74221`·`c7fc09491`, origin/main(`8d76d7cc9`) 머지 `9618a614f`, sitemap 원장 `a41d79508`, Toss 하네스 `305e83c8c`.
+- 머지 충돌: `worker/lib/paid-delivery-stuck.js` — 이쪽 `idKey`(숙요 _id) + main 의 `idempotent:true`·`onExpired`·select(idempotencyKey accessSource) 를 모두 살림. select 는 idKey≠id 면 `id <idKey>` 둘 다. `config/sitemap-lastmod.json` 은 --theirs 뒤 재생성(서명 3건).
+- 초융합 설계: 카드 주문만 보류(`llmMeta.retryable`, 생성+7일). INPUT_MISSING_7D 는 기존 즉시 환불. 다시 시도는 같은 회차를 partial 로 다시 열고 시도 예산(attempts·unbilledFailures·recovery)을 새로 준다(옛 "쓴 시도는 되돌리지 않는다" 주석과 다름 — 정책 메모). 다시 연 뒤 24시간 방치·예산 소진은 다시 보류 판정. 환불은 고객 요청 또는 `settleDueFusionRetryRefunds`(EXPERT_RETRY_SETTLERS). 공용 markRetryableRefundDue 는 modifiedCount 를 보는데 초융합 테스트 목은 matchedCount 만 돌려 전용 헬퍼를 둠.
+- 🔴 함정: 라우트에 새 import(`paid-delivery-stuck.js`, 동적 `consultation-delivery-refund.js`)를 넣으면 `apps/toss/test/native-fusion-boundary.test.mjs` esbuild 번들이 swisseph.wasm 까지 끌어와 실패 → 스텁 추가. 숙요 `sukuyoRetryPayload`(507567a56) 는 `apps/toss/test/sukuyo-failed-retry.test.mjs` vm 컨텍스트에 없어 2건 실패 → 스텁 추가(`305e83c8c`).
+- 검사(머지 뒤, --base=`8d76d7cc9`): check:fast exit 0(486 스위트 1 skip, 8410 통과, typecheck PASS) · run-paid-gate-suite exit 0(91/0, 2511s) · `npm test --prefix apps/toss` 첫 실행 1764/1766(숙요 2건) → 수정 뒤 재실행(아래 보고 참조) · verify-myeongri-tables exit 0 · check:pre-push exit 0.
+- 그 전(머지 전): 초융합 jest 7 스위트 269/269, stream-termination 10/10, toss native-fusion-boundary 3/3, check:fast --base=HEAD exit 0(484 스위트, 8363 통과). 작명: jest 7 스위트 157, consultation-delivery-refund 56/56, verify:payment-freeze·p0-inventory 통과.
 ### R10 숙요 궁합·카르마 (2026-11-20, push 안 함)
 - sukuyo: `check:fast --base=HEAD~1`(d62ca2d77) exit 0 — jest 484 스위트(1 skip) 8347 통과. 첫 실행은 `timeout 590` 래핑으로 124 종료 + yeongnyangi-reading-invariance 부하 flake(단독 재실행 통과) → 래핑 없이 재실행.
 - karma: 보류 = `llmMeta.retryable`(생성+7일). 보류 중 이용권 복원·deferred usage 취소·증빙 해제 없음 → 다시 시도 성공 시 기존 경로가 차감 확정(usage requestId original-paid-request). 환불 요청·7일 크론(`settleDueKarmaRetryRefunds`, EXPERT_RETRY_SETTLERS)이 이용권 복원(refundId `karma-destiny-ai:<requestId>`) → deferred 면 PaidExecutionRecord 를 generation_failed 로 직접 갱신(크론엔 요청·인증이 없어 billing 라우트 대신, `handleDeferredUsageCancel` 과 같은 갱신) → 증빙 해제. 이용권 복원이 던지면 정산 표시 없이 크론 재시도.
