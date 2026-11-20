@@ -328,6 +328,21 @@ test('복구 크론은 기존 환불 크론보다 먼저 창이 지난 다시 �
   expect(seenAtRefund).toBe(new Date(due).toISOString());
 });
 
+test('기한 만료로 닫힌 다시 시도 실패는 붙잡아 둔 결제 증빙 claim 을 푼다(토스 문서는 제외)', async () => {
+  const due = START + stuck.RETRY_REFUND_AFTER_MS;
+  const held = memoryModel(retryableDoc(START, { idempotencyKey: 'paid-request', llmMeta: { ...retryableDoc(START).llmMeta, claimEvidenceIds: ['receipt-1', 'paid-request'] } }));
+  const toss = memoryModel(retryableDoc(START, { accessSource: 'toss', idempotencyKey: 'toss-request', llmMeta: { ...retryableDoc(START).llmMeta, claimEvidenceIds: ['receipt-2'] } }));
+  const releaseClaim = jest.fn(async () => ({ released: 1 }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await runConsultationRecovery({}, { now: due, connectDb: async () => {}, adapters: [['new-year-ai', 'M', {}], ['life-book-ai', 'T', {}]], models: { M: held, T: toss },
+      releaseClaim, refundRecovery: async () => ({ outcomes: [] }), loadAdapter: async () => ({ resumeConsultationOnServer: jest.fn() }) });
+  } finally { log.mockRestore(); }
+  expect(held.doc.llmMeta.retryable.refundReason).toBe('RETRY_WINDOW_EXPIRED');
+  expect(releaseClaim).toHaveBeenCalledTimes(1);
+  expect(releaseClaim).toHaveBeenCalledWith({}, { userId: held.doc.userId, requestId: 'paid-request', evidenceIds: ['receipt-1', 'paid-request'] });
+});
+
 test('복구 크론은 어댑터의 isStuckDeliveryComplete 를 공용 설정자에 넘긴다', async () => {
   const model = memoryModel(baseDoc('delivery_pending', { deliveryWatch: { baseline: 1, stalls: 6 } }));
   const refund = jest.fn(async () => ({ refundStatus: 'refunded' }));
