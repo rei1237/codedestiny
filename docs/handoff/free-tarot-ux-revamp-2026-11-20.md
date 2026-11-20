@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 5단계 A3 운명 편향·연애 시뮬레이션·인연 장소·운명 나침반·12운성 동물 매핑표 보고(3c-A3) 후 진행 — 게이트·결제·로그인 경계 불변
+next: 5단계 3c-A4 웨이브 A 남은 흐름 매핑표 작성 후 진행(승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push)
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -59,7 +59,7 @@ next: 5단계 A3 운명 편향·연애 시뮬레이션·인연 장소·운명 �
   - [x] 3c-A1. 웨이브 A 1차: `/today/` 오늘의 세 장 + `/tarot/healing/` 공통 셸 이전(플래그 2개), push `bb4a65b7d`(2026-11-20). 결과는 아래 "3c-A1 결과".
   - [x] 3c-A2. `/saju/free/` 무료 사주 간편 폼 공통 셸 이전(`GUIDED_FREE_SAJU_ENABLED`) + `/today/` "어제 카드 마저 보기" 복구. 직업 스타일·휴먼 디자인·숙요 달력·자미 명반은 사유와 함께 건너뜀. 머지 `36543dc2a` push(2026-11-20). 결과는 아래 "3c-A2 결과".
   - [x] 3c-perf. 가이드 셸이 소개 카드 CSS 를 import 해 `/saju/free/` 에 83KB 렌더 차단 공용 청크가 실리던 회귀 수정. 수정 `ebfd32bfd`, 머지 `7eb4991b7`·원장 `bde984e7c`(2026-11-20). 결과는 아래 "3c-perf 결과".
-  - [ ] 3c-A3. 운명 편향·연애 시뮬레이션·인연 장소·운명 나침반·12운성 동물 매핑표 보고 → **사용자 승인 대기**(게이트·결제·로그인 경계는 건드리지 않음).
+  - [x] 3c-A3. 12운성 동물(`/saju/animal-destiny/`) 입력 단계만 공통 셸 이전(`GUIDED_ANIMAL_DESTINY_ENABLED`). 운명 편향·연애 시뮬레이션·인연 장소·운명 나침반은 로그인/결제 게이트 때문에 건너뜀. 기능 `f6b5f2d86`(2026-11-21). 결과는 아래 "3c-A3 결과".
   - [ ] 3c-A4. 웨이브 A 남은 흐름 매핑표 보고 → **사용자 승인 대기**.
   - [ ] 3c-A5. 웨이브 A 마무리(플래그 정리 계획·건너뛴 흐름 재검토) 보고 → **사용자 승인 대기**.
 - [x] 4. 캐릭터 웹툰 결과 렌더러 — 2026-11-21 완료(플래그 `GUIDED_WEBTOON_RESULT_ENABLED`, `/today/` 오늘의 세 장 결과). 아래 "4단계 결과".
@@ -194,3 +194,28 @@ next: 5단계 A3 운명 편향·연애 시뮬레이션·인연 장소·운명 �
   - before/after 화면: before=`9f17a69fe`, after=`0f92a7d74`, dev 서버, reduced-motion, 10페이지(love-secret·entry-webtoon·fortune/today/aries·heukwol·saju/crystals·fortune-tea-house·today·tarot/healing·saju/free·yeongnyangi) × 360·960 = 20장. 상태·H1·title·canonical·robots·텍스트 해시가 20/20 같다. 픽셀은 0% 가 17장이다. 차이가 난 3장은 visual-checker 판정으로 회귀가 아니다.
     - heukwol-360(22%): 늦게 로드되는 웹툰 이미지가 캡처 순간에 로드됐는지의 차이이고, 패널 좌표와 높이는 같다. 같은 커밋을 재촬영해도 13.5% 차이가 난다.
     - today 360/960(0.15%·0.07%): Next dev "N" 배지 차이. 재촬영끼리는 0%.
+### 3c-A3 결과 (2026-11-21) — 12운성 동물 이전, 4개 흐름 건너뜀
+
+요청 원문(2026-11-21): "그리고 이 변경으로 인해서 기존 기능들의 회귀가 없어야해" → 플래그 끔 원본·경계 diff·전후 화면 비교 후에만 push.
+
+| 흐름 | 경로·정본 | 판정 | 사유 |
+|---|---|---|---|
+| 12운성 동물 | `/saju/animal-destiny/` `AnimalDestinyPage.tsx` | **이전** (`GUIDED_ANIMAL_DESTINY_ENABLED`) | 입력(히어로+입력 카드)만 셸로 교체: 생년월일 → 양/음/윤달 → 시각(선택) → 성별(선택 안 함 포함) → 이름(선택) → 계산 → 원래 결과 화면. 결과·다시 하기·유료 풀이(store.calculate → loadPaid → `/api/saju/section`, 로그인/잠금 표시) 그대로 |
+| 운명 편향 | `/saju/destiny-bias/` `DestinyBiasClient.tsx` | 건너뜀 | compute() 안 로그인 게이트(hasFreeReadingSession), usePaidResume, useFreeReadingGuard(popstate 취소가 셸 history 와 충돌), 세션 초안·최근 결과 저장. 이미 자체 단계형 |
+| 연애 시뮬레이션 | `/saju/love-simulation/` `LoveSimulationEngine.tsx` | 건너뜀 | 제출 경로가 `signedIn` 필수(onLogin), usePaidResume(LOVE_CODE_FEATURE_KEY), useFreeReadingGuard |
+| 인연 장소 | `/saju/destiny-meeting-place/` | 건너뜀 | 제출 경로에 usePaidResume(FEATURE_KEY)·useFreeReadingGuard, 유료(5,000원) 이력 |
+| 운명 나침반 | `/destiny-compass/` `CompassApp.tsx` | 건너뜀 | usePaidResume 4개 grant·심층 리포트 유료, 선형 폼이 아닌 RPG 지도 여정, compat-result-archive 저장 |
+
+- 커밋: 기능 `f6b5f2d86`, 원장 `515a5519a`, origin/main 머지 `39783288c`, 원장 재생성 `e7dfda82a` (+ 이 문서 커밋, main 머지).
+- 파일: 새 `app/saju/animal-destiny/components/AnimalDestinyGuided.tsx`(ssr:false 동적 로드), `AnimalDestinyPage.tsx`(플래그 3항·히어로/입력/로딩 게이트·useBackNavigation enabled), `lib/guided-flow/flags.mjs`, `public/i18n/*/guidedFlow.json` 12개(`animalDestiny` 블록, ko/en/ja/zh-CN/zh-TW 저작·나머지 7개 영어), `docs/analytics-kpi.md`, 테스트 `__tests__/ui/animal-destiny-guided.behavior.test.mjs`(4건, 실제 zustand 스토어)·`guided-tarot-flags.static.test.mjs`(A3 정적 1건).
+- 검증(실측):
+  - `npm run check:fast`: lint·sitemap·paid-gate-suite 78/0 통과. test:node 3건 실패 → sky-and-range 는 워크트리 `fortune/data` 부재(`npm run fortune:build-data` 뒤 통과), yeongnyangi v7 golden·invariance 는 부하 타임아웃(단독 재실행 9/9). 첫 실행은 verify:sitemap-drift 차단 → `sitemap:generate` 원장 커밋.
+  - `npm run typecheck` 0 오류. node --test 동물/관련 69/69, guided+animal+calendar-authority+pricing 94/94, jest run-mock-tests 3 스위트 535/535, verify-analytics-events 통과.
+  - 대비: `verify-guided-flow-contrast.cjs` "2 brand(s) x 2 theme(s) x 4 widths" ok. visual-checker 픽셀 대비 최저 8.42:1(본문), 입력 테두리 3.23:1, CTA·다음 48px, 선택은 테두리 2px+체크 아이콘.
+  - 플래그 끔/켬(임시 false, 복구 후 clean): `/saju/animal-destiny/` title·H1 "운명의 동물 도감"·canonical·robots 동일, 360/960 가로 넘침 없음, 끔은 원본 입력 카드. visual-checker sharp 비교: 위 490px(H1 카드 포함)·푸터 차이 0, 바뀐 곳은 히어로/입력 자리뿐. `/saju/free/`·`/today/` 360/960 차이 0px(360 /today/ 88px 는 dev "N" 배지).
+  - 렌더 차단 CSS: SSR 링크(layout·AnimalDestinyPage 청크·page.css) 켬/끔 동일. 늘어난 42,088B(dev)는 지연 로드되는 AnimalDestinyGuided 청크뿐, ServiceIntroSection 청크 없음.
+  - 실제 페이지 걷기 360/960: ?step=result 도달, 원래 결과·"다른 생년월일로 테스트하기" 표시, 넘침 없음.
+  - 경계 diff: records·library·결제·이용권·월정석·auth·worker·api·라우트·리다이렉트·wrangler·.env·package-lock 변경 0. 페이지 diff 에 href/router/storage/fetch/loadPaid 변경 없음, 가이드 컴포넌트에 router/fetch/api/Storage 직접 사용 없음.
+  - SEO: page.tsx 무변경(H1·title·canonical·robots 동일), 가이드 패널은 ssr:false·랜딩 h2, sitemap 원장만 재생성. 그 외 항목 영향 없음.
+- 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_ANIMAL_DESTINY_ENABLED = false` 또는 `git revert f6b5f2d86`.
+- 남은 위험: (1) 가이드 흐름은 생년월일을 탭 범위 sessionStorage 스냅숏에 둠(원본은 스토어 메모리만). (2) 결과에서 뒤로 가면 `?step=time` 으로 감(결과는 닫힘, A2 와 같은 history 패턴). (3) 저장된 프로필은 시각·이름만 미리 채움(선택 단계는 select 가 자동 진행하므로 제외). (4) 360 에서 다크 카드가 직각·무테(셸 정본이 48rem 미만 풀블리드 설계, A2 와 동일 — 부모 20px 여백 때문에 떠 보임, 셸 공통 후속 과제). (5) 랜딩 안내 "3단계" 문구와 진행 표시 "1/6" 불일치 가능 — 문구 정리 후속. (6) dev 결과 화면의 "전체 풀이를 불러오지 못했어요" 는 로컬에 `/api` 워커를 띄우지 않은 탓으로 추정(원본도 같은 loadPaid 경로, 미검증). (7) check:fast 부하 타임아웃 반복.
