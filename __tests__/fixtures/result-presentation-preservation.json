@@ -50,8 +50,8 @@
       "updateForm": "865145a9375102028df476942fad300cc4e22f51a626e0b9e823e3f299550b65",
       "applyPreset": "a0f01cf3b6505b9b526691ac96786aeb76b1798b5c93f956deb5067143a0221b",
       "handlePlaceBlur": "d8c2593971e072a507dfecb9722179cf3ecfb095270514be1b4d8e86999ab68d",
-      "startConsultation": "070368b41527d0952943cf5f1ff41ead13499255b4b4780710e068051b90ed70",
-      "handleSubmit": "fef845bdd9ad4380827d5b88b3247194667fe5fdc1bea345733b0d2704857db4"
+      "startConsultation": "74066f0911f0d0b7f6432e1c58c0dc383996690aa5dc8b4f67943483b88d41f5",
+      "handleSubmit": "a58629f66ea38e92050c0db474941d23353b03c68a163f4d5d23e39d6dfa9bb2"
     },
     "app/astrology-ai/result/AstrologyAiResultClient.tsx": {
       "getAstrologyResultCopy": "63e192fc1d01a71c094f3fea53f90f61f14cbf9f4c7731c96fc6f658f27b4a58",
