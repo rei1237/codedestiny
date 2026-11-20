@@ -2836,6 +2836,25 @@ function newYearRetryMeta(request, auth, doc, code) {
   return retryableFailureMeta(doc || {}, Date.now(), clean(code || 'LLM_GENERATION_FAILED', 40));
 }
 
+// 다시 시도 동안 붙잡아 둔 결제 증빙 claim 과 지연 차감을 문서에 남긴다 — 환불 요청·기한 만료 때 이 값으로 푼다.
+function newYearHeldBillingFields(doc, evidenceIds = [], deferredUsage = false) {
+  const prior = Array.isArray(doc?.llmMeta?.claimEvidenceIds) ? doc.llmMeta.claimEvidenceIds : [];
+  const ids = [...new Set([...prior, ...evidenceIds].map(id => clean(id, 180)).filter(Boolean))];
+  return { ...(ids.length ? { 'llmMeta.claimEvidenceIds': ids } : {}), ...(deferredUsage || doc?.llmMeta?.deferredUsage ? { 'llmMeta.deferredUsage': true } : {}) };
+}
+
+// 환불 요청으로 닫힐 때 claim 을 풀고 지연 차감을 취소한다. 취소가 실패해도 환불 정산은 이어 가고 정리 대기만 남긴다.
+async function releaseNewYearHeldBilling({ request, env, auth, doc }) {
+  if (!doc || doc.accessSource === 'toss') return;
+  const owner = { id: clean(doc.id, 180), userId: clean(doc.userId) };
+  const evidenceIds = (Array.isArray(doc.llmMeta?.claimEvidenceIds) ? doc.llmMeta.claimEvidenceIds : []).map(id => clean(id, 180)).filter(Boolean);
+  if (evidenceIds.length) await releaseRequestBillingEvidence(env, { userId: owner.userId, requestId: clean(doc.idempotencyKey, 180), evidenceIds }).catch(() => null);
+  if (!doc.llmMeta?.deferredUsage) return;
+  const cancelled = await callDeferredUsageRoute({ request, env, auth, path: 'cancel', idempotencyKey: clean(doc.idempotencyKey, 180), sessionId: owner.id,
+    code: clean(doc.generationError?.code || 'LLM_GENERATION_FAILED', 80), message: 'customer refund request' }).then(() => true, () => false);
+  if (!cancelled) await NewYearAiConsultation.updateOne(owner, { $set: { 'llmMeta.billingCleanupPending': true } }).catch(() => null);
+}
+
 // 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
 function newYearRetryPayload(doc) {
   const state = publicRetryState(doc, Date.now());
@@ -3018,7 +3037,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     }
     const failedAt = new Date().toISOString();
     const retry = newYearRetryMeta(request, auth, claimed, error?.code);
-    await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'generation_failed', ...(retry ? { 'llmMeta.retryable': retry } : { 'llmMeta.refundEligibleAt': failedAt }),
+    await saveNewYearState({ id: sessionId, userId: auth.userId, lockToken, values: { status: 'generation_failed', ...(retry ? { 'llmMeta.retryable': retry, ...newYearHeldBillingFields(claimed, evidenceIds, access.deferredUsage) } : { 'llmMeta.refundEligibleAt': failedAt }),
       ...(claimed.llmMeta?.supportRecovery ? { 'llmMeta.supportRecovery.active': false, 'llmMeta.supportRecovery.finishedAt': failedAt } : {}), generationError: {
       code: clean(error?.code || 'LLM_GENERATION_FAILED', 80), message: clean(error?.message, 500), at: new Date().toISOString(),
       ...failure,
@@ -3172,6 +3191,7 @@ async function handleRefundRequest(request, env) {
     if (refund) return json(refund.body, { status: refund.status });
     return json({ ok: false, reason: marked.reason || 'NOT_RETRYABLE' }, { status: 409 });
   }
+  if (!marked.idempotent) await releaseNewYearHeldBilling({ request, env, auth, doc: await NewYearAiConsultation.findOne(owner).lean().catch(() => null) });
   const settlement = await settleNewYearFailureRefund(env, sessionId, auth.userId);
   const refundStatus = settlement?.refundStatus || 'pending';
   return json({ ok: true, sessionId, refunded: refundStatus === 'refunded', refundStatus });

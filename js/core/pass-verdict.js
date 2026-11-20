@@ -245,6 +245,56 @@
     return Number.isFinite(limit) ? limit : 0;
   }
 
+  // 정책 버전별 이용 한도(coin, 재구매 누적 전 기본값). 서버 정본은 lib/payment/pass-policy.js 의
+  // *_PASS_PLANS.monthlyLimitCoin, 대조 가드는 scripts/verify-pass-tier-policy.mjs.
+  // 🔴 **표시 전용**이다. resolveVerdict 의 월 한도 게이트는 MONTHLY_PASS_LIMIT_BY_TIER 를 그대로 쓴다 —
+  // 이 표를 판정에 섞으면 진입 판정이 바뀐다. 결제창 "남은 한도 X / Y" 의 분모가 legacy 표(작은 꿀단지
+  // 30,000원)로 보이던 결함(2026-11-20)을 막으려고 둔다.
+  var MONTHLY_PASS_LIMIT_BY_POLICY = {
+    "flower-20261104": { standard: 200, premium: 600, vvip: 1200, family: 3500 },
+    "flower-20260930": { standard: 200, premium: 600, vvip: 1200, family: 3500 },
+    "flower-cost-20260921": { standard: 400, premium: 1000, vvip: 2000, family: 5000 },
+    "flower-20260921": { standard: 200, premium: 500, vvip: 900 }
+  };
+  // 남은 한도가 이 값보다 적으면 상담 한도를 다 쓴 것으로 본다(가장 싼 상담 5,000원). 서버 정본은
+  // worker/lib/profile-limits.js isPassBudgetExhausted. 이용권은 그대로이고 가벼운 운세는 계속 열린다.
+  var PASS_EXHAUSTED_REMAINING_COIN = 50;
+
+  function monthlyLimitForPolicy(tier, policyVersion) {
+    var table = MONTHLY_PASS_LIMIT_BY_POLICY[policyVersion];
+    if (table) return table[normalizeTier(tier)] || 0;
+    if (policyVersion && policyVersion !== "legacy") return 0;
+    return monthlyLimitForTier(tier);
+  }
+
+  // 화면에 보여 줄 이용 한도 총액(coin). 서버가 준 누적 한도(재구매로 쌓인 값)를 먼저 쓰고, 없으면 정책 표.
+  // 남은 한도보다 작게 보이면 분모가 틀린 것이라 남은 한도까지 끌어올린다("남은 25,000 / 20,000" 방지).
+  function displayMonthlyLimit(snapshot) {
+    if (!snapshot || snapshot.state !== "active") return 0;
+    var limit = positiveCoinOrNull(snapshot.monthlyLimitCoin) || monthlyLimitForPolicy(snapshot.tier, snapshot.passPolicyVersion);
+    var remaining = numberOrNaN(snapshot.monthlySpendRemainingCoin);
+    if (Number.isFinite(remaining) && remaining > limit) limit = Math.floor(remaining);
+    return limit > 0 ? limit : 0;
+  }
+
+  // 결제창 이용권 카드가 **왜** 이 상담을 못 여는지(문구 분기 전용, 판정은 서버가 한다).
+  //  "per_use_cap"  — 상담 가격이 이 등급의 건당 상한보다 크다 → 더 큰 등급.
+  //  "exhausted"    — 남은 한도가 가장 싼 상담보다도 적다 → 단건 결제 또는 재구매로 한도 더하기.
+  //  "limit_short"  — 남은 한도가 이 상담 가격보다 적다 → 단건 결제 또는 더 큰 등급.
+  //  ""             — 모름(잔여 미상) 또는 열 수 있음.
+  function passShortfallReason(snapshot, coinCost) {
+    if (!snapshot || snapshot.state !== "active") return "";
+    var cost = Math.max(0, Math.floor(Number(coinCost || 0)));
+    if (!(cost > 0)) return "";
+    var perUse = positiveCoinOrNull(snapshot.passLimitCoin) || passLimitForPolicy(snapshot.tier, snapshot.passPolicyVersion);
+    if (perUse > 0 && cost > perUse) return "per_use_cap";
+    var remaining = numberOrNaN(snapshot.monthlySpendRemainingCoin);
+    if (!Number.isFinite(remaining)) return "";
+    if (remaining < PASS_EXHAUSTED_REMAINING_COIN) return "exhausted";
+    if (remaining < cost) return "limit_short";
+    return "";
+  }
+
   function normalizeUserId(userId) {
     return text(userId).toLowerCase();
   }
@@ -367,6 +417,7 @@
         stale: stale,
         monthlySpendRemainingCoin: state === "active" && Number.isFinite(monthlySpendRemainingCoin) ? monthlySpendRemainingCoin : null,
         monthlyCheckedAt: state === "active" && Number.isFinite(monthlyCheckedAt) ? monthlyCheckedAt : null,
+        monthlyLimitCoin: state === "active" ? positiveCoinOrNull(parsed.monthlyLimitCoin) : null,
       };
     } catch (_readError) {
       removeSnapshot(uid);
@@ -387,6 +438,15 @@
     var remainingKRW = numberOrNaN(usage.remainingKRW);
     if (!Number.isFinite(remainingKRW) || remainingKRW < 0) return NaN;
     return Math.max(0, Math.floor(remainingKRW / 100));
+  }
+
+  // access-state 의 누적 이용 한도(passUsage.limitKRW, 재구매로 쌓인 값) → 코인. 없으면 null. 표시 전용.
+  function monthlyLimitFromPassUsage(node) {
+    var root = node && typeof node === "object" ? node : {};
+    var snap = root.entitlementSnapshot && typeof root.entitlementSnapshot === "object" ? root.entitlementSnapshot : root;
+    var usage = snap && snap.passUsage && typeof snap.passUsage === "object" ? snap.passUsage : null;
+    if (!usage) return null;
+    return positiveCoinOrNull(numberOrNaN(usage.limitKRW) / 100);
   }
 
   // profileSubscription 원문(사용자 문서를 그대로 싣는 응답: /api/auth/me · verified-auth-cache)에서
@@ -500,6 +560,11 @@
       stale: false,
       monthlySpendRemainingCoin: hasMonthlySpendRemaining ? Math.max(0, Math.floor(monthlySpendRemainingCoin)) : null,
       monthlyCheckedAt: hasMonthlySpendRemaining ? Date.now() : null,
+      // 서버가 준 누적 이용 한도(coin). 표시 전용 — 판정에는 쓰지 않는다(displayMonthlyLimit).
+      monthlyLimitCoin: state === "active"
+        ? (positiveCoinOrNull(data.monthlyPassLimit ?? nested.monthlyPassLimit ?? membership.monthlyPassLimit ?? membershipPass.monthlyPassLimit ?? options.monthlyPassLimit)
+          || monthlyLimitFromPassUsage(data))
+        : null,
     };
   }
 
@@ -518,6 +583,7 @@
       // 🔴 만료일을 아예 싣지 않은 갱신(isActive:true 만 있는 구 unlock-status?scope=pass 등)은
       // "다른 이용권"의 근거가 아니다. 예전엔 그것도 불일치로 봐서 소진자의 '잔여 0' 이 통째로
       // 날아갔고, 다음 진입이 다시 무검사 낙관 통과로 1회를 흘렸다(2026-09-07).
+      var priorMonthlyLimitCoin = null;
       if (!hasMonthly && snapshot.state === "active") {
         var prior = readSnapshot(uid, { allowStaleNone: true });
         if (
@@ -531,6 +597,7 @@
           monthlySpendRemainingCoin = prior.monthlySpendRemainingCoin;
           monthlyCheckedAt = prior.monthlyCheckedAt;
           hasMonthly = true;
+          if (!positiveCoinOrNull(snapshot.monthlyLimitCoin)) priorMonthlyLimitCoin = positiveCoinOrNull(prior.monthlyLimitCoin);
         }
       }
       var payload = {
@@ -547,6 +614,7 @@
         authority: text(snapshot.authority),
         monthlySpendRemainingCoin: hasMonthly ? Math.max(0, Math.floor(monthlySpendRemainingCoin)) : null,
         monthlyCheckedAt: hasMonthly ? Math.floor(monthlyCheckedAt) : null,
+        monthlyLimitCoin: snapshot.state === "active" ? (positiveCoinOrNull(snapshot.monthlyLimitCoin) || priorMonthlyLimitCoin) : null,
       };
       storage.setItem(snapshotKey(uid), JSON.stringify(payload));
       return Object.assign({}, payload, { stale: false });
@@ -705,9 +773,12 @@
     if (!existing || existing.state !== "active") return null;
     var next = Math.max(0, Math.floor(remaining));
     if (Number.isFinite(existing.monthlySpendRemainingCoin)) next = Math.min(next, existing.monthlySpendRemainingCoin);
+    // 누적 이용 한도(coin)도 함께 실려 오면 표시용으로 남긴다. 판정에는 쓰지 않는다.
+    var limitCoin = positiveCoinOrNull(data.monthlyPassLimit ?? options.monthlyPassLimit ?? payload.monthlyPassLimit ?? error.monthlyPassLimit);
     return writeSnapshot(uid, Object.assign({}, existing, {
       monthlySpendRemainingCoin: next,
       monthlyCheckedAt: Date.now(),
+      monthlyLimitCoin: limitCoin || existing.monthlyLimitCoin || null,
     }));
   }
 
@@ -726,7 +797,7 @@
     var root = accessData.data && typeof accessData.data === "object" ? accessData.data : accessData;
     var remainingCoin = monthlyRemainingFromPassUsage(root);
     if (!Number.isFinite(remainingCoin)) return null;
-    return storeMonthlyQuotaFromPayload(userId, { monthlySpendRemaining: remainingCoin });
+    return storeMonthlyQuotaFromPayload(userId, { monthlySpendRemaining: remainingCoin, monthlyPassLimit: monthlyLimitFromPassUsage(root) });
   }
 
   // 2026-11-04 이전 서버의 옛 응답 전용. 지금 서버는 소진으로 이용권을 끝내지 않아 passEnded 를 보내지 않는다.
@@ -791,6 +862,10 @@
     passLimitForTier: passLimitForTier,
     passLimitForPolicy: passLimitForPolicy,
     monthlyLimitForTier: monthlyLimitForTier,
+    monthlyLimitForPolicy: monthlyLimitForPolicy,
+    displayMonthlyLimit: displayMonthlyLimit,
+    passShortfallReason: passShortfallReason,
+    PASS_EXHAUSTED_REMAINING_COIN: PASS_EXHAUSTED_REMAINING_COIN,
     normalizeUserId: normalizeUserId,
     snapshotKey: snapshotKey,
     normalizeDate: normalizeDate,

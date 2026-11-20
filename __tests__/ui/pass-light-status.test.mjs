@@ -29,7 +29,7 @@ function load(path, stubs) {
   return mod.exports;
 }
 
-const eligibility = load('lib/payment/pass-eligibility.ts', { '@/worker/lib/profile-limits': limits });
+const eligibility = load('lib/payment/pass-eligibility.ts', { '@/worker/lib/profile-limits': limits, '@/lib/payment/pass-policy.js': passPolicy });
 const { default: StatusCard } = load('app/points/SubscriptionStatusCard.tsx', {
   '@/constants/loadingMessages': { getCurrentLoadingLocale: () => 'ko' },
   '@/lib/payment/pass-expiry': { isOpenEndedPassExpiry: () => true, openEndedPassLabel: () => '기간 제한 없음 · 자동 갱신 없음' },
@@ -141,4 +141,15 @@ test('no forbidden words on these screens', () => {
   for (const path of ['app/points/SubscriptionStatusCard.tsx', 'lib/payment/pass-expiry.ts', 'app/_content/faq-copy.js']) {
     assert.doesNotMatch(read(path), /LLM/, path);
   }
+});
+
+test('service badge uses the current per-use caps (30,000원 is the large jar, not family)', () => {
+  const { describePassEligibility: describe } = eligibility;
+  assert.equal(describe(5000, null, 'ko').minimumTier, 'standard');
+  assert.equal(describe(10000, null, 'ko').minimumTier, 'premium');
+  assert.equal(describe(30000, null, 'ko').minimumTier, 'vvip');
+  assert.equal(describe(30000, null, 'ko').label, '큰 꿀단지 이상 이용권 포함');
+  assert.equal(describe(39000, null, 'ko').minimumTier, 'family');
+  const legacyLarge = { tier: 'vvip', limitKRW: 200000, remainingKRW: 150000, perItemLimitKRW: 20000 };
+  assert.equal(describe(30000, legacyLarge, 'ko').coveredByCurrentPass, false, 'server per-use cap wins');
 });

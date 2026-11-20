@@ -143,3 +143,17 @@ test("다시 시도 가능한 실패는 추가 결제 없는 다시 시도와 �
   const offerAt = result.indexOf("{retryOffer ? (");
   assert.ok(offerAt >= 0 && result.indexOf('<Link href="/life-book-ai"', offerAt) > result.indexOf(") : (", offerAt), "새 책 링크는 다시 시도가 없을 때만 보인다");
 });
+
+// 2026-11-20 L2: 일시 장애(503)·조회 상한·멈춘 집필로 오류 화면에 온 진행 중 책은 새 책(새 결제) 대신 같은 결제 건 이어 쓰기를 먼저 보인다.
+test("멈춘 집필 오류 화면은 추가 결제 없는 이어서 생성을 먼저 보이고 새 책은 보조 링크로 둔다", () => {
+  assert.match(copy, /resumeFreeLabel: "이어서 생성[^"]*추가 결제·차감 없음"/);
+  assert.doesNotMatch(copy, /resume\w*: "[^"]*(코인|달빛)/);
+  const result = stripComments(resultClient);
+  assert.match(result, /const resumeSessionId = paymentSurface === "toss" \|\| !isGenerating \? ""/, "토스·완료/실패 책에는 이어서 생성을 열지 않는다");
+  assert.ok(/authFetch\("\/api\/life-book-ai\/generate"[\s\S]{0,160}JSON\.stringify\(\{ resumeSessionId \}\)/.test(result), "이어서 생성은 기존 resume 엔드포인트를 같은 세션으로 부른다");
+  const offerAt = result.indexOf("{retryOffer ? (");
+  const elseAt = result.indexOf(") : (", offerAt);
+  const resumeAt = result.indexOf("FAILURE_COPY.resumeFreeLabel", elseAt);
+  const newBookAt = result.indexOf('<Link href="/life-book-ai"', elseAt);
+  assert.ok(resumeAt > elseAt && newBookAt > resumeAt, "이어서 생성이 새 책 링크보다 먼저 나온다");
+});

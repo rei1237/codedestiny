@@ -40,6 +40,30 @@ test('success and failure handoffs launch once and retain a manual return link w
   }
 });
 
+test('iOS handoff returns through the custom scheme, Android keeps intent:// (2026-11-20 Phase 5)', async () => {
+  const context = vm.createContext({ URL, Response });
+  vm.runInContext(functions.get('buildAppOAuthHandoffResponse'), context);
+  const query = 'social_grant=mock-grant&next=%2Frecords%2F';
+  const html = await context.buildAppOAuthHandoffResponse('com.codedestiny.app://auth?' + query).text();
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  const run = (navigator) => {
+    const navigations = [], attrs = {};
+    vm.runInNewContext(script, {
+      navigator,
+      location: { replace: value => navigations.push(value) },
+      document: { getElementById: () => ({ setAttribute: (key, value) => { attrs[key] = value; } }) },
+    });
+    assert.equal(navigations.length, 1);
+    assert.equal(attrs.href, navigations[0]);
+    return navigations[0];
+  };
+  const iosUa = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148';
+  assert.equal(run({ userAgent: iosUa, maxTouchPoints: 5 }), 'com.codedestiny.app://auth?' + query);
+  assert.equal(run({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15', maxTouchPoints: 5 }), 'com.codedestiny.app://auth?' + query);
+  assert.match(run({ userAgent: 'Mozilla/5.0 (Linux; Android 14) Chrome/120 Mobile', maxTouchPoints: 5 }), /^intent:\/\/auth\?.*package=com\.codedestiny\.app;end$/);
+  assert.match(run({ userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', maxTouchPoints: 0 }), /package=com\.codedestiny\.app;end$/);
+});
+
 test('token exchange diagnostics retain only an allowlisted provider error and HTTP status', async () => {
   for (const providerError of ['invalid_client', 'invalid_grant', 'secret-in-untrusted-response']) {
     const context = vm.createContext({ URLSearchParams,

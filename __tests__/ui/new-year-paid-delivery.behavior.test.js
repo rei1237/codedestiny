@@ -109,7 +109,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars', 'newYearRetryMeta', 'newYearRetryPayload', 'newYearRetryReset', 'handleRetry', 'handleRefundRequest']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars', 'newYearRetryMeta', 'newYearHeldBillingFields', 'releaseNewYearHeldBilling', 'newYearRetryPayload', 'newYearRetryReset', 'handleRetry', 'handleRefundRequest']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}, env = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -256,6 +256,20 @@ test('R4: a customer refund request marks the retryable reading due and settles 
   const retried = await f.ctx.handleRetry(new Request('https://mock.test/api/new-year-ai/retry', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: f.doc.id }) }), {});
   assert.equal(retried.status, 409); assert.equal(f.doc.status, 'generation_failed');
+});
+
+test('R4: the held claim and deferred usage stay through the retry window and are released on a refund request', async () => {
+  const f = fixture('pass'); const released = [];
+  f.ctx.releaseRequestBillingEvidence = async (_env, args) => { released.push(args); return { released: args.evidenceIds.length }; };
+  f.ctx.generateConsultationSection = async () => ({ ok: false, failure: { status: 400, retryable: false, message: 'Provider rejected.' } });
+  await f.post(); assert.ok(retryOpen(f.doc));
+  assert.equal(released.length, 0); assert.equal(f.refunds, 0);
+  assert.deepEqual([...f.doc.llmMeta.claimEvidenceIds], ['original-receipt']); assert.equal(f.doc.llmMeta.deferredUsage, true);
+  const res = await f.ctx.handleRefundRequest(new Request('https://mock.test/api/new-year-ai/refund-request', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: f.doc.id }) }), {});
+  assert.equal(res.status, 200);
+  assert.equal(released.length, 1); assert.deepEqual([...released[0].evidenceIds], ['original-receipt']);
+  assert.equal(released[0].requestId, 'original-paid-request'); assert.equal(f.refunds, 1);
 });
 
 test('a completed new year report remains readable after its support job closes', async () => {

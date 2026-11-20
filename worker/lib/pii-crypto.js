@@ -97,6 +97,34 @@ export async function decryptResumePayload(value, binding, env) {
 }
 
 /**
+ * 외부 공급자가 준 장기 비밀(예: Apple refresh token, 2026-11-20 iOS Phase 5)을 저장용으로 봉한다.
+ * purpose·binding(예: Apple sub)을 AAD 로 묶어 다른 필드·다른 계정으로 옮겨 붙이면 풀리지 않는다.
+ * 키가 없으면 던진다 — 호출부는 저장을 건너뛰고 평문으로 남기지 않는다.
+ */
+export async function encryptBoundSecret(value, purpose, binding, env) {
+  const key = await getEncryptionKey(env);
+  const iv = crypto.getRandomValues(new Uint8Array(IV_BYTE_LENGTH));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv, additionalData: new TextEncoder().encode(`${purpose}:${binding}`) },
+    key,
+    new TextEncoder().encode(String(value || "")),
+  );
+  return `secret-v1:${bytesToBase64(iv)}:${bytesToBase64(encrypted)}`;
+}
+
+export async function decryptBoundSecret(value, purpose, binding, env) {
+  const [version, iv, encrypted] = String(value || "").split(":");
+  if (version !== "secret-v1" || !iv || !encrypted) throw new Error("bound_secret_invalid");
+  const key = await getEncryptionKey(env);
+  const plain = await crypto.subtle.decrypt(
+    { name: "AES-GCM", iv: base64ToBytes(iv), additionalData: new TextEncoder().encode(`${purpose}:${binding}`) },
+    key,
+    base64ToBytes(encrypted),
+  );
+  return new TextDecoder().decode(plain);
+}
+
+/**
  * 한국 휴대폰 번호 정규화. worker/routes/auth.js 의 동명 함수와 같은 규칙이며,
  * 복호화 결과가 항상 이 형태이므로 하위 소비자(sanitizeCustomerPhone 등)에는 멱등이다.
  */

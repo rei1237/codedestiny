@@ -128,7 +128,7 @@ jobs:
           # 도착 시점 측정과 2초 뒤 스크린샷이 어긋났다(실행 44574289524). 6초 뒤 다시 잰 값과 같은 시점에 찍는다.
           wait_for "\[cd-selftest\] link-layout-late" 20 || echo "no link-layout-late within 20s" >> "$OUT/process.txt"
           xcrun simctl io "$UDID" screenshot "$OUT/after-links.png"
-          if xcrun simctl spawn "$UDID" launchctl list | grep -q "com.codedestiny.app"; then
+          if xcrun simctl spawn "$UDID" launchctl list | grep "com.codedestiny.app" > /dev/null; then
             echo "running" >> "$OUT/process.txt"
           else
             echo "not running" >> "$OUT/process.txt"
@@ -138,7 +138,7 @@ jobs:
           xcrun simctl openurl "$UDID" "com.codedestiny.app://auth?ci_probe=1" || echo "openurl failed" >> "$OUT/process.txt"
           sleep 8
           xcrun simctl io "$UDID" screenshot "$OUT/after-openurl.png"
-          if xcrun simctl spawn "$UDID" launchctl list | grep -q "com.codedestiny.app"; then
+          if xcrun simctl spawn "$UDID" launchctl list | grep "com.codedestiny.app" > /dev/null; then
             echo "running after openurl" >> "$OUT/process.txt"
           else
             echo "not running after openurl" >> "$OUT/process.txt"

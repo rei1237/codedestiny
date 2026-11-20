@@ -557,6 +557,18 @@ for (const [version, plans] of POLICY_TABLES) {
     check(`pass-verdict PASS_LIMIT_BY_POLICY["${version}"].${tier}`, got === Number(plan.maxCoveredCoin), `실제=${got} 정본=${plan.maxCoveredCoin}`);
   }
 }
+// 결제창 "남은 한도 X / Y" 의 분모(표시 전용 표)도 정책 버전별 monthlyLimitCoin 과 같아야 한다(2026-11-20).
+const monthlyPolicyBlock = verdict.match(/MONTHLY_PASS_LIMIT_BY_POLICY\s*=\s*\{([\s\S]*?)\n\s*\};/);
+check("pass-verdict MONTHLY_PASS_LIMIT_BY_POLICY 표가 있다", Boolean(monthlyPolicyBlock));
+for (const [version, plans] of POLICY_TABLES) {
+  const row = monthlyPolicyBlock && monthlyPolicyBlock[1].match(new RegExp(`"${version}"\\s*:\\s*\\{([^}]*)\\}`));
+  check(`pass-verdict MONTHLY_PASS_LIMIT_BY_POLICY["${version}"] 행`, Boolean(row));
+  if (!row) continue;
+  for (const [tier, plan] of Object.entries(plans)) {
+    const got = Number((row[1].match(new RegExp(`\\b${tier}\\s*:\\s*(\\d+)`)) || [])[1]);
+    check(`pass-verdict MONTHLY_PASS_LIMIT_BY_POLICY["${version}"].${tier}`, got === Number(plan.monthlyLimitCoin), `실제=${got} 정본=${plan.monthlyLimitCoin}`);
+  }
+}
 const homeBanner = (shell.match(/<section class="cdh-pass"[\s\S]*?<\/section>/) || [""])[0];
 check("index.html 홈 이용권 배너(.cdh-pass)가 있다", Boolean(homeBanner));
 for (const plan of Object.values(CURRENT_PASS_PLANS)) {

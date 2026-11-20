@@ -1741,6 +1741,36 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
     }
   };
 
+  // 이어서 생성(무료): 일시 장애·조회 상한·멈춘 집필로 오류 화면에 온 진행 중 책을 같은 결제 건으로 이어 쓴다.
+  // 서버가 이미 다시 시도 보류로 닫았으면 그 안내(다시 시도·환불 요청)로 바꾼다. 토스는 별도 흐름이라 열지 않는다.
+  const resumeSessionId = paymentSurface === "toss" || !isGenerating ? "" : toText(result?.sessionId || result?.consultationId);
+  const handleResumeGeneration = async () => {
+    if (!resumeSessionId || retryBusy) return;
+    setRetryBusy(true); setRefundNotice("");
+    try {
+      const response = await authFetch("/api/life-book-ai/generate", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeSessionId }),
+      });
+      const next = await response.json().catch(() => ({})) as LifeBookResult;
+      const offer = readLifeBookRetryOffer(next);
+      if (offer) { setRetryOffer(offer); setError(FAILURE_COPY.retryAvailable); return; }
+      if (response.status === 200 && next.status === "completed") { setResult(next); setError(""); return; }
+      if (response.status === 202 || (response.status === 409 && toText(next.reason) === "GENERATION_IN_PROGRESS")) {
+        setError("");
+        setResult(["generating", "partial", "delivery_pending"].includes(next.status || "") ? next : { ...result, status: "generating", message: copy.preparingBook });
+        setPollAttempts(0); resumeCallsRef.current = 0;
+        setReloadEpoch(value => value + 1);
+        return;
+      }
+      setRefundNotice(FAILURE_COPY.resumeFailed);
+    } catch {
+      setRefundNotice(FAILURE_COPY.resumeFailed);
+    } finally {
+      setRetryBusy(false);
+    }
+  };
+
   const handleRefundRequest = async () => {
     const offer = retryOffer;
     if (!offer || retryBusy) return;
@@ -1781,10 +1811,20 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
               </button>
             </div>
           ) : (
-          <Link href="/life-book-ai" className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-semibold text-[#171007]">
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            {copy.newBookCta}
-          </Link>
+          <div className="mt-5 flex flex-col items-center gap-2">
+            {resumeSessionId ? (
+              <button type="button" onClick={() => void handleResumeGeneration()} disabled={retryBusy} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-semibold text-[#171007] disabled:cursor-not-allowed disabled:opacity-60">
+                {retryBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+                {FAILURE_COPY.resumeFreeLabel}
+              </button>
+            ) : null}
+            <Link href="/life-book-ai" className={resumeSessionId
+              ? "inline-flex min-h-11 items-center gap-2 px-1 text-sm font-semibold text-rose-100/85 underline underline-offset-4"
+              : "inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 font-semibold text-[#171007]"}>
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              {copy.newBookCta}
+            </Link>
+          </div>
           )}
         </div>
       </main>

@@ -335,7 +335,7 @@ vars.pass = '<script type="module" src="/js/core/pass-duet.js?v=build-0000000000
       <span class="cdh-pass__tier-name">${plan.name}</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="${plan.tier}" data-cd-play-policy="${CURRENT_PASS_POLICY_VERSION}" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"${Number(plan.wonPrice).toLocaleString('en-US')}"}'>${won(plan.wonPrice)}</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.${plan.tier === 'family' ? 'passNoLimit' : 'passPerLimit'}" data-cd-vars='{"amount":"${Number(plan.maxCoveredCoin * 100).toLocaleString('en-US')}"}'>${plan.tier === 'family' ? '유료 리딩 건당 한도 없음' : `건당 ${won(plan.maxCoveredCoin * 100)} 이하`}</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
+      <span class="cdh-pass__tier-line cdh-pass__tier-line--total" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"${Number(plan.monthlyLimitCoin * 100).toLocaleString('en-US')}"}'>누적 ${won(plan.monthlyLimitCoin * 100)}까지</span>
     </a></li>`).join('')}
   </ul>
   <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"${lightFortunes.count}","amount":"${lightFortunes.paidValueKRW.toLocaleString('en-US')}"}'>모든 꿀단지에 라이트 운세 ${lightFortunes.count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 ${won(lightFortunes.paidValueKRW)} 상당이며, 대표 상담은 제외예요.</p>

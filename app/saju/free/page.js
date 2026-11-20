@@ -1,4 +1,4 @@
-import FreeSajuForm from "./FreeSajuForm";
+import FreeSajuEntry from "./FreeSajuEntry";
 import SeoLandingTemplate from "../../components/SeoLandingTemplate";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
@@ -13,5 +13,5 @@ export const metadata = buildSeoMetadata({
 });
 
 export default function FreeSajuLandingPage() {
-  return <SeoLandingTemplate page={page}><FreeSajuForm /></SeoLandingTemplate>;
+  return <SeoLandingTemplate page={page}><FreeSajuEntry /></SeoLandingTemplate>;
 }

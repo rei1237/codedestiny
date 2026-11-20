@@ -6941,8 +6941,8 @@ export async function findRecoverableConsultations(env, filter) {
   return withMongoRetry(env, () => honeyCollections().results.find({ ...filter,
     _id: { $gte: "fortune-tea-house-result:", $lt: "fortune-tea-house-result;" },
     serviceScope: FORTUNE_TEA_HOUSE_SCOPE, 'generationCheckpoint.requestBody': { $exists: true },
-  // shouldSettleStuck 가 deliveryWatch·createdAt 을 본다.
-  }).sort({ updatedAt: 1 }).limit(1).project({ _id: 1, userId: 1, resultId: 1, status: 1, createdAt: 1, updatedAt: 1, deliveryWatch: 1 }).toArray());
+  // shouldSettleStuck 가 deliveryWatch·createdAt·재개방 시각을 본다.
+  }).sort({ updatedAt: 1 }).limit(1).project({ _id: 1, userId: 1, resultId: 1, status: 1, createdAt: 1, updatedAt: 1, deliveryWatch: 1, 'llmMeta.retryable.reopenedAt': 1 }).toArray());
 }
 export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.resultId) throw new Error("RECOVERY_IDENTITY_REQUIRED");
