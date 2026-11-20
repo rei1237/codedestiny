@@ -426,3 +426,7 @@ de32d6db0837a3d9129b47df91f66e97f3abc31c:__tests__/worker/profile.saju-crystal.t
 # 2026-11-18 false positive: public sessionStorage key cd_signature_consult_seen_v3, source and generated mirror.
 c4d928dd8628c8f38ca3e293419440094b32c6c1:js/core/home-funnel.js:generic-api-key:227
 c4d928dd8628c8f38ca3e293419440094b32c6c1:public/js/core/home-funnel.js:generic-api-key:227
+# 2026-11-21 오탐: 사주 고급 궁합 행동 테스트의 idempotencyKey 예시값(scp-key-*) — 비밀값 아님
+5c6d3dcf291019347234b1a9b99b74735cb49f8d:__tests__/ui/saju-compat-premium-paid-delivery.behavior.test.js:generic-api-key:184
+5c6d3dcf291019347234b1a9b99b74735cb49f8d:__tests__/ui/saju-compat-premium-paid-delivery.behavior.test.js:generic-api-key:232
+5c6d3dcf291019347234b1a9b99b74735cb49f8d:__tests__/ui/saju-compat-premium-paid-delivery.behavior.test.js:generic-api-key:247

@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju và Tarot với Yeongnyangi →",
       "publicRecordsTitle": "Hồ sơ phân tích công khai của Park Byung-ha (Neo), chuyên gia Saju với 10 năm kinh nghiệm",
       "publicRecordsLink": "Đối chiếu ngày, bài gốc và kết quả",
-      "passLight": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt. Không tính các bài hiện đang miễn phí, chúng trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu."
+      "passLight": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt. Không tính các bài hiện đang miễn phí, chúng trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Hỏi Yeoni và Neo điều bạn đang băn khoăn nhất",
@@ -17638,7 +17650,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22357,7 +22369,11 @@
       "love": "Tìm hiểu nhịp liên lạc và cách làm hòa sau bất đồng.",
       "business": "Tìm hiểu cách phân vai và cùng đưa ra quyết định quan trọng.",
       "friend": "Tìm nhịp liên lạc và khoảng riêng dễ chịu cho cả hai.",
-      "preview": "Xem nội dung báo cáo"
+      "preview": "Xem nội dung báo cáo",
+      "freeBadge": "Free",
+      "showcaseBadge": "Basic free",
+      "showcasePrice": "Free",
+      "showcaseNote": "Premium reading ₩10,000"
     },
     "reading": {
       "contents": "Mục lục bài luận",
@@ -22580,7 +22596,8 @@
       "vedic": "Chiêm tinh Vệ Đà",
       "astro": "Chiêm tinh",
       "humanDesign": "Human Design",
-      "promptHub": "Trình tạo prompt"
+      "promptHub": "Trình tạo prompt",
+      "brain": "My brain map"
     },
     "all": "Xem tất cả luận giải miễn phí",
     "start": "Bắt đầu ngay",

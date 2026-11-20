@@ -16,7 +16,8 @@ const introductionArt = JSON.parse(fs.readFileSync('lib/marketing/service-introd
 const inventoryOnlySlugs = ['career-style', 'heukwol', 'love-code', 'neo-consultation', 'points', 'saju-animal', 'saju-compatibility', 'saju-fpti'];
 const inventoryOnlyPaidRoutes = {
   '/heukwol/': { slug: 'heukwol', featureKey: 'heukwol-warning-consultation', source: 'app/heukwol/page.tsx' },
-  '/saju/compatibility/': { slug: 'saju-compatibility', featureKey: 'compat-saju-compatibility', source: 'app/saju/compatibility/page.js' },
+  // 2026-11-20: 셸 소개(featureId)는 레거시 회당 궁합 그대로이고, 레지스트리 레코드는 고급 궁합(saju-compat-premium) 진입으로 바뀌었다.
+  '/saju/compatibility/': { slug: 'saju-compatibility', featureKey: 'compat-saju-compatibility', recordFeatureKey: 'saju-compat-premium', source: 'app/saju/compatibility/page.js' },
   '/neo-consultation/': { slug: 'neo-consultation', featureKey: 'neo-email-consultation', source: 'app/neo-consultation/page.tsx' },
 };
 
@@ -414,7 +415,7 @@ test('every priced marketing introduction resolves to a published or inline edit
       const record = generated.items[inventory.slug];
       assert.ok(record, key + ': inventory record missing');
       assert.equal(item.featureId, inventory.featureKey);
-      assert.equal(record.featureKey, inventory.featureKey);
+      assert.equal(record.featureKey, inventory.recordFeatureKey || inventory.featureKey);
       assert.equal(record.verification, 'source-inventory-only');
       assert.ok(record.aliases.includes(key));
       assert.ok(fs.existsSync(inventory.source), inventory.source);

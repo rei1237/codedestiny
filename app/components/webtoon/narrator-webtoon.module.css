@@ -1,0 +1,95 @@
+/* 캐릭터 웹툰 결과 래퍼(NarratorWebtoon). 색은 브랜드 토큰에서만 읽어 사설 --wt-* 로 넘긴다(새 hex·dark: 없음).
+ * yeoni(꿀꿀): --cd-nav-* 밤 표면, 말풍선은 아이보리 종이(--cd-nav-ink) 위 진한 글씨.
+ * yeongnyangi: 루트 data-yn-night 로 --yn-*(app/yeongnyangi/night-tokens.css, app/layout.js 전역) 밤 표면 + 금빛.
+ * 그림 패널은 아이보리라 흰 바탕 표정 그림이 multiply 로 섞인다(N4). */
+.root {
+  --wt-surface: var(--cd-nav-bg);
+  --wt-ink: var(--cd-nav-ink);
+  --wt-muted: var(--cd-nav-muted);
+  --wt-accent: var(--cd-nav-active);
+  --wt-line: var(--cd-nav-line);
+  --wt-paper: var(--cd-nav-ink);
+  --wt-paper-ink: var(--cd-nav-bg);
+  --wt-panel: var(--cd-nav-ink);
+  --wt-size: var(--type-reading-size);
+  position: relative;
+  display: grid;
+  gap: var(--cd-sp-sm);
+  background: var(--wt-surface);
+  color: var(--wt-ink);
+}
+.root[data-narrator='yeongnyangi'] {
+  --wt-surface: var(--yn-night);
+  --wt-ink: var(--yn-ivory);
+  --wt-muted: var(--yn-muted);
+  --wt-accent: var(--yn-gold);
+  --wt-line: color-mix(in srgb, var(--yn-gold) 55%, var(--yn-night));
+  --wt-paper: var(--yn-surface);
+  --wt-paper-ink: var(--yn-ivory);
+  --wt-panel: var(--yn-ivory);
+}
+.root[data-font='large'] { --wt-size: 1.1875rem; }
+
+.toolbar {
+  position: sticky;
+  /* 전역 헤더(GlobalHeader, sticky 66px·모바일 60px + safe-area) 아래에 붙는다. */
+  top: calc(66px + env(safe-area-inset-top, 0px));
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0 10px;
+  background: var(--wt-surface);
+}
+.fontGroup { display: inline-flex; gap: 4px; margin-inline-start: auto; }
+.tool {
+  min-height: var(--cd-btn-h);
+  min-width: var(--cd-btn-h);
+  padding: 0 14px;
+  border: 1px solid var(--wt-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--wt-ink);
+  font: inherit;
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+.tool[aria-pressed='true'] { background: var(--wt-paper); color: var(--wt-paper-ink); border-color: var(--wt-paper); }
+/* 영냥이는 종이색이 밤색과 가까워(1.13:1) 선택 상태를 금 채움으로 보인다. */
+.root[data-narrator='yeongnyangi'] .tool[aria-pressed='true'] { background: var(--wt-accent); color: var(--wt-surface); border-color: var(--wt-accent); }
+@media (max-width: 767px) { .toolbar { top: calc(60px + env(safe-area-inset-top, 0px)); } }
+.tool:focus-visible { outline: 2px solid var(--wt-ink); outline-offset: 2px; }
+.progress {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--wt-line) 45%, transparent);
+}
+.progressFill {
+  display: block;
+  height: 100%;
+  background: var(--wt-accent);
+  transform-origin: left center;
+}
+
+/* 글로만 보기: 그림 패널만 숨기고 대사·엔진 원문·면책은 그대로 둔다. */
+.root[data-text-only] :global([data-art-panel]) { display: none; }
+
+/* 움직임: 래퍼가 data-motion 을 켰을 때만. 토큰이 reduced-motion 에서 0.01ms 가 되어 이중 안전. */
+.root[data-motion] li[data-cut-index] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--cd-dur-emph) var(--cd-ease-out), transform var(--cd-dur-emph) var(--cd-ease-out);
+}
+.root[data-motion] li[data-cut-index][data-in] { opacity: 1; transform: none; }
+.root[data-motion] li[data-cut-index] figcaption > * {
+  opacity: 0;
+  transition: opacity var(--cd-dur-base) var(--cd-ease-out);
+}
+.root[data-motion] li[data-in] figcaption > * { opacity: 1; }
+.root[data-motion] li[data-in] figcaption > :nth-child(2) { transition-delay: var(--cd-dur-fast); }
+.root[data-motion] li[data-in] figcaption > :nth-child(3) { transition-delay: calc(var(--cd-dur-fast) * 2); }
+.root[data-motion] li[data-in] figcaption > :nth-child(4) { transition-delay: calc(var(--cd-dur-fast) * 3); }
+.root[data-motion] li[data-in] figcaption > :nth-child(n + 5) { transition-delay: calc(var(--cd-dur-fast) * 4); }

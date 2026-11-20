@@ -953,12 +953,12 @@ window.__cdServiceRegistry = [
 
   {
     id: "saju-compatibility",
-    name: "사주 궁합",
+    name: "사주 고급 궁합",
     desc: "두 사람의 명식을 바탕으로 관계의 조화와 차이를 살펴봐요",
     href: "/saju/compatibility/",
     aliases: ["runCompat"],
-    featureKey: "compat-saju-compatibility",
-    price: "5,000원",
+    featureKey: "saju-compat-premium",
+    price: "10,000원",
     purposes: ["love", "compatibility"],
     methods: ["saju"],
     keys: "궁합 연인 결혼 관계",

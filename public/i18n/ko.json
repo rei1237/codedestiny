@@ -1612,7 +1612,19 @@
       "brandOtherEntry": "꿀꿀 운세 영냥이 사주·타로 →",
       "publicRecordsTitle": "10년 경력 명리학자 박병하(네오)의 공개 분석 기록",
       "publicRecordsLink": "날짜·원문·일치 범위 확인하기",
-      "passLight": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요."
+      "passLight": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요.",
+      "allPrice": "가격",
+      "allPriceFree": "무료",
+      "allPriceLow": "가벼운",
+      "allPriceMid": "보통",
+      "allPriceHigh": "든든한",
+      "allPricePremium": "프리미엄",
+      "allPriceVvip": "최고가·이용권",
+      "allSort": "정렬",
+      "allSortRecommended": "추천순",
+      "allSortPriceAsc": "낮은 가격순",
+      "allSortPriceDesc": "높은 가격순",
+      "allMore": "더 보기"
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",
@@ -10828,7 +10840,11 @@
       "love": "연락을 주고받는 속도와 다툰 뒤 다시 가까워지는 방식을 읽어요.",
       "business": "역할을 나누고 중요한 결정을 함께 내리는 방식을 읽어요.",
       "friend": "연락 간격과 서로 편하게 지낼 수 있는 거리를 살펴봐요.",
-      "preview": "리포트 구성 보기"
+      "preview": "리포트 구성 보기",
+      "freeBadge": "무료",
+      "showcaseBadge": "기본 무료",
+      "showcasePrice": "무료",
+      "showcaseNote": "고급 궁합 10,000원"
     },
     "reading": {
       "contents": "궁합 결과 목차",
@@ -12034,7 +12050,7 @@
       "headline": "두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.",
       "premiumIntro": "두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.",
       "fallbackCta": "궁합 준비하기",
-      "ctaNote": "두 사람의 정보를 준비하고, 분석 전에 이용권·월정석·단건 결제 조건을 확인해요.",
+      "ctaNote": "두 사람의 정보를 입력하면 기본 궁합은 무료로 바로 보여 드려요. 고급 궁합(10,000원)은 결과 아래에서 이어 볼 수 있어요.",
       "premiumOutcomes": {
         "0": "결과는 관계를 단정하지 않으며, 대화와 선택을 위한 참고로 읽어 주세요."
       }
@@ -13587,7 +13603,8 @@
       "vedic": "베다점",
       "astro": "점성술",
       "humanDesign": "휴먼 디자인",
-      "promptHub": "프롬프트 생성기"
+      "promptHub": "프롬프트 생성기",
+      "brain": "나의 뇌구조"
     },
     "all": "무료 운세 전체 보기",
     "start": "바로 시작하기",

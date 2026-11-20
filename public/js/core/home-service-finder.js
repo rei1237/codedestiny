@@ -516,6 +516,7 @@
   }
 
   var catalogue = null;
+  var cardCache = new Map();
   var sourceObserver = null;
   function invalidateSources(records) {
     var selector = TILE_CLASS_SELECTOR + ',.feat-collection,.tarot-collection';
@@ -524,7 +525,7 @@
       return Array.prototype.some.call(record.addedNodes, isSource) || Array.prototype.some.call(record.removedNodes, isSource);
     });
     function isSource(node) { return node instanceof Element && (node.matches(selector) || !!node.querySelector(selector)); }
-    if (changed) { catalogue = null; featureImageIndex = null; }
+    if (changed) { catalogue = null; featureImageIndex = null; cardCache = new Map(); }
   }
   function ensureCatalogue() {
     if (sourceObserver) invalidateSources(sourceObserver.takeRecords());
@@ -570,6 +571,28 @@
         && !terms.every(function (words) { return words.some(function (word) { return item.hay.indexOf(word) !== -1; }); })) return false;
       return true;
     });
+  }
+
+  /* 정렬용 시작가(원). 무료=0, 파싱 불가(이용권 등)=Infinity 로 맨 뒤. */
+  function wonOf(item) {
+    if (item.won !== undefined) return item.won;
+    var text = String(item.price || "").replace(/,/g, "");
+    var found = text.match(/\d{3,7}(?=원)/);
+    item.won = found ? Number(found[0]) : (item.buckets && item.buckets[0] === "free" ? 0 : Infinity);
+    return item.won;
+  }
+
+  function sortServices(list, sort) {
+    if (sort !== "priceAsc" && sort !== "priceDesc") return list;
+    var dir = sort === "priceAsc" ? 1 : -1;
+    var keyed = list.map(function (item, index) { return { item: item, index: index, won: wonOf(item) }; });
+    keyed.sort(function (a, b) {
+      var aInf = a.won === Infinity, bInf = b.won === Infinity;
+      if (aInf !== bInf) return aInf ? 1 : -1;
+      if (a.won !== b.won) return (a.won - b.won) * dir;
+      return a.index - b.index;
+    });
+    return keyed.map(function (entry) { return entry.item; });
   }
 
   /* ── 결과 노드 ──────────────────────────────────────────────── */
@@ -642,6 +665,7 @@
     }
   }
 
+  var AF_BATCH = 24;
   var SAJU_WORDS = SYNONYM_GROUPS.filter(function (group) { return group[0] === norm("사주"); })[0];
   function isSajuIntent(state) {
     var query = norm(state && state.query);
@@ -692,7 +716,19 @@
     var visibleList = opts.showAll || state.query || (state.purposes || []).length || (state.methods || []).length || (state.buckets || []).length
       ? list
       : list.slice(0, 6);
-    visibleList.forEach(function (item) {
+    /* 카드 노드는 서비스·모드별로 한 번만 만들고 재사용한다(입력마다 수백 개를 새로 짓지 않는다).
+       카탈로그·로케일이 바뀌면 cardCache 를 통째로 버린다. */
+    var cacheMode = opts.showAll ? "a" : "r";
+    var BATCH = opts.showAll ? AF_BATCH : Infinity;
+    function cardFor(item) {
+      var cacheKey = cacheMode + "|" + (item.id || item.href || item.name) + "|" + item.name;
+      var hit = cardCache.get(cacheKey);
+      if (hit) return hit;
+      var made = buildCard(item);
+      cardCache.set(cacheKey, made);
+      return made;
+    }
+    function buildCard(item) {
       var node = openerNode(item, "fortune-gateway__rec");
       appendServiceImage(node, item, "fortune-gateway__rec-media", opts.showAll);
       /* 질문 우선 카드: 제목은 고객 질문, 상품명은 아래 작은 줄로 내린다.
@@ -785,9 +821,43 @@
       foot.appendChild(price);
       foot.appendChild(go);
       node.appendChild(foot);
-      grid.appendChild(node);
-    });
+      return node;
+    }
+
+    function appendBatch(from) {
+      var frag = document.createDocumentFragment();
+      var to = Math.min(visibleList.length, from + BATCH);
+      for (var i = from; i < to; i += 1) frag.appendChild(cardFor(visibleList[i]));
+      grid.appendChild(frag);
+      return to;
+    }
+    var shown = appendBatch(0);
     panel.appendChild(grid);
+    if (shown < visibleList.length) {
+      var more = document.createElement("button");
+      more.type = "button";
+      more.className = "cd-af__more";
+      var sentinelObserver = null;
+      var label = function () {
+        more.textContent = translate("home.gardenCopy.allMore", "더 보기") + " (" + (visibleList.length - shown) + ")";
+      };
+      var loadMore = function () {
+        shown = appendBatch(shown);
+        if (shown >= visibleList.length) {
+          if (sentinelObserver) sentinelObserver.disconnect();
+          more.remove();
+        } else label();
+      };
+      label();
+      more.addEventListener("click", loadMore);
+      panel.appendChild(more);
+      if (typeof IntersectionObserver === "function") {
+        sentinelObserver = new IntersectionObserver(function (entries) {
+          if (entries.some(function (entry) { return entry.isIntersecting; })) loadMore();
+        }, { rootMargin: "600px 0px" });
+        sentinelObserver.observe(more);
+      }
+    }
     panel.hidden = false;
   }
 
@@ -812,6 +882,7 @@
     var summary = document.getElementById(config.summaryId || 'fortuneGatewayResultSummary');
     var filterPanel = root.querySelector('.fortune-gateway__filter-panel');
     var filterCount = root.querySelector('[data-cd-filter-count]');
+    var sortSelect = root.querySelector('[data-cd-sort]');
     /* 홈(꿀꿀운세)에서는 입력·칩을 고르기 전에는 결과를 깔지 않는다(2026-10-01 홈 개편).
        단독 마운트(테스트·홈 밖)는 기존처럼 기본 목록을 보여 준다.
        모든 운세 화면(showAll)은 아무것도 고르지 않아도 레지스트리 전체를 깐다. */
@@ -825,7 +896,8 @@
         purposes: config.purposeAttr ? pressedValues(root, config.purposeAttr, config.chipSelector) : [],
         methods: config.methodAttr ? pressedValues(root, config.methodAttr, config.filterChipSelector) : [],
         buckets: config.priceAttr ? pressedValues(root, config.priceAttr, config.filterChipSelector) : [],
-        region: config.showAll ? (root.getAttribute("data-cd-region") || "all") : "all"
+        region: config.showAll ? (root.getAttribute("data-cd-region") || "all") : "all",
+        sort: sortSelect ? sortSelect.value : "recommended"
       };
     }
 
@@ -835,7 +907,7 @@
       root.querySelectorAll('[data-search-query]').forEach(function (chip) {
         chip.setAttribute('aria-pressed', String(norm(chip.getAttribute('data-search-query')) === norm(current.query)));
       });
-      var active = current.query || current.purposes.length || current.methods.length || current.buckets.length || current.region !== "all";
+      var active = current.query || current.purposes.length || current.methods.length || current.buckets.length || current.region !== "all" || current.sort !== "recommended";
       if (config.showAll) renderRegion(root, current);
       if (clearButton) clearButton.hidden = !current.query;
       if (resetButton) resetButton.hidden = !active;
@@ -851,8 +923,9 @@
         return;
       }
       /* 아무것도 고르지 않은 상태 = 기본 목록. 필터를 켰다가 모두 끄면 이리로 되돌아온다. */
-      var list = active || config.showAll ? filterServices(current) : DEFAULT_PICKS;
+      var list = active || config.showAll ? sortServices(filterServices(current), current.sort) : DEFAULT_PICKS;
       renderRichResults(panel, list, current, renderOpts);
+      if (config.showAll && config.priceAttr) updatePriceCounts(current);
       if (summary) summary.textContent = active
         ? '조건에 맞는 서비스 ' + list.length + '개'
         : '전체 서비스 ' + list.length + '개';
@@ -872,7 +945,27 @@
       if (config.onRender) config.onRender(current);
     }
 
+    /* 가격 칩 건수: 가격 축을 뺀 나머지 조건으로 거른 결과를 버킷별로 센다. 0건 칩은 비활성화. */
+    function updatePriceCounts(current) {
+      var base = filterServices(Object.assign({}, current, { buckets: [] }));
+      var counts = Object.create(null);
+      base.forEach(function (item) {
+        item.buckets.forEach(function (b) { counts[b] = (counts[b] || 0) + 1; });
+      });
+      var chipNodes = root.querySelectorAll("[" + config.priceAttr + "]");
+      Array.prototype.forEach.call(chipNodes, function (chip) {
+        var bucket = chip.getAttribute(config.priceAttr);
+        var n = counts[bucket] || 0;
+        var badge = chip.querySelector(".cd-af__count");
+        if (!badge) { badge = document.createElement("small"); badge.className = "cd-af__count"; chip.appendChild(badge); }
+        badge.textContent = String(n);
+        var on = chip.getAttribute("aria-pressed") === "true";
+        chip.disabled = !n && !on;
+      });
+    }
+
     function resetAll() {
+      if (sortSelect) sortSelect.value = "recommended";
       if (input) input.value = '';
       if (config.showAll) root.setAttribute("data-cd-region", "all");
       var pressed = root.querySelectorAll('[aria-pressed="true"]');
@@ -913,7 +1006,9 @@
         fchip.addEventListener("click", function () {
           var on = fchip.getAttribute("aria-pressed") === "true";
           if (config.showAll && fchip.hasAttribute(config.methodAttr)) {
-            fchips.forEach(function (other) { other.setAttribute("aria-pressed", "false"); });
+            fchips.forEach(function (other) {
+              if (other.hasAttribute(config.methodAttr)) other.setAttribute("aria-pressed", "false");
+            });
             root.setAttribute("data-cd-region", "all");
             root.querySelector('[data-cd-explore]').open = false;
           }
@@ -968,6 +1063,7 @@
       });
     }
     if (resetButton) resetButton.addEventListener('click', resetAll);
+    if (sortSelect) sortSelect.addEventListener('change', render);
     if (config.showAll) root.querySelectorAll("[data-region]").forEach(function (button) {
       button.addEventListener("click", function () {
         root.setAttribute("data-cd-region", button.getAttribute("data-region"));
@@ -1029,7 +1125,10 @@
     if (input && typeof saved.query === "string") input.value = saved.query;
     root.setAttribute("data-cd-region", norm(saved.query) ? "all" : regionById(saved.region).id);
     var wanted = { "data-purpose": Array.isArray(saved.purposes) ? saved.purposes.slice(0, 1) : [],
-      "data-method": Array.isArray(saved.methods) ? saved.methods.slice(0, 1) : [] };
+      "data-method": Array.isArray(saved.methods) ? saved.methods.slice(0, 1) : [],
+      "data-price": Array.isArray(saved.buckets) ? saved.buckets.filter(function (b) { return BUCKET_ORDER.indexOf(b) !== -1; }) : [] };
+    var sortNode = root.querySelector("[data-cd-sort]");
+    if (sortNode && (saved.sort === "priceAsc" || saved.sort === "priceDesc")) sortNode.value = saved.sort;
     Object.keys(wanted).forEach(function (attr) {
       var chips = root.querySelectorAll("[" + attr + "]");
       Array.prototype.forEach.call(chips, function (chip) {
@@ -1073,10 +1172,11 @@
       filterChipSelector: ".cd-af__fchip",
       purposeAttr: "data-purpose",
       methodAttr: "data-method",
+      priceAttr: "data-price",
       showAll: true,
       emptyState: afEmptyState,
       onRender: function (current) {
-        afWrite({ query: current.query, purposes: current.purposes, methods: current.methods, region: current.region });
+        afWrite({ query: current.query, purposes: current.purposes, methods: current.methods, buckets: current.buckets, sort: current.sort, region: current.region });
       }
     });
     root.addEventListener("click", function (event) {
@@ -1223,7 +1323,7 @@
       sourceObserver = new MutationObserver(invalidateSources);
       sourceObserver.observe(sourceRoot, { childList: true, subtree: true });
     }
-    function invalidateCatalogue() { catalogue = null; featureImageIndex = null; }
+    function invalidateCatalogue() { catalogue = null; featureImageIndex = null; cardCache = new Map(); }
     document.addEventListener('cd:collection-toggle', invalidateCatalogue);
     window.addEventListener('cd:locale-ready', invalidateCatalogue);
     // Warm source metadata before navigation when a pointer or keyboard approaches the real entry.

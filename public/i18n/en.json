@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Yeongnyangi Saju & Tarot →",
       "publicRecordsTitle": "Public analysis records by Park Byung-ha (Neo), a Saju practitioner with 10 years of experience",
       "publicRecordsLink": "Compare dates, original posts and outcomes",
-      "passLight": "Every Honey Jar includes {count} Light Readings with unlimited uses. Leaving out the readings that are free today, they are worth KRW {amount} at one use each. Signature consultations are not included."
+      "passLight": "Every Honey Jar includes {count} Light Readings with unlimited uses. Leaving out the readings that are free today, they are worth KRW {amount} at one use each. Signature consultations are not included.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Ask Yeoni and Neo the one thing on your mind right now",
@@ -17638,7 +17650,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22357,7 +22369,11 @@
       "love": "Explore how you keep in touch and reconnect after disagreements.",
       "business": "Explore how you share responsibilities and make decisions together.",
       "friend": "Explore a pace of contact and personal space that suit you both.",
-      "preview": "Explore the report"
+      "preview": "Explore the report",
+      "freeBadge": "Free",
+      "showcaseBadge": "Basic free",
+      "showcasePrice": "Free",
+      "showcaseNote": "Premium reading ₩10,000"
     },
     "reading": {
       "contents": "Reading contents",
@@ -22580,7 +22596,8 @@
       "vedic": "Vedic astrology",
       "astro": "Astrology",
       "humanDesign": "Human Design",
-      "promptHub": "Prompt generator"
+      "promptHub": "Prompt generator",
+      "brain": "My brain map"
     },
     "all": "See all free readings",
     "start": "Start reading",

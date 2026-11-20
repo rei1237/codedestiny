@@ -82,6 +82,7 @@ export const RETRY_FIRST_POLICY = Object.freeze({
   "neo-operation-room": { marker: "retryableFailureMeta", settle: { symbol: "settleDueNeoRetryRefunds", cron: REFUND_CRON } },
   "life-book-ai": { marker: "retryableFailureMeta", settle: { symbol: "expireRetryableConsultations", cron: RECOVERY_CRON, generic: true } },
   "new-year-ai": { marker: "retryableFailureMeta", settle: { symbol: "expireRetryableConsultations", cron: RECOVERY_CRON, generic: true } },
+  "saju-compat-premium": { marker: "retryableFailureMeta", settle: { symbol: "expireRetryableConsultations", cron: RECOVERY_CRON, generic: true } },
   "love-secret-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueLoveSecretRetryRefunds", cron: REFUND_CRON } },
   "heukwol": { marker: "retryRefundAt", settle: { symbol: "settleDueHeukwolRetryRefunds", cron: REFUND_CRON } },
   "fortune-tea-house": { marker: "retryRefundAt", settle: { symbol: "settleDueTeaHouseRetryRefunds", cron: REFUND_CRON } },

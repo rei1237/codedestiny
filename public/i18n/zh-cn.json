@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세：灵喵四柱与塔罗 →",
       "publicRecordsTitle": "十年经验命理学者朴秉河（Neo）的公开分析记录",
       "publicRecordsLink": "查看日期、原文与吻合范围",
-      "passLight": "所有蜜罐都包含{count}种轻量运势，不限次数。扣除目前免费的运势后，按各使用一次计算，价值{amount}韩元。招牌咨询不包含在内。"
+      "passLight": "所有蜜罐都包含{count}种轻量运势，不限次数。扣除目前免费的运势后，按各使用一次计算，价值{amount}韩元。招牌咨询不包含在内。",
+      "allPrice": "价格",
+      "allPriceFree": "免费",
+      "allPriceLow": "轻量",
+      "allPriceMid": "标准",
+      "allPriceHigh": "进阶",
+      "allPricePremium": "高级",
+      "allPriceVvip": "顶级·通行券",
+      "allSort": "排序",
+      "allSortRecommended": "推荐排序",
+      "allSortPriceAsc": "价格从低到高",
+      "allSortPriceDesc": "价格从高到低",
+      "allMore": "查看更多"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 问出此刻最想知道的一件事",
@@ -17638,7 +17650,7 @@
       "headline": "并列两人的命盘，了解关系的发展以及可以相互协调之处。",
       "premiumIntro": "并列两人的命盘，了解关系的发展以及可以相互协调之处。",
       "fallbackCta": "准备合盘分析",
-      "ctaNote": "备好两人的信息，分析前请确认使用券、月精石及单次付费条件。",
+      "ctaNote": "输入两人的信息，即可立即免费查看基础合盘。高级合盘（10,000韩元）可在结果下方继续查看。",
       "premiumOutcomes": {
         "0": "结果不会断定关系，请将其作为沟通和选择的参考。"
       }
@@ -22357,7 +22369,11 @@
       "love": "看看两人联系的节奏，以及争执后怎样重新靠近。",
       "business": "看看两人如何分工，一起做重要决定。",
       "friend": "看看怎样的联系频率和相处距离让双方更自在。",
-      "preview": "查看报告内容"
+      "preview": "查看报告内容",
+      "freeBadge": "免费",
+      "showcaseBadge": "基础免费",
+      "showcasePrice": "免费",
+      "showcaseNote": "高级合盘 10,000韩元"
     },
     "reading": {
       "contents": "合盘目录",
@@ -22580,7 +22596,8 @@
       "vedic": "吠陀占星",
       "astro": "西洋占星",
       "humanDesign": "人类图",
-      "promptHub": "提示词生成器"
+      "promptHub": "提示词生成器",
+      "brain": "我的脑内图"
     },
     "all": "查看全部免费解读",
     "start": "立即开始",

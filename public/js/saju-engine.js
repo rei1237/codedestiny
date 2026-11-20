@@ -22984,7 +22984,7 @@ function cdEnsureCompatLlmHost() {
    2026-09-07 이설(PR-J): 셸 다이어리 모달 js/luck-sync-diary.js 의 「관계 흐름 메모」
    (#lsdCompatResult 렌더, 옛 1815~1949줄)와 자미·점성 Lite 두 줄을 결과 화면으로 옮긴 것이다.
    🔴 셸 모달의 원본은 지우지 않았다 — 진입점만 /diary 로 돌렸고 파일은 그대로 남는다.
-   🔴 이 블록은 5,000원 게이트 **밖**이다. 아래 runCompat() 의 _cdCoinGatePerUse(50, …) 앞단에
+   🔴 이 블록은 결제 게이트 **밖**이다. 아래 runCompat()(2026-11-20부터 무료) 앞단에
       아무 이용권·코인 판정도 넣지 않는다(CLAUDE.md 결제 게이팅 3).
    옮기지 않은 것 둘:
      - 7일 추천일 탐색 → PR-I-3 의 다이어리 「함께 보기」가 같은 일을 이미 한다. 두 번째 구현을
@@ -23117,52 +23117,33 @@ async function runCompat(){
     return;
   }
 
-  /* LLM 서비스 경로: 선결제 → 서버 생성. 게이트가 없으면 아래 기존 분기(로그인 안내·서비스 오류)로 내려간다. */
-  if (_SE_SAJU_COMPAT_LLM_ENABLED && typeof window._cdCoinGatePerUse === 'function') {
-    _seSajuCompatLlmEntry(compatRunBtn, name, bd, type);
-    return;
-  }
+  /* 2026-11-20 기본 사주 궁합 무료화: 결제·로그인 없이 정적 결과(analyzeCompat + 전생 인연)를 바로 그린다.
+     AI 4장 풀이는 사주 고급 궁합(/saju/compatibility/premium/, 10,000원)으로 옮겼다 — 결과 아래 진입 카드가 보낸다.
+     🔴 예전 5,000원 구매자의 진행 중 생성만 결제 없이 잇는다(_seSajuCompatLegacyPending). 새 결제는 여기서 만들지 않는다.
+     레거시 함수(_seSajuCompatLlmEntry·_seSajuCompatLlmDeliver)와 결제 복귀(_seRunSajuCompatResume)·보관함은 기존 구매자 재열람용으로 남긴다. */
+  var legacy = await _seSajuCompatLegacyPending(name, bd, type);
+  runCompatCore(compatRunBtn, name, bd, type, legacy || undefined);
+}
 
-  /* 🔒 사주 궁합 10,000원 게이트 */
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    window._cdCoinGatePerUse(_SE_SAJU_COMPAT_COIN_COST, '사주 궁합 분석', function() {
-      runCompatCore(compatRunBtn, name, bd, type);
-    }, function() {
-      if (compatRunBtn) {
-        compatRunBtn.disabled = false;
-        compatRunBtn.style.opacity = '';
-      }
-    }, {
-      featureKey: 'compat-saju-compatibility',
-      action: 'cdSajuTabEntry',
-      resume: _seBuildSajuCompatResumeDescriptor(name, bd, type) || undefined
-    });
-    return;
+/* 예전 유료 흐름에서 결제는 끝났지만 생성이 안 끝난 같은 입력이 있으면 그 상태를 돌려준다. 없거나 모듈을 못 올리면 null(무료 결과). */
+async function _seSajuCompatLegacyPending(name, bd, type) {
+  var owner = _seSajuCompatOwnerId();
+  if (!owner) return null;
+  try {
+    if (!localStorage.getItem('cd:sajuCompat:pending:v1:' + owner)) return null;
+    var kit = await _seSajuCompatLoadKit();
+    var inputKey = _seSajuCompatInputKey(kit, name, bd, type);
+    var pending = _seSajuCompatPendingStore(kit).get(inputKey);
+    if (!pending || !pending.requestId) return null;
+    return _seSajuCompatPaidState(kit, inputKey, String(pending.requestId), pending.evidence);
+  } catch (_) {
+    return null;
   }
-
-  // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-  if (!token) {
-    if (compatRunBtn) {
-      compatRunBtn.disabled = false;
-      compatRunBtn.style.opacity = '';
-    }
-    if (window.confirm(_sajuEngineText("se_23638_call_confirm"))) {
-      window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
-    }
-    return;
-  }
-  window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-  if (compatRunBtn) {
-    compatRunBtn.disabled = false;
-    compatRunBtn.style.opacity = '';
-  }
-  return;
 }
 
 /* ─── 기본 사주 궁합 LLM 서비스: 선결제 → 서버 생성 → 보관함 스냅샷 ─────────────────────────────
-   _SE_SAJU_COMPAT_LLM_ENABLED 가 켜졌을 때만 runCompat 이 여기로 들어온다. 결제는 공유 게이트(_cdCoinGatePerUse)가
+   2026-11-20부터 runCompat 은 새 결제로 여기 들어오지 않는다(기본 궁합 무료). 남은 진입은 예전 구매의 진행 중 생성 잇기
+   (_seSajuCompatLegacyPending)와 결제 복귀(_seRunSajuCompatResume)뿐이다. 결제는 공유 게이트(_cdCoinGatePerUse)가
    먼저 끝내고, 생성·재개·보관은 서버(worker/routes/saju-compat-basic.js)가 한다. 이 파일은 연결만 하고,
    요청 본문·대기 기록·생성 실행은 js/saju-compat-flow.mjs, 화면 그리기는 js/saju-compat-render.mjs 가 맡는다.
    🔴 결제를 만들거나 환불하지 않는다. 생성이 실패하면 결제는 서버에 보존되고, 화면은 기존 결정론 결과 + 안내 + 이어받기 버튼이다. */
@@ -23405,6 +23386,82 @@ async function _seSajuCompatLlmDeliver(llm, ctx) {
   return { rendered: false, noticeHtml: '<div class="cd-compat-flow-notice" role="status"><p>' + esc(t(kit.flow.sajuCompatFailureKey(outcome.code))) + '</p>' + retry + '</div>' };
 }
 
+/* ─── 무료 결과 아래 사주 고급 궁합 진입(달빛 예화) ─────────────────────────────
+   두 사람 입력은 URL 이 아니라 sessionStorage 한 번짜리 값으로 넘긴다(개인정보를 주소·로그에 남기지 않는다).
+   읽는 쪽: app/saju/compatibility/premium/_lib/premium-delivery.ts readPremiumPrefill(읽자마자 지운다). 키·모양을 함께 바꾼다. */
+var _SE_SAJU_COMPAT_PREMIUM_HREF = '/saju/compatibility/premium/';
+var _SE_SAJU_COMPAT_PREMIUM_PREFILL_KEY = 'cd:sajuCompatPremium:prefill:v1';
+
+function _seSajuCompatPrefillPerson(src) {
+  src = src || {};
+  var pad = function(n) { return String(n).padStart(2, '0'); };
+  var cal = String(src.calType || 'solar');
+  var hasTime = !src.timeUnknown && src.hour != null && src.hour !== '' && isFinite(Number(src.hour));
+  return {
+    name: String(src.name || '').trim().slice(0, 20),
+    gender: src.gender === 'M' || src.gender === 'male' ? 'male' : (src.gender === 'F' || src.gender === 'female' ? 'female' : ''),
+    birthDate: String(src.birthDate || ''),
+    birthTime: hasTime ? pad(Number(src.hour)) + ':' + pad(Number(src.minute) || 0) : '',
+    birthTimeUnknown: !hasTime,
+    calendarType: cal === 'solar' ? 'solar' : 'lunar',
+    isLeapMonth: cal === 'lunar_leap' || src.isLeapMonth === true
+  };
+}
+
+function _seSajuCompatPremiumPrefill(name, bd, calType, type) {
+  var me = window.__cdActiveBirthProfile || {};
+  var b = me.birth || {};
+  var meDate = b.year && b.month && b.day ? b.year + '-' + String(b.month).padStart(2, '0') + '-' + String(b.day).padStart(2, '0') : '';
+  var timeText = String((document.getElementById('compatBirthTimeText') || {}).value || '').trim();
+  var hourRaw = parseInt(_seFieldValue('compatBirthHour'), 10);
+  return {
+    v: 1,
+    savedAt: Date.now(),
+    relationType: type === 'love' ? 'dating' : '',
+    self: _seSajuCompatPrefillPerson({
+      name: me.name === '나' ? '' : (me.name || (typeof USER_NAME === 'string' ? USER_NAME : '')),
+      gender: me.gender || GENDER || window._gender || '',
+      birthDate: meDate,
+      hour: b.hour, minute: b.minute,
+      timeUnknown: b.timeUnknown === true || window.__cdSajuTimeUnknown === true,
+      calType: b.calType || 'solar'
+    }),
+    partner: _seSajuCompatPrefillPerson({
+      name: name === '상대방' ? '' : name,
+      birthDate: bd,
+      hour: timeText && !isNaN(hourRaw) ? hourRaw : null,
+      minute: parseInt(_seFieldValue('compatBirthMinute'), 10) || 0,
+      timeUnknown: !timeText,
+      calType: calType
+    })
+  };
+}
+
+function _seSajuCompatAppendPremiumCta(resultArea, name, bd, calType, type) {
+  var timeText = String((document.getElementById('compatBirthTimeText') || {}).value || '').trim();
+  var timeNote = timeText ? '' : '<p class="cd-scp-time-note">상대의 태어난 시간을 몰라 정오(12시) 기준으로 계산했어요. 시주(時柱)와 관련된 내용은 가볍게 참고해 주세요.</p>';
+  resultArea.insertAdjacentHTML('beforeend', timeNote
+    + '<aside class="cd-scp-cta" aria-labelledby="cdScpCtaTitle">'
+    + '<span class="cd-yehwa-sprig cd-yehwa-sprig--tl cd-scp-cta__sprig" aria-hidden="true"></span>'
+    + '<span class="cd-yehwa-sparkle cd-scp-cta__sparkle" aria-hidden="true"></span>'
+    + '<span class="cd-scp-cta__eyebrow">달빛 아래 연이가 쓰는 두 사람의 이야기</span>'
+    + '<h4 id="cdScpCtaTitle" class="cd-scp-cta__title">사주 고급 궁합</h4>'
+    + '<p class="cd-scp-cta__desc">지금 본 기본 궁합은 무료예요. 고급 궁합은 두 사람의 명식을 근거와 함께 다시 계산하고, 연이가 네 장의 풀이로 관계의 흐름과 실천을 정리해 드려요.</p>'
+    + '<ul class="cd-scp-cta__list">'
+    + '<li>관계 총론 · 성향·소통 · 신뢰·이성 기질 · 시기·실천, 네 장의 해석</li>'
+    + '<li>상대의 이성 기질 지표 — 단정하지 않고 명식 근거와 함께 보여 드려요</li>'
+    + '<li>합충·오행 카드, 전생 인연, 보관함 저장</li>'
+    + '</ul>'
+    + '<a class="cd-scp-cta__btn" href="' + _SE_SAJU_COMPAT_PREMIUM_HREF + '" data-cd-scp-prefill>고급 궁합 보기 · 10,000원 <span aria-hidden="true">→</span></a>'
+    + '<p class="cd-scp-cta__fine">결제는 다음 화면에서 내용을 확인한 뒤에 진행돼요. 입력한 두 사람의 정보는 미리 채워 드려요.</p>'
+    + '</aside>');
+  var link = resultArea.querySelector('[data-cd-scp-prefill]');
+  if (!link) return;
+  link.addEventListener('click', function() {
+    try { sessionStorage.setItem(_SE_SAJU_COMPAT_PREMIUM_PREFILL_KEY, JSON.stringify(_seSajuCompatPremiumPrefill(name, bd, calType, type))); } catch (_) { /* 저장 불가면 빈 입력으로 연다 */ }
+  });
+}
+
 async function runCompatCore(compatRunBtn, name, bd, type, llm){
   var compatCalBtns = document.getElementsByName('compatCalType');
   var compatCalType = 'solar';
@@ -23527,6 +23584,7 @@ async function runCompatCore(compatRunBtn, name, bd, type, llm){
     }
     if(resultArea&&!llmDone) resultArea.innerHTML=llmNotice+compat.html;
     if(resultArea&&!llmDone) resultArea.insertAdjacentHTML('beforeend',pastHtml);
+    if(resultArea&&!llmDone&&!llm) _seSajuCompatAppendPremiumCta(resultArea, name, bd, compatCalType, type);
     if(!llmDone) cdEnsureCompatLlmReady(function(){
       var host = cdEnsureCompatLlmHost();
       if (!host) return;

@@ -2291,7 +2291,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/kasi-calendar-service.js?v=build-2004797c0450',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
     '/js/core/saju/manse-shinsal.js',
-    '/js/saju-engine.js?v=build-b98240b2cb83',
+    '/js/saju-engine.js?v=build-e7c41652e5fb',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -2325,7 +2325,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-399cb8badc2a')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-260fb93d372e')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -9153,7 +9153,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-8a9c0f9afe96',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/core/saju/manse-shinsal.js',
-      '/js/saju-engine.js?v=build-b98240b2cb83',
+      '/js/saju-engine.js?v=build-e7c41652e5fb',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a150de26add3'
   ];

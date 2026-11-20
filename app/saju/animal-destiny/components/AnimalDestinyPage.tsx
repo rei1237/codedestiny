@@ -12,6 +12,11 @@ import TwelveAnimalInputCard from "./TwelveAnimalInputCard";
 import TwelveAnimalLoading from "./TwelveAnimalLoading";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import { useAnimalDestinyCopy } from "../_lib/copy";
+import dynamic from "next/dynamic";
+import { GUIDED_ANIMAL_DESTINY_ENABLED } from "@/lib/guided-flow/flags.mjs";
+
+// 3c-A3: 플래그가 켜지면 입력(히어로·입력 카드·로딩)만 공통 스텝 플로우로 바꾼다. 결과·다시 하기·유료 풀이 확인은 아래 원본 그대로.
+const AnimalDestinyGuided = GUIDED_ANIMAL_DESTINY_ENABLED ? dynamic(() => import("./AnimalDestinyGuided"), { ssr: false }) : null;
 
 export default function AnimalDestinyPage() {
   const copy = useAnimalDestinyCopy();
@@ -100,6 +105,8 @@ export default function AnimalDestinyPage() {
     maxInternalBackSteps: 1,
     canGoBack: () => status === "result",
     onBack: handleAnalysisBack,
+    // 스텝 플로우는 단계마다 history 를 직접 다룬다(결과→뒤로는 AnimalDestinyGuided 가 reset).
+    enabled: !AnimalDestinyGuided,
   });
 
   return (
@@ -133,10 +140,12 @@ export default function AnimalDestinyPage() {
       </header>
 
       <div className="relative z-10 mx-auto w-full min-w-0 max-w-5xl pb-16">
-        <TwelveAnimalHero onStart={handleStartJourney} onReview={handleReviewJourney} />
+        {AnimalDestinyGuided ? null : <TwelveAnimalHero onStart={handleStartJourney} onReview={handleReviewJourney} />}
 
         <div ref={formSectionRef} className="min-w-0 space-y-8 px-5 sm:px-6">
-          {(status === "idle" || status === "input" || status === "error") ? (
+          {AnimalDestinyGuided ? <AnimalDestinyGuided /> : null}
+
+          {!AnimalDestinyGuided && (status === "idle" || status === "input" || status === "error") ? (
             <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -152,8 +161,8 @@ export default function AnimalDestinyPage() {
             </m.div>
           ) : null}
 
-          {status === "calculating" ? <TwelveAnimalLoading mode="calculating" /> : null}
-          {status === "revealing" ? <TwelveAnimalLoading mode="revealing" /> : null}
+          {!AnimalDestinyGuided && status === "calculating" ? <TwelveAnimalLoading mode="calculating" /> : null}
+          {!AnimalDestinyGuided && status === "revealing" ? <TwelveAnimalLoading mode="revealing" /> : null}
 
           <div ref={resultSectionRef} className="min-w-0">
             {status === "result" && animalData ? (
