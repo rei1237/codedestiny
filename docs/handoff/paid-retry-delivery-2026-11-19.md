@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "R7 마스터 인연의 서 다시 시도 우선(먼저 master-love-codex-recovery-task.js planCodexReopen:114 / reopenClosedSessions:187 재개방이 retry 보류와 충돌하는지 확인 → paid-gate-auditor·regression-scout → TDD → 체인) → R7b 보관함 \"다시 시도 가능\" 표시(사용자 요청 2026-11-20). R1·R2b·R3·R4·R5·R6·R7 찻집 묶음은 준비됨(체인 결과는 실측 절)이나 머지·push 는 R9 에서"
+next: "R8 검증기(scripts/verify-paid-llm-delivery-contract.mjs 확장: 계약 서비스마다 실패 시 retryable + 다시 시도 경로 + 7일 환불, fail-closed, 변이 1종) + docs/context/ai-and-db.md 전달 계약 절 갱신 → R9 묶음 머지. R1~R7·R7b 는 워크트리에 준비됨(체인 결과는 실측 절), 머지·push 는 R9 에서"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -20,7 +20,7 @@ next: "R7 마스터 인연의 서 다시 시도 우선(먼저 master-love-codex-
 ## 지금 상태
 - main = `b3b77221c` 시점에 작성. 운영 = `25d9bc034`(2026-11-19 Release run 44501694109 성공, S13·S15·S16 반영).
 - 워크트리 `D:\Development\codedestiny-worktrees\paid-retry-20261119-195316`, 브랜치 `wt/paid-retry-20261119-195316`, 기점 `bcce826eb`.
-- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · R5 `4c81511e5`(워커)·`3926da828`(클라이언트)·`1968b0488`(sitemap 원장) · R6 `4d13f4692`(워커)·`35caa1280`(클라이언트)·`8e0f4eb51`(sitemap 원장) · R7 찻집 `1cec195b8`(워커)·`dd51e5355`(클라이언트)·`6759ad789`(sitemap 원장) · 이 문서 갱신 커밋.
+- 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · R5 `4c81511e5`(워커)·`3926da828`(클라이언트)·`1968b0488`(sitemap 원장) · R6 `4d13f4692`(워커)·`35caa1280`(클라이언트)·`8e0f4eb51`(sitemap 원장) · R7 찻집 `1cec195b8`(워커)·`dd51e5355`(클라이언트)·`6759ad789`(sitemap 원장) · R7 코덱스 `d16920bf3`(워커)·`5ed4f9258`(클라이언트+원장) · R7b `384d3b8f6`(보관함+원장) · 이 문서 갱신 커밋.
 - R2b 의 `d113288d1`(환불 크론)은 `e89217af9`(라우트의 `settleDueNeoRetryRefunds`)와 함께 머지해야 한다 — 단독이면 try/catch 로 막히지만 네오 창 경과 환불이 돌지 않는다. R1·R2b·R3·R4 를 한 묶음으로.
 - 🔴 R1 은 단독으로 머지·push 하지 않는다 — 신년·인생의 책에 다시 시도 UI·재개 엔드포인트(R3·R4)가 없어, 그 상태로 나가면 고객은 최대 7일간 실패 화면만 보고 환불도 받지 못한다. → 2026-11-19 R3·R4 완료로 R1·R3·R4 는 한 묶음으로 머지 가능(R9 에서, 묶음째로만).
 
@@ -62,10 +62,10 @@ next: "R7 마스터 인연의 서 다시 시도 우선(먼저 master-love-codex-
 - [x] R4 신년운세 — `14a12f0d1`(워커·클라이언트·테스트) + `d7eea47b5`(sitemap 원장) + `7ed35229a`(보안 분류기: `/retry`→start, `/refund-request`→ensure — R3 에서 빠졌던 것도 함께) + `0a3f1942d`(Toss 하네스 스텁). handleStart catch → generation_failed + llmMeta.retryable(생성+7일), 503 `{reason:'LLM_ERROR', refunded:false, retry:{available, refundAt, sessionId}}`(최상위 `retryable` 은 클라이언트에서 "계속 폴링"이라 쓰지 않음). handleStart·handleResult 409 에 같은 retry 표지. POST /api/new-year-ai/retry(소유자 확인 → reopen + `newYearRetryReset`: 받아들여지지 않은 savedSections 의 실패·사유 초기화, 다시 연 섹션 접두 attempts 삭제 → 한 웨이브) · POST /refund-request. 클라이언트: "다시 시도 · 추가 결제·차감 없음" + "다시 시도 대신 환불 요청"(웹 전용), 다시 시도 가능하면 폼 제출도 무료 다시 시도로 보냄(새 결제 없음), LLM_ERROR_MESSAGE 정정. 즉시 환불 유지(가정): Toss 네이티브·supportRecovery·DEFERRED_USAGE_APPLY_FAILED·창 만료.
 - [x] R5 연애 비책 — `4c81511e5`(워커·환불 크론·테스트) + `3926da828`(웹 다시 시도·환불 요청 UI, 12로케일) + `1968b0488`(sitemap 원장). 상세·검사는 실측 "R5 연애 비책".
 - [x] R6 흑월 — `4d13f4692`(워커·가드·환불 크론·복구 레지스트리·테스트) + `35caa1280`(웹 다시 시도·환불 요청 UI) + `8e0f4eb51`(sitemap 원장). Toss 네이티브(`worker/toss/native-heukwol.js`)는 변경 없음(아래 가정). 상세·검사는 실측 "R6 흑월".
-- [ ] R7 찻집 · 마스터 인연의 서
+- [x] R7 찻집 · 마스터 인연의 서
   - [x] R7 찻집 — `1cec195b8`(워커·환불 크론·테스트) + `dd51e5355`(웹 다시 시도·환불 요청 UI) + `6759ad789`(sitemap 원장). 상세·검사는 실측 "R7 찻집".
-  - [ ] R7 마스터 인연의 서 — 착수 전 운영 스크립트 충돌 확인: `worker/lib/master-love-codex-recovery-task.js` `planCodexReopen`(:114)·`reopenClosedSessions`(:187, 호출 :235)가 닫힌 세션을 다시 여는데, 다시 시도 보류 건(retry 표지)을 재개방·환불 대상으로 집지 않게 필터를 좁혀야 하는지 본다.
-- [ ] R7b 보관함(사용자 요청 2026-11-20): 꿀꿀운세 `/records` 에서 다시 시도 가능한 상담(retry 표지, 창 안)을 일반 '실패'가 아니라 별도 상태 "다시 시도 가능"으로 표시하고, 서비스별 다시 시도 진입(결과 화면 링크 또는 버튼)을 단다. `/yeongnyangi/library/` 분리 규칙 유지(영냥이 기록 섞지 않음), 완성 결과는 숨기거나 지우지 않는다. 참고: 흑월 보류 건은 지금 pending 이라 "생성 중"으로 보이고(record-library.js:35,49), 연애 비책·인생의 책·신년·네오는 '실패'로 보인다 — 서비스마다 retry 표지 위치가 다르다(흑월 `metadata.retryable`, 나머지 `llmMeta.retryable`).
+  - [x] R7 마스터 인연의 서 — `d16920bf3`(워커·복구 크론·테스트) + `5ed4f9258`(결과 화면 다시 시도·환불 요청 버튼 + sitemap 원장). 상세·검사는 실측 "R7 마스터 인연의 서".
+- [x] R7b 보관함(사용자 요청 2026-11-20): 꿀꿀운세 `/records` 에서 다시 시도 가능한 상담(retry 표지, 창 안)을 일반 '실패'가 아니라 별도 상태 "다시 시도 가능"으로 표시하고, 서비스별 다시 시도 진입(결과 화면 링크 또는 버튼)을 단다. `/yeongnyangi/library/` 분리 규칙 유지(영냥이 기록 섞지 않음), 완성 결과는 숨기거나 지우지 않는다. 참고: 흑월 보류 건은 지금 pending 이라 "생성 중"으로 보이고(record-library.js:35,49), 연애 비책·인생의 책·신년·네오는 '실패'로 보인다 — 서비스마다 retry 표지 위치가 다르다(흑월 `metadata.retryable`, 나머지 `llmMeta.retryable`). → `384d3b8f6`. 상세는 실측 "R7b 보관함".
 - [ ] R8 검증기: 계약 목록 각 서비스가 "실패 시 retryable + 다시 시도 경로 + 7일 환불"을 갖는지 fail-closed 로 검사(`scripts/verify-paid-llm-delivery-contract.mjs` 확장, 변이 1종으로 무는지 확인). 문서 `docs/context/ai-and-db.md` 유료 LLM 전달 계약 절 갱신.
 - [ ] R9 대표 7종 머지 → `npm test --prefix apps/toss` → `npm run check:fast -- --base=<origin/main SHA>` → `node scripts/run-paid-gate-suite.mjs --base=<SHA>` → `node scripts/verify-myeongri-tables.mjs` → `npm run check:pre-push` → push → main CI(PR CI·Paid Flow Gates) 녹색.
 - [ ] R10 "다른 기능들" + 전문가 상담(사용자 요청 2026-11-20으로 범위 확대): 서비스 안내의 전문가 상담 묶음(`#guide-expert` / `/consultations/`)의 유료 LLM 상담 전부 — 예: vedic·ziwei·astrology·nakshatra·karma·sukuyo 등 계약 목록에 있는 전문가 상담 — 에 같은 다시 시도 우선 정책(무료 다시 시도 → 생성 + 7일 또는 고객 요청 시 환불). 🔴 추측하지 말고 정확한 목록을 먼저 지도로 만든다(안내 소스·계약 목록 대조). 그다음 계약 목록 나머지 서비스에 같은 정책을 묶음별로(서비스마다 커밋). 지도 → TDD → 검사 체인 → push.
@@ -252,6 +252,30 @@ S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 
 - 대상 실행: jest 찻집 관련 21 스위트 406 통과 · node --test 찻집 UI 41/41 · consultation-delivery-refund 55/55 · tsc 0 · verify paid-llm-delivery(36 계약·변이 36/36)·tea perf budget·paid-gate-ui-regression 통과.
 - 체인(베이스 `bcce826eb`, HEAD `6759ad789`, 2026-11-20 실측, 전부 exit 0): ① `check:fast -- --base=bcce826eb` — critical(typecheck 포함), jest 484 스위트 8308 통과(1 skip). 첫 회는 sitemap 원장 드리프트로 막힘 → `6759ad789` ② `run-paid-gate-suite --base=bcce826eb` 91/91(764.8s, 플레이크 없음. `dd51e5355` 기준 앞 회차도 91/91·1562s) ③ `npm test --prefix apps/toss`(정션) 1765/1765(58s), 정션 제거·원본 node_modules 무사 확인 ④ verify-myeongri-tables OK(29건·잔차 0).
 - 위험·가정(최종 보고): 이용권 구매의 `deliveryAccessKey` 가 재개 때 바뀔 수 있음 · 증빙 재청구 멱등(replayed) 가정 · 지연 사용(deferred usage) TTL 없음 가정 · 보류 건은 일반 환불을 막으므로 환불은 `/refund-request`·크론으로만 · 보류 건 `/pending` 접근 확인 유지 · 감사 미검증: 해제된 증빙이 다른 resultId 에 재사용될 수 있는지, 이용권 만료 뒤 재제출이 정산 재생인지 402 인지, `refundPassCoverage` 동시 호출 멱등 · `consultation-delivery-refund.js` 가 paid-flow-gates·deep tier 에 없음(기존, 보고만) · 보관함(/records) 표시는 R7b.
+
+### R7 마스터 인연의 서 (2026-11-20, 워크트리 커밋 `d16920bf3`·`5ed4f9258`)
+- 사전 감사: paid-gate-auditor·regression-scout 실행 뒤 착수.
+- 운영 스크립트 충돌 확인 결과: `reviewRequired:true` 는 이미 `acquireBatchLock`·`buildAbandonedFilter`·`reopenClosedSessions`(GENERATION_BUDGET_EXCEEDED 만)에서 빠진다. 그래도 `planCodexReopen` 은 `reviewReason === 'RETRY_AVAILABLE'` 또는 `deliveryMeta.retryable` 이 있으면 null 을 돌려주게 막았다(보류·그 뒤 닫힌 세션을 크론이 다시 열지 않음).
+- 보류 방식(`settleCodexFinalFailure`): 웹 종결 실패(장당 시도 소진)를 `generation_failed` + `deliveryMeta.reviewRequired:true` + `reviewReason:'RETRY_AVAILABLE'` + `deliveryMeta.retryable={since, refundAt(retryRefundAt = 생성+7일, 연장 없음), code, exhaustedChapterIds, reopens}` 로 저장하고 환불하지 않는다. `/generate` 는 503 + `retry:{available, refundAt, sessionId}`(본문 없음).
+- 즉시 처리 유지(가정): Toss 네이티브(`deliveryMeta.tossIntentId`, 관리자 검토) · 환불 마커가 이미 있는 세션 · 창 경과.
+- POST `/api/master-love-codex/retry`: 소유자 확인 → 창 만료면 `closeCodexRetryHold`(RETRY_WINDOW_EXPIRED) + 환불 1회 + 409 `RETRY_WINDOW_EXPIRED` · 보류 아님 409 `RETRY_NOT_AVAILABLE` · 아니면 CAS 로 generating 재개(`retryable.reopenedAt`·`reopens+1`, 소진 장 시도 수 초기화) → 202 + 접근 토큰. 결제 확인·차감 없음.
+- POST `/api/master-love-codex/refund-request`: `closeCodexRetryHold`(CUSTOMER_REQUEST, refundRequestedAt) → `retryCodexFinalRefund` 1회. 반복 요청은 환불을 다시 돌리지 않고 상태(settled/admin_review/pending)만 200 — 덜 끝난 환불은 기존 `retryUnsettledRefunds` 크론이 잇는다. 보류 아님·Toss 는 409 `REFUND_NOT_AVAILABLE`.
+- 복구 크론(`master-love-codex-recovery-task.js`): `expireCodexRetryHolds`(`buildCodexRetryExpiryFilter`: RETRY_AVAILABLE + refundAt≤now, JS 재판정 `codexRetryDue`) → DELIVERY_FAILED 로 닫고 환불 1회, 결과 `retryExpired`. 정체 나이는 `retryable.reopenedAt || codexReopenedAt || createdAt` 부터 잰다. 정체 결과에 `held` 필드.
+- 클라이언트: `MasterLoveCodexResultClient.tsx` — `reason === 'RETRY_AVAILABLE'` + `retry.available` 이면 `CodexGenerating` 에 "다시 시도 · 추가 결제·차감 없음"·"다시 시도 대신 환불 요청"(sessionId 만 POST, 결제창 없음), 실패 안내는 `copy.errorText.RETRY_AVAILABLE`(5로케일, 일수 약속 없음). 응답 뒤 세션을 다시 읽어 서버 상태를 그대로 보인다.
+- 테스트: `master-love-codex-paid-delivery.test.js` R7 6건(67 통과), `master-love-codex-recovery-task.test.js` R7 3건, UI `master-love-codex-resume-on-result.behavior` 62/62.
+- sitemap: `/master-love-codex/` 서명 1건(lastmod 그대로).
+- 위험·가정(최종 보고): 웹 종결 실패는 결정적 오류 구분 없이 모두 보류(compat 의 LLM_PARTNER_EVIDENCE_MISSING 은 다시 시도해도 다시 실패할 수 있음 → 결국 7일 뒤 또는 고객 요청으로 환불) · 관리자 접근 세션도 보류 · reviewNeeded/stalled 지표에 보류 건 포함 · 서버 한국어 메시지는 미현지화(클라이언트는 copy 사용) · 보류 세션도 /session 으로 접근 토큰이 나오지만 /generate 는 503 · 감사 미검증: pass 증빙 환불 마커를 session-access 가 읽는지, 코덱스 구매에 ServiceExecutionTransaction 행이 있는지 · `verify-master-love-codex-sharing` 은 로컬 프리뷰 서버가 없어 ERR_CONNECTION_REFUSED(환경, 미검증) · 범위 밖(보고만): `/records/view` 가 generation_failed·generating 코덱스의 부분 본문을 보일 수 있음(record-library.js 상세, StoredReading.tsx:63).
+
+### R7b 보관함 "다시 시도 가능" (2026-11-20, 워크트리 커밋 `384d3b8f6`)
+- `worker/lib/record-library.js` `recordStatus(doc, source, now)`: 환불 상태(revoked·refund_pending)가 먼저, 그다음 `retryHeld` 가 참이면 `retry_available`. 판정은 각 라우트와 같다 — 연애 비책·인생의 책·신년·네오·찻집 `generation_failed` + `llmMeta.retryable`(deliveryRefund·refundEligibleAt·billingCleanupPending·settledAt·refundRequestedAt 없음, refundAt>now) · 흑월 `pending` + `metadata.retryable`(refundStatus none, refundRequestedAt 없음, refundAt>now) · 코덱스 `generation_failed` + `deliveryMeta.reviewReason RETRY_AVAILABLE` + `deliveryMeta.retryable`(closedAt·refundRequestedAt 없음, refundAt>now). 그 밖은 기존 상태(fail-closed).
+- 목록 projection 에 `llmMeta.retryable`·`llmMeta.refundEligibleAt`·`llmMeta.billingCleanupPending`·`metadata.retryable`·`deliveryMeta.retryable`·`deliveryMeta.reviewReason` 추가(작은 표지만, 본문 없음).
+- 다시 시도 진입 = 기존 `recoveryHref`(흑월 `/heukwol/?result=`, 찻집 `/fortune-tea-house/?recoverResultId=`, 나머지 각 결과 화면 `resultPath+id`). 각 화면의 다시 시도·환불 요청 버튼(R2b~R7)이 실제 행동을 맡는다. 보관함은 결제·생성을 시작하지 않는다.
+- UI: `lib/records/copy.ts` `retry_available`·`retryLead`·`retryAction` 5로케일(ko "다시 시도 가능"/"다시 시도하러 가기"), `RecordsClient.tsx` 카드에 "다시 시도하러 가기" 링크 추가(기존 결과 보기 링크 유지), `SavedRecordClient.tsx` 상태 안내 문구·링크 분기. 완료 판정 allowlist(recommendations·saved-record-next)는 그대로라 무료 다음 단계·완료 조회 이벤트가 붙지 않는다.
+- 영냥이 분리: `/yeongnyangi/library/` 와 `chat-consultation` 소스 판정은 변경 없음. 완성 결과는 숨기거나 지우지 않는다.
+- SEO: `/records`·`/records/view` 는 noindex·sitemap 밖 — 영향 없음. 원장은 `/fortune-tea-house/` 서명 1건만 바뀜(lastmod 그대로).
+- 테스트: `record-library.test.js` R7b 1건(32/32), `records-view-next` + `recommendations-context` node --test 21/21.
+- 가정(최종 보고): 신년 `?sid=`·인생의 책·연애 비책·네오 결과 화면이 로드 시 보류 표지를 받아 다시 시도 버튼을 보인다(R3~R2b 에서 구현, 이번에 화면 실측은 안 함) · 흑월 보류 건 목록 판정은 refundStatus 를 projection 하지 않아 refundAt 창으로만 가른다(환불 요청·만료 경로가 모두 refundAt≤now 로 만들므로 같은 결과).
+- 체인(2026-11-20, base `bcce826eb`, 커밋 `384d3b8f6` + 이 문서 수정 트리): ① `check:fast --base=bcce826eb` exit 0 — critical, jest 484 스위트 8318 통과·1 skip(첫 실행은 기계 절전으로 느려져 무관한 `auth.apple-signin`·`destiny-compass-free-narration` 2 스위트가 5s 타임아웃 → 단독 재실행 20/20 통과 → 재실행 exit 0) ② `run-paid-gate-suite --base=bcce826eb` exit 0, 통과 91 / 실패 0 ③ `npm test --prefix apps/toss` (임시 정션, 실행 뒤 정션만 제거) exit 0, 1765/1765 ④ `verify-myeongri-tables` OK 29건·216키 잔차 0.
 
 ### R5 연애 비책 (2026-11-20, 워크트리 커밋 `4c81511e5`·`3926da828`·`1968b0488`)
 - 사전 감사: paid-gate-auditor · regression-scout 실행 뒤 착수(앞 세션).
