@@ -1,14 +1,23 @@
-/* 사주 고급 궁합 입력·결과 화면. 사이트 공용 토큰(--cd-*)을 쓰고 달빛 예화 톤은 히어로와 카드 테두리에만 얹는다. */
+/* 사주 고급 궁합 입력·결과 화면. /saju 계열은 어두운 몸체 위에 그려지므로, 화면 스스로 달빛 예화 밤 표면과 밝은 글자 토큰을 갖는다(몸체 색에 기대지 않는다). */
 .page {
   --scp-plum: #30223e;
   --scp-night: #161b35;
   --scp-gold: #c9a45c;
-  --scp-gold-soft: rgba(201, 164, 92, .28);
+  --scp-gold-soft: rgba(201, 164, 92, .34);
+  --cd-text: #f3edff;
+  --cd-text-muted: #d6cbe6;
+  --cd-primary: #e6c88a;
+  --cd-card-surface: rgba(39, 30, 66, .92);
+  --cd-accent-soft: rgba(201, 164, 92, .14);
+  --cd-border: rgba(230, 200, 138, .42);
   width: min(100%, 760px);
   margin: 0 auto;
   padding: 24px 16px 64px;
   box-sizing: border-box;
-  color: var(--cd-text, #2b2233);
+  color: var(--cd-text);
+  background: radial-gradient(90% 40% at 100% 0%, rgba(176, 118, 164, .16), transparent 70%), linear-gradient(170deg, var(--scp-plum), var(--scp-night) 60%);
+  border-radius: 0 0 24px 24px;
+  min-height: 100vh;
   font-family: var(--font-body), sans-serif;
 }
 .hero { margin: 8px 0 24px; }
@@ -38,7 +47,7 @@
 .field { display: grid; gap: 6px; font-size: .95rem; font-weight: 600; }
 .field input, .field select {
   min-height: 48px; padding: 10px 12px; box-sizing: border-box; width: 100%;
-  border: 1px solid var(--cd-border, #d9cfdf); border-radius: 12px; background: #fff; color: inherit; font: inherit; font-weight: 400;
+  border: 1px solid var(--cd-border, #d9cfdf); border-radius: 12px; background: #fffaf3; color: #2b2233; font: inherit; font-weight: 400;
 }
 .optional { color: var(--cd-text-muted, #6b6070); font-weight: 400; }
 .check { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: .92rem; }
@@ -51,13 +60,13 @@
 }
 .promise { margin: 0; padding: 14px 16px 14px 32px; border-radius: 14px; background: var(--cd-accent-soft, #f7f0f6); font-size: .92rem; line-height: 1.7; }
 .notice { margin: 0; color: var(--cd-primary, #8a4f7d); }
-.error { margin: 0; color: #a3322f; font-weight: 600; }
+.error { margin: 0; color: #ffb4a8; font-weight: 600; }
 .primary, .secondary {
   display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 12px 22px; box-sizing: border-box;
   border-radius: 999px; font: 650 1rem/1.4 var(--font-body), sans-serif; cursor: pointer;
 }
 .primary { border: 1px solid #f1dfbb; background: linear-gradient(135deg, var(--scp-plum), var(--scp-night)); color: #fff4df; }
-.secondary { border: 1px solid var(--cd-border, #d9cfdf); background: #fff; color: inherit; }
+.secondary { border: 1px solid var(--cd-border); background: transparent; color: var(--cd-text); }
 .primary:disabled, .secondary:disabled { opacity: .6; cursor: progress; }
 .primary:focus-visible, .secondary:focus-visible { outline: 3px solid #ad75aa; outline-offset: 3px; }
 
@@ -92,11 +101,11 @@
 .axisBar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--scp-gold), #b07aa4); }
 .axisScore { text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
 .plainList, .relationList { margin: 0; padding-left: 20px; line-height: 1.8; font-size: 1rem; }
-.relationList li[data-polarity="support"] b { color: #3f6f52; }
-.relationList li[data-polarity="tension"] b { color: #9a5a2c; }
+.relationList li[data-polarity="support"] b { color: #a8dcb8; }
+.relationList li[data-polarity="tension"] b { color: #f0bf8c; }
 .relationList b { margin-right: 6px; }
 .grade { display: inline-block; padding: 2px 12px; border-radius: 999px; background: var(--cd-accent-soft, #f7f0f6); }
-.caution { margin: 10px 0 0; padding: 12px 14px; border-radius: 12px; background: #faf5ea; font-size: .92rem; line-height: 1.7; }
+.caution { margin: 10px 0 0; padding: 12px 14px; border-radius: 12px; background: rgba(230, 200, 138, .12); font-size: .92rem; line-height: 1.7; }
 .section { max-width: 38rem; }
 .section h3 { margin: 18px 0 8px; font-size: 1.1rem; line-height: 1.5; }
 .section p { margin: 0 0 12px; font-size: 1.0625rem; line-height: 1.8; word-break: keep-all; overflow-wrap: anywhere; }
