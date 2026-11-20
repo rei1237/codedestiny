@@ -251,3 +251,24 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_STAR_HUG_ENABLED = false` 또는 `git revert 0042e6025`.
 - A3 후속 "3단계 vs 1/6": 기록만. progressSteps 가 wait 단계를 세므로 고치면 모든 흐름의 셸 동작이 바뀜 → 셸 공통 후속 과제.
 - 남은 위험: (1) 생년월일·이름이 탭 범위 sessionStorage 스냅숏에 남음(원본은 메모리). (2) 결과에서 뒤로 가면 별자리 단계로 감(replace history, A2·A3 와 같은 패턴). (3) 가이드에서는 기본 감정(calm)을 미리 고르지 않아 사용자가 직접 골라야 함. (4) 시각 입력은 원본 BirthTimeInput 이 아니라 네이티브 time input. (5) 감정·별자리·예시 문장 라벨은 원본 데이터 그대로 한국어만. (6) check:fast 부하 타임아웃 반복 가능.
+
+## W4 마스터 모션 결과 (2026-11-21)
+
+요청 원문: "각 전문가, 대표 상담에서 설정된 마스터들이 움직이거나 주변에 꽃이 휘날리는 효과를 주도록해줘 현재 이미지 생성은 어렵기 때문에 바로 안되더라도 후속으로 진행가능하도록해주면 좋겠다" / "서비스 기능에 회귀는 없어야해"
+
+- 커밋: c038f3980 (코드·미러·문서), 이 기록 커밋은 그 다음.
+- 만든 것: `app/components/master-motion/MasterMotion.tsx`(+module.css), `lib/master-motion/flags.mjs`(`MASTER_MOTION_ENABLED`), 홈 `js/core/yehwa-home.mjs` 의 `mountMasterMotion`(같은 이름 상수, 스타일은 JS 로 늦게 주입 — 렌더 차단 CSS 불변), 후속 그림 규격 `docs/design/master-motion-assets.md`.
+- 적용: ProductMasterStrip 아바타(꽃잎 3), MasterProfile 소개장·초상(꽃잎 6; 대표 상담 3종 연애 비책·신년운세·인생의 책 + 전문가 상담 소개장), ExpertCharacterStage inline·loading(기존 breathe 재사용, 겹침 없음; result 는 PDF 캡처라 제외), 홈 기본 마스터 카드 4장(꽃잎 4씩).
+- 동작: transform·opacity 키프레임만, JS 애니메이션 루프 없음, useSpritePlaybackGate(화면 안·탭 보임·reduced-motion 아님)일 때만 꽃잎 DOM 생성, absolute·pointer-events:none·aria-hidden. 영냥이 변형(금빛 별가루, 분홍 없음)은 구현했으나 이번 대상 화면은 전부 꿀꿀 쪽이라 아직 쓰는 곳 없음.
+- 후속 그림 훅: `motion?: { frames?, video?, poster }` — MasterProfileData·ProductMaster 타입, 레지스트리 `components/fortune/master-profiles.ts` 주석. 빠진 표정 그림: 연이 greet·worry, 영냥이 explain·worry·cheer·serious.
+- 검증(실측, dev 서버 360·960, 쿠키 배너 닫음):
+  - 플래그 OFF: 마스터 모션 요소 0, reduce 기준 화면과 픽셀 차이 0~0.15%(이미지 로딩 잡음).
+  - 플래그 ON+reduce: 꽃잎 0, 기준 화면과 픽셀 차이 0~0.105% → 레이아웃 동일.
+  - 플래그 ON+no-preference: 꽃잎 DOM love 6/12·newyear 6·lifebook 6·astro 3·홈 16; CLS 는 OFF 와 같음(기존 값, 모션 기인 없음).
+  - visual-checker 18장 PASS(꽃잎이 초상 밖·글자·배지 위로 넘치지 않음, 이동 ≤2px). 홈 꽃잎은 8px 라 캡처에서 못 잡았으나 계산 스타일로 표시 확인(on, opacity .85, 분홍→금).
+  - 렌더 차단 CSS: index.html·yehwa-home.css 변경 0줄(sync 가 바꾼 것은 og 이미지 build 해시뿐). App Router 는 MasterMotion.module.css 3,984B(해당 라우트 청크).
+  - diff 경계: 결제·이용권·보관함·인증·라우트 파일 변경 없음.
+  - check:fast : critical 승격, paid-gate 78/0·lint·typecheck·sitemap(ledger 재생성 후)·남은 26단계(test:jest 포함) 통과. test:node 1건 실패는 fortune/data/daily-2026-11-21.json 부재(발행 cron 산출물, git 미추적) — 날짜 의존 기존 실패, 이 변경과 무관 / check:pre-push 통과(머지 후 커밋 트리).
+  - 미검증: perf:home 전후(dist 빌드 필요 — 이 작업에서는 돌리지 않음), 실기기 저사양 합성 비용.
+- 롤백: `lib/master-motion/flags.mjs`·`js/core/yehwa-home.mjs` 의 `MASTER_MOTION_ENABLED=false`(+ `npm run sync:public`) 또는 c038f3980 `git revert`.
+- 남은 위험: 저사양 기기 합성 비용; 꽃잎이 그려질 때 컴포지팅 레이어로 소개장 목록 글자 AA 가 서브픽셀→그레이스케일로 바뀜(가독성 영향 없음); 후속 그림이 들어오면 용량·디코딩 재측정.
