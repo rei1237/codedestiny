@@ -77,7 +77,8 @@
       "endingNote": "今天可以重读这些牌。明天会有新的三张等着你。",
       "sharedTitle": "朋友分享的三张牌",
       "sharedBody": "只分享了牌的象征，没有个人信息或问题。",
-      "newDayBody": "新的一天来了。把之前的牌收起来，翻开今天的三张吧。",
+      "newDayBody": "新的一天来了。可以接着读完之前的牌，也可以重新开始今天的三张。",
+      "resumeYesterday": "继续看昨天的牌",
       "storageNote": "此浏览器无法保存，只能在本次访问中查看结果。"
     },
     "healingTarot": {
@@ -101,6 +102,35 @@
       "readingTitle": "正在准备恢复解读",
       "resultTitle": "今天的恢复解读",
       "retry": "重试"
+    },
+    "freeSaju": {
+      "eyebrow": "免费命盘 · 无需登录",
+      "title": "用出生日期看我的八字",
+      "subtitle": "按首尔时间计算。不知道出生时间可以留空。",
+      "cta": "开始看命式",
+      "freeHint": "无需登录，免费查看。输入的出生日期不会发送到服务器。",
+      "aboutTitle": "这是什么？",
+      "aboutBody": "根据出生日期和历法排出年、月、日、时四柱，用一句话告诉你五行的分布。",
+      "guideTitle": "流程",
+      "guide1Title": "出生日期",
+      "guide1Body": "只输入8位数字也可以。",
+      "guide2Title": "历法",
+      "guide2Body": "从阳历、阴历、阴历闰月中选择。",
+      "guide3Title": "出生时间",
+      "guide3Body": "不知道也没关系。留空时时柱显示为未知。",
+      "dateTitle": "请告诉我出生日期",
+      "dateLabel": "出生日期 (YYYY-MM-DD)",
+      "calendarTitle": "是哪种历法的日期？",
+      "solar": "阳历",
+      "lunar": "阴历",
+      "leap": "阴历闰月",
+      "timeTitle": "知道出生时间吗？",
+      "timeLabel": "出生时间（可选）",
+      "timeHint": "不知道就留空，点“下一步”。",
+      "computingTitle": "正在排命式",
+      "computingBody": "正在对照四柱和五行。",
+      "resultTitle": "我的命式",
+      "restart": "换一个出生日期"
     }
   }
 }
