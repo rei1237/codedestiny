@@ -102,6 +102,35 @@
       "readingTitle": "Preparing your recovery reading",
       "resultTitle": "Today's recovery reading",
       "retry": "Try again"
+    },
+    "freeSaju": {
+      "eyebrow": "Free chart · No sign-in",
+      "title": "See my Four Pillars from my birth date",
+      "subtitle": "Calculated for Seoul time. Leave the birth time empty if you don't know it.",
+      "cta": "Start my chart",
+      "freeHint": "Free, no sign-in needed. Your birth date is not sent to a server.",
+      "aboutTitle": "What is this?",
+      "aboutBody": "From your birth date and calendar type we set up the year, month, day and hour pillars, then tell you in one line how the five elements are spread.",
+      "guideTitle": "How it works",
+      "guide1Title": "Birth date",
+      "guide1Body": "Eight digits are enough.",
+      "guide2Title": "Calendar",
+      "guide2Body": "Choose solar, lunar or lunar leap month.",
+      "guide3Title": "Birth time",
+      "guide3Body": "It's fine not to know. Leave it empty and the hour pillar shows as unknown.",
+      "dateTitle": "When were you born?",
+      "dateLabel": "Birth date (YYYY-MM-DD)",
+      "calendarTitle": "Which calendar is it in?",
+      "solar": "Solar",
+      "lunar": "Lunar",
+      "leap": "Lunar leap month",
+      "timeTitle": "Do you know your birth time?",
+      "timeLabel": "Birth time (optional)",
+      "timeHint": "If you don't know, leave it empty and tap Next.",
+      "computingTitle": "Setting up your chart",
+      "computingBody": "Matching the four pillars and five elements.",
+      "resultTitle": "My chart",
+      "restart": "Try another birth date"
     }
   }
 }

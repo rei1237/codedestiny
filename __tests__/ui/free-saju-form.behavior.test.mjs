@@ -101,3 +101,57 @@ const RESULT_LINE = '년주 庚午 · 월주 辛巳 · 일주 甲子 · 시주 �
     await v.close();
   });
 }
+
+// ── 공통 스텝 플로우 판(FreeSajuGuided, 3c-A2): 원본과 같은 엔진 입력·측정·결과 문구 ──
+{
+  const FreeSajuGuided = await load('app/saju/free/FreeSajuGuided.tsx');
+  const heading = (v) => v.q('[id^="gf-title-"]')?.textContent;
+  async function walk(v, { date = '19900515', calendar = '음력 윤달', time = '' } = {}) {
+    await v.click(v.byText('명식 보기 시작'));
+    assert.equal(heading(v), '생년월일을 알려 주세요');
+    assert.equal(v.byText('다음').disabled, true, '날짜 없이 못 넘어간다');
+    await v.setValue(v.q('input[name="date"]'), date);
+    await v.click(v.byText('다음'));
+    assert.equal(heading(v), '어떤 달력 기준인가요?');
+    await v.click(v.byText(calendar)); await v.click(v.byText('다음'));
+    assert.equal(heading(v), '태어난 시각을 아세요?');
+    assert.equal(v.byText('다음').disabled, false, '출생시각은 비워도 넘어간다');
+    if (time) await v.setValue(v.q('input[name="time"]'), time);
+    await v.click(v.byText('다음')); await flush();
+  }
+
+  test('공통 플로우판: 랜딩 → 날짜 → 달력 → 시각(선택) → 결과, 원본과 같은 엔진 입력·측정·결과', async () => {
+    const v = await mount(FreeSajuGuided);
+    assert.equal(v.q('h1'), null, 'SEO 랜딩의 h1 과 겹치지 않게 랜딩 제목은 h2');
+    assert.equal(v.q('h2')?.textContent, '생년월일로 내 명식 보기');
+    await walk(v);
+    assert.equal(heading(v), '내 명식');
+    assert.deepEqual(globalThis.__inputs, [{ birthDate: '1990-05-15', birthTime: null, calendarType: 'lunar', leapMonth: true }]);
+    const chart = globalThis.__events.filter(([n]) => n.startsWith('free_saju_chart_'));
+    assert.deepEqual(chart, [
+      ['free_saju_chart_started', { surface: 'saju_free', time_known: false }],
+      ['free_saju_chart_completed', { surface: 'saju_free', time_known: false }],
+    ]);
+    assert.ok(v.text().includes(RESULT_LINE));
+    assert.ok(v.text().includes('가장 많아서'));
+    assert.match(v.w.location.search, /step=result/);
+    assert.ok(!JSON.stringify(globalThis.__events).includes('1990'), '측정에 생년월일을 싣지 않는다');
+    await v.close();
+  });
+
+  test('공통 플로우판: 시각을 넣으면 time_known=true, 계산 실패면 날짜 단계로 돌아가 원본 문구', async () => {
+    const v = await mount(FreeSajuGuided);
+    await walk(v, { calendar: '양력', time: '07:30' });
+    assert.deepEqual(globalThis.__inputs[0], { birthDate: '1990-05-15', birthTime: '07:30', calendarType: 'solar', leapMonth: false });
+    assert.equal(globalThis.__events.find(([n]) => n === 'free_saju_chart_started')[1].time_known, true);
+    await v.close();
+
+    const f = await mount(FreeSajuGuided);
+    globalThis.__fail = true;
+    await walk(f);
+    assert.equal(heading(f), '생년월일을 알려 주세요');
+    assert.ok(f.text().includes('입력한 날짜와 달력 구분을 확인해 주세요.'));
+    assert.deepEqual(globalThis.__events.filter(([n]) => n.startsWith('free_saju_chart_')).map(([n]) => n), ['free_saju_chart_started']);
+    await f.close();
+  });
+}

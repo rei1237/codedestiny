@@ -102,6 +102,35 @@
       "readingTitle": "회복 리딩을 준비하고 있어요",
       "resultTitle": "오늘의 회복 리딩",
       "retry": "다시 시도"
+    },
+    "freeSaju": {
+      "eyebrow": "꿀꿀 운세 · 무료 명식 · 로그인 없이",
+      "title": "생년월일로 내 명식 보기",
+      "subtitle": "서울 기준으로 계산해요. 출생시각을 모르면 비워 두세요.",
+      "cta": "명식 보기 시작",
+      "freeHint": "로그인 없이 무료로 볼 수 있어요. 입력한 생년월일은 서버로 보내지 않아요.",
+      "aboutTitle": "이 기능은?",
+      "aboutBody": "생년월일과 달력 구분으로 년·월·일·시 네 기둥을 세우고, 다섯 기운(오행)이 어떻게 놓였는지 한 줄로 알려 드려요.",
+      "guideTitle": "이렇게 진행돼요",
+      "guide1Title": "생년월일",
+      "guide1Body": "숫자 8자리만 적어도 돼요.",
+      "guide2Title": "달력",
+      "guide2Body": "양력·음력·음력 윤달 중에서 골라요.",
+      "guide3Title": "출생시각",
+      "guide3Body": "몰라도 괜찮아요. 비워 두면 시주는 미상으로 나와요.",
+      "dateTitle": "생년월일을 알려 주세요",
+      "dateLabel": "생년월일 (YYYY-MM-DD)",
+      "calendarTitle": "어떤 달력 기준인가요?",
+      "solar": "양력",
+      "lunar": "음력",
+      "leap": "음력 윤달",
+      "timeTitle": "태어난 시각을 아세요?",
+      "timeLabel": "출생시각 (선택)",
+      "timeHint": "모르면 비워 두고 다음을 눌러 주세요.",
+      "computingTitle": "명식을 세우고 있어요",
+      "computingBody": "네 기둥과 다섯 기운을 맞춰 보고 있어요.",
+      "resultTitle": "내 명식",
+      "restart": "다른 생년월일로 보기"
     }
   }
 }
