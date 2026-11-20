@@ -10,7 +10,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
-import { PaidExecutionRecord, Payment, PointHistory, SajuCompatPremiumConsultation, User } from "../lib/models.js";
+import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SajuCompatPremiumConsultation, User } from "../lib/models.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -73,6 +73,7 @@ const DEFAULT_DEPS = Object.freeze({
   Payment,
   PointHistory,
   PaidExecutionRecord,
+  MonthlyCreditLedger,
   connectDb,
   withMongoRetry,
   getUser: getOptionalUserFromRequest,
@@ -564,7 +565,8 @@ async function finishDelivery({ request, env, auth, access, pending, settlement 
 }
 
 function lateSettlementModels() {
-  return { User: deps.User, Payment: deps.Payment, PaidExecutionRecord: deps.PaidExecutionRecord, PointHistory: deps.PointHistory };
+  // 월정석 되돌림 표식도 확인한다(life-book·love-secret 과 같은 묶음).
+  return { User: deps.User, Payment: deps.Payment, PaidExecutionRecord: deps.PaidExecutionRecord, PointHistory: deps.PointHistory, MonthlyCreditLedger: deps.MonthlyCreditLedger };
 }
 
 // ── 핸들러 ────────────────────────────────────────────────────────────────────
