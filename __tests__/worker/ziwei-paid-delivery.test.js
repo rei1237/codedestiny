@@ -3,29 +3,36 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 명반 해석", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consumeResult, accessQueue, passOrder, withdrawn;
+let release, card, settleDue, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consumeResult, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
+const getPath = (doc, key) => key.split(".").reduce((row, part) => row?.[part], doc);
+function setPath(doc, key, value) { const parts = key.split("."); const last = parts.pop(); let row = doc; for (const part of parts) row = row[part] ??= {}; row[last] = value; }
+const applySet = (doc, set) => { for (const [key, value] of Object.entries(clone(set))) setPath(doc, key, value); };
 function matches(doc, filter) {
   return Object.entries(filter).every(([key, value]) => {
     if (key === "$or") return value.some(row => matches(doc, row));
-    if (value && typeof value === "object" && !(value instanceof Date)) {
-      if ("$ne" in value) return doc[key] !== value.$ne;
-      if ("$nin" in value) return !value.$nin.includes(doc[key]);
-      if ("$in" in value) return value.$in.includes(doc[key]);
-      if ("$exists" in value) return (doc[key] !== undefined) === value.$exists;
-      if ("$lt" in value) return new Date(doc[key]) < value.$lt;
+    const actual = getPath(doc, key);
+    if (value && typeof value === "object" && Object.prototype.toString.call(value) !== "[object Date]") {
+      if ("$exists" in value && (actual !== undefined && actual !== null) !== value.$exists) return false;
+      if ("$ne" in value) return actual !== value.$ne;
+      if ("$nin" in value) return !value.$nin.includes(actual);
+      if ("$in" in value) return value.$in.includes(actual);
+      if ("$lt" in value) return new Date(actual) < value.$lt;
+      if ("$lte" in value) return new Date(actual) <= value.$lte;
+      return "$exists" in value;
     }
-    return String(doc[key]) === String(value);
+    return String(actual) === String(value);
   });
 }
+function findQuery(rows) { const result = { sort: () => result, limit: n => findQuery(rows.slice(0, n)), select: () => result, lean: async () => clone(rows) }; return result; }
 const model = {
   findOne: filter => { if (lostConfirmation) { lostConfirmation = false; return query(null); } return query(docs.find(doc => matches(doc, filter)) || null); },
   create: async fields => {
     if (docs.some(doc => doc.userId === fields.userId && doc.idempotencyKey === fields.idempotencyKey)) throw Object.assign(new Error("duplicate"), { code: 11000 });
     const doc = { ...clone(fields), createdAt: new Date(), updatedAt: new Date() }; docs.push(doc); return clone(doc);
   },
-  find: () => ({ sort() { return this; }, limit() { return this; }, select() { return this; }, lean: async () => [] }),
+  find: filter => findQuery(docs.filter(doc => matches(doc, filter))),
   findOneAndUpdate: (filter, update) => {
     if (fault && update.$set.status === fault.status) {
       const current = fault; fault = null;
@@ -34,12 +41,12 @@ const model = {
       if (current.kind === "confirm") lostConfirmation = true;
     }
     const doc = docs.find(row => matches(row, filter));
-    if (doc) Object.assign(doc, clone(update.$set), { updatedAt: new Date() });
+    if (doc) { applySet(doc, update.$set); doc.updatedAt = new Date(); }
     return query(doc || null);
   },
   updateOne: async (filter, update) => {
     const doc = docs.find(row => matches(row, filter));
-    if (doc) Object.assign(doc, clone(update.$set));
+    if (doc) { applySet(doc, update.$set); doc.updatedAt = new Date(Math.max(Date.now(), new Date(doc.updatedAt || 0).getTime() + 1)); }
     return { modifiedCount: doc ? 1 : 0 };
   },
 };
@@ -70,14 +77,15 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/portone.js", () => ({ fetchPortOnePayment: () => { throw new Error("PG blocked"); }, getPortOnePublicConfig: () => { throw new Error("PG blocked"); }, getPortOneConfig: () => { throw new Error("PG blocked"); } }));
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/structured-consultation.js", () => ({ ...structured, callGeminiJsonWithRetry: (...args) => provider(...args) }));
-  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => refund(...args) }));
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => { card(...args); return refund(...args); } }));
+  jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({ claimRequestBillingEvidence: async () => ({ ok: true }), evidenceClaimErrorBody: () => ({}), releaseRequestBillingEvidence: (...args) => release(...args) }));
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({ calculateZiweiAiChart: (...args) => chart(...args), formatStarWithBrightness: value => value, FOUR_TRANSFORMATIONS: {}, TRANSFORMATION_LABELS: {} }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
-  ({ handleZiweiAiRoutes: route, __ziweiAiTestUtils: utils } = await import("../../worker/routes/ziwei-ai.js"));
+  ({ handleZiweiAiRoutes: route, __ziweiAiTestUtils: utils, settleDueZiweiRetryRefunds: settleDue } = await import("../../worker/routes/ziwei-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consumeResult = { covered: true }; accessQueue = []; passOrder = null; withdrawn = false;
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consumeResult = { covered: true }; accessQueue = []; passOrder = null; withdrawn = false; release = jest.fn(async () => ({ released: 1 })); card = jest.fn();
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const group = utils.SECTION_GROUP_SPECS.find(group => group.id === options.logContext.sectionGroup);
@@ -90,6 +98,15 @@ beforeEach(() => {
 afterEach(() => { expect(fetchBlock).not.toHaveBeenCalled(); fetchBlock.mockRestore(); });
 async function start(extra = {}) {
   return route(new Request("https://mock.test/api/ziwei-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify({ ...body, ...extra }) }), { ZIWEI_AI_DELIVERY_V2_ENABLED: "false" });
+}
+function post(path, payload) {
+  return route(new Request(`https://mock.test/api/ziwei-ai${path}`, { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify(payload) }), { ZIWEI_AI_DELIVERY_V2_ENABLED: "false" });
+}
+const emptyGroups = async () => ({ ok: true, text: JSON.stringify({ sections: {} }) });
+async function exhaust() {
+  provider.mockImplementation(emptyGroups);
+  expect((await start()).status).toBe(202);
+  return start();
 }
 
 for (const paid of ["pass", "monthly", "paid"]) it(`${paid}: seven waves reuse the stored chart and groups`, async () => {
@@ -110,9 +127,13 @@ it("unusable groups consume only two attempts and cannot become completed", asyn
   provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
   expect((await start()).status).toBe(202); expect((await start()).status).toBe(503);
   expect(docs[0].status).toBe("generation_failed"); expect(usage).not.toHaveBeenCalled(); expect((await start()).status).toBe(409); expect(provider).toHaveBeenCalledTimes(2);
-  // 결제 화면에서 미리 차감한 이용권은 같은 (기능, requestId) 증빙으로 한 번 되돌린다(코인으로 환급하지 않는다).
+  // 2026-11-20 R10: 결제 화면에서 미리 차감한 이용권은 보류 동안 그대로 두고, 고객 환불 요청(또는 창 만료) 때
+  // 같은 (기능, requestId) 증빙으로 한 번 되돌린다(코인으로 환급하지 않는다).
+  expect(passRefund).not.toHaveBeenCalled();
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(200);
   expect(passRefund).toHaveBeenCalledTimes(1);
   expect(passRefund.mock.calls[0][0]).toMatchObject({ featureKey: "ziwei-ai-consultation", requestId: "original-paid-request" });
+  expect(card).not.toHaveBeenCalled();
 });
 for (const store of [0, 1, 2, 3]) it(`revoked evidence ${store} stops even a pass fallback`, async () => {
   await start(); const calls = provider.mock.calls.length; blocked = store;
@@ -180,18 +201,98 @@ it("missing optional grounding does not purchase an extra group", async () => {
   expect(docs[0].status).toBe("completed"); expect(provider).toHaveBeenCalledTimes(7);
   expect(Object.keys(docs[0].llmMeta.rawResponses)).toHaveLength(6);
 });
-it("refunds the card payment once short groups exhaust their attempts", async () => {
+// 2026-11-20 R10 다시 시도 우선: 웹 결제 건은 묶음 시도를 다 써도 바로 환불하지 않고 무료 다시 시도를 연다(환불 = 생성 + 7일 또는 고객 요청).
+it("holds a card payment for a free retry once short groups exhaust their attempts", async () => {
   mode = "paid";
-  provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
+  const response = await exhaust();
+  expect(response.status).toBe(503);
+  const payload = await response.json();
+  expect(payload).toMatchObject({ reason: "LLM_ERROR", refunded: false, sessionId: docs[0].id, retry: { available: true, sessionId: docs[0].id } });
+  expect(Date.parse(payload.retry.refundAt) - docs[0].createdAt.getTime()).toBe(7 * 86400000);
+  expect(docs[0]).toMatchObject({ status: "generation_failed", llmMeta: { retryable: { access: { accessType: "paid", paymentId: "payment", evidenceType: "direct_payment", prepaid: true } } } });
+  expect(JSON.stringify(docs[0].llmMeta.retryable.access)).not.toContain("accessToken");
+  expect(card).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+  const again = await start();
+  expect(again.status).toBe(409);
+  expect(await again.json()).toMatchObject({ refunded: false, retry: { available: true } });
+  const result = await route(new Request(`https://mock.test/api/ziwei-ai/result?id=${docs[0].id}`), {});
+  expect(result.status).toBe(409);
+  expect(await result.json()).toMatchObject({ retry: { available: true, sessionId: docs[0].id } });
+});
+it("refunds the card payment once when the customer asks instead of retrying", async () => {
+  mode = "paid"; await exhaust(); refund.mockResolvedValue({ refunded: true });
+  const response = await post("/refund-request", { sessionId: docs[0].id });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ ok: true, sessionId: docs[0].id, refunded: true, refundStatus: "refunded" });
+  expect(card).toHaveBeenCalledTimes(1);
+  expect(card.mock.calls[0][1]).toMatchObject({ _id: uid, merchantUid: "payment" });
+  expect(card.mock.calls[0][4]).toBe("ziwei_ai_generation");
+  expect(release).toHaveBeenCalledTimes(1);
+  expect(release.mock.calls[0][1]).toMatchObject({ requestId: "original-paid-request" });
+  expect(docs[0].llmMeta.retryable.refundSettledAt).toBeTruthy();
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(409);
+  await settleDue({}, { model }); expect(card).toHaveBeenCalledTimes(1);
+});
+it("retries a held V1 failure without a new charge and keeps the accepted groups", async () => {
+  mode = "paid";
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => args[2].logContext.sectionGroup === "foundation" ? normal(...args) : emptyGroups());
+  for (let i = 0; i < 4 && docs[0]?.status !== "generation_failed"; i++) await start();
+  expect(docs[0].status).toBe("generation_failed");
+  const kept = clone(docs[0].llmMeta.groups.foundation);
+  expect(Object.keys(kept).length).toBeGreaterThan(0);
+  provider.mockImplementation(normal);
+  let response = await post("/retry", { sessionId: docs[0].id });
+  expect([200, 202]).toContain(response.status);
+  for (let i = 0; i < 8 && docs[0].status !== "completed"; i++) response = await start({ resumeSessionId: docs[0].id });
+  expect(docs[0].status).toBe("completed");
+  expect(docs[0].llmMeta.groups.foundation).toEqual(kept);
+  expect(docs[0].llmMeta.retryable.reopens).toBe(1);
+  expect(card).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled(); expect(chart).toHaveBeenCalledTimes(1);
+});
+it("rejects a retry or refund request from another account or another service record", async () => {
+  mode = "paid"; await exhaust(); userId = "64b7f2a1c3d4e5f601234568";
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(404);
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(404);
+  userId = uid; docs[0].serviceType = "ziwei-island-palace-consult";
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(404);
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(404);
+  expect(docs[0].status).toBe("generation_failed"); expect(card).not.toHaveBeenCalled();
+});
+it("keeps the claim and the marker unsettled when the card refund fails, so the cron retries", async () => {
+  mode = "paid"; await exhaust();
+  refund.mockResolvedValue({ refunded: true }); card.mockImplementationOnce(() => { throw new Error("PG down"); });
+  await post("/refund-request", { sessionId: docs[0].id });
+  expect(release).not.toHaveBeenCalled(); expect(docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined();
+  expect(await settleDue({}, { model })).toEqual([{ service: "ziwei-ai", refundStatus: "refunded" }]);
+  expect(card).toHaveBeenCalledTimes(2); expect(release).toHaveBeenCalledTimes(1);
+});
+it("settles an expired retry window through the refund cron and restores a checkout pass", async () => {
+  await exhaust();
+  expect(passRefund).not.toHaveBeenCalled();
+  docs[0].updatedAt = new Date(Date.now() - 300000);
+  expect(await settleDue({}, { model, now: Date.now() + 8 * 86400000 })).toEqual([{ service: "ziwei-ai", refundStatus: "refunded" }]);
+  expect(passRefund).toHaveBeenCalledTimes(1);
+  expect(passRefund.mock.calls[0][0]).toMatchObject({ userId: uid, featureKey: "ziwei-ai-consultation", requestId: "original-paid-request" });
+  expect(docs[0].llmMeta).toMatchObject({ retryable: { refundReason: "RETRY_WINDOW_EXPIRED", refundStatus: "refunded" } });
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(409);
+});
+it("does not expire a reopened retry that is generating right now", async () => {
+  mode = "paid"; await exhaust();
+  const later = Date.now() + 8 * 86400000;
+  docs[0].status = "partial"; docs[0].updatedAt = new Date(later - 1000);
+  await settleDue({}, { model, now: later });
+  expect(docs[0].status).toBe("partial"); expect(card).not.toHaveBeenCalled();
+});
+it("falls back to the immediate refund when the retry marker cannot be saved", async () => {
+  mode = "paid"; provider.mockImplementation(emptyGroups);
   expect((await start()).status).toBe(202);
+  fault = { status: "generation_failed", kind: "throw" };
   const response = await start();
   expect(response.status).toBe(503);
-  expect(await response.json()).toMatchObject({ reason: "LLM_ERROR" });
-  expect(docs[0].status).toBe("generation_failed");
-  expect(refund).toHaveBeenCalledTimes(1);
-  expect(refund.mock.calls[0][1]).toMatchObject({ _id: uid, merchantUid: "payment" });
-  expect(refund.mock.calls[0][4]).toBe("ziwei_ai_generation");
-  expect((await start()).status).toBe(409);
+  expect(await response.json()).not.toHaveProperty("retry");
+  expect(card).toHaveBeenCalledTimes(1); expect(release).toHaveBeenCalledTimes(1);
+  expect(docs[0].status).toBe("generation_failed"); expect(docs[0].llmMeta.retryable).toBeUndefined();
 });
 for (const paid of ["pass", "monthly"]) it(`${paid}: does not attempt a card refund once short groups exhaust their attempts`, async () => {
   mode = paid;
@@ -342,11 +443,19 @@ it("V2: a group that stays repeated is salvaged and delivered instead of refunde
   expect(docs[0].llmMeta.attempts["flow:salvaged"]).toBe(1); expect(groupCalls("flow")).toHaveLength(3);
   expect(Object.keys(docs[0].llmMeta.groups.flow).length).toBeGreaterThan(0);
 });
-it("V2: refunds only when every group comes back empty", async () => {
+it("V2: holds for a free retry only when every group comes back empty", async () => {
   mode = "paid";
   provider.mockImplementation(async () => ({ ok: true, text: JSON.stringify({ sections: {} }) }));
   expect((await runV2()).status).toBe(503);
-  expect(docs[0].status).toBe("generation_failed"); expect(refund).toHaveBeenCalledTimes(1); expect(provider).toHaveBeenCalledTimes(18);
+  expect(docs[0].status).toBe("generation_failed"); expect(card).not.toHaveBeenCalled(); expect(provider).toHaveBeenCalledTimes(18);
+  expect(docs[0].llmMeta.retryable).toBeTruthy();
+  // 다시 시도는 비어 있는 묶음의 시도·건너뜀 표지만 새로 열어 처음부터 다시 만든다(새 결제·차감 없음).
+  provider.mockImplementation(v2Provider());
+  const retried = await route(new Request("https://mock.test/api/ziwei-ai/retry", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sessionId: docs[0].id }) }), {});
+  expect(retried.status).toBe(202);
+  expect((await runV2()).status).toBe(200);
+  expect(docs[0].status).toBe("completed"); expect(card).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+  for (const group of utils.ZIWEI_V2_GROUP_SPECS) expect(Object.keys(docs[0].llmMeta.groups[group.id] || {}).length).toBeGreaterThan(0);
 });
 it("V2: fills missing sections with one saved rescue and preserves existing sections", async () => {
   let natureCalls = 0;

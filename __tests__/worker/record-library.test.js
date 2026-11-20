@@ -345,6 +345,7 @@ test('R7b: held retries show as retry_available with the service retry entry, ne
     // R10 전문가 상담: 베다점 보류 건은 결과 화면(다시 시도·환불 요청 버튼)으로 간다.
     expect(library.recordMetadata(recordService('vedic'),{id:'v1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/vedic-ai/result/?id=v1'});
     expect(library.recordMetadata(recordService('astrology'),{id:'a1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/astrology-ai/result/?id=a1'});
+    expect(library.recordMetadata(recordService('ziwei'),{id:'z1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/ziwei-ai/?cid=z1'});
   }finally{Date.now=realNow;}
   for(const field of ['llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
 });

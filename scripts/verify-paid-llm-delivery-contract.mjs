@@ -89,6 +89,7 @@ export const RETRY_FIRST_POLICY = Object.freeze({
   // R10 전문가 상담(2026-11-20)
   "vedic-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueVedicRetryRefunds", cron: REFUND_CRON } },
   "astrology-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueAstrologyRetryRefunds", cron: REFUND_CRON } },
+  "ziwei-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueZiweiRetryRefunds", cron: REFUND_CRON } },
 });
 // 크론 파일이 실제로 스케줄러에서 도는지: 파일 → [호출하는 파일, 그 파일이 참조해야 하는 진입 기호].
 export const RETRY_CRON_CHAIN = Object.freeze({
@@ -99,7 +100,7 @@ export const RETRY_CRON_CHAIN = Object.freeze({
 const STUCK_LIB = "worker/lib/paid-delivery-stuck.js";
 // 아직 즉시 환불(다시 시도 우선 전) 서비스 — 정확히 일치해야 한다. R10 에서 서비스별로 RETRY_FIRST_POLICY 로 옮긴다.
 export const KNOWN_RETRY_PENDING = Object.freeze([
-  "ziwei-ai", "sukuyo-compatibility-ai", "nakshatra-ai", "human-design-report", "destiny-compass-ai",
+  "sukuyo-compatibility-ai", "nakshatra-ai", "human-design-report", "destiny-compass-ai",
   "relationship-boundary-test", "naming-prompt", "celestial-harmony", "fortune", "karma-destiny-ai", "feature-question", "ziwei-deep-report",
   "fusion-fortune", "yeongnyangi", "fortune-chat-question", "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic",
   "pet-saju-ai", "geomancy-oracle", "animal-totem", "guardian-fortune", "toss-native", "palm",

@@ -266,6 +266,7 @@ export async function settleFailedConsultationRefund(env, { service, id, userId 
 const EXPERT_RETRY_SETTLERS = Object.freeze([
   { service: 'vedic-ai', load: async () => (await import('../routes/vedic-ai.js')).settleDueVedicRetryRefunds },
   { service: 'astrology-ai', load: async () => (await import('../routes/astrology-ai.js')).settleDueAstrologyRetryRefunds },
+  { service: 'ziwei-ai', load: async () => (await import('../routes/ziwei-ai.js')).settleDueZiweiRetryRefunds },
 ]);
 export async function runPendingConsultationRefunds(env, options = {}) {
   const withDb = options.withDb || withPaymentDb;
