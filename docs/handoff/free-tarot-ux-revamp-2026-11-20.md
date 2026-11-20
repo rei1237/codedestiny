@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: 3c-A3 매핑표 보고 → 사용자 승인 대기
+next: 4단계 캐릭터 웹툰 결과 렌더러 구현
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -12,7 +12,7 @@ next: 3c-A3 매핑표 보고 → 사용자 승인 대기
 3. 스펙 정본: [guided-step-flow-spec](../context/guided-step-flow-spec.md), [narrator-webtoon-result-spec](../context/narrator-webtoon-result-spec.md). 근거: [free-tarot-ux-audit](../context/free-tarot-ux-audit.md).
 
 ## 지금 상태
-- 브랜치 main. 3·3b 완료, push `555117b3d`(2026-11-20). 3c-A1 완료, push `bb4a65b7d`(2026-11-20). 3c-A2 완료, 머지 `36543dc2a` push(2026-11-20). 1·2단계 문서 커밋 `1a6e80eae`, `c93c999b7`, `858671988` push 완료.
+- 브랜치 main. 3·3b 완료, push `555117b3d`(2026-11-20). 3c-A1 완료, push `bb4a65b7d`(2026-11-20). 3c-A2 완료, 머지 `36543dc2a` push(2026-11-20). 3c-perf(가이드 셸 CSS 회귀 수정) 완료, 수정 `ebfd32bfd`·머지 `7eb4991b7`·원장 `bde984e7c` push(2026-11-20). 1·2단계 문서 커밋 `1a6e80eae`, `c93c999b7`, `858671988` push 완료.
 - 3단계 로컬 커밋(push 전): `f4322b203` 컨트롤러(`lib/guided-flow/step-controller.mjs`), `d4c1fe4c5` 셸·훅·i18n(`app/components/guided-flow/`), `bd54671ef` 분석 이벤트 + verify ⑭.
 - 옆 세션 미커밋(건드리지 말 것): `.claude/skills/fire-your-seo-agency/`.
 
@@ -57,6 +57,7 @@ next: 3c-A3 매핑표 보고 → 사용자 승인 대기
 - [ ] 3c. 서비스 전반 웨이브 계획 보고(계획 §3: A React 무료, B 정적 셸 무료, C 유료 입력 표현만; 결제·인증·DB 제외) → **사용자 승인 대기**. 5·6단계와 합쳐 진행.
   - [x] 3c-A1. 웨이브 A 1차: `/today/` 오늘의 세 장 + `/tarot/healing/` 공통 셸 이전(플래그 2개), push `bb4a65b7d`(2026-11-20). 결과는 아래 "3c-A1 결과".
   - [x] 3c-A2. `/saju/free/` 무료 사주 간편 폼 공통 셸 이전(`GUIDED_FREE_SAJU_ENABLED`) + `/today/` "어제 카드 마저 보기" 복구. 직업 스타일·휴먼 디자인·숙요 달력·자미 명반은 사유와 함께 건너뜀. 머지 `36543dc2a` push(2026-11-20). 결과는 아래 "3c-A2 결과".
+  - [x] 3c-perf. 가이드 셸이 소개 카드 CSS 를 import 해 `/saju/free/` 에 83KB 렌더 차단 공용 청크가 실리던 회귀 수정. 수정 `ebfd32bfd`, 머지 `7eb4991b7`·원장 `bde984e7c`(2026-11-20). 결과는 아래 "3c-perf 결과".
   - [ ] 3c-A3. 운명 편향·연애 시뮬레이션·인연 장소·운명 나침반·12운성 동물 매핑표 보고 → **사용자 승인 대기**(게이트·결제·로그인 경계는 건드리지 않음).
   - [ ] 3c-A4. 웨이브 A 남은 흐름 매핑표 보고 → **사용자 승인 대기**.
   - [ ] 3c-A5. 웨이브 A 마무리(플래그 정리 계획·건너뛴 흐름 재검토) 보고 → **사용자 승인 대기**.
@@ -140,3 +141,28 @@ next: 3c-A3 매핑표 보고 → 사용자 승인 대기
 - 성능 해석: `/today/` 는 전후 리소스·렌더 차단 CSS 목록이 같고 시뮬레이션 FCP 가 이봉형(전 `/saju/free/` 단독도 2559~7243) → FCP 차이는 코드 탓으로 볼 수 없음. `/saju/free/` 의 실제 차이는 렌더 차단 CSS 청크 `2353309c3c306e31.css`(83KB, A1 에서 생긴 가이드 CSS+ServiceIntroSection 묶음) 1개 추가. 부트업 스크립트 비용은 전후 같음, TBT 차이는 롱태스크 분할.
 - SEO 동반 점검: `/saju/free/` title·description·H1("무료 사주·운세 모음", SeoLandingTemplate) 변경 없음, 가이드 랜딩은 h2, canonical·hreflang·robots·sitemap URL 변경 없음(원장 재서명만), 내부 링크·이미지·광고 영향 없음. `/today/` 는 원장 재서명만.
 - 남은 위험: (1) `/saju/free/` 렌더 차단 CSS 청크 → 성능 점수 하락, 후보는 CSS 분리(힐링 `ssr:false` 도 청크를 참조하므로 단순 ssr:false 로는 안 풀림). (2) 가이드 무료 사주는 생년월일을 탭 범위 sessionStorage 스냅숏에 둠(원본은 저장 안 함). (3) 원본 폼(플래그 끔)의 기존 작은 타깃: SELECT 39px, INPUT 약 43px — 범위 밖 보고. (4) jest 143 종료는 부하 의심, CI 에서 재확인 필요. (5) dev 전용: Next "N" 배지 겹침, 하단 "다음" 바가 카드 아래 가장자리와 겹침(글자 가림 없음). (6) A3 대상은 게이트 경계가 섞여 있어 매핑표 단계에서 흐름별로 판정해야 함.
+
+### 3c-perf 결과 (2026-11-20) — 가이드 셸 렌더 차단 CSS 회귀
+
+- 원인(실측): `app/components/guided-flow/GuidedFlowShell.tsx` 가 히어로 장식(crest·halo·moon·sprig) 네 개를 위해 `app/components/ServiceIntroSection.module.css` 와 `service-intro/yehwaIntroMasks.generated.module.css` 를 import 했다. Next 가 이를 홈 CSS 와 묶어 84.8KB 공용 청크(`2353309c…css`) + 19.6KB 청크를 `/saju/free/` 에 렌더 차단 `<link>` 로 실었다. `/saju/free/` 렌더 차단 CSS 합: HEAD 1,027,780B → 수정 954,469B(두 청크 대신 31.2KB 가이드 청크) / 플래그 끔 923,308B.
+- 수정: 장식 규칙 네 개를 `guided-flow.module.css` 로 옮기고(값 동일, 마스크의 `#000` 만 `black` — 정적 테스트가 hex 금지), 셸 전용 마스크 모듈 `app/components/guided-flow/guidedHeroMasks.generated.module.css`(덩굴·맺음 가지 두 장, 값은 소개 카드 마스크와 바이트 동일)을 생성기 `scripts/design/gen-yehwa-motifs.mjs` 에서 내도록 추가. 생성물 손편집 없음(`--check` up to date). 롤백은 `git revert ebfd32bfd`. 플래그는 세 개 모두 켬 유지.
+- 성능(같은 기계, `scripts/measure-home-lighthouse.mjs --preset=mobile`, 중앙값):
+
+| 빌드 | 경로 | 회수 | Perf | FCP ms | LCP ms | TBT ms |
+|---|---|---|---|---|---|---|
+| 수정 전 HEAD | /saju/free/ | 3 | 40 | 7328 | 12659 | 729 |
+| 수정 후 | /saju/free/ | 3 | 41 | 7241 | 12000 | 701 |
+| 플래그 끔(원본 폼) | /saju/free/ | 3 | 48 | 7173 | 12073 | 404 |
+| 수정 후 | /saju/free/ | 5 | 41 (40–45) | 7235 | 12007 | 702 |
+| 플래그 끔(원본 폼) | /saju/free/ | 5 | 41 (35–47) | 7292 | 12038 | 691 |
+| 수정 전 HEAD | /today/ | 3 | 49 | 6552 | 11313 | 398 |
+| 수정 후 | /today/ | 3 | 48 | 6564 | 11382 | 456 |
+| 플래그 끔 | /today/ | 3 | 47 | 6621 | 11626 | 475 |
+| 수정 전 HEAD | /tarot/healing/ | 3 | 47 (30–77) | 6170 | 7984 | 371 |
+| 수정 후 | /tarot/healing/ | 3 | 51 | 7497 | 9500 | 327 |
+| 플래그 끔 | /tarot/healing/ | 3 | 49 | 7624 | 9663 | 366 |
+
+  참고(이 문서의 과거 값, 다른 시점·환경): A1 전 `/today/` 56·FCP 4377·LCP 12402·TBT 344, A1 전 `/tarot/healing/` 46·FCP 7911·LCP 11215·TBT 438, A2 전 `/saju/free/` 58·FCP 3415·LCP 11455·TBT 412, A2 전 `/today/` 58·FCP 2635. 오늘 같은 기계의 플래그 끔 빌드 FCP 가 약 7.2s 라 A2 전 58·FCP 3.4s 는 재현되지 않음 → 환경 잡음으로 판단. 판정은 같은 기계 플래그 끔 대비 동률(5회 중앙값 41 대 41).
+- 검증: `verify-guided-flow-contrast.cjs` 통과(2 브랜드 × 2 테마 × 4 폭). 관련 테스트 39/39(daily-tarot-guided.behavior, guided-flow-dev-page, guided-flow-yehwa.static, guided-step-controller, guided-tarot-flags.static, home-yehwa-motifs.static) + free-saju-form·sun-healing-tarot behavior 8/8. 전후 스크린샷(꿀꿀·영냥이 데모, `/saju/free/`, 360·960) 픽셀 비교: 히어로 전부 0 차이, 장식 computed style 동일. visual-checker 8쌍 PASS(차이는 헤더 로고 래스터 노이즈뿐, 최대 4레벨). check:fast(base origin/main), check:pre-push 통과.
+- SEO 동반 점검: URL·title·description·H1·canonical·robots·sitemap 영향 없음(CSS 이동만).
+- 남은 위험: (1) Lighthouse 잡음이 큼(TBT 443–1056 범위). (2) `/tarot/healing/` 은 자체 ServiceIntroSection 때문에 `2353309c` 청크를 원래부터 실음(이번 변경과 무관, 기존). (3) 가이드 청크 31KB 가 `/saju/free/` 렌더 차단 CSS 로 남지만 성능은 동률. (4) `.flow` 의 영냥이 `--si-mask-*` 덮어쓰기는 헤더 `.masks` 에 가려 원래부터 효과 없음(동작 불변, 정리 후보). (5) 수정 전 HEAD 5회 측정은 안 함.
