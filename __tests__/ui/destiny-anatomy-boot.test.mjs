@@ -293,6 +293,31 @@ test('첫 화면은 영역 크기에 맞는 공감 문구와 범례를 읽고 �
   assert.match(el.querySelector('.da-illustration').getAttribute('src'), /\.webp$/);
 });
 
+test('꽃잎 타일: 화면과 공유 카드가 같은 식·같은 꽃 목록을 쓰고 넓이 손실이 작다', () => {
+  const {ctx, doc} = setup();
+  const R = ctx.DestinyAnatomyRender, S = ctx.DestinyAnatomyShareCard;
+  for (const a of [[10, 10, 60, 40], [5, 5, 204, 20], [0, 0, 18, 90], [3, 7, 40, 40], [1, 1, 16, 16, 7], [96, 54, 101, 71]]) {
+    const d = R.petalPath(...a);
+    assert.equal(d, S.petalPath(...a));
+    assert.ok(/^M[\d. -]+H.*Z$/.test(d), d);
+    // 모서리 호 반지름 4개로 잘려 나가는 넓이: (1-π/4)·반경² 의 합. 짧은 변의 절반을 넘는 호는 없다.
+    const radii = [...d.matchAll(/A([\d.]+) ([\d.]+) 0 0 1/g)].map((m) => Number(m[1]));
+    assert.equal(radii.length, 4, d);
+    assert.ok(radii.every((r) => r <= Math.min(a[2], a[3]) / 2), d);
+    const loss = radii.reduce((s, r) => s + (1 - Math.PI / 4) * r * r, 0);
+    assert.ok(loss / (a[2] * a[3]) < 0.06, `${d} ${loss / (a[2] * a[3])}`);
+  }
+  assert.equal(JSON.stringify(R.MEME_FLOWERS), JSON.stringify(S.MEME_FLOWERS));
+  const el = doc.createElement('div');
+  const m = model(ctx, 'ko');
+  R.render(el, m, {variant: 'A', open: true});
+  assert.equal(el.querySelectorAll('.da-meme__svg .da-meme__flower').length, R.MEME_FLOWERS.length);
+  assert.equal(el.querySelectorAll('.da-meme__svg .da-meme__flower .da-meme__bloom').length, R.MEME_FLOWERS.length);
+  assert.equal(el.querySelectorAll('.da-meme__svg path.da-meme__fill').length, m.text.meme.cells.length);
+  assert.equal(el.querySelectorAll('.da-meme__svg rect.da-meme__fill').length, 0);
+  assert.equal(el.querySelectorAll('.da-meme__sw path.da-meme__fill').length, m.text.meme.legend.length);
+});
+
 test('진입 카드와 연결 링크는 5개 언어에서 같은 기능 경로를 쓰고 개인 정보를 전달하지 않는다', () => {
  const {ctx,doc}=setup(),el=doc.createElement('div');
  for(const lang of ['ko','en','ja','zh-CN','zh-TW']) {

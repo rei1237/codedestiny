@@ -14,6 +14,17 @@
   var MOON = 'M44 22a20 20 0 1 0 22 30a16 16 0 1 1-22-30Z';
   var STAR = 'M0 -10L2.2 -2.2L10 0L2.2 2.2L0 10L-2.2 2.2L-10 0L-2.2 -2.2Z';
   var STARS = [[150, 330, 1.1], [930, 120, .8], [968, 700, 1], [112, 860, .8], [970, 1100, .9], [100, 1000, 1]];
+  // 꽃잎 타일·머리 바깥 꽃 — render.js 의 petalPath·MEME_FLOWERS 와 같은 식·같은 목록(테스트가 동일 출력을 단언한다).
+  function petalPath(x, y, w, h, maxR) {
+    var m = Math.min(w, h), R = Math.min(maxR || 22, m * .34), r = Math.min(R * .28, 5);
+    var f = function (n) { return +n.toFixed(2); };
+    return 'M' + f(x + R) + ' ' + f(y) + 'H' + f(x + w - r) + 'A' + f(r) + ' ' + f(r) + ' 0 0 1 ' + f(x + w) + ' ' + f(y + r) +
+      'V' + f(y + h - R) + 'A' + f(R) + ' ' + f(R) + ' 0 0 1 ' + f(x + w - R) + ' ' + f(y + h) +
+      'H' + f(x + r) + 'A' + f(r) + ' ' + f(r) + ' 0 0 1 ' + f(x) + ' ' + f(y + h - r) +
+      'V' + f(y + R) + 'A' + f(R) + ' ' + f(R) + ' 0 0 1 ' + f(x + R) + ' ' + f(y) + 'Z';
+  }
+  var MEME_FLOWERS = [[326, 30, 2.6], [36, 268, 2], [350, 252, 1.4]];
+  var FLOWER_DOTS = [[0, -4.2], [3.6, -1.6], [2.2, 3.1], [-2.2, 3.1], [-3.6, -1.6]];
 
   /* 카드에 실을 문장만 고른다 — 순수 함수(테스트가 개인정보 미포함을 확인한다). */
   function content(model) {
@@ -80,6 +91,8 @@
     p.art = paint('.da-meme__head', 'stroke', p.art);
     p.moon = paint('.da-meme__moon', 'fill', p.gold);
     p.star = paint('.da-meme__star', 'fill', p.gold);
+    p.petal = paint('.da-meme__petal', 'fill', p.gold);
+    p.bloom = paint('.da-meme__bloom', 'fill', p.gold);
     p.line = paint('.da-meme__line', 'color', p.ink);
     var lineEl = host.querySelector('.da-meme__line');
     p.display = lineEl ? cs(lineEl).fontFamily || p.font : p.font;
@@ -91,7 +104,7 @@
       var fb = cs(probe).color;
       probe.style.color = '';
       probe.className = '';
-      p.cell[a] = paint('rect.da-meme__fill.da-ax-' + a, 'fill', fb);
+      p.cell[a] = paint('.da-meme__stage .da-meme__fill.da-ax-' + a, 'fill', fb);
     });
     host.removeChild(probe);
     return p;
@@ -218,6 +231,16 @@
     ctx.globalAlpha = 1;
     ctx.fillStyle = p.moon;
     ctx.fill(new P(MOON));
+    MEME_FLOWERS.forEach(function (fl) {
+      ctx.save();
+      ctx.translate(fl[0], fl[1]);
+      ctx.scale(fl[2], fl[2]);
+      ctx.fillStyle = p.petal;
+      FLOWER_DOTS.forEach(function (d) { ctx.beginPath(); ctx.arc(d[0], d[1], 2.6, 0, Math.PI * 2); ctx.fill(); });
+      ctx.fillStyle = p.bloom;
+      ctx.beginPath(); ctx.arc(0, 0, 1.7, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+    });
     ctx.fillStyle = p.head;
     ctx.strokeStyle = p.art;
     ctx.lineWidth = 1.15;
@@ -238,18 +261,16 @@
     ctx.clip();
     m.cells.forEach(function (c) {
       var w = Math.max(0, c.w - 2 * g), h = Math.max(0, c.h - 2 * g);
-      var r = Math.min(10, w / 3, h / 3);
+      var tile = new P(petalPath(c.x + g, c.y + g, w, h));
       ctx.fillStyle = p.cell[c.axis] || p.lift;
-      roundRect(ctx, c.x + g, c.y + g, w, h, r);
-      ctx.fill();
+      ctx.fill(tile);
       // 유리 광택 — 칸 색에서 잉크 쪽으로 아주 옅게.
       var sheen = ctx.createLinearGradient(c.x, c.y, c.x + w, c.y + h);
       sheen.addColorStop(0, p.ink);
       sheen.addColorStop(.55, p.cell[c.axis] || p.lift);
       ctx.globalAlpha = .13;
       ctx.fillStyle = sheen;
-      roundRect(ctx, c.x + g, c.y + g, w, h, r);
-      ctx.fill();
+      ctx.fill(tile);
       ctx.globalAlpha = 1;
     });
     ctx.restore();
@@ -539,7 +560,7 @@
     });
   }
 
-  var api = {W: W, H: H, content: content, draw: draw, share: share, loadMark: loadMark, palette: palette};
+  var api = {W: W, H: H, content: content, draw: draw, share: share, loadMark: loadMark, palette: palette, petalPath: petalPath, MEME_FLOWERS: MEME_FLOWERS};
   root.DestinyAnatomyShareCard = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);
