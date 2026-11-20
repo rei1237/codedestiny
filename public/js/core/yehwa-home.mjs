@@ -174,6 +174,8 @@ export function mountMasterMotion(doc) {
   reduce?.addEventListener?.('change', () => wraps.forEach(wrap => { if (reduce.matches) wrap.dataset.mmMotion = 'off'; }));
 }
 if (typeof document !== 'undefined') {
-  const boot = () => { document.querySelectorAll('#cdHomeFunnel [data-yh-home]').forEach(mountYehwaHome); mountMasterMotion(document); };
+  // 인기 상담 TOP5(W3): 홈 퍼널이 있을 때만 늦게 불러온다. 끄기는 popular-top5.mjs 의 POPULAR_TOP5_ENABLED.
+  const mountPopularTop5 = () => { if (document.querySelector('#cdHomeFunnel [data-yh-home]')) import('./popular-top5.mjs').then(module => module.mountPopularTop5InShell(document)).catch(() => {}); };
+  const boot = () => { document.querySelectorAll('#cdHomeFunnel [data-yh-home]').forEach(mountYehwaHome); mountMasterMotion(document); mountPopularTop5(); };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
 }

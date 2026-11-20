@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "6a6a2ba87574b49e",
+      "signature": "1f5fff7d0d8c7628",
       "lastmod": "2026-11-20"
     },
     "/about/": {
@@ -39,7 +39,7 @@
       "lastmod": "2026-11-20"
     },
     "/compare/fortune-apps/": {
-      "signature": "7de40010c9dea1d9",
+      "signature": "cb45e3f5fd3e5adb",
       "lastmod": "2026-11-20"
     },
     "/compare/saju-vs-ziwei/": {
@@ -587,7 +587,7 @@
       "lastmod": "2026-11-19"
     },
     "/en/yeongnyangi/": {
-      "signature": "e8de697da5815445",
+      "signature": "7b996352257ef65d",
       "lastmod": "2026-11-20"
     },
     "/en/ziwei/": {
@@ -1647,7 +1647,7 @@
       "lastmod": "2026-11-19"
     },
     "/ja/yeongnyangi/": {
-      "signature": "e8de697da5815445",
+      "signature": "7b996352257ef65d",
       "lastmod": "2026-11-20"
     },
     "/ja/ziwei/": {
@@ -1987,7 +1987,7 @@
       "lastmod": "2026-11-20"
     },
     "/saju/animal-destiny/": {
-      "signature": "9693c62b709a928d",
+      "signature": "e0e677434a8e1b8a",
       "lastmod": "2026-11-20"
     },
     "/saju/career-style/": {
@@ -2027,7 +2027,7 @@
       "lastmod": "2026-11-20"
     },
     "/saju/free/": {
-      "signature": "63087d060cc155a2",
+      "signature": "82c0a6c8a13ff92d",
       "lastmod": "2026-11-20"
     },
     "/saju/guide/": {
@@ -2435,7 +2435,7 @@
       "lastmod": "2026-11-20"
     },
     "/tarot/healing/": {
-      "signature": "81e85918b12e1259",
+      "signature": "d3845de3ccc3d122",
       "lastmod": "2026-11-20"
     },
     "/tarot/love/": {
@@ -2475,7 +2475,7 @@
       "lastmod": "2026-11-19"
     },
     "/today/": {
-      "signature": "b85226d08c8f006e",
+      "signature": "30e1b61a34a9bcc4",
       "lastmod": "2026-11-21"
     },
     "/vedic-ai/": {
@@ -2495,15 +2495,19 @@
       "lastmod": "2026-11-19"
     },
     "/yeon-star-hug/": {
-      "signature": "ac3d1a5535ef99e8",
+      "signature": "358f07d500a917a1",
       "lastmod": "2026-11-20"
     },
     "/yeongnyangi/": {
-      "signature": "f71482a486130547",
+      "signature": "8d281e731a8bddba",
       "lastmod": "2026-11-20"
     },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "0694c65ca7c60ad8",
+      "signature": "ef60e2dcaaf1e395",
+      "lastmod": "2026-11-20"
+    },
+    "/yeongnyangi/faq/": {
+      "signature": "febd7bacf084f8b6",
       "lastmod": "2026-11-20"
     },
     "/yeongnyangi/season-1/": {
@@ -2983,7 +2987,7 @@
       "lastmod": "2026-11-19"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "e8de697da5815445",
+      "signature": "7b996352257ef65d",
       "lastmod": "2026-11-20"
     },
     "/zh-tw/ziwei/": {
@@ -3491,7 +3495,7 @@
       "lastmod": "2026-11-19"
     },
     "/zh/yeongnyangi/": {
-      "signature": "e8de697da5815445",
+      "signature": "7b996352257ef65d",
       "lastmod": "2026-11-20"
     },
     "/zh/ziwei/": {

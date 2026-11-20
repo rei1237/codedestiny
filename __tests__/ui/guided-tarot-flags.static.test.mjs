@@ -14,6 +14,22 @@ test('흐름별 롤백 플래그는 boolean 코드 상수다', async () => {
   assert.equal(typeof flags.GUIDED_HEALING_TAROT_ENABLED, 'boolean');
   assert.equal(typeof flags.GUIDED_FREE_SAJU_ENABLED, 'boolean');
   assert.equal(typeof flags.GUIDED_WEBTOON_RESULT_ENABLED, 'boolean');
+  assert.equal(typeof flags.GUIDED_BIRTH_FREE_SAJU_ENABLED, 'boolean');
+  assert.equal(typeof flags.GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED, 'boolean');
+  assert.equal(typeof flags.GUIDED_BIRTH_STAR_HUG_ENABLED, 'boolean');
+});
+
+test('W1 공용 출생 입력은 흐름마다 플래그 하나로 이전 입력 단계(LEGACY_STEPS)와 고른다', () => {
+  for (const [file, flag] of [
+    ['app/saju/free/FreeSajuGuided.tsx', 'GUIDED_BIRTH_FREE_SAJU_ENABLED'],
+    ['app/saju/animal-destiny/components/AnimalDestinyGuided.tsx', 'GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED'],
+    ['app/yeon-star-hug/YeonStarHugGuided.tsx', 'GUIDED_BIRTH_STAR_HUG_ENABLED'],
+  ]) {
+    const src = read(file);
+    assert.match(src, new RegExp(`const BIRTH = ${flag};`), file);
+    assert.match(src, /const STEPS = BIRTH [?] BIRTH_STEPS : LEGACY_STEPS;/, file);
+    assert.doesNotMatch(src, /"place"/, `${file}: 장소를 받지 않는 흐름이라 장소 단계를 묻지 않는다`);
+  }
 });
 
 test('/saju/free/ 는 플래그로 공통 플로우판과 원본 FreeSajuForm 사이를 고른다(3c-A2)', () => {

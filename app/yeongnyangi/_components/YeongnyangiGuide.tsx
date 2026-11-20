@@ -11,7 +11,8 @@ import {FUSION_BOOK_CHAPTERS,FUSION_BOOK_TARGETS} from '@/worker/yeongnyangi/for
 import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import ReviewProof from '@/app/components/ReviewProof';
-import RevealDetailsOnHash from './RevealDetailsOnHash';
+import YeongnyangiFaqToon from './YeongnyangiFaqToon';
+import YeongnyangiExampleToon from './YeongnyangiExampleToon';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -27,10 +28,10 @@ const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
 const EXAMPLE_QUESTION='헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?';
 const mackerelChapters=questionManifest('saju','mackerel',{version:QUESTION_POLICY_VERSION,category:'love',target:'self',horizon:'current',period:'',situation:'헤어진 뒤 연락이 끊겼어요',options:'',constraints:'',confirmed:true},undefined,EXAMPLE_QUESTION);
 if(mackerelChapters.length!==EXPANDED_CHAPTERS.mackerel)throw new Error(`영냥이 고등어 장 구성이 ${mackerelChapters.length}개다.`);
-const tarotExcerpts=(()=>{
- const excerpts=resultSamples.find(sample=>sample.id==='yn-tarot')?.excerpts;
- if(!excerpts||excerpts.length<4)throw new Error('Yeongnyangi tarot sample requires four source excerpts.');
- return excerpts;
+const tarotSample=(()=>{
+ const sample=resultSamples.find(item=>item.id==='yn-tarot');
+ if(!sample?.excerpts||sample.excerpts.length<4||!sample.visual||!sample.visualAlt||!sample.question)throw new Error('Yeongnyangi tarot sample requires four source excerpts, a visual and a question.');
+ return {excerpts:sample.excerpts,visual:sample.visual,visualAlt:sample.visualAlt,question:sample.question};
 })();
 
 export const YEONGNYANGI_FAQS=[
@@ -62,6 +63,32 @@ export default function YeongnyangiGuide(){
    <ReviewProof brand="yeongnyangi" productId="yeongnyangi" sampleHref="#yn-example" headingLevel={3}/>
   </section>
 
+  <section id="yn-example" aria-labelledby="yn-example-title">
+   <h2 id="yn-example-title" data-sample-exposure="">이런 상담을 받아요 · 미리 보기</h2>
+   <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
+   <YeongnyangiExampleToon {...tarotSample}/>
+   <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
+   <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey} contentId="tarot-salmon-question-v1"/>
+  </section>
+
+  <section id="yn-faq-teaser" className={styles.teaser} aria-labelledby="yn-faq-teaser-title">
+   <img src="/assets/yeongnyangi/expressions/curious.webp" width={128} height={128} alt="" loading="lazy" decoding="async"/>
+   <div>
+    <h2 id="yn-faq-teaser-title">결제 전에 궁금한 거 있냥?</h2>
+    <p className={styles.teaserBubble}>가격, 상담 구성, 결과 보는 곳까지 영냥이가 컷으로 설명해 줄게냥.</p>
+    <p><a className={styles.teaserLink} href="/yeongnyangi/faq/">영냥이에게 물어보기</a></p>
+   </div>
+  </section>
+ </article>;
+}
+
+// /yeongnyangi/faq/ 가 쓰는 "결제 전에 알아두기" + 웹툰풍 FAQ. 홈에서는 접힌 안내 대신 위 teaser 한 컷만 둔다.
+export function YeongnyangiBeforeGuide(){
+ return <article className={styles.guide} aria-labelledby="yn-faq-title">
+  <section id="yn-faq-hero" aria-labelledby="yn-faq-title" className={styles.faqHero}>
+   <img src="/assets/yeongnyangi/expressions/welcome.webp" width={128} height={128} alt="" decoding="async"/>
+   <div><h1 id="yn-faq-title">운세보는 영냥이 자주 묻는 질문</h1><p className={styles.teaserBubble}>궁금한 건 여기 다 모아뒀다냥! 질문을 눌러 보라냥.</p></div>
+  </section>
   <section id="yn-before" aria-labelledby="yn-guide-title">
    <h2 id="yn-guide-title">결제 전에 알아두기</h2>
    <details id="yn-mackerel" className={styles.panel}><summary>{LOWEST_PRICE} 고등어 상담의 {EXPANDED_CHAPTERS.mackerel}챕터 구성</summary>
@@ -70,18 +97,6 @@ export default function YeongnyangiGuide(){
     <ol className={styles.chapters}>{mackerelChapters.map(row=><li key={row.key}>{row.title}</li>)}</ol>
     <p><a href={fishRows[0].href}>사주 고등어 상담 시작하기</a></p>
    </details>
-   <details id="yn-example" className={styles.panel}><summary>실제 상담 예시 · “지금 회사에 남을까, 다른 길로 옮길까?”</summary>
-    <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
-    <blockquote className={styles.sample} data-sample-exposure="">
-     <h3>카드가 보여주는 마음의 흐름</h3>
-     <p>{tarotExcerpts[0]}</p>
-     <h3>현실의 조건과 다음 행동</h3><p>{tarotExcerpts[2]}</p>
-     <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p></details>
-    </blockquote>
-    <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
-    <RevealDetailsOnHash id="yn-example"/>
-    <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey} contentId="tarot-salmon-question-v1"/>
-   </details>
    <details id="yn-receive" className={styles.panel}><summary>한 가지 질문에서, 차분히 읽는 한 권까지</summary>
     <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>
     <p>여러 관점으로 깊이 읽고 싶다면 <a href="/yeongnyangi/fortune/?product=fusion_all">생선 오마카세 상담</a>에서 여섯 체계의 독립 해석과 인생 전반, 실행·점검 계획을 이어 읽어요.</p>
@@ -89,8 +104,8 @@ export default function YeongnyangiGuide(){
     <p className={styles.note}>오마카세 기준이며 모든 상담에 같은 분량이 적용되지는 않아요. 실제 글 길이는 질문과 생성 결과에 따라, PDF 페이지 수는 편집에 따라 달라져요. 선택한 상담의 구성과 가격은 결제 전에 확인해요.</p>
    </details>
    <div id="yn-faq" className={styles.faqBlock}>
-    <h3>자주 묻는 질문</h3>
-    <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+    <h2>자주 묻는 질문</h2>
+    <YeongnyangiFaqToon items={YEONGNYANGI_FAQS}/>
     <details className={styles.craftedOverview}><summary>상담 방식과 전체 구성 자세히 보기</summary><CraftedProductDetail detail={craftedOverview}/><PublicRecordLink/></details>
     <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 사주 리포트</a> · <a href="/yeongnyangi/season-1/">영냥이 웹툰 시즌 1</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy/">개인정보 처리방침</a></p>
    </div>

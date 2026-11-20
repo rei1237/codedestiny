@@ -104,6 +104,21 @@ test('input steps only advance by CTA and need an answer', () => {
   assert.equal(controller.select('x'), false, 'select is for choice steps only');
 });
 
+test('mergeAnswers fills several steps without moving or arming auto-advance (saved profile, W1)', () => {
+  const { controller, scheduler, id, events } = setup();
+  controller.next();
+  assert.equal(controller.mergeAnswers({ topic: 'love', detail: '이직', reading: 'x', result: 'y', unknown: 'z' }), true);
+  assert.equal(id(), 'topic');
+  assert.deepEqual(controller.getState().answers, { topic: 'love', detail: '이직' });
+  assert.equal(controller.getState().pendingAuto, false);
+  scheduler.tick(1000);
+  assert.equal(id(), 'topic', 'no auto-advance');
+  assert.equal(controller.mergeAnswers({ topic: 'love' }), false, 'same values are a no-op');
+  controller.mergeAnswers({ detail: undefined });
+  assert.deepEqual(controller.getState().answers, { topic: 'love' });
+  assert.equal(events.filter((e) => e.type === 'stepView').length, 1);
+});
+
 test('wait step holds 1.2s, raises the slow line at 3s, and tap skips the minimum', () => {
   const { scheduler, controller, events, id } = setup();
   controller.next(); controller.select('love'); controller.next(); controller.setAnswer('a');

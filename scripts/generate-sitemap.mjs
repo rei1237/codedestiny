@@ -111,6 +111,8 @@ const coreRoutes = [
   // 공식 주소·표기 안내 페이지. 대표 홈보다 우선순위를 낮춰 브랜드 쿼리에서 자기잠식하지 않게 한다.
   // 천원사주 허브. 무료 키워드는 /saju/ 등 무료 랜딩의 몫이고, 이 페이지는 1,000원 사주 리포트와 영냥이 고등어 상담 안내를 맡는다.
   { path: "/yeongnyangi/1000-won-fortune", changefreq: "weekly", priority: 0.8 },
+  // 영냥이 결제 전 안내·FAQ 전용 페이지(웹툰풍). FAQPage JSON-LD 는 이 페이지가 가진다.
+  { path: "/yeongnyangi/faq", changefreq: "monthly", priority: 0.6 },
   // 영냥이 연재는 목차만 싣는다. 회차는 공개 시각 전 노출을 막기 위해 사이트맵에 넣지 않는다.
   { path: "/yeongnyangi/season-1", changefreq: "weekly", priority: 0.7 },
   // 프롤로그(1화)는 항상 공개라 사이트맵에 싣는다.

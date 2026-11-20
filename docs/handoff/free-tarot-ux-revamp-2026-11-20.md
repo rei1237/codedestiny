@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 유지, 승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push) — A4 에서 미룬 시코젠 포바일루 검토 포함
+next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 유지, 승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push) — A4 에서 미룬 시코젠 포바일루 검토 포함 (W1 공용 출생 입력 완료 2026-11-21)
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -252,6 +252,36 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - A3 후속 "3단계 vs 1/6": 기록만. progressSteps 가 wait 단계를 세므로 고치면 모든 흐름의 셸 동작이 바뀜 → 셸 공통 후속 과제.
 - 남은 위험: (1) 생년월일·이름이 탭 범위 sessionStorage 스냅숏에 남음(원본은 메모리). (2) 결과에서 뒤로 가면 별자리 단계로 감(replace history, A2·A3 와 같은 패턴). (3) 가이드에서는 기본 감정(calm)을 미리 고르지 않아 사용자가 직접 골라야 함. (4) 시각 입력은 원본 BirthTimeInput 이 아니라 네이티브 time input. (5) 감정·별자리·예시 문장 라벨은 원본 데이터 그대로 한국어만. (6) check:fast 부하 타임아웃 반복 가능.
 
+### W1 공용 출생 입력 결과 (2026-11-21)
+
+요청 원문(2026-11-21): "서비스 기능에 회귀는 없어야해" → 흐름별 새 플래그, 끔이면 기존 가이드 입력 그대로. 결과·저장·엔진·URL 불변.
+
+- 만든 것: `app/components/guided-flow/birth/`(GuidedBirthSteps.tsx·birth-steps.ts·guided-birth.module.css). 이름(선택) → 성별 → 생년월일(연·월·일 숫자 칸, 자동 넘김·즉시 검증) → 양력·음력·윤달 → 시각(12지 시진 칩 + 직접 입력 + "시간을 몰라요") → 장소(선택, BirthPlaceInput, 비우면 서울 경도) → 확인 요약(항목별 수정). SavedBirthProfilePicker·birthTimeInput 재사용. 셸 보강: `step-controller.mjs` `mergeAnswers`, `GuidedFlowShell` `ctaLabels`.
+- 연결(장소 단계는 세 곳 모두 생략): A2 `/saju/free/`(`GUIDED_BIRTH_FREE_SAJU_ENABLED`), A3 `/saju/animal-destiny/`(`GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED`), A4 `/yeon-star-hug/`(`GUIDED_BIRTH_STAR_HUG_ENABLED`). 셋 다 `true`. 각 호스트는 `STEPS = FLAG ? BIRTH_STEPS : LEGACY_STEPS`.
+- 개발 데모: `/dev/guided-flow/birth/`(`page.dev.tsx`, dev 서버에서만, noindex, `?brand=yeongnyangi`).
+- i18n: `public/i18n/*/guidedFlow.json` 12개 `birth` 블록(ko/en/ja/zh-CN/zh-TW 저작, 나머지 7개 영어).
+- 커밋: `71fae3587` 준비, `2bd5d766d` 묶음, `a9be008d1` 연결, `9745946a6` 데모, `3eb09f6db` 수정 버튼 테두리 대비, origin/main 머지, 사이트맵 원장 커밋 + 이 문서.
+- 검증(실측):
+  - 테스트 node --test: guided-birth-steps 5/5, free-saju-form 6/6, animal-destiny-guided 6/6, star-hug-guided 5/5, guided-tarot-flags.static 10/10(불린 플래그·LEGACY_STEPS 계약), guided-flow-dev-page 3/3, guided-step-controller 통과. `npx tsc --noEmit` exit 0.
+  - `npm run check:fast -- --base=<origin/main 머지 기준>` exit 0(세 번째 실행): lint, typecheck, test:node 5620/0, 유료 게이트 묶음 78/0, build:worker, jest 8427 통과/1 건너뜀. 앞선 실행 차단 2건: (1) verify:sitemap-drift → `sitemap:generate` 원장 커밋, (2) sky-and-range 는 워크트리에 `fortune/data` 가 없어서 → `npm run fortune:build-data` 뒤 7/7. 브랜치 위 기본 check:fast 는 HEAD 기준이라 "변경 없음" 으로 끝나므로 `--base` 필요.
+  - 대비(합성 측정): 출생 묶음 2브랜드 × 연이/네오 × 360/390/430/960 전부 통과(본문 4.5·UI 3). 꿀꿀 확인 요약 수정 버튼 테두리 2.79 → 금 테두리로 10.26. `verify-guided-flow-contrast.cjs` "guided flow contrast ok: 2 brand(s) x 2 theme(s) x 4 widths".
+  - 실제 걷기(dev, 360/960, 쿠키 배너 닫음): 세 흐름 모두 켬/끔에서 `?step=result` 도달, pageerror 0. 결과 본문 텍스트 켬/끔 동일 — 비로그인 6/6, 로그인(저장 프로필 있음) 6/6. 저장 프로필 선택 시 A3·A4 는 확인 요약으로 바로 이동, 별빛 포옹 결과에 "저장달/1988". 무료 사주는 원본처럼 프로필 선택기 없음.
+  - visual-checker(before=끔/after=켬, 360/960, 비로그인·로그인): 결과 화면 12쌍 동일·깨짐 없음, 랜딩 동일, 입력 단계 넘침·잘림 없음, 대비 8.36~9.73:1. 가로 넘침: scrollWidth = 화면 폭(360/960).
+  - 렌더 차단 CSS(dev, 첫 HTML stylesheet 합): 켬/끔 동일 — `/saju/free/` 1,047,800B(5개), `/saju/animal-destiny/` 970,406B(3개), `/yeon-star-hug/` 933,935B(1개).
+  - 경계 diff(`git diff origin/main...HEAD --stat`): 결제·이용권·월정석·auth·records·library·worker·api·라우트·리다이렉트·wrangler·.env·package-lock 변경 0.
+  - SEO: 공개 page.tsx·metadata·H1·canonical·robots 무변경, 데모는 dev 전용·noindex·사이트맵 밖, 사이트맵 원장만 재생성. 그 외 항목 영향 없음.
+  - main CI(push 전 1회): **빨강, 남의 커밋 때문** → W1 은 push 하지 않음. `b354e1e0c`(paid-retry 머지) Critical checks `verify:mongo-query-index-shapes` 실패(`worker/lib/fusion-fortune-recovery-task.js:85,156` 선두 키 불일치), `0531128af`(W4 문서) Static guards `verify:pig-sprite-crop` 실패(`app/components/master-motion/MasterMotion.module.css:76` `calc(100% / var(--mm-n))`). origin/main `96b4a4564` 에서도 로컬 재현. W1 은 두 파일을 건드리지 않음. 브랜치 `wt/guided-birth-w1-20261121-033459` 는 커밋 완료·origin/main 머지 완료 상태로 남김 — main 이 초록이 되면 그 브랜치를 main 에 ff 머지·push.
+  - 착지(2026-11-21): main 녹색(PR CI 44821709664, eb947a11f) 확인 뒤 origin/main 재머지·대상 테스트 47/47·check:pre-push 통과, `3b4a4500e` 로 main push. 워크트리 배수.
+- 롤백: `lib/guided-flow/flags.mjs` 의 해당 `GUIDED_BIRTH_*_ENABLED = false`(흐름별), 전체는 `git revert a9be008d1`(연결만) 또는 W1 커밋 전부.
+- 남은 위험·후속:
+  1. 셸 sticky CTA 가 실제로는 붙지 않음(기존 결함): 호스트 래퍼(`SeoLandingTemplate.jsx` main, 동물·별빛 포옹 페이지 래퍼)의 `overflow-hidden` 이 sticky 기준을 바꿔, 시각·확인 단계처럼 긴 단계에서 360×844 첫 화면에 "다음/확인"이 하단 내비(cd-mnav) 뒤에 놓임(무료 사주 시각·확인, 별빛 포옹 시각). 스크롤하면 누를 수 있음. 셸 CSS(`bottom: var(--cd-mnav-offset)`)는 맞음. 고치려면 공용 래퍼를 `overflow-x-clip` 류로 바꿔야 해 범위 밖 — 셸 공통 후속.
+  2. A3 랜딩 안내 문구는 옛 순서를 설명하고, A3 순서가 바뀜(이름·성별 먼저).
+  3. 날짜 범위가 1900~오늘로 좁아짐.
+  4. 시진 칩 값의 야자시(23:30~) 경계.
+  5. 숫자 칸 날짜는 `birthDateTextInputProps` 대신 `normalizeBirthDateInput` 으로 검증.
+  6. 기존: `scripts/test-mobile-platform-journeys.mjs` 가 A3 이전 동물 입력을 기대.
+  7. "3단계 vs 1/6" 문구(셸 공통, 기록만).
+
 ## W4 마스터 모션 결과 (2026-11-21)
 
 요청 원문: "각 전문가, 대표 상담에서 설정된 마스터들이 움직이거나 주변에 꽃이 휘날리는 효과를 주도록해줘 현재 이미지 생성은 어렵기 때문에 바로 안되더라도 후속으로 진행가능하도록해주면 좋겠다" / "서비스 기능에 회귀는 없어야해"
@@ -297,3 +327,32 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - 롤백: 두 상수 `FREE_RESULT_GUEST_ENABLED=false` + `npm run sync:public`(끄면 초안 형식·이벤트·모달이 이전과 같음) 또는 W2 커밋 `git revert`.
 - 남은 위험: 회원가입 전환 감소; 무료 사주 `fortune_login_required` 가 거의 0(docs/analytics-kpi.md 에 기록); 코인·결제 401 내부 `_cdPromptLogin`·AI 상담 `redirectToLoginForFortune` 은 결과 복귀 주소로 바뀌지 않음(원래 주소로 복귀); mock 환경 결과 화면 하단 "일시적인 오류" 토스트는 플래그 끔에서도 동일(기존, W2 무관 — 미조사).
 - push 보류(2026-11-21): main PR CI(44815999399, 8e676e4be)가 Static guards "sprite crops" 가드로 red — `app/components/master-motion/MasterMotion.module.css:76` `calc(100% / var(--mm-n))`(W4 c038f3980). W2 무관. W4 수정으로 main 이 녹색이 된 뒤 이 브랜치를 main 에 머지·push 하고 워크트리를 배수한다.
+- 착지(2026-11-21): W4 수선 뒤 main 녹색 확인, W1(`3b4a4500e`)·W3 포함 origin/main 재머지(handoff·CONTEXT_AUDIT·flags.mjs 충돌은 양쪽 유지, sitemap 원장은 재생성), 대상 테스트·check:pre-push 통과 뒤 이 기록이 든 머지 커밋으로 main push. 워크트리 배수.
+
+## W3 메인 인기 TOP5 결과 (2026-11-21)
+
+요청 원문: "도화서원처럼 내 서비스의 메인 화면에도 실제 인기 순위 TOP5가 나오도록해주고" / "서비스 기능에 회귀는 없어야해". 승인(2026-11-21): "최근 30일 실제 구매 수 (권장)".
+
+- 커밋: c83762154(API·워커·테스트), fa256e125(섹션·미러), 05ee18768(문서·원장), b0d5126f7(높이·셸 썸네일·폭 수선), 21248891f(원장). origin/main 머지 후 push 3a8cc40ff. 이 기록 커밋은 그 다음.
+- 만든 것
+  - `GET /api/popular-services`(`worker/routes/popular-services.js`, `worker/index.js` 지연 라우트): `ops_revenue_facts` 읽기 전용 aggregate(xpState counted·refundState none·netKRW>0·paidAt 최근 30일·등록 featureKey 만) → featureKey 별 건수 → 3건 이상만 `source:"sales"`, 부족분은 큐레이션 순서로 `"curated"` 채움. 응답 `{asOf, windowDays:30, items:[{featureKey, rank, source}]}` — 건수 비공개. DB 쓰기·새 컬렉션 없음.
+  - 캐시: `readCmsThroughCache` 키 `popular-services:v1:<KST 날짜>`(하루 스냅샷, isolate 메모+caches.default, TTL 1일·stale 3일), 실패 시 전날 키 stale 폴백, 그것도 없으면 503 `{ok:false, items:[]}` no-store. 성공 `public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400`.
+  - 등록부 `js/core/popular-services.mjs`(15개 대표·유료 상담, 이름·주소·그림은 service-registry 와 같게 — 드리프트 테스트 있음), 렌더러 `js/core/popular-top5.mjs`(`POPULAR_TOP5_ENABLED`, 높이 484px 예약, 스타일은 늦게 주입), `/` 는 `app/components/PopularTop5.tsx`(HomeCardDeck 아래), `/ggulggul/` 는 `yehwa-home.mjs` 가 `.yh-situations` 뒤에 끼움. 판매 자리 순위 숫자, 부족분 "추천" 배지 + "최근 30일 구매 기준 · M월 D일 기준" 라벨, 섞이면 안내 한 줄. 한국어 셸·웹에서만(해외 로케일·앱 셸 미표시).
+  - 분석: `popular_top5_click {rank, source, service_id, surface}` — docs/analytics-kpi.md. 기존 `select_item`·`home_section_click` 위임 리스너와 겹치지 않게 그 속성들을 쓰지 않음.
+  - 문서: docs/CONTEXT_AUDIT.md(design-canon §5 와의 충돌·해소), docs/context/design-canon.md 예외 한 문장.
+- 검증(실측)
+  - 워커 테스트 8/8(판매 순위·건수 비노출·전부 추천·당일 캐시·503·전날 stale·405·필터·등록부 드리프트), UI 테스트 3/3, 홈 UI 103/103.
+  - build:worker + verify:worker-size OK(gzip 6.23 MiB / 10 MiB).
+  - paid-gate-auditor PASS(verify-payment-freeze 통과), regression-scout 지적 5건(분석 3중 발화·해외 노출·앱 셸·cdTrack 정규식·주석 경로) 모두 수정.
+  - dev 서버 360·960(쿠키 배너 숨김, API mock): 판매·추천·실패·플래그 OFF. 높이 모든 상태 484px(첫 측정에서 섞인 경우 482px 로 늘어 452→484 로 올림). 실패 시 섹션 없음(fail-closed). 플래그 OFF 요청 0·섹션 0. scrollWidth 가로 넘침 없음.
+  - 플래그 OFF ↔ W3 이전 베이스(0531128af) 픽셀: `/` 360·960 차이 0. `/ggulggul/` 은 실행마다 페이지 높이가 두 값 중 하나로 바뀌는 기존 비결정성(베이스도 같음) — 같은 높이끼리는 차이 0.
+  - 렌더 차단 CSS 바이트 ON = OFF(`/` 링크 2개 1,150,452B, `/ggulggul/` 47개 2,070,484B + 인라인 2,061,557B).
+  - SEO: H1·title·canonical ON/OFF 동일(`/`·`/ggulggul/`). 새 공개 URL 없음(API 는 sitemap 대상 아님).
+  - visual-checker 2차 PASS(ggulggul 썸네일 44×29 → 44×44, 셸 폭 640 → 930 맞춤, 배지 정렬 수선 뒤). 대비 9.6:1·7.9:1·7.4:1.
+  - diff 경계: 결제·이용권·보관함·인증·라우팅 파일 변경 없음(새 API 라우트만).
+  - check:fast: test:node 1건 실패 = fortune/data/daily-2026-11-21.json 부재(W4 와 같은 날짜 의존 기존 실패). check:pre-push 통과(최종 머지 트리).
+  - 기존 실패(베이스에서도 동일, 이 변경과 무관): `scripts/design/verify-yehwa-home.mjs` 가 없어진 `.yh-entry[data-cd-service-id="saju"]` 를 기다리다 시간 초과, `__tests__/ui/home-service-separation.test.cjs` 의 `.yh-concerns` 0개.
+  - 미검증: perf:home(dist 빌드 필요, 돌리지 않음), 스테이징 실응답(빈 DB 면 전부 "추천" 예상), 실데이터 순위.
+- main CI: push 전 확인 시 73f61631 진행 중(직전 8e676e4b 실패는 W4 sprite-crop 가드, 0f8009f2b 로 수선됨). 내 push 3a8cc40ff 의 CI 는 미확인.
+- 롤백: `js/core/popular-top5.mjs` 의 `POPULAR_TOP5_ENABLED=false` + `npm run sync:public`(섹션·요청 모두 사라짐, API 는 남아도 호출 없음) 또는 위 커밋들 `git revert`.
+- 남은 위험: API 실패 시 예약한 484px 가 접혀 아래 내용이 한 번 올라감(첫 화면 아래); DB 장애 동안 503 no-store 라 요청마다 aggregate 재시도; `verify-public-api-edge-cache` 목록에 새 라우트 미포함; `source:"sales"` 는 3건 이상 판매를 함의(정책상 공개 허용 범위 확인 필요); curated 만일 때 약 60px 빈 여백(예약 높이 때문, 의도).
