@@ -163,7 +163,7 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
 ## 유료 LLM 전달 계약 (2026-11-18 S5)
 
 - **요청(원문)**: "확실하게 모든 llm 서비스가 제대로 결제 후 제공되어야하고 계속 이런 문제가 생기는데 재발 방지도 준비해줘", "결과가 제공되지 않으면 자동 환불이 되도록해주고".
-- 🔴 **보장**: 결제(단건 카드·이용권·월정석·코인)된 유료 LLM 요청은 둘 중 하나로 끝난다 — 본문이 있는 `completed` 로 전달되거나, `generation_failed` + 자동 환불. 금지 상태 3가지:
+- 🔴 **보장**: 결제(단건 카드·이용권·월정석·코인)된 유료 LLM 요청은 둘 중 하나로 끝난다 — 본문이 있는 `completed` 로 전달되거나, 환불. 대표 상담 7종은 환불 전에 무료 다시 시도 단계가 있다(아래 [다시 시도 우선](#다시-시도-우선-대표-상담-2026-11-20-r8)). 그 밖의 서비스는 `generation_failed` + 즉시 자동 환불. 금지 상태 3가지:
   1. `partial`·`generating`·`delivery_pending` 에서 영원히 대기
   2. 차감됐는데 결과도 환불도 없음
   3. 결과가 저장됐는데 볼 수 없음(완료 결과 재열람은 저장 원본으로, 추가 결제·차감·LLM 없이 — 보관함 규칙)
@@ -171,7 +171,7 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
   1. Gemini 재시도 — 뒤에 Gemini 시도가 남은 호출은 보조 모델로 내려가지 않는다.
   2. Workers AI 는 **마지막 시도에만**(`lib/llm-client.ts` `finalProviderAttempt`; `finalAttempt === false` 면 Gemini 오류를 그대로 던진다).
   3. 구제 전달 — 본문이 이미 있으면(`delivery_pending`, 저장된 장) 환불·재생성하지 않고 그 본문을 전달한다. 늦은 이용권 차감 거절은 `worker/lib/late-usage-settlement.js` 로 `completed` + `llmMeta.usageSettlement='failed'` 표시.
-  4. 확정 실패 + 자동 환불 — 모든 결제수단. 공용 환불 경로는 `scripts/verify-paid-llm-delivery-contract.mjs` 의 `SHARED_REFUND_PATHS`.
+  4. 확정 실패 → 대표 상담 7종은 다시 시도 가능 보류(무료) → 생성 + 7일 또는 고객 요청 때 환불. 나머지는 즉시 자동 환불 — 모든 결제수단. 공용 환불 경로는 `scripts/verify-paid-llm-delivery-contract.mjs` 의 `SHARED_REFUND_PATHS`.
 - **새 유료 LLM 서비스 등록 의무**(빠지면 `npm run verify:paid-llm-delivery` 실패, `run-paid-gate-suite` 배선):
   - `worker/lib/consultation-recovery-registry.js` `PAID_LLM_DELIVERY_CONTRACT` 에 service·files·featureKeys·refunds(공용 환불 기호). 결제 원시함수+LLM 을 함께 쓰는 worker 파일이 미등록이면 실패한다.
   - 같은 파일 `PAID_LLM_DELIVERY_TESTS` 에 서비스 → 전달 테스트(`__tests__/(worker|ui)/*.test.(m)js`, 실재해야 함).
@@ -180,9 +180,9 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
 - **정체 감시**(`worker/lib/paid-delivery-stuck.js`, 복구 cron `consultation-recovery-task.js` 배선):
   - 시도마다 진전 크기(휘발 필드 제외 문서 JSON 길이)를 기록하고, 1,000자 이상 늘지 않은 시도가 6회 쌓이거나 문서 나이가 6일(7일 복구 창 전)이 되면 정체로 본다.
   - 자동 확정(`STUCK_SETTLERS`)은 두 갈래다.
-    - 공용 상태 환불(`GENERIC_STUCK_SETTLERS`: `new-year-ai`·`life-book-ai`): `delivery_pending` → 구제 전달(`usageSettlementReason: 'DELIVERY_STUCK'`), `generating|partial` → `generation_failed` + `llmMeta.refundEligibleAt` + `settleFailedConsultationRefund`(실패하면 cron 이 이어서 환불). life-book 은 `isStuckDeliveryComplete` 로 완성본일 때만 구제 전달한다(S16).
-    - 자기 실패·환불 경로(S16, 2026-11-19): `love-secret-ai`·`neo-operation-room`·`heukwol`·`fortune-tea-house` 는 라우트 모듈이 `settleStuckDelivery(env, { doc, now, model })` 를 내보내고 cron 이 그것을 부른다. 완성본이면 전달, 아니면 본문 없이 `generation_failed` + 기존 환불 경로(1회). 모델 없는 찻집은 `recordDeliveryWatch` 도 내보낸다. 검증기는 공용 밖 설정자의 계약 파일에 이 export 가 없으면 실패한다.
-    - `master-love-codex` 는 복구 어댑터가 아니라 자체 복구 작업(`worker/lib/master-love-codex-recovery-task.js`)에서 정체·상한을 실패+환불로 닫는다.
+    - 공용 상태 환불(`GENERIC_STUCK_SETTLERS`: `new-year-ai`·`life-book-ai`): `delivery_pending` → 구제 전달(`usageSettlementReason: 'DELIVERY_STUCK'`), `generating|partial` → 창(생성 + 7일) 안이면 `generation_failed` + `llmMeta.retryable`(환불 없음, 다시 시도 보류), 창 밖이면 `llmMeta.refundEligibleAt` + `settleFailedConsultationRefund`(실패하면 cron 이 이어서 환불). life-book 은 `isStuckDeliveryComplete` 로 완성본일 때만 구제 전달한다(S16).
+    - 자기 실패·환불 경로(S16, 2026-11-19): `love-secret-ai`·`neo-operation-room`·`heukwol`·`fortune-tea-house` 는 라우트 모듈이 `settleStuckDelivery(env, { doc, now, model })` 를 내보내고 cron 이 그것을 부른다. 완성본이면 전달, 아니면 본문 없이 창 안이면 다시 시도 보류(R2b·R5~R7), 창 밖이면 기존 환불 경로(1회). 모델 없는 찻집은 `recordDeliveryWatch` 도 내보낸다. 검증기는 공용 밖 설정자의 계약 파일에 이 export 가 없으면 실패한다.
+    - `master-love-codex` 는 복구 어댑터가 아니라 자체 복구 작업(`worker/lib/master-love-codex-recovery-task.js`)에서 정체·상한을 닫는다. 웹 종결 실패는 다시 시도 보류, 창이 지나면 `expireCodexRetryHolds` 가 실패+환불로 닫는다.
     - 로그 `paid_delivery_stuck_settled`.
   - 나머지 복구 어댑터는 경보 로그 `paid_delivery_stuck_unsettled` 만 내고 상태를 바꾸지 않는다. 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로, 바깥에서 상태만 `generation_failed` 로 바꾸면 "차감됐는데 환불 없음"을 새로 만든다. 목록은 검증기 `KNOWN_STUCK_SETTLE_GAPS` 와 정확히 같아야 한다.
 
@@ -205,7 +205,17 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
 - **대표 상담 완성본 전달**(S16, 2026-11-19 사용자 요청 "결제 후 전체가 제대로 생성되어야 고객에게 전달"): 인생의 책·연애 비책·흑월(웹·토스)·네오 팩폭 전략실·운명의 찻집·마스터 인연의 서.
   - 서비스별 `is<Service>Complete`(필수 장·필드가 모두 비어 있지 않음, 분량은 보지 않음)를 통과해야만 `completed` 가 된다. 정상·구제·정체·늦은 차감·복구 cron 경로 모두 같다.
   - 완료 전 응답은 진행 수치만 낸다(본문·장·브리핑 없음). 화면은 완료 뒤 한 번에 그린다.
-  - 축소 전달(장 건너뛰기·부분 전달·대체 문구) 없음. 시도를 다 쓴 장은 다음 라운드로 다시 쓰고, 라운드·상한·정체를 넘기면 본문 없이 `generation_failed` + 기존 자동 환불(1회).
+  - 축소 전달(장 건너뛰기·부분 전달·대체 문구) 없음. 시도를 다 쓴 장은 다음 라운드로 다시 쓰고, 라운드·상한·정체를 넘기면 본문 없이 다시 시도 보류(아래 절). 창이 지났거나 즉시 환불 예외면 기존 자동 환불(1회).
   - 관문 완화: 2번째 시도부터 최소 분량 ×0.6, 마지막 시도 ×0.3. 근거·체크포인트·반복 문제는 거부 대신 정리 후 수용. 금지어·꾸며낸 날짜/주장·빈 필수 칸·말투 이탈은 그대로 막는다.
   - 신년운세·영냥이는 이 규칙 밖이다(동작 불변). 이미 저장된 완료 결과(옛 축소본 포함)는 그대로 다시 열린다.
+
+### 다시 시도 우선 (대표 상담, 2026-11-20 R8)
+
+- **요청(원문, 2026-11-19)**: "네오 환불은 다시 시도가 가능하도록 그리고 신년 운세 등 대표 상담들도 전달 실패할 경우에 다른 기능들도 다시 시도를 통해서 반드시 결과를 받을 수 있도록해주고". 사용자 결정(2026-11-19): 네오 첫 브리핑 "다시 시도 먼저로 변경 (추천)", 환불 기한 "결제(생성 시작) 후 7일 (추천)".
+- **대상**: 사주 카탈로그 `saju-signature` 7종 — 흑월(웹)·네오 팩폭 전략실(첫 브리핑)·연이의 운명 찻집·마스터 인연의 서·연애 비책·신년운세·인생의 책.
+- **흐름**: 생성 실패·정체 → 본문 없이 **다시 시도 가능 보류**(추가 결제·차감 없음) → 고객이 다시 시도하면 완성된 장은 두고 빠진 장만 같은 결제 건으로 이어 쓴다 → 끝내 받지 못하면 **생성 시각 + 7일**에 크론이 환불하거나, 그 전에 고객이 환불을 요청하면 바로 환불(기존 멱등 환불 경로). 7일은 다시 시도해도 늘지 않는다(`retryRefundAt`, 복구 cron 7일 창과 같은 `RECOVERY_WINDOW_MS`). 환불되면 다시 시도는 닫힌다.
+- **표지**: 흑월은 `ServiceExecutionTransaction` pending + `metadata.retryable`, 코덱스는 `generation_failed` + `deliveryMeta.reviewReason 'RETRY_AVAILABLE'` + `deliveryMeta.retryable`, 나머지는 `generation_failed` + `llmMeta.retryable{since, refundAt, code}`. 응답은 `retry:{available, refundAt, sessionId|resultId}`(최상위 `retryable` 은 클라이언트에서 "계속 폴링"이라 쓰지 않는다). 보관함(`/records`)은 창 안 보류를 "다시 시도 가능"으로 표시한다(`worker/lib/record-library.js`).
+- **경로**: 각 서비스 `POST …/retry`(소유자 CAS 재개, 결제 확인·차감 없음) · `POST …/refund-request`. 7일 정산: 네오·연애 비책·흑월·찻집은 라우트의 `settleDue…RetryRefunds` 를 `consultation-delivery-refund.js` `runPendingConsultationRefunds` 가 부르고, 신년·인생의 책은 복구 cron 의 `expireRetryableConsultations` → `refundEligibleAt` → 공용 환불, 코덱스는 `master-love-codex-recovery-task.js` 의 `expireCodexRetryHolds`(`codexRetryDue`).
+- **즉시 환불 유지(예외)**: 다시 써도 같은 결과가 나오는 결정적 실패(조립·완성 판정 실패, 흑월 `HEUKWOL_REPORT_(TOO_SHORT|INCOMPLETE)`, 찻집 `BASIS_MISSING|INVALID_INPUT` 등) · Toss 네이티브(다시 시도 UI 없음) · 계산 오류(`BIRTH|CHART|CALCULATION`) · 보류 저장 CAS 실패 · 창(생성 + 7일) 경과 · 결제 취소 · 신년·인생의 책 `supportRecovery`·`DEFERRED_USAGE_APPLY_FAILED`.
+- **검증기**(`npm run verify:paid-llm-delivery`, fail-closed): 계약 서비스는 `RETRY_FIRST_POLICY` 또는 `KNOWN_RETRY_PENDING` 중 하나에 정확히 있어야 하고(미분류·이중 분류 실패), 대표 상담은 전부 `RETRY_FIRST_POLICY` 여야 한다. 서비스마다 실패 표지(`paid-delivery-stuck.js` 의 생성 + 7일 계산 import)·`/retry`·`/refund-request` 라우트·크론에 배선된 7일 정산(스케줄러 `worker/index.js` 까지)을 보고, 근거를 하나씩 지운 자기 변이가 모두 실패해야 한다. 나머지 서비스(전문가 상담 등)는 아직 즉시 환불이다 — 옮길 때 `KNOWN_RETRY_PENDING` 에서 지우고 정책에 근거를 붙인다(R10).
 - **스테이징 실호출 확인**: 위 [스테이징 허용 계정 실호출](#스테이징-허용-계정-실호출-2026-11-18-사용자-결정) 절을 따른다(회차마다 1회 승인, 원문 전달).
