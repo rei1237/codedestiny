@@ -93,6 +93,7 @@ export const RETRY_FIRST_POLICY = Object.freeze({
   "sukuyo-compatibility-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueSukuyoRetryRefunds", cron: REFUND_CRON } },
   "karma-destiny-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueKarmaRetryRefunds", cron: REFUND_CRON } },
   "naming-prompt": { marker: "retryableFailureMeta", settle: { symbol: "settleDueNamingRetryRefunds", cron: REFUND_CRON } },
+  "fusion-fortune": { marker: "retryableFailureMeta", settle: { symbol: "settleDueFusionRetryRefunds", cron: REFUND_CRON } },
 });
 // 크론 파일이 실제로 스케줄러에서 도는지: 파일 → [호출하는 파일, 그 파일이 참조해야 하는 진입 기호].
 export const RETRY_CRON_CHAIN = Object.freeze({
@@ -105,7 +106,7 @@ const STUCK_LIB = "worker/lib/paid-delivery-stuck.js";
 export const KNOWN_RETRY_PENDING = Object.freeze([
   "nakshatra-ai", "human-design-report", "destiny-compass-ai",
   "relationship-boundary-test", "celestial-harmony", "fortune", "feature-question", "ziwei-deep-report",
-  "fusion-fortune", "yeongnyangi", "fortune-chat-question", "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic",
+  "yeongnyangi", "fortune-chat-question", "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic",
   "pet-saju-ai", "geomancy-oracle", "animal-totem", "guardian-fortune", "toss-native", "palm",
 ]);
 const RETRY_ROUTE_RE = /path\s*===\s*["'](?:\/api\/[a-z0-9-]+)?\/retry["']/;

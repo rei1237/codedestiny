@@ -270,6 +270,7 @@ const EXPERT_RETRY_SETTLERS = Object.freeze([
   { service: 'sukuyo-compatibility-ai', load: async () => (await import('../routes/sukuyo-compatibility-ai.js')).settleDueSukuyoRetryRefunds },
   { service: 'karma-destiny-ai', load: async () => (await import('../routes/karma-destiny-ai.js')).settleDueKarmaRetryRefunds },
   { service: 'naming-prompt', load: async () => (await import('../routes/naming-prompt.js')).settleDueNamingRetryRefunds },
+  { service: 'fusion-fortune', load: async () => (await import('./fusion-fortune-recovery-task.js')).settleDueFusionRetryRefunds },
 ]);
 export async function runPendingConsultationRefunds(env, options = {}) {
   const withDb = options.withDb || withPaymentDb;

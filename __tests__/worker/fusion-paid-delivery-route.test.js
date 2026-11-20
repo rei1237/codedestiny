@@ -6,7 +6,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import { bindNativeTossRequest } from '../../worker/toss/native-context.js';
 import { TossError } from '../../worker/toss/policy.js';
-let onPaymentFind, docs, orders, missingEvidence, fault, lostConfirmation, route, generator, paymentChecks, revoked, store, accessType;
+let settleRefund, onPaymentFind, docs, orders, missingEvidence, fault, lostConfirmation, route, generator, paymentChecks, revoked, store, accessType;
 const originalFetch = globalThis.fetch;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
@@ -81,6 +81,7 @@ beforeAll(async()=>{
      generator:(...args)=>generator(...args),
    }),
  }));
+ jest.unstable_mockModule('../../worker/lib/consultation-delivery-refund.js',()=>({settleFailedConsultationRefund:(...args)=>settleRefund(...args)}));
  ({handleFusionFortuneRoutes:route}=await import('../../worker/routes/fusion-fortune.js'));
  store=fusion.createMemoryFusionFortuneStore();
 });
@@ -102,7 +103,7 @@ for(const scenario of ['pending','refunded','gift','missing-input','mismatch','c
  if(['mismatch','copied-owner'].includes(scenario))expect(order.metadata.fusionRecovery.status).toBe('recovery_pending');
 });
 afterAll(()=>{globalThis.fetch=originalFetch;jest.restoreAllMocks()});
-beforeEach(()=>{onPaymentFind=null;docs=[];orders=[];missingEvidence=false;fault=null;lostConfirmation=false;paymentChecks=[];revoked=false;store.attempts.clear();accessType='pass'});
+beforeEach(()=>{settleRefund=jest.fn(async()=>({ok:true,refundStatus:'refunded'}));onPaymentFind=null;docs=[];orders=[];missingEvidence=false;fault=null;lostConfirmation=false;paymentChecks=[];revoked=false;store.attempts.clear();accessType='pass'});
 function request(stage=1){return new Request('https://example.test/api/fusion-fortune/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:'paid-original',birthDate:'1995-04-18',birthTime:'08:30',stage})})}
 const sections=Object.fromEntries(['saju','ziwei','vedic','sukuyo','astrology','tarot'].map(key=>[`${key}Section`,{title:key,content:'계산 근거에 따른 생활 패턴을 설명합니다. '.repeat(240),keyPoints:[]} ]));
 for (const [code,status] of [['ORDER_REFUNDED',409],['TOSS_SESSION_REQUIRED',401],['ORDER_OWNER_MISMATCH',403],['ORDER_CHECK_THROTTLED',429],['TOSS_PARTNER_UNAVAILABLE',502]]) for (const transport of ['json', 'stream']) for (const stage of [1, 2]) {
@@ -366,7 +367,9 @@ it('recovery marks review when saju is spent and the premium chapters still wait
  expect(docs[0].generationSnapshot.recovery.reviewRequired).toBe(true);
 });
 
-describe('undelivered card orders move to the refund path',()=>{
+// 2026-11-20 R10(사용자 결정 "7일 다시 시도로 통일"): 미전달 카드 주문은 바로 환불하지 않고 생성 + 7일까지
+// 추가 결제 없는 다시 시도로 보류한다. 고객 환불 요청은 언제든, 창이 지나면 크론이 환불로 닫는다.
+describe('undelivered card orders are held for a free retry, then refunded',()=>{
  const HOUR=3600000,featureKey='fusion-fortune-consultation';
  let since,inputWait,tick;
  beforeAll(async()=>{
@@ -385,15 +388,18 @@ describe('undelivered card orders move to the refund path',()=>{
   cardOrder();openDoc({},{reviewRequired:true});
   expect(await tick(since+3*HOUR)).toEqual([]);expect(docs[0].status).toBe('partial');
  });
- it('hands an exhausted budget to the refund path without waiting a day',async()=>{
+ const DAY=24*HOUR;
+ it('holds an exhausted budget for a free retry until created + 7 days, without refunding',async()=>{
   cardOrder();openDoc({},exhausted);
-  expect(await tick(since+3*HOUR)).toEqual([expect.objectContaining({outcome:'refund_eligible',reason:'BUDGET_EXHAUSTED'})]);
-  expect(docs[0].status).toBe('generation_failed');expect(docs[0].llmMeta.refundReason).toBe('BUDGET_EXHAUSTED');
+  expect(await tick(since+3*HOUR)).toEqual([expect.objectContaining({outcome:'retry_held',reason:'BUDGET_EXHAUSTED'})]);
+  expect(docs[0].status).toBe('generation_failed');expect(docs[0].llmMeta.refundEligibleAt).toBeUndefined();
+  expect(docs[0].llmMeta.retryable).toMatchObject({code:'BUDGET_EXHAUSTED',refundAt:new Date(since+HOUR+7*DAY)});
  });
- it('refunds an order still undelivered after 24 hours, not before',async()=>{
+ it('holds an order still undelivered after 24 hours, not before',async()=>{
   cardOrder();openDoc();
   await tick(since+HOUR+23*HOUR);expect(docs[0].status).toBe('partial');
-  expect(await tick(since+HOUR+24*HOUR+60000)).toEqual([expect.objectContaining({outcome:'refund_eligible',reason:'UNDELIVERED_24H'})]);
+  expect(await tick(since+HOUR+DAY+60000)).toEqual([expect.objectContaining({outcome:'retry_held',reason:'UNDELIVERED_24H'})]);
+  expect(docs[0].llmMeta.refundEligibleAt).toBeUndefined();
  });
  it.each(['legacy','live-lease','not-card','race'])('leaves %s orders open',async kind=>{
   const at=since+3*HOUR;
@@ -413,16 +419,51 @@ describe('undelivered card orders move to the refund path',()=>{
   expect(docs).toEqual([expect.objectContaining({idempotencyKey:'paid-original',status:'generation_failed',llmMeta:expect.objectContaining({refundReason:'INPUT_MISSING_7D'})})]);
   expect(order.metadata.fusionRecovery.status).toBe('refund_handoff');
  });
- it('a marked order answers refund pending and accepts no further generation writes',async()=>{
-  cardOrder();openDoc({},exhausted);await tick(since+3*HOUR);
+ const post=(path,body)=>route(new Request('https://example.test/api/fusion-fortune'+path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),ENV);
+ // 다시 시도 라우트는 실제 시계로 창을 판정하므로, 보류 건은 지금 기준 2시간 전에 만든다.
+ const held=async()=>{const created=Date.now()-2*HOUR;cardOrder({createdAt:new Date(created)});openDoc({createdAt:new Date(created)},exhausted);
+  await tick(created+HOUR);expect(docs[0].status).toBe('generation_failed');return created;};
+ it('a held order offers retry and refund and accepts no generation writes until reopened',async()=>{
+  const created=await held();
   const before=structuredClone(docs[0]);
   generator=()=>{throw Error('provider must not run')};
   for(const response of [await route(request(2),ENV),await route(new Request('https://example.test/api/fusion-fortune/result?requestId=paid-original'),ENV)]){
-   expect(response.status).toBe(409);expect((await response.json()).reason).toBe('REFUND_PENDING');
+   expect(response.status).toBe(409);
+   expect(await response.json()).toMatchObject({reason:'RETRY_AVAILABLE',refunded:false,retry:{available:true,sessionId:'open-doc',refundAt:new Date(created+7*DAY).toISOString()}});
   }
   const consultation=await import('../../worker/lib/fusion-fortune-consultation.js');
   expect(await consultation.saveFusionFortuneConsultation({userId:uid,requestId:'paid-original',result:sections,stage:2,qualityTier:'full'})).toBe('');
   await expect(consultation.claimFusionDeliveryLease({userId:uid,requestId:'paid-original'})).rejects.toMatchObject({status:409});
   expect(docs).toEqual([before]);expect(paymentChecks).toHaveLength(0);
+ });
+ it('retry reopens the same order with a fresh attempt budget and no charge; a later tick does not re-hold it at once',async()=>{
+  const created=await held();docs[0].generationSnapshot.attempts={saju:3};docs[0].generationSnapshot.unbilledFailures={saju:1};
+  const res=await post('/retry',{sessionId:'open-doc'});
+  expect(res.status).toBe(200);expect(await res.json()).toMatchObject({ok:true,status:'partial',requestId:'paid-original'});
+  expect(docs[0]).toMatchObject({status:'partial',generationLease:null,generationSnapshot:{attempts:{},unbilledFailures:{},recovery:{}}});
+  expect(docs[0].llmMeta.retryable.reopens).toBe(1);
+  expect(await tick(created+3*HOUR)).toEqual([]);expect(docs[0].status).toBe('partial');
+  expect(settleRefund).not.toHaveBeenCalled();expect(paymentChecks).toHaveLength(0);
+ });
+ it('a revoked payment cannot reopen a held order',async()=>{
+  await held();revoked=true;
+  expect((await post('/retry',{sessionId:'open-doc'})).status).toBe(409);expect(docs[0].status).toBe('generation_failed');
+ });
+ it('a refund request closes the retry and settles through the shared consultation refund',async()=>{
+  await held();
+  const res=await post('/refund-request',{sessionId:'open-doc'});
+  expect(res.status).toBe(200);expect(await res.json()).toMatchObject({ok:true,refunded:true,refundStatus:'refunded'});
+  expect(docs[0].llmMeta.retryable.refundReason).toBe('CUSTOMER_REQUEST');expect(docs[0].llmMeta.refundEligibleAt).toBeTruthy();
+  expect(settleRefund).toHaveBeenCalledWith(expect.anything(),{service:'fusion-fortune',id:'open-doc',userId:uid});
+  expect((await post('/retry',{sessionId:'open-doc'})).status).toBe(409);
+ });
+ it('the refund cron settles only holds past created + 7 days',async()=>{
+  const created=await held();
+  const {settleDueFusionRetryRefunds}=await import('../../worker/lib/fusion-fortune-recovery-task.js');
+  expect(await settleDueFusionRetryRefunds(ENV,{now:created+7*DAY-60000})).toEqual([]);
+  expect(docs[0].llmMeta.refundEligibleAt).toBeUndefined();
+  expect(await settleDueFusionRetryRefunds(ENV,{now:created+7*DAY+60000})).toEqual([{service:'fusion-fortune',refundStatus:'refunded'}]);
+  expect(docs[0].llmMeta.retryable.refundReason).toBe('RETRY_WINDOW_EXPIRED');
+  expect(settleRefund).toHaveBeenCalledWith(expect.anything(),{service:'fusion-fortune',id:'open-doc',userId:uid});
  });
 });

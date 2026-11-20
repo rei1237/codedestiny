@@ -11,6 +11,7 @@
 
 import { resultStorageUnavailable } from "./result-storage.js";
 import { FusionFortuneConsultation } from "./models.js";
+import { publicRetryState } from "./paid-delivery-stuck.js";
 import { countFusionFortuneVisibleText, FUSION_GROUP_MAX_ATTEMPTS, fusionGroupAttemptLimit, FUSION_UNBILLED_RETRY_LIMIT } from "./fusion-fortune.js";
 
 // mongoose Mixed 필드는 상한이 없어 16MB 문서 한계까지 들어간다. 인생의 책이 본문에
@@ -253,6 +254,36 @@ export async function requestFusionRecovery({ userId, requestId, lease }) {
   } }, { new: true }).lean();
   if (!saved?.generationSnapshot?.recovery?.manualGranted) throw resultStorageUnavailable(requestId);
   return saved.generationSnapshot;
+}
+
+/**
+ * 2026-11-20 R10 다시 시도(사용자 결정 "7일 다시 시도로 통일"): 보류된 주문을 같은 회차로 다시 연다.
+ * 추가 결제·차감 없이 장별 시도 예산만 새로 연다. 창(생성 + 7일)이 지났거나 환불이 시작됐으면 null.
+ */
+export async function reopenFusionRetry({ userId, id, now = Date.now() } = {}) {
+  const fresh = await getFusionFortuneConsultation({ userId, id });
+  if (!fresh || !publicRetryState(fresh, now)) return null;
+  const saved = await FusionFortuneConsultation.updateOne({
+    userId: fresh.userId, id: fresh.id, status: "generation_failed", updatedAt: fresh.updatedAt,
+    "llmMeta.refundEligibleAt": { $exists: false }, "llmMeta.deliveryRefund": { $exists: false },
+  }, { $set: {
+    status: "partial", generationLease: null,
+    "generationSnapshot.attempts": {}, "generationSnapshot.unbilledFailures": {}, "generationSnapshot.recovery": {},
+    "llmMeta.retryable.reopens": Number(fresh.llmMeta.retryable.reopens || 0) + 1, "llmMeta.retryable.reopenedAt": new Date(now),
+  } });
+  return saved?.matchedCount ? { ...fresh, status: "partial" } : null;
+}
+
+/** 보류 주문을 환불 대상으로 넘긴다(고객 요청·창 만료). 이미 환불이 시작됐으면 그대로 true(멱등). */
+export async function markFusionRetryRefundDue({ userId, id, now = Date.now(), reason = "CUSTOMER_REQUEST" } = {}) {
+  const fresh = await getFusionFortuneConsultation({ userId, id });
+  if (!fresh || fresh.status !== "generation_failed" || !fresh.llmMeta?.retryable) return false;
+  if (fresh.llmMeta.refundEligibleAt || fresh.llmMeta.deliveryRefund) return true;
+  const saved = await FusionFortuneConsultation.updateOne({
+    userId: fresh.userId, id: fresh.id, status: "generation_failed", updatedAt: fresh.updatedAt,
+    "llmMeta.refundEligibleAt": { $exists: false },
+  }, { $set: { "llmMeta.refundEligibleAt": new Date(now), "llmMeta.retryable.refundReason": String(reason).slice(0, 40) } });
+  return Boolean(saved?.matchedCount);
 }
 
 /** 단건 조회 — 본인 결과만. 없으면 null. */

@@ -38,6 +38,8 @@ const stubs={
  'worker/toss/crypto.js':`import {createHash} from 'node:crypto';export const hash=async x=>createHash('sha256').update(x).digest('hex');export const unseal=async()=> '123';`,
  'worker/lib/db.js':'export const connectDb=async()=>{};export const withMongoRetry=async(e,f)=>f();',
  'worker/lib/auth.js':'export const requireUserFromRequest=async()=>{globalThis.__fusionNative.web++;throw Error("WEB_FORBIDDEN")};export const getOptionalUserFromRequest=requireUserFromRequest;',
+ 'worker/lib/consultation-delivery-refund.js':'export const settleFailedConsultationRefund=async()=>{throw Error("WEB_REFUND_FORBIDDEN")};',
+ 'worker/lib/paid-delivery-stuck.js':'export const publicRetryState=()=>null;',
  'worker/lib/paid-result-revocation.js':'export const isPaidResultRevoked=async()=>{throw Error("WEB_PROOF_FORBIDDEN")};',
  'worker/lib/nakshatra-paid-access.js':'export const verifyPerUsePayment=async()=>{throw Error("WEB_PAYMENT_FORBIDDEN")};export const logPerUsePaymentProof=()=>{};',
  'worker/lib/paid-feature-registry.js':'export const FEATURE_KEY_PRICE_TABLE={};',
@@ -53,7 +55,7 @@ const stubs={
  export const fusionConsultationPublicStatus=d=>d.status;
  export const saveFusionGenerationSnapshot=async({input,userId,requestId})=>{s.doc={id:'original-saved',userId,idempotencyKey:requestId,generationSnapshot:{input},status:'partial',result:{}}};
  export const saveFusionFortuneConsultation=async p=>{if(s.failSave)return '';Object.assign(s.doc,{result:p.result,status:p.deliveryState|| (p.stage===1?'partial':'completed'),stage:p.stage,nextStage:p.nextStage});return s.doc.id;};
- export const reserveFusionGroupAttempt=async()=>{};export const claimFusionDeliveryLease=async()=>({token:'lease'});export const releaseFusionDeliveryLease=async()=>{};export const requestFusionRecovery=async()=>{};
+ export const reserveFusionGroupAttempt=async()=>{};export const claimFusionDeliveryLease=async()=>({token:'lease'});export const releaseFusionDeliveryLease=async()=>{};export const requestFusionRecovery=async()=>{};export const reopenFusionRetry=async()=>null;export const markFusionRetryRefundDue=async()=>false;
  `,
  'worker/lib/fusion-fortune.js':`
  export const FUSION_FORTUNE_PAID_FEATURE_KEY='fusion-fortune-consultation',FUSION_GENERATION_DEADLINE_MS=120000,FUSION_FORTUNE_ERROR_CODES={};
