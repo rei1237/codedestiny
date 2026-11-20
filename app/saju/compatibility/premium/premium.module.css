@@ -49,6 +49,12 @@
   min-height: 48px; padding: 10px 12px; box-sizing: border-box; width: 100%;
   border: 1px solid var(--cd-border, #d9cfdf); border-radius: 12px; background: #fffaf3; color: #2b2233; font: inherit; font-weight: 400;
 }
+/* 예시 글자(YYYY-MM-DD·08:35)도 밝은 칸 위에서 읽히게(기본 회색 2.4:1 → 약 5:1). */
+.field input::placeholder { color: #776b7d; }
+/* 공용 BirthTimeInput 은 투명 바탕·상속 글자색이라 밤 표면 위에서 혼자 어두운 칸이 된다 — 다른 칸과 같은 밝은 칸으로 맞춘다. */
+.field [data-cd-birth-time] > input:not([type="hidden"]) {
+  border: 1px solid var(--cd-border, #d9cfdf); border-radius: 12px; background: #fffaf3; color: #2b2233;
+}
 .optional { color: var(--cd-text-muted, #6b6070); font-weight: 400; }
 .check { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: .92rem; }
 .check input { width: 20px; height: 20px; }
