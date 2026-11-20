@@ -86,6 +86,23 @@ test("라이트 사주 풀이 단건 결제는 재개 서술자를 만들고, �
   assert.equal(window._cdBuildSajuSectionUnlockResume("section_summary", ""), null);
 });
 
+// 2026-11-05(f7a7ae474)부터 요약·대운 게이트 버튼과 묶음 안내의 결제 키는 saju_lifetime_bundle 이다.
+// 재개 표가 section_* 만 알아 모바일 복귀 문서가 서술자 없이 "결제 완료" 카드만 띄우고 본문을 열지 못했다.
+test("라이트 사주 풀이 묶음(saju_lifetime_bundle) 결제도 재개 서술자를 만들고, 복귀 문서에서 요약 본문을 연다", async () => {
+  const { window, calls } = boot({ currentProfile: "p1" });
+  const descriptor = window._cdBuildSajuSectionUnlockResume("saju_lifetime_bundle", "");
+  assert.ok(descriptor, "묶음 결제에 재개 서술자가 없다");
+  assert.equal(descriptor.kind, "saju-section-unlock");
+  assert.equal(window.SAJU_SECTION_UNLOCK_TITLES.saju_lifetime_bundle, "라이트 사주 풀이");
+  window.__currentProfile = "";
+  const opened = await calls.registered[descriptor.kind](descriptor, grantFor("saju_lifetime_bundle"));
+  assert.equal(opened, true);
+  assert.deepEqual(calls.run, ["p1"]);
+  assert.deepEqual(calls.finalize, [{ featureKey: "saju_lifetime_bundle", payload: GRANT_PAYLOAD }]);
+  assert.deepEqual(calls.scroll, ["summaryGate"]);
+  assert.equal(calls.gates, 0);
+});
+
 test("빈 복귀 문서: 결제한 카드로 사주를 다시 계산하고, 새 명식이 뜬 뒤 본문을 열어 그 섹션으로 옮긴다 — 게이트 0회", async () => {
   const { window, calls } = boot({ currentProfile: "p1" });
   const descriptor = window._cdBuildSajuSectionUnlockResume("section_summary", "");
