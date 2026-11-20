@@ -1,6 +1,6 @@
 // Terminal refunds for saved consultations. Reservation precedes PG calls; a
 // missing/uncertain PG response never clears it or reopens the paid request.
-import { NewYearAiConsultation, LifeBookAiConsultation, FusionFortuneConsultation, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from './models.js';
+import { NewYearAiConsultation, LifeBookAiConsultation, SajuCompatPremiumConsultation, FusionFortuneConsultation, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from './models.js';
 import { withPaymentDb, createPaymentContext, toObjectId } from '../payments/db.js';
 import { claimRefund, settleRefund } from '../payments/orders.js';
 import { revokePurchaseEntitlement } from '../payments/executions.js';
@@ -14,6 +14,7 @@ export { consultationRefundState, consultationRefundResponse } from './consultat
 
 const SERVICES = Object.freeze({
   'new-year-ai': { model: NewYearAiConsultation, feature: 'new-year-ai-consultation' },
+  'saju-compat-premium': { model: SajuCompatPremiumConsultation, feature: 'saju-compat-premium' },
   'life-book-ai': { model: LifeBookAiConsultation, feature: 'life-book-ai-consultation',
     features: ['life-book-ai-consultation', 'life-fortune-ai-consultation'] },
   'fusion-fortune': { model: FusionFortuneConsultation, feature: 'fusion-fortune-consultation' },
