@@ -286,6 +286,7 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
   - E2E `npm run verify:saju-result-login`(CI 배선 유지): 끔 360/390/430/1280 로그인 벽·취소 복원·mock 로그인 재개 그대로, 켬 360/960 비회원 결과 표시·초안 `guestResult`·로그인 모달→`next` 에 action→복귀 뒤 같은 결과·초안 삭제.
   - visual-checker(쿠키 배너 닫음, 360·960 전후 8장) 전부 PASS: 끔 로그인 모달 잘림 없음, 켬 비회원 결과 카드·탭·코스믹 영역이 끔(mock 로그인 재개) 결과와 같은 레이아웃, 모달·배너·가로 넘침 없음, 로그인 복귀 뒤 같은 결과. 첫 캡처는 로딩 오버레이(결과 표시 뒤 약 2초) 중에 찍혀 실패 → E2E 대기 조건을 상태 문구·오버레이 해제까지로 고쳐 재캡처.
   - diff 경계: 결제·이용권·보관함·워커·인증·라우팅 파일 변경 없음.
+  - check:fast(critical 승격): paid-gate 78/0·lint·sitemap(원장 서명만 갱신, lastmod 불변) 통과. 처음 걸린 `saju-bundle-copy` 가드(주석의 "무료 사주" 표기)는 "무료 만세력"으로 고쳐 통과. test:node 남은 실패는 W2 무관: `sky-and-range`(fortune/data/daily-*.json 부재, build-data 로 생성 후 해소)·`yeongnyangi-v7-golden`·`v7-checkpoint-import`(60초 타임아웃 — 스크립트 단독 47초 성공, 병렬 세션 node 33개 부하). check:pre-push 통과.
   - SEO: 결과는 비공개 상태 화면이라 noindex/robots 변경 없음. 공개 페이지 문구 2곳만 바뀜(title·description·H1·canonical 불변). `/compare/fortune-apps/` 의 `SEO_SERVICE_SCOPES_UPDATED` 날짜는 올리지 않음.
 - 롤백: 두 상수 `FREE_RESULT_GUEST_ENABLED=false` + `npm run sync:public`(끄면 초안 형식·이벤트·모달이 이전과 같음) 또는 W2 커밋 `git revert`.
 - 남은 위험: 회원가입 전환 감소; 무료 사주 `fortune_login_required` 가 거의 0(docs/analytics-kpi.md 에 기록); 코인·결제 401 내부 `_cdPromptLogin`·AI 상담 `redirectToLoginForFortune` 은 결과 복귀 주소로 바뀌지 않음(원래 주소로 복귀); mock 환경 결과 화면 하단 "일시적인 오류" 토스트는 플래그 끔에서도 동일(기존, W2 무관 — 미조사).
