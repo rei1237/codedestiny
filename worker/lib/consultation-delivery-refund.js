@@ -268,6 +268,7 @@ const EXPERT_RETRY_SETTLERS = Object.freeze([
   { service: 'astrology-ai', load: async () => (await import('../routes/astrology-ai.js')).settleDueAstrologyRetryRefunds },
   { service: 'ziwei-ai', load: async () => (await import('../routes/ziwei-ai.js')).settleDueZiweiRetryRefunds },
   { service: 'sukuyo-compatibility-ai', load: async () => (await import('../routes/sukuyo-compatibility-ai.js')).settleDueSukuyoRetryRefunds },
+  { service: 'karma-destiny-ai', load: async () => (await import('../routes/karma-destiny-ai.js')).settleDueKarmaRetryRefunds },
 ]);
 export async function runPendingConsultationRefunds(env, options = {}) {
   const withDb = options.withDb || withPaymentDb;

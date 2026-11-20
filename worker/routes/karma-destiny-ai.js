@@ -55,6 +55,7 @@ import {
 } from "../lib/karma-destiny-ai-calculations.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "karma-destiny-ai";
 const FEATURE_KEY = "karma-destiny-ai-consultation";
@@ -2720,7 +2721,7 @@ async function callDeferredUsageRoute({ request, env, auth, path, idempotencyKey
   return payload?.data || payload;
 }
 
-async function handleStart(request, env, recoveryAuth = null) {
+async function handleStart(request, env, recoveryAuth = null, options = {}) {
   const route = "/api/karma-destiny-ai/start";
   logKarmaAi("LLM Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
@@ -2745,7 +2746,7 @@ async function handleStart(request, env, recoveryAuth = null) {
   if (existing && !(await authorizedKarmaRecord(request, existing))) return notFound();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR" }, { status: 409 });
+  if (existing?.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", ...karmaRetryPayload(request, existing) }, { status: 409 });
   logKarmaAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "checking", env }));
   const access = nativeTossContext(request)
     ? await nativeTossContext(request).access(body, normalized, idempotencyKey)
@@ -2764,7 +2765,7 @@ async function handleStart(request, env, recoveryAuth = null) {
   logKarmaAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
   if (existing?.integratedResult && Number(existing.schemaVersion) === REPORT_SCHEMA_VERSION) return json(publicSession(existing), { status: 202 });
-  if (existing && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json(publicSession(existing), { status: 202 });
+  if (existing && !options.retryReopened && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json(publicSession(existing), { status: 202 });
 
   const sessionId = existing?.id || `kdai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   const now = new Date();
@@ -2870,6 +2871,8 @@ async function handleStart(request, env, recoveryAuth = null) {
     return json(publicSession(prepared), { status: 202 });
   } catch (error) {
     if (savingSeed || error?.code === "RESULT_STORAGE_UNAVAILABLE") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
+    const heldStart = await holdKarmaFailure(request, { id: sessionId, userId: clean(auth.userId), status: { $ne: "completed" } }, error);
+    if (heldStart) return heldStart;
     await KarmaDestinyAiConsultation.updateOne(
       { id: sessionId, userId: clean(auth.userId), status: { $ne: "completed" } },
       {
@@ -2956,7 +2959,7 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
   if (!consultation) return notFound();
   if (!(await authorizedKarmaRecord(request, consultation))) return notFound();
   if (consultation.status === "completed") return json(publicSession(consultation));
-  if (consultation.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  if (consultation.status === "generation_failed") return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, ...karmaRetryPayload(request, consultation) }, { status: 409 });
   if (!consultation.integratedResult) {
     if (consultation.llmMeta?.resumeBody && Date.now() - new Date(consultation.updatedAt || consultation.createdAt).getTime() >= PREMIUM_BATCH_LOCK_TTL_MS) {
       const url = new URL(request.url); url.pathname = "/api/karma-destiny-ai/start";
@@ -3138,6 +3141,8 @@ async function handleGenerateBatch(request, env, recoveryAuth = null) {
   } catch (error) {
     if (nativeTossContext(request) && error?.status) throw error;
     if (error?.code === "RESULT_STORAGE_UNAVAILABLE" || consultation.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(consultation.id)), { status: 503 });
+    const heldBatch = await holdKarmaFailure(request, filter, error, consultation);
+    if (heldBatch) return heldBatch;
     consultation = await saveKarmaDelivery(filter, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_FAILED", 80), message: clean(error?.message, 500) } }, consultation.id);
     if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: clean(consultation.idempotencyKey || consultation.attemptId, 180), evidenceIds: startEvidenceIds(consultation) });
     await cancelDeferredUsageIfNeeded({ request, env, auth, consultation, error });
@@ -3194,7 +3199,7 @@ async function handleResult(request, env, path) {
   }
   if (consultation.status === "completed") consultation = await recoverSavedExpertFollowUps({ auth, consultation, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, ...(nativeTossContext(request) ? { verifyAccess: () => nativeTossContext(request).assertStored(consultation) } : {}) });
   const statusCode = ["generating", "partial", "delivery_pending"].includes(consultation.status) ? 202 : consultation.status === "generation_failed" ? 409 : 200;
-  return json(publicSession(consultation), { status: statusCode });
+  return json({ ...publicSession(consultation), ...(statusCode === 409 ? karmaRetryPayload(request, consultation) : {}) }, { status: statusCode });
 }
 
 async function handleMessage(request, env) {
@@ -3219,6 +3224,138 @@ async function handleMessage(request, env) {
   return await deliverExpertFollowUp({ request, env, auth, consultation, message, featureKey: FEATURE_KEY, model: KarmaDestinyAiConsultation, generate: (original, question) => generateConsultationText(env, buildFollowUpPrompt(original, question), { mode: 'follow_up', minLength: 90, maxOutputTokens: 9200 }), render: publicSession, ...(nativeTossContext(request) ? { verifyAccess: () => nativeTossContext(request).assertStored(consultation) } : {}) });
 }
 
+// 2026-11-20 R10 다시 시도 우선(사용자 결정 "7일간 차감 보류"). 웹 결제 건의 생성 실패는 환불 대신 생성 + 7일 동안
+// 무료 다시 시도로 보류한다. 보류 중에는 이용권 복원·보류 차감 취소·증빙 해제를 하지 않고, 다시 시도가 완성되면 기존 경로가
+// 차감을 확정한다(apply). 고객 환불 요청이나 7일 경과 때만 정산(settleKarmaRetryRefund)이 한 번 정리한다.
+// Toss 네이티브·계산 오류·저장 장애·창이 지난 건은 기존 즉시 정리 경로 그대로다.
+function karmaRetryMeta(request, doc, error) {
+  const code = clean(error?.code || "LLM_ERROR", 40);
+  if (nativeTossContext(request) || doc?.accessSource === "toss" || ["CALCULATION_ERROR", "RESULT_STORAGE_UNAVAILABLE"].includes(code)) return null;
+  return retryableFailureMeta(doc || {}, Date.now(), code);
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function karmaRetryPayload(request, doc) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return {};
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc?.id || "");
+  return state ? { sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+// 실패를 보류로 저장한다. 저장하지 못하면 null — 호출부가 기존 즉시 정리 경로로 간다(fail-safe).
+async function holdKarmaFailure(request, filter, error, current = null) {
+  const doc = current || await KarmaDestinyAiConsultation.findOne({ id: filter.id, userId: filter.userId }).lean().catch(() => null);
+  const meta = doc && karmaRetryMeta(request, doc, error);
+  if (!meta) return null;
+  const generationError = { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message || error, 500), at: new Date().toISOString() };
+  const written = await KarmaDestinyAiConsultation.updateOne(filter, { $set: { status: "generation_failed", generationError, "llmMeta.retryable": meta } }).catch(() => null);
+  if (!written?.modifiedCount) return null;
+  logKarmaAi("LLM Retry Held", { sessionId: clean(doc.id, 120), code: generationError.code, refundAt: meta.refundAt.toISOString() }, "warn");
+  const held = { ...doc, status: "generation_failed", llmMeta: { ...doc.llmMeta, retryable: meta } };
+  return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, ...karmaRetryPayload(request, held) }, { status: 503 });
+}
+// 다시 시도는 상한(3)을 다 쓰고도 본문이 없는 장만 시도 수와 잘림 표지를 새로 연다. 받아들인 장·다듬은 장은 그대로 둔다.
+function karmaRetryReset(fresh) {
+  const attempts = { ...(fresh?.llmMeta?.attempts || {}) };
+  const written = new Set(safeArray(fresh?.chapters).filter(row => clean(row?.content)).map(row => clean(row.id, 40)));
+  for (const [key, value] of Object.entries(attempts)) {
+    if (!/^chapter-\d+$/.test(key) || Number(value || 0) < KARMA_CHAPTER_MAX_ATTEMPTS || written.has(key)) continue;
+    attempts[key] = 0;
+    delete attempts[`${key}:truncated`];
+  }
+  return { "llmMeta.attempts": attempts };
+}
+async function karmaRetryOwner(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: BILLING_SNAPSHOT_USER_PROJECTION });
+  if (!auth?.userId) return { response: loginRequired() };
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.reportId, 180);
+  if (!sessionId) return { response: notFound() };
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const stored = await KarmaDestinyAiConsultation.findOne(owner).lean();
+  if (!stored || stored.accessSource === "toss") return { response: notFound() };
+  return { owner, auth };
+}
+// 다시 시도(무료): 같은 소유자의 보류 건만 이어쓰기(partial)로 되돌린다. 계산이 끝난 건은 클라이언트의 batch 조회가 이어 쓰고,
+// 계산 전에 실패한 건은 원래 요청 키·입력으로 시작 경로를 다시 돈다(같은 증빙, 새 결제·차감 없음).
+async function handleRetry(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  const { response, owner, auth } = await karmaRetryOwner(request, env);
+  if (response) return response;
+  const reopened = await reopenRetryableConsultation(KarmaDestinyAiConsultation, owner, Date.now(), { reset: karmaRetryReset });
+  const latest = await KarmaDestinyAiConsultation.findOne(owner).lean().catch(() => null);
+  if (!latest) return notFound();
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    if (latest.status === "completed") return json(publicSession(latest));
+    return json({ ok: false, reason: reopened.reason, message: LLM_ERROR_MESSAGE, ...karmaRetryPayload(request, latest) }, { status: 409 });
+  }
+  if (latest.integratedResult || !latest.llmMeta?.resumeBody) return json(publicSession(latest), { status: latest.status === "completed" ? 200 : 202 });
+  const url = new URL(request.url); url.pathname = "/api/karma-destiny-ai/start";
+  const headers = cloneBillingHeaders(request); headers.set("Idempotency-Key", latest.idempotencyKey);
+  return handleStart(new Request(url, { method: "POST", headers, body: JSON.stringify(latest.llmMeta.resumeBody) }), env, auth, { retryReopened: reopened.ok });
+}
+// 고객 환불 요청: 보류 건을 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 환불 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const { response, owner } = await karmaRetryOwner(request, env);
+  if (response) return response;
+  const marked = await markRetryableRefundDue(KarmaDestinyAiConsultation, owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  let refundStatus = "pending";
+  try { refundStatus = (await settleKarmaRetryRefund(env, owner)).refundStatus; }
+  catch (error) { logKarmaAi("Retry refund failed", { message: clean(error?.message || error, 300) }, "warn"); }
+  return json({ ok: true, sessionId: owner.id, refunded: refundStatus === "refunded", refundStatus });
+}
+// 보류 건의 정리 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 순서는 기존 즉시 정리와 같다: 결제 화면 이용권 복원 → 보류 차감 취소 → 증빙 해제. 이용권 복원이 던지면 표시하지 않아
+// 다음 크론이 다시 시도한다(복원은 refundId 로 멱등). 보류 차감 취소는 요청 없이도 돌 수 있게 coin-gate 취소와 같은
+// 기록 갱신(PaidExecutionRecord → generation_failed)을 직접 한다. 이미 확정(completed)된 기록은 건드리지 않는다.
+async function settleKarmaRetryRefund(env, { id, userId }, model = KarmaDestinyAiConsultation, now = Date.now()) {
+  const owner = { id: clean(id, 180), userId: clean(userId) };
+  const fresh = await model.findOne(owner).lean();
+  const meta = fresh?.llmMeta;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || fresh.accessSource === "toss") return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
+  const requestId = clean(fresh.idempotencyKey, 180);
+  const reason = clean(meta.retryable.refundReason || "RETRY_REFUND", 80);
+  const pass = requestId ? await refundPassUseEvidence({ userId: owner.userId, featureKey: FEATURE_KEY, requestId, refundId: `karma-destiny-ai:${requestId}` }) : null;
+  let usageCancelled = false;
+  const billingState = asObject(fresh.billingState);
+  if (billingState.deferredUsage && !fresh.usageAppliedAt) {
+    const keys = [...new Set([requestId, clean(billingState.billingRequestId || fresh.billingRequestId, 180)].filter(Boolean))];
+    const paymentId = clean(billingState.paymentId || fresh.paymentId, 160);
+    const targets = [...keys.map(key => ({ requestId: key })), ...(objectIdLike(paymentId) ? [{ _id: paymentId }] : [])];
+    if (targets.length) {
+      const cancelled = await PaidExecutionRecord.updateOne({ userId: owner.userId, featureId: FEATURE_KEY, status: { $in: ["paid_pending_generation", "generating"] }, $or: targets },
+        { $set: { status: "generation_failed", error: { code: reason, message: "retry closed without delivery" } } });
+      usageCancelled = Boolean(cancelled?.modifiedCount);
+    }
+  }
+  await releaseRequestBillingEvidence(env, { userId: owner.userId, requestId, evidenceIds: startEvidenceIds(fresh) })
+    .catch(releaseError => logKarmaAi("Retry evidence release failed", { message: clean(releaseError?.message || releaseError, 300) }, "warn"));
+  const refundStatus = pass?.refunded === true ? "refunded" : usageCancelled ? "usage_cancelled" : "not_required";
+  await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+    "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": refundStatus } });
+  logStuckSettled({ service: "karma-destiny-ai", sessionId: owner.id, outcome: "retry_refund", refundStatus });
+  return { refundStatus };
+}
+// 환불 크론: 창이 지난 보류(다시 연 뒤 방치된 건 포함)를 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// 카르마는 generationProgress.lockedAt 으로 생성 중을 표시하므로 updatedAt 이 살아 있는 이어쓰기는 isLive 로 제외한다.
+export async function settleDueKarmaRetryRefunds(env, { now = Date.now(), model = KarmaDestinyAiConsultation, limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  const isLive = (doc, at) => ["generating", "partial"].includes(doc.status) && at - new Date(doc.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS;
+  try { await expireRetryableConsultations(model, now, { isLive }); }
+  catch { outcomes.push({ service: "karma-destiny-ai", refundStatus: "pending" }); }
+  const due = await model.find({ status: "generation_failed", "llmMeta.retryable": { $exists: true }, "llmMeta.refundEligibleAt": { $exists: true },
+    "llmMeta.retryable.refundSettledAt": { $exists: false }, accessSource: { $ne: "toss" }, userId: { $exists: true, $ne: null } })
+    .sort({ updatedAt: 1 }).limit(limit).select("id userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: "karma-destiny-ai", refundStatus: (await settleKarmaRetryRefund(env, doc, model, now)).refundStatus }); }
+    catch { outcomes.push({ service: "karma-destiny-ai", refundStatus: "pending" }); }
+  }
+  return outcomes;
+}
+
 export async function handleKarmaDestinyAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/karma-destiny-ai");
@@ -3229,6 +3366,8 @@ export async function handleKarmaDestinyAiRoutes(request, env = {}) {
     if (method === "POST" && path === "/generate-batch") return await handleGenerateBatch(request, env);
     if (method === "GET" && (path === "/result" || path.startsWith("/result/"))) return await handleResult(request, env, path);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

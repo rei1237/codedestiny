@@ -346,6 +346,7 @@ test('R7b: held retries show as retry_available with the service retry entry, ne
     expect(library.recordMetadata(recordService('vedic'),{id:'v1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/vedic-ai/result/?id=v1'});
     expect(library.recordMetadata(recordService('astrology'),{id:'a1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/astrology-ai/result/?id=a1'});
     expect(library.recordMetadata(recordService('ziwei'),{id:'z1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/ziwei-ai/?cid=z1'});
+    expect(library.recordMetadata(recordService('karma'),{id:'k1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/karma-destiny-ai/result/?sessionId=k1'});
   }finally{Date.now=realNow;}
   for(const field of ['llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
 });

@@ -1,5 +1,6 @@
 /** @jest-environment node */
 import { jest } from "@jest/globals";
+import sift from "sift";
 // Stress fixture: preserve multi-part storage/lease failures at the former batch width.
 // Production's one-part contract is covered by paid-llm-sequential.test.js.
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
@@ -8,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 운명의 업", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume, accessQueue, passOrder, withdrawn;
+let settleDue, recordCancel, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -32,7 +33,11 @@ const model = {
     if (docs.some(doc => doc.userId === fields.userId && doc.idempotencyKey === fields.idempotencyKey)) throw Object.assign(new Error("duplicate"), { code: 11000 });
     const doc = { ...clone(fields), createdAt: new Date(), updatedAt: new Date() }; docs.push(doc); return clone(doc);
   },
-  find: () => ({ sort() { return this; }, limit() { return this; }, select() { return this; }, lean: async () => [] }),
+  find: filter => {
+    const local = v => Object.prototype.toString.call(v) === "[object Date]" ? new Date(v.getTime()) : Array.isArray(v) ? v.map(local) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, local(x)])) : v;
+    const rows = JSON.stringify(filter || {}).includes("llmMeta") ? docs.filter(doc => sift(filter)(local(doc))) : [];
+    return { sort() { return this; }, limit() { return this; }, select() { return this; }, lean: async () => clone(rows) };
+  },
   findOneAndUpdate: (filter, update) => {
     if (fault && (fault.chapterCount ? update.$set.chapters?.length === fault.chapterCount : update.$set.status === fault.status)) {
       const current = fault; fault = null;
@@ -70,7 +75,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({ ...models, KarmaDestinyAiConsultation: model,
     User: { findById: () => query({ _id: uid, role: "user" }), findOne: () => query({ _id: uid, role: "user", status: withdrawn ? "withdrawn" : "active" }), updateOne: (...args) => refund(...args) },
     ServiceExecutionTransaction: { find: () => ({ sort() { return this; }, limit() { return this; }, lean: async () => [] }) },
-    PaidExecutionRecord: { findOne: filter => query(blocked === 0 ? {} : mode === "deferred" && filter.status.$in.includes("generating") ? { _id: uid, requestId: "original-paid-request", status: "generating", accessMethod: "pass" } : null) },
+    PaidExecutionRecord: { updateOne: async (...args) => { recordCancel(...args); return { modifiedCount: 1 }; }, findOne: filter => query(blocked === 0 ? {} : mode === "deferred" && filter.status.$in.includes("generating") ? { _id: uid, requestId: "original-paid-request", status: "generating", accessMethod: "pass" } : null) },
     Payment: { findOne: filter => query(filter.paymentType === "membership_pass" ? passOrder : blocked === 1 ? {} : mode === "paid" && filter.status.$in.includes("paid") ? { _id: uid, merchantUid: "payment" } : null), updateOne: async (...args) => usage(...args) },
     PointHistory: { findOne: () => query(blocked === 2 ? {} : null), updateOne: (...args) => refund(...args) },
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null), updateOne: (...args) => refund(...args) },
@@ -83,10 +88,10 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/routes/billing.js", () => ({ BILLING_SNAPSHOT_USER_PROJECTION: "id", handleBillingRoutes: async request => { const payload = await request.json(); if (request.url.endsWith("/cancel")) refund(payload); else usage(payload); return new Response(JSON.stringify({ ok: true })); } }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
-  ({ handleKarmaDestinyAiRoutes: route, __karmaDestinyAiTestUtils: utils } = await import("../../worker/routes/karma-destiny-ai.js"));
+  ({ handleKarmaDestinyAiRoutes: route, __karmaDestinyAiTestUtils: utils, settleDueKarmaRetryRefunds: settleDue } = await import("../../worker/routes/karma-destiny-ai.js"));
 });
 beforeEach(() => {
-  accessQueue = []; passOrder = null; withdrawn = false; docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
+  accessQueue = []; passOrder = null; withdrawn = false; docs = []; recordCancel = jest.fn(); fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
   provider = jest.fn(async (_env, prompt, options) => {
     expect(options.timeoutMs).toBe(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const id = options.cache.keyExtra.match(/chapter-(chapter-\d+)/)[1];
@@ -122,8 +127,8 @@ it("one interrupted chapter does not discard its successful siblings",async()=>{
 for(const store of [0,1,2,3]) it(`revoked store ${store} blocks resume before provider`,async()=>{ await start(); blocked=store; expect((await batch()).status).toBe(402); expect(provider).not.toHaveBeenCalled(); });
 // 2026-11-08 분량은 절대 전달을 막지 않는다: 짧아도 형식이 맞는 본문은 두 번째(마지막) 시도에서 다듬어 실린다.
 it("short valid output is delivered on the last attempt instead of failing",async()=>{await start(); provider.mockImplementation(async(_env,_prompt,options)=>({ok:true,text:JSON.stringify({content:`${options.cache.keyExtra.slice(-10)} 짧은 본문입니다.`})}));for(let i=0;i<12&&docs[0].status!=='completed';i++) expect((await batch()).status).not.toBe(503);expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(34);expect(refund).not.toHaveBeenCalled();});
-// 본문이 세 번 다 오지 않으면 그때만 실패·미과금으로 끝난다.
-it("a chapter that never returns text fails after three attempts and is never charged",async()=>{await start(); provider.mockImplementation(async()=>({ok:false}));for(let i=0;i<2;i++) expect((await batch()).status).toBe(202);expect((await batch()).status).toBe(503);expect(provider).toHaveBeenCalledTimes(12);expect(usage).not.toHaveBeenCalled();expect(passRefund).toHaveBeenCalledTimes(1);expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:"karma-destiny-ai-consultation",requestId:"original-paid-request"}));});
+// 본문이 세 번 다 오지 않으면 실패한다. 2026-11-20 R10: 환불 대신 7일 동안 무료 다시 시도로 보류한다(차감·환불 없음).
+it("a chapter that never returns text fails after three attempts and is never charged",async()=>{await start(); provider.mockImplementation(async()=>({ok:false}));for(let i=0;i<2;i++) expect((await batch()).status).toBe(202);const held=await batch();expect(held.status).toBe(503);expect(await held.json()).toMatchObject({reason:"LLM_ERROR",refunded:false,retry:{available:true}});expect(provider).toHaveBeenCalledTimes(12);expect(usage).not.toHaveBeenCalled();expect(passRefund).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();});
 it("late pass settlement denial still delivers the finished report",async()=>{
   const warn=jest.spyOn(console,"warn").mockImplementation(()=>{});
   mode="pass"; await start(); for(let i=0;i<3;i++) await batch(); consume.mockResolvedValue({covered:false,reason:"monthly_pass_limit_exceeded"});
@@ -247,4 +252,67 @@ for (const paid of ["paid", "monthly", "deferred"]) it(`${paid}: the same billin
   expect(reused.status).toBe(409); expect(await reused.json()).toMatchObject({ code: "EVIDENCE_ALREADY_USED" });
   expect(chart).toHaveBeenCalledTimes(1); expect(docs).toHaveLength(1);
   expect((await start()).status).not.toBe(409);
+});
+
+// 2026-11-20 R10 다시 시도 우선(사용자 결정 "7일간 차감 보류"): 실패는 7일 동안 무료 다시 시도로 보류한다.
+// 보류 중에는 이용권 복원·보류 차감 취소를 하지 않고, 다시 시도가 성공하면 차감을 확정한다. 환불 요청·7일 경과 때만 정리한다.
+describe("R10 retry-first hold", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const post = (path, sessionId) => route(new Request(`https://mock.test/api/karma-destiny-ai${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId }) }), {});
+  async function hold() {
+    await start(); const base = provider.getMockImplementation(); provider.mockImplementation(async () => ({ ok: false }));
+    for (let i = 0; i < 2; i++) await batch();
+    const held = await batch(); provider.mockImplementation(base); return held;
+  }
+  for (const paid of ["pass", "deferred"]) it(`${paid}: a held failure keeps billing and a free retry completes and confirms the charge`, async () => {
+    mode = paid; const held = await hold(); const payload = await held.json(); const id = docs[0].id;
+    expect(held.status).toBe(503);
+    expect(payload).toMatchObject({ ok: false, reason: "LLM_ERROR", refunded: false, sessionId: id, retry: { available: true, sessionId: id } });
+    expect(payload.retryable).toBeUndefined();
+    expect(new Date(payload.retry.refundAt).getTime()).toBe(new Date(docs[0].createdAt).getTime() + 7 * DAY);
+    expect(passRefund).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled(); expect(recordCancel).not.toHaveBeenCalled();
+    const result = await route(new Request(`https://mock.test/api/karma-destiny-ai/result?sessionId=${id}`), {});
+    expect(result.status).toBe(409); expect(await result.json()).toMatchObject({ status: "generation_failed", retry: { available: true } });
+    const again = await batch(); expect(again.status).toBe(409); expect(await again.json()).toMatchObject({ retry: { available: true } });
+    expect((await post("/retry", id)).status).toBe(202);
+    let last; for (let i = 0; i < 6 && last?.status !== 200; i++) last = await batch();
+    expect(last.status).toBe(200); expect(docs[0].status).toBe("completed");
+    expect(passRefund).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled(); expect(recordCancel).not.toHaveBeenCalled();
+    if (paid === "deferred") expect(usage).toHaveBeenCalledWith(expect.objectContaining({ requestId: "original-paid-request" }));
+  });
+  it("a refund request restores the pass once and closes the retry", async () => {
+    await hold(); const id = docs[0].id;
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ ok: true, refunded: true, refundStatus: "refunded" });
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ refundStatus: "refunded" });
+    expect(passRefund).toHaveBeenCalledTimes(1);
+    expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({ featureKey: "karma-destiny-ai-consultation", requestId: "original-paid-request" }));
+    const retry = await post("/retry", id); expect(retry.status).toBe(409); expect(await retry.json()).toMatchObject({ reason: "REFUND_STARTED" });
+  });
+  it("a refund request cancels the held deferred usage instead of charging it", async () => {
+    mode = "deferred"; passRefund.mockImplementation(async () => ({ refunded: false }));
+    await hold(); const id = docs[0].id;
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ ok: true, refunded: false, refundStatus: "usage_cancelled" });
+    expect(recordCancel).toHaveBeenCalledTimes(1);
+    expect(recordCancel.mock.calls[0][1]).toMatchObject({ $set: { status: "generation_failed" } });
+    expect(usage).not.toHaveBeenCalled();
+  });
+  it("a pass restore failure leaves the refund unsettled for the cron", async () => {
+    await hold(); const id = docs[0].id; passRefund.mockRejectedValueOnce(new Error("pass db down"));
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ ok: true, refunded: false });
+    expect(docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined();
+    expect(await settleDue({}, {})).toEqual([{ service: "karma-destiny-ai", refundStatus: "refunded" }]);
+    expect(passRefund).toHaveBeenCalledTimes(2);
+  });
+  it("the cron closes the hold after seven days and refunds once", async () => {
+    await hold();
+    expect(await settleDue({}, {})).toEqual([]); expect(passRefund).not.toHaveBeenCalled();
+    expect(await settleDue({}, { now: Date.now() + 8 * DAY })).toEqual([{ service: "karma-destiny-ai", refundStatus: "refunded" }]);
+    expect(docs[0].generationError.code).toBe("RETRY_WINDOW_EXPIRED"); expect(passRefund).toHaveBeenCalledTimes(1);
+    expect(await settleDue({}, { now: Date.now() + 9 * DAY })).toEqual([]); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
+  it("a calculation error keeps the immediate restore", async () => {
+    chart.mockImplementation(async () => { throw Object.assign(new Error("calc"), { code: "CALCULATION_ERROR" }); });
+    expect((await start()).status).toBe(422);
+    expect(docs[0].llmMeta.retryable).toBeUndefined(); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
 });
