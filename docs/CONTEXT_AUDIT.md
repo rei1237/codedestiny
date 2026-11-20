@@ -405,3 +405,10 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **해소**: 사용자 요청이 우선이다. 범위는 마스터 모션 래퍼(`app/components/master-motion/MasterMotion.tsx`)·ExpertCharacterStage·홈 `js/core/yehwa-home.mjs` 의 `mountMasterMotion` 으로 한정한다. transform·opacity 키프레임만, 꽃잎 8개 이하·pointer-events:none, 움직임 줄이기면 정지, 화면 안에서만 재생, JS 애니메이션 루프 없음. 다른 App Router 화면의 "Tailwind 만" 규칙은 그대로다.
 - **남은 위험**: 저사양 기기 합성 비용(꽃잎은 화면 안 래퍼에서만 돈다). 후속 그림(`motion` 필드)이 들어오면 용량·디코딩 비용을 다시 잰다.
 - **롤백**: `lib/master-motion/flags.mjs` 와 `js/core/yehwa-home.mjs` 의 `MASTER_MOTION_ENABLED` 를 false(끄면 감싸기 전과 같은 DOM) 또는 W4 커밋 `git revert`.
+
+## 2026-11-21 무료 사주 비회원 결과(W2) ↔ 2026-09-29 결과 전 로그인 벽(signup-result-gate)·guided-step-flow-spec D12 "분리"
+
+- **충돌**: 2026-09-29 무료 사주 결과를 로그인 뒤에만 보이게 했고(`docs/handoff/signup-result-gate-2026-09-29.md`), D12 는 해제를 별도 RED 로 분리했다. 2026-11-21 사용자가 AskUserQuestion 에서 "무료 결과만 비회원 (권장)"을 골랐다(로그인 없이 진행 요청, "서비스 기능에 회귀는 없어야해").
+- **해소**: 사용자 결정이 우선이다. 범위는 정적 셸 무료 사주(`js/saju-engine.js` `ensureSajuResultSession`)의 로그인 벽만. 개인정보 동의 모달·저장·상세(유료) 풀이·결제·이용권 로그인 요구는 그대로다. 결과는 클라이언트 계산(서버 인증·DB 쓰기 없음)임을 확인했다. 비회원 결과 뒤 로그인 모달은 같은 입력 초안으로 같은 결과에 돌아온다.
+- **남은 위험**: 회원가입 전환 감소, `fortune_login_required`(무료 사주) 발생이 거의 0, 코인·결제 401 내부 로그인 프롬프트(`_cdPromptLogin`)·AI 상담 `redirectToLoginForFortune` 은 결과 복귀 주소로 바뀌지 않는다.
+- **롤백**: `js/saju-engine.js` 와 `lib/guided-flow/flags.mjs` 의 `FREE_RESULT_GUEST_ENABLED=false`(+ `npm run sync:public`, 동기 테스트가 두 값 일치를 강제) 또는 W2 커밋 `git revert`.

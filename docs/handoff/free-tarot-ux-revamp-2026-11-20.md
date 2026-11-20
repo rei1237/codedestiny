@@ -272,3 +272,20 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
   - 미검증: perf:home 전후(dist 빌드 필요 — 이 작업에서는 돌리지 않음), 실기기 저사양 합성 비용.
 - 롤백: `lib/master-motion/flags.mjs`·`js/core/yehwa-home.mjs` 의 `MASTER_MOTION_ENABLED=false`(+ `npm run sync:public`) 또는 c038f3980 `git revert`.
 - 남은 위험: 저사양 기기 합성 비용; 꽃잎이 그려질 때 컴포지팅 레이어로 소개장 목록 글자 AA 가 서브픽셀→그레이스케일로 바뀜(가독성 영향 없음); 후속 그림이 들어오면 용량·디코딩 재측정.
+
+## W2 비회원 무료 결과 (2026-11-21)
+
+승인 원문(2026-11-21, AskUserQuestion): "무료 결과만 비회원 (권장)" — 무료 결과는 로그인 없이, 개인정보 동의 유지, 보관함 저장·유료 풀이는 로그인. 요청 원문: "서비스 기능에 회귀는 없어야해".
+
+- 커밋: W2 코드·미러 커밋과 이 기록 커밋(아래 git log 의 `feat(saju): W2 …` 다음).
+- 사전 확인: 정적 무료 사주 결과는 클라이언트 계산(KASI 공개 데이터, 서버 인증·DB 쓰기 없음). React `/saju/free/`(FreeSajuGuided·computeFreeSaju)는 원래 비회원 사용 가능.
+- 구현: `js/saju-engine.js` `var FREE_RESULT_GUEST_ENABLED = true;` + `lib/guided-flow/flags.mjs` 같은 이름 상수(단위 테스트가 두 값 일치 강제). `ensureSajuResultSession` 은 세션 확인(`/api/auth/me`)을 그대로 하고, 켬이면 guest·unavailable 도 통과. 비회원 결과 뒤엔 `guestResult` 표시가 붙은 입력 초안(기존 `cd:saju-login-draft:v1`, 1시간)을 남기고, 결과가 보이는 동안 열리는 공용 로그인 모달(`__cdOpenLoginRequiredModal`)의 복귀 주소를 `?action=cdOneStepFreeSajuEntry` 로 바꿔 로그인 뒤 같은 결과를 다시 계산해 보여 준다(돌아온 비회원에게는 안내 문구 없이 입력만 복원). `free_saju_started.signed_in` 은 실제 세션 상태. 저장·상세·유료 잠금(`_dpGateLockFeature`, unlockPremiumFeature, 결제창)은 손대지 않음.
+- 문구: `FreeFortune.tsx`, `/yeongnyangi/1000-won-fortune/`, `/compare/fortune-apps/` 의 "로그인 후 결과" 문구를 플래그 조건으로 바꿈.
+- 검증(실측):
+  - 단위 `__tests__/ui/saju-result-login.test.mjs` 14/14(플래그 끔 기존 7건 그대로 + 켬 7건).
+  - E2E `npm run verify:saju-result-login`(CI 배선 유지): 끔 360/390/430/1280 로그인 벽·취소 복원·mock 로그인 재개 그대로, 켬 360/960 비회원 결과 표시·초안 `guestResult`·로그인 모달→`next` 에 action→복귀 뒤 같은 결과·초안 삭제.
+  - visual-checker(쿠키 배너 닫음, 360·960 전후 8장) 전부 PASS: 끔 로그인 모달 잘림 없음, 켬 비회원 결과 카드·탭·코스믹 영역이 끔(mock 로그인 재개) 결과와 같은 레이아웃, 모달·배너·가로 넘침 없음, 로그인 복귀 뒤 같은 결과. 첫 캡처는 로딩 오버레이(결과 표시 뒤 약 2초) 중에 찍혀 실패 → E2E 대기 조건을 상태 문구·오버레이 해제까지로 고쳐 재캡처.
+  - diff 경계: 결제·이용권·보관함·워커·인증·라우팅 파일 변경 없음.
+  - SEO: 결과는 비공개 상태 화면이라 noindex/robots 변경 없음. 공개 페이지 문구 2곳만 바뀜(title·description·H1·canonical 불변). `/compare/fortune-apps/` 의 `SEO_SERVICE_SCOPES_UPDATED` 날짜는 올리지 않음.
+- 롤백: 두 상수 `FREE_RESULT_GUEST_ENABLED=false` + `npm run sync:public`(끄면 초안 형식·이벤트·모달이 이전과 같음) 또는 W2 커밋 `git revert`.
+- 남은 위험: 회원가입 전환 감소; 무료 사주 `fortune_login_required` 가 거의 0(docs/analytics-kpi.md 에 기록); 코인·결제 401 내부 `_cdPromptLogin`·AI 상담 `redirectToLoginForFortune` 은 결과 복귀 주소로 바뀌지 않음(원래 주소로 복귀); mock 환경 결과 화면 하단 "일시적인 오류" 토스트는 플래그 끔에서도 동일(기존, W2 무관 — 미조사).
