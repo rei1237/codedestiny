@@ -6513,9 +6513,9 @@ function buildZwYearlyFlowDeepHtml(pd, nowYearArg) {
   } catch (_yearErr) { return ''; }
 }
 var ZW_FLOW_MONTH_ACTION = {
-  careful: ['계약·지출·감정 표현은 하루를 더 두고 확인하세요.', '이 달은 새 약속보다 기존 약속의 마무리가 먼저예요.', '큰 결정은 다음 달로 미루고 기록과 점검에 쓰세요.'],
-  high: ['공개·제안·확장 중 한 가지는 반드시 실행하세요.', '미뤄 둔 연락과 제안을 이 달 안에 꺼내 보세요.', '열린 문 앞에서 머뭇거리지 말고 작게라도 먼저 움직이세요.'],
-  steady: ['작은 루틴 하나를 매일 반복하면 운이 안정돼요.', '무리한 확장 없이 지금 하는 일의 질을 올리세요.', '이 달은 정리와 준비에 쓰면 다음 달이 가벼워져요.']
+  careful: ['계약·지출·감정 표현은 하루를 더 두고 확인하세요.', '이 달은 새 약속보다 기존 약속의 마무리가 먼저예요.', '큰 결정은 다음 달로 미루고 기록과 점검에 쓰세요.', '서명하기 전에 조건을 한 번 소리 내어 읽어 보세요.', '말이 앞서는 달이라 중요한 이야기는 글로 정리해서 전하세요.', '충동 지출은 장바구니에 하루 묵혀 두었다가 결정하세요.'],
+  high: ['공개·제안·확장 중 한 가지는 반드시 실행하세요.', '미뤄 둔 연락과 제안을 이 달 안에 꺼내 보세요.', '열린 문 앞에서 머뭇거리지 말고 작게라도 먼저 움직이세요.', '이 달에 시작한 일은 다음 분기까지 힘이 이어져요. 첫 단추를 끼우세요.', '도움을 청하기 좋은 달이에요. 필요한 사람에게 먼저 부탁해 보세요.', '성과를 숨기지 말고 한 번은 눈에 보이게 내놓으세요.'],
+  steady: ['작은 루틴 하나를 매일 반복하면 운이 안정돼요.', '무리한 확장 없이 지금 하는 일의 질을 올리세요.', '이 달은 정리와 준비에 쓰면 다음 달이 가벼워져요.', '몸의 리듬부터 맞추세요. 잠과 식사가 흔들리면 판단도 흔들려요.', '새로 벌이기보다 이미 가진 관계를 한 번씩 안부로 챙기세요.', '작은 성취를 기록해 두면 흐름이 바뀔 때 기준점이 돼요.']
 };
 function zwFlowNames(list) {
   return (list || []).map(function (s) { return s && s.name; }).filter(Boolean);
@@ -6595,7 +6595,7 @@ function zwFlowMonthCard(pd, mo, sig, oly, ctx) {
       + '<div style="min-width:0;font-size:0.74rem;line-height:1.6;color:#e2e8f0;"><b>' + zwDeepEsc(m.star) + '</b> → ' + zwDeepEsc(m.palace) + (m.idx === mo.idx ? ' <span style="color:#fde68a;">· 이 달의 궁</span>' : '') + '<br>' + zwDeepEsc(sentence) + '</div></div>';
   });
   var actionKind = sig.careful ? 'careful' : (sig.score >= 78 ? 'high' : 'steady');
-  var action = ZW_FLOW_MONTH_ACTION[actionKind][(mo.month - 1) % 3];
+  var action = ZW_FLOW_MONTH_ACTION[actionKind][(mo.month - 1) % 6];
   var olyLine = oly ? zwOlympusLine(oly) : '';
   return '<article style="background:rgba(15,23,42,0.58);border:1px solid rgba(196,181,253,0.22);border-radius:11px;padding:11px 12px;box-shadow:0 8px 20px rgba(0,0,0,0.2);">'
     + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px;">'
@@ -6613,7 +6613,7 @@ function zwFlowMonthCard(pd, mo, sig, oly, ctx) {
     + '<details style="margin-top:9px;border-top:1px solid rgba(148,163,184,0.18);padding-top:8px;"><summary style="cursor:pointer;color:#fde68a;font-weight:900;font-size:0.78rem;">' + mo.month + '월 세부 운기 펼치기</summary>'
       + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;margin-top:8px;">' + zwFlowDomainHtml(sig) + '</div>'
       + '<div style="font-size:0.76rem;color:#dbeafe;line-height:1.7;margin-top:8px;">'
-        + '<b style="color:#fca5a5;">주의 신호:</b> ' + zwDeepEsc(sig.bad.length ? sig.bad.slice(0, 3).join(' · ') + '의 그림자가 있어요.' : '큰 흉성 압박은 약해요.')
+        + '<b style="color:#fca5a5;">주의 신호:</b> ' + zwDeepEsc(sig.bad.length ? sig.bad.slice(0, 3).join(' · ') + '의 그림자가 있어요.' : ['큰 흉성 압박은 약해요.', '눈에 띄는 흉성 부담은 적어요.', '이 달 자리에 걸린 살성이 많지 않아요.'][(mo.month - 1) % 3])
       + '</div></details>'
   + '</article>';
 }
