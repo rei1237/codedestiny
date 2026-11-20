@@ -342,6 +342,8 @@ test('R7b: held retries show as retry_available with the service retry entry, ne
     expect(library.recordMetadata(heukwol,pending)).toMatchObject({status:'retry_available',recoveryHref:'/heukwol/?result=heukwol%3Aheld'});
     expect(library.recordMetadata(recordService('tea'),{resultId:'t1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/fortune-tea-house/?recoverResultId=t1'});
     expect(library.recordMetadata(recordService('neo'),{id:'n1',...llmHeld()}).recoveryHref).toBe('/neo-operation-room/result/?attemptId=n1');
+    // R10 전문가 상담: 베다점 보류 건은 결과 화면(다시 시도·환불 요청 버튼)으로 간다.
+    expect(library.recordMetadata(recordService('vedic'),{id:'v1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/vedic-ai/result/?id=v1'});
   }finally{Date.now=realNow;}
   for(const field of ['llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
 });

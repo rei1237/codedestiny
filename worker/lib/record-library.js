@@ -34,7 +34,7 @@ const titleFields = ['title', 'result.title', 'result.sessionTitle', 'initialBri
 const futureAt = (value, now) => new Date(value ?? NaN).getTime() > now;
 /**
  * R7b(2026-11-20): 결제 건이 추가 결제·차감 없이 다시 시도할 수 있는 보류 상태인가. 각 서비스 라우트의 판정과 같다 —
- * 연애 비책·인생의 책·신년·네오·찻집은 generation_failed + llmMeta.retryable, 흑월은 pending + metadata.retryable,
+ * 연애 비책·인생의 책·신년·네오·찻집·전문가 상담(R10: 베다점 …)은 generation_failed + llmMeta.retryable, 흑월은 pending + metadata.retryable,
  * 마스터 인연의 서는 generation_failed + deliveryMeta.reviewReason RETRY_AVAILABLE. 표지 없음·환불 시작·고객 환불 요청·
  * 닫힘·창(refundAt) 경과는 false(fail-closed: 기존 실패·생성 중·환불 표시로 남는다).
  */
