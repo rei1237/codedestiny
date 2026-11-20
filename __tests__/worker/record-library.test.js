@@ -107,7 +107,7 @@ test('Sibyl archives preserve old years and incomplete recovery stays with its o
 test('coverage: every owned consultation model and raw result store is registered',async()=>{
   const {RECORD_SERVICES}=await import('../../lib/records/service-registry.js');
   expect(new Set(RECORD_SERVICES.map(source=>source.id)).size).toBe(RECORD_SERVICES.length);
-  const required=['NewYearAiConsultation','KarmaDestinyAiConsultation','ZiweiAiConsultation','ZiweiDeepReport','LoveSecretAiConsultation','MasterLoveCodexSession','LifeBookAiConsultation','SukuyoCompatibilityAiConsultation','VedicAiConsultation','AstrologyAiConsultation','NeoOperationRoomConsultation','NakshatraAiConsultation','HumanDesignCalculation','HumanDesignInterpretation','HumanDesignReport','DestinyCompassReport','RelationshipBoundaryTest','FortuneChatSession','FusionFortuneConsultation','ServiceExecutionTransaction','PaidExecutionRecord','Payment'];
+  const required=['NewYearAiConsultation','KarmaDestinyAiConsultation','ZiweiAiConsultation','ZiweiDeepReport','LoveSecretAiConsultation','MasterLoveCodexSession','LifeBookAiConsultation','SukuyoCompatibilityAiConsultation','SajuCompatPremiumConsultation','VedicAiConsultation','AstrologyAiConsultation','NeoOperationRoomConsultation','NakshatraAiConsultation','HumanDesignCalculation','HumanDesignInterpretation','HumanDesignReport','DestinyCompassReport','RelationshipBoundaryTest','FortuneChatSession','FusionFortuneConsultation','ServiceExecutionTransaction','PaidExecutionRecord','Payment'];
   const excludedFreeModels=['DestinyBiasCard'];
   expect(RECORD_SERVICES.some(source=>source.model==='DestinyBiasCard')).toBe(false);
   expect(new Set(RECORD_SERVICES.filter(source=>source.model).map(source=>source.model))).toEqual(new Set(required));

@@ -602,6 +602,7 @@ const CHECKPOINT_RESUME_MODELS = Object.freeze({
   "love-secret-ai": "LoveSecretAiConsultation",
   "life-book-ai": "LifeBookAiConsultation",
   "new-year-ai": "NewYearAiConsultation",
+  "saju-compat-premium": "SajuCompatPremiumConsultation",
   "sukuyo-compatibility-ai": "SukuyoCompatibilityAiConsultation",
   "neo-operation-room": "NeoOperationRoomConsultation",
   "naming-prompt": "PaidExecutionRecord",

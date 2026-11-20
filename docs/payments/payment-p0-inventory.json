@@ -4965,6 +4965,30 @@
       "status": "EXECUTION_ADAPTER_TESTED; SERVICE_E2E_UNVERIFIED"
     },
     {
+      "productId": "saju-compat-premium",
+      "featureKey": "saju-compat-premium",
+      "billingType": "per_use",
+      "priceKRW": 10000,
+      "priceCoins": 100,
+      "monthlyCost": 1000,
+      "label": "사주 고급 궁합",
+      "passExcluded": false,
+      "directOnly": false,
+      "familyPassOnly": false,
+      "consultationFunded": false,
+      "monthlyExcluded": false,
+      "allowedPaymentMethods": [
+        "PASS",
+        "DIRECT_KRW",
+        "MOONLIGHT_STONE"
+      ],
+      "lightFortune": false,
+      "sources": [
+        "worker/lib/paid-feature-registry.js"
+      ],
+      "status": "EXECUTION_ADAPTER_TESTED; SERVICE_E2E_UNVERIFIED"
+    },
+    {
       "productId": "relationship-boundary-test",
       "featureKey": "relationship-boundary-test",
       "billingType": "per_use",
@@ -51092,7 +51116,7 @@
     },
     {
       "file": "worker/lib/paid-feature-registry.js",
-      "sha256": "7e04ff9ad8f31126edbb4816474d4b86a50ff22adf7f9311c42e84016ab060f1",
+      "sha256": "9bbc64e1c8c14dc38bd61581d827e882fb733dc210dd0a870180b0eed7050dfc",
       "route": null,
       "frontendType": null,
       "features": [
@@ -51365,1459 +51389,1455 @@
           "line": 120
         },
         {
-          "key": "relationship-boundary-test",
+          "key": "saju-compat-premium",
           "line": 121
         },
         {
-          "key": "master-love-codex",
+          "key": "relationship-boundary-test",
           "line": 122
         },
         {
-          "key": "master-love-codex-compat",
+          "key": "master-love-codex",
           "line": 123
         },
         {
-          "key": "karma-destiny-ai-consultation",
+          "key": "master-love-codex-compat",
           "line": 124
         },
         {
-          "key": "premium-sibyl-dominator",
+          "key": "karma-destiny-ai-consultation",
           "line": 125
         },
         {
-          "key": "ziwei-ai-consultation",
+          "key": "premium-sibyl-dominator",
           "line": 126
         },
         {
-          "key": "ziwei-island-deep-report",
+          "key": "ziwei-ai-consultation",
           "line": 127
         },
         {
-          "key": "ziwei-island-palace-consult",
+          "key": "ziwei-island-deep-report",
           "line": 128
         },
         {
-          "key": "ziwei_decade_luck",
+          "key": "ziwei-island-palace-consult",
           "line": 129
         },
         {
-          "key": "ziwei_love_deep",
+          "key": "ziwei_decade_luck",
           "line": 130
         },
         {
-          "key": "ziwei_twelve_palaces",
+          "key": "ziwei_love_deep",
           "line": 131
         },
         {
-          "key": "ziwei_symbolic_layer",
+          "key": "ziwei_twelve_palaces",
           "line": 132
         },
         {
-          "key": "ziwei_life_yearly_flow",
+          "key": "ziwei_symbolic_layer",
           "line": 133
         },
         {
-          "key": "premium-fpti-report",
+          "key": "ziwei_life_yearly_flow",
           "line": 134
         },
         {
-          "key": "premium-naming-prompt",
+          "key": "premium-fpti-report",
           "line": 135
         },
         {
-          "key": "premium-sukuyo-compat-extra",
-          "line": 137
+          "key": "premium-naming-prompt",
+          "line": 136
         },
         {
-          "key": "profile-card-manage",
+          "key": "premium-sukuyo-compat-extra",
           "line": 138
         },
         {
-          "key": "rpt_specialCharmCard",
+          "key": "profile-card-manage",
           "line": 139
         },
         {
-          "key": "rpt_quantumCard",
+          "key": "rpt_specialCharmCard",
           "line": 140
         },
         {
-          "key": "rpt_healthReportCard",
+          "key": "rpt_quantumCard",
           "line": 141
         },
         {
-          "key": "rpt_skillTreeCard",
+          "key": "rpt_healthReportCard",
           "line": 142
         },
         {
-          "key": "rpt_energyCoordCard",
+          "key": "rpt_skillTreeCard",
           "line": 143
         },
         {
-          "key": "rpt_villainCard",
+          "key": "rpt_energyCoordCard",
           "line": 144
         },
         {
-          "key": "rpt_secretHouseEntryCard",
+          "key": "rpt_villainCard",
           "line": 145
         },
         {
-          "key": "fun.quantumLotto.ritualReport",
+          "key": "rpt_secretHouseEntryCard",
           "line": 146
         },
         {
-          "key": "pet-saju-ai-consultation",
+          "key": "fun.quantumLotto.ritualReport",
           "line": 147
         },
         {
-          "key": "pet-compatibility-ai",
+          "key": "pet-saju-ai-consultation",
           "line": 148
         },
         {
+          "key": "pet-compatibility-ai",
+          "line": 149
+        },
+        {
           "key": "neville-meditation",
-          "line": 172
+          "line": 173
         },
         {
           "key": "cosmic-soul-meditation",
-          "line": 180
+          "line": 181
         },
         {
           "key": "yoga-guru-per-use",
-          "line": 184
+          "line": 185
         },
         {
           "key": "stonehenge-runes-ai-prompt",
-          "line": 188
+          "line": 189
         },
         {
           "key": "vedic-ai-consultation",
-          "line": 237
-        },
-        {
-          "key": "physiognomy-compatibility",
           "line": 238
         },
         {
-          "key": "physiognomy-pastlife-compatibility",
+          "key": "physiognomy-compatibility",
           "line": 239
         },
         {
-          "key": "physiognomy-ogwan-mole-deep",
+          "key": "physiognomy-pastlife-compatibility",
           "line": 240
         },
         {
-          "key": "tarot-year-fortune",
+          "key": "physiognomy-ogwan-mole-deep",
           "line": 241
         },
         {
-          "key": "tarot-love-relationship",
+          "key": "tarot-year-fortune",
           "line": 242
         },
         {
-          "key": "tarot-reunion-reading",
+          "key": "tarot-love-relationship",
           "line": 243
         },
         {
-          "key": "tarot-myeongri-three-card",
-          "line": 245
+          "key": "tarot-reunion-reading",
+          "line": 244
         },
         {
-          "key": "tarot-mindscan",
+          "key": "tarot-myeongri-three-card",
           "line": 246
         },
         {
-          "key": "tarot-celestial-harmony",
+          "key": "tarot-mindscan",
           "line": 247
         },
         {
-          "key": "tarot-crystal-soul-reading",
+          "key": "tarot-celestial-harmony",
           "line": 248
         },
         {
-          "key": "tarot-numerology-reading",
+          "key": "tarot-crystal-soul-reading",
           "line": 249
         },
         {
-          "key": "tarot-prompt-maker",
-          "line": 254
+          "key": "tarot-numerology-reading",
+          "line": 250
         },
         {
-          "key": "tarot-prompt-maker-standard",
+          "key": "tarot-prompt-maker",
           "line": 255
         },
         {
-          "key": "tarot-prompt-maker-deep",
+          "key": "tarot-prompt-maker-standard",
           "line": 256
         },
         {
-          "key": "tarot-prompt-maker-master",
+          "key": "tarot-prompt-maker-deep",
           "line": 257
         },
         {
-          "key": "maya-prompt-generator",
+          "key": "tarot-prompt-maker-master",
           "line": 258
         },
         {
-          "key": "tarot-ijik",
+          "key": "maya-prompt-generator",
           "line": 259
         },
         {
-          "key": "royal-tea-oracle",
+          "key": "tarot-ijik",
           "line": 260
         },
         {
-          "key": "ifa-oracle",
+          "key": "royal-tea-oracle",
           "line": 261
         },
         {
-          "key": "neville-meditation",
+          "key": "ifa-oracle",
           "line": 262
         },
         {
-          "key": "cosmic-soul-meditation",
+          "key": "neville-meditation",
           "line": 263
         },
         {
-          "key": "dream-psycho-analysis",
+          "key": "cosmic-soul-meditation",
           "line": 264
         },
         {
-          "key": "yoga-guru-per-use",
+          "key": "dream-psycho-analysis",
           "line": 265
         },
         {
-          "key": "fortune-tea-house-tarot-consultation",
+          "key": "yoga-guru-per-use",
           "line": 266
         },
         {
-          "key": "fortune-tea-house-tarot-five-consultation",
+          "key": "fortune-tea-house-tarot-consultation",
           "line": 267
         },
         {
-          "key": "fortune-tea-house-saju-consultation",
+          "key": "fortune-tea-house-tarot-five-consultation",
           "line": 268
         },
         {
-          "key": "fortune-tea-house-saju-joint-consultation",
+          "key": "fortune-tea-house-saju-consultation",
           "line": 269
         },
         {
-          "key": "fortune-tea-house-saju-compatibility-consultation",
+          "key": "fortune-tea-house-saju-joint-consultation",
           "line": 270
         },
         {
-          "key": "fortune-tea-house-sukuyo-compatibility-consultation",
+          "key": "fortune-tea-house-saju-compatibility-consultation",
           "line": 271
         },
         {
-          "key": "sukuyo-symbolic-comparison",
+          "key": "fortune-tea-house-sukuyo-compatibility-consultation",
           "line": 272
         },
         {
-          "key": "sukuyo-extreme-t-relationship",
+          "key": "sukuyo-symbolic-comparison",
           "line": 273
         },
         {
-          "key": "sukuyo-relationship-encyclopedia",
+          "key": "sukuyo-extreme-t-relationship",
           "line": 274
         },
         {
-          "key": "sukuyo-nature-deep-dive",
+          "key": "sukuyo-relationship-encyclopedia",
           "line": 275
         },
         {
-          "key": "sukuyo-past-life-reading",
+          "key": "sukuyo-nature-deep-dive",
           "line": 276
         },
         {
-          "key": "sukuyo-monthly-fortune",
+          "key": "sukuyo-past-life-reading",
           "line": 277
         },
         {
-          "key": "sukuyo-compatibility-ai",
+          "key": "sukuyo-monthly-fortune",
           "line": 278
         },
         {
-          "key": "sukyo_yearly_fortune_unlock",
+          "key": "sukuyo-compatibility-ai",
           "line": 279
         },
         {
-          "key": "compat-astro-synastry",
+          "key": "sukyo_yearly_fortune_unlock",
           "line": 280
         },
         {
-          "key": "compat-astro-direct-synastry",
+          "key": "compat-astro-synastry",
           "line": 281
         },
         {
-          "key": "compat-ziwei-compatibility",
+          "key": "compat-astro-direct-synastry",
           "line": 282
         },
         {
-          "key": "compat-saju-compatibility",
+          "key": "compat-ziwei-compatibility",
           "line": 283
         },
         {
-          "key": "compat-sukuyo-compatibility",
+          "key": "compat-saju-compatibility",
           "line": 284
         },
         {
-          "key": "vedic-compatibility-per-use",
+          "key": "compat-sukuyo-compatibility",
           "line": 285
         },
         {
-          "key": "nakshatra-compat",
+          "key": "vedic-compatibility-per-use",
           "line": 286
         },
         {
-          "key": "nakshatra-ai-consultation",
+          "key": "nakshatra-compat",
           "line": 287
         },
         {
-          "key": "nakshatra-muhurta",
+          "key": "nakshatra-ai-consultation",
           "line": 288
         },
         {
-          "key": "nakshatra-vvip-codex",
+          "key": "nakshatra-muhurta",
           "line": 289
         },
         {
+          "key": "nakshatra-vvip-codex",
+          "line": 290
+        },
+        {
           "key": "human-design-chart",
-          "line": 292
+          "line": 293
         },
         {
           "key": "human-design-report",
-          "line": 295
-        },
-        {
-          "key": "destiny-compass-crossroads",
           "line": 296
         },
         {
-          "key": "destiny-compass-life-voyage",
+          "key": "destiny-compass-crossroads",
           "line": 297
         },
         {
-          "key": "destiny-compass-future-sim",
+          "key": "destiny-compass-life-voyage",
           "line": 298
         },
         {
-          "key": "destiny-compass-deep-report",
+          "key": "destiny-compass-future-sim",
           "line": 299
         },
         {
-          "key": "pet-saju-ai-consultation",
+          "key": "destiny-compass-deep-report",
           "line": 300
         },
         {
-          "key": "pet-compatibility-ai",
+          "key": "pet-saju-ai-consultation",
           "line": 301
         },
         {
+          "key": "pet-compatibility-ai",
+          "line": 302
+        },
+        {
           "key": "egyptian_oracle_ai_prompt",
-          "line": 308
+          "line": 309
         },
         {
           "key": "stonehenge-runes-single",
-          "line": 311
-        },
-        {
-          "key": "stonehenge-runes-triad",
           "line": 312
         },
         {
-          "key": "stonehenge-runes-deep",
+          "key": "stonehenge-runes-triad",
           "line": 313
         },
         {
-          "key": "stonehenge-runes-yearly",
+          "key": "stonehenge-runes-deep",
           "line": 314
         },
         {
-          "key": "stonehenge-runes-ai-prompt",
+          "key": "stonehenge-runes-yearly",
           "line": 315
         },
         {
-          "key": "animal-totem-basic",
+          "key": "stonehenge-runes-ai-prompt",
           "line": 316
         },
         {
-          "key": "animal-totem-deep",
+          "key": "animal-totem-basic",
           "line": 317
         },
         {
-          "key": "animal-destiny-unlock",
+          "key": "animal-totem-deep",
           "line": 318
         },
         {
-          "key": "saju-guardian-unlock",
+          "key": "animal-destiny-unlock",
           "line": 319
         },
         {
-          "key": "daily-fortune-reading",
+          "key": "saju-guardian-unlock",
           "line": 320
         },
         {
-          "key": "fortune-prompt-hub-generate",
-          "line": 322
+          "key": "daily-fortune-reading",
+          "line": 321
         },
         {
-          "key": "dream-prompt-generator",
+          "key": "fortune-prompt-hub-generate",
           "line": 323
         },
         {
-          "key": "psychotest-reading",
+          "key": "dream-prompt-generator",
           "line": 324
         },
         {
-          "key": "mbti-animal-compat",
+          "key": "psychotest-reading",
           "line": 325
         },
         {
-          "key": "nakshatra-basic-reading",
+          "key": "mbti-animal-compat",
           "line": 326
         },
         {
-          "key": "destiny-bias-analyze",
+          "key": "nakshatra-basic-reading",
           "line": 327
         },
         {
-          "key": "palm-reading-general",
-          "line": 333
+          "key": "destiny-bias-analyze",
+          "line": 328
         },
         {
-          "key": "palm-reading-ai-consult",
+          "key": "palm-reading-general",
           "line": 334
         },
         {
-          "key": "life-book-ai-consultation",
+          "key": "palm-reading-ai-consult",
           "line": 335
         },
         {
-          "key": "life-fortune-ai-consultation",
-          "line": 337
+          "key": "life-book-ai-consultation",
+          "line": 336
         },
         {
-          "key": "astrology-ai-consultation",
+          "key": "life-fortune-ai-consultation",
           "line": 338
         },
         {
-          "key": "neo-operation-room-consultation",
+          "key": "astrology-ai-consultation",
           "line": 339
         },
         {
-          "key": "heukwol-warning-consultation",
+          "key": "neo-operation-room-consultation",
           "line": 340
         },
         {
-          "key": "neo-email-consultation",
+          "key": "heukwol-warning-consultation",
           "line": 341
         },
         {
-          "key": "saju_ai_question_prompt",
+          "key": "neo-email-consultation",
           "line": 342
         },
         {
-          "key": "ziwei_ai_prompt_generator",
+          "key": "saju_ai_question_prompt",
           "line": 343
         },
         {
-          "key": "astrology_ai_prompt_generator",
+          "key": "ziwei_ai_prompt_generator",
           "line": 344
         },
         {
-          "key": "vedic_ai_prompt_generator",
+          "key": "astrology_ai_prompt_generator",
           "line": 345
         },
         {
-          "key": "sukuyo_ai_prompt_generator",
+          "key": "vedic_ai_prompt_generator",
           "line": 346
         },
         {
-          "key": "vedic_prashna_prompt",
+          "key": "sukuyo_ai_prompt_generator",
           "line": 347
         },
         {
-          "key": "vedic_basic_reading",
-          "line": 351
+          "key": "vedic_prashna_prompt",
+          "line": 348
         },
         {
-          "key": "astro_career_talent_deep",
+          "key": "vedic_basic_reading",
           "line": 352
         },
         {
-          "key": "astro_talent_attraction_deep",
+          "key": "astro_career_talent_deep",
           "line": 353
         },
         {
-          "key": "astro_relationship_deep",
+          "key": "astro_talent_attraction_deep",
           "line": 354
         },
         {
-          "key": "astro_growth_shadow_deep",
+          "key": "astro_relationship_deep",
           "line": 355
         },
         {
-          "key": "astro_basic_deep_pack",
+          "key": "astro_growth_shadow_deep",
           "line": 356
         },
         {
-          "key": "astro_stellar_career_room",
+          "key": "astro_basic_deep_pack",
           "line": 357
         },
         {
-          "key": "astro_stellar_talent_room",
+          "key": "astro_stellar_career_room",
           "line": 358
         },
         {
-          "key": "astro_stellar_relationship_room",
+          "key": "astro_stellar_talent_room",
           "line": 359
         },
         {
-          "key": "astro_stellar_growth_room",
+          "key": "astro_stellar_relationship_room",
           "line": 360
         },
         {
-          "key": "astro_monthly_transit",
+          "key": "astro_stellar_growth_room",
           "line": 361
         },
         {
-          "key": "astro_yearly_transit",
+          "key": "astro_monthly_transit",
           "line": 362
         },
         {
-          "key": "new-year-ai-consultation",
+          "key": "astro_yearly_transit",
           "line": 363
         },
         {
-          "key": "love-secret-ai-consultation",
+          "key": "new-year-ai-consultation",
           "line": 364
         },
         {
-          "key": "love-code",
+          "key": "love-secret-ai-consultation",
           "line": 365
         },
         {
-          "key": "relationship-boundary-test",
-          "line": 368
-        },
-        {
-          "key": "master-love-codex",
-          "line": 373
-        },
-        {
-          "key": "master-love-codex-compat",
-          "line": 374
-        },
-        {
-          "key": "ziwei-ai-consultation",
-          "line": 375
-        },
-        {
-          "key": "ziwei-island-palace-consult",
-          "line": 377
-        },
-        {
-          "key": "ziwei-island-deep-report",
-          "line": 379
-        },
-        {
-          "key": "ziwei-deep-pdf",
-          "line": 381
-        },
-        {
-          "key": "karma-destiny-ai-consultation",
-          "line": 382
-        },
-        {
-          "key": "fortune-chat-consultation",
-          "line": 385
-        },
-        {
-          "key": "fusion-fortune-consultation",
-          "line": 393
-        },
-        {
-          "key": "premium-sibyl-dominator",
-          "line": 394
-        },
-        {
-          "key": "ziwei_decade_luck",
-          "line": 395
-        },
-        {
-          "key": "ziwei_love_deep",
-          "line": 396
-        },
-        {
-          "key": "ziwei_twelve_palaces",
-          "line": 397
-        },
-        {
-          "key": "ziwei_symbolic_layer",
-          "line": 398
-        },
-        {
-          "key": "ziwei_life_yearly_flow",
-          "line": 399
-        },
-        {
-          "key": "premium-fpti-report",
-          "line": 400
-        },
-        {
-          "key": "premium-naming-prompt",
-          "line": 402
-        },
-        {
-          "key": "premium-sukuyo-compat-extra",
-          "line": 403
-        },
-        {
-          "key": "profile-card-manage",
-          "line": 406
-        },
-        {
-          "key": "fun.quantumLotto.ritualReport",
-          "line": 416
-        },
-        {
-          "key": "saju-guardian-unlock",
-          "line": 536
-        },
-        {
-          "key": "tetogen_deep_report",
-          "line": 537
-        },
-        {
-          "key": "ziwei_decade_luck",
-          "line": 540
-        },
-        {
-          "key": "ziwei_love_deep",
-          "line": 541
-        },
-        {
-          "key": "ziwei_twelve_palaces",
-          "line": 542
-        },
-        {
-          "key": "ziwei_symbolic_layer",
-          "line": 543
-        },
-        {
-          "key": "ziwei_life_yearly_flow",
-          "line": 544
-        },
-        {
-          "key": "vedic_basic_reading",
-          "line": 547
-        },
-        {
-          "key": "physiognomy-compatibility",
-          "line": 601
-        },
-        {
-          "key": "physiognomy-pastlife-compatibility",
-          "line": 602
-        },
-        {
-          "key": "physiognomy-ogwan-mole-deep",
-          "line": 603
-        },
-        {
-          "key": "tarot-year-fortune",
-          "line": 604
-        },
-        {
-          "key": "tarot-love-relationship",
-          "line": 605
-        },
-        {
-          "key": "tarot-reunion-reading",
-          "line": 606
-        },
-        {
-          "key": "tarot-myeongri-three-card",
-          "line": 607
-        },
-        {
-          "key": "tarot-mindscan",
-          "line": 608
-        },
-        {
-          "key": "tarot-celestial-harmony",
-          "line": 609
-        },
-        {
-          "key": "tarot-crystal-soul-reading",
-          "line": 610
-        },
-        {
-          "key": "tarot-numerology-reading",
-          "line": 611
-        },
-        {
-          "key": "tarot-prompt-maker",
-          "line": 612
-        },
-        {
-          "key": "tarot-prompt-maker-standard",
-          "line": 613
-        },
-        {
-          "key": "tarot-prompt-maker-deep",
-          "line": 614
-        },
-        {
-          "key": "tarot-prompt-maker-master",
-          "line": 615
-        },
-        {
-          "key": "maya-prompt-generator",
-          "line": 616
-        },
-        {
-          "key": "tarot-ijik",
-          "line": 617
-        },
-        {
-          "key": "royal-tea-oracle",
-          "line": 618
-        },
-        {
-          "key": "ifa-oracle",
-          "line": 619
-        },
-        {
-          "key": "neville-meditation",
-          "line": 620
-        },
-        {
-          "key": "cosmic-soul-meditation",
-          "line": 621
-        },
-        {
-          "key": "dream-psycho-analysis",
-          "line": 622
-        },
-        {
-          "key": "yoga-guru-per-use",
-          "line": 623
-        },
-        {
-          "key": "fortune-tea-house-tarot-consultation",
-          "line": 625
-        },
-        {
-          "key": "fortune-tea-house-tarot-five-consultation",
-          "line": 626
-        },
-        {
-          "key": "fortune-tea-house-saju-consultation",
-          "line": 627
-        },
-        {
-          "key": "fortune-tea-house-saju-joint-consultation",
-          "line": 628
-        },
-        {
-          "key": "fortune-tea-house-saju-compatibility-consultation",
-          "line": 629
-        },
-        {
-          "key": "fortune-tea-house-sukuyo-compatibility-consultation",
-          "line": 630
-        },
-        {
-          "key": "sukuyo-symbolic-comparison",
-          "line": 631
-        },
-        {
-          "key": "sukuyo-past-life-reading",
-          "line": 632
-        },
-        {
-          "key": "sukuyo-monthly-fortune",
-          "line": 633
-        },
-        {
-          "key": "sukuyo-compatibility-ai",
-          "line": 634
-        },
-        {
-          "key": "astrology-ai-consultation",
-          "line": 635
-        },
-        {
-          "key": "neo-operation-room-consultation",
-          "line": 636
-        },
-        {
-          "key": "heukwol-warning-consultation",
-          "line": 637
-        },
-        {
-          "key": "neo-email-consultation",
-          "line": 638
-        },
-        {
-          "key": "compat-astro-synastry",
-          "line": 639
-        },
-        {
-          "key": "compat-astro-direct-synastry",
-          "line": 640
-        },
-        {
-          "key": "compat-ziwei-compatibility",
-          "line": 641
-        },
-        {
-          "key": "compat-saju-compatibility",
-          "line": 642
-        },
-        {
-          "key": "compat-sukuyo-compatibility",
-          "line": 643
-        },
-        {
-          "key": "vedic-compatibility-per-use",
-          "line": 644
-        },
-        {
-          "key": "nakshatra-compat",
-          "line": 645
-        },
-        {
-          "key": "nakshatra-ai-consultation",
-          "line": 646
-        },
-        {
-          "key": "nakshatra-muhurta",
-          "line": 647
-        },
-        {
-          "key": "nakshatra-vvip-codex",
-          "line": 648
-        },
-        {
-          "key": "human-design-chart",
-          "line": 653
-        },
-        {
-          "key": "human-design-report",
-          "line": 657
-        },
-        {
-          "key": "openJuyukModal",
-          "line": 658
-        },
-        {
-          "key": "openKemetModal",
-          "line": 659
-        },
-        {
-          "key": "openGeomancyOracle",
-          "line": 660
-        },
-        {
-          "key": "turtleIChing",
-          "line": 661
-        },
-        {
-          "key": "egyptOracle",
-          "line": 662
-        },
-        {
-          "key": "egyptian_oracle_ai_prompt",
-          "line": 663
-        },
-        {
-          "key": "geomancy",
-          "line": 664
-        },
-        {
-          "key": "stonehengeRunes",
-          "line": 665
-        },
-        {
-          "key": "stonehenge-runes-single",
-          "line": 666
-        },
-        {
-          "key": "stonehenge-runes-triad",
-          "line": 667
-        },
-        {
-          "key": "stonehenge-runes-deep",
-          "line": 668
-        },
-        {
-          "key": "stonehenge-runes-yearly",
-          "line": 669
-        },
-        {
-          "key": "stonehenge-runes-ai-prompt",
-          "line": 670
-        },
-        {
-          "key": "animal-totem-basic",
-          "line": 671
-        },
-        {
-          "key": "animal-totem-deep",
-          "line": 672
-        },
-        {
-          "key": "daily-fortune-reading",
-          "line": 673
-        },
-        {
-          "key": "fortune-prompt-hub-generate",
-          "line": 674
-        },
-        {
-          "key": "dream-prompt-generator",
-          "line": 675
-        },
-        {
-          "key": "psychotest-reading",
-          "line": 676
-        },
-        {
-          "key": "mbti-animal-compat",
-          "line": 677
-        },
-        {
-          "key": "nakshatra-basic-reading",
-          "line": 678
-        },
-        {
-          "key": "destiny-bias-analyze",
-          "line": 679
-        },
-        {
-          "key": "destiny_meeting_place",
-          "line": 680
+          "key": "saju-compat-premium",
+          "line": 367
         },
         {
           "key": "love-code",
-          "line": 681
+          "line": 368
         },
         {
           "key": "relationship-boundary-test",
-          "line": 682
-        },
-        {
-          "key": "fun.quantumLotto.ritualReport",
-          "line": 683
-        },
-        {
-          "key": "premiumTarot",
-          "line": 684
-        },
-        {
-          "key": "palm-reading-general",
-          "line": 685
-        },
-        {
-          "key": "palm-reading-ai-consult",
-          "line": 686
-        },
-        {
-          "key": "saju_ai_question_prompt",
-          "line": 687
-        },
-        {
-          "key": "new-year-ai-consultation",
-          "line": 688
-        },
-        {
-          "key": "vedic-ai-consultation",
-          "line": 689
-        },
-        {
-          "key": "love-secret-ai-consultation",
-          "line": 690
+          "line": 371
         },
         {
           "key": "master-love-codex",
-          "line": 691
+          "line": 376
         },
         {
           "key": "master-love-codex-compat",
-          "line": 692
-        },
-        {
-          "key": "life-book-ai-consultation",
-          "line": 693
-        },
-        {
-          "key": "life-fortune-ai-consultation",
-          "line": 694
-        },
-        {
-          "key": "karma-destiny-ai-consultation",
-          "line": 695
-        },
-        {
-          "key": "fortune-chat-consultation",
-          "line": 696
-        },
-        {
-          "key": "fusion-fortune-consultation",
-          "line": 698
+          "line": 377
         },
         {
           "key": "ziwei-ai-consultation",
-          "line": 699
+          "line": 378
         },
         {
           "key": "ziwei-island-palace-consult",
-          "line": 700
+          "line": 380
         },
         {
-          "key": "premium-naming-prompt",
-          "line": 701
+          "key": "ziwei-island-deep-report",
+          "line": 382
         },
         {
           "key": "ziwei-deep-pdf",
-          "line": 702
+          "line": 384
         },
         {
-          "key": "ziwei_ai_prompt_generator",
-          "line": 703
+          "key": "karma-destiny-ai-consultation",
+          "line": 385
         },
         {
-          "key": "astrology_ai_prompt_generator",
-          "line": 704
+          "key": "fortune-chat-consultation",
+          "line": 388
         },
         {
-          "key": "vedic_ai_prompt_generator",
-          "line": 705
-        },
-        {
-          "key": "sukuyo_ai_prompt_generator",
-          "line": 706
-        },
-        {
-          "key": "vedic_prashna_prompt",
-          "line": 707
-        },
-        {
-          "key": "astro_monthly_transit",
-          "line": 708
-        },
-        {
-          "key": "premium-sukuyo-compat-extra",
-          "line": 709
-        },
-        {
-          "key": "destiny-compass-crossroads",
-          "line": 710
-        },
-        {
-          "key": "destiny-compass-life-voyage",
-          "line": 711
-        },
-        {
-          "key": "destiny-compass-future-sim",
-          "line": 712
-        },
-        {
-          "key": "destiny-compass-deep-report",
-          "line": 714
-        },
-        {
-          "key": "pet-saju-ai-consultation",
-          "line": 715
-        },
-        {
-          "key": "pet-compatibility-ai",
-          "line": 716
-        },
-        {
-          "key": "profile-card-manage",
-          "line": 717
+          "key": "fusion-fortune-consultation",
+          "line": 396
         },
         {
           "key": "premium-sibyl-dominator",
-          "line": 725
-        },
-        {
-          "key": "animal-destiny-unlock",
-          "line": 729
-        },
-        {
-          "key": "saju-guardian-unlock",
-          "line": 730
-        },
-        {
-          "key": "ziwei-island-deep-report",
-          "line": 733
-        },
-        {
-          "key": "rpt_specialCharmCard",
-          "line": 734
-        },
-        {
-          "key": "rpt_quantumCard",
-          "line": 735
-        },
-        {
-          "key": "rpt_healthReportCard",
-          "line": 736
-        },
-        {
-          "key": "rpt_skillTreeCard",
-          "line": 737
-        },
-        {
-          "key": "rpt_energyCoordCard",
-          "line": 738
-        },
-        {
-          "key": "rpt_villainCard",
-          "line": 739
-        },
-        {
-          "key": "rpt_secretHouseEntryCard",
-          "line": 740
-        },
-        {
-          "key": "astro_career_talent_deep",
-          "line": 741
-        },
-        {
-          "key": "astro_talent_attraction_deep",
-          "line": 742
-        },
-        {
-          "key": "astro_relationship_deep",
-          "line": 743
-        },
-        {
-          "key": "astro_growth_shadow_deep",
-          "line": 744
-        },
-        {
-          "key": "astro_basic_deep_pack",
-          "line": 745
-        },
-        {
-          "key": "astro_stellar_career_room",
-          "line": 746
-        },
-        {
-          "key": "astro_stellar_talent_room",
-          "line": 747
-        },
-        {
-          "key": "astro_stellar_relationship_room",
-          "line": 748
-        },
-        {
-          "key": "astro_stellar_growth_room",
-          "line": 749
-        },
-        {
-          "key": "astro_yearly_transit",
-          "line": 751
-        },
-        {
-          "key": "sukyo_yearly_fortune_unlock",
-          "line": 752
-        },
-        {
-          "key": "sukuyo-relationship-encyclopedia",
-          "line": 753
-        },
-        {
-          "key": "sukuyo-nature-deep-dive",
-          "line": 754
-        },
-        {
-          "key": "sukuyo-extreme-t-relationship",
-          "line": 759
-        },
-        {
-          "key": "premium-fpti-report",
-          "line": 760
-        },
-        {
-          "key": "rpt_specialCharmCard",
-          "line": 784
-        },
-        {
-          "key": "rpt_quantumCard",
-          "line": 785
-        },
-        {
-          "key": "rpt_healthReportCard",
-          "line": 786
-        },
-        {
-          "key": "rpt_skillTreeCard",
-          "line": 787
-        },
-        {
-          "key": "rpt_energyCoordCard",
-          "line": 788
-        },
-        {
-          "key": "rpt_villainCard",
-          "line": 789
-        },
-        {
-          "key": "rpt_secretHouseEntryCard",
-          "line": 790
+          "line": 397
         },
         {
           "key": "ziwei_decade_luck",
-          "line": 791
+          "line": 398
         },
         {
           "key": "ziwei_love_deep",
-          "line": 792
+          "line": 399
         },
         {
           "key": "ziwei_twelve_palaces",
-          "line": 793
+          "line": 400
         },
         {
           "key": "ziwei_symbolic_layer",
-          "line": 794
+          "line": 401
         },
         {
           "key": "ziwei_life_yearly_flow",
-          "line": 795
-        },
-        {
-          "key": "ziwei-island-deep-report",
-          "line": 796
-        },
-        {
-          "key": "sukyo_yearly_fortune_unlock",
-          "line": 797
-        },
-        {
-          "key": "sukuyo-relationship-encyclopedia",
-          "line": 798
-        },
-        {
-          "key": "sukuyo-nature-deep-dive",
-          "line": 799
-        },
-        {
-          "key": "sukuyo-extreme-t-relationship",
-          "line": 800
-        },
-        {
-          "key": "vedic_basic_reading",
-          "line": 803
-        },
-        {
-          "key": "astro_career_talent_deep",
-          "line": 804
-        },
-        {
-          "key": "astro_talent_attraction_deep",
-          "line": 805
-        },
-        {
-          "key": "astro_relationship_deep",
-          "line": 806
-        },
-        {
-          "key": "astro_growth_shadow_deep",
-          "line": 807
-        },
-        {
-          "key": "astro_basic_deep_pack",
-          "line": 808
-        },
-        {
-          "key": "astro_stellar_career_room",
-          "line": 809
-        },
-        {
-          "key": "astro_stellar_talent_room",
-          "line": 810
-        },
-        {
-          "key": "astro_stellar_relationship_room",
-          "line": 811
-        },
-        {
-          "key": "astro_stellar_growth_room",
-          "line": 812
-        },
-        {
-          "key": "astro_yearly_transit",
-          "line": 813
-        },
-        {
-          "key": "animal-destiny-unlock",
-          "line": 814
-        },
-        {
-          "key": "saju-guardian-unlock",
-          "line": 815
-        },
-        {
-          "key": "premium-sibyl-dominator",
-          "line": 816
+          "line": 402
         },
         {
           "key": "premium-fpti-report",
-          "line": 817
+          "line": 403
+        },
+        {
+          "key": "premium-naming-prompt",
+          "line": 405
+        },
+        {
+          "key": "premium-sukuyo-compat-extra",
+          "line": 406
+        },
+        {
+          "key": "profile-card-manage",
+          "line": 409
+        },
+        {
+          "key": "fun.quantumLotto.ritualReport",
+          "line": 419
+        },
+        {
+          "key": "saju-guardian-unlock",
+          "line": 539
         },
         {
           "key": "tetogen_deep_report",
-          "line": 829
+          "line": 540
         },
         {
-          "key": "saju_ai_question_prompt",
-          "line": 900
+          "key": "ziwei_decade_luck",
+          "line": 543
         },
         {
-          "key": "openJuyukModal",
-          "line": 901
+          "key": "ziwei_love_deep",
+          "line": 544
         },
         {
-          "key": "openKemetModal",
-          "line": 902
+          "key": "ziwei_twelve_palaces",
+          "line": 545
         },
         {
-          "key": "openGeomancyOracle",
-          "line": 903
+          "key": "ziwei_symbolic_layer",
+          "line": 546
         },
         {
-          "key": "turtleIChing",
-          "line": 904
+          "key": "ziwei_life_yearly_flow",
+          "line": 547
         },
         {
-          "key": "egyptOracle",
-          "line": 905
+          "key": "vedic_basic_reading",
+          "line": 550
         },
         {
-          "key": "egyptian_oracle_ai_prompt",
-          "line": 906
+          "key": "physiognomy-compatibility",
+          "line": 604
         },
         {
-          "key": "egyptian_oracle_ai_prompt",
-          "line": 907
+          "key": "physiognomy-pastlife-compatibility",
+          "line": 605
         },
         {
-          "key": "stonehengeRunes",
-          "line": 908
-        },
-        {
-          "key": "animal-totem-basic",
-          "line": 909
-        },
-        {
-          "key": "saju-guardian-unlock",
-          "line": 910
-        },
-        {
-          "key": "saju-guardian-unlock",
-          "line": 911
-        },
-        {
-          "key": "tarot-love-relationship",
-          "line": 912
-        },
-        {
-          "key": "tarot-reunion-reading",
-          "line": 913
+          "key": "physiognomy-ogwan-mole-deep",
+          "line": 606
         },
         {
           "key": "tarot-year-fortune",
-          "line": 914
+          "line": 607
+        },
+        {
+          "key": "tarot-love-relationship",
+          "line": 608
+        },
+        {
+          "key": "tarot-reunion-reading",
+          "line": 609
         },
         {
           "key": "tarot-myeongri-three-card",
-          "line": 915
+          "line": 610
         },
         {
           "key": "tarot-mindscan",
-          "line": 916
-        },
-        {
-          "key": "tarot-mindscan",
-          "line": 917
-        },
-        {
-          "key": "tarot-mindscan",
-          "line": 918
+          "line": 611
         },
         {
           "key": "tarot-celestial-harmony",
-          "line": 919
+          "line": 612
         },
         {
           "key": "tarot-crystal-soul-reading",
-          "line": 929
+          "line": 613
         },
         {
-          "key": "tarot-crystal-soul-reading",
-          "line": 930
+          "key": "tarot-numerology-reading",
+          "line": 614
         },
         {
-          "key": "tarot-crystal-soul-reading",
-          "line": 931
+          "key": "tarot-prompt-maker",
+          "line": 615
+        },
+        {
+          "key": "tarot-prompt-maker-standard",
+          "line": 616
+        },
+        {
+          "key": "tarot-prompt-maker-deep",
+          "line": 617
+        },
+        {
+          "key": "tarot-prompt-maker-master",
+          "line": 618
+        },
+        {
+          "key": "maya-prompt-generator",
+          "line": 619
         },
         {
           "key": "tarot-ijik",
-          "line": 932
-        },
-        {
-          "key": "tarot-ijik",
-          "line": 933
+          "line": 620
         },
         {
           "key": "royal-tea-oracle",
-          "line": 934
+          "line": 621
         },
         {
           "key": "ifa-oracle",
-          "line": 935
+          "line": 622
         },
         {
           "key": "neville-meditation",
-          "line": 936
+          "line": 623
         },
         {
           "key": "cosmic-soul-meditation",
-          "line": 937
+          "line": 624
         },
         {
           "key": "dream-psycho-analysis",
-          "line": 938
-        },
-        {
-          "key": "dream-psycho-analysis",
-          "line": 939
+          "line": 625
         },
         {
           "key": "yoga-guru-per-use",
+          "line": 626
+        },
+        {
+          "key": "fortune-tea-house-tarot-consultation",
+          "line": 628
+        },
+        {
+          "key": "fortune-tea-house-tarot-five-consultation",
+          "line": 629
+        },
+        {
+          "key": "fortune-tea-house-saju-consultation",
+          "line": 630
+        },
+        {
+          "key": "fortune-tea-house-saju-joint-consultation",
+          "line": 631
+        },
+        {
+          "key": "fortune-tea-house-saju-compatibility-consultation",
+          "line": 632
+        },
+        {
+          "key": "fortune-tea-house-sukuyo-compatibility-consultation",
+          "line": 633
+        },
+        {
+          "key": "sukuyo-symbolic-comparison",
+          "line": 634
+        },
+        {
+          "key": "sukuyo-past-life-reading",
+          "line": 635
+        },
+        {
+          "key": "sukuyo-monthly-fortune",
+          "line": 636
+        },
+        {
+          "key": "sukuyo-compatibility-ai",
+          "line": 637
+        },
+        {
+          "key": "astrology-ai-consultation",
+          "line": 638
+        },
+        {
+          "key": "neo-operation-room-consultation",
+          "line": 639
+        },
+        {
+          "key": "heukwol-warning-consultation",
+          "line": 640
+        },
+        {
+          "key": "neo-email-consultation",
+          "line": 641
+        },
+        {
+          "key": "compat-astro-synastry",
+          "line": 642
+        },
+        {
+          "key": "compat-astro-direct-synastry",
+          "line": 643
+        },
+        {
+          "key": "compat-ziwei-compatibility",
+          "line": 644
+        },
+        {
+          "key": "compat-saju-compatibility",
+          "line": 645
+        },
+        {
+          "key": "compat-sukuyo-compatibility",
+          "line": 646
+        },
+        {
+          "key": "vedic-compatibility-per-use",
+          "line": 647
+        },
+        {
+          "key": "nakshatra-compat",
+          "line": 648
+        },
+        {
+          "key": "nakshatra-ai-consultation",
+          "line": 649
+        },
+        {
+          "key": "nakshatra-muhurta",
+          "line": 650
+        },
+        {
+          "key": "nakshatra-vvip-codex",
+          "line": 651
+        },
+        {
+          "key": "human-design-chart",
+          "line": 656
+        },
+        {
+          "key": "human-design-report",
+          "line": 660
+        },
+        {
+          "key": "openJuyukModal",
+          "line": 661
+        },
+        {
+          "key": "openKemetModal",
+          "line": 662
+        },
+        {
+          "key": "openGeomancyOracle",
+          "line": 663
+        },
+        {
+          "key": "turtleIChing",
+          "line": 664
+        },
+        {
+          "key": "egyptOracle",
+          "line": 665
+        },
+        {
+          "key": "egyptian_oracle_ai_prompt",
+          "line": 666
+        },
+        {
+          "key": "geomancy",
+          "line": 667
+        },
+        {
+          "key": "stonehengeRunes",
+          "line": 668
+        },
+        {
+          "key": "stonehenge-runes-single",
+          "line": 669
+        },
+        {
+          "key": "stonehenge-runes-triad",
+          "line": 670
+        },
+        {
+          "key": "stonehenge-runes-deep",
+          "line": 671
+        },
+        {
+          "key": "stonehenge-runes-yearly",
+          "line": 672
+        },
+        {
+          "key": "stonehenge-runes-ai-prompt",
+          "line": 673
+        },
+        {
+          "key": "animal-totem-basic",
+          "line": 674
+        },
+        {
+          "key": "animal-totem-deep",
+          "line": 675
+        },
+        {
+          "key": "daily-fortune-reading",
+          "line": 676
+        },
+        {
+          "key": "fortune-prompt-hub-generate",
+          "line": 677
+        },
+        {
+          "key": "dream-prompt-generator",
+          "line": 678
+        },
+        {
+          "key": "psychotest-reading",
+          "line": 679
+        },
+        {
+          "key": "mbti-animal-compat",
+          "line": 680
+        },
+        {
+          "key": "nakshatra-basic-reading",
+          "line": 681
+        },
+        {
+          "key": "destiny-bias-analyze",
+          "line": 682
+        },
+        {
+          "key": "destiny_meeting_place",
+          "line": 683
+        },
+        {
+          "key": "love-code",
+          "line": 684
+        },
+        {
+          "key": "relationship-boundary-test",
+          "line": 685
+        },
+        {
+          "key": "fun.quantumLotto.ritualReport",
+          "line": 686
+        },
+        {
+          "key": "premiumTarot",
+          "line": 687
+        },
+        {
+          "key": "palm-reading-general",
+          "line": 688
+        },
+        {
+          "key": "palm-reading-ai-consult",
+          "line": 689
+        },
+        {
+          "key": "saju_ai_question_prompt",
+          "line": 690
+        },
+        {
+          "key": "new-year-ai-consultation",
+          "line": 691
+        },
+        {
+          "key": "vedic-ai-consultation",
+          "line": 692
+        },
+        {
+          "key": "love-secret-ai-consultation",
+          "line": 693
+        },
+        {
+          "key": "saju-compat-premium",
+          "line": 694
+        },
+        {
+          "key": "master-love-codex",
+          "line": 695
+        },
+        {
+          "key": "master-love-codex-compat",
+          "line": 696
+        },
+        {
+          "key": "life-book-ai-consultation",
+          "line": 697
+        },
+        {
+          "key": "life-fortune-ai-consultation",
+          "line": 698
+        },
+        {
+          "key": "karma-destiny-ai-consultation",
+          "line": 699
+        },
+        {
+          "key": "fortune-chat-consultation",
+          "line": 700
+        },
+        {
+          "key": "fusion-fortune-consultation",
+          "line": 702
+        },
+        {
+          "key": "ziwei-ai-consultation",
+          "line": 703
+        },
+        {
+          "key": "ziwei-island-palace-consult",
+          "line": 704
+        },
+        {
+          "key": "premium-naming-prompt",
+          "line": 705
+        },
+        {
+          "key": "ziwei-deep-pdf",
+          "line": 706
+        },
+        {
+          "key": "ziwei_ai_prompt_generator",
+          "line": 707
+        },
+        {
+          "key": "astrology_ai_prompt_generator",
+          "line": 708
+        },
+        {
+          "key": "vedic_ai_prompt_generator",
+          "line": 709
+        },
+        {
+          "key": "sukuyo_ai_prompt_generator",
+          "line": 710
+        },
+        {
+          "key": "vedic_prashna_prompt",
+          "line": 711
+        },
+        {
+          "key": "astro_monthly_transit",
+          "line": 712
+        },
+        {
+          "key": "premium-sukuyo-compat-extra",
+          "line": 713
+        },
+        {
+          "key": "destiny-compass-crossroads",
+          "line": 714
+        },
+        {
+          "key": "destiny-compass-life-voyage",
+          "line": 715
+        },
+        {
+          "key": "destiny-compass-future-sim",
+          "line": 716
+        },
+        {
+          "key": "destiny-compass-deep-report",
+          "line": 718
+        },
+        {
+          "key": "pet-saju-ai-consultation",
+          "line": 719
+        },
+        {
+          "key": "pet-compatibility-ai",
+          "line": 720
+        },
+        {
+          "key": "profile-card-manage",
+          "line": 721
+        },
+        {
+          "key": "premium-sibyl-dominator",
+          "line": 729
+        },
+        {
+          "key": "animal-destiny-unlock",
+          "line": 733
+        },
+        {
+          "key": "saju-guardian-unlock",
+          "line": 734
+        },
+        {
+          "key": "ziwei-island-deep-report",
+          "line": 737
+        },
+        {
+          "key": "rpt_specialCharmCard",
+          "line": 738
+        },
+        {
+          "key": "rpt_quantumCard",
+          "line": 739
+        },
+        {
+          "key": "rpt_healthReportCard",
+          "line": 740
+        },
+        {
+          "key": "rpt_skillTreeCard",
+          "line": 741
+        },
+        {
+          "key": "rpt_energyCoordCard",
+          "line": 742
+        },
+        {
+          "key": "rpt_villainCard",
+          "line": 743
+        },
+        {
+          "key": "rpt_secretHouseEntryCard",
+          "line": 744
+        },
+        {
+          "key": "astro_career_talent_deep",
+          "line": 745
+        },
+        {
+          "key": "astro_talent_attraction_deep",
+          "line": 746
+        },
+        {
+          "key": "astro_relationship_deep",
+          "line": 747
+        },
+        {
+          "key": "astro_growth_shadow_deep",
+          "line": 748
+        },
+        {
+          "key": "astro_basic_deep_pack",
+          "line": 749
+        },
+        {
+          "key": "astro_stellar_career_room",
+          "line": 750
+        },
+        {
+          "key": "astro_stellar_talent_room",
+          "line": 751
+        },
+        {
+          "key": "astro_stellar_relationship_room",
+          "line": 752
+        },
+        {
+          "key": "astro_stellar_growth_room",
+          "line": 753
+        },
+        {
+          "key": "astro_yearly_transit",
+          "line": 755
+        },
+        {
+          "key": "sukyo_yearly_fortune_unlock",
+          "line": 756
+        },
+        {
+          "key": "sukuyo-relationship-encyclopedia",
+          "line": 757
+        },
+        {
+          "key": "sukuyo-nature-deep-dive",
+          "line": 758
+        },
+        {
+          "key": "sukuyo-extreme-t-relationship",
+          "line": 763
+        },
+        {
+          "key": "premium-fpti-report",
+          "line": 764
+        },
+        {
+          "key": "rpt_specialCharmCard",
+          "line": 788
+        },
+        {
+          "key": "rpt_quantumCard",
+          "line": 789
+        },
+        {
+          "key": "rpt_healthReportCard",
+          "line": 790
+        },
+        {
+          "key": "rpt_skillTreeCard",
+          "line": 791
+        },
+        {
+          "key": "rpt_energyCoordCard",
+          "line": 792
+        },
+        {
+          "key": "rpt_villainCard",
+          "line": 793
+        },
+        {
+          "key": "rpt_secretHouseEntryCard",
+          "line": 794
+        },
+        {
+          "key": "ziwei_decade_luck",
+          "line": 795
+        },
+        {
+          "key": "ziwei_love_deep",
+          "line": 796
+        },
+        {
+          "key": "ziwei_twelve_palaces",
+          "line": 797
+        },
+        {
+          "key": "ziwei_symbolic_layer",
+          "line": 798
+        },
+        {
+          "key": "ziwei_life_yearly_flow",
+          "line": 799
+        },
+        {
+          "key": "ziwei-island-deep-report",
+          "line": 800
+        },
+        {
+          "key": "sukyo_yearly_fortune_unlock",
+          "line": 801
+        },
+        {
+          "key": "sukuyo-relationship-encyclopedia",
+          "line": 802
+        },
+        {
+          "key": "sukuyo-nature-deep-dive",
+          "line": 803
+        },
+        {
+          "key": "sukuyo-extreme-t-relationship",
+          "line": 804
+        },
+        {
+          "key": "vedic_basic_reading",
+          "line": 807
+        },
+        {
+          "key": "astro_career_talent_deep",
+          "line": 808
+        },
+        {
+          "key": "astro_talent_attraction_deep",
+          "line": 809
+        },
+        {
+          "key": "astro_relationship_deep",
+          "line": 810
+        },
+        {
+          "key": "astro_growth_shadow_deep",
+          "line": 811
+        },
+        {
+          "key": "astro_basic_deep_pack",
+          "line": 812
+        },
+        {
+          "key": "astro_stellar_career_room",
+          "line": 813
+        },
+        {
+          "key": "astro_stellar_talent_room",
+          "line": 814
+        },
+        {
+          "key": "astro_stellar_relationship_room",
+          "line": 815
+        },
+        {
+          "key": "astro_stellar_growth_room",
+          "line": 816
+        },
+        {
+          "key": "astro_yearly_transit",
+          "line": 817
+        },
+        {
+          "key": "animal-destiny-unlock",
+          "line": 818
+        },
+        {
+          "key": "saju-guardian-unlock",
+          "line": 819
+        },
+        {
+          "key": "premium-sibyl-dominator",
+          "line": 820
+        },
+        {
+          "key": "premium-fpti-report",
+          "line": 821
+        },
+        {
+          "key": "tetogen_deep_report",
+          "line": 833
+        },
+        {
+          "key": "saju_ai_question_prompt",
+          "line": 904
+        },
+        {
+          "key": "openJuyukModal",
+          "line": 905
+        },
+        {
+          "key": "openKemetModal",
+          "line": 906
+        },
+        {
+          "key": "openGeomancyOracle",
+          "line": 907
+        },
+        {
+          "key": "turtleIChing",
+          "line": 908
+        },
+        {
+          "key": "egyptOracle",
+          "line": 909
+        },
+        {
+          "key": "egyptian_oracle_ai_prompt",
+          "line": 910
+        },
+        {
+          "key": "egyptian_oracle_ai_prompt",
+          "line": 911
+        },
+        {
+          "key": "stonehengeRunes",
+          "line": 912
+        },
+        {
+          "key": "animal-totem-basic",
+          "line": 913
+        },
+        {
+          "key": "saju-guardian-unlock",
+          "line": 914
+        },
+        {
+          "key": "saju-guardian-unlock",
+          "line": 915
+        },
+        {
+          "key": "tarot-love-relationship",
+          "line": 916
+        },
+        {
+          "key": "tarot-reunion-reading",
+          "line": 917
+        },
+        {
+          "key": "tarot-year-fortune",
+          "line": 918
+        },
+        {
+          "key": "tarot-myeongri-three-card",
+          "line": 919
+        },
+        {
+          "key": "tarot-mindscan",
+          "line": 920
+        },
+        {
+          "key": "tarot-mindscan",
+          "line": 921
+        },
+        {
+          "key": "tarot-mindscan",
+          "line": 922
+        },
+        {
+          "key": "tarot-celestial-harmony",
+          "line": 923
+        },
+        {
+          "key": "tarot-crystal-soul-reading",
+          "line": 933
+        },
+        {
+          "key": "tarot-crystal-soul-reading",
+          "line": 934
+        },
+        {
+          "key": "tarot-crystal-soul-reading",
+          "line": 935
+        },
+        {
+          "key": "tarot-ijik",
+          "line": 936
+        },
+        {
+          "key": "tarot-ijik",
+          "line": 937
+        },
+        {
+          "key": "royal-tea-oracle",
+          "line": 938
+        },
+        {
+          "key": "ifa-oracle",
+          "line": 939
+        },
+        {
+          "key": "neville-meditation",
           "line": 940
         },
         {
-          "key": "premium-sibyl-dominator",
+          "key": "cosmic-soul-meditation",
           "line": 941
         },
         {
-          "key": "premium-sibyl-dominator",
+          "key": "dream-psycho-analysis",
           "line": 942
         },
         {
-          "key": "premium-sibyl-dominator",
+          "key": "dream-psycho-analysis",
           "line": 943
         },
         {
-          "key": "premium-sibyl-dominator",
+          "key": "yoga-guru-per-use",
           "line": 944
         },
         {
@@ -52825,99 +52845,99 @@
           "line": 945
         },
         {
-          "key": "ziwei-ai-consultation",
+          "key": "premium-sibyl-dominator",
           "line": 946
         },
         {
-          "key": "ziwei_ai_prompt_generator",
+          "key": "premium-sibyl-dominator",
           "line": 947
         },
         {
-          "key": "karma-destiny-ai-consultation",
+          "key": "premium-sibyl-dominator",
           "line": 948
         },
         {
-          "key": "karma-destiny-ai-consultation",
+          "key": "premium-sibyl-dominator",
           "line": 949
         },
         {
-          "key": "karma-destiny-ai-consultation",
+          "key": "ziwei-ai-consultation",
           "line": 950
         },
         {
-          "key": "premium-fpti-report",
+          "key": "ziwei_ai_prompt_generator",
           "line": 951
         },
         {
-          "key": "premium-fpti-report",
+          "key": "karma-destiny-ai-consultation",
           "line": 952
         },
         {
-          "key": "premium-fpti-report",
+          "key": "karma-destiny-ai-consultation",
           "line": 953
         },
         {
-          "key": "tetogen_deep_report",
+          "key": "karma-destiny-ai-consultation",
           "line": 954
         },
         {
-          "key": "tetogen_deep_report",
+          "key": "premium-fpti-report",
           "line": 955
         },
         {
-          "key": "tetogen_deep_report",
+          "key": "premium-fpti-report",
           "line": 956
         },
         {
-          "key": "astrology-ai-consultation",
+          "key": "premium-fpti-report",
           "line": 957
         },
         {
-          "key": "neo-operation-room-consultation",
+          "key": "tetogen_deep_report",
           "line": 958
         },
         {
-          "key": "neo-operation-room-consultation",
+          "key": "tetogen_deep_report",
           "line": 959
         },
         {
-          "key": "neo-operation-room-consultation",
+          "key": "tetogen_deep_report",
           "line": 960
         },
         {
-          "key": "sukuyo-compatibility-ai",
+          "key": "astrology-ai-consultation",
           "line": 961
         },
         {
-          "key": "sukuyo-extreme-t-relationship",
+          "key": "neo-operation-room-consultation",
           "line": 962
         },
         {
-          "key": "vedic-ai-consultation",
+          "key": "neo-operation-room-consultation",
           "line": 963
         },
         {
-          "key": "vedic-ai-consultation",
+          "key": "neo-operation-room-consultation",
           "line": 964
         },
         {
-          "key": "vedic-ai-consultation",
+          "key": "sukuyo-compatibility-ai",
           "line": 965
         },
         {
-          "key": "premium-naming-prompt",
+          "key": "sukuyo-extreme-t-relationship",
           "line": 966
         },
         {
-          "key": "premium-naming-prompt",
+          "key": "vedic-ai-consultation",
           "line": 967
         },
         {
-          "key": "premium-naming-prompt",
+          "key": "vedic-ai-consultation",
           "line": 968
         },
         {
-          "key": "premium-naming-prompt",
+          "key": "vedic-ai-consultation",
           "line": 969
         },
         {
@@ -52935,6 +52955,22 @@
         {
           "key": "premium-naming-prompt",
           "line": 973
+        },
+        {
+          "key": "premium-naming-prompt",
+          "line": 974
+        },
+        {
+          "key": "premium-naming-prompt",
+          "line": 975
+        },
+        {
+          "key": "premium-naming-prompt",
+          "line": 976
+        },
+        {
+          "key": "premium-naming-prompt",
+          "line": 977
         }
       ],
       "apiPaths": []
@@ -54195,6 +54231,14 @@
           "line": 36
         }
       ],
+      "apiPaths": []
+    },
+    {
+      "file": "worker/lib/saju-compat-premium-facts.js",
+      "sha256": "8035e75972f8b55da74d9d11fee4a36fe6d7e1db7c98ac1f8bd87e5ebfe415c4",
+      "route": null,
+      "frontendType": null,
+      "features": [],
       "apiPaths": []
     },
     {

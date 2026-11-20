@@ -39,6 +39,7 @@ const SavedZiweiAiPdfButton = dynamic(() => import('./SavedZiweiAiPdfButton'));
 const SavedZiweiDeepPdfButton = dynamic(() => import('./SavedZiweiDeepPdfButton'));
 const SavedSukuyoCompatPdfButton = dynamic(() => import('./SavedSukuyoCompatPdfButton'));
 const VedicStructured = dynamic(() => import('@/app/vedic-ai/VedicAiClient').then(m=>m.StructuredReadingResult));
+const SajuCompatPremiumReading = dynamic(() => import('@/app/saju/compatibility/premium/result/SajuCompatPremiumResultClient').then(m=>m.SajuCompatPremiumReading));
 
 function assistantObject(row:Record<string,unknown>) {
  for(const message of [...list(row.messages)].reverse()) {
@@ -102,6 +103,7 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
   return <div className={styles.reader}>{reportPdf&&<SavedHumanDesignPdfButton row={row} chart={chart} locale={locale}/>}{answerFirst(<SavedHumanDesign value={chart}/>,body)}</div>;
  }
  if(family==='saju'||family==='pet') return <div className={styles.letter}>{answerFirst(<>{saju?<SavedSaju value={saju}/>:<SavedSaju value={model}/>}<SavedFacts value={object(model.facts)}/></>,body)}</div>;
+ if(family==='saju-compat'&&list(object(model.result).chapters).length) return <SajuCompatPremiumReading result={object(model.result)} saved/>;
  if(family==='sukuyo') return <div className={sukuyoStyles.screen+' '+styles.nativeSukuyo} style={{minHeight:0}}>{view.fields.includes('messages')&&<SavedSukuyoCompatPdfButton row={row} locale={locale}/>}{answerFirst(<><SavedSukuyoSummary value={model}/><SavedFacts value={model.sukuyoResult||object(model.meta).relation}/></>,body)}</div>;
  if(family.startsWith('tarot')||family==='celestial') return <div className={styles.night}><SavedCards value={model.cards||model.savedCards||object(model.reading).cards} variant={family}/>{body}</div>;
  if(family==='geomancy') return <SavedGeomancy row={model}/>;

@@ -118,6 +118,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "new-year-ai-consultation",
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
+  "saju-compat-premium",
   "relationship-boundary-test",
   "master-love-codex",
   "master-love-codex-compat",
@@ -280,7 +281,9 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "compat-astro-synastry": { cost: 50, reason: "점성술 셜럭 시나스트리 궁합" },
   "compat-astro-direct-synastry": { cost: 50, reason: "점성술 직접 입력 시나스트리 궁합" },
   "compat-ziwei-compatibility": { cost: 50, reason: "자미두수 궁합 분석" },
-  "compat-saju-compatibility": { cost: 50, reason: "사주 궁합 분석" },
+  // 🔴 2026-11-20 기본 궁합 무료 전환으로 **신규 판매 종료**. 키·가격은 기존 구매자 재열람(/api/saju-compat-basic)·
+  //    결제 대기 재개·환불 조회가 참조하므로 유지한다. 새 결제는 saju-compat-premium(10,000원)이 받는다.
+  "compat-saju-compatibility": { saleEnabled: false, cost: 50, reason: "사주 궁합 분석" },
   "compat-sukuyo-compatibility": { cost: 50, reason: "숙요점 궁합 분석" },
   "vedic-compatibility-per-use": { cost: 50, reason: "베다점 궁합 분석" },
   "nakshatra-compat": { cost: 50, amountKRW: 5000, reason: "나크샤트라 동서 통합 궁합" },
@@ -362,6 +365,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_yearly_transit": { cost: 50, reason: "점성술 앞으로 12개월 흐름" },
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 전문가 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
+  // 2026-11-20 사주 고급 궁합(사용자 승인): 두 사람 명식의 결정적 계산 + LLM 4장. 기존 compat-saju-compatibility 와 별개 SKU다.
+  "saju-compat-premium": { cost: 100, amountKRW: 10000, reason: "사주 고급 궁합" },
   "love-code": { cost: 50, amountKRW: 5000, accessModel: "per_use", reason: "러브 코드 1회 이용" },
   // 대상자 1인의 관계 경계 성향을 매 회차 분석하는 상담이다. 영구 해금으로 등록하면
   // 다른 출생 정보까지 재열람되는 정책 오류가 생기므로 회당 결제 목록에만 둔다.
@@ -688,6 +693,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "new-year-ai-consultation",
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
+  "saju-compat-premium",
   "master-love-codex",
   "master-love-codex-compat",
   "life-book-ai-consultation",

@@ -198,6 +198,9 @@ const xRobotsNoindexHeaderPatterns = [
   // 사주 원석 추천 질문·결과 화면 — 프로필 기반 개인 결과라 색인하지 않는다(랜딩 /saju/crystals 는 색인).
   "/saju/crystals/start",
   "/saju/crystals/start/*",
+  // 사주 고급 궁합 입력·결제·결과 화면 — 개인 결과라 색인하지 않는다(랜딩 /saju/compatibility 는 색인).
+  "/saju/compatibility/premium",
+  "/saju/compatibility/premium/*",
   '/neo-operation-room/strategy-books',
   '/neo-operation-room/strategy-books/*',
   "/animal/physio",

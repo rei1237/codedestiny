@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju und Tarot mit Yeongnyangi →",
       "publicRecordsTitle": "Öffentliche Analysen von Park Byung-ha (Neo), Saju-Berater mit 10 Jahren Erfahrung",
       "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen",
-      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit. Ohne die heute kostenlosen Deutungen haben sie bei je einer Nutzung einen Wert von {amount} KRW. Signature-Beratungen sind nicht enthalten."
+      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit. Ohne die heute kostenlosen Deutungen haben sie bei je einer Nutzung einen Wert von {amount} KRW. Signature-Beratungen sind nicht enthalten.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Frag Yeoni und Neo, was dich gerade am meisten beschäftigt",
@@ -17638,7 +17650,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22357,7 +22369,11 @@
       "love": "Entdeckt euren Kontaktrhythmus und wie ihr nach einem Streit wieder zueinanderfindet.",
       "business": "Entdeckt, wie ihr Aufgaben teilt und gemeinsam entscheidet.",
       "friend": "Findet heraus, wie viel Kontakt und Freiraum euch beiden guttut.",
-      "preview": "Berichtsinhalt ansehen"
+      "preview": "Berichtsinhalt ansehen",
+      "freeBadge": "Free",
+      "showcaseBadge": "Basic free",
+      "showcasePrice": "Free",
+      "showcaseNote": "Premium reading ₩10,000"
     },
     "reading": {
       "contents": "Inhalt der Deutung",

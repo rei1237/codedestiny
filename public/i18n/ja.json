@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세：ヨンニャンイの四柱推命・タロット →",
       "publicRecordsTitle": "10年の経験を持つ四柱推命家パク・ビョンハ（ネオ）の公開分析記録",
       "publicRecordsLink": "日付・原文・一致する範囲を確認",
-      "passLight": "すべてのはちみつ壺にライト占い{count}種が回数制限なく含まれます。現在無料の占いを除くと、各1回で{amount}ウォン相当です。代表相談は含まれません。"
+      "passLight": "すべてのはちみつ壺にライト占い{count}種が回数制限なく含まれます。現在無料の占いを除くと、各1回で{amount}ウォン相当です。代表相談は含まれません。",
+      "allPrice": "価格",
+      "allPriceFree": "無料",
+      "allPriceLow": "お手軽",
+      "allPriceMid": "標準",
+      "allPriceHigh": "しっかり",
+      "allPricePremium": "プレミアム",
+      "allPriceVvip": "最上位・利用券",
+      "allSort": "並び替え",
+      "allSortRecommended": "おすすめ順",
+      "allSortPriceAsc": "価格の安い順",
+      "allSortPriceDesc": "価格の高い順",
+      "allMore": "もっと見る"
     },
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",
@@ -17638,7 +17650,7 @@
       "headline": "二人の命式を並べ、関係の流れや歩み寄れる点を見つめます。",
       "premiumIntro": "二人の命式を並べ、関係の流れや歩み寄れる点を見つめます。",
       "fallbackCta": "相性を見る準備をする",
-      "ctaNote": "二人の情報を用意し、分析前に利用券・月精石・単件決済の条件をご確認ください。",
+      "ctaNote": "二人の情報を入力すると、基本の相性は無料ですぐにご覧いただけます。高級相性（10,000ウォン）は結果の下から続けて見られます。",
       "premiumOutcomes": {
         "0": "結果は関係を断定するものではありません。対話や選択の参考としてお読みください。"
       }
@@ -22357,7 +22369,11 @@
       "love": "連絡のペースと、けんかの後に歩み寄る方法を読みます。",
       "business": "役割の分け方や、大事なことを一緒に決める方法を読みます。",
       "friend": "連絡の間隔と、お互いに心地よい距離を探ります。",
-      "preview": "レポートの内容を見る"
+      "preview": "レポートの内容を見る",
+      "freeBadge": "無料",
+      "showcaseBadge": "基本無料",
+      "showcasePrice": "無料",
+      "showcaseNote": "高級相性 10,000ウォン"
     },
     "reading": {
       "contents": "相性鑑定の目次",

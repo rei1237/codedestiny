@@ -5762,7 +5762,22 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
 @media (min-width:760px){.cd-af__chips{flex-wrap:wrap;overflow:visible}}
 .cd-af__chip,.cd-af__fchip{flex:none;min-height:44px;padding:0 14px;border:1px solid var(--cd-af-line);border-radius:999px;background:transparent;color:var(--cd-af-ink);font:inherit;font-size:.9rem;font-weight:700;white-space:nowrap;cursor:pointer}
 .cd-af__chip[aria-pressed=true],.cd-af__fchip[aria-pressed=true]{border-color:var(--cd-af-accent);background:var(--cd-af-accent);color:var(--cd-af-on-accent)}
-.cd-af__status{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}
+.cd-af__status{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;flex-wrap:wrap;padding:4px 0}
+html.neo-mode .cd-af__status,body.neo-mode .cd-af__status{--cd-af-bg:#171126}
+.cd-af__sort{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:var(--cd-af-muted);font-size:.8rem;font-weight:800}
+.cd-af__sort>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cd-af__status{flex-wrap:nowrap}
+.cd-af__summary{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:759px){
+.cd-af{gap:8px}
+.cd-af__group{grid-template-columns:3.2em minmax(0,1fr);align-items:center;gap:6px}
+.cd-af__chip,.cd-af__fchip{min-height:40px;padding:0 12px}
+}
+.cd-af__sort select{min-height:44px;padding:0 10px;border:1px solid var(--cd-af-line);border-radius:12px;background:var(--cd-af-field);color:var(--cd-af-ink);font:inherit;font-size:.9rem;font-weight:700}
+.cd-af__fchip:disabled{opacity:.4;cursor:not-allowed}
+.cd-af__count{margin-left:6px;font-size:.72rem;font-weight:800;opacity:.7}
+.cd-af__more{justify-self:center;margin:12px auto 0;display:block;min-height:44px;padding:0 18px;border:1px solid var(--cd-af-line);border-radius:12px;background:transparent;color:var(--cd-af-ink);font:inherit;font-weight:800;cursor:pointer}
+.cd-af__results .fortune-gateway__rec{content-visibility:auto;contain-intrinsic-size:auto 320px}
 .cd-af__summary{margin:0;color:var(--cd-af-muted);font-size:.85rem}
 .cd-af__reset,.cd-af__empty-reset,.cd-af__browse{min-height:44px;padding:0 14px;border:1px solid var(--cd-af-line);border-radius:12px;background:transparent;color:var(--cd-af-ink);font:inherit;font-size:.9rem;font-weight:800;cursor:pointer}
 .cd-af__browse{justify-self:center}
@@ -10786,8 +10801,26 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               <button type="button" class="cd-af__chip" data-purpose="self" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k17f5hqf">🔮 나 자신</button>
             </div>
           </div>
+          <div class="cd-af__group">
+            <span class="cd-af__label" id="cdAllFortunesPriceTitle" data-cd-trans="home.gardenCopy.allPrice">가격</span>
+            <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesPriceTitle">
+              <button type="button" class="cd-af__fchip" data-price="free" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceFree">무료</span></button>
+              <button type="button" class="cd-af__fchip" data-price="low" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceLow">가벼운</span></button>
+              <button type="button" class="cd-af__fchip" data-price="mid" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceMid">보통</span></button>
+              <button type="button" class="cd-af__fchip" data-price="high" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceHigh">든든한</span></button>
+              <button type="button" class="cd-af__fchip" data-price="premium" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPricePremium">프리미엄</span></button>
+              <button type="button" class="cd-af__fchip" data-price="vvip" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceVvip">최고가·이용권</span></button>
+            </div>
+          </div>
           <div class="cd-af__status">
             <p class="cd-af__summary" id="cdAllFortunesSummary" aria-live="polite"></p>
+            <label class="cd-af__sort"><span data-cd-trans="home.gardenCopy.allSort">정렬</span>
+              <select data-cd-sort>
+                <option value="recommended" data-cd-trans="home.gardenCopy.allSortRecommended">추천순</option>
+                <option value="priceAsc" data-cd-trans="home.gardenCopy.allSortPriceAsc">낮은 가격순</option>
+                <option value="priceDesc" data-cd-trans="home.gardenCopy.allSortPriceDesc">높은 가격순</option>
+              </select>
+            </label>
             <button type="button" class="cd-af__reset" data-cd-finder-reset data-cd-trans="home.gardenCopy.allReset" hidden>조건 초기화</button>
           </div>
           <details class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">
@@ -20262,7 +20295,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
         <div class="pf-card pf-card--compat">
           <div class="pf-card__icon-wrap" aria-hidden="true">💞</div>
           <div class="pf-card__body">
-            <div class="pf-card__badge" data-cd-trans data-key="result.premiumShowcase.perUse">회당 결제</div>
+            <div class="pf-card__badge" data-cd-trans data-key="sajuCompat.entry.showcaseBadge">기본 무료</div>
             <h3 class="pf-card__title" data-cd-trans data-key="result.premiumShowcase.compat.title">궁합 분석</h3>
             <p class="pf-card__desc" data-cd-trans data-key="result.premiumShowcase.compat.desc">연애·사업·친구 궁합을 사주팔자 기반으로 분석합니다. 함께할수록 좋아지는 관계인지, 조심해야 하는 관계인지 부드럽게 밝혀드립니다.</p>
             <ul class="pf-card__points">
@@ -20273,8 +20306,8 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
             </ul>
             <div class="pf-card__price-row">
               <div class="pf-card__price">
-                <span class="pf-coin-amount" data-cd-trans data-key="payment.price5000">5,000원</span>
-                <span class="pf-coin-note" data-cd-trans data-key="payment.perUse5000">회당 · 5,000원</span>
+                <span class="pf-coin-amount" data-cd-trans data-key="sajuCompat.entry.showcasePrice">무료</span>
+                <span class="pf-coin-note" data-cd-trans data-key="sajuCompat.entry.showcaseNote">고급 궁합 10,000원</span>
               </div>
               <a class="pf-card__cta" href="#compatCard">
                 <span data-cd-trans data-key="result.premiumShowcase.compatCta">궁합 보러가기 →</span>
@@ -20360,7 +20393,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
 
     <!-- 2-1. 궁합 보기 -->
     <section data-moonlit-form class="card" id="compatCard" aria-labelledby="compatTitle">
-      <div class="compat-entry-cover"><img src="/images/compat-story/saju-compat-entry.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"><h3 id="compatTitle" class="sec-title"><span data-cd-trans data-key="sajuCompat.entry.title">두 사람의 사주 궁합</span> <span class="sec-tier-badge sec-tier-badge--paid">PREMIUM</span></h3></div>
+      <div class="compat-entry-cover"><img src="/images/compat-story/saju-compat-entry.webp" width="1200" height="800" alt="" loading="lazy" decoding="async"><h3 id="compatTitle" class="sec-title"><span data-cd-trans data-key="sajuCompat.entry.title">두 사람의 사주 궁합</span> <span class="sec-tier-badge sec-tier-badge--free" data-cd-trans data-key="sajuCompat.entry.freeBadge">무료</span></h3></div>
       <div>
         <div>
         <div style="display:flex;flex-direction:column;gap:10px">
@@ -20396,8 +20429,8 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
               <select class="inp" id="compatBirthMinute"></select>
             </div>
           </div>
-          <!-- 구매 전에는 실제 개인 결과를 노출하지 않고, 결제 뒤 생성되는 리포트의 구성만 예시로 안내한다.
-               runCompat()의 이용권·월정석·단건 결제·재개 경로와는 의도적으로 분리한다. -->
+          <!-- 2026-11-20 기본 궁합 무료: runCompat()은 결제 없이 정적 결과를 그리고, 결과 아래 달빛 예화 카드가
+               사주 고급 궁합(/saju/compatibility/premium/, 10,000원)으로 보낸다. 아래 「리포트 구성 보기」는 예시 이미지다. -->
           <button id="compatRunBtn" class="btn-sub btn-sub-mt4" data-action="runCompat" data-cd-trans data-key="result.compat.runCta">💗 궁합 분석하기</button>
           <details class="compat-disclosure"><summary data-cd-trans data-key="result.compat.celebLabel">유명인 선택</summary><div id="celebsList"></div></details>
           <details class="compat-disclosure"><summary data-cd-trans data-key="sajuCompat.entry.preview">리포트 구성 보기</summary>
@@ -20405,7 +20438,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
             <div class="compat-preview__head">
               <span class="compat-preview__eyebrow">분석 항목 예시</span>
               <h4 id="compatPreviewTitle">궁합 리포트에는 이런 흐름이 담겨요</h4>
-              <p>실제 결과는 두 사람의 입력을 바탕으로 분석 후 제공됩니다. 아래 이미지는 기능을 설명하기 위한 예시입니다.</p>
+              <p>기본 궁합 결과는 두 사람의 입력을 바탕으로 무료로 바로 보여 드려요. 아래 이미지는 기능을 설명하기 위한 예시이며, 네 장의 AI 풀이는 결과 아래 사주 고급 궁합(10,000원)에서 이어져요.</p>
             </div>
             <div class="compat-preview__grid">
               <button type="button" class="compat-preview__item" data-compat-preview-src="/fuctionassets/compat-preview-core.webp" data-compat-preview-title="관계 핵심" data-compat-preview-desc="두 사람이 관계에서 중요하게 여기는 기준과 대화의 결을 살펴보는 분석 항목 예시입니다." aria-haspopup="dialog">
@@ -38927,7 +38960,7 @@ function updateBadge() {
     '/saju/career-style/':{"featureId":"career-style","category":"사주","badge":"개인 리포트 유료","title":"나의 일 스타일","headline":"나의 일 스타일","subheadline":"프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요.","previewText":"소개·예시는 무료이며, 개인 리포트는 결제 또는 꿀방울로 해금해요.","ctaLabel":"리포트 해금 안내 보기","trustNotes":["소개·예시 무료 · 개인 리포트는 해금 후 제공해요.","사주 기반 자기이해 콘텐츠이며 전문 진로검사·심리상담을 대체하지 않습니다."],"painPoints":[],"recommendedFor":[],"answersQuestions":[],"analysisSteps":[],"unlockBenefits":[],"requiredInfo":[],"faq":[],"receives":[{"title":"나의 일 스타일","detail":"프로필 카드로 읽는 여덟 장의 한국어 사주 자기이해 리포트. 성향·월지·업무 조건을 살펴봐요."}],"outline":[{"title":"리포트 읽는 순서","detail":"성향과 월지, 업무 조건과 역할, 강점의 그림자, 작은 진로 실험을 차례로 살펴봐요."}],"outlineImage":"/images/career-style/yeoni-work-style.webp"},
     '/saju-fpti/':{"category":"사주","title":"사주 FPTI","badge":"사주 FPTI","headline":"오행과 십성을 바탕으로 나의 기질과 선택 방식을 살펴봐요.","subheadline":"오행과 십성을 바탕으로 나의 기질과 선택 방식을 살펴봐요.","previewText":"오행과 십성을 바탕으로 나의 기질과 선택 방식을 살펴봐요.","ctaLabel":"성향 살펴보기","ctaNote":"핵심 결과는 무료로 확인하며, 심층 리포트는 별도 이용 조건을 확인해요.","trustNotes":["참고용 자기 이해 콘텐츠이며, 성격을 확정하는 검사는 아니에요."],"feats":[],"painPoints":[],"recommendedFor":[],"unlockBenefits":[],"requiredInfo":[],"answersQuestions":[],"analysisSteps":[],"valueCompare":{"rows":[]},"faq":[],"fallbackTitle":"사주 FPTI"},
     'openSajuFptiTest':{inherit:'/saju-fpti/'},
-    '/saju/compatibility/':{"featureId":"compat-saju-compatibility","category":"사주","title":"사주 궁합","badge":"사주 궁합","headline":"두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.","subheadline":"두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.","previewText":"두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.","ctaLabel":"궁합 준비하기","ctaNote":"두 사람의 정보를 준비하고, 분석 전에 이용권·월정석·단건 결제 조건을 확인해요.","trustNotes":["결과는 관계를 단정하지 않으며, 대화와 선택을 위한 참고로 읽어 주세요."],"feats":[],"painPoints":[],"recommendedFor":[],"unlockBenefits":[],"requiredInfo":[],"answersQuestions":[],"analysisSteps":[],"valueCompare":{"rows":[]},"faq":[],"fallbackTitle":"사주 궁합"},
+    '/saju/compatibility/':{"featureId":"compat-saju-compatibility","category":"사주","title":"사주 궁합","badge":"사주 궁합","headline":"두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.","subheadline":"두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.","previewText":"두 사람의 명식을 나란히 놓고, 관계의 흐름과 조율할 지점을 살펴봐요.","ctaLabel":"궁합 준비하기","ctaNote":"두 사람의 정보를 입력하면 기본 궁합은 무료로 바로 보여 드려요. 고급 궁합(10,000원)은 결과 아래에서 이어 볼 수 있어요.","trustNotes":["결과는 관계를 단정하지 않으며, 대화와 선택을 위한 참고로 읽어 주세요."],"feats":[],"painPoints":[],"recommendedFor":[],"unlockBenefits":[],"requiredInfo":[],"answersQuestions":[],"analysisSteps":[],"valueCompare":{"rows":[]},"faq":[],"fallbackTitle":"사주 궁합"},
     'compat-saju-compatibility':{inherit:'/saju/compatibility/'},
     '/neo-consultation/':{"featureId":"neo-email-consultation","category":"상담","badge":"이메일 상담","title":"네오에게 물어봐","headline":"결정을 앞둔 고민을 남겨주세요. 네오가 직접 읽고 AI 분석을 활용해 작성·검수한 답변을 이메일로 전합니다.","subheadline":"네오가 AI 분석을 활용해 답변을 작성·검수하고 이메일로 전해요.","previewText":"사주를 기본으로, 질문별로 자미두수 해석(+20,000원)을 더할 수 있어요.","ctaLabel":"질문 작성하기","ctaNote":"접수 가능 여부와 추가 선택 금액을 확인한 뒤 단건 결제로 신청해요.","trustNotes":["실시간 채팅·전화·대면 상담은 제공하지 않아요.","답변은 받으신 이메일에서 확인하고 보관해 주세요."],"feats":[],"painPoints":[],"recommendedFor":[],"unlockBenefits":[],"requiredInfo":[],"answersQuestions":[],"analysisSteps":[],"valueCompare":{"rows":[]},"faq":[]},
     'neo-email-consultation':{inherit:'/neo-consultation/'},

@@ -16,3 +16,19 @@
 .narration{margin:0;padding:0 4px;color:var(--cut-muted);font-family:'Yeongnyangi Myeongjo',serif;font-size:15px;line-height:1.8;word-break:keep-all;text-align:center}
 .cut[data-kind='silent'] figure{padding-block:6px}
 @media (min-width:681px){.cut figcaption{padding-inline:24px}}
+/* guided: 캐릭터 웹툰 결과(NarratorWebtoon). 색·크기는 래퍼의 사설 --wt-* 에서만 읽는다(새 hex 없음). */
+.guided{--cut-ink:var(--wt-paper-ink);--cut-muted:var(--wt-muted);--cut-bubble:var(--wt-paper);--cut-line:var(--wt-line);--cut-accent:var(--wt-paper-ink);gap:var(--cd-sp-xl,32px);padding-bottom:0}
+.guided .cut figcaption{gap:var(--cd-sp-sm,12px);padding:var(--cd-sp-sm,12px) 0 0}
+.guided .bubble{max-width:min(100%,var(--type-reading-measure));font-size:var(--wt-size);line-height:var(--type-reading-leading)}
+.guided .bubble b{font-family:var(--font-display);font-weight:400;font-size:var(--cd-t-caption)}
+.guided .bubble+.bubble{justify-self:start;border-radius:18px 18px 18px 4px}
+.engine{margin:0;max-width:var(--type-reading-measure);color:var(--wt-ink);font-size:var(--wt-size,16px);line-height:var(--type-reading-leading,1.8);word-break:keep-all;overflow-wrap:anywhere}
+.label{display:block;margin-bottom:2px;color:var(--wt-accent);font-family:var(--font-display);font-weight:400;font-size:var(--cd-t-card)}
+.disclaimer{margin:0;color:var(--wt-muted);font-size:calc(var(--wt-size,16px) - 2px);line-height:1.7;word-break:keep-all}
+.panel{display:flex;align-items:flex-end;justify-content:center;gap:var(--cd-sp-sm,12px);padding:var(--cd-sp-sm,12px);border:1px solid var(--wt-line);border-radius:var(--cd-r-card,16px);background:var(--wt-panel)}
+.art{display:block;min-width:0}
+.art img{display:block;width:100%;height:auto}
+.art[data-role='narrator']{flex:0 1 160px}
+.art[data-role='narrator'] img{mix-blend-mode:multiply;background:transparent}
+.art[data-role='card']{flex:0 1 120px}
+.art[data-role='card'] img{aspect-ratio:2/3;object-fit:cover;border-radius:var(--cd-r-sm,8px);background:var(--wt-line)}

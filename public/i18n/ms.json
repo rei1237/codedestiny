@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju dan Tarot bersama Yeongnyangi →",
       "publicRecordsTitle": "Rekod analisis awam Park Byung-ha (Neo), pengamal Saju berpengalaman 10 tahun",
       "publicRecordsLink": "Bandingkan tarikh, catatan asal dan hasil",
-      "passLight": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan. Tanpa mengira bacaan yang kini percuma, nilainya {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan."
+      "passLight": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan. Tanpa mengira bacaan yang kini percuma, nilainya {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Tanya Yeoni dan Neo perkara yang paling ingin anda tahu sekarang",
@@ -17638,7 +17650,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22357,7 +22369,11 @@
       "love": "Kenali rentak berhubung dan cara berbaik selepas berselisih.",
       "business": "Lihat cara anda berkongsi tugas dan membuat keputusan bersama.",
       "friend": "Kenali kekerapan berhubung dan ruang peribadi yang sesuai untuk anda berdua.",
-      "preview": "Lihat kandungan laporan"
+      "preview": "Lihat kandungan laporan",
+      "freeBadge": "Free",
+      "showcaseBadge": "Basic free",
+      "showcasePrice": "Free",
+      "showcaseNote": "Premium reading ₩10,000"
     },
     "reading": {
       "contents": "Kandungan bacaan",
