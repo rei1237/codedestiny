@@ -10,5 +10,10 @@
 		<string>applinks:code-destiny.com</string>
 		<string>webcredentials:code-destiny.com</string>
 	</array>
+	<!-- Native Sign in with Apple (Phase 5). The App ID must have the capability enabled before a signed build. -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>
