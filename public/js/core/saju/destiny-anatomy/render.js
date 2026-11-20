@@ -65,8 +65,28 @@
   // 샤갈풍 밤하늘 장식(예화 금선) — 초승달·별·떠다니는 꽃가지·바이올린. 데이터가 아니라 장식이라 머리 바깥 여백에만 둔다.
   var MEME_ART = '<path class="da-meme__window" d="M20 282V154a160 142 0 0 1 320 0v128"/>' +
     '<path class="da-meme__moon" d="M44 22a20 20 0 1 0 22 30a16 16 0 1 1-22-30Z"/>';
+  /* 꽃잎 타일 — 대각 두 모서리(왼위·오른아래)는 크게, 나머지 둘은 작게 둥글린 잎 모양. 칸 좌표·넓이는 그대로고 모서리만 깎는다.
+   * 큰 반경은 짧은 변의 34%(최대 22)로 묶어 넓이 손실을 5% 안쪽으로 둔다(면적 = 점수 계약). 공유 카드(share-card.js)도 같은 식을 쓴다. */
+  function petalPath(x, y, w, h, maxR) {
+    var m = Math.min(w, h), R = Math.min(maxR || 22, m * .34), r = Math.min(R * .28, 5);
+    var f = function (n) { return +n.toFixed(2); };
+    return 'M' + f(x + R) + ' ' + f(y) + 'H' + f(x + w - r) + 'A' + f(r) + ' ' + f(r) + ' 0 0 1 ' + f(x + w) + ' ' + f(y + r) +
+      'V' + f(y + h - R) + 'A' + f(R) + ' ' + f(R) + ' 0 0 1 ' + f(x + w - R) + ' ' + f(y + h) +
+      'H' + f(x + r) + 'A' + f(r) + ' ' + f(r) + ' 0 0 1 ' + f(x) + ' ' + f(y + h - r) +
+      'V' + f(y + R) + 'A' + f(R) + ' ' + f(R) + ' 0 0 1 ' + f(x + R) + ' ' + f(y) + 'Z';
+  }
+  // 머리 바깥 여백에 핀 꽃 — [중심 x, 중심 y, 배율]. 5장 꽃잎(반경 2.6, 중심에서 4.2)+가운데 꽃술. 공유 카드가 같은 목록을 그린다.
+  var MEME_FLOWERS = [[326, 30, 2.6], [36, 268, 2], [350, 252, 1.4]];
+  var FLOWER_DOTS = [[0, -4.2], [3.6, -1.6], [2.2, 3.1], [-2.2, 3.1], [-3.6, -1.6]];
+  function memeFlowers() {
+    return MEME_FLOWERS.map(function (f) {
+      return '<g class="da-meme__flower" transform="translate(' + f[0] + ' ' + f[1] + ') scale(' + f[2] + ')">' +
+        FLOWER_DOTS.map(function (d) { return '<circle class="da-meme__petal" cx="' + d[0] + '" cy="' + d[1] + '" r="2.6"/>'; }).join('') +
+        '<circle class="da-meme__bloom" cx="0" cy="0" r="1.7"/></g>';
+    }).join('');
+  }
   function memeSwatch(axis) {
-    return '<svg class="da-meme__sw" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><rect class="da-meme__fill da-ax-' + esc(axis) + '" x="1" y="1" width="16" height="16" rx="4"/>' + '</svg>';
+    return '<svg class="da-meme__sw" viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path class="da-meme__fill da-ax-' + esc(axis) + '" d="' + petalPath(1, 1, 16, 16, 7) + '"/>' + '</svg>';
   }
   function memeHtml(t) {
     var m = t.meme;
@@ -76,8 +96,7 @@
     var rects = '', cells = '', pats = '';
     m.cells.forEach(function (c) {
       var cw = Math.max(0, c.w - MEME_GAP), ch = Math.max(0, c.h - MEME_GAP);
-      var geo = 'x="' + (c.x + g) + '" y="' + (c.y + g) + '" width="' + cw + '" height="' + ch + '" rx="' + Math.min(10, cw / 3, ch / 3).toFixed(2) + '"';
-      rects += '<rect class="da-meme__fill da-ax-' + esc(c.axis) + '" ' + geo + '/>';
+      rects += '<path class="da-meme__fill da-ax-' + esc(c.axis) + '" d="' + petalPath(c.x + g, c.y + g, cw, ch) + '"/>';
       cells += '<div class="da-meme__cell da-ax-' + esc(c.axis) + ' is-' + esc(c.tier) + (c.luck ? ' is-luck da-tone-' + esc(c.luck) : '') +
         '" data-da-axis="' + esc(c.axis) + '" data-da-tier="' + esc(c.tier) + '" style="left:' + pc(c.x + g, vb[2]) + ';top:' + pc(c.y + g, vb[3]) +
         ';width:' + pc(c.w - MEME_GAP, vb[2]) + ';height:' + pc(c.h - MEME_GAP, vb[3]) + '">' +
@@ -99,7 +118,7 @@
     return '<figure class="da-meme">' +
       '<div class="da-meme__stage" aria-hidden="true" style="aspect-ratio:' + vb[2] + ' / ' + vb[3] + '">' +
       '<svg class="da-meme__svg" viewBox="' + esc(m.viewBox) + '" focusable="false"><defs><clipPath id="daMemeClip"><rect ' + inner + '/></clipPath>' + pats + '</defs>' +
-      MEME_ART + '<path class="da-meme__head" d="' + esc(m.head) + '"/><path class="da-meme__ear" d="' + esc(m.ear) + '"/>' +
+      MEME_ART + memeFlowers() + '<path class="da-meme__head" d="' + esc(m.head) + '"/><path class="da-meme__ear" d="' + esc(m.ear) + '"/>' +
       '<path class="da-meme__eye" d="' + esc(m.eye) + '"/><circle class="da-meme__cheek" cx="' + m.cheek.cx + '" cy="' + m.cheek.cy + '" r="' + m.cheek.r + '"/>' +
       '<rect class="da-meme__brain" ' + box + '/><g clip-path="url(#daMemeClip)">' + rects + '</g><rect class="da-meme__outline" ' + box + '/></svg>' +
       '<div class="da-meme__cells">' + cells + '</div></div>' +
@@ -584,7 +603,7 @@
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="retry">' + esc(ui.retry) + '</button></div>';
   }
 
-  var api = {render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, CTA_TARGET: CTA_TARGET, AI_TARGETS: AI_TARGETS};
+  var api = {render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, petalPath: petalPath, MEME_FLOWERS: MEME_FLOWERS, CTA_TARGET: CTA_TARGET, AI_TARGETS: AI_TARGETS};
   root.DestinyAnatomyRender = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);
