@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "R8 검증기(scripts/verify-paid-llm-delivery-contract.mjs 확장: 계약 서비스마다 실패 시 retryable + 다시 시도 경로 + 7일 환불, fail-closed, 변이 1종) + docs/context/ai-and-db.md 전달 계약 절 갱신 → R9 묶음 머지. R1~R7·R7b 는 워크트리에 준비됨(체인 결과는 실측 절), 머지·push 는 R9 에서"
+next: "R9 묶음 머지(origin/main 머지 → 미러·sitemap 재생성 → 4단계 체인 → check:pre-push → push → main CI 1회 확인). R1~R8 은 워크트리에 준비됨"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -66,7 +66,7 @@ next: "R8 검증기(scripts/verify-paid-llm-delivery-contract.mjs 확장: 계약
   - [x] R7 찻집 — `1cec195b8`(워커·환불 크론·테스트) + `dd51e5355`(웹 다시 시도·환불 요청 UI) + `6759ad789`(sitemap 원장). 상세·검사는 실측 "R7 찻집".
   - [x] R7 마스터 인연의 서 — `d16920bf3`(워커·복구 크론·테스트) + `5ed4f9258`(결과 화면 다시 시도·환불 요청 버튼 + sitemap 원장). 상세·검사는 실측 "R7 마스터 인연의 서".
 - [x] R7b 보관함(사용자 요청 2026-11-20): 꿀꿀운세 `/records` 에서 다시 시도 가능한 상담(retry 표지, 창 안)을 일반 '실패'가 아니라 별도 상태 "다시 시도 가능"으로 표시하고, 서비스별 다시 시도 진입(결과 화면 링크 또는 버튼)을 단다. `/yeongnyangi/library/` 분리 규칙 유지(영냥이 기록 섞지 않음), 완성 결과는 숨기거나 지우지 않는다. 참고: 흑월 보류 건은 지금 pending 이라 "생성 중"으로 보이고(record-library.js:35,49), 연애 비책·인생의 책·신년·네오는 '실패'로 보인다 — 서비스마다 retry 표지 위치가 다르다(흑월 `metadata.retryable`, 나머지 `llmMeta.retryable`). → `384d3b8f6`. 상세는 실측 "R7b 보관함".
-- [ ] R8 검증기: 계약 목록 각 서비스가 "실패 시 retryable + 다시 시도 경로 + 7일 환불"을 갖는지 fail-closed 로 검사(`scripts/verify-paid-llm-delivery-contract.mjs` 확장, 변이 1종으로 무는지 확인). 문서 `docs/context/ai-and-db.md` 유료 LLM 전달 계약 절 갱신.
+- [x] R8 검증기: 계약 목록 각 서비스가 "실패 시 retryable + 다시 시도 경로 + 7일 환불"을 갖는지 fail-closed 로 검사(`scripts/verify-paid-llm-delivery-contract.mjs` 확장, 변이 1종으로 무는지 확인). 문서 `docs/context/ai-and-db.md` 유료 LLM 전달 계약 절 갱신. — `2c36ae32f`(검증기) + `acce61a44`(문서). 상세는 실측 "R8 검증기".
 - [ ] R9 대표 7종 머지 → `npm test --prefix apps/toss` → `npm run check:fast -- --base=<origin/main SHA>` → `node scripts/run-paid-gate-suite.mjs --base=<SHA>` → `node scripts/verify-myeongri-tables.mjs` → `npm run check:pre-push` → push → main CI(PR CI·Paid Flow Gates) 녹색.
 - [ ] R10 "다른 기능들" + 전문가 상담(사용자 요청 2026-11-20으로 범위 확대): 서비스 안내의 전문가 상담 묶음(`#guide-expert` / `/consultations/`)의 유료 LLM 상담 전부 — 예: vedic·ziwei·astrology·nakshatra·karma·sukuyo 등 계약 목록에 있는 전문가 상담 — 에 같은 다시 시도 우선 정책(무료 다시 시도 → 생성 + 7일 또는 고객 요청 시 환불). 🔴 추측하지 말고 정확한 목록을 먼저 지도로 만든다(안내 소스·계약 목록 대조). 그다음 계약 목록 나머지 서비스에 같은 정책을 묶음별로(서비스마다 커밋). 지도 → TDD → 검사 체인 → push.
 - [ ] R11 최종 보고 + 운영 승격 승인 질문(AskUserQuestion, 추천 "CI 녹색 뒤 1회 승격"). 승격 직전 `git log 25d9bc034..origin/main` 으로 다른 세션 커밋을 확인해 질문에 적는다.
@@ -87,6 +87,17 @@ next: "R8 검증기(scripts/verify-paid-llm-delivery-contract.mjs 확장: 계약
 S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 불일치, 흑월 근거 실패 3→5, '조심'인데 '기회' 톤. 연애 비책 정체 환불 재시도가 `refundEligibleAt` 미사용(R5: 창 안 정체는 해소, 생성 7일 경과 정체는 기존 경로). 마스터 인연의 서 운영 스크립트 재개방 위험 미확인. S14 프롬프트 최적화 대기.
 
 ## 실측
+### R8 검증기 (2026-11-20, 워크트리 커밋 `2c36ae32f`·`acce61a44`)
+- `scripts/verify-paid-llm-delivery-contract.mjs` 검사 8 추가(`checkRetryFirst`·`retryFirstMutationCheck`, `main` 에서 기존 오류와 합침).
+  - 분류(fail-closed): 계약 36개 서비스는 `RETRY_FIRST_POLICY`(7) 또는 `KNOWN_RETRY_PENDING`(29, 정확히 일치) 중 정확히 하나. 미분류·이중 분류·낡은 항목 실패. 대표 상담 = `lib/saju/saju-service-catalog.mjs` `saju-signature` featureKey 7개 → 전부 retry-first 여야 함(읽지 못하면 실패).
+  - 서비스마다 4근거: (1) 표지 — 계약 파일이 `paid-delivery-stuck.js` 의 `retryableFailureMeta`(네오·인생의 책·신년·연애 비책) 또는 `retryRefundAt`(흑월·찻집·코덱스)을 import 해 사용 (2) `path === ".../retry"` (3) `path === ".../refund-request"` (4) 7일 정산 기호 export + 크론 파일 참조: 네오·연애 비책·흑월·찻집 `settleDue…RetryRefunds` → `consultation-delivery-refund.js`, 신년·인생의 책 `expireRetryableConsultations` → `consultation-recovery-task.js` + `GENERIC_STUCK_SETTLERS` + 환불 cron `SERVICES` 키, 코덱스 `codexRetryDue` → `master-love-codex-recovery-task.js`. 크론 사슬(`RETRY_CRON_CHAIN`)을 `worker/index.js`(`runConsultationRecovery`·`runMasterLoveCodexRecovery`)까지 확인.
+  - 자기 변이: 7서비스 × 4근거를 하나씩 지운 소스로 재판정 → 28/28 실패(탐지).
+  - 가정: 지시문은 "refund cron(`consultation-delivery-refund.js`)에 배선"이라 했지만 신년·인생의 책은 복구 cron → `refundEligibleAt` → 환불 cron, 코덱스는 자체 복구 cron 이 실제 배선이라 그대로 검사한다.
+- 실행: `node scripts/verify-paid-llm-delivery-contract.mjs` exit 0 — "계약 36개 … 변이 36/36 탐지 / 다시 시도 우선 7개(대표 상담 7종), 대기 29개, 변이 28/28 탐지". eslint 0.
+- 수동 변이(소스 직접 수정 → 복원, 복원 뒤 git status 깨끗): ① `consultation-delivery-refund.js` 찻집 `settleDueTeaHouseRetryRefunds` 호출 제거 → exit 1 "fortune-tea-house: 7일 정산 … 크론 … 에 배선되지 않았다" ② `heukwol.js` `/api/heukwol/refund-request` 분기 제거 → exit 1 "heukwol: POST /refund-request 라우트가 없다". 탐침: palm 을 대기 목록에서 빼면 "미분류", 흑월을 정책에서 빼면 "대표 상담 … 다시 시도 우선이 아니다", 대표 키 빈 배열·GENERIC 에서 new-year 제거도 각각 실패.
+- 배선: `package.json` `verify:paid-llm-delivery` → `scripts/run-paid-gate-suite.mjs:138`(항상 실행 목록) → `.github/workflows/paid-flow-gates.yml:551`. 새 배선 불필요.
+- 문서: `docs/context/ai-and-db.md` 보장·우선순위 4·정체 감시·대표 상담 완성본 문장을 새 정책으로 고치고 "### 다시 시도 우선 (대표 상담, 2026-11-20 R8)" 절 추가(흐름·표지·경로·즉시 환불 예외·검증기). check:fast(fast tier, doc-freshness) exit 0.
+
 ### R0 실패 경로 지도 (2026-11-19, 읽기 전용 조사 · 기점 bcce826eb · 줄 번호는 R1·R2 변경 전)
 
 #### 공통 장치
