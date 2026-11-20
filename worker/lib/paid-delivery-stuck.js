@@ -56,9 +56,19 @@ export function retryRefundAt(doc, now = Date.now()) {
   return new Date((Number.isFinite(created) ? created : now) + RETRY_REFUND_AFTER_MS);
 }
 
+// 정체 나이의 시작: 다시 시도로 재개방한 문서는 재개방 시각부터 잰다 — 6일째 연 다시 시도가 다음 크론에 바로 다시 확정되지 않게.
+// 공용·찻집·연애 비책·네오는 llmMeta.retryable.reopenedAt, 흑월은 metadata.retryReopenedAt 에 남긴다.
+// 환불 시각(retryRefundAt)은 생성 + 7일 그대로다(재개방이 기한을 늘리지 않는다).
+function stuckAgeStart(doc) {
+  const reopened = Math.max(0, ...[doc?.llmMeta?.retryable?.reopenedAt, doc?.metadata?.retryReopenedAt].map(ms).filter(Number.isFinite));
+  const created = docCreatedAt(doc);
+  if (!(reopened > 0)) return created;
+  return Number.isFinite(created) ? Math.max(created, reopened) : reopened;
+}
+
 export function shouldSettleStuck(doc, now) {
   if (Number(doc?.deliveryWatch?.stalls || 0) >= STUCK_SETTLE_STALLS) return true;
-  const created = docCreatedAt(doc);
+  const created = stuckAgeStart(doc);
   return Number.isFinite(created) && now - created >= STUCK_SETTLE_AGE_MS;
 }
 
@@ -109,7 +119,10 @@ export async function settleStuckConsultation(env, { service, model, doc, now, r
   const prevRefundAt = ms(prev?.refundAt);
   const refundAt = Number.isFinite(prevRefundAt) ? new Date(prevRefundAt) : retryRefundAt(fresh, now);
   // 다시 시도 창 안: 환불하지 않고 다시 시도 가능으로 둔다.
-  if (refundAt.getTime() > now) {
+  // 운영 복구(supportRecovery)·토스(accessSource toss) 문서는 예외로 바로 정산한다 — 토스엔 다시 시도 화면이 없고
+  // 공용 환불 크론(runPendingConsultationRefunds)이 토스를 고르지 않아, 여기서 settle 이 manual_review 로 넘겨야 방치되지 않는다.
+  const deferrable = !fresh.llmMeta?.supportRecovery && fresh.accessSource !== 'toss';
+  if (deferrable && refundAt.getTime() > now) {
     const since = prev?.since ? new Date(prev.since) : new Date(now);
     const retryable = { ...(prev || {}), since, refundAt, code: 'DELIVERY_STUCK' };
     const result = await model.updateOne(cas, { $set: { ...failed, ...llmMetaFields(fresh, { ...unlock, 'llmMeta.retryable': retryable }) } });
@@ -117,9 +130,9 @@ export async function settleStuckConsultation(env, { service, model, doc, now, r
     logSettled({ service, sessionId, outcome: 'retryable', stalls });
     return { outcome: 'retryable', refundAt: refundAt.toISOString() };
   }
-  // 다시 시도 창이 지난 뒤의 정체: 기존처럼 환불 대상으로 확정하고 공용 환불을 부른다.
+  // 다시 시도 창이 지난 뒤의 정체(또는 위 예외 문서): 기존처럼 환불 대상으로 확정하고 공용 환불을 부른다.
   const result = await model.updateOne(cas, { $set: { ...failed, ...llmMetaFields(fresh, { ...unlock, 'llmMeta.refundEligibleAt': at,
-    'llmMeta.retryable.refundReason': 'RETRY_WINDOW_EXPIRED' }) } });
+    ...(deferrable ? { 'llmMeta.retryable.refundReason': 'RETRY_WINDOW_EXPIRED' } : {}) }) } });
   if (!result?.modifiedCount) return { outcome: 'progressed' };
   let refundStatus = 'pending';
   try {
@@ -207,7 +220,7 @@ export async function markRetryableRefundDue(model, { id, userId } = {}, now = D
   const fresh = await model.findOne({ id, userId }).lean();
   if (!fresh) return { ok: false, reason: 'NOT_FOUND' };
   if (fresh.status !== 'generation_failed' || !fresh.llmMeta?.retryable) return { ok: false, reason: 'NOT_RETRYABLE' };
-  if (refundStarted(fresh.llmMeta)) return { ok: true };
+  if (refundStarted(fresh.llmMeta)) return { ok: true, idempotent: true };
   const result = await model.updateOne({ id, userId, status: 'generation_failed', updatedAt: fresh.updatedAt }, { $set: {
     'llmMeta.refundEligibleAt': new Date(now).toISOString(), 'llmMeta.retryable.refundReason': String(reason).slice(0, 40) } });
   return result?.modifiedCount ? { ok: true } : { ok: false, reason: 'CONFLICT' };
@@ -215,12 +228,12 @@ export async function markRetryableRefundDue(model, { id, userId } = {}, now = D
 
 /** 다시 시도 창이 지난 건을 환불 대상으로 넘긴다. 다시 연 뒤 방치된 partial·generating 도 포함한다(살아 있는 lease·isLive 는 제외).
  * 복구 크론이 공용 환불 크론보다 먼저 부른다. */
-export async function expireRetryableConsultations(model, now = Date.now(), { limit = 50, isLive } = {}) {
+export async function expireRetryableConsultations(model, now = Date.now(), { limit = 50, isLive, onExpired } = {}) {
   if (!model) return { expired: 0 };
   const docs = await model.find({ status: { $in: ['generation_failed', 'partial', 'generating'] },
     'llmMeta.retryable.refundAt': { $lte: new Date(now) }, 'llmMeta.refundEligibleAt': { $exists: false },
     'llmMeta.deliveryRefund': { $exists: false }, userId: { $exists: true, $ne: null } })
-    .limit(limit).select('id userId status updatedAt llmMeta').lean();
+    .limit(limit).select('id userId status updatedAt idempotencyKey accessSource llmMeta').lean();
   let expired = 0;
   for (const doc of docs) {
     const meta = doc?.llmMeta;
@@ -235,7 +248,10 @@ export async function expireRetryableConsultations(model, now = Date.now(), { li
       status: 'generation_failed', 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '', 'llmMeta.refundEligibleAt': at,
       'llmMeta.retryable.refundReason': 'RETRY_WINDOW_EXPIRED',
       generationError: { code: 'RETRY_WINDOW_EXPIRED', message: 'retry window expired before delivery', at } } });
-    if (result?.modifiedCount) expired += 1;
+    if (!result?.modifiedCount) continue;
+    expired += 1;
+    // 기한으로 닫힌 건의 후속 정리(붙잡아 둔 claim 해제). 실패해도 환불 정산은 막지 않는다.
+    if (typeof onExpired === 'function') await Promise.resolve().then(() => onExpired(doc)).catch(() => null);
   }
   return { expired };
 }

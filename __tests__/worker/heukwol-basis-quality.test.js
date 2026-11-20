@@ -4,7 +4,8 @@ import { buildHeukwolAnalysis, heukwolProfileBirth } from '../../worker/lib/heuk
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
 import { buildNeoBasisPayload } from '../../worker/lib/neo-operation-room-basis.js';
-import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
+import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, isHeukwolTransientError, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
+import { assertWorkersAiInputTokenLimit, workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 const now = new Date('2026-11-06T00:00:00Z');
 const card = {
@@ -33,6 +34,87 @@ test('all chapters share a cacheable instruction prefix while personal evidence 
     expect(prompt.slice(HEUKWOL_PROMPT_PREFIX.length)).toContain('이전 조언');
   }
   expect(HEUKWOL_PROMPT_PREFIX).not.toContain('검수 질문');
+});
+
+// R6b: 12개월 근거를 싣는 주제 장이 Workers AI 입력 상한(50k)을 넘어 마지막 시도의 폴백이 결정적으로 막혔다.
+// 최대 질문(3,000자 한글)·이전 26장·가장 긴 보완 요청까지 실어도 모든 장이 상한의 95% 안에 들어야 한다.
+test.each([
+  ['New York 2027', analysis],
+  ['Seoul 1984 / 2026', buildHeukwolAnalysis(heukwolProfileBirth({ gender: 'M', birth: { year: 1984, month: 2, day: 3, hour: 4, minute: 10, timeUnknown: false, calType: 'solar' } }), 2026, now)],
+  ['New York 2028', buildHeukwolAnalysis(birth, 2028, now)],
+])('every chapter prompt fits the Workers AI fallback input limit with the longest question (%s)', (_label, target) => {
+  const question = '흑'.repeat(3000);
+  const longestHint = Object.values(HEUKWOL_REPAIR_HINTS).sort((a, b) => b.length - a.length)[0];
+  const bounds = {};
+  for (const chapter of HEUKWOL_CHAPTERS) {
+    const previous = HEUKWOL_CHAPTERS.filter(c => c.key !== chapter.key).map(c => ({ title: c.title, strategy: '대응'.repeat(400) }));
+    const messages = [{ role: 'user', content: heukwolPrompt(target, chapter, question, previous, longestHint) }];
+    bounds[chapter.key] = workersAiInputTokenUpperBound(messages);
+    expect(() => assertWorkersAiInputTokenLimit({ model: '@cf/zai-org/glm-4.7-flash', messages, maxOutputTokens: 16000 })).not.toThrow();
+  }
+  for (const [key, bound] of Object.entries(bounds)) expect([key, bound <= WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95]).toEqual([key, true]);
+});
+
+test('the twelve-month digest keeps every monthly evidence ID once; month and natal chapters keep the original evidence', () => {
+  const allIds = [...new Set(analysis.months.flatMap(m => [...m.saju, ...m.ziwei].map(e => e.id)))].sort();
+  for (const chapter of HEUKWOL_CHAPTERS.filter(c => !c.phase && !c.month)) {
+    const evidence = chapterEvidence(analysis, chapter);
+    expect(evidence.months.flatMap(m => [...m.saju, ...m.ziwei].map(e => e.id)).sort()).toEqual(allIds);
+    expect(evidence.periodLuck.length).toBeGreaterThan(0);
+    const json = JSON.stringify(evidence.months);
+    expect(json).not.toContain('"annual"');
+    expect(json).not.toContain('"action"');
+  }
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'money')).domainGuides.map(d => d.id)).toEqual(['money']);
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'safety')).domainGuides).toBeUndefined();
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'month-3')).months).toEqual(analysis.months.filter(m => m.month === 3));
+  expect(chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'nature-love')).months).toEqual([]);
+});
+
+// R6c: 실호출에서 "12월(음력 11월)"처럼 음력 월을 잘못 붙이고, 같은 자미 구간을 두 달에 나눠 이중 표기했다.
+test('the twelve-month digest pairs each lunar segment with its full solar range once, and marks saju segments as solar-term months', () => {
+  const evidence = chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'health'));
+  const source = new Map();
+  for (const m of analysis.months) for (const z of m.ziwei) {
+    const seen = source.get(z.id);
+    source.set(z.id, seen ? { ...seen, end: z.end } : z);
+  }
+  const ziwei = evidence.months.flatMap(m => m.ziwei);
+  expect(ziwei.map(z => z.id)).toEqual([...source.keys()]);
+  for (const z of ziwei) {
+    const s = source.get(z.id);
+    const label = `음력 ${s.lunarYear !== analysis.year ? `${s.lunarYear}년 ` : ''}${s.leap ? '윤' : ''}${s.lunarMonth}월`;
+    const lastDay = new Date(Date.parse(`${s.end.slice(0, 10)}T00:00:00Z`) - 86400000).toISOString().slice(0, 10);
+    expect(z.when).toBe(`양력 ${s.start.slice(0, 10)}~${lastDay} = ${label}`);
+  }
+  expect(ziwei[0].when).toContain(`음력 ${analysis.year - 1}년 `);
+  const saju = evidence.months.flatMap(m => m.saju);
+  expect(new Set(saju.map(s => s.id)).size).toBe(saju.length);
+  saju.forEach(s => expect(s.when).toMatch(/^양력 .+ 전 = 절기 .월\(.+ 기준, 음력 월 아님\)$/));
+  expect(evidence.digestRules.join(' ')).toContain('음력 월은 ziwei');
+});
+
+// R6c: 압축이 충합의 운 종류·글자를 빼서 "일간 을신충"·"대운 vs 세운 축미충" 같은 근거 밖 귀속이 나왔다.
+test('the twelve-month digest names both pillars, the luck kind and the characters of every relation', () => {
+  const evidence = chapterEvidence(analysis, HEUKWOL_CHAPTERS.find(c => c.key === 'money'));
+  const json = JSON.stringify(evidence.months) + JSON.stringify(evidence.periodLuck);
+  expect(json).not.toMatch(/\(운·|·운\)/);
+  const segments = evidence.months.flatMap(m => m.saju);
+  for (const seg of segments) {
+    const raw = analysis.months.flatMap(m => m.saju).find(s => s.id === seg.id);
+    const relations = [...(raw.tensions || []), ...(raw.supports || [])];
+    if (!relations.length) { expect(seg.relations).toBe('원국과 맺는 합충형파해 없음'); continue; }
+    for (const t of relations) {
+      const text = [...seg.tensions, ...seg.supports].find(line => line.startsWith(`${t.label}`));
+      expect(text).toBeDefined();
+      expect(text).toContain('월운');
+      t.pillarLabels.filter(p => p !== '운').forEach(p => expect(text).toContain(`원국 ${p}`));
+      (t.values || []).forEach(v => expect(text).toContain(v));
+    }
+  }
+  expect(segments.some(seg => seg.tensions?.length)).toBe(true);
+  const major = evidence.periodLuck.find(p => p.label === '대운');
+  [...(major.tensions || []), ...(major.supports || [])].forEach(line => expect(line).toMatch(/대운|원국/));
 });
 
 test('the saved location reaches both existing engines at a DST and night-Zi boundary', () => {
@@ -175,6 +257,21 @@ describe('delivery plan v2 chapter acceptance', () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf({ ...mid, strategy: Array.from({ length: 7 }, (_, i) => `네오의 ${i + 1}번째 대응은 일정표를 다시 열고 미룰 약속과 지킬 약속을 나누어 적는 것입니다.`).join(' ') }), v2({ relaxed: true })))
       .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_CHAPTER_REGISTER' });
   });
+  // R6c: 실호출 strict 시도 4장이 evidenceIds 에 장 키·항목 이름을 넣어 탈락했다. 형식 실수는 거르고, 지어낸 구간 ID 만 다시 쓴다.
+  test('strict attempts drop chapter keys and field names from evidenceIds but still reject made-up segment IDs', async () => {
+    const opening = HEUKWOL_CHAPTERS.find(c => c.key === 'opening');
+    const segmentId = chapterEvidence(analysis, opening).months[0].saju[0].id;
+    const neo = Array.from({ length: 18 }, (_, i) => `네오가 정리한 ${i + 1}번째 기준은 약속 범위를 먼저 적고 확인할 사람과 날짜를 정한 뒤 움직이는 거야.`).join(' ');
+    const draft = { ...value, strategy: neo,
+      evidenceIds: ['natal-saju', segmentId, 'relationships', 'luckJudgement', 'domainGuides', 42] };
+    const out = await generateHeukwolChapter({}, analysis, opening, '질문', [], providerOf(draft), v2());
+    expect(out.evidenceIds).toEqual(['natal-saju', segmentId]);
+    await expect(generateHeukwolChapter({}, analysis, opening, '질문', [], providerOf({ ...draft, evidenceIds: ['natal-saju', 'saju-2099-month-1'] }), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_EVIDENCE_INVALID' });
+    await expect(generateHeukwolChapter({}, analysis, opening, '질문', [], providerOf({ ...draft, evidenceIds: ['luckJudgement'] }), v2()))
+      .rejects.toMatchObject({ heukwolIssue: 'HEUKWOL_EVIDENCE_INVALID' });
+    expect(HEUKWOL_PROMPT_PREFIX).toContain('장 이름이나 항목 이름(luckJudgement·domainGuides·periodLuck·relationships 등)은 ID가 아닙니다.');
+  });
   test('register drift is a soft issue that adds a repair hint only on the retry', async () => {
     const prompts = [];
     const drift = { ...value, interpretation: Array.from({ length: 6 }, (_, i) => `연이가 보기엔 ${i + 1}번째 조건부터 다시 봐야 해.`).join(' ') + prose('연이') };
@@ -192,6 +289,30 @@ describe('delivery plan v2 chapter acceptance', () => {
     await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async (_env, _prompt, options) => { seen = options; return { ok: true, text: JSON.stringify(shortValue) }; }, v2({ finalAttempt: true }));
     expect(seen.fallbackToWorkersAI).toBe(true);
     expect(seen.fallbackMinChars).toBe(Math.round(HEUKWOL_CHAPTER_MIN_CHARS * 0.3));
+  });
+  // R6b: 공용 ko 지시가 존댓말을 최우선으로 강제하면 네오의 반말 대응이 합니다체가 되어 말투 판정에서 결정적으로 탈락한다.
+  test('every chapter call leaves the speech level to the personas (outputRegister persona) on v1 and v2', async () => {
+    const { buildOutputLanguageDirective } = await import('../../lib/i18n/ai-locale.js');
+    const seen = [];
+    const capture = async (_env, _prompt, options) => { seen.push(options.outputRegister); return { ok: true, text: JSON.stringify(value) }; };
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2()).catch(() => {});
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture, v2({ finalAttempt: true })).catch(() => {});
+    await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture).catch(() => {});
+    expect(seen).toEqual(['persona', 'persona', 'persona']);
+    expect(buildOutputLanguageDirective('ko', { register: 'persona' })).not.toContain('존댓말로 작성');
+  });
+  // R6b: 공급자 실패·JSON 파싱 실패는 품질 탈락과 구분되는 일시 오류로 표시하고, 파싱 실패는 수리 힌트 이슈를 단다.
+  test('provider and JSON parse failures are tagged transient; quality issues are not', async () => {
+    const outcome = p => p.then(() => null, e => e);
+    const down = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async () => ({ ok: false, error: 'http_503' }), v2()));
+    expect(down.message).toBe('HEUKWOL_GENERATION_UNAVAILABLE');expect(isHeukwolTransientError(down)).toBe(true);
+    const thrown = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async () => { throw new Error('fetch failed'); }, v2()));
+    expect(isHeukwolTransientError(thrown)).toBe(true);
+    const broken = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async () => ({ ok: true, text: '{"warning": "끊긴' }), v2()));
+    expect(isHeukwolTransientError(broken)).toBe(true);expect(broken.heukwolIssue).toBe('HEUKWOL_JSON_INVALID');
+    expect(HEUKWOL_REPAIR_HINTS.HEUKWOL_JSON_INVALID).toBeTruthy();
+    const weak = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue), v2()));
+    expect(weak.heukwolIssue).toBe('HEUKWOL_CHAPTER_SHORT');expect(isHeukwolTransientError(weak)).toBe(false);
   });
   test('without the v2 option the v1 validator still rejects short chapters', async () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue)))
@@ -216,5 +337,10 @@ test('S15 luck judgement: natal once, month chapters get scoped month verdicts, 
   });
   const money = byKey('money');
   expect(money.months).toHaveLength(12);
-  money.months.flatMap(m => m.saju).forEach(seg => expect(Object.keys(seg.luckJudgement).sort()).toEqual(['headline', 'verdict']));
+  // R6c: 12개월 장은 구간별 판정과 그 이유를 싣는다(R6b 에서 뺀 이유가 없어 근거 밖 충 해석이 나왔다). 한 줄 설명은 뺀다.
+  money.months.flatMap(m => m.saju).forEach(seg => {
+    expect(Object.keys(seg.luckJudgement)).toEqual(['verdict', 'reasons']);
+    expect(seg.luckJudgement.reasons.length).toBeGreaterThan(0);
+  });
+  expect(money.luckJudgement.year).toBeDefined();
 });

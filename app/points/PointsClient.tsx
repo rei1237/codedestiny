@@ -4773,24 +4773,7 @@ export default function PointsPage() {
       {/* ── 페이지 콘텐츠 ────────────────────────────────────────── */}
       <div className="relative mx-auto w-full max-w-6xl space-y-5">
         {!consultationShop&&<MoonlightShopHero />}
-        <details className="moon-card rounded-[24px] p-5"><summary className="min-h-11 cursor-pointer font-bold">{lang==='ko'?'보유 혜택 확인':'Your benefits'}</summary>
-        <OwnedPassesSummary
-          locale={lang}
-          flower={{
-            active: subscription.isActive && subscription.tier !== "free",
-            tier: subscription.tier,
-            tierLabel: getPassTierLabel(subscription.tier, lang) || subscription.tier,
-            expiresAt: subscription.expiresAt,
-          }}
-          packs={ownedPacks}
-        />
-        <MoonlightActivePassCard
-          subscription={subscription}
-          formatLocale={formatLocale}
-          isProcessing={isProcessing}
-          onCancelSubscription={handleSubscriptionCancel}
-          copy={copy}
-        />
+        {/* 이용권 남은 한도는 접지 않고 항상 보여 준다(얼마 남았는지가 이용권 화면의 첫 질문이다). */}
         {passUsage?.tier && passCycleCapWon > 0 && (
           <PassCycleCard
             tier={passUsage.tier}
@@ -4808,6 +4791,30 @@ export default function PointsPage() {
             formatWon={(value) => formatWon(value, copy, formatLocale)}
           />
         )}
+        <details className="moon-card rounded-[24px] p-5"><summary className="min-h-11 cursor-pointer font-bold">{lang==='ko'?'보유 혜택 확인':'Your benefits'}</summary>
+        <OwnedPassesSummary
+          locale={lang}
+          flower={{
+            active: subscription.isActive && subscription.tier !== "free",
+            tier: subscription.tier,
+            tierLabel: getPassTierLabel(subscription.tier, lang) || subscription.tier,
+            expiresAt: subscription.expiresAt,
+            limit: passUsage?.tier && passCycleCapWon > 0
+              ? {
+                remaining: copy.passCycleRemaining(formatWon(passCycleRemainingWon, copy, formatLocale)),
+                summary: copy.passCycleSummary(formatWon(passCycleSpentWon, copy, formatLocale), formatWon(passCycleCapWon, copy, formatLocale)),
+              }
+              : null,
+          }}
+          packs={ownedPacks}
+        />
+        <MoonlightActivePassCard
+          subscription={subscription}
+          formatLocale={formatLocale}
+          isProcessing={isProcessing}
+          onCancelSubscription={handleSubscriptionCancel}
+          copy={copy}
+        />
         <MoonlightMonthlyCreditCard
           balance={monthlyStoneBalance}
           expiresAt={monthlyStoneExpiresAt}

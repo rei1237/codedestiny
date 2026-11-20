@@ -42,14 +42,24 @@ const AUTH_WIDGET_SYNC_EVENTS = new Set(["login", "logout", "subscription"]);
  * 🔴 null 은 '잔여 0' 이 아니라 '셀 수 없음'(만료일 없음 등)이다. 이때는 등급명만 보여준다.
  * 🔴 코인 단위를 그대로 렌더하지 않는다 — 표시 단위는 항상 KRW 다.
  */
-function readPassRemainingKRW(accessState: unknown): number | null {
+function readPassUsageNumber(accessState: unknown, field: "remainingKRW" | "limitKRW"): number | null {
   if (!accessState || typeof accessState !== "object") return null;
   const snapshot = (accessState as { entitlementSnapshot?: unknown }).entitlementSnapshot;
   if (!snapshot || typeof snapshot !== "object") return null;
   const usage = (snapshot as { passUsage?: unknown }).passUsage;
   if (!usage || typeof usage !== "object") return null;
-  const remaining = Number((usage as { remainingKRW?: unknown }).remainingKRW);
-  return Number.isFinite(remaining) && remaining >= 0 ? remaining : null;
+  const value = Number((usage as Record<string, unknown>)[field]);
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function readPassRemainingKRW(accessState: unknown): number | null {
+  return readPassUsageNumber(accessState, "remainingKRW");
+}
+
+/** 총 한도(재구매로 쌓인 누적값). 서버 passUsage.limitKRW 만 읽는다. 없으면 잔여만 보여준다. */
+function readPassLimitKRW(accessState: unknown): number | null {
+  const limit = readPassUsageNumber(accessState, "limitKRW");
+  return limit && limit > 0 ? limit : null;
 }
 
 function shouldSyncAuthFromPayload(payload: unknown) {
@@ -66,22 +76,23 @@ const AUTH_WIDGET_COPY: Record<LoadingLocale, {
   admin: string;
   subscriptionTitle: string;
   passRemaining: (amount: string) => string;
+  passTotal: (amount: string) => string;
   logout: string;
   login: string;
   signup: string;
 }> = {
-  ko: { userFallback: "사용자", initialFallback: "사", profileAlt: (name) => `${name} 프로필`, nameLabel: (name) => `${name}님`, admin: "관리자", subscriptionTitle: "현재 구독 티어", passRemaining: (amount) => `${amount} 남음`, logout: "로그아웃", login: "로그인", signup: "회원가입" },
-  en: { userFallback: "User", initialFallback: "U", profileAlt: (name) => `${name}'s profile`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Current subscription tier", passRemaining: (amount) => `${amount} left`, logout: "Log out", login: "Log in", signup: "Sign up" },
-  ja: { userFallback: "ユーザー", initialFallback: "ユ", profileAlt: (name) => `${name}のプロフィール`, nameLabel: (name) => `${name}様`, admin: "管理者", subscriptionTitle: "現在のサブスクリプション", passRemaining: (amount) => `残り${amount}`, logout: "ログアウト", login: "ログイン", signup: "新規登録" },
-  "zh-CN": { userFallback: "用户", initialFallback: "用", profileAlt: (name) => `${name}的个人资料`, nameLabel: (name) => name, admin: "管理员", subscriptionTitle: "当前订阅等级", passRemaining: (amount) => `剩余${amount}`, logout: "退出登录", login: "登录", signup: "注册" },
-  "zh-TW": { userFallback: "使用者", initialFallback: "使", profileAlt: (name) => `${name}的個人資料`, nameLabel: (name) => name, admin: "管理員", subscriptionTitle: "目前訂閱等級", passRemaining: (amount) => `剩餘${amount}`, logout: "登出", login: "登入", signup: "註冊" },
-  vi: { userFallback: "Người dùng", initialFallback: "N", profileAlt: (name) => `Hồ sơ của ${name}`, nameLabel: (name) => name, admin: "Quản trị", subscriptionTitle: "Gói đăng ký hiện tại", passRemaining: (amount) => `${amount} left`, logout: "Đăng xuất", login: "Đăng nhập", signup: "Đăng ký" },
-  hi: { userFallback: "उपयोगकर्ता", initialFallback: "उ", profileAlt: (name) => `${name} की प्रोफ़ाइल`, nameLabel: (name) => name, admin: "एडमिन", subscriptionTitle: "वर्तमान सदस्यता स्तर", passRemaining: (amount) => `${amount} left`, logout: "लॉग आउट", login: "लॉग इन", signup: "साइन अप" },
-  es: { userFallback: "Usuario", initialFallback: "U", profileAlt: (name) => `Perfil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Nivel de suscripción actual", passRemaining: (amount) => `${amount} left`, logout: "Cerrar sesión", login: "Iniciar sesión", signup: "Registrarse" },
-  fr: { userFallback: "Utilisateur", initialFallback: "U", profileAlt: (name) => `Profil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Niveau d'abonnement actuel", passRemaining: (amount) => `${amount} left`, logout: "Déconnexion", login: "Connexion", signup: "Inscription" },
-  de: { userFallback: "Nutzer", initialFallback: "N", profileAlt: (name) => `Profil von ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Aktuelle Abo-Stufe", passRemaining: (amount) => `${amount} left`, logout: "Abmelden", login: "Anmelden", signup: "Registrieren" },
-  nl: { userFallback: "Gebruiker", initialFallback: "G", profileAlt: (name) => `Profiel van ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Huidig abonnementsniveau", passRemaining: (amount) => `${amount} left`, logout: "Uitloggen", login: "Inloggen", signup: "Registreren" },
-  ms: { userFallback: "Pengguna", initialFallback: "P", profileAlt: (name) => `Profil ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Tahap langganan semasa", passRemaining: (amount) => `${amount} left`, logout: "Log keluar", login: "Log masuk", signup: "Daftar" },
+  ko: { userFallback: "사용자", initialFallback: "사", profileAlt: (name) => `${name} 프로필`, nameLabel: (name) => `${name}님`, admin: "관리자", subscriptionTitle: "현재 구독 티어", passRemaining: (amount) => `${amount} 남음`, passTotal: (amount) => `총 ${amount}`, logout: "로그아웃", login: "로그인", signup: "회원가입" },
+  en: { userFallback: "User", initialFallback: "U", profileAlt: (name) => `${name}'s profile`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Current subscription tier", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "Log out", login: "Log in", signup: "Sign up" },
+  ja: { userFallback: "ユーザー", initialFallback: "ユ", profileAlt: (name) => `${name}のプロフィール`, nameLabel: (name) => `${name}様`, admin: "管理者", subscriptionTitle: "現在のサブスクリプション", passRemaining: (amount) => `残り${amount}`, passTotal: (amount) => `合計${amount}`, logout: "ログアウト", login: "ログイン", signup: "新規登録" },
+  "zh-CN": { userFallback: "用户", initialFallback: "用", profileAlt: (name) => `${name}的个人资料`, nameLabel: (name) => name, admin: "管理员", subscriptionTitle: "当前订阅等级", passRemaining: (amount) => `剩余${amount}`, passTotal: (amount) => `共${amount}`, logout: "退出登录", login: "登录", signup: "注册" },
+  "zh-TW": { userFallback: "使用者", initialFallback: "使", profileAlt: (name) => `${name}的個人資料`, nameLabel: (name) => name, admin: "管理員", subscriptionTitle: "目前訂閱等級", passRemaining: (amount) => `剩餘${amount}`, passTotal: (amount) => `共${amount}`, logout: "登出", login: "登入", signup: "註冊" },
+  vi: { userFallback: "Người dùng", initialFallback: "N", profileAlt: (name) => `Hồ sơ của ${name}`, nameLabel: (name) => name, admin: "Quản trị", subscriptionTitle: "Gói đăng ký hiện tại", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "Đăng xuất", login: "Đăng nhập", signup: "Đăng ký" },
+  hi: { userFallback: "उपयोगकर्ता", initialFallback: "उ", profileAlt: (name) => `${name} की प्रोफ़ाइल`, nameLabel: (name) => name, admin: "एडमिन", subscriptionTitle: "वर्तमान सदस्यता स्तर", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "लॉग आउट", login: "लॉग इन", signup: "साइन अप" },
+  es: { userFallback: "Usuario", initialFallback: "U", profileAlt: (name) => `Perfil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Nivel de suscripción actual", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "Cerrar sesión", login: "Iniciar sesión", signup: "Registrarse" },
+  fr: { userFallback: "Utilisateur", initialFallback: "U", profileAlt: (name) => `Profil de ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Niveau d'abonnement actuel", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "Déconnexion", login: "Connexion", signup: "Inscription" },
+  de: { userFallback: "Nutzer", initialFallback: "N", profileAlt: (name) => `Profil von ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Aktuelle Abo-Stufe", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "Abmelden", login: "Anmelden", signup: "Registrieren" },
+  nl: { userFallback: "Gebruiker", initialFallback: "G", profileAlt: (name) => `Profiel van ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Huidig abonnementsniveau", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "Uitloggen", login: "Inloggen", signup: "Registreren" },
+  ms: { userFallback: "Pengguna", initialFallback: "P", profileAlt: (name) => `Profil ${name}`, nameLabel: (name) => name, admin: "Admin", subscriptionTitle: "Tahap langganan semasa", passRemaining: (amount) => `${amount} left`, passTotal: (amount) => `total ${amount}`, logout: "Log keluar", login: "Log masuk", signup: "Daftar" },
 };
 
 export default function AuthWidget() {
@@ -224,6 +235,9 @@ export default function AuthWidget() {
     const passRemainingLabel = passRemainingKRW === null
       ? ""
       : copy.passRemaining(formatKrwAmount(passRemainingKRW, locale));
+    // 남은 금액 옆에 총 한도를 함께 보여 줘 "얼마 중 얼마 남았는지"가 한눈에 보이게 한다.
+    const passLimitKRW = passRemainingKRW === null ? null : readPassLimitKRW(userAccess.accessState);
+    const passTotalLabel = passLimitKRW === null ? "" : copy.passTotal(formatKrwAmount(Math.max(passLimitKRW, passRemainingKRW ?? 0), locale));
     const subscriptionCls = subscriptionTier === "family"
       ? "cd-auth-tier cd-auth-tier-family"
       : subscriptionTier === "vvip"
@@ -266,11 +280,14 @@ export default function AuthWidget() {
         <Link
           href="/points"
           className={`${subscriptionCls} rounded-lg border px-2.5 py-1 text-xs font-semibold transition`}
-          title={passRemainingLabel ? `${copy.subscriptionTitle} · ${passRemainingLabel}` : copy.subscriptionTitle}
+          title={passRemainingLabel ? `${copy.subscriptionTitle} · ${passRemainingLabel}${passTotalLabel ? ` / ${passTotalLabel}` : ""}` : copy.subscriptionTitle}
         >
           {subscriptionLabel}
           {passRemainingLabel ? (
-            <span className="ml-1 font-medium text-current">· {passRemainingLabel}</span>
+            <span className="ml-1 font-bold tabular-nums text-current">· {passRemainingLabel}</span>
+          ) : null}
+          {passTotalLabel ? (
+            <span className="ml-1 font-medium tabular-nums text-current opacity-90">/ {passTotalLabel}</span>
           ) : null}
         </Link>
         <button

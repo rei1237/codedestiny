@@ -26,7 +26,7 @@ function Stamped({src,stamp,children}:{src?:string;stamp:string;children?:ReactN
  </div>;
 }
 
-export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;flower:{active:boolean;tier:string;tierLabel:string;expiresAt?:string|null};packs:PackWalletView}){
+export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;flower:{active:boolean;tier:string;tierLabel:string;expiresAt?:string|null;limit?:{remaining:string;summary:string}|null};packs:PackWalletView}){
  const copy=servicePackCopy(locale),usable=usablePacks(packs);
  const first=usable[0];
  return <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-labelledby="owned-passes-title" data-owned-passes>
@@ -38,6 +38,8 @@ export function OwnedPassesSummary({locale,flower,packs}:{locale:LoadingLocale;f
      <p className="text-xs font-black text-[color:var(--moon-silver)]">{copy.flowerPass}</p>
      {flower.active?<>
       <h3 className="mt-0.5 text-base font-black leading-snug text-white">{flower.tierLabel}</h3>
+      {/* 남은 상담 한도(서버 passUsage 값, 화면에서 다시 계산하지 않음). 금액이 이 칸에서 가장 큰 글자다. */}
+      {flower.limit&&<p className="mt-1 text-xl font-black leading-tight tabular-nums text-[color:var(--moon-gold)]" data-owned-pass-limit>{flower.limit.remaining}<span className="mt-0.5 block text-xs font-bold text-[color:var(--moon-silver)]">{flower.limit.summary}</span></p>}
       <p className={appliedLine}>{dot}<span>{copy.applied}</span>{flower.expiresAt&&Number.isFinite(Date.parse(flower.expiresAt))&&<span className="text-[color:var(--moon-silver)]">{isOpenEndedPassExpiry(flower.expiresAt)?openEndedPassLabel(locale):packText(copy.expires,{date:date(flower.expiresAt,locale)})}</span>}</p>
      </>:<>
       <p className="mt-0.5 text-sm font-bold text-[color:var(--moon-silver)]">{copy.flowerNone}</p>

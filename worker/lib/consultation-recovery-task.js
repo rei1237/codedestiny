@@ -37,6 +37,14 @@ export function consultationRecoveryFilter(now, extra) {
     status: { $in: ['generating', 'partial', 'delivery_pending', ...(['tarot-celestial-harmony','heukwol-warning-consultation'].includes(extra.featureKey) ? ['pending'] : [])] },
     updatedAt: { $lt: new Date(now - IDLE_MS) }, userId: { $exists: true, $ne: null } };
 }
+// 다시 시도 동안 붙잡아 둔 결제 증빙 claim(llmMeta.claimEvidenceIds)을 기한 만료로 닫힐 때 푼다. 토스 네이티브는 claim 을 쓰지 않는다.
+// 지연 차감 취소는 요청 컨텍스트가 필요해 여기서 하지 않는다(환불 요청 경로·실행 가드 타임아웃이 맡는다).
+async function releaseHeldRetryClaim(env, doc, release) {
+  const evidenceIds = [...new Set([].concat(doc?.llmMeta?.claimEvidenceIds || []).map(id => String(id || '').trim()).filter(Boolean))];
+  if (!evidenceIds.length || doc?.accessSource === 'toss') return;
+  const releaseClaim = release || (await import('./billing-evidence-claim.js')).releaseRequestBillingEvidence;
+  await releaseClaim(env, { userId: String(doc.userId), requestId: String(doc.idempotencyKey || ''), evidenceIds });
+}
 export async function runConsultationRecovery(env, options = {}) {
   const now = options.now || Date.now(), deadline = now + TASK_MS;
   await (options.connectDb || connectDb)(env);
@@ -46,7 +54,7 @@ export async function runConsultationRecovery(env, options = {}) {
   for (const [route, modelName] of catalog) {
     if (!modelName || !GENERIC_STUCK_SETTLERS.includes(route)) continue;
     try {
-      const out = await expireRetryableConsultations((options.models || models)[modelName], now);
+      const out = await expireRetryableConsultations((options.models || models)[modelName], now, { onExpired: doc => releaseHeldRetryClaim(env, doc, options.releaseClaim) });
       if (out.expired) expired.push({ service: route, expired: out.expired });
     } catch { expired.push({ service: route, code: 'RETRY_EXPIRE_PENDING' }); }
   }
@@ -64,7 +72,7 @@ export async function runConsultationRecovery(env, options = {}) {
       const adapter = options.loadAdapter ? await options.loadAdapter(route) : await loadAdapters[route]();
       const model = (options.models || models)[modelName];
       const docs = !modelName ? await adapter.findRecoverableConsultations(env, consultationRecoveryFilter(now, extra)) : await withMongoRetry(env, () => model.find(consultationRecoveryFilter(now, extra))
-        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId status createdAt updatedAt deliveryWatch locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale').lean());
+        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId status createdAt updatedAt deliveryWatch llmMeta.retryable.reopenedAt metadata.retryReopenedAt locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale').lean());
       if (adapter.recoverUnstartedNativeConsultations) outcomes.push(...await adapter.recoverUnstartedNativeConsultations(env, {now,deadline}));
       for (const doc of docs) {
         if (!doc.userId || !(doc.id || doc._id || doc.resultId)) continue;

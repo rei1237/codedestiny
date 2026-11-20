@@ -2990,7 +2990,7 @@
         "passSaveUnverified": "未能儲存通行券的套用結果。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
         "passCheckFailed": "通行券確認失敗。可用下方的通行券卡片重新確認，或選擇其他付款方式。",
         "passMiss": "你的通行證無法免費開啟此內容，請選擇付款方式。",
-        "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。已為你開啟付款方式選擇視窗。"
+        "passMonthlyExhausted": "通行證剩餘額度不足以打開這次諮詢。通行證仍然有效，輕量運勢可繼續使用。為你介紹付款方式。"
       },
       "passBadge": "蜜罐通行證",
       "passStoreTitle": "蜜罐通行證商店",
@@ -2998,7 +2998,9 @@
       "passHint": {
         "store": "支付一次，在額度用完之前可打開多個內容。已經有了？點一下即可確認。",
         "retry": "服务器将重新检查持有通行券是否可免支付开启。",
-        "upgrade": "目前等級無法打開此內容。看看更高的等級吧。"
+        "upgrade": "目前等級無法打開此內容。看看更高的等級吧。",
+        "limitShort": "剩餘額度低於這次諮詢的價格 · 通行證仍然有效，輕量運勢可繼續使用。可單次付款解鎖，或查看更大的通行證。",
+        "exhausted": "通行證仍然有效，輕量運勢可繼續使用。這次諮詢可單次付款解鎖，或再次購買通行證增加額度。"
       },
       "applyMethod": {
         "label": "适用方式",
@@ -3069,7 +3071,7 @@
         "comingSoon": "敬請期待",
         "back": "返回"
       },
-      "passMonthlyExhausted": "通行證額度已全部用完，通行證已結束。重新購買將以新的額度開始，現在可以透過單次付款或月精石解鎖。",
+      "passMonthlyExhausted": "剩餘額度低於這次諮詢的價格 · 通行證仍然有效，輕量運勢可繼續使用。這次諮詢可透過單次付款或月精石解鎖。",
       "passMonthlyRemaining": "通行證剩餘額度 {remaining} / {limit}",
       "wait": {
         "card": "在信用卡或行動支付 App 中完成認證後，回到此瀏覽器即可自動繼續。",
@@ -3077,7 +3079,10 @@
         "kakaopay": "在 KakaoTalk 中核准付款後，回到此瀏覽器即可自動繼續。",
         "mobile": "完成手機實名認證後將自動返回此頁面。",
         "gift": "完成禮券 PIN 碼驗證後將自動返回此頁面。"
-      }
+      },
+      "passLimitShortTitle": "剩餘額度不足",
+      "passExhaustedTitle": "諮詢額度已用完",
+      "passMonthlyShortAmount": "剩餘額度 {remaining} 低於這次諮詢的價格 · 通行證仍然有效，輕量運勢可繼續使用。這次諮詢可透過單次付款或月精石解鎖。"
     },
     "overlay": {
       "unlockPreparing": {

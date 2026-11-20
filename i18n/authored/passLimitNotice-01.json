@@ -1,0 +1,73 @@
+{
+  "_comment": "2026-11-20 이용권 한도 안내: 결제창 이용권 카드가 못 여는 사유(남은 한도 부족·상담 한도 소진)를 가르고, 402 안내에 남은 금액을 싣는다. 2026-11-04 정책대로 한도를 다 써도 이용권은 유지되고 가벼운 운세는 열린다.",
+  "payment.directModal.passLimitShortTitle": {
+    "ko": "남은 한도가 부족해요",
+    "en": "Not enough allowance left",
+    "ja": "残り上限が足りません",
+    "zh-CN": "剩余额度不足",
+    "zh-TW": "剩餘額度不足",
+    "vi": "Not enough allowance left",
+    "hi": "Not enough allowance left",
+    "es": "Not enough allowance left",
+    "fr": "Not enough allowance left",
+    "de": "Not enough allowance left",
+    "nl": "Not enough allowance left",
+    "ms": "Not enough allowance left"
+  },
+  "payment.directModal.passHint.limitShort": {
+    "ko": "남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 단건 결제로 열거나 더 큰 이용권을 확인해 보세요.",
+    "en": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+    "ja": "残り上限がこの鑑定の価格より少なくなっています · パスはそのまま有効で、ライトな占いは引き続き使えます。単品購入で開くか、より大きなパスをご確認ください。",
+    "zh-CN": "剩余额度低于这次咨询的价格 · 通行证仍然有效，轻量运势可继续使用。可单次支付解锁，或查看更大的通行证。",
+    "zh-TW": "剩餘額度低於這次諮詢的價格 · 通行證仍然有效，輕量運勢可繼續使用。可單次付款解鎖，或查看更大的通行證。",
+    "vi": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+    "hi": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+    "es": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+    "fr": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+    "de": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+    "nl": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+    "ms": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass."
+  },
+  "payment.directModal.passExhaustedTitle": {
+    "ko": "상담 한도를 다 썼어요",
+    "en": "Reading allowance used up",
+    "ja": "鑑定の上限を使い切りました",
+    "zh-CN": "咨询额度已用完",
+    "zh-TW": "諮詢額度已用完",
+    "vi": "Reading allowance used up",
+    "hi": "Reading allowance used up",
+    "es": "Reading allowance used up",
+    "fr": "Reading allowance used up",
+    "de": "Reading allowance used up",
+    "nl": "Reading allowance used up",
+    "ms": "Reading allowance used up"
+  },
+  "payment.directModal.passHint.exhausted": {
+    "ko": "이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제로 열거나 이용권을 다시 구매해 한도를 더할 수 있어요.",
+    "en": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance.",
+    "ja": "パスはそのまま有効で、ライトな占いは引き続き使えます。この鑑定は単品購入で開くか、パスを再購入して上限を追加できます。",
+    "zh-CN": "通行证仍然有效，轻量运势可继续使用。这次咨询可单次支付解锁，或再次购买通行证增加额度。",
+    "zh-TW": "通行證仍然有效，輕量運勢可繼續使用。這次諮詢可單次付款解鎖，或再次購買通行證增加額度。",
+    "vi": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance.",
+    "hi": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance.",
+    "es": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance.",
+    "fr": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance.",
+    "de": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance.",
+    "nl": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance.",
+    "ms": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance."
+  },
+  "payment.directModal.passMonthlyShortAmount": {
+    "ko": "남은 한도 {remaining}이 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요.",
+    "en": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
+    "ja": "残り上限 {remaining} がこの鑑定の価格より少なくなっています · パスはそのまま有効で、ライトな占いは引き続き使えます。この鑑定は単品購入または月精石で開けます。",
+    "zh-CN": "剩余额度 {remaining} 低于这次咨询的价格 · 通行证仍然有效，轻量运势可继续使用。这次咨询可通过单次支付或月精石解锁。",
+    "zh-TW": "剩餘額度 {remaining} 低於這次諮詢的價格 · 通行證仍然有效，輕量運勢可繼續使用。這次諮詢可透過單次付款或月精石解鎖。",
+    "vi": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
+    "hi": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
+    "es": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
+    "fr": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
+    "de": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
+    "nl": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
+    "ms": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones."
+  }
+}
