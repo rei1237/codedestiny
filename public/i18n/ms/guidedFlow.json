@@ -202,6 +202,40 @@
         "fallback": "Let's calmly read the scene the cards show.",
         "mindFallback": "See which scene comes to your own mind first."
       }
+    },
+    "animalDestiny": {
+      "eyebrow": "Twelve-stage animal guide · Free",
+      "title": "Find your destiny animal",
+      "subtitle": "From your birth date we read your day stem and twelve life stages, then find the animal that resembles you.",
+      "cta": "Find my animal",
+      "freeHint": "You can see the basic result without logging in.",
+      "aboutTitle": "What is this?",
+      "aboutBody": "We match the energy of the day you were born with the flow of the twelve life stages and show the animal that mirrors your nature and its daily rhythm.",
+      "guideTitle": "How it works",
+      "guide1Title": "Birth date and calendar",
+      "guide1Body": "If you saved a profile, pick it to fill this in at once.",
+      "guide2Title": "Birth time and gender",
+      "guide2Body": "It is fine not to know. Leave it blank or choose prefer not to say.",
+      "guide3Title": "Name to show",
+      "guide3Body": "Used on your result card. You can leave it empty.",
+      "dateTitle": "What is your birth date?",
+      "dateLabel": "Birth date (YYYY-MM-DD)",
+      "calendarTitle": "Which calendar is it?",
+      "solar": "Solar",
+      "lunar": "Lunar",
+      "leap": "Lunar leap month",
+      "timeTitle": "Do you know your birth time?",
+      "timeLabel": "Birth time (optional)",
+      "timeHint": "If you do not know, leave it blank and tap Next.",
+      "genderTitle": "Choose your gender",
+      "female": "Female",
+      "male": "Male",
+      "genderSkip": "Prefer not to say",
+      "nameTitle": "Which name should the result card use?",
+      "nameLabel": "Name or nickname (optional)",
+      "nameHint": "You can leave it blank and tap Next.",
+      "computingTitle": "Finding your destiny animal",
+      "computingBody": "Matching your day stem with the twelve life stages."
     }
   }
 }

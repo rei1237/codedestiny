@@ -202,6 +202,40 @@
         "fallback": "카드가 보여 준 장면을 차분히 같이 읽어 보자.",
         "mindFallback": "네 마음에서는 어떤 장면이 먼저 떠오르는지 봐."
       }
+    },
+    "animalDestiny": {
+      "eyebrow": "꿀꿀 운세 · 12운성 동물 도감",
+      "title": "내 운명의 동물 찾기",
+      "subtitle": "생년월일로 사주의 일간과 12운성을 짚어, 나를 닮은 동물을 찾아 드려요.",
+      "cta": "동물 찾기 시작",
+      "freeHint": "기본 결과는 로그인 없이 볼 수 있어요.",
+      "aboutTitle": "이 기능은?",
+      "aboutBody": "태어난 날의 기운과 12운성 흐름을 맞춰, 내 성향을 닮은 동물과 그 동물의 하루 리듬을 알려 드려요.",
+      "guideTitle": "이렇게 진행돼요",
+      "guide1Title": "생년월일과 달력",
+      "guide1Body": "저장한 프로필이 있으면 골라서 바로 채울 수 있어요.",
+      "guide2Title": "출생시각·성별",
+      "guide2Body": "몰라도 괜찮아요. 모르면 비워 두거나 선택 안 함을 골라요.",
+      "guide3Title": "부를 이름",
+      "guide3Body": "결과 카드에 쓸 이름이에요. 비워 둬도 돼요.",
+      "dateTitle": "생년월일을 알려 주세요",
+      "dateLabel": "생년월일 (YYYY-MM-DD)",
+      "calendarTitle": "어떤 달력 기준인가요?",
+      "solar": "양력",
+      "lunar": "음력",
+      "leap": "음력 윤달",
+      "timeTitle": "태어난 시각을 아세요?",
+      "timeLabel": "출생시각 (선택)",
+      "timeHint": "모르면 비워 두고 다음을 눌러 주세요.",
+      "genderTitle": "성별을 골라 주세요",
+      "female": "여성",
+      "male": "남성",
+      "genderSkip": "선택 안 함",
+      "nameTitle": "결과 카드에 어떤 이름을 쓸까요?",
+      "nameLabel": "이름 또는 별명 (선택)",
+      "nameHint": "비워 두고 다음을 눌러도 돼요.",
+      "computingTitle": "운명의 동물을 찾고 있어요",
+      "computingBody": "일간과 12운성을 맞춰 보고 있어요."
     }
   }
 }

@@ -231,3 +231,6 @@ next: "C·D: paid-retry R10 완료 후 남은 공백 실측"
 - 다시 2커밋(docs·test) 전진 → 머지 3: 4e4f6cda1. 그 테스트(daily-tarot-guided.behavior) 5/5, check:pre-push exit 0.
 - push 1: `88cb09326..4e4f6cda1`. CI 1회 확인: 🔴 AI Locale Gate 실패 — 새 라우트 `worker/routes/saju-compat-premium.js` 가 `config/ai-locale-call-inventory.json` 에 없었다(우리 브랜치 누락, 머지 무관). `audit-ai-locale-calls.mjs --write` 로 재생성(그 항목 추가 + 줄 번호 이동만), 게이트 3스크립트·verify:ai-locale-pipeline 로컬 통과 → 33c1c3ac6.
 - 첫 verify:staging(4e4f6cda1): 스테이징이 아직 1289bb804 라 SHA 불일치 FAIL(배포 미완, 기능 실패 아님).
+- push 2: `4e4f6cda1..65d1d4c03`(인벤토리 수정 + 이 문서). verify:staging `--sha=65d1d4c034433abd475473e47689c72e3154561b` PASS(Pages·Worker 모두 65d1d4c03). 프로덕션 승격 없음.
+- 65d1d4c03 CI 1회 확인: AI Locale Gate·Release·Landing·drift watchdog 통과. 🔴 Secret Scan(gitleaks 전체 이력) 실패 — 5c6d3dcf2 행동 테스트의 `scp-key-*` idempotencyKey 3곳(184·232·247행) generic-api-key 오탐. 기존 관례대로 `.gitleaksignore` 에 정확한 지문 3개 등록(bfbed2aff, gitleaks-config 테스트 5/5). PR CI 는 확인 시점에 진행 중.
+- 다음 확인: 이 문서 커밋의 push 뒤 Secret Scan·PR CI 결과를 다음 세션이 `gh run list --branch main --limit 10` 1회로 확인.
