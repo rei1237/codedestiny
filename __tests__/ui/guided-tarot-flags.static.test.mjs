@@ -74,3 +74,16 @@ test('/saju/animal-destiny/ 는 플래그로 입력만 공통 플로우판으로
   assert.match(guided, /calculate\(\)/);
   assert.equal(/authFetch|\/api\//.test(guided), false, '입력 플로우는 서버를 직접 부르지 않는다(유료 확인은 스토어 calculate 안)');
 });
+
+test('/yeon-star-hug/ 는 플래그로 입력만 공통 플로우판으로 바꾸고 결과는 원본 입력 패널+결과를 쓴다(3c-A4)', async () => {
+  const flags = await import('../../lib/guided-flow/flags.mjs');
+  assert.equal(typeof flags.GUIDED_STAR_HUG_ENABLED, 'boolean');
+  const page = read('app/yeon-star-hug/YeonStarHugClient.tsx');
+  assert.match(page, /GUIDED_STAR_HUG_ENABLED \? dynamic\(\(\) => import\("\.\/YeonStarHugGuided"\)/);
+  assert.match(page, /\{YeonStarHugGuided \? null : \(\r?\n\s*<m\.section/);
+  assert.match(page, /\{!YeonStarHugGuided \|\| guidedStep === "result" \? \(\r?\n\s*<section className="grid gap-6/);
+  assert.match(page, /run=\{runConsultation\}/);
+  const guided = read('app/yeon-star-hug/YeonStarHugGuided.tsx');
+  assert.match(guided, /if \(stepId === "result"\) return null;/);
+  assert.equal(/authFetch|\/api\//.test(guided), false, '입력 플로우는 서버를 직접 부르지 않는다(별자리 신호 조회는 원본 applyProfileAndAstro 안)');
+});
