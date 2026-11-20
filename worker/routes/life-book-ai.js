@@ -1,5 +1,7 @@
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
+import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
+import { narrativeTextFromJson } from "../lib/paid-narrative-candidate.js";
 import { createHash } from "node:crypto";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
@@ -1321,10 +1323,11 @@ function buildSectionPlanV3(input, lifeFortune, targets, chapterGuides) {
   return sections;
 }
 
-// 세션당 웨이브 상한. V1/V2(15섹션)는 32 그대로, 섹션이 더 많은 판(V3 25섹션)은 섹션마다 2회 + 여유 2.
+// 세션당 웨이브 상한. 요청 하나가 조각 하나(PAID_LLM_PARTS_PER_REQUEST)라 모든 조각이 시도를 다 쓸 수 있어야 한다
+// — 조각 수 × 조각당 시도 + 여유 2(L1 2026-11-20, 예전 32는 15조각 × 4회보다 작아 마지막 시도 전에 멈췄다).
 function generationWaveCap(plan = []) {
   const length = Array.isArray(plan) ? plan.length : 0;
-  return length > 15 ? Math.max(MAX_GENERATION_WAVES, length * 2 + 2) : MAX_GENERATION_WAVES;
+  return Math.max(MAX_GENERATION_WAVES, length * LIFE_BOOK_MAX_SECTION_ATTEMPTS + 2);
 }
 
 // V3 뒤 반이 앞 반 문장을 다시 쓰면 검증 전에 그 문장을 뺀다(실패하면 원문 그대로).
@@ -1651,8 +1654,9 @@ function getLifeBookReportQualityIssues(content, input = {}, options = {}) {
   const minTotalContentChars = options.acceptUsableDrafts ? 120 : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS;
   const maxTotalContentChars = lifeFortune ? LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS : LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS;
   if (!text) return ["empty_result"];
-  if (hasForbiddenResultTerms(text)) issues.push("forbidden_terms");
   const report = extractReportJson(text, 0);
+  // 사용자 입력(profileSummary: 이름·출생 정보)은 금칙어 판정에서 뺀다 — 이름에 'AI' 가 들어가도 책은 전달한다(L1).
+  if (hasForbiddenResultTerms(report ? reportForbiddenScanText(report) : text)) issues.push("forbidden_terms");
   if (!report) {
     issues.push("report_json_missing");
     if (text.length < minTotalContentChars) issues.push("total_content_too_short");
@@ -1799,13 +1803,17 @@ async function generateSectionOnce(env, section, prompt, options = {}) {
     base.provider = provider;
     base.model = clean(ai?.model);
     const truncated = ai?.truncated || /^(MAX_TOKENS|length)$/i.test(clean(ai?.finishReason));
-    if (!ai?.ok || truncated || isMock || !text) {
+    // 마지막 시도(L1)는 잘린 응답도 받아 완결 문장까지 살린다 — 결과가 안 나오는 것이 최악이다.
+    const salvageTruncated = options.lastChance === true && ai?.ok && truncated && !isMock && Boolean(text);
+    if (!salvageTruncated && (!ai?.ok || truncated || isMock || !text)) {
       if (!ai?.ok) base.failure = { code: /^[A-Z][A-Z0-9_]{0,79}$/.test(ai?.error || "") ? ai.error : "LLM_PROVIDER_UNAVAILABLE", ...safeGeminiFailure(ai) };
       // 잘린 응답은 문장 중간에서 살리지 않는다. 대신 표시해 두면 재시도가 두 배 예산을 받는다.
       base.error = isMock ? "MOCK_PROVIDER_BLOCKED" : ai?.ok && truncated ? "SECTION_TRUNCATED" : base.failure?.code || "SECTION_CONTENT_EMPTY";
       return base;
     }
-    const parsed = extractReportJson(cleanForbiddenResult(text));
+    const parsed = salvageTruncated
+      ? salvageLifeBookSectionJson(cleanForbiddenResult(text))
+      : extractReportJson(cleanForbiddenResult(text)) || (options.lastChance === true ? salvageLifeBookSectionJson(cleanForbiddenResult(text)) : null);
     if (!parsed) {
       base.error = "SECTION_JSON_MISSING";
       return base;
@@ -1870,17 +1878,144 @@ function sectionBodyChars(section, body) {
   return countPaidReportBodyChars(clean(body.content, 20000));
 }
 
-function lifeBookSectionValid(section, body, input) {
+// lastChance(조각의 마지막 시도): 반복·근거 표기·장 제목은 보지 않는다. 교정(repairLifeBookSectionResult) 뒤에도
+// 남는 결손 — 빈 본문·금칙어·빈 필수 필드 — 만 막는다(L1 2026-11-20).
+function lifeBookSectionValid(section, body, input, { lastChance = false } = {}) {
   if (!body) return false;
   // 프레임도 마무리 문장(또는 한 줄 요약)이 비면 다시 쓴다 — 빈 필수 필드로 전달하지 않는다(S16).
   if (section.kind === "frame") return Boolean(clean(body.finalMessage) || clean(body.coreSummary?.oneLine));
   const content = clean(body.content, 20000);
-  if (!countPaidReportBodyChars(content) || hasForbiddenResultTerms(content) || hasRepeatedReportPassage(content)) return false;
+  if (!countPaidReportBodyChars(content) || hasForbiddenResultTerms(content)) return false;
+  if (!lastChance && hasRepeatedReportPassage(content)) return false;
   const lifeFortune = isLifeFortuneInput(input);
-  if (lifeFortune && !hasValidEvidenceRefs(body.evidenceRefs, section.kind === "chapter" ? 3 : 2)) return false;
+  if (lifeFortune && !lastChance && !hasValidEvidenceRefs(body.evidenceRefs, section.kind === "chapter" ? 3 : 2)) return false;
   if (section.kind === "expert") return Boolean(clean(body.title)) && toStringList(body.guidance).length > 0;
   return Boolean(clean(body.summary)) && toStringList(body.advice).length >= (lifeFortune ? 3 : 1)
-    && (!lifeFortune || clean(body.title).includes(LIFE_FORTUNE_CHAPTER_TITLES[section.index]));
+    && (!lifeFortune || lastChance || clean(body.title).includes(LIFE_FORTUNE_CHAPTER_TITLES[section.index]));
+}
+
+// ── L1(2026-11-20) 마지막 시도 결정적 교정. 사용자 원문: "인생의 책 챕터부터 시작해서 생성 조건과 실패 조건을 너무
+// 어렵게 하지말고 정확한 분량이 아니더라도 전달이 잘되도록해줘 현재 사주 로직대로". 프롬프트·사주 계산은 그대로 두고,
+// 마지막 시도에서만 빈 요약·조언·지침·프레임 필드와 금칙어 문장을 본문에서 고친다. 빈 본문은 고칠 수 없어 실패로 남는다(S16).
+function splitLifeBookSentences(text) {
+  return String(text || "").split(/(?<=[.!?。？！])\s+|\n+/u).map((row) => row.trim()).filter(Boolean);
+}
+
+function trimLifeBookToLastSentence(text) {
+  const value = String(text || "").trim();
+  const match = value.match(/^[\s\S]*[.!?。？！](?=\s|$)/u);
+  return match && match[0].trim() ? match[0].trim() : value;
+}
+
+function dropForbiddenSentences(text) {
+  const value = String(text || "");
+  if (!value || !hasForbiddenResultTerms(value)) return value;
+  return value.split("\n")
+    .map((line) => hasForbiddenResultTerms(line)
+      ? line.split(/(?<=[.!?。？！])\s+/u).filter((sentence) => !hasForbiddenResultTerms(sentence)).join(" ")
+      : line)
+    .join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+// 조언·지침 대체: 본문의 '-'·'*'·'1.' 목록 항목(있으면 6개까지 모두), 모자라면 마지막 문단의 문장, 그래도 모자라면 본문 끝 문장부터.
+function lifeBookFallbackList(content, count, existing = []) {
+  const text = String(content || "");
+  const strip = (value) => clean(String(value || "").replace(/\*\*/g, ""), 1000);
+  const listed = text.split("\n").map((line) => line.match(/^\s*(?:[-*•]|\d+[.)])\s+(.+)$/u)?.[1]).filter(Boolean).map(strip);
+  const paragraphs = text.split(/\n\s*\n/).map((row) => row.trim()).filter(Boolean);
+  const lastParagraph = splitLifeBookSentences(paragraphs[paragraphs.length - 1] || "").map(strip);
+  const tail = splitLifeBookSentences(text).map(strip).reverse();
+  const picked = [];
+  // 본문에 목록이 있으면 (6개까지) 모두 쓴다. 모자라면 문장으로 채운다.
+  for (const item of listed) if (picked.length < 6 && item && !existing.includes(item) && !picked.includes(item)) picked.push(item);
+  for (const item of [...lastParagraph, ...tail]) {
+    if (picked.length >= count) break;
+    if (item && !existing.includes(item) && !picked.includes(item)) picked.push(item);
+  }
+  return picked;
+}
+
+// 프레임 대체 문장: 10장 요약, 없으면 1장 첫 문장.
+function lifeBookFrameFallback(plan, sections) {
+  const chapterRows = (index) => plan.filter((row) => row.kind === "chapter" && row.index === index).map((row) => sections[row.id]?.body).filter(Boolean);
+  const lastSummary = chapterRows(9).map((body) => dropForbiddenSentences(clean(body.summary, 400))).find(Boolean);
+  if (lastSummary) return lastSummary;
+  const first = chapterRows(0).map((body) => splitLifeBookSentences(dropForbiddenSentences(clean(body.content, 20000)))[0]).find(Boolean);
+  return clean(first, 400);
+}
+
+function repairLifeBookSectionResult(plan, sections, section, result, input) {
+  if (!result || result.failure) return;
+  try {
+    const scrub = (value, max) => dropForbiddenSentences(clean(value, max));
+    if (section.kind === "frame") {
+      const body = result.body || {};
+      const core = body.coreSummary && typeof body.coreSummary === "object" ? body.coreSummary : {};
+      const fallback = lifeBookFrameFallback(plan, sections);
+      const finalMessage = scrub(body.finalMessage, 2000) || fallback;
+      result.body = {
+        title: scrub(body.title, 120) || section.title,
+        subtitle: scrub(body.subtitle, 300),
+        coreSummary: {
+          oneLine: scrub(core.oneLine, 400) || clean(fallback, 400),
+          lifeTheme: scrub(core.lifeTheme, 200),
+          strongestElement: scrub(core.strongestElement, 200),
+          neededBalance: scrub(core.neededBalance, 200),
+        },
+        finalMessage,
+      };
+      result.chars = sectionBodyChars(section, result.body);
+      result.ok = Boolean(result.body.finalMessage || result.body.coreSummary.oneLine);
+      return;
+    }
+    if (!result.body) return;
+    const lifeFortune = isLifeFortuneInput(input);
+    const body = { ...result.body, content: dropForbiddenSentences(clean(result.body.content, 20000)) };
+    const canonical = LIFE_FORTUNE_CHAPTER_TITLES[section.index];
+    body.title = scrub(body.title, 200) || section.title;
+    if (section.kind === "chapter" && lifeFortune && canonical && !body.title.includes(canonical)) body.title = canonical;
+    if (section.kind === "expert") {
+      const guidance = toStringList(body.guidance).map((item) => scrub(item, 1000)).filter(Boolean);
+      body.guidance = guidance.length ? guidance : lifeBookFallbackList(body.content, 1);
+    } else {
+      body.summary = scrub(body.summary, 1200) || clean(splitLifeBookSentences(body.content)[0], 1200);
+      const advice = toStringList(body.advice).map((item) => scrub(item, 1000)).filter(Boolean);
+      const need = lifeFortune ? 3 : 1;
+      body.advice = advice.length >= need ? advice : [...advice, ...lifeBookFallbackList(body.content, need - advice.length, advice)];
+    }
+    result.body = body;
+    result.chars = sectionBodyChars(section, body);
+    result.ok = result.chars > 0;
+  } catch {
+    // 교정은 보조 단계다. 실패하면 원래 판정에 맡긴다.
+  }
+}
+
+// 마지막 시도의 깨진·잘린 JSON 복구: 온전한 JSON → 잘린 JSON 의 완결 필드 → 끊긴 content 문자열(마지막 완결 문장까지)
+// → JSON 이 아닌 산문은 그대로 본문 → 그래도 없으면 문자열 값들을 문단으로.
+function salvageLifeBookSectionJson(text) {
+  const raw = clean(text, LIFE_BOOK_RESULT_TEXT_MAX_CHARS);
+  if (!raw) return null;
+  const whole = extractReportJson(raw);
+  if (whole) return whole;
+  const salvaged = salvageTruncatedJsonObject(raw);
+  const parsed = salvaged && typeof salvaged === "object" && !Array.isArray(salvaged) ? { ...salvaged } : {};
+  if (!clean(parsed.content)) {
+    const open = raw.match(/"content"\s*:\s*"((?:[^"\\]|\\.)*)/u);
+    if (open) {
+      const captured = open[1].replace(/\\$/, "");
+      let content = "";
+      try { content = JSON.parse(`"${captured}"`); } catch { content = captured.replace(/\\n/g, "\n").replace(/\\"/g, "\""); }
+      content = trimLifeBookToLastSentence(content);
+      if (content) parsed.content = content;
+    } else if (!/^\s*(?:```|[{[])/.test(raw)) {
+      parsed.content = raw;
+    } else if (!Object.keys(parsed).length) {
+      const narrative = clean(narrativeTextFromJson(raw), 20000);
+      if (narrative) parsed.content = narrative;
+    }
+  }
+  return Object.keys(parsed).length ? parsed : null;
 }
 
 // 분량만의 결손은 배달을 막지 않는다(2026-11-08). 비었거나 구조가 깨진 결과만 실패로 둔다.
@@ -1915,7 +2050,14 @@ function isLifeBookComplete(report) {
     if (!expert || !clean(expert.title) || !countPaidReportBodyChars(clean(expert.content, 20000)) || !toStringList(expert.guidance).length) return false;
   }
   if (!clean(report.finalMessage) && !clean(report.coreSummary?.oneLine)) return false;
-  return !hasForbiddenResultTerms(JSON.stringify(report));
+  return !hasForbiddenResultTerms(reportForbiddenScanText(report));
+}
+
+// 책 단위 금칙어 판정 대상: 사용자 입력(profileSummary)을 뺀 생성 결과만.
+function reportForbiddenScanText(report) {
+  if (!report || typeof report !== "object") return "";
+  const { profileSummary: _profileSummary, ...generated } = report;
+  return JSON.stringify(generated);
 }
 
 /** 복구 크론 정체 설정자(settleStuckConsultation)가 delivery_pending 을 구제 전달하기 전에 완성 여부를 묻는다. */
@@ -3314,12 +3456,14 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           const results = await runWithConcurrency(pending, SECTION_CONCURRENCY, async (section) => {
             const stored = sections[section.id];
             const attempt = Number(stored?.attempts || 0) + 1;
+            // L1: 조각의 마지막 시도는 분량 상향 없이, 형식 결손을 거부 대신 결정적으로 교정한다.
+            const lastChance = attempt >= LIFE_BOOK_MAX_SECTION_ATTEMPTS;
             const lengthRepair = stored?.lengthRepair || (stored?.repairKind === "length" && stored?.ok);
             const reservedSection = { ...(stored || { id: section.id, kind: section.kind, ok: false }), attempts: attempt, lengthRepair };
             await reserveSupportRecoveryAttempt({ Model: LifeBookAiConsultation, id: sessionId, userId: auth.userId, lockToken: lock.lockToken });
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: reservedSection } });
             // 재시도에서는 목표 분량을 올려 잡아 "또 짧게" 오는 것을 막는다.
-            const boosted = stored?.needsRepair
+            const boosted = stored?.needsRepair && !lastChance
               ? { ...section, targetChars: Math.round(section.targetChars * 1.25) }
               : section;
             const digest = buildSectionDigest(plan, sections, section.id);
@@ -3332,7 +3476,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               birthInfo: normalized.input.birthInfo,
               supportRecovery: recovery,
               truncatedRetry: stored?.error === "SECTION_TRUNCATED",
-              finalProviderAttempt: attempt >= LIFE_BOOK_MAX_SECTION_ATTEMPTS,
+              finalProviderAttempt: lastChance,
+              lastChance,
               // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
               // 다시 시도로 다시 여는 장(저장 행이 이미 있음)도 첫 시도부터 캐시를 우회한다 — 같은 나쁜 응답을 재생하지 않게.
               cache: attempt > 1 || stored ? null : {
@@ -3345,17 +3490,23 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             }));
             dropPriorHalfRepeats(plan, sections, section, result);
             scrubLifeBookSectionResult(plan, sections, section, result, normalized.input);
-            const valid = row => row?.ok && lifeBookSectionValid(section, row.body, normalized.input);
+            if (lastChance) repairLifeBookSectionResult(plan, sections, section, result, normalized.input);
+            const valid = row => row?.ok && lifeBookSectionValid(section, row.body, normalized.input, { lastChance });
             const priorValid = stored?.ok && lifeBookSectionValid(section, stored.body, normalized.input);
             const keepPrior = priorValid && (!valid(result) || sectionBodyChars(section, stored.body) >= sectionBodyChars(section, result.body));
             result.ok = Boolean(valid(result));
+            // L1: 결정적 공급자 오류(400·401·403·404·한도 등)는 같은 공급자로 남은 시도를 쓰지 않고 곧장 마지막 시도
+            // (보조 공급자 폴백 허용)로 넘긴다. 지원 복구는 폴백을 끄므로 건너뛰지 않는다. 마지막 시도도 실패하면 아래 throw.
+            const fastForward = Boolean(result.failure && result.failure.retryable === false && !lastChance && !recovery && !keepPrior);
             const checkpoint = keepPrior
               ? { ...stored, attempts: attempt, lengthRepair, needsRepair: false }
+              : fastForward
+                ? { id: section.id, kind: section.kind, ok: false, body: null, chars: 0, attempts: Math.max(attempt, LIFE_BOOK_MAX_SECTION_ATTEMPTS - 1), lengthRepair, provider: result.provider, model: result.model, error: result.error, failure: null, skippedProviderFailure: clean(result.failure.code, 80), needsRepair: false, ...(stored?.lengthBoost ? { lengthBoost: true } : {}) }
               : { id: section.id, kind: section.kind, ok: result.ok, body: result.body, chars: result.chars, attempts: attempt, lengthRepair, provider: result.provider, model: result.model, error: result.error, failure: result.failure || null, needsRepair: false, ...(stored?.lengthBoost ? { lengthBoost: true } : {}) };
             assertSupportRecoveryPreserved(recovery, Object.entries({ ...sections, [section.id]: checkpoint }).map(([key, row]) => ({ key, body: row.body })));
             await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: { [`llmMeta.sections.${section.id}`]: checkpoint } });
             sections[section.id] = checkpoint;
-            if (result.failure && !keepPrior) {
+            if (result.failure && !keepPrior && !fastForward) {
               // S16: 조각 하나를 포기하고 줄여 전달하지 않는다. 남은 시도가 있으면 재시도, 소진되면 전체 실패 + 환불.
               throw Object.assign(new Error(result.failure.message), result.failure, {
                 code: "LLM_PROVIDER_UNAVAILABLE", retryable: result.failure.retryable && attempt < LIFE_BOOK_MAX_SECTION_ATTEMPTS,
@@ -3772,6 +3923,8 @@ export const __lifeBookAiTestUtils = {
   publicSession,
   scrubLifeBookSectionResult,
   dropPriorHalfRepeats,
+  repairLifeBookSectionResult,
+  salvageLifeBookSectionJson,
   LIFE_FORTUNE_SECTION_PLAN_VERSION,
 };
 
