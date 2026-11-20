@@ -269,6 +269,7 @@ const EXPERT_RETRY_SETTLERS = Object.freeze([
   { service: 'ziwei-ai', load: async () => (await import('../routes/ziwei-ai.js')).settleDueZiweiRetryRefunds },
   { service: 'sukuyo-compatibility-ai', load: async () => (await import('../routes/sukuyo-compatibility-ai.js')).settleDueSukuyoRetryRefunds },
   { service: 'karma-destiny-ai', load: async () => (await import('../routes/karma-destiny-ai.js')).settleDueKarmaRetryRefunds },
+  { service: 'naming-prompt', load: async () => (await import('../routes/naming-prompt.js')).settleDueNamingRetryRefunds },
 ]);
 export async function runPendingConsultationRefunds(env, options = {}) {
   const withDb = options.withDb || withPaymentDb;

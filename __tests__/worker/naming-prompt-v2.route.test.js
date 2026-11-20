@@ -4,18 +4,20 @@ import { jest } from "@jest/globals";
 // jest 는 TS 를 못 읽으므로 여기서는 service.ts 를 손 가짜로 바꾸고, 라우트의 판 선택·저장·직렬화·무료 경로만 본다.
 
 const uid="64b7f2a1c3d4e5f601234567";
-let route,docs,provider,userId,authCalls,fetchBlock,candidateCount,passRefund;
+let route,settleDue,docs,provider,userId,authCalls,fetchBlock,candidateCount,passRefund,revoked,cardPayment,cardRefund;
 const clone=v=>v==null?v:structuredClone(v);
 const get=(d,k)=>k.split('.').reduce((v,p)=>v?.[p],d);
 function set(d,k,v){const keys=k.split('.');const end=keys.pop();let o=d;for(const key of keys)o=o[key]??={};o[end]=clone(v);}
 function matches(d,f){return Object.entries(f).every(([k,v])=>{
  if(k==='$or')return v.some(x=>matches(d,x));
  const value=get(d,k);if(v&&typeof v==='object'&&!(v instanceof Date)){
+ if('$exists'in v)return (value!==undefined&&value!==null)===v.$exists;if('$lte'in v)return value!=null&&new Date(value)<=new Date(v.$lte);
  if('$in'in v)return v.$in.includes(value);if('$nin'in v)return !v.$nin.includes(value);if('$ne'in v)return value!==v.$ne;
  }return String(value)===String(v);
 });}
-function query(v){return {lean:async()=>clone(v),sort(){return this;},select(){return this;}};}
+function query(v){return {lean:async()=>clone(v),sort(){return this;},select(){return this;},limit(){return this;}};}
 const model={
+ find:f=>query(docs.filter(d=>matches(d,f))),
  findOne:f=>{if(f.status?.$in?.includes('refunded'))return query(null);return query(docs.find(d=>matches(d,f))||null);},
  findOneAndUpdate:(f,u,o={})=>{
   let doc=docs.find(d=>matches(d,f)),before=clone(doc);
@@ -60,15 +62,18 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>{authCalls++;return {userId};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,PaidExecutionRecord:model,
   PointHistory:{findOne:f=>query(f.$and?null:{_id:uid,metadata:{accessMethod:'PASS',requestId:'original-paid'}}),updateOne:async()=>({})},
-  Payment:{findOne:()=>query(null),findByIdAndUpdate:()=>query(null)},
+  Payment:{findOne:f=>query(cardPayment&&f.$or?.some(c=>c.merchantUid===cardPayment.merchantUid)?cardPayment:null),findByIdAndUpdate:()=>query(null)},
   MonthlyCreditLedger:{findOne:()=>query(null),updateOne:async()=>({})},
  }));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({...gemini,callGeminiText:(...args)=>provider(...args)}));
  jest.unstable_mockModule('../../worker/lib/monthly-credit-store.js',()=>({restoreMonthlyCreditLot:async()=>({})}));
  jest.unstable_mockModule('../../worker/naming-engine/service.ts',()=>engine);
- ({handleNamingPromptRoutes:route}=await import('../../worker/routes/naming-prompt.js'));
+ const revocation=await import('../../worker/lib/paid-result-revocation.js');
+ jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js',()=>({...revocation,isPaidResultRevoked:async()=>revoked}));
+ jest.unstable_mockModule('../../worker/lib/payment-refund.js',()=>({autoRefundSinglePaymentDeliveryFailure:(...args)=>cardRefund(...args)}));
+ ({handleNamingPromptRoutes:route,settleDueNamingRetryRefunds:settleDue}=await import('../../worker/routes/naming-prompt.js'));
 });
-beforeEach(()=>{docs=[];userId=uid;authCalls=0;candidateCount=12;passRefund=jest.fn(async()=>({refunded:true}));
+beforeEach(()=>{docs=[];userId=uid;authCalls=0;candidateCount=12;passRefund=jest.fn(async()=>({refunded:true}));revoked=false;cardPayment=null;cardRefund=jest.fn(async()=>({refunded:true}));
  for(const fn of [engine.prepareNamingV2,engine.namingBasisV2,engine.buildNamingV2Prompt])fn.mockClear();
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.fallbackToWorkersAI).toBe(false);
@@ -165,10 +170,85 @@ it.each([
  expect(res.status).toBe(400);expect((await res.json()).code).toBe(code);expect(engine.prepareNamingV2).not.toHaveBeenCalled();
 });
 
-it('본문을 끝내 받지 못한 이용권 회차는 결제 화면에서 차감한 한도를 증빙으로 되돌린다',async()=>{
- provider.mockImplementation(async()=>({ok:true,text:'{}'}));
- const res=await runToCompletion(()=>start());
+// 2026-11-20 R10 다시 시도 우선(사용자 결정 "다시 시도+7일 환불 도입"): 본문을 끝내 받지 못한 웹 회차는 바로 환불하지 않고
+// 추가 결제·차감 없는 다시 시도를 연다. 환불은 고객 요청 또는 생성 + 7일 뒤 크론이 맡는다.
+const DAY=86400000;
+const getResult=id=>route(new Request(`https://mock.test/api/naming-prompt/result/${id}`),{});
+async function failOnce(){provider.mockImplementation(async()=>({ok:true,text:'{}'}));return runToCompletion(()=>start());}
+const heldDoc=(access,{createdAt=new Date(Date.now()-DAY),refundAt=new Date(createdAt.getTime()+7*DAY),...extra}={})=>({_id:'held',executionId:'exec-held',userId:uid,featureId:'premium-naming-prompt',
+ status:'generation_failed',createdAt,updatedAt:new Date(Date.now()-3600000),...extra,
+ result:{namingPrompt:{access,inputSnapshot:BASE,generatedResult:'',delivery:{version:1,attempts:{candidates:2},invalidAttempts:{candidates:2},chapters:{},candidates:null},limited:true,
+  retryable:{since:createdAt,refundAt,code:'NAMING_RESULT_TOO_SHORT'}}}});
+const PASS_ACCESS={accessMethod:'pass',accessType:'membership_pass',evidenceId:'ev-1',paymentId:'',requestId:'original-paid'};
+const CARD_ACCESS={accessMethod:'single',accessType:'single_purchase',evidenceId:'merchant-1',paymentId:'merchant-1',requestId:'merchant-1'};
+
+it('본문을 끝내 받지 못한 웹 회차는 환불하지 않고 생성 + 7일 다시 시도 창으로 보류한다',async()=>{
+ const res=await failOnce();
  expect(res.status).toBe(503);
+ expect(passRefund).not.toHaveBeenCalled();
+ const body=await res.json();
+ expect(body).toMatchObject({ok:false,reason:'LLM_ERROR',refunded:false,retry:{available:true,sessionId:docs[0].executionId}});
+ expect(new Date(body.retry.refundAt).getTime()).toBe(new Date(docs[0].createdAt).getTime()+7*DAY);
+ expect(docs[0].status).toBe('generation_failed');
+ expect(docs[0].result.namingPrompt.retryable).toMatchObject({code:'NAMING_RESULT_TOO_SHORT'});
+ const again=await getResult(docs[0].executionId);
+ expect(again.status).toBe(503);expect((await again.json()).retry).toMatchObject({available:true});
+});
+
+it('다시 시도는 같은 회차의 시도 예산만 새로 열어 추가 차감 없이 끝까지 생성한다',async()=>{
+ const good=provider.getMockImplementation();
+ await failOnce();
+ const executionId=docs[0].executionId;
+ provider.mockImplementation(good);
+ const res=await runToCompletion(()=>post('/retry',{executionId}));
+ expect(res.status).toBe(201);
+ expect(docs[0].status).toBe('completed');
+ expect(docs[0].result.namingPrompt.retryable.reopens).toBe(1);
+ expect(passRefund).not.toHaveBeenCalled();
+});
+
+it('철회된 결제 건은 다시 시도를 열지 않는다(409)',async()=>{
+ await failOnce();
+ revoked=true;
+ const res=await post('/retry',{executionId:docs[0].executionId});
+ expect(res.status).toBe(409);
+ expect(docs[0].status).toBe('generation_failed');expect(docs[0].result.namingPrompt.retryable.reopens).toBeUndefined();
+});
+
+it('환불 요청은 이용권 회차의 차감을 증빙으로 되돌리고 회차를 환불로 닫는다',async()=>{
+ await failOnce();
+ const res=await post('/refund-request',{executionId:docs[0].executionId});
+ expect(res.status).toBe(200);
+ expect(await res.json()).toMatchObject({ok:true,refunded:true,refundStatus:'refunded'});
  expect(passRefund).toHaveBeenCalledTimes(1);
  expect(passRefund).toHaveBeenCalledWith(expect.objectContaining({featureKey:'premium-naming-prompt',requestId:'original-paid'}));
+ expect(docs[0].status).toBe('refunded');
+ expect(docs[0].result.namingPrompt.retryable).toMatchObject({refundReason:'CUSTOMER_REQUEST',refundStatus:'refunded'});
+ expect((await post('/retry',{executionId:docs[0].executionId})).status).toBe(409);
+});
+
+it('단건 카드 회차의 환불 요청은 결제 취소를 부르고, 취소가 실패하면 정산 표시 없이 크론에 맡긴다',async()=>{
+ cardPayment={_id:'pay-1',userId:uid,merchantUid:'merchant-1',featureKey:'premium-naming-prompt',status:'paid'};
+ docs.push(heldDoc(CARD_ACCESS));
+ cardRefund.mockResolvedValueOnce({refunded:false,refundFailed:true,reason:'PG_DOWN'});
+ const failed=await (await post('/refund-request',{executionId:'exec-held'})).json();
+ expect(failed).toMatchObject({ok:true,refunded:false,refundStatus:'failed'});
+ expect(docs[0].status).toBe('generation_failed');expect(docs[0].result.namingPrompt.retryable.refundSettledAt).toBeUndefined();
+ const outcomes=await settleDue({});
+ expect(outcomes).toEqual([{service:'naming-prompt',refundStatus:'refunded'}]);
+ expect(cardRefund).toHaveBeenCalledTimes(2);
+ expect(cardRefund.mock.calls[1][1]).toMatchObject({merchantUid:'merchant-1'});
+ expect(docs[0].status).toBe('refunded');expect(passRefund).not.toHaveBeenCalled();
+});
+
+it('환불 크론은 생성 + 7일이 지난 보류만 닫아 정산하고, 창 안의 보류와 살아 있는 생성은 건드리지 않는다',async()=>{
+ const old=new Date(Date.now()-8*DAY);
+ docs.push(heldDoc(PASS_ACCESS,{createdAt:old}));
+ docs.push({...heldDoc(PASS_ACCESS),_id:'open',executionId:'exec-open'});
+ docs.push({...heldDoc(PASS_ACCESS,{createdAt:old}),_id:'live',executionId:'exec-live',status:'generating',updatedAt:new Date()});
+ const outcomes=await settleDue({});
+ expect(outcomes).toEqual([{service:'naming-prompt',refundStatus:'refunded'}]);
+ expect(passRefund).toHaveBeenCalledTimes(1);
+ expect(docs.map(d=>d.status)).toEqual(['refunded','generation_failed','generating']);
+ expect(docs[0].result.namingPrompt.retryable.refundReason).toBe('RETRY_WINDOW_EXPIRED');
 });

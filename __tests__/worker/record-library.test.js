@@ -347,6 +347,13 @@ test('R7b: held retries show as retry_available with the service retry entry, ne
     expect(library.recordMetadata(recordService('astrology'),{id:'a1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/astrology-ai/result/?id=a1'});
     expect(library.recordMetadata(recordService('ziwei'),{id:'z1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/ziwei-ai/?cid=z1'});
     expect(library.recordMetadata(recordService('karma'),{id:'k1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/karma-destiny-ai/result/?sessionId=k1'});
+    // R10 작명: 보관함 원본(paid-results, id=_id)에는 결과 경로가 없어 작명 결과 화면(executionId)으로 보낸다.
+    const namingHeld=extra=>({_id:'p1',executionId:'exec-1',featureId:'premium-naming-prompt',status:'generation_failed',result:{namingPrompt:{retryable:{since:earlier,refundAt:later,...extra}}}});
+    const paid=recordService('paid-results');
+    expect(library.recordMetadata(paid,namingHeld())).toMatchObject({status:'retry_available',recoveryHref:'/naming-ai/result?executionId=exec-1'});
+    for(const extra of [{refundAt:earlier},{refundSettledAt:earlier}])expect(library.recordStatus(namingHeld(extra),paid,now)).toBe('failed');
+    const due=namingHeld();due.result.namingPrompt.refundEligibleAt=earlier;expect(library.recordStatus(due,paid,now)).toBe('failed');
+    const toss=namingHeld();toss.result.namingPrompt.tossIntentId='t';expect(library.recordStatus(toss,paid,now)).toBe('failed');
   }finally{Date.now=realNow;}
-  for(const field of ['llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
+  for(const field of ['result.namingPrompt.retryable','result.namingPrompt.refundEligibleAt','result.namingPrompt.tossIntentId','executionId','llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
 });

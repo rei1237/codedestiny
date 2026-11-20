@@ -43,7 +43,7 @@ export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'human-design-report', files: ['worker/routes/human-design-report.js'], featureKeys: ['human-design-report'], refunds: ['failServiceExecution'] },
   { service: 'destiny-compass-ai', files: ['worker/routes/destiny-compass-ai.js'], featureKeys: ['destiny-compass-deep-report'], refunds: ['failServiceExecution'] },
   { service: 'relationship-boundary-test', files: ['worker/routes/relationship-boundary-test.js'], featureKeys: ['relationship-boundary-test'], refunds: ['failServiceExecution'] },
-  { service: 'naming-prompt', files: ['worker/routes/naming-prompt.js'], featureKeys: ['premium-naming-prompt'], refunds: ['refundPassUseEvidence'] },
+  { service: 'naming-prompt', files: ['worker/routes/naming-prompt.js'], featureKeys: ['premium-naming-prompt'], refunds: ['refundPassUseEvidence', 'autoRefundSinglePaymentDeliveryFailure'] },
   { service: 'heukwol', files: ['worker/routes/heukwol.js'], featureKeys: ['heukwol-warning-consultation'], refunds: ['failServiceExecution'] },
   { service: 'celestial-harmony', files: ['worker/routes/celestial-harmony.js', 'worker/lib/celestial-delivery-store.js', 'worker/lib/celestial-report-delivery.js'], featureKeys: ['tarot-celestial-harmony'], refunds: ['failServiceExecution'] },
   { service: 'fortune', files: ['worker/routes/fortune.js'], featureKeys: ['saju_ai_question_prompt'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence', 'refundPassCoverage'] },

@@ -26,6 +26,8 @@ export const RECORD_METADATA_PROJECTION = Object.freeze({
   // R7b: 다시 시도 보류 표지(서비스마다 위치가 다르다) — 보관함이 '실패'와 '다시 시도 가능'을 가른다.
   'llmMeta.retryable': 1, 'llmMeta.refundEligibleAt': 1, 'llmMeta.billingCleanupPending': 1,
   'metadata.retryable': 1, 'deliveryMeta.retryable': 1, 'deliveryMeta.reviewReason': 1,
+  // R10 작명: 보류 표지가 result.namingPrompt 아래에 있고, 다시 시도 화면은 executionId 로 연다.
+  executionId: 1, 'result.namingPrompt.retryable': 1, 'result.namingPrompt.refundEligibleAt': 1, 'result.namingPrompt.tossIntentId': 1,
 });
 export const readRecordField = (doc, path) => path.split('.').reduce((value, key) => value?.[key], doc);
 const clean = (value, size = 600) => typeof value === 'string' ? value.trim().slice(0, size) : '';
@@ -45,6 +47,9 @@ function retryHeld(doc, status, now) {
   const execution = doc.metadata?.retryable;
   if (status === 'pending' && execution && (!doc.refundStatus || doc.refundStatus === 'none') &&
     !execution.refundRequestedAt && futureAt(execution.refundAt, now)) return true;
+  const naming = doc.result?.namingPrompt, named = naming?.retryable;
+  if (status === 'generation_failed' && named && !naming.refundEligibleAt && !naming.tossIntentId &&
+    !named.refundSettledAt && futureAt(named.refundAt, now)) return true;
   const codex = doc.deliveryMeta?.retryable;
   return status === 'generation_failed' && doc.deliveryMeta?.reviewReason === 'RETRY_AVAILABLE' && Boolean(codex) &&
     !codex.closedAt && !codex.refundRequestedAt && futureAt(codex.refundAt, now);
@@ -92,7 +97,7 @@ export function recordMetadata(source, doc) {
     createdAt: doc.createdAt && Number.isFinite(Date.parse(doc.createdAt)) ? new Date(doc.createdAt).toISOString() : null,
     status, group: source.dynamic ? variant?.group || source.group : source.group, character: clean(doc.persona || doc.characterId || source.character, 30),
     href: savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
-    recoveryHref: featureKey === 'heukwol-warning-consultation' ? `/heukwol/?result=${encodeURIComponent(id)}` : featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
+    recoveryHref: featureKey === 'heukwol-warning-consultation' ? `/heukwol/?result=${encodeURIComponent(id)}` : featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : featureKey === 'premium-naming-prompt' && doc.executionId ? `/naming-ai/result?executionId=${encodeURIComponent(doc.executionId)}` : source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
     nativeHref: status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
   };
 }
