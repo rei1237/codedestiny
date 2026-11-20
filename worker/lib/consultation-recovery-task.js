@@ -17,6 +17,7 @@ const loadAdapters = {
   'ziwei-ai': () => import('../routes/ziwei-ai.js'),
   'sukuyo-compatibility-ai': () => import('../routes/sukuyo-compatibility-ai.js'),
   'new-year-ai': () => import('../routes/new-year-ai.js'),
+  'saju-compat-premium': () => import('../routes/saju-compat-premium.js'),
   'life-book-ai': () => import('../routes/life-book-ai.js'),
   'love-secret-ai': () => import('../routes/love-secret-ai.js'),
   'neo-operation-room': () => import('../routes/neo-operation-room.js'),

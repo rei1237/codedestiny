@@ -197,18 +197,18 @@
     "ms": "Sediakan bacaan keserasian"
   },
   "featureMarketing.saju_compatibility.ctaNote": {
-    "ko": "두 사람의 정보를 준비하고, 분석 전에 이용권·월정석·단건 결제 조건을 확인해요.",
-    "en": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
-    "ja": "二人の情報を用意し、分析前に利用券・月精石・単件決済の条件をご確認ください。",
-    "zh-CN": "备好两人的信息，分析前请确认使用券、月精石及单次付费条件。",
-    "zh-TW": "備好兩人的資訊，分析前請確認使用券、月精石及單次付款條件。",
-    "vi": "Chuẩn bị thông tin của cả hai và kiểm tra điều kiện vé, Nguyệt Tinh Thạch và thanh toán từng lần trước khi phân tích.",
-    "hi": "दोनों की जानकारी तैयार करें और विश्लेषण से पहले पास, मूनस्टोन और एकल भुगतान की शर्तें देखें।",
-    "es": "Prepara los datos de ambos y consulta las condiciones de pases, piedras lunares y pago individual antes del análisis.",
-    "fr": "Préparez les informations des deux personnes et vérifiez les conditions des pass, pierres de lune et paiements à l’unité avant l’analyse.",
-    "de": "Bereite die Daten beider Personen vor und prüfe vor der Analyse die Bedingungen für Pässe, Mondsteine und Einzelzahlungen.",
-    "nl": "Bereid de gegevens van beide personen voor en bekijk vóór de analyse de voorwaarden voor passen, Maanstenen en eenmalige betalingen.",
-    "ms": "Sediakan maklumat kedua-dua pihak dan semak syarat pas, Batu Bulan serta bayaran tunggal sebelum analisis."
+    "ko": "두 사람의 정보를 입력하면 기본 궁합은 무료로 바로 보여 드려요. 고급 궁합(10,000원)은 결과 아래에서 이어 볼 수 있어요.",
+    "en": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+    "ja": "二人の情報を入力すると、基本の相性は無料ですぐにご覧いただけます。高級相性（10,000ウォン）は結果の下から続けて見られます。",
+    "zh-CN": "输入两人的信息，即可立即免费查看基础合盘。高级合盘（10,000韩元）可在结果下方继续查看。",
+    "zh-TW": "輸入兩人的資訊，即可立即免費查看基礎合盤。高級合盤（10,000韓元）可在結果下方繼續查看。",
+    "vi": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+    "hi": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+    "es": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+    "fr": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+    "de": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+    "nl": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+    "ms": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result."
   },
   "featureMarketing.saju_compatibility.premiumOutcomes.0": {
     "ko": "결과는 관계를 단정하지 않으며, 대화와 선택을 위한 참고로 읽어 주세요.",

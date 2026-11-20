@@ -17650,7 +17650,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22369,7 +22369,11 @@
       "love": "Kenali rentak berhubung dan cara berbaik selepas berselisih.",
       "business": "Lihat cara anda berkongsi tugas dan membuat keputusan bersama.",
       "friend": "Kenali kekerapan berhubung dan ruang peribadi yang sesuai untuk anda berdua.",
-      "preview": "Lihat kandungan laporan"
+      "preview": "Lihat kandungan laporan",
+      "freeBadge": "Free",
+      "showcaseBadge": "Basic free",
+      "showcasePrice": "Free",
+      "showcaseNote": "Premium reading ₩10,000"
     },
     "reading": {
       "contents": "Kandungan bacaan",

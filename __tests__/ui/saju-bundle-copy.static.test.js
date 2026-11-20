@@ -224,11 +224,13 @@ test('개별 판매 서비스 목록의 가격 노출 키가 판매 종료 키�
   assert.deepEqual(leaked, [], `/saju/#services 에 판매 종료 키의 개별 가격이 노출된다: ${leaked.join(', ')}`);
 });
 
-test('사주 궁합 소개는 무료로 열려 있다고 말하지 않는다', () => {
+// 2026-11-20: 기본 사주 궁합은 무료, 네 장 AI 풀이는 사주 고급 궁합(10,000원)으로 나뉘었다.
+test('사주 궁합 소개는 기본 무료와 고급 궁합 가격을 함께 말한다', () => {
   const pages = read('lib/seo-landing-pages.js');
   const compat = pages.split('\n').filter((line) => /seoLanding\.(title|description)\.006/.test(line)).join('\n');
   assert.ok(compat, '궁합 소개 줄을 찾지 못함');
-  assert.doesNotMatch(compat, /무료/, '궁합은 볼 때마다 결제하는 분석이다');
+  assert.match(compat, /기본 궁합은 무료/, '기본 궁합 무료를 말해야 한다');
+  assert.match(compat, /고급 궁합은 10,000원/, '고급 궁합 가격을 함께 말해야 한다');
 });
 
 test('결과 화면 정적 결제 안내가 묶음 이름과 한 번 결제를 말한다', async () => {

@@ -22,6 +22,7 @@ const SITE_SEO_NOINDEX_PREFIXES_BEFORE = [
   "/moonlit-lotus", // 2026-11-15 공개 접근 가능한 제작 검수 화면
   "/saju/love-simulation", "/secret-house_real", "/destiny-poker", "/mini-games", "/fortune/date",
   "/saju/crystals/start", // 2026-11-11 사주 원석 추천 질문·결과 화면
+  "/saju/compatibility/premium", // 2026-11-20 사주 고급 궁합 입력·결과 화면
   "/neo-operation-room/strategy-books", "/records", "/consultations", "/api", "/api-hello-test", "/admin", "/auth",
   "/login", "/signup", "/profile", "/payment", "/payments", "/checkout", "/success", "/fail", "/debug", "/test",
   "/dev-status", "/me", "/my", "/points", "/account/delete", "/premium-unlock", "/result", "/results",
@@ -41,6 +42,7 @@ const SITEMAP_NOINDEX_PREFIXES_BEFORE = [
   "/moonlit-lotus", // 2026-11-15
   "/saju/love-simulation", "/secret-house_real", "/destiny-poker", "/mini-games", "/fortune/date",
   "/saju/crystals/start", // 2026-11-11
+  "/saju/compatibility/premium", // 2026-11-20
   "/neo-operation-room/strategy-books", "/records", "/business/api/dashboard", "/consultations", "/animal/physio", "/diary", "/maya",
   "/oracle/royal-tea", "/oracle/sikojen-povailu", "/palm-reading", "/pdf", "/premium", "/premium-reports",
   "/oracle/juyuk", "/oracle/hwatu", "/blog", "/fortune/sikojen-povailu", "/guides/category", "/flower",

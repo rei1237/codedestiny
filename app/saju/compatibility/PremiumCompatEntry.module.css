@@ -1,0 +1,62 @@
+/* 사주 고급 궁합 진입 카드 — 달빛 예화 톤(HomeMoonlitEntry 선례). 무늬는 생성 마스크만 쓰고 손으로 그리지 않는다. */
+.entry {
+  composes: masks from '../../components/service-intro/yehwaIntroMasks.generated.module.css';
+  --pce-night: #161b35;
+  --pce-plum: #30223e;
+  --pce-ink: #fff4df;
+  --pce-muted: #e0d4e2;
+  --pce-gold: #e8d5a3;
+  --pce-line: rgba(232, 213, 163, .42);
+  position: relative; isolation: isolate; display: grid; grid-template-columns: 42% minmax(0, 1fr);
+  width: min(100%, 800px); margin: 8px auto 32px; padding: 12px; gap: clamp(16px, 3vw, 32px); box-sizing: border-box;
+  background: radial-gradient(90% 110% at 100% 0%, rgba(176, 118, 164, .17), transparent 65%), linear-gradient(155deg, var(--pce-plum), var(--pce-night) 74%);
+  color: var(--pce-ink); border: 1px solid var(--pce-line); border-radius: var(--cd-r-section, 26px);
+  box-shadow: inset 0 1px 0 rgba(255, 244, 220, .08), 0 18px 40px -26px rgba(20, 12, 35, .68);
+  text-decoration: none; text-align: left;
+}
+.entry::before {
+  content: ""; position: absolute; inset: 5px; z-index: -1;
+  border: 1px solid rgba(232, 213, 163, .17);
+  border-radius: calc(var(--cd-r-section, 26px) - 5px); pointer-events: none;
+}
+.entry::after {
+  content: ""; position: absolute; right: 18px; bottom: 16px; width: 64px; height: 64px; z-index: -1;
+  background: var(--pce-gold); opacity: .16; pointer-events: none;
+  mask: var(--si-mask-sprig) center / contain no-repeat;
+}
+.entry > img {
+  display: block; width: 100%; height: 100%; min-height: 218px; box-sizing: border-box;
+  object-fit: cover; object-position: 50% 50%; border: 1px solid var(--pce-line);
+  border-radius: 17px; background: var(--pce-night);
+}
+.copy { min-width: 0; padding: 14px 16px 14px 0; align-self: center; font-family: var(--font-body), sans-serif; }
+.eyebrow { display: block; margin-bottom: 7px; color: #ecc7dd; font-size: .8rem; line-height: 1.55; }
+.entry .copy strong {
+  display: block; color: var(--pce-ink);
+  font-family: "CodeDestinyHan", "CodeDestinyRounded", var(--font-body), sans-serif;
+  font-size: clamp(1.4rem, 3.2vw, 1.9rem); line-height: 1.4; font-weight: 400;
+}
+.description { display: block; margin-top: 6px; color: var(--pce-muted); font-size: .92rem; line-height: 1.7; word-break: keep-all; overflow-wrap: anywhere; }
+.features { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 10px 0 13px; padding: 0; list-style: none; color: var(--pce-gold); font-size: .8rem; line-height: 1.5; }
+.features::after {
+  content: ""; width: 14px; height: 14px; flex: 0 0 14px; background: currentColor; opacity: .7;
+  mask: var(--si-mask-sparkle) center / contain no-repeat;
+}
+.entry b {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 48px; padding: 9px 15px; box-sizing: border-box;
+  border: 1px solid #f1dfbb; border-radius: 999px; background: linear-gradient(135deg, #f1dfbb, #dec291);
+  font: 650 .92rem/1.5 var(--font-body), sans-serif; color: #312039;
+}
+.entry:hover { border-color: var(--pce-gold); }
+.entry:focus-visible { outline: 3px solid #ad75aa; outline-offset: 4px; }
+@media (max-width: 600px) {
+  .entry { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 10px; }
+  .entry > img { height: auto; min-height: 0; aspect-ratio: 3 / 2; }
+  .copy { padding: 14px 10px 10px; }
+}
+@media (forced-colors: active) {
+  .entry, .entry b { border-color: ButtonText; }
+  .entry:focus-visible { outline-color: Highlight; }
+  .entry::after, .features::after { display: none; }
+}
