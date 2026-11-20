@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: "M 머지·push"
+next: "C·D: paid-retry R10 완료 후 남은 공백 실측"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -96,7 +96,7 @@ next: "M 머지·push"
 - [x] A3 App Router 입력·결과 페이지, dev-preview fixture, 보관함 등록, SEO 소개 페이지 갱신 → 커밋
 - [x] B 사주 탭: 결제 없이 정적 궁합 결과를 보여 주고, 그 아래 달빛 예화 톤의 고급 궁합 CTA를 둔다(sessionStorage 프리필). 그다음 sync:public → 커밋
 - [x] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
-- [ ] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>`
+- [x] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>` (실측은 아래 "M 머지·push")
 - [ ] C·D 감사 결과를 paid-retry R10에 넘긴다. 상대 세션이 끝났으면 이어서 구현하고, 아니면 보고만 한다.
 - [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
 
@@ -219,3 +219,15 @@ next: "M 머지·push"
 6. CTA·진입 카드 머리말 "달빛 아래 연이가 쓰는 두 사람의 이야기" — 11-19 달빛 명칭 폐기 결정 범위에 문구도 들어가는지 확인 필요.
 7. 빈 입력의 시간칸에 "08:35" 회색이 보인다(placeholder 예시로 추정, 미확인).
 8. M 머지 때 루트 main 이 앞서 있으므로 fetch 후 머지, 머지 뒤 sitemap:generate·sync:public 재실행 필요.
+
+### M 머지·push (2026-11-21, 서브에이전트, mock 만)
+
+루트 체크아웃 `d:\Development\code-destiny` 에 다른 세션(홈 서비스 찾기·allFortunesFilter)의 미커밋 추적 변경 28개가 있어 루트는 건드리지 않았다(조율 결정). 워크트리에서 origin/main 을 머지하고 `git push origin HEAD:main`(fast-forward) 했다. wt 브랜치 자체는 push 안 함.
+🔴 루트 체크아웃은 그 세션이 미커밋 작업을 커밋한 뒤 소유 세션이 `git pull --ff-only` 해야 한다.
+
+- 머지 1: 08e169807 (origin/main 8d76d7cc9, 충돌은 `config/sitemap-lastmod.json` 하나 → main 쪽 채택 후 재생성) + 8ce69cdb1 (sync:public cache-bust 해시·sitemap 원장 재생성)
+- check:fast(`--base=origin/main`, 머지 영향 전체): jest 488 suites/8382 pass, exit 0. check:pre-push exit 0.
+- origin/main 이 12커밋 전진 → 머지 2: b7f914571 (같은 원장 충돌, 같은 처리) + d81e6591e (재생성). 델타 check:fast(`--base=8ce69cdb1`) jest 488/8382 exit 0.
+- 다시 2커밋(docs·test) 전진 → 머지 3: 4e4f6cda1. 그 테스트(daily-tarot-guided.behavior) 5/5, check:pre-push exit 0.
+- push 1: `88cb09326..4e4f6cda1`. CI 1회 확인: 🔴 AI Locale Gate 실패 — 새 라우트 `worker/routes/saju-compat-premium.js` 가 `config/ai-locale-call-inventory.json` 에 없었다(우리 브랜치 누락, 머지 무관). `audit-ai-locale-calls.mjs --write` 로 재생성(그 항목 추가 + 줄 번호 이동만), 게이트 3스크립트·verify:ai-locale-pipeline 로컬 통과 → 33c1c3ac6.
+- 첫 verify:staging(4e4f6cda1): 스테이징이 아직 1289bb804 라 SHA 불일치 FAIL(배포 미완, 기능 실패 아님).
