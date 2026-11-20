@@ -3625,10 +3625,16 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
       return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed, refunded: restored,
         ...(settlement?.refundStatus ? { refundStatus: settlement.refundStatus } : {}) }, { status: 503 });
     }
-  })().catch((error) => {
+  })().catch(async (error) => {
     if (["RESULT_STORAGE_UNAVAILABLE", "RESULT_DELIVERY_PENDING"].includes(error?.code)) return json({ ...resultStorageFailurePayload(error), reason: error.code, ...(error.code === "RESULT_DELIVERY_PENDING" ? { message: error.message } : {}) }, { status: 503 });
     if (nativeTossContext(request) && error?.status) return json({ok:false,reason:error.code||"RESULT_NOT_AVAILABLE"},{status:error.status});
     logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "server_error", env, error }), "error");
+    // L2: 다시 시도 보류 중인 책이면 막다른 500 대신 다시 시도 안내를 싣는다(환불·차감 없음).
+    let held = null;
+    try { held = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean(); } catch { held = null; }
+    if (publicRetryState(held, Date.now())) {
+      return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed, sessionId: String(held.id || ""), ...lifeBookRetryPayload(held) }, { status: 503 });
+    }
     return serverError();
   }).finally(() => {
     startLocks.delete(lockKey);

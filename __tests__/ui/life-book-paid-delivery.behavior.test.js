@@ -949,3 +949,19 @@ test('L2: a reset with no failed or repair-marked row still reopens one chapter 
   const fallback = f.ctx.lifeBookRetryReset({ llmMeta: { plan, sections }, generationError: { message: 'incomplete_report' } });
   assert.deepEqual(Object.entries(fallback['llmMeta.sections']).filter(([, row]) => row.needsRepair).map(([id]) => id), ['section3']);
 });
+
+test('L2: an unexpected server error on a held book returns the retry state instead of a dead-end 500', async () => {
+  const f = v2Fixture(); f.ctx.generateSectionOnce = async () => terminalFailure;
+  for (let i = 0; i < 4 && f.doc?.status !== 'generation_failed'; i++) await f.post();
+  assert.ok(retryOpen(f.doc));
+  const model = f.ctx.LifeBookAiConsultation; const findOne = model.findOne; let broken = true;
+  model.findOne = filter => { if (broken) { broken = false; throw new Error('unexpected read failure'); } return findOne(filter); };
+  const response = await f.post();
+  assert.equal(response.status, 503);
+  const body = await response.json();
+  assert.equal(body.ok, false); assert.equal(body.retry?.available, true); assert.equal(body.retry?.sessionId, f.doc.id); assert.equal(body.refunded, false);
+  assert.equal(f.refunds, 0);
+  // 보류가 아닌 문서의 알 수 없는 오류는 그대로 500 이다.
+  const fresh = fixture(); fresh.ctx.LifeBookAiConsultation.findOne = () => { throw new Error('unexpected read failure'); };
+  assert.equal((await fresh.post()).status, 500);
+});
