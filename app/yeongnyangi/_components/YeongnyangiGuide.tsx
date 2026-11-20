@@ -11,8 +11,8 @@ import {FUSION_BOOK_CHAPTERS,FUSION_BOOK_TARGETS} from '@/worker/yeongnyangi/for
 import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import ReviewProof from '@/app/components/ReviewProof';
-import RevealDetailsOnHash from './RevealDetailsOnHash';
 import YeongnyangiFaqToon from './YeongnyangiFaqToon';
+import YeongnyangiExampleToon from './YeongnyangiExampleToon';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -28,10 +28,10 @@ const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
 const EXAMPLE_QUESTION='헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?';
 const mackerelChapters=questionManifest('saju','mackerel',{version:QUESTION_POLICY_VERSION,category:'love',target:'self',horizon:'current',period:'',situation:'헤어진 뒤 연락이 끊겼어요',options:'',constraints:'',confirmed:true},undefined,EXAMPLE_QUESTION);
 if(mackerelChapters.length!==EXPANDED_CHAPTERS.mackerel)throw new Error(`영냥이 고등어 장 구성이 ${mackerelChapters.length}개다.`);
-const tarotExcerpts=(()=>{
- const excerpts=resultSamples.find(sample=>sample.id==='yn-tarot')?.excerpts;
- if(!excerpts||excerpts.length<4)throw new Error('Yeongnyangi tarot sample requires four source excerpts.');
- return excerpts;
+const tarotSample=(()=>{
+ const sample=resultSamples.find(item=>item.id==='yn-tarot');
+ if(!sample?.excerpts||sample.excerpts.length<4||!sample.visual||!sample.visualAlt||!sample.question)throw new Error('Yeongnyangi tarot sample requires four source excerpts, a visual and a question.');
+ return {excerpts:sample.excerpts,visual:sample.visual,visualAlt:sample.visualAlt,question:sample.question};
 })();
 
 export const YEONGNYANGI_FAQS=[
@@ -60,7 +60,15 @@ export default function YeongnyangiGuide(){
    </a></li>)}</ul>
    <details className={styles.panel}><summary>생선별로 살펴보는 범위</summary><dl className={styles.fishDepth}>{fishRows.map(row=><div key={row.tier}><dt>{row.name}</dt><dd>{row.tier==='mackerel'?'한 가지 고민도 답과 근거, 생활 속 해석과 지금 해볼 행동까지 챕터별로 충분히 살펴봐요.':row.depth}</dd></div>)}</dl></details>
    <p className={styles.note}>챕터 수는 신규 한국어 질문 상담 기준이며 상담 종류와 기존 구매에 따라 달라질 수 있어요. 추가 질문은 저장된 상담 근거로 답할 수 있는 범위에서 이용해요. PDF는 한국어 상담 완료 후 저장할 수 있어요.</p>
-   <ReviewProof brand="yeongnyangi" productId="yeongnyangi" sampleHref="/yeongnyangi/faq/#yn-example" headingLevel={3}/>
+   <ReviewProof brand="yeongnyangi" productId="yeongnyangi" sampleHref="#yn-example" headingLevel={3}/>
+  </section>
+
+  <section id="yn-example" aria-labelledby="yn-example-title">
+   <h2 id="yn-example-title" data-sample-exposure="">이런 상담을 받아요 · 미리 보기</h2>
+   <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
+   <YeongnyangiExampleToon {...tarotSample}/>
+   <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
+   <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey} contentId="tarot-salmon-question-v1"/>
   </section>
 
   <section id="yn-faq-teaser" className={styles.teaser} aria-labelledby="yn-faq-teaser-title">
@@ -88,18 +96,6 @@ export function YeongnyangiBeforeGuide(){
     <p className={styles.note}>가상 질문 · 질문과 체계에 따라 제목이 달라져요. 질문: “{EXAMPLE_QUESTION}”</p>
     <ol className={styles.chapters}>{mackerelChapters.map(row=><li key={row.key}>{row.title}</li>)}</ol>
     <p><a href={fishRows[0].href}>사주 고등어 상담 시작하기</a></p>
-   </details>
-   <details id="yn-example" className={styles.panel}><summary>실제 상담 예시 · “지금 회사에 남을까, 다른 길로 옮길까?”</summary>
-    <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
-    <blockquote className={styles.sample} data-sample-exposure="">
-     <h3>카드가 보여주는 마음의 흐름</h3>
-     <p>{tarotExcerpts[0]}</p>
-     <h3>현실의 조건과 다음 행동</h3><p>{tarotExcerpts[2]}</p>
-     <details><summary>영냥이의 해석 더 읽기</summary><p>{tarotExcerpts[1]}</p><p>{tarotExcerpts[3]}</p></details>
-    </blockquote>
-    <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
-    <RevealDetailsOnHash id="yn-example"/>
-    <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey} contentId="tarot-salmon-question-v1"/>
    </details>
    <details id="yn-receive" className={styles.panel}><summary>한 가지 질문에서, 차분히 읽는 한 권까지</summary>
     <p>궁금한 점의 답부터 읽고, 그 판단의 근거와 반복되는 패턴, 지금 해볼 행동을 챕터별로 살펴보세요. 사주·자미두수·숙요점·베다점·점성술·타로 가운데 원하는 방식으로 시작할 수 있어요.</p>
