@@ -391,3 +391,10 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **가드**: `__tests__/ui/yeongnyangi-luck-judgement.test.mjs`·`yeongnyangi-question-input-budget.test.mjs`(판정 양보 순서), `saju-luck-judgement.test.mjs`, 서비스별 jest(`life-book-ai.sections`·`neo-operation-room.sections`·`love-secret-ai-prompt.gate`·`heukwol-basis-quality`·new-year). 영냥이 불변식 스냅숏은 requests·validated 열만 갱신했다(id·prepare·manifests 불변).
 - **남은 범위 밖**: 연애 비책 달력의 용신 원소 일자 가점(`love-secret-ai-calendar.js`), 영냥이 `experience.ts` analyzePeriods 의 `strength.yongshin`, 정적 라이트 사주 풀이(`saju_lifetime_bundle`, 비 LLM), 무료·멸치 `shared/prompt.ts`.
 - **롤백**: 서비스별 독립 커밋이므로 해당 커밋만 `git revert`. 영냥이 커밋을 되돌리면 불변식 스냅숏도 함께 돌아간다.
+
+## 2026-11-20 사주 결과 상담 3카드 접힘 해제 ↔ 11-14 퍼널 정리(phase0-report F1)
+
+- **충돌**: 2026-11-14(`3d16d50d0`)에 연애 비책·신년운세·초융합 카드를 닫힌 `<details class="cd-result-more">` 로 접어 사주 결과 다음 추천을 인생의 책 1장으로 줄였다. 2026-11-20 사용자가 "연애 비책 등 진입점이 사라졌다"며 복구를 요청했다.
+- **해소**: 사용자 요청이 우선이다. `<details>`·`<summary>` 를 걷고 카드를 상시 노출한다. 카드 마크업·`data-action`·결제 진입·`data-cd-cross-sell="saju_result"` 계측과 마커 `cd-result-more-v20261114` 는 그대로다. 머리에 문구 없는 예화 구분선(`.cd-yehwa-divider`)만 얹었다(새 i18n 키 없음).
+- **남은 위험**: F1 이 줄이려던 결과 화면 CTA 과다가 되돌아온다. 전환 영향은 별도 관찰한다.
+- **롤백**: 이 변경의 커밋(`feat(saju): reopen the three consultation cards ...`) 하나를 `git revert`.
