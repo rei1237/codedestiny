@@ -855,7 +855,8 @@ test('R3: Toss native, support recovery and deferred usage failures keep the imm
   assert.equal(f.ctx.lifeBookRetryMeta(request, { userId: 'owner' }, { ...doc, llmMeta: { refundEligibleAt: new Date().toISOString() } }, 'LLM_ERROR'), null);
 });
 
-test('S16: a delivery_pending record whose stored report is incomplete refunds once instead of completing', async () => {
+// 다시 시도 우선: 미완성 본문은 차감·전달하지 않고, 환불 대신 무료 다시 시도(빠진 장)를 연다.
+test('S16: a delivery_pending record whose stored report is incomplete holds a free retry instead of completing or refunding', async () => {
   const f = fixture();
   for (let i = 0; i < 10 && f.doc?.status !== 'completed'; i++) await f.post();
   Object.assign(f.doc, { status: 'delivery_pending', usageAppliedAt: undefined });
@@ -865,7 +866,22 @@ test('S16: a delivery_pending record whose stored report is incomplete refunds o
   assert.equal(response.status, 503);
   const body = await response.json();
   assert.equal(body.ok, false); assert.equal(body.reason, 'LLM_ERROR');
+  assert.equal(body.retry?.available, true); assert.equal(body.refundStatus, undefined); assert.ok(!body.reportJson);
   assert.equal(f.doc.status, 'generation_failed'); assert.equal(f.doc.generationError.code, 'LIFE_BOOK_RESULT_INCOMPLETE');
+  assert.ok(retryOpen(f.doc));
+  assert.equal(f.refunds, 0); assert.equal(f.charges, chargesBefore);
+});
+
+test('S16: an incomplete support-recovery delivery still refunds once right away (no retry screen)', async () => {
+  const f = fixture();
+  for (let i = 0; i < 10 && f.doc?.status !== 'completed'; i++) await f.post();
+  Object.assign(f.doc, { status: 'delivery_pending', usageAppliedAt: undefined });
+  f.doc.llmMeta.reportJson = { chapters: [{ content: '한 장만 남은 예전 저하 배달' }] };
+  f.doc.llmMeta.supportRecovery = { active: true, by: 'ops' };
+  const chargesBefore = f.charges;
+  const response = await f.post();
+  assert.equal(response.status, 503);
+  assert.equal(f.doc.status, 'generation_failed'); assert.ok(f.doc.llmMeta.refundEligibleAt);
   assert.equal(f.refunds, 1); assert.equal(f.charges, chargesBefore);
 });
 

@@ -2766,14 +2766,17 @@ async function saveLifeBookState({ userId, id, lockToken, status = "generating",
 async function finishLifeBookDelivery({ request, env, auth, access, pending, pricing, orderName, settlement = null }) {
   // 늦은 이용권 차감이 한도·자격 사유로 거절돼도 만든 결과는 전달한다. 일시 장애는 delivery_pending 으로 재시도시킨다.
   // settlement 가 오면 전달 직전 재확인이 이미 한도 거절을 판정한 것이다 — 차감을 다시 시도하지 않는다.
-  // S16: 완성되지 않은 본문(예전 저하 배달로 남은 delivery_pending 포함)은 차감·전달하지 않고 실패 + 환불로 닫는다.
+  // S16: 완성되지 않은 본문(예전 저하 배달로 남은 delivery_pending 포함)은 차감·전달하지 않는다.
+  // 다시 시도 우선(2026-11-19): 창 안이면 환불 대신 무료 다시 시도(빠진 장)를 열고, 토스·운영 구제·창 만료 건만 기존처럼 바로 환불한다.
   if (!isLifeBookComplete(pending.llmMeta?.reportJson)) {
     const at = new Date().toISOString();
+    const retry = lifeBookRetryMeta(request, auth, pending, "LIFE_BOOK_RESULT_INCOMPLETE");
     const failed = await saveLifeBookState({ userId: auth.userId, id: pending.id, lockToken: pending.llmMeta?.lockToken || "", status: "delivery_pending", values: {
-      status: "generation_failed", "llmMeta.refundEligibleAt": at, "llmMeta.lockedAt": null, "llmMeta.lockToken": "",
+      status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry } : { "llmMeta.refundEligibleAt": at }), "llmMeta.lockedAt": null, "llmMeta.lockToken": "",
       generationError: { code: "LIFE_BOOK_RESULT_INCOMPLETE", message: "Life book result is incomplete.", at },
       ...(pending.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": at } : {}),
     } });
+    if (retry) return failed;
     return { ...failed, refundSettlement: await settleLifeBookFailureRefund(env, pending.id, auth.userId) };
   }
   let usageSettlement = settlement;
@@ -2796,7 +2799,8 @@ function lifeBookDeliveryResponse(doc) {
     ok: false,
     reason: "LLM_ERROR",
     message: MESSAGES.llmFailed,
-    refundStatus: doc?.refundSettlement?.refundStatus || "pending",
+    // 다시 시도 보류 건은 환불 상태 대신 다시 시도 안내를 싣는다.
+    ...(publicRetryState(doc, Date.now()) ? lifeBookRetryPayload(doc) : { refundStatus: doc?.refundSettlement?.refundStatus || "pending" }),
   }, { status: 503 });
 }
 
