@@ -117,6 +117,8 @@ const userSchema = new mongoose.Schema({
     apple: {
       id: { type: String, default: "" },
       connectedAt: { type: Date, default: null },
+      // 네이티브 앱 SIWA 의 refresh token(탈퇴 시 Apple revoke 용). pii-crypto 봉투(secret-v1)로만 저장한다.
+      refreshTokenEnc: { type: String, default: "" },
     },
   },
   destinyProfiles: { type: [mongoose.Schema.Types.Mixed], default: [] },

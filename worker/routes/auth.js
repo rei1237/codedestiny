@@ -4,9 +4,13 @@ import {
   APPLE_AUTHORIZE_ENDPOINT,
   deriveAppleNonce,
   exchangeAppleAuthorizationCode,
+  hashAppleNativeNonce,
+  isAppleNativeSiwaConfigured,
   isAppleSiwaConfigured,
   mapAppleProfile,
+  readAppleNativeConfig,
   readAppleSiwaConfig,
+  revokeAppleToken,
   verifyAppleIdToken,
 } from "../lib/apple-signin.js";
 import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
@@ -49,6 +53,9 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
 import { checkPasswordBreached } from "../lib/password-breach.js";
 import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";
+// Apple refresh token 봉투(Phase 5). 네임스페이스로 읽는다 — pii-crypto 를 이름 목록으로 모킹한 기존 테스트가
+// 새 export 때문에 링크 단계에서 깨지지 않게 하려는 것이다(호출 시점에만 해석된다).
+import * as piiBoundSecret from "../lib/pii-crypto.js";
 import { MIN_NEW_PASSWORD_LENGTH, MIN_SELF_CONSENT_AGE, deriveNameFromEmail, validateBirthYear, validateLoginPayload, validateNewPassword, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
@@ -1158,6 +1165,8 @@ function requiresSameOriginAuthGuard(method, path) {
     || path === "/password"
     || path === "/oauth/complete"
     || path === "/oauth/complete-signup"
+    // iOS 네이티브 Sign in with Apple 교환(Phase 5). 앱 출처+앱 런타임 헤더만 통과한다.
+    || path === "/oauth/apple/native"
     || path === "/referral/kakao-share"
     || path === "/me/phone-number"
     || path === "/me/payment-phone"
@@ -1316,9 +1325,15 @@ box-shadow:0 12px 24px rgba(179,25,85,.18)}
 </div><script>
 (function(){
   var intentUrl=${escapeForScript(intentUrl)};
+  var appUrl=${escapeForScript(parsed.href)};
+  var nav=typeof navigator!=='undefined'?navigator:null;
+  var ua=String((nav&&nav.userAgent)||'');
+  // iOS 는 intent:// 를 모른다. ASWebAuthenticationSession 이 커스텀 스킴 이동을 받아 앱으로 넘긴다.
+  var isIos=/iP(hone|ad|od)/.test(ua)||(/Macintosh/.test(ua)&&nav&&nav.maxTouchPoints>1);
+  var target=isIos?appUrl:intentUrl;
   var btn=document.getElementById('back');
-  if(btn)btn.setAttribute('href',intentUrl);
-  try{location.replace(intentUrl);}catch(e){}
+  if(btn)btn.setAttribute('href',target);
+  try{location.replace(target);}catch(e){}
 }());
 </script></body></html>`;
 
@@ -1467,6 +1482,43 @@ async function verifySocialGrant(token, env) {
     throw new Error("invalid_social_grant");
   }
   return payload;
+}
+
+// social_grant 는 1회용이다(2026-11-20, iOS Phase 5). URL·딥링크로 오가므로 새어 나간 grant 가
+// 만료(180초) 전에 다시 교환되면 안 된다. jti 해시를 고유 인덱스(userId+endpoint+keyHash)에
+// 넣는 것으로 소비하고, 중복 키(11000)면 이미 쓴 것이다.
+const SOCIAL_GRANT_CONSUME_ENDPOINT = "auth_social_grant";
+
+function socialGrantConsumeFilter(payload) {
+  return {
+    userId: new mongoose.Types.ObjectId(String(payload.userId)),
+    endpoint: SOCIAL_GRANT_CONSUME_ENDPOINT,
+    keyHash: createHash("sha256").update(`social-grant:${String(payload.jti || "")}`).digest("hex"),
+  };
+}
+
+async function consumeSocialGrant(payload) {
+  const expSec = Number(payload?.exp) || Math.floor(Date.now() / 1000) + SOCIAL_GRANT_EXPIRES_IN_SEC;
+  try {
+    await IdempotencyKey.create({
+      ...socialGrantConsumeFilter(payload),
+      status: "success",
+      expiresAt: new Date((expSec + 60) * 1000),
+    });
+    return true;
+  } catch (error) {
+    if (error?.code === 11000) return false;
+    throw error;
+  }
+}
+
+// 인프라 실패(503)로 끝난 교환은 소비를 되돌린다 — 클라이언트가 같은 grant 로 재시도할 수 있어야 한다.
+async function releaseSocialGrant(payload) {
+  try {
+    await IdempotencyKey.deleteOne(socialGrantConsumeFilter(payload));
+  } catch (error) {
+    console.warn("[auth/oauth-complete] social grant release failed:", error);
+  }
 }
 
 
@@ -4155,6 +4207,10 @@ async function handleWithdraw(request, env) {
     console.error("[auth/withdraw] soulcat account delete failed (retry from deleted_account_logs):", soulcatCleanup);
   }
 
+  // Apple 연결 해제(Phase 5). 비식별화가 refreshTokenEnc 를 지우므로 그 전에 부른다.
+  // 설정·토큰이 없거나 실패해도 탈퇴는 그대로 진행한다(결과는 로그로만 남는다).
+  await revokeAppleTokenForWithdraw(env, user);
+
   const now = new Date();
   const userId = String(user._id);
   const emailHash = hashEmailForAudit(user.email, env);
@@ -4913,6 +4969,178 @@ async function handleAppleOAuthCallback(request, env) {
   }
 }
 
+const APPLE_REFRESH_SECRET_PURPOSE = "apple-refresh";
+
+/**
+ * iOS 네이티브 Sign in with Apple 교환(2026-11-20 Phase 5).
+ * 앱이 ASAuthorizationController 로 받은 identityToken·authorizationCode·원 nonce 를 보낸다.
+ * 🔴 fail-closed: 팀 ID·키·번들 ID 중 하나라도 없으면 503 apple_signin_not_configured 만 돌리고 아무것도 바꾸지 않는다.
+ * 🔴 aud 는 번들 ID, nonce 는 앱이 보관한 원 nonce 의 sha256 hex 와 같아야 한다(재전송·다른 앱 토큰 차단).
+ * 성공하면 웹 콜백과 같은 1회용 social_grant 를 돌려 기존 /oauth/complete 교환을 그대로 탄다.
+ * refresh token 은 탈퇴 때 revoke 하려고 PII_ENC_KEY 로 봉해 저장한다. 키가 없으면 저장을 건너뛴다(평문 금지).
+ */
+async function handleAppleNativeSignIn(request, env) {
+  const provider = APPLE_PROVIDER;
+  if (!isMobileAppAuthRequest(request)) {
+    return json({ ok: false, code: "app_only", message: "앱에서만 쓸 수 있는 경로예요." }, { status: 403 });
+  }
+  if (!isAppleNativeSiwaConfigured(env)) return appleNotConfiguredResponse();
+
+  let body;
+  try {
+    body = await readJson(request);
+  } catch (error) {
+    return json({ ok: false, code: "invalid_body", message: "요청 형식이 올바르지 않아요." }, { status: 400 });
+  }
+  const identityToken = String(body?.identityToken || "").slice(0, 8192);
+  const authorizationCode = String(body?.authorizationCode || "").slice(0, 1024);
+  const rawNonce = String(body?.rawNonce || "").slice(0, 256);
+  if (!identityToken || !rawNonce) {
+    return json({ ok: false, code: "missing_apple_credential", message: "Apple 로그인 정보가 비어 있어요." }, { status: 400 });
+  }
+  const nextPath = sanitizeOAuthNextPath(body?.nextPath || "");
+  const flow = sanitizeAuthFlow(body?.flow);
+
+  const config = readAppleNativeConfig(env);
+  let claims;
+  try {
+    claims = await verifyAppleIdToken(identityToken, {
+      clientId: config.bundleId,
+      nonce: await hashAppleNativeNonce(rawNonce),
+      fetchImpl: appleProviderFetch,
+    });
+  } catch (error) {
+    const reason = String(error?.message || "");
+    logAuthDiagnostic(request, env, "/api/auth/oauth/apple/native", provider, "apple_native_verify_failed", error);
+    // JWKS 를 못 받은 것은 일시 장애다(재시도 화면). 토큰 자체가 틀린 것만 401(다시 로그인).
+    if (/jwks|fetch|network|timeout/i.test(reason)) {
+      return json({ ok: false, code: "apple_unavailable", message: "Apple 확인이 잠시 지연되고 있어요." }, { status: 503 });
+    }
+    return json({ ok: false, code: reason.startsWith("apple_") ? reason : "apple_id_token_invalid", message: "Apple 로그인을 확인하지 못했어요." }, { status: 401 });
+  }
+
+  const givenName = String(body?.givenName || "").slice(0, 80);
+  const familyName = String(body?.familyName || "").slice(0, 80);
+  const rawUserJson = givenName || familyName ? JSON.stringify({ name: { firstName: givenName, lastName: familyName } }) : "";
+  const socialProfile = mapAppleProfile(claims, rawUserJson);
+
+  // refresh token 은 탈퇴 revoke 용 부가 정보다. 교환이 실패해도 로그인은 막지 않는다.
+  let refreshTokenEnc = "";
+  if (authorizationCode) {
+    try {
+      const tokens = await exchangeAppleAuthorizationCode({
+        code: authorizationCode,
+        redirectUri: "",
+        config: { ...config, clientId: config.bundleId },
+        fetchImpl: appleProviderFetch,
+      });
+      const refreshToken = String(tokens?.refresh_token || "");
+      if (refreshToken) {
+        try {
+          refreshTokenEnc = await piiBoundSecret.encryptBoundSecret(refreshToken, APPLE_REFRESH_SECRET_PURPOSE, socialProfile.providerId, env);
+        } catch (error) {
+          console.warn("[auth] apple refresh token not stored:", String(error?.message || error));
+        }
+      }
+    } catch (error) {
+      console.warn("[auth] apple native code exchange skipped:", String(error?.message || error));
+    }
+  }
+
+  try {
+    await connectDb(env);
+    let socialUser;
+    try {
+      socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, {
+        createIfMissing: false,
+        signupProfile: null,
+      });
+    } catch (error) {
+      if (String(error?.message || "") === "apple_link_required") {
+        return json({ ok: false, code: "apple_link_required", message: "같은 이메일로 가입한 계정이 있어요. 그 계정으로 로그인한 뒤 Apple 을 연결해 주세요." }, { status: 409 });
+      }
+      throw error;
+    }
+
+    const appleUser = socialUser.user;
+    if (!appleUser) {
+      // Apple 은 연령을 주지 않으므로 계정을 만들지 않는다 — 가입 마무리(생년 확인)로 보낸다(웹과 같다).
+      const ticket = await buildSocialSignupTicket(provider, socialProfile, {}, env, { nextPath, flow, appRedirect: "" });
+      const signupUrl = new URL(buildSocialSignupRedirectUrl(getFrontendBaseUrl(env), ticket, {
+        nextPath,
+        flow,
+        hasPhoneNumber: false,
+        name: socialProfile?.name,
+        ageVerifiedByProvider: false,
+      }), "https://code-destiny.com");
+      return json({ ok: true, signupPath: `${signupUrl.pathname}${signupUrl.search}` });
+    }
+    if (isGuardianConsentBlocked(appleUser)) {
+      return json({
+        ok: false,
+        code: `guardian_consent_${String(appleUser.guardianConsent?.status || "pending")}`,
+        message: "보호자 동의가 끝나야 로그인할 수 있어요.",
+      }, { status: 403 });
+    }
+
+    if (refreshTokenEnc) {
+      try {
+        await User.updateOne(
+          { _id: appleUser._id, "socialAccounts.apple.id": socialProfile.providerId },
+          { $set: { "socialAccounts.apple.refreshTokenEnc": refreshTokenEnc } },
+        );
+      } catch (error) {
+        console.warn("[auth] apple refresh token save failed:", String(error?.message || error));
+      }
+    }
+
+    const grant = await signSocialGrant({
+      userId: String(appleUser._id),
+      provider,
+      nextPath,
+      flow,
+      isNewUser: !!socialUser.created,
+      referralCode: "",
+      referralShareToken: "",
+      referralSource: "",
+    }, env);
+    return json({ ok: true, socialGrant: grant, nextPath });
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/apple/native", provider, "apple_native_failed", error);
+    if (isAuthInfraFailure(error, ["timeout", "timed out"])) {
+      return json({ ok: false, code: "auth_unavailable", message: "로그인 서버가 잠시 바빠요. 잠시 후 다시 시도해 주세요." }, { status: 503 });
+    }
+    return json({ ok: false, code: "apple_native_failed", message: "Apple 로그인을 마치지 못했어요." }, { status: 500 });
+  }
+}
+
+/**
+ * 탈퇴 때 Apple 연결 해제(revoke). Apple 가이드라인 5.1.1(v) 요구 사항이다.
+ * 🔴 설정·저장 토큰·키가 없으면 건너뛰고 로그만 남긴다 — 탈퇴 자체(보존 규칙 포함)는 막지 않는다.
+ */
+async function revokeAppleTokenForWithdraw(env, user) {
+  const apple = user?.socialAccounts?.apple || {};
+  const sub = String(apple.id || "");
+  const stored = String(apple.refreshTokenEnc || "");
+  if (!sub) return "no_apple";
+  if (!stored) {
+    console.info("[auth] withdraw apple revoke skipped: no_refresh_token");
+    return "skipped_no_token";
+  }
+  if (!isAppleNativeSiwaConfigured(env)) {
+    console.info("[auth] withdraw apple revoke skipped: not_configured");
+    return "skipped_not_configured";
+  }
+  try {
+    const token = await piiBoundSecret.decryptBoundSecret(stored, APPLE_REFRESH_SECRET_PURPOSE, sub, env);
+    await revokeAppleToken({ token, config: readAppleNativeConfig(env), fetchImpl: appleProviderFetch });
+    return "revoked";
+  } catch (error) {
+    console.warn("[auth] withdraw apple revoke failed:", String(error?.message || error));
+    return "failed";
+  }
+}
+
 async function handleOAuthCallback(request, env, provider) {
   const frontendBase = getFrontendBaseUrl(env);
 
@@ -5201,13 +5429,26 @@ async function handleOAuthComplete(request, env) {
 
     const payload = await verifySocialGrant(socialGrant, env);
 
-    if (!mongoose.Types.ObjectId.isValid(String(payload?.userId || ""))) {
+    if (!mongoose.Types.ObjectId.isValid(String(payload?.userId || "")) || !String(payload?.jti || "")) {
       return json({ message: "Invalid social authentication grant." }, { status: 400 });
     }
 
+    let grantConsumed = false;
     for (let attempt = 1; attempt <= 3; attempt += 1) {
       try {
         await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_oauth_complete_connect_db");
+
+        if (!grantConsumed) {
+          const firstUse = await withAuthOpTimeout(consumeSocialGrant(payload), timeoutMs, "auth_oauth_complete_consume_grant");
+          if (!firstUse) {
+            return json({
+              ok: false,
+              code: "social_grant_used",
+              message: "This social login grant was already used. Please sign in again.",
+            }, { status: 409 });
+          }
+          grantConsumed = true;
+        }
 
         const user = await withAuthOpTimeout(
           User.collection.findOne(
@@ -5273,6 +5514,7 @@ async function handleOAuthComplete(request, env) {
       } catch (error) {
         const infraFailure = isAuthInfraFailure(error, [
           "auth_oauth_complete_connect_db",
+          "auth_oauth_complete_consume_grant",
           "auth_oauth_complete_find_user",
           "auth_oauth_complete_issue_session",
         ]);
@@ -5287,6 +5529,7 @@ async function handleOAuthComplete(request, env) {
 
         if (infraFailure) {
           console.error("[auth/oauth-complete] infrastructure failure:", error);
+          if (grantConsumed) await releaseSocialGrant(payload);
           return json({
             ok: false,
             code: "oauth_service_unavailable",
@@ -5298,6 +5541,7 @@ async function handleOAuthComplete(request, env) {
       }
     }
 
+    if (grantConsumed) await releaseSocialGrant(payload);
     return json({
       ok: false,
       code: "oauth_service_unavailable",
@@ -5841,6 +6085,7 @@ export async function handleAuthRoutes(request, env, ctx) {
       || path === "/password"
       || path === "/oauth/complete"
       || path === "/oauth/complete-signup"
+      || path === "/oauth/apple/native"
       || path === "/referral/kakao-share"
       || path === "/me/phone-number"
       || path === "/me/payment-phone"
@@ -5905,6 +6150,8 @@ export async function handleAuthRoutes(request, env, ctx) {
     // Apple 은 form_post 라 POST 로 돌아온다. 사이트 간 POST 이므로 위 같은 출처 가드에 넣지 않는다 —
     // 대신 서명된 state·브라우저 묶음 쿠키·id_token nonce 가 이 요청을 시작한 브라우저를 확인한다.
     if (method === "POST" && path === "/oauth/apple/callback") return await handleAppleOAuthCallback(request, env);
+    // iOS 네이티브 Sign in with Apple. 위 같은 출처 가드(앱 출처+런타임 헤더)를 거친다.
+    if (method === "POST" && path === "/oauth/apple/native") return await handleAppleNativeSignIn(request, env);
     // 로그인 화면이 Apple 버튼을 그릴지 정한다. 키 값은 싣지 않고 준비 여부만 돌려준다.
     if (method === "GET" && path === "/oauth/providers") {
       return json({ ok: true, providers: { apple: isAppleSiwaConfigured(env) } });
@@ -5953,6 +6200,9 @@ export const __authTestUtils = {
   handleOAuthStart,
   handleOAuthCallback,
   handleAppleOAuthCallback,
+  handleOAuthComplete,
+  handleAppleNativeSignIn,
+  revokeAppleTokenForWithdraw,
   handleOAuthCompleteSignup,
   resolveSocialAutoSignup,
   findOrCreateSocialUser,
