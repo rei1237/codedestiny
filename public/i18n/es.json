@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju y tarot con Yeongnyangi →",
       "publicRecordsTitle": "Análisis públicos de Park Byung-ha (Neo), especialista en Saju con 10 años de experiencia",
       "publicRecordsLink": "Comparar fechas, textos originales y resultados",
-      "passLight": "Todos los Tarros de Miel incluyen {count} Lecturas Ligeras sin límite de usos. Sin contar las lecturas que hoy son gratuitas, valen {amount} KRW con un uso de cada una. No incluyen las consultas destacadas."
+      "passLight": "Todos los Tarros de Miel incluyen {count} Lecturas Ligeras sin límite de usos. Sin contar las lecturas que hoy son gratuitas, valen {amount} KRW con un uso de cada una. No incluyen las consultas destacadas.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Pregunta a Yeoni y Neo eso que más te inquieta ahora",

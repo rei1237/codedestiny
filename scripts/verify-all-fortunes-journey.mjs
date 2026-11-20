@@ -135,7 +135,10 @@ try {
       // 2) 전체에는 레지스트리와 컬렉션이 모두 포함되고 첫 결과는 첫 화면에 보인다.
       const registryCount = await page.evaluate(() => window.CodeDestinyAllFortunes.filter({}).length);
       const full = await page.locator(CARDS).count();
-      if (full !== registryCount || full < 20) fail(tag, `default cards ${full} != registry ${registryCount}`);
+      // 24개씩 이어 그린다 — 첫 묶음은 24개, 나머지는 '더 보기'로 붙는다.
+      const firstBatch = Math.min(24, registryCount);
+      if (full !== firstBatch || full < 20) fail(tag, `default cards ${full} != first batch ${firstBatch} (registry ${registryCount})`);
+      if (registryCount > 24 && !(await page.locator('.cd-af__more').count())) fail(tag, 'missing show-more button');
       const firstTop = await page.locator(CARDS).first().evaluate(node => node.getBoundingClientRect().top);
       if (firstTop >= vp.h - 60) fail(tag, `first results below fold: ${firstTop}`);
       await page.screenshot({ path: path.join(evidence, `${tag}-search.png`) });

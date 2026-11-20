@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju en tarot met Yeongnyangi →",
       "publicRecordsTitle": "Openbare analyses van Park Byung-ha (Neo), Saju-adviseur met 10 jaar ervaring",
       "publicRecordsLink": "Vergelijk datums, oorspronkelijke teksten en uitkomsten",
-      "passLight": "Elke honingpot bevat {count} lichte duidingen zonder gebruikslimiet. Zonder de duidingen die nu gratis zijn, zijn ze {amount} KRW waard bij één keer per duiding. Signature-consulten zijn niet inbegrepen."
+      "passLight": "Elke honingpot bevat {count} lichte duidingen zonder gebruikslimiet. Zonder de duidingen die nu gratis zijn, zijn ze {amount} KRW waard bij één keer per duiding. Signature-consulten zijn niet inbegrepen.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Vraag Yeoni en Neo wat je nu het meest bezighoudt",
