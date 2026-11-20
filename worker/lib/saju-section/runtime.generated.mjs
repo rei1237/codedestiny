@@ -6038,68 +6038,667 @@ function buildZwGrandLifeDeepHtml(pd) {
     return html;
   } catch (_grandErr) { return ''; }
 }
-function buildZwYearlyFlowDeepHtml(pd) {
+var ZW_FLOW_PALACE_ORDER = ['명궁','형제궁','부부궁','자녀궁','재백궁','질액궁','천이궁','노복궁','관록궁','전택궁','복덕궁','부모궁'];
+var ZW_FLOW_TYPES = ['화록','화권','화과','화기'];
+function zwFlowMod12(n) { return ((Number(n) % 12) + 12) % 12; }
+function zwFlowYearGanji(year) {
+  var o = Number(year) - 4;
+  var gi = ((o % 10) + 10) % 10;
+  var zi = ((o % 12) + 12) % 12;
+  return { gan: ZW_DEEP_GAN_LIST[gi], zhi: ZW_DEEP_ZHI_LIST[zi], ganIdx: gi, zhiIdx: zi };
+}
+function zwFlowMonthGan(yearGan, lunarMonth) {
+  var yi = ZW_DEEP_GAN_LIST.indexOf(yearGan);
+  if (yi < 0) return '';
+  var start = [2, 4, 6, 8, 0][yi % 5];
+  return ZW_DEEP_GAN_LIST[(start + Number(lunarMonth) - 1) % 10];
+}
+function zwFlowStarLanding(pd, starName) {
+  var rows = (pd && Array.isArray(pd.palaceStarData)) ? pd.palaceStarData : [];
+  for (var i = 0; i < rows.length; i += 1) {
+    var e = rows[i];
+    var all = [].concat((e && e.stars) || [], (e && e.auxStars) || []);
+    for (var j = 0; j < all.length; j += 1) {
+      if (all[j] && all[j].name === starName) {
+        var idx = ZW_DEEP_ZHI_LIST.indexOf(e.branch);
+        return idx >= 0 ? { idx: idx, palace: zwDisplayPalaceName(e.palace) } : null;
+      }
+    }
+  }
+  return null;
+}
+function zwFlowLandSihua(pd, gan) {
+  var set = ZW_DEEP_GAN_SIHUA[gan] || {};
+  var out = {};
+  ZW_FLOW_TYPES.forEach(function (t) {
+    var star = set[t] || '';
+    var land = star ? zwFlowStarLanding(pd, star) : null;
+    out[t] = { type: t, star: star, idx: land ? land.idx : -1, palace: land ? land.palace : '' };
+  });
+  return out;
+}
+function zwFlowPalaceAt(pd, idx) {
+  return zwDisplayPalaceName(String((pd && pd.palacesByIndex && pd.palacesByIndex[idx]) || ''));
+}
+function zwFlowTriadHas(mingIdx, idx) {
+  var t = zwTriadIndexes(mingIdx);
+  return idx === t.self || idx === t.triA || idx === t.opposite || idx === t.triB;
+}
+function zwYearFlowTheory(pd, year, opts) {
+  var g = zwFlowYearGanji(year);
+  var mingIdx = g.zhiIdx;
+  var marks = zwFlowLandSihua(pd, g.gan);
+  var birthYear = Number((opts && opts.birthYear) || (pd && pd.soHan && pd.soHan.solarBirthYear) || (typeof BIRTH_YEAR !== 'undefined' ? BIRTH_YEAR : 0)) || 0;
+  var age = birthYear > 0 ? Number(year) - birthYear + 1 : 0;
+  var decade = null;
+  var list = (pd && Array.isArray(pd.daHanList)) ? pd.daHanList : [];
+  for (var i = 0; age > 0 && i < list.length; i += 1) {
+    if (age >= list[i].startAge && age <= list[i].endAge) { decade = list[i]; break; }
+  }
+  var decadeMarks = null;
+  var decadeRel = '';
+  if (decade) {
+    var dGan = pd.gongGan ? pd.gongGan[ZW_DEEP_ZHI_LIST[decade.idx]] : '';
+    decadeMarks = dGan ? zwFlowLandSihua(pd, dGan) : null;
+    var dd = zwFlowMod12(mingIdx - decade.idx);
+    decadeRel = dd === 0 ? 'same' : (dd === 6 ? 'opposite' : ((dd === 4 || dd === 8) ? 'triad' : 'other'));
+  }
+  var natalByType = {};
+  var sd = (pd && pd.sihuaData) || {};
+  Object.keys(sd).forEach(function (star) { if (sd[star] && sd[star].type) natalByType[sd[star].type] = { star: star, idx: sd[star].palaceIdx }; });
+  var stack = [];
+  ['화록', '화기'].forEach(function (t) {
+    var m = marks[t];
+    if (!m || m.idx < 0) return;
+    if (natalByType[t] && natalByType[t].idx === m.idx) stack.push({ type: t, with: '본명' });
+    if (decadeMarks && decadeMarks[t] && decadeMarks[t].idx === m.idx) stack.push({ type: t, with: '대한' });
+  });
+  var expandHits = 0;
+  ['화록', '화권'].forEach(function (t) { if (marks[t].idx >= 0 && zwFlowTriadHas(mingIdx, marks[t].idx)) expandHits += 1; });
+  var guardHits = (marks['화기'].idx >= 0 && zwFlowTriadHas(mingIdx, marks['화기'].idx)) ? 1 : 0;
+  var tone = guardHits ? (expandHits ? 'mixed' : 'guard') : (expandHits ? 'expand' : 'calm');
+  var crossed = marks['화록'].idx >= 0 && marks['화록'].idx === marks['화기'].idx;
+  var score = expandHits * 10 - guardHits * 14;
+  stack.forEach(function (s) { score += s.type === '화록' ? 8 : -10; });
+  ZW_FLOW_TYPES.forEach(function (t) {
+    var m = marks[t];
+    m.flowPalace = m.idx >= 0 ? ZW_FLOW_PALACE_ORDER[zwFlowMod12(mingIdx - m.idx)] : '';
+    m.inTriad = m.idx >= 0 && zwFlowTriadHas(mingIdx, m.idx);
+    m.chongIdx = m.idx >= 0 ? (m.idx + 6) % 12 : -1;
+    m.chongPalace = m.idx >= 0 ? zwFlowPalaceAt(pd, m.chongIdx) : '';
+  });
+  return {
+    year: Number(year), gan: g.gan, zhi: g.zhi, ganji: g.gan + g.zhi, mingIdx: mingIdx,
+    mingPalace: zwFlowPalaceAt(pd, mingIdx), marks: marks,
+    decade: decade ? { idx: decade.idx, palace: zwFlowPalaceAt(pd, decade.idx), startAge: decade.startAge, endAge: decade.endAge } : null,
+    decadeRel: decadeRel, stack: stack, crossed: crossed,
+    expandHits: expandHits, guardHits: guardHits, tone: tone, score: score
+  };
+}
+function zwDoujunMonths(pd, year) {
+  var g = zwFlowYearGanji(year);
+  var bm = Number((pd && pd.lunarMonth) || 1) + ((pd && pd.isLeap && Number(pd.lunarDay) > 15) ? 1 : 0);
+  var hi = (pd && pd.calcMeta && typeof pd.calcMeta.hourIndex === 'number') ? pd.calcMeta.hourIndex : 0;
+  var first = zwFlowMod12(g.zhiIdx - (bm - 1) + hi);
+  var months = [];
+  for (var m = 1; m <= 12; m += 1) {
+    var idx = (first + m - 1) % 12;
+    var gan = zwFlowMonthGan(g.gan, m);
+    months.push({
+      month: m, idx: idx, natalPalace: zwFlowPalaceAt(pd, idx),
+      flowPalace: ZW_FLOW_PALACE_ORDER[zwFlowMod12(g.zhiIdx - idx)],
+      gan: gan, ganKo: ZW_DEEP_GAN_KO[gan] || '', marks: zwFlowLandSihua(pd, gan)
+    });
+  }
+  return { year: Number(year), gan: g.gan, zhi: g.zhi, zhiIdx: g.zhiIdx, firstIdx: first, months: months };
+}
+var ZW_FLOW_OLYMPUS_BY_STAR = {
+  '자미': { god:'제우스', seal:'왕관과 번개', tone:'권위와 결단이 하늘의 중심축을 세웁니다.', oracle:'명분을 먼저 세우면 사람과 자원이 뒤따릅니다.' },
+  '천부': { god:'헤라', seal:'공작의 왕관', tone:'질서와 품격이 기반을 지키는 힘으로 작동합니다.', oracle:'관계와 자산은 격을 갖출 때 오래 남습니다.' },
+  '태양': { god:'아폴론', seal:'황금 리라', tone:'명예와 공개성이 강하게 빛납니다.', oracle:'숨지 말고 밝은 무대에서 이름을 드러내세요.' },
+  '태음': { god:'아르테미스', seal:'달빛 활', tone:'감각, 보호, 축적의 힘이 은밀하게 자랍니다.', oracle:'서두르지 않는 축적이 가장 큰 무기가 됩니다.' },
+  '무곡': { god:'헤파이스토스', seal:'대장간의 망치', tone:'현실 감각과 재물 운용력이 단단합니다.', oracle:'숫자, 계약, 자산 구조를 직접 쥐어야 복이 남습니다.' },
+  '천기': { god:'헤르메스', seal:'날개 지팡이', tone:'정보, 이동, 전략의 별이 빠르게 길을 바꿉니다.', oracle:'한 가지 길만 고집하지 말고 신호가 오는 통로를 넓히세요.' },
+  '천동': { god:'헤스티아', seal:'성화의 화로', tone:'안식, 회복, 생활의 복이 조용히 불을 지킵니다.', oracle:'일상의 온기를 회복할 때 큰 운도 오래 머뭅니다.' },
+  '염정': { god:'아프로디테와 아레스', seal:'장미 위의 붉은 검', tone:'매혹과 정치적 승부수가 동시에 시험대를 만듭니다.', oracle:'끌림은 힘이지만 명분 없는 욕망은 스스로를 소모합니다.' },
+  '천량': { god:'아테나', seal:'올빼미 방패', tone:'보호, 원칙, 조언자의 별이 중심을 잡습니다.', oracle:'원칙을 지킬수록 늦게 오는 복이 크게 돌아옵니다.' },
+  '칠살': { god:'아레스', seal:'전장의 투구', tone:'돌파와 결단의 검이 흐름을 가릅니다.', oracle:'두려움보다 기준을 앞세우면 전장이 길이 됩니다.' },
+  '파군': { god:'포세이돈', seal:'삼지창', tone:'해체와 재건의 파도가 오래된 판을 흔듭니다.', oracle:'무너지는 것에 매달리지 말고 새 판을 설계하세요.' },
+  '탐랑': { god:'아프로디테', seal:'장미와 잔', tone:'매혹, 욕망, 예술적 확장이 사람을 끌어옵니다.', oracle:'매력은 자산이지만 경계가 없으면 복이 흩어집니다.' },
+  '거문': { god:'헤르메스의 검은 서판', seal:'가면과 비밀 문서', tone:'말, 의심, 숨은 진실이 운의 문을 엽니다.', oracle:'가면 뒤의 진심을 읽으면 어둠 속 정보가 힘이 됩니다.' },
+  '천상': { god:'아테나', seal:'올리브 가지', tone:'중재와 균형의 지혜가 관계를 안정시킵니다.', oracle:'중심을 지키는 사람이 결국 판을 지배합니다.' }
+};
+var ZW_FLOW_OLYMPUS_BY_PALACE = {
+  '명궁':'제우스', '형제궁':'헤르메스', '부부궁':'헤라', '자녀궁':'아폴론',
+  '재백궁':'헤파이스토스', '질액궁':'아스클레피오스', '천이궁':'포세이돈', '노복궁':'아테나',
+  '관록궁':'제우스', '전택궁':'데메테르', '복덕궁':'아르테미스', '부모궁':'헤라'
+};
+var ZW_FLOW_OLYMPUS_GOD_META = {
+  '제우스': { icon:'⚡', realm:'천궁', virtue:'명분·권위·중심축' },
+  '헤라': { icon:'🦚', realm:'왕좌', virtue:'품격·계약·기반 수호' },
+  '아폴론': { icon:'☀️', realm:'태양 상징', virtue:'명예·예술·공개성' },
+  '아르테미스': { icon:'🌙', realm:'달의 숲', virtue:'감각·보호·축적' },
+  '헤파이스토스': { icon:'🔨', realm:'대장간', virtue:'기술·재물·실행력' },
+  '헤르메스': { icon:'🪽', realm:'전령의 길', virtue:'정보·이동·전략' },
+  '헤스티아': { icon:'🔥', realm:'성화의 방', virtue:'안식·생활복·회복' },
+  '아프로디테': { icon:'🌹', realm:'장미 정원', virtue:'매력·예술·관계 확장' },
+  '아프로디테와 아레스': { icon:'🌹', realm:'붉은 장미 전장', virtue:'욕망·협상·승부' },
+  '아레스': { icon:'🛡️', realm:'전장', virtue:'돌파·결단·위기 대응' },
+  '아테나': { icon:'🦉', realm:'지혜의 성채', virtue:'원칙·중재·보호' },
+  '포세이돈': { icon:'🔱', realm:'심해', virtue:'해체·이동·재건' },
+  '데메테르': { icon:'🌾', realm:'풍요의 밭', virtue:'축적·양육·생활 기반' },
+  '아스클레피오스': { icon:'⚕️', realm:'회복 상징', virtue:'회복·점검·컨디션 신호' },
+  '헤르메스의 검은 서판': { icon:'📜', realm:'비밀 서고', virtue:'말·의심·숨은 진실' }
+};
+var ZW_FLOW_SIHUA_SEAL = {
+  '화록': { god:'데메테르', seal:'황금 이삭과 풍요의 잔', oracle:'받는 복을 흩뜨리지 말고 구조 안에 담아야 오래 남습니다.' },
+  '화권': { god:'제우스', seal:'번개 지휘봉', oracle:'명령할 자격보다 책임질 태도를 먼저 세우세요.' },
+  '화과': { god:'아폴론', seal:'월계관과 황금 리라', oracle:'보이는 품격을 정돈하면 보이지 않는 귀인이 움직입니다.' },
+  '화기': { god:'헤르메스의 검은 서판', seal:'검은 월식과 비밀 문서', oracle:'숨기거나 밀어붙이지 말고 기록, 확인, 거리두기로 봉인을 풀어야 합니다.' }
+};
+var ZW_FLOW_PALACE_THEME = {
+  '명궁': { focus:'자기 선언과 방향 재정립', money:'성과보다 존재감을 먼저 세우는 달입니다.', relation:'관계에서는 주도권보다 진정성을 앞세우세요.' },
+  '형제궁': { focus:'협력자와 동료 운의 재배치', money:'함께 쓰는 자원과 공동 프로젝트를 점검하세요.', relation:'가까운 사람의 말에서 길흉의 실마리가 옵니다.' },
+  '부부궁': { focus:'파트너십과 계약 관계의 조율', money:'계약 조건과 역할 분담이 금전 흐름을 좌우합니다.', relation:'관계의 약속을 다시 선명하게 만드는 달입니다.' },
+  '자녀궁': { focus:'창작, 표현, 결과물의 탄생', money:'작은 아이디어를 상품화하거나 공개하기 좋습니다.', relation:'즐거움과 애정 표현이 관계를 부드럽게 풉니다.' },
+  '재백궁': { focus:'수입, 지출, 자산 운용', money:'돈의 들어옴과 나감을 숫자로 고정해야 복이 남습니다.', relation:'금전 감정이 관계 감정으로 번지지 않게 선을 세우세요.' },
+  '질액궁': { focus:'건강, 회복, 내면의 정돈', money:'무리한 확장보다 손실 방어와 유지비 절감이 유리합니다.', relation:'예민한 반응을 쉬어 가며 말하면 갈등이 줄어듭니다.' },
+  '천이궁': { focus:'이동, 이직, 외부 기회', money:'밖에서 들어오는 제안과 새 채널을 선별하세요.', relation:'낯선 사람과의 접점에서 새 기류가 열립니다.' },
+  '노복궁': { focus:'조직, 고객, 인맥의 신뢰', money:'사람을 통해 일이 붙으니 평판 관리가 곧 재물 관리입니다.', relation:'내 편과 거리 둘 사람을 차분히 구분하세요.' },
+  '관록궁': { focus:'커리어, 직책, 사회적 성취', money:'일의 성과가 수입의 문을 두드립니다.', relation:'공적인 태도가 사적인 신뢰까지 끌어올립니다.' },
+  '전택궁': { focus:'집, 기반, 고정 자산', money:'부동산, 저축, 장기 자산의 구조를 정돈하세요.', relation:'가족과 생활권의 안정이 마음의 운을 보강합니다.' },
+  '복덕궁': { focus:'마음의 복, 휴식, 장기 만족', money:'욕심을 줄이면 오래 남는 선택이 보입니다.', relation:'부드러운 말과 휴식이 관계의 복을 되살립니다.' },
+  '부모궁': { focus:'윗사람, 문서, 승인 운', money:'문서와 승인 절차를 바르게 밟으면 기회가 커집니다.', relation:'조언을 받아들이되 최종 결정권은 직접 쥐세요.' }
+};
+var ZW_FLOW_MATRIX = {
+  '명궁': { '화록':'나 자신의 존재감이 먼저 열려요. 스스로를 드러내는 선택에 복이 붙어요.', '화권':'내가 중심에서 결정해야 하는 자리예요. 맡은 역할의 무게가 올라가요.', '화과':'내 이름과 평판이 또렷해져요. 말과 태도가 곧 명함이 돼요.', '화기':'스스로를 의심하는 마음이 막힌 자리를 만들어요. 큰 결정 전에는 하루를 두세요.' },
+  '형제궁': { '화록':'동료와 형제, 가까운 협력자에게서 도움이 풀려요.', '화권':'함께하는 사람들 사이에서 내 몫과 주도권이 커져요.', '화과':'가까운 사람들에게 인정받고 소개받는 일이 생겨요.', '화기':'동료·형제 사이에서 말이 엇갈리기 쉬워요. 돈 거래와 약속은 글로 남기세요.' },
+  '부부궁': { '화록':'인연과 파트너십 쪽에서 문이 열려요.', '화권':'관계에서 내 의견이 강해져요. 밀어붙이기보다 합의를 앞세우세요.', '화과':'연인·배우자와의 관계가 안정되고 주변의 인정을 받아요.', '화기':'기대와 현실이 어긋나 관계가 막히기 쉬워요. 서운함은 쌓지 말고 그날 말하세요.' },
+  '자녀궁': { '화록':'창작과 결과물, 아랫사람과 자녀 운에서 풀려요.', '화권':'만들고 키우는 일에서 책임과 주도권이 커져요.', '화과':'표현한 결과물이 좋은 평가를 받아요.', '화기':'공들인 결과물이 마음에 안 차 막히기 쉬워요. 완성도보다 공개할 날짜를 먼저 정하세요.' },
+  '재백궁': { '화록':'수입과 돈의 흐름이 열려요.', '화권':'돈을 직접 운용하고 결정하는 일이 늘어요.', '화과':'재정 관리에 대한 신용과 평판이 올라가요.', '화기':'돈이 새거나 막히기 쉬워요. 보증과 충동 지출, 큰 결제는 하루 더 두세요.' },
+  '질액궁': { '화록':'몸과 마음의 회복 루틴이 자리 잡아요.', '화권':'건강을 스스로 관리하겠다는 결심이 힘을 얻어요.', '화과':'검진이나 상담으로 문제를 일찍 알아차리는 데 유리해요.', '화기':'피로와 예민함이 쌓이기 쉬워요. 수면과 쉬는 날을 먼저 지키세요.' },
+  '천이궁': { '화록':'바깥 활동과 이동, 새 제안에서 기회가 열려요.', '화권':'밖에서 주도권을 잡고 나서는 일이 늘어요.', '화과':'밖에서의 평판이 좋아져요. 낯선 자리에서 이름을 알리기 좋아요.', '화기':'이동과 외부 일정에서 착오가 나기 쉬워요. 서류와 동선을 두 번 확인하세요.' },
+  '노복궁': { '화록':'사람과 조직, 고객에게서 일이 붙어요.', '화권':'사람을 이끄는 책임이 커져요.', '화과':'주변 사람들의 신뢰와 추천이 따라와요.', '화기':'사람 사이 오해와 서운함이 생기기 쉬워요. 기대는 낮추고 기록은 남기세요.' },
+  '관록궁': { '화록':'일과 커리어에서 문이 열려요.', '화권':'직책과 책임, 결정권이 커져요.', '화과':'성과가 공식적으로 인정받아요.', '화기':'일에서 막힘과 압박이 생기기 쉬워요. 새 결정보다 마무리가 먼저예요.' },
+  '전택궁': { '화록':'집과 터전, 고정 자산이 안정돼요.', '화권':'집과 자산의 구조를 내 손으로 정리하게 돼요.', '화과':'사는 곳과 문서 일에서 좋은 평가를 받아요.', '화기':'집과 자산 문제에서 막히기 쉬워요. 계약과 이사는 서두르지 마세요.' },
+  '복덕궁': { '화록':'마음이 편안해지고 즐길 일이 늘어요.', '화권':'내 마음의 기준을 스스로 세우게 돼요.', '화과':'취미와 배움에서 인정을 받아요.', '화기':'생각이 많아지고 마음이 쉬지 못해요. 쉬는 시간을 일정에 먼저 넣으세요.' },
+  '부모궁': { '화록':'윗사람과 문서, 승인에서 도움이 와요.', '화권':'윗사람과의 관계에서 내 몫의 권한이 생겨요.', '화과':'문서와 시험, 자격에서 좋은 평가를 받아요.', '화기':'문서와 승인 절차에서 막히기 쉬워요. 서류는 두 번 보고 윗사람의 말은 글로 확인하세요.' }
+};
+var ZW_FLOW_ROLE = { '명궁':'나 자신', '형제궁':'동료·형제', '부부궁':'연애·파트너', '자녀궁':'창작·자녀', '재백궁':'돈', '질액궁':'건강', '천이궁':'바깥 활동', '노복궁':'사람·조직', '관록궁':'일', '전택궁':'집·자산', '복덕궁':'마음', '부모궁':'윗사람·문서' };
+var ZW_FLOW_TYPE_META = {
+  '화록': { color:'#4ade80', label:'풀리는 자리' },
+  '화권': { color:'#60a5fa', label:'힘이 실리는 자리' },
+  '화과': { color:'#c084fc', label:'빛이 드는 자리' },
+  '화기': { color:'#f87171', label:'막힌 자리' }
+};
+function zwFlowDomainMeta() {
+  return {
+    money: { label:_sajuEngineText("se_20191_prop_label"), good:'수익 회수와 자산 고정화가 열립니다.', mid:'수입과 지출의 균형을 숫자로 확인하세요.', care:'지출, 보증, 과욕성 투자를 조심하세요.' },
+    career: { label:_sajuEngineText("se_20192_prop_label"), good:'역할 확대와 공개 성과에 유리합니다.', mid:'맡은 일의 완성도를 한 단계 올리세요.', care:'권한 충돌과 일정 과부하를 조율하세요.' },
+    love: { label:_sajuEngineText("se_20193_prop_label"), good:'마음을 드러내면 관계의 온도가 살아납니다.', mid:'가까운 사람에게 안부를 먼저 건네 보세요.', care:'오해를 방치하면 감정 빚이 커집니다.' },
+    health: { label:_sajuEngineText("se_20194_prop_label"), good:'회복 루틴을 만들면 기력이 안정됩니다.', mid:'수면과 식사 시간을 일정하게 지키세요.', care:'수면, 긴장, 피로 신호를 부드럽게 살피세요.' },
+    move: { label:_sajuEngineText("se_20195_prop_label"), good:'이직, 이사, 외부 제안의 문이 열립니다.', mid:'외부 제안은 받아 두되 결정은 천천히 하세요.', care:'서류와 동선의 착오를 두 번 확인하세요.' }
+  };
+}
+function zwJosa(word, withBatchim, noBatchim) {
+  var s = String(word == null ? '' : word);
+  var c = s.charCodeAt(s.length - 1);
+  var has = c >= 0xAC00 && c <= 0xD7A3 ? ((c - 0xAC00) % 28) !== 0 : false;
+  return s + (has ? withBatchim : noBatchim);
+}
+function zwFlowRelLabel(year, nowYear) {
+  var d = Number(year) - Number(nowYear);
+  return d === 0 ? '올해' : (d === 1 ? '내년' : (d === 2 ? '내후년' : (year + '년')));
+}
+var ZW_MUSUNG_FACES = { composed:1, gentle:1, smile:1, thinking:1, verdict:1, sorry:1 };
+function zwMusungSay(mood, verdict, detail) {
+  var face = ZW_MUSUNG_FACES[mood] ? mood : 'composed';
+  return '<div class="zw-musung-say zw-musung-say--' + face + '" data-zw-musung="' + face + '">'
+    + '<img class="zw-musung-say__face" src="/images/expert-characters/musung/' + face + '.webp" alt="" width="64" height="64" loading="lazy" decoding="async">'
+    + '<div class="zw-musung-say__bubble"><span class="zw-musung-say__name">무성</span>'
+      + '<p class="zw-musung-say__text"><strong>' + zwDeepEsc(verdict) + '</strong>' + (detail ? ' ' + zwDeepEsc(detail) : '') + '</p>'
+    + '</div>'
+  + '</div>';
+}
+function zwOlympusPick(cands, used, prev) {
+  var pick = null;
+  var i;
+  function lineKey(c) { return 'L:' + c.god + '|' + c.seal + '|' + (c.oracle || ''); }
+  for (i = 0; i < cands.length && !pick; i += 1) {
+    if (cands[i] && cands[i].god !== prev && (used[cands[i].god] || 0) < 2 && !used[lineKey(cands[i])]) pick = cands[i];
+  }
+  for (i = 0; i < cands.length && !pick; i += 1) {
+    if (cands[i] && cands[i].god !== prev && !used[lineKey(cands[i])]) pick = cands[i];
+  }
+  for (i = 0; i < cands.length && !pick; i += 1) {
+    if (cands[i] && !used[lineKey(cands[i])]) pick = cands[i];
+  }
+  if (!pick && cands[0]) {
+    // 모든 후보의 문장이 이미 나왔다 — 같은 신탁을 되풀이하지 않고 인장 이름만 남긴다.
+    pick = { god: cands[0].god, seal: cands[0].seal, oracle: '', why: cands[0].why };
+  }
+  if (pick) { used[pick.god] = (used[pick.god] || 0) + 1; used[lineKey(pick)] = 1; }
+  return pick;
+}
+function zwOlympusStarCand(star) {
+  var e = ZW_FLOW_OLYMPUS_BY_STAR[star];
+  return e ? { god: e.god, seal: e.seal, oracle: e.oracle, why: star } : null;
+}
+function zwOlympusPalaceCand(palaceName) {
+  var god = ZW_FLOW_OLYMPUS_BY_PALACE[palaceName];
+  if (!god) return null;
+  var meta = ZW_FLOW_OLYMPUS_GOD_META[god] || { virtue: '' };
+  return { god: god, seal: meta.realm || '별의 인장', oracle: meta.virtue ? ('「' + meta.virtue + '」이 이 자리의 열쇠예요.') : '', why: palaceName };
+}
+function zwOlympusSealCand(type) {
+  var s = ZW_FLOW_SIHUA_SEAL[type];
+  return s ? { god: s.god, seal: s.seal, oracle: s.oracle, why: type } : null;
+}
+function zwOlympusShort(c) {
+  if (!c) return '';
+  var meta = ZW_FLOW_OLYMPUS_GOD_META[c.god] || { icon: '✦' };
+  return meta.icon + ' ' + c.god + '의 ' + c.seal;
+}
+function zwOlympusLine(c) {
+  if (!c) return '';
+  var meta = ZW_FLOW_OLYMPUS_GOD_META[c.god] || { icon: '✦' };
+  return meta.icon + ' ' + c.god + '의 ' + c.seal + (c.oracle ? ' — “' + c.oracle + '”' : '');
+}
+var ZW_FLOW_TONE_NAME = { expand: '열림', guard: '정리', mixed: '겸비', calm: '평온' };
+var ZW_FLOW_TONE_MOOD = { expand: 'smile', guard: 'verdict', mixed: 'thinking', calm: 'composed' };
+var ZW_FLOW_TONE_VERDICT = {
+  expand: ['문이 열리는 해라 한 걸음 더 나아갈 만합니다.', '힘이 실리는 해이니 미뤄 둔 일을 꺼낼 때입니다.', '흐름이 등을 밀어 주는 해라 시도해 볼 만합니다.'],
+  guard: ['지키며 정리해야 오래 남는 해입니다.', '속도를 줄이고 점검을 앞세울 해입니다.', '새 판보다 마무리가 먼저인 해입니다.'],
+  mixed: ['벌면서 동시에 지켜야 하는 해입니다.', '열리는 문과 막힌 문이 함께 있는 해입니다.', '확장과 방어를 나눠 써야 하는 해입니다.'],
+  calm: ['큰 파도 없이 루틴이 성적을 만드는 해입니다.', '조용한 해라 기본기가 곧 실력입니다.', '잔잔한 해일수록 꾸준함이 값을 합니다.']
+};
+var ZW_FLOW_TONE_ACTION = {
+  expand: ['문이 열린 영역에 시간을 먼저 배정하세요. 하나를 골라 이번 분기 안에 눈에 보이는 결과로 만드세요.', '준비해 온 일을 내놓을 차례예요. 완벽해지길 기다리기보다 80% 상태에서 공개하고 반응으로 다듬으세요.', '열려 있는 동안 기반을 굳히세요. 얻은 것을 계약·저축·루틴 같은 구조 안에 담아야 다음 해로 이어져요.'],
+  guard: ['새 판을 벌이기보다 묵은 숙제부터 닫으세요. 약속과 정산은 글로 남기는 것만으로 절반이 막혀요.', '속도를 한 단계 낮추고 점검 목록을 만드세요. 확인이 끝난 뒤에 움직이면 같은 일도 손실이 줄어요.', '지출과 말의 여백을 넓히세요. 결정을 하루 미루는 습관이 이 해의 가장 싼 보험이에요.'],
+  mixed: ['번 곳과 지킬 곳을 섞지 마세요. 확장은 열린 영역에서만, 방어는 막힌 영역에서만 하는 게 원칙이에요.', '기회가 올 때마다 조건표를 같이 만드세요. 얻는 일과 얽히는 일이 같은 날 올 수 있어요.', '한쪽에서 얻은 성과를 다른 쪽의 방어에 쓰세요. 이익을 구조로 바꿔 두면 흔들림을 흡수해요.']
+  , calm: ['큰 파도가 없으니 한 가지 목표를 정해 꾸준히 미세요. 이런 해의 성적은 루틴이 만들어요.', '눈에 띄는 사건이 적은 해일수록 기본기를 키우기 좋아요. 배움과 건강 습관에 시간을 쓰세요.', '조용한 해에 다음 해의 재료를 모아 두세요. 자료·인맥·저축 중 하나를 골라 매달 조금씩 쌓으세요.']
+};
+var ZW_FLOW_DECADE_LINE = {
+  same: '이 해의 무대가 지금 걷는 대한궁과 같아요. 10년짜리 숙제가 이 해에 압축돼서 오니 이 영역의 일은 피하지 말고 정면으로 다루세요.',
+  opposite: '이 해의 무대가 대한궁의 맞은편에 앉아요. 큰 흐름이 가는 방향과 반대에서 흔들림이 오니, 이 해는 대한의 목표를 한 번 점검하는 해예요.',
+  triad: '이 해의 무대가 대한궁과 삼합으로 이어져요. 10년의 큰 물길이 뒤에서 밀어 주니 시작한 일이 있다면 속도를 붙여도 좋아요.',
+  other: ['지금의 대한과 직접 겹치지 않아, 이 해는 유년 자체의 신호가 또렷하게 읽혀요.', '대한의 큰 물길과는 비켜 있는 해라 변화가 그 해 안에서 시작하고 끝나는 편이에요.', '대한궁과 직접 맞닿지 않아 파급이 길지 않아요. 결과는 그 해 안에서 정리하세요.']
+};
+function zwFlowStyleBox(inner, color) {
+  return '<div style="background:rgba(2,6,23,0.34);border:1px solid ' + (color || 'rgba(148,163,184,0.2)') + ';border-radius:9px;padding:8px 10px;margin-bottom:7px;font-size:0.8rem;line-height:1.72;color:#e2e8f0;">' + inner + '</div>';
+}
+function zwFlowChip(type) {
+  var meta = ZW_FLOW_TYPE_META[type] || { color: '#e5e7eb' };
+  return '<span style="flex:none;padding:2px 7px;border-radius:999px;border:1px solid ' + meta.color + '66;background:' + meta.color + '18;color:' + meta.color + ';font-size:0.68rem;font-weight:900;">' + zwDeepEsc(type) + '</span>';
+}
+function zwFlowDefOnce(seen, palace) {
+  if (seen[palace]) return '';
+  seen[palace] = 1;
+  var def = zwGungDef(palace);
+  return def ? '(' + def + ')' : '';
+}
+function zwFlowMarkRow(T, type, ctx, againText) {
+  var m = T.marks[type];
+  if (!m || !m.star) return '';
+  var body;
+  if (m.idx < 0) {
+    body = '<b>' + zwDeepEsc(m.star) + '</b>은 내 명반에 자리가 없어 이 신호는 약하게만 와요.';
+  } else {
+    var key = m.palace + '|' + type;
+    var sentence = (ZW_FLOW_MATRIX[m.palace] || {})[type] || '';
+    var again = !!ctx.seenM[key];
+    if (again) {
+      var AGAIN_TAIL = [
+        '그때 세운 ' + m.palace + ' 쪽 방향을 ' + type + '의 결에 맞춰 이어 가면 됩니다.',
+        '같은 ' + type + ' 숙제가 ' + m.palace + '에 한 번 더 오니 앞서 정한 기준을 다시 꺼내 보세요.',
+        '이미 한 번 풀어 본 ' + m.palace + ' 자리라 이번엔 ' + type + '를 더 작은 단위로 점검하면 충분해요.'
+      ];
+      sentence = againText || (ctx.seenM[key] + '년에 짚은 ' + m.palace + ' ' + type + '가 한 번 더 와요. ' + AGAIN_TAIL[T.year % 3]);
+    } else ctx.seenM[key] = T.year;
+    body = '<b>' + zwDeepEsc(m.star) + '</b> → <b>내 ' + zwDeepEsc(m.palace) + '</b>'
+      + (m.inTriad ? ' <span style="color:#fde68a;font-size:0.7rem;">· 유년 명궁 삼방사정</span>' : '')
+      + '<br>' + zwDeepEsc(sentence);
+    if (type === '화기' && m.chongPalace && !again) body += ' ' + zwDeepEsc('맞은편 ' + m.chongPalace + '도 함께 흔들려요(충).');
+  }
+  return '<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:7px;">' + zwFlowChip(type) + '<div style="min-width:0;font-size:0.8rem;line-height:1.7;color:#e2e8f0;">' + body + '</div></div>';
+}
+function zwFlowStackLines(T, ctx) {
+  var out = [];
+  T.stack.forEach(function (s) {
+    var sk = 'stack|' + s.type + '|' + s.with;
+    if (ctx && ctx.seenM[sk]) {
+      out.push(ctx.seenM[sk] + '년에 짚은 ' + (s.type === '화록' ? '쌍록' : '쌍기') + '(' + s.with + ')가 이 해에도 겹쳐요. ' + (s.type === '화록' ? '그때 챙긴 영역에 이번에도 먼저 시간을 배정하세요.' : '그때 정한 확인 습관을 이번 해에도 이어 가세요.'));
+      return;
+    }
+    if (ctx) ctx.seenM[sk] = T.year;
+    if (s.type === '화록') out.push(s.with === '본명'
+      ? '본명 화록이 앉은 궁에 유년 화록이 한 번 더 겹쳐요(쌍록). 복이 한곳에 쌓이니 그 영역은 확실히 챙기세요.'
+      : '대한 화록이 앉은 궁에 유년 화록이 겹쳐요(쌍록). 10년의 기회가 이 해에 구체적인 제안으로 나타나요.');
+    else out.push(s.with === '본명'
+      ? '본명 화기가 앉은 궁에 유년 화기가 또 겹쳐요(쌍기). 타고난 약점이 이 해에 도드라지니 그 영역은 기록과 확인으로 막으세요.'
+      : '대한 화기가 앉은 궁에 유년 화기가 겹쳐요(쌍기). 10년의 숙제가 이 해에 현실의 일로 오니 미루지 마세요.');
+  });
+  if (T.crossed) out.push('화록과 화기가 같은 궁에 함께 앉았어요(록기 동궁). 받는 만큼 얽히기 쉬우니 얻는 일에는 조건을 글로 남기세요.');
+  return out;
+}
+function zwFlowDecadeLine(T, i) {
+  if (!T.decade) return '';
+  var rel = T.decadeRel;
+  if (rel === 'other') return ZW_FLOW_DECADE_LINE.other[i % 3];
+  return ZW_FLOW_DECADE_LINE[rel] || '';
+}
+function zwFlowYearOlympusCands(T) {
+  var mk = T.marks;
+  var rokStar = zwOlympusStarCand(mk['화록'].star);
+  var kwonStar = zwOlympusStarCand(mk['화권'].star);
+  var giStar = zwOlympusStarCand(mk['화기'].star);
+  var kwaStar = zwOlympusStarCand(mk['화과'].star);
+  var ming = zwOlympusPalaceCand(T.mingPalace);
+  if (T.tone === 'expand') return [zwOlympusSealCand('화록'), zwOlympusSealCand('화권'), rokStar, kwonStar, ming];
+  if (T.tone === 'guard') return [zwOlympusSealCand('화기'), giStar, ming, zwOlympusSealCand('화과')];
+  if (T.tone === 'mixed') return [zwOlympusSealCand('화기'), zwOlympusSealCand('화록'), rokStar, giStar, ming];
+  return [ming, kwaStar, zwOlympusSealCand('화과'), kwonStar];
+}
+function zwFlowDistinctYears(hits) {
+  var seen = {};
+  var n = 0;
+  hits.forEach(function (h) { if (!seen[h.year]) { seen[h.year] = 1; n += 1; } });
+  return n;
+}
+function zwFlowHitList(hits, withB, noB) {
+  var parts = hits.map(function (h) { return h.year + '년 ' + h.type; });
+  return parts.slice(0, -1).concat([zwJosa(parts[parts.length - 1], withB, noB)]).join(', ');
+}
+function zwFlowThreads(Ts) {
+  var byStar = {};
+  var byPalace = {};
+  Ts.forEach(function (T) {
+    ZW_FLOW_TYPES.forEach(function (t) {
+      var m = T.marks[t];
+      if (!m || !m.star) return;
+      (byStar[m.star] = byStar[m.star] || []).push({ year: T.year, type: t });
+      if (m.idx >= 0) (byPalace[m.palace] = byPalace[m.palace] || []).push({ year: T.year, type: t, star: m.star });
+    });
+  });
+  var lines = [];
+  Object.keys(byStar).forEach(function (star) {
+    var hits = byStar[star];
+    if (zwFlowDistinctYears(hits) >= 2) lines.push('<b>' + zwDeepEsc(star) + '</b>' + zwJosa(star, '은', '는').slice(star.length) + ' ' + zwFlowHitList(hits, '으로', '로') + ' 얼굴을 바꿔 돌아와요.');
+  });
+  Object.keys(byPalace).forEach(function (pal) {
+    var hits = byPalace[pal];
+    if (zwFlowDistinctYears(hits) >= 2) lines.push('<b>' + zwDeepEsc(pal) + '</b>에는 ' + zwFlowHitList(hits, '이', '가') + ' 차례로 지나가요.');
+  });
+  return lines.slice(0, 3);
+}
+function zwFlowYearCard(pd, T, i, nowYear, ctx) {
+  var rel = zwFlowRelLabel(T.year, nowYear);
+  var def = zwFlowDefOnce(ctx.seenDef, T.mingPalace);
+  var stage = rel + '의 무대는 내 명반의 ' + T.mingPalace + def + '이에요.';
+  var decadeLine = zwFlowDecadeLine(T, i);
+  var verdict = zwJosa(rel, '은', '는') + ' ' + ZW_FLOW_TONE_VERDICT[T.tone][i % 3];
+  var body = zwMusungSay(ZW_FLOW_TONE_MOOD[T.tone], verdict, stage + (decadeLine ? ' ' + decadeLine : ''));
+  ZW_FLOW_TYPES.forEach(function (t) { body += zwFlowMarkRow(T, t, ctx); });
+  zwFlowStackLines(T, ctx).forEach(function (line) { body += zwFlowStyleBox('<b style="color:#fde68a;">겹침 신호</b> · ' + zwDeepEsc(line), 'rgba(253,230,138,0.28)'); });
+  var oly = zwOlympusPick(zwFlowYearOlympusCands(T), ctx.usedGods, ctx.prevGod);
+  if (oly) {
+    ctx.prevGod = oly.god;
+    body += zwFlowStyleBox('<b style="color:#bae6fd;">올림포스의 눈</b> · ' + zwDeepEsc(zwOlympusLine(oly)) + ' <span style="color:#94a3b8;font-size:0.7rem;">(' + zwDeepEsc(oly.why) + ')</span>', 'rgba(125,211,252,0.24)');
+  }
+  body += '<div style="background:rgba(2,6,23,0.34);border:1px solid rgba(253,230,138,0.22);border-radius:8px;padding:7px 10px;color:#fde68a;font-size:0.8rem;line-height:1.7;"><b>이 해의 한 줄:</b> ' + zwDeepEsc(ZW_FLOW_TONE_ACTION[T.tone][i % 3]) + '</div>';
+  var title = T.year + '년 ' + (ZW_DEEP_GAN_KO[T.gan] || '') + (ZW_DEEP_ZHI_KO[T.zhi] || '') + '년(' + T.ganji + ')';
+  return zwDeepCardShell(i === 0 ? '📍' : '📅', title, rel + ' · ' + ZW_FLOW_TONE_NAME[T.tone], body, i === 0 ? '#fde68a' : '#c4b5fd', i === 0);
+}
+function zwFlowBridge(Ts, i, nowYear) {
+  var a = Ts[i];
+  var b = Ts[i + 1];
+  var relA = zwFlowRelLabel(a.year, nowYear);
+  var relB = zwFlowRelLabel(b.year, nowYear);
+  var verdict = a.tone === b.tone
+    ? zwJosa(relB, '도', '도') + ' ' + ZW_FLOW_TONE_NAME[b.tone] + '의 결이 이어집니다.'
+    : zwJosa(relB, '은', '는') + ' ' + ZW_FLOW_TONE_NAME[a.tone] + '에서 ' + zwJosa(ZW_FLOW_TONE_NAME[b.tone], '으로', '로') + ' 결이 바뀝니다.';
+  var detail = '무대가 ' + a.mingPalace + '에서 ' + zwJosa(b.mingPalace, '으로', '로') + ' 옮겨 가요.';
+  var gi = a.marks['화기'];
+  var rok = a.marks['화록'];
+  if (gi && gi.idx >= 0) detail += ' ' + relA + ' ' + gi.palace + '의 숙제는 해를 넘기기 전에 닫아 두세요.';
+  else if (rok && rok.idx >= 0) detail += ' ' + relA + ' ' + rok.palace + '에서 얻은 것은 ' + relB + '로 가져가세요.';
+  return zwMusungSay(ZW_FLOW_TONE_MOOD[b.tone], verdict, detail);
+}
+function zwFlowClosing(Ts, nowYear) {
+  var best = 0;
+  var worst = 0;
+  Ts.forEach(function (T, i) {
+    if (T.score > Ts[best].score) best = i;
+    if (T.score < Ts[worst].score) worst = i;
+  });
+  if (best === worst) {
+    return zwMusungSay('gentle', '세 해의 온도 차가 크지 않습니다.', '그럴수록 해마다 한 가지 목표를 정해 이어 가는 쪽이 이겨요. 위 카드의 "이 해의 한 줄"을 달력에 옮겨 적어 두세요.');
+  }
+  var bT = Ts[best];
+  var wT = Ts[worst];
+  var luckPal = bT.marks['화록'].idx >= 0 ? bT.marks['화록'].palace : bT.mingPalace;
+  var guardPal = wT.marks['화기'].idx >= 0 ? wT.marks['화기'].palace : wT.mingPalace;
+  var bRel = zwFlowRelLabel(bT.year, nowYear);
+  var wRel = zwFlowRelLabel(wT.year, nowYear);
+  return zwMusungSay('gentle',
+    bRel + '에 가장 힘이 실리고 ' + wRel + '에 가장 조심할 일이 몰립니다.',
+    bRel + '에는 ' + (ZW_FLOW_ROLE[luckPal] || luckPal) + ' 쪽에 시간을 먼저 배정하고, ' + wRel + '에는 ' + (ZW_FLOW_ROLE[guardPal] || guardPal) + ' 쪽 약속을 글로 남겨 두세요.');
+}
+function buildZwYearlyFlowDeepHtml(pd, nowYearArg) {
   try {
     if (!pd || !Array.isArray(pd.palaceStarData)) return '';
-    var nowYear = new Date().getFullYear();
+    var nowYear = Number(nowYearArg) || new Date().getFullYear();
+    var Ts = [0, 1, 2].map(function (k) { return zwYearFlowTheory(pd, nowYear + k); });
+    var ctx = { seenM: {}, seenDef: {}, usedGods: {}, prevGod: '' };
+    var toneSeq = Ts.map(function (T) { return ZW_FLOW_TONE_NAME[T.tone]; });
+    var sameAll = Ts[0].tone === Ts[1].tone && Ts[1].tone === Ts[2].tone;
+    var openVerdict = sameAll
+      ? '3년 내내 ' + toneSeq[0] + '의 결이 이어집니다.'
+      : '앞으로 3년은 ' + toneSeq.slice(0, 2).join(' → ') + ' → ' + zwJosa(toneSeq[2], '으로', '로') + ' 흘러갑니다.';
+    var threads = zwFlowThreads(Ts);
+    var openDetail = threads.length
+      ? '세 해를 한 번에 놓고 보면 겹치는 자리가 있어요. ' + threads.join(' ') + ' 이 겹침은 여기서 한 번만 말하고, 아래 카드에서는 그 해에만 해당하는 차이를 짚을게요.'
+      : '세 해가 서로 다른 별과 자리를 부르니 해마다 새 과제가 와요. 아래 카드에서 해마다 달라지는 점을 하나씩 짚을게요.';
+    var openHtml = zwMusungSay('composed', openVerdict, openDetail.replace(/<\/?b>/g, ''));
     var cards = '';
-    function findStarPalace(starName) {
-      var rows = pd.palaceStarData;
-      for (var i = 0; i < rows.length; i += 1) {
-        var e = rows[i];
-        var all = [].concat(e.stars || [], e.auxStars || []);
-        for (var j = 0; j < all.length; j += 1) {
-          if (all[j] && all[j].name === starName) return e.palace;
-        }
-      }
-      return '';
-    }
-    for (var y = nowYear; y < nowYear + 3; y += 1) {
-      var gan = ZW_DEEP_GAN_LIST[((y - 4) % 10 + 10) % 10];
-      var zhiIdx = ((y - 4) % 12 + 12) % 12;
-      var zhi = ZW_DEEP_ZHI_LIST[zhiIdx];
-      var yearLabel = y + '년 ' + (ZW_DEEP_GAN_KO[gan] || '') + (ZW_DEEP_ZHI_KO[zhi] || '') + '년(' + gan + zhi + ')';
-      var flowMingPalace = pd.palacesByIndex ? (pd.palacesByIndex[zhiIdx] || '') : '';
-      var sihuaSet = ZW_DEEP_GAN_SIHUA[gan] || {};
-      var rokStar = sihuaSet['화록'], giStar = sihuaSet['화기'], kwonStar = sihuaSet['화권'], kwaStar = sihuaSet['화과'];
-      var rokPalace = rokStar ? findStarPalace(rokStar) : '';
-      var giPalace = giStar ? findStarPalace(giStar) : '';
-      var kwonPalace = kwonStar ? findStarPalace(kwonStar) : '';
-      var kwaPalace = kwaStar ? findStarPalace(kwaStar) : '';
-      var body = '';
-      if (flowMingPalace) {
-        body += '<div style="margin-bottom:6px;"><b style="color:#c4b5fd;">올해의 무대(유년 명궁):</b> 내 명반의 <b style="color:#e9d5ff;">'+zwDeepEsc(zwDisplayPalaceName(flowMingPalace))+'</b> 자리 — '+zwDeepEsc(zwGungDef(flowMingPalace) || '')+' 영역이 한 해의 기본 무대가 됩니다.</div>';
-      }
-      body += '<div style="margin-bottom:6px;"><b style="color:#4ade80;">기회의 문(화록):</b> '
-        + (rokPalace
-          ? '<b>'+zwDeepEsc(rokStar)+'</b> 별이 있는 <b style="color:#d1fae5;">'+zwDeepEsc(zwDisplayPalaceName(rokPalace))+'</b>에서 열립니다. '+zwDeepEsc(zwGungDef(rokPalace) || '')+' 쪽에서 들어오는 제안과 인연을 흘려보내지 마세요.'
-          : '올해의 화록 별('+zwDeepEsc(rokStar || '-')+')이 내 명반에서 뚜렷하지 않아, 재물 기회는 크게 요동치지 않습니다. 기존 흐름을 지키는 해입니다.')
-        +'</div>';
-      if (kwonPalace || kwaPalace) {
-        body += '<div style="margin-bottom:6px;"><b style="color:#60a5fa;">힘이 실리는 곳:</b> '
-          + (kwonPalace ? '화권이 <b>'+zwDeepEsc(zwDisplayPalaceName(kwonPalace))+'</b>에 실려 이 영역에서 주도권을 잡기 좋고' : '화권의 직접 작용은 약하고')
-          + (kwaPalace ? ', 화과가 <b>'+zwDeepEsc(zwDisplayPalaceName(kwaPalace))+'</b>에 실려 평판·문서·평가 운이 붙습니다.' : ', 명예 운은 스스로 만들어야 하는 해입니다.')
-        +'</div>';
-      }
-      body += '<div style="margin-bottom:6px;"><b style="color:#f87171;">조심할 문(화기):</b> '
-        + (giPalace
-          ? '<b>'+zwDeepEsc(giStar)+'</b> 별이 있는 <b style="color:#fecaca;">'+zwDeepEsc(zwDisplayPalaceName(giPalace))+'</b>에 얽힘이 걸립니다. '+zwDeepEsc(zwGungDef(giPalace) || '')+' 영역의 말·계약·정산은 두 번 확인하고, 애매한 약속은 문장으로 남기세요.'
-          : '올해의 화기 별('+zwDeepEsc(giStar || '-')+')이 내 명반에서 뚜렷하지 않아, 직접적인 얽힘 신호는 약합니다. 기본기를 지키면 무난합니다.')
-        +'</div>';
-      var strategy;
-      if (rokPalace && giPalace) strategy = zwDisplayPalaceName(rokPalace)+' 쪽에서 벌고, '+zwDisplayPalaceName(giPalace)+' 쪽에서 지키는 해입니다. 확장과 방어의 영역을 섞지 마세요.';
-      else if (rokPalace) strategy = '방어보다 확장에 무게를 둬도 좋은 해입니다. '+zwDisplayPalaceName(rokPalace)+' 영역에 시간을 우선 배정하세요.';
-      else if (giPalace) strategy = '새 판보다 정리와 점검이 남는 해입니다. '+zwDisplayPalaceName(giPalace)+' 영역의 묵은 숙제를 먼저 끝내세요.';
-      else strategy = '큰 파도가 없는 해일수록 루틴이 성적을 만듭니다. 한 가지 목표를 정해 꾸준히 미세요.';
-      body += '<div style="background:rgba(2,6,23,0.34);border:1px solid rgba(253,230,138,0.22);border-radius:8px;padding:7px 10px;color:#fde68a;font-size:0.8rem;"><b>한 줄 전략:</b> '+zwDeepEsc(strategy)+'</div>';
-      cards += zwDeepCardShell(y === nowYear ? '📍' : '📅', yearLabel, y === nowYear ? '올해' : (y === nowYear + 1 ? '내년' : '내후년'), body, y === nowYear ? '#fde68a' : '#c4b5fd', y === nowYear);
-    }
-    return '<div data-cd-marker="ziwei-yearly-flow-deep-v20260711" style="margin-top:4px;">'
-      + zwDeepSectionHead('연간 흐름 정밀 — 3개년 유년(流年) 리딩', '해마다 바뀌는 천간 사화(화록·화권·화과·화기)를 내 명반 위에 겹쳐, 연도별 기회와 주의 영역을 짚습니다.', '#c084fc')
-      + cards
-      + '<div style="color:#64748b;font-size:0.7rem;line-height:1.55;margin:6px 2px 0;">유년 해석은 대한(10년 흐름)이라는 큰 물길 안의 물결입니다. 대한과 유년의 신호가 겹치는 영역일수록 체감이 강해집니다.</div>'
-    +'</div>';
+    Ts.forEach(function (T, i) {
+      cards += zwFlowYearCard(pd, T, i, nowYear, ctx);
+      if (i < 2) cards += zwFlowBridge(Ts, i, nowYear);
+    });
+    return '<div data-cd-marker="ziwei-yearly-flow-deep-v20261121" style="margin-top:4px;">'
+      + zwDeepSectionHead('연간 흐름 정밀 — 3개년 유년(流年) 리딩', '해마다 바뀌는 천간 사화(화록·화권·화과·화기)를 내 명반 위에 겹치고, 대한·본명 사화와의 관계까지 무성이 풀어 줍니다.', '#c084fc')
+      + openHtml + cards + zwFlowClosing(Ts, nowYear)
+      + '<div style="color:#64748b;font-size:0.7rem;line-height:1.55;margin:6px 2px 0;">유년 해석은 대한(10년 흐름)이라는 큰 물길 안의 물결이에요. 대한과 유년의 신호가 겹치는 영역일수록 체감이 강해져요.</div>'
+    + '</div>';
   } catch (_yearErr) { return ''; }
+}
+var ZW_FLOW_MONTH_ACTION = {
+  careful: ['계약·지출·감정 표현은 하루를 더 두고 확인하세요.', '이 달은 새 약속보다 기존 약속의 마무리가 먼저예요.', '큰 결정은 다음 달로 미루고 기록과 점검에 쓰세요.'],
+  high: ['공개·제안·확장 중 한 가지는 반드시 실행하세요.', '미뤄 둔 연락과 제안을 이 달 안에 꺼내 보세요.', '열린 문 앞에서 머뭇거리지 말고 작게라도 먼저 움직이세요.'],
+  steady: ['작은 루틴 하나를 매일 반복하면 운이 안정돼요.', '무리한 확장 없이 지금 하는 일의 질을 올리세요.', '이 달은 정리와 준비에 쓰면 다음 달이 가벼워져요.']
+};
+function zwFlowNames(list) {
+  return (list || []).map(function (s) { return s && s.name; }).filter(Boolean);
+}
+function zwFlowMonthSignal(pd, T, mo) {
+  var row = (pd.palaceStarData && pd.palaceStarData[mo.idx]) || {};
+  var mains = zwFlowNames(row.stars);
+  var aux = zwFlowNames(row.auxStars);
+  var bad = zwFlowNames(row.badStars);
+  var score = 50 + mains.length * 7 + aux.length * 3 - bad.length * 6;
+  var yearW = { '화록': 13, '화권': 8, '화과': 7, '화기': -15 };
+  var monthSelfW = { '화록': 9, '화권': 6, '화과': 5, '화기': -12 };
+  var monthTriadW = { '화록': 5, '화권': 3, '화과': 2, '화기': -7 };
+  var counts = { '화록': 0, '화권': 0, '화과': 0, '화기': 0 };
+  var here = [];
+  ZW_FLOW_TYPES.forEach(function (t) {
+    var ym = T.marks[t];
+    if (ym && ym.idx === mo.idx) { score += yearW[t]; counts[t] += 1; here.push({ scope: '유년', type: t, star: ym.star }); }
+    var mm = mo.marks[t];
+    if (mm && mm.idx >= 0) {
+      if (mm.idx === mo.idx) { score += monthSelfW[t]; counts[t] += 1; here.push({ scope: '월간', type: t, star: mm.star }); }
+      else if (zwFlowTriadHas(mo.idx, mm.idx)) { score += monthTriadW[t]; }
+    }
+  });
+  score = Math.max(12, Math.min(98, Math.round(score)));
+  var grade = score >= 78 ? '개문(開門)' : (score >= 62 ? '정진(精進)' : (score >= 46 ? '정돈(整頓)' : '수성(守成)'));
+  return {
+    month: mo.month, idx: mo.idx, palaceName: mo.natalPalace, main: mains, aux: aux, bad: bad, here: here,
+    counts: counts, score: score, grade: grade, careful: counts['화기'] > 0 || bad.length >= 2 || score < 46,
+    theme: ZW_FLOW_PALACE_THEME[mo.natalPalace] || { focus: '운의 흐름 조율', money: '기본 구조를 점검하면 손실을 줄일 수 있어요.', relation: '말과 약속을 가볍게 다루지 마세요.' }
+  };
+}
+function zwFlowMonthOlympusCands(sig) {
+  var out = [];
+  sig.here.forEach(function (h) { out.push(zwOlympusSealCand(h.type)); });
+  if (sig.main[0]) out.push(zwOlympusStarCand(sig.main[0]));
+  out.push(zwOlympusPalaceCand(sig.palaceName));
+  return out;
+}
+function zwFlowDomainScore(sig, domain) {
+  var score = Number(sig.score || 50);
+  var name = sig.palaceName;
+  if (domain === 'money' && /재백궁|전택궁|관록궁/.test(name)) score += 10;
+  if (domain === 'career' && /관록궁|천이궁|명궁/.test(name)) score += 10;
+  if (domain === 'love' && /부부궁|자녀궁|복덕궁/.test(name)) score += 10;
+  if (domain === 'health' && /질액궁|복덕궁|명궁/.test(name)) score += 8;
+  if (domain === 'move' && /천이궁|노복궁|관록궁/.test(name)) score += 9;
+  score += sig.counts['화록'] * 7 + sig.counts['화권'] * 5 + sig.counts['화과'] * 4 - sig.counts['화기'] * 9 - sig.bad.length * 3;
+  return Math.max(10, Math.min(99, Math.round(score)));
+}
+function zwFlowDomainHtml(sig) {
+  var meta = zwFlowDomainMeta();
+  return Object.keys(meta).map(function (key) {
+    var mt = meta[key];
+    var score = zwFlowDomainScore(sig, key);
+    var tone = score >= 75 ? mt.good : (score <= 45 ? mt.care : mt.mid);
+    var color = score >= 75 ? '#86efac' : (score <= 45 ? '#fca5a5' : '#fcd34d');
+    return '<div style="background:rgba(2,6,23,0.36);border:1px solid rgba(148,163,184,0.18);border-radius:8px;padding:7px;">'
+      + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;"><b style="color:#dbeafe;">' + mt.label + '</b><span style="color:' + color + ';font-weight:900;">' + score + '</span></div>'
+      + '<div style="font-size:0.7rem;color:#cbd5e1;line-height:1.5;margin-top:3px;">' + zwDeepEsc(tone) + '</div></div>';
+  }).join('');
+}
+function zwFlowMonthCard(pd, mo, sig, oly, ctx) {
+  var star = sig.main[0] || '';
+  var lead = star
+    ? '주성 <b>' + zwDeepEsc(star) + '</b>' + zwDeepEsc(zwJosa(star, '이', '가').slice(star.length)) + ' ' + zwDeepEsc(zwJosa(sig.theme.focus, '을', '를')) + ' 비춰요.'
+    : '이 궁은 비어 있어(공궁) ' + zwDeepEsc(zwJosa(sig.theme.focus, '은', '는')) + ' 스스로 기준을 세울수록 단단해져요.';
+  var seal = '';
+  ['화록', '화기'].forEach(function (t) {
+    var m = mo.marks[t];
+    if (!m || !m.star || m.idx < 0) return;
+    var key = m.palace + '|' + t;
+    var sentence = (ZW_FLOW_MATRIX[m.palace] || {})[t] || '';
+    if (ctx.seenM[key]) sentence = ctx.seenM[key] + '월에 이미 본 ' + m.palace + ' ' + zwJosa(t, '이', '가') + ' 한 번 더 돌아와요. 그때 남은 숙제를 이번 달에 마무리하세요.';
+    else ctx.seenM[key] = mo.month;
+    seal += '<div style="display:flex;gap:7px;align-items:flex-start;margin-top:5px;">' + zwFlowChip(t)
+      + '<div style="min-width:0;font-size:0.74rem;line-height:1.6;color:#e2e8f0;"><b>' + zwDeepEsc(m.star) + '</b> → ' + zwDeepEsc(m.palace) + (m.idx === mo.idx ? ' <span style="color:#fde68a;">· 이 달의 궁</span>' : '') + '<br>' + zwDeepEsc(sentence) + '</div></div>';
+  });
+  var actionKind = sig.careful ? 'careful' : (sig.score >= 78 ? 'high' : 'steady');
+  var action = ZW_FLOW_MONTH_ACTION[actionKind][(mo.month - 1) % 3];
+  var olyLine = oly ? zwOlympusLine(oly) : '';
+  return '<article style="background:rgba(15,23,42,0.58);border:1px solid rgba(196,181,253,0.22);border-radius:11px;padding:11px 12px;box-shadow:0 8px 20px rgba(0,0,0,0.2);">'
+    + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px;">'
+      + '<b style="color:#fde68a;font-size:0.92rem;">' + mo.month + '月 · ' + zwDeepEsc(sig.palaceName) + '</b>'
+      + '<span style="color:#c4b5fd;font-size:0.72rem;font-weight:800;">' + sig.score + ' · ' + sig.grade + '</span>'
+    + '</div>'
+    + '<div style="font-size:0.8rem;color:#e9d5ff;line-height:1.62;margin-bottom:6px;">' + lead + '</div>'
+    + '<div style="font-size:0.76rem;color:#cbd5e1;line-height:1.62;">'
+      + '<b style="color:#93c5fd;">재물·일:</b> ' + zwDeepEsc(sig.theme.money) + '<br>'
+      + '<b style="color:#f9a8d4;">관계:</b> ' + zwDeepEsc(sig.theme.relation) + '<br>'
+      + '<b style="color:#86efac;">실행:</b> ' + zwDeepEsc(action)
+    + '</div>'
+    + '<div style="margin-top:6px;font-size:0.7rem;color:#94a3b8;">월간 ' + zwDeepEsc(mo.ganKo + '(' + mo.gan + ')') + '</div>' + seal
+    + (olyLine ? '<div style="margin-top:7px;font-size:0.74rem;color:#fde68a;line-height:1.55;">' + zwDeepEsc(olyLine) + '</div>' : '')
+    + '<details style="margin-top:9px;border-top:1px solid rgba(148,163,184,0.18);padding-top:8px;"><summary style="cursor:pointer;color:#fde68a;font-weight:900;font-size:0.78rem;">' + mo.month + '월 세부 운기 펼치기</summary>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;margin-top:8px;">' + zwFlowDomainHtml(sig) + '</div>'
+      + '<div style="font-size:0.76rem;color:#dbeafe;line-height:1.7;margin-top:8px;">'
+        + '<b style="color:#fca5a5;">주의 신호:</b> ' + zwDeepEsc(sig.bad.length ? sig.bad.slice(0, 3).join(' · ') + '의 그림자가 있어요.' : '큰 흉성 압박은 약해요.')
+      + '</div></details>'
+  + '</article>';
+}
+function zwFlowQuarterSay(q, items, seenOracle) {
+  var hi = items[0];
+  var lo = items[0];
+  items.forEach(function (it) {
+    if (it.sig.score > hi.sig.score) hi = it;
+    if (it.sig.score < lo.sig.score) lo = it;
+  });
+  var hasHigh = hi.sig.score >= 70;
+  var hasCareful = items.some(function (it) { return it.sig.careful; });
+  var careful = null;
+  items.forEach(function (it) { if (it.sig.careful && (!careful || it.sig.score < careful.sig.score)) careful = it; });
+  var n = q + 1;
+  var verdict;
+  var mood;
+  if (hasHigh && hasCareful) { verdict = n + '분기는 ' + hi.mo.month + '월에 열고 ' + careful.mo.month + '월에 지키는 구간입니다.'; mood = 'thinking'; }
+  else if (hasHigh) { verdict = n + '분기는 ' + hi.mo.month + '월에 힘이 모이는 구간입니다.'; mood = 'smile'; }
+  else if (hasCareful) { verdict = n + '분기는 ' + careful.mo.month + '월을 조심히 넘기는 구간입니다.'; mood = 'verdict'; }
+  else { verdict = n + '분기는 루틴으로 다지는 구간입니다.'; mood = 'composed'; }
+  var focus = hasHigh ? hi : (careful || lo);
+  var detail = focus.oly
+    ? focus.mo.month + '월은 ' + zwJosa(zwOlympusShort(focus.oly), '이', '가') + ' 비추는 달이에요.' + (seenOracle[focus.oly.oracle] ? '' : ' ' + focus.oly.oracle)
+    : focus.mo.month + '월에 힘을 모으세요.';
+  if (focus.oly && focus.oly.oracle) seenOracle[focus.oly.oracle] = 1;
+  return zwMusungSay(mood, verdict, detail);
+}
+function buildZwMonthlyFlowHtml(pd, flowYear) {
+  var fallback = { summaryHtml: '', bodyHtml: '', ganji: String(flowYear) };
+  try {
+    if (!pd || !Array.isArray(pd.palaceStarData)) return fallback;
+    var T = zwYearFlowTheory(pd, flowYear);
+    var D = zwDoujunMonths(pd, flowYear);
+    var ctx = { seenM: {} };
+    var used = {};
+    var prev = '';
+    var items = D.months.map(function (mo) {
+      var sig = zwFlowMonthSignal(pd, T, mo);
+      var oly = zwOlympusPick(zwFlowMonthOlympusCands(sig), used, prev);
+      if (oly) prev = oly.god;
+      return { mo: mo, sig: sig, oly: oly };
+    });
+    var best = items[0];
+    var worst = items[0];
+    items.forEach(function (it) {
+      if (it.sig.score > best.sig.score) best = it;
+      if (it.sig.score < worst.sig.score) worst = it;
+    });
+    var seals = ZW_FLOW_TYPES.map(function (t) {
+      var s = ZW_FLOW_SIHUA_SEAL[t];
+      var m = T.marks[t];
+      var icon = (ZW_FLOW_OLYMPUS_GOD_META[s.god] || { icon: '✦' }).icon;
+      var where = m.idx >= 0 ? (m.star + ' → ' + m.palace) : (m.star ? m.star + ' (명반에 자리 없음)' : '');
+      return '<div style="font-size:0.76rem;line-height:1.6;color:#e2e8f0;">' + icon + ' <b>' + zwDeepEsc(s.god) + '</b> · ' + zwDeepEsc(t) + ' ' + zwDeepEsc(where) + '</div>';
+    }).join('');
+    var kwon = T.marks['화권'];
+    var gi = T.marks['화기'];
+    var openDetail = '올림포스의 제우스는 화권(' + (kwon.star || '-') + ')으로, 헤르메스는 화기(' + (gi.star || '-') + ')로 이 해에 서명했어요.'
+      + (kwon.idx >= 0 && gi.idx >= 0 ? ' 번개를 쥔 자리는 ' + kwon.palace + ', 서판을 쥔 자리는 ' + gi.palace + '이니 두 자리를 먼저 챙기세요.' : ' 이 해의 신호는 내 명반의 몇몇 자리에서만 또렷하게 와요.');
+    var openSay = zwMusungSay('composed', flowYear + '년의 열두 달은 ' + best.mo.month + '월에 가장 밝고 ' + worst.mo.month + '월에 가장 무겁습니다.', openDetail);
+    function rankList(list) {
+      return list.map(function (it) {
+        return '<span style="display:inline-flex;margin:2px 4px 2px 0;padding:3px 7px;border-radius:999px;border:1px solid rgba(250,204,21,0.24);background:rgba(250,204,21,0.08);color:#fde68a;font-size:0.72rem;font-weight:800;">' + it.mo.month + '월 · ' + zwDeepEsc(it.sig.palaceName) + ' ' + it.sig.score + '</span>';
+      }).join('');
+    }
+    var sortedHi = items.slice().sort(function (a, b) { return b.sig.score - a.sig.score; }).slice(0, 3);
+    var sortedLo = items.slice().sort(function (a, b) { return a.sig.score - b.sig.score; }).slice(0, 3);
+    var summaryHtml = openSay
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin:0 0 13px;">'
+        + '<div style="background:rgba(250,204,21,0.08);border:1px solid rgba(250,204,21,0.24);border-radius:11px;padding:11px;"><b style="color:#fde68a;">월의 기준(두군)</b><div style="font-size:0.76rem;color:#e2e8f0;line-height:1.65;margin-top:5px;">' + flowYear + '년 ' + zwDeepEsc(T.ganji) + ' · 음력 정월은 내 명반의 ' + zwDeepEsc(D.months[0].natalPalace) + '에서 시작해 한 달에 한 궁씩 나아가요.</div></div>'
+        + '<div style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.22);border-radius:11px;padding:11px;"><b style="color:#86efac;">황금기 TOP 3</b><div style="margin-top:5px;">' + rankList(sortedHi) + '</div></div>'
+        + '<div style="background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.22);border-radius:11px;padding:11px;"><b style="color:#fca5a5;">경계기 TOP 3</b><div style="margin-top:5px;">' + rankList(sortedLo) + '</div></div>'
+        + '<div style="background:rgba(125,211,252,0.08);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:11px;"><b style="color:#bae6fd;">올림포스 4인장</b><div style="margin-top:5px;">' + seals + '</div></div>'
+      + '</div>';
+    var bodyHtml = '';
+    var seenOracle = {};
+    for (var q = 0; q < 4; q += 1) {
+      var chunk = items.slice(q * 3, q * 3 + 3);
+      bodyHtml += zwFlowQuarterSay(q, chunk, seenOracle);
+      bodyHtml += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'
+        + chunk.map(function (it) { return zwFlowMonthCard(pd, it.mo, it.sig, it.oly, ctx); }).join('') + '</div>';
+    }
+    return { summaryHtml: summaryHtml, bodyHtml: bodyHtml, ganji: T.ganji };
+  } catch (_monthErr) { return fallback; }
 }
 function _calculateMonthBranchBySolarTermFromParts(parts) {
   if (!parts) return '';
@@ -23186,41 +23785,10 @@ function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {
         var flowYear = _zwNowYear();
         var flowGanji = zwFlowGanji(flowYear);
         var flowYearGan = flowGanji.charAt(0) || pd.yearGan || '';
-        var flowYearZhi = flowGanji.charAt(1) || '';
-        var annualAnchorIdx = (typeof ZHI_LIST !== 'undefined' && ZHI_LIST.indexOf(flowYearZhi) >= 0) ? ZHI_LIST.indexOf(flowYearZhi) : -1;
-        if (annualAnchorIdx < 0 && pd.palacesByIndex) annualAnchorIdx = pd.palacesByIndex.indexOf('명궁');
-        if (annualAnchorIdx < 0) annualAnchorIdx = 0;
-        var monthlyFlowHtml = '';
-        var monthlyFlowSignals = [];
-        for (var mf = 0; mf < 12; mf += 1) {
-          var monthIdx = (annualAnchorIdx + mf) % 12;
-          var monthSignal = zwFlowPalaceSignal(monthIdx, flowYearGan);
-          monthlyFlowSignals.push({ label:(mf + 1)+'월', signal:monthSignal });
-          var primaryStar = monthSignal.main[0] || '공궁';
-          var monthOlympus = zwFlowOlympus(monthSignal);
-          var monthDeepHtml = zwFlowDeepReading(monthSignal, monthOlympus, (mf + 1)+'월');
-          var isCarefulMonth = monthSignal.counts['화기'] > 0 || monthSignal.bad.length >= 2;
-          var actionLine = isCarefulMonth
-            ? '계약, 지출, 감정 표현은 하루를 더 두고 확인하세요.'
-            : (monthSignal.score >= 78 ? '공개, 제안, 확장 행동을 한 가지는 반드시 실행하세요.' : '작은 루틴 하나를 매일 반복하면 운이 안정됩니다.');
-          monthlyFlowHtml += '<article style="background:rgba(15,23,42,0.58);border:1px solid rgba(196,181,253,0.22);border-radius:11px;padding:11px 12px;box-shadow:0 8px 20px rgba(0,0,0,0.2);">'
-            +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px;">'
-              +'<b style="color:#fde68a;font-size:0.92rem;">'+(mf + 1)+'月 · '+zwFlowEsc(monthSignal.palaceName)+'</b>'
-              +'<span style="color:#c4b5fd;font-size:0.72rem;font-weight:800;">'+monthSignal.score+' · '+monthSignal.grade+'</span>'
-            +'</div>'
-            +'<div style="font-size:0.8rem;color:#e9d5ff;line-height:1.62;margin-bottom:6px;">주성 <b>'+zwFlowEsc(primaryStar)+'</b>이 '+zwFlowEsc(monthSignal.theme.focus)+'을 비춥니다.</div>'
-            +'<div style="font-size:0.76rem;color:#cbd5e1;line-height:1.62;">'
-              +'<b style="color:#93c5fd;">재물·일:</b> '+zwFlowEsc(monthSignal.theme.money)+'<br>'
-              +'<b style="color:#f9a8d4;">관계:</b> '+zwFlowEsc(monthSignal.theme.relation)+'<br>'
-              +'<b style="color:#fcd34d;">주의:</b> '+(isCarefulMonth ? '화기와 흉성의 그림자가 있으니 과속을 피하세요.' : '기회는 있으나 흩어지면 복이 얕아집니다.')+'<br>'
-              +'<b style="color:#86efac;">실행:</b> '+actionLine
-            +'</div>'
-            +'<div style="margin-top:7px;">'+zwFlowSihuaTags(monthSignal.sihua)+'</div>'
-            +'<div style="margin-top:7px;font-size:0.74rem;color:#fde68a;line-height:1.55;"><b>보조 상징:</b> '+zwFlowEsc(monthOlympus.god)+' · '+zwFlowEsc(monthOlympus.seal)+'</div>'
-            +monthDeepHtml
-          +'</article>';
-        }
-        var monthlySummaryHtml = zwFlowAnnualSummary(monthlyFlowSignals, flowYear, flowGanji || String(flowYear));
+        // 월 배치는 두군(斗君) 유월 + 월간 사화 — js/saju-engine.js 의 buildZwMonthlyFlowHtml 하나가 만든다(셸과 같은 코드).
+        var flowMonthly = buildZwMonthlyFlowHtml(pd, flowYear);
+        var monthlyFlowHtml = flowMonthly.bodyHtml;
+        var monthlySummaryHtml = flowMonthly.summaryHtml;
         var birthYearForFlow = Number((window._ziweiBirth && window._ziweiBirth.year) || 0);
         var currentKoreanAge = birthYearForFlow > 0 ? (flowYear - birthYearForFlow + 1) : 0;
         var currentDahan = null;
@@ -23276,9 +23844,9 @@ function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {
         }
         var sec_ziwei_flow = '<div data-cd-marker="'+ZW_FLOW_MARKER+'" style="background:linear-gradient(145deg,rgba(17,24,39,0.92),rgba(49,22,83,0.68));padding:18px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(216,180,254,0.28);box-shadow:0 12px 28px rgba(0,0,0,0.24);">'
           +'<h2 style="color:#fef3c7;font-size:1.18rem;margin:0 0 8px;border-bottom:1px solid rgba(250,204,21,0.24);padding-bottom:8px;">📅 자미두수 1년운 — '+flowYear+'년 월별 운기</h2>'
-          +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
+          +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowMonthly.ganji || String(flowYear))+'의 사화를 두군(斗君) 기준 월 궁에 얹어, 무성이 올림포스의 눈으로 월별 흐름을 풀어 드립니다.</p>'
           +monthlySummaryHtml
-          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
+          +monthlyFlowHtml
           +'<div class="cd-section-gate zw-basic-paid-gate fr-report-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 5,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'

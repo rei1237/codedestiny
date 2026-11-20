@@ -212,3 +212,13 @@ export type WebtoonCut = {
 - 영냥이 moods를 `night` 톤에 합성한 실제 화면: 화면 미실측이다.
 - 엔진의 "주의 카드" 플래그가 `master-reading.mjs`에 있는지: 이번에 확인하지 않았다. 없으면 카드 ID 목록을 고정한다.
 - 기존 `daily-webtoon.ts` 대사가 §7-1 규칙(60자 등)을 지키는지: 검사하지 않았다.
+
+## 부록 A. 무성 × 기본 자미두수 무료 결과 (2026-11-21)
+
+- 적용 범위: 기본 자미두수 모달의 "연간 흐름 정밀 — 3개년 유년 리딩"과 "1년운 월별 운기"(`js/saju-engine.js`의 `zwMusungSay`). 서버 번들(`worker/lib/saju-section/runtime.generated.mjs`)이 같은 함수를 쓴다.
+- 결정적 템플릿이다. LLM을 부르지 않는다. 표정(`composed·gentle·smile·thinking·verdict·sorry`)은 엔진 판정(유년 tone, 월 점수)에서 정해진다.
+- 말풍선 규칙: 첫 문장은 합니다체 판결 80자 이하(`니다.`로 끝), 나머지는 해요체. 반말·애칭·원작 사연·공포·확정 예언 금지. 테스트 `__tests__/ui/ziwei-yearly-flow-dedupe.test.mjs`가 `musungRegisterDrift`로 지킨다.
+- 중복 규칙: 같은 (궁, 사화)·쌍록/쌍기·올림포스 신탁은 한 번만 풀고 이후엔 앞 해를 가리킨다. 같은 문장·카드 간 6-gram 겹침은 같은 테스트가 막는다.
+- 올림포스 상징(제우스=자미·화권, 헤르메스=천기·화기 서판, 데메테르=화록, 아폴론=화과)은 무성이 들려주는 서사다. 별도 화자를 두지 않는다.
+- CSS: `styles/basic-fortune-library.css`의 `#ziweiModalOverlay .zw-musung-say*`. 모바일 17px·행간 1.8, 얼굴 이미지는 기존 `public/images/expert-characters/musung/` 재사용.
+- 심화(`/ziwei/chart`)는 이번 범위 밖이다.
