@@ -83,3 +83,10 @@ test('sukuyo compatibility web flow shows the retry panel in place for a held fa
   assert.match(client, /paymentSurface === "toss" \? null : expertRetryHoldOf\(data, id\)/);
   assert.equal(client.match(/= !data\.ok && "retry" in data \? heldRetryOf\(data, /g)?.length, 2, 'saved result and start both check for a held failure');
 });
+
+test('karma web result shows the retry panel for a held failure, never on Toss', () => {
+  const client = fs.readFileSync('app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx', 'utf8');
+  assert.match(client, /apiBase="\/api\/karma-destiny-ai"/);
+  assert.match(client, /paymentSurface === "toss" \|\| result\?\.status !== "generation_failed" \? null : expertRetryHoldOf\(result, sessionId\)/);
+  assert.match(client, /status === 503 && code === "LLM_ERROR"\) \{ setResumeEpoch\(value => value \+ 1\); return; \}/);
+});
