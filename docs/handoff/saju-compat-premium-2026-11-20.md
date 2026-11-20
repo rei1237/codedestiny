@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "B 사주 탭 무료 궁합 + 달빛 예화 고급 궁합 CTA(sessionStorage 프리필) — 무료 문구를 넣을 때 saju-bundle-copy.static.test.js:227·셸 레거시 문구·feature-visual-details 인벤토리를 함께 갱신"
+next: "A4 화면 검증 — 사주 탭 무료 궁합 결과 상단·끝 타일과 고급 궁합 prefill 화면을 visual-checker 로 최종 판정(B 재판정 미회수), ?preview=success|failed 확인"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -94,7 +94,7 @@ next: "B 사주 탭 무료 궁합 + 달빛 예화 고급 궁합 CTA(sessionStora
 - [x] A1 계산 모듈 `worker/lib/saju-compat-premium-facts.js`와 테스트 `__tests__/worker/saju-compat-premium-facts.test.js` → check:fast → 커밋
 - [x] A2 카탈로그(paid-feature-registry·billing·saju-service-catalog·service-registry), 프롬프트, 라우트, 모델, worker 배선, 계약·RETRY_FIRST 등록, paid-delivery 테스트 → 커밋
 - [x] A3 App Router 입력·결과 페이지, dev-preview fixture, 보관함 등록, SEO 소개 페이지 갱신 → 커밋
-- [ ] B 사주 탭: 결제 없이 정적 궁합 결과를 보여 주고, 그 아래 달빛 예화 톤의 고급 궁합 CTA를 둔다(sessionStorage 프리필). 그다음 sync:public → 커밋
+- [x] B 사주 탭: 결제 없이 정적 궁합 결과를 보여 주고, 그 아래 달빛 예화 톤의 고급 궁합 CTA를 둔다(sessionStorage 프리필). 그다음 sync:public → 커밋
 - [ ] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
 - [ ] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>`
 - [ ] C·D 감사 결과를 paid-retry R10에 넘긴다. 상대 세션이 끝났으면 이어서 구현하고, 아니면 보고만 한다.
@@ -154,6 +154,24 @@ next: "B 사주 탭 무료 궁합 + 달빛 예화 고급 궁합 CTA(sessionStora
 5. 공용 파일(paid-delivery-stuck·consultation-delivery-refund·검증기)을 R10 도 수정 중 — M 머지 때 한 줄 충돌 가능.
 6. (A3 에서 payment-gating.md:375 가격 정정 완료) 범위 밖 보고: P0 인벤토리 재생성 시 saju-guardian-unlock 5000→3000 드리프트(기존), `docs/context/payment-gating.md:375` 가 compat-saju-compatibility 를 10,000원으로 적음(레지스트리는 5,000원).
 7. (A3 에서 적용·패치 삭제 완료) 카탈로그 표시 전환(js/core/service-registry.js·lib/saju/saju-service-catalog.mjs)은 감사가 가격 불일치를 지적해 A3 로 미룸 — 패치 보관 `.tmp/a3-registry-switch.patch`(미추적, A3 에서 적용 후 삭제).
+
+### B 사주 탭 무료 궁합 + 달빛 예화 CTA (2026-11-20, 서브에이전트, mock 만)
+
+커밋(워크트리 브랜치, push·머지 안 함):
+- a3860d093 고급 궁합 페이지 prefill 리더(`premium-delivery.ts` readPremiumPrefill: sessionStorage `cd:sajuCompatPremium:prefill:v1`, 30분 TTL, 읽으면 삭제, 형식 검증; URL 에 개인정보 없음)
+- c33c7ed25 runCompat 무료화(정적 analyzeCompat+전생, 시간 모름이면 정오 안내), 레거시 결제 대기만 재개(`_seSajuCompatLegacyPending`), 달빛 예화 CTA(`_seSajuCompatAppendPremiumCta`, `.cd-scp-*` in fortune-ui.css), 쇼케이스·배지(기본 무료/고급 궁합 10,000원, i18n 4키), 상품 상세 notice 3곳, 마케팅 ctaNote, SEO 소개(description·FAQ “네, 기본 궁합은 무료”·시간 모름=정오), test 227 갱신, verifier fail-closed 단언(runCompat 본문에 게이트·레거시 진입 호출 금지, 변이로 무는 것 확인), sync:public 미러, sitemap 원장 재생성
+
+검증(실측): verify:paid-feature-billing-policy PASS; node --test saju-bundle-copy·feature-visual-details·saju-compat-zero-hour·saju-crafted-static 43/43, per-use-price-parity·feature-marketing-copy-generated 8/8; verify-payment-policy-md 통과; check:fast 1차 sitemap drift 실패 → sitemap:generate 후 재실행 exit 0(jest 486 suites/8333 pass). paid-gate-auditor 조건부 PASS(결제 verify 9종·freeze 통과). 화면(next dev :3127, Playwright 390px, 결과 세션만 로컬 stub): 시간 모름/앎 두 경우 CTA·href·문구 렌더, 시간 모름만 정오 안내, 결제창 0, pageerror 0, CTA 클릭 → prefill 저장 → 고급 궁합 입력에 서윤·1995-03-14·09:00·도윤·1993-08-02 채움(모름=체크박스 on / 앎=14:30), 읽은 뒤 키 삭제. visual-checker: CTA 카드 PASS(대비 9.6~13.8:1, 버튼 48px), 정오 안내 PASS. 결과 전체·prefill 화면 재촬영본(scratchpad shots) 재판정은 미회수 → A4 에서 판정.
+
+남은 위험(B):
+1. 서버 `paid-feature-registry.js:284` compat-saju-compatibility 에 saleEnabled:false 없음 — 낡은 번들·직접 호출로 5,000원 판매 가능. 선례(명리 타로·운명의 섬)는 서버에서 닫음. RED(결제 정본)라 사용자 결정 필요. payment-gating.md 에 무료 전환 절 미기재.
+2. 홈 레지스트리 별칭 runCompat → saju-compat-premium(`js/core/service-registry.js:959`)은 home-service-finder 중복 제거에만 쓰여 게이팅 영향 없음 — 수정 안 함(홈 검색엔 고급 진입만 노출).
+3. `_seSajuCompatLlmEntry` 호출부 0, `se_23638_call_confirm` 키 미사용 — 레거시 보존 요구로 남김.
+4. 무료 결과에 CompatLlm 프롬프트 모듈(서버 비용 0)이 함께 붙음 — 기존 정적 경로 동작 그대로.
+5. prefill relationType: love→dating, 그 외 빈 값→dating(고급은 연애형 옵션만).
+6. CTA 잔가지 장식이 우상단에서 설명 2행 끝에 옅게 겹침(뒤 레이어·대비 10.6:1 유지) — 필요 시 크기 축소.
+7. fortune-ui-home.css 미재생성(새 선택자는 홈 밖). docs/product-details/product-ledger.json·docs/toss/full-service-inventory.json 의 runCompat/LLM 언급 미갱신.
+8. 화면 확인 팁: /ggulggul/ 는 모바일 지연 장착이 #resultPage 를 떼어 낸다 → `location.hash='resultPage'` 후 계산.
 
 ### A3 프런트·보관함·SEO (2026-11-20, 서브에이전트, mock 만)
 
