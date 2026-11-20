@@ -273,6 +273,12 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - 롤백: `lib/master-motion/flags.mjs`·`js/core/yehwa-home.mjs` 의 `MASTER_MOTION_ENABLED=false`(+ `npm run sync:public`) 또는 c038f3980 `git revert`.
 - 남은 위험: 저사양 기기 합성 비용; 꽃잎이 그려질 때 컴포지팅 레이어로 소개장 목록 글자 AA 가 서브픽셀→그레이스케일로 바뀜(가독성 영향 없음); 후속 그림이 들어오면 용량·디코딩 재측정.
 
+### W4 CI 수선 (2026-11-21) — verify:pig-sprite-crop
+
+- 원인: c038f3980 의 `MasterMotion.module.css` `.frames img { width: calc(100% / var(--mm-n)) }`. `--mm-n` 이 TSX 인라인 style 에서만 정해지고 같은 CSS 파일에 단위 없는 선언이 없어, 가드가 나눗셈 우변의 단위 없음을 증명하지 못해 실패(구형 엔진의 길이÷길이 무효화 사고 방지 가드 — 가드는 정상 대상, 수정하지 않음).
+- 수선: `.frames` 에 `--mm-n: 1;` 단위 없는 기본값 선언. 인라인 style 이 같은 요소에서 덮으므로 프레임·CSS 모션 동작 불변. `sitemap:generate` 로 원장 서명 9개 갱신(lastmod 날짜 변동 없음).
+- 검증: verify:pig-sprite-crop OK(스타일시트 299개), check:fast --base=origin/main, check:pre-push.
+
 ## W2 비회원 무료 결과 (2026-11-21)
 
 승인 원문(2026-11-21, AskUserQuestion): "무료 결과만 비회원 (권장)" — 무료 결과는 로그인 없이, 개인정보 동의 유지, 보관함 저장·유료 풀이는 로그인. 요청 원문: "서비스 기능에 회귀는 없어야해".

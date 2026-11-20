@@ -68,6 +68,8 @@
 }
 video.art { width: calc(100% - 2 * var(--mm-art-inset, 0px)); height: calc(100% - 2 * var(--mm-art-inset, 0px)); }
 .frames {
+  /* 단위 없는 기본값 — 인라인 style 의 --mm-n(프레임 수)이 덮는다. verify:pig-sprite-crop 가 나눗셈 우변의 단위 없음을 이 선언으로 증명한다. */
+  --mm-n: 1;
   display: flex;
   width: calc(var(--mm-n) * 100%);
   height: 100%;
