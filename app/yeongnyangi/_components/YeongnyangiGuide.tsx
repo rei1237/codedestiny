@@ -12,6 +12,7 @@ import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budg
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import ReviewProof from '@/app/components/ReviewProof';
 import RevealDetailsOnHash from './RevealDetailsOnHash';
+import YeongnyangiFaqToon from './YeongnyangiFaqToon';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -59,9 +60,27 @@ export default function YeongnyangiGuide(){
    </a></li>)}</ul>
    <details className={styles.panel}><summary>생선별로 살펴보는 범위</summary><dl className={styles.fishDepth}>{fishRows.map(row=><div key={row.tier}><dt>{row.name}</dt><dd>{row.tier==='mackerel'?'한 가지 고민도 답과 근거, 생활 속 해석과 지금 해볼 행동까지 챕터별로 충분히 살펴봐요.':row.depth}</dd></div>)}</dl></details>
    <p className={styles.note}>챕터 수는 신규 한국어 질문 상담 기준이며 상담 종류와 기존 구매에 따라 달라질 수 있어요. 추가 질문은 저장된 상담 근거로 답할 수 있는 범위에서 이용해요. PDF는 한국어 상담 완료 후 저장할 수 있어요.</p>
-   <ReviewProof brand="yeongnyangi" productId="yeongnyangi" sampleHref="#yn-example" headingLevel={3}/>
+   <ReviewProof brand="yeongnyangi" productId="yeongnyangi" sampleHref="/yeongnyangi/faq/#yn-example" headingLevel={3}/>
   </section>
 
+  <section id="yn-faq-teaser" className={styles.teaser} aria-labelledby="yn-faq-teaser-title">
+   <img src="/assets/yeongnyangi/expressions/curious.webp" width={128} height={128} alt="" loading="lazy" decoding="async"/>
+   <div>
+    <h2 id="yn-faq-teaser-title">결제 전에 궁금한 거 있냥?</h2>
+    <p className={styles.teaserBubble}>가격, 상담 구성, 결과 보는 곳까지 영냥이가 컷으로 설명해 줄게냥.</p>
+    <p><a className={styles.teaserLink} href="/yeongnyangi/faq/">영냥이에게 물어보기</a></p>
+   </div>
+  </section>
+ </article>;
+}
+
+// /yeongnyangi/faq/ 가 쓰는 "결제 전에 알아두기" + 웹툰풍 FAQ. 홈에서는 접힌 안내 대신 위 teaser 한 컷만 둔다.
+export function YeongnyangiBeforeGuide(){
+ return <article className={styles.guide} aria-labelledby="yn-faq-title">
+  <section id="yn-faq-hero" aria-labelledby="yn-faq-title" className={styles.faqHero}>
+   <img src="/assets/yeongnyangi/expressions/welcome.webp" width={128} height={128} alt="" decoding="async"/>
+   <div><h1 id="yn-faq-title">운세보는 영냥이 자주 묻는 질문</h1><p className={styles.teaserBubble}>궁금한 건 여기 다 모아뒀다냥! 질문을 눌러 보라냥.</p></div>
+  </section>
   <section id="yn-before" aria-labelledby="yn-guide-title">
    <h2 id="yn-guide-title">결제 전에 알아두기</h2>
    <details id="yn-mackerel" className={styles.panel}><summary>{LOWEST_PRICE} 고등어 상담의 {EXPANDED_CHAPTERS.mackerel}챕터 구성</summary>
@@ -89,8 +108,8 @@ export default function YeongnyangiGuide(){
     <p className={styles.note}>오마카세 기준이며 모든 상담에 같은 분량이 적용되지는 않아요. 실제 글 길이는 질문과 생성 결과에 따라, PDF 페이지 수는 편집에 따라 달라져요. 선택한 상담의 구성과 가격은 결제 전에 확인해요.</p>
    </details>
    <div id="yn-faq" className={styles.faqBlock}>
-    <h3>자주 묻는 질문</h3>
-    <div className={styles.faq}>{YEONGNYANGI_FAQS.map(item=><details key={item.question}><summary>{item.question}</summary><p>{item.answer}</p></details>)}</div>
+    <h2>자주 묻는 질문</h2>
+    <YeongnyangiFaqToon items={YEONGNYANGI_FAQS}/>
     <details className={styles.craftedOverview}><summary>상담 방식과 전체 구성 자세히 보기</summary><CraftedProductDetail detail={craftedOverview}/><PublicRecordLink/></details>
     <p className={styles.note}>함께 보기: <a href="/ggulggul/">꿀꿀운세 홈</a> · <a href="/yeongnyangi/1000-won-fortune/">천원 사주 리포트</a> · <a href="/yeongnyangi/season-1/">영냥이 웹툰 시즌 1</a> · <a href="/yeongnyangi/library/">내 상담</a> · <a href="/privacy/">개인정보 처리방침</a></p>
    </div>

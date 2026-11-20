@@ -1,0 +1,17 @@
+/* Colours come only from the --yn-* night tokens set by .ynOriginal. */
+.toon { display: grid; gap: 12px; margin: 16px 0 8px; }
+.cut { border: 1px solid var(--yn-line); border-radius: 20px; background: var(--yn-surface); padding: 4px 14px 14px; }
+.cut > summary { list-style: none; display: flex; justify-content: flex-end; min-height: 44px; padding: 10px 0; cursor: pointer; }
+.cut > summary::-webkit-details-marker { display: none; }
+.cut > summary:focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 4px; }
+.ask { position: relative; max-width: 88%; padding: 10px 16px; border-radius: 18px 18px 4px 18px; background: color-mix(in srgb,var(--yn-gold) 18%,transparent); color: var(--yn-ivory); font-weight: 700; line-height: 1.5; }
+.ask::after { content: ' ▾'; color: var(--yn-gold); }
+.cut[open] .ask::after { content: ' ▴'; }
+.reply { display: grid; grid-template-columns: 64px minmax(0,1fr); gap: 10px; align-items: end; margin-top: 4px; }
+.reply img { display: block; width: 64px; height: 64px; border-radius: 50%; background: color-mix(in srgb,var(--yn-gold) 12%,transparent); }
+.bubble { position: relative; margin: 0; padding: 12px 16px; border-radius: 18px 18px 18px 4px; background: color-mix(in srgb,var(--yn-ivory) 10%,transparent); color: var(--yn-ivory); line-height: 1.7; overflow-wrap: anywhere; }
+.who { display: block; margin-bottom: 2px; color: var(--yn-gold); font-size: 0.8125rem; font-weight: 700; }
+@media (min-width: 720px) {
+ .reply { grid-template-columns: 88px minmax(0,1fr); gap: 14px; }
+ .reply img { width: 88px; height: 88px; }
+}
