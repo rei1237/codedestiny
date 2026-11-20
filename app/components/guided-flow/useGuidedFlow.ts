@@ -16,7 +16,7 @@ import {
   stepFromSearch,
   urlWithStep,
 } from '@/lib/guided-flow/step-controller.mjs';
-import { usePrefersReducedMotion } from '@/src/features/fortune-tea-house/lib/usePrefersReducedMotion';
+import { usePrefersReducedMotion } from '@/app/hooks/usePrefersReducedMotion';
 import {
   type GuidedFlowContext,
   trackGuidedFlowAbandon,
