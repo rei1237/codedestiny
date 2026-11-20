@@ -189,7 +189,7 @@ describe('free retry before refund',()=>{
  test('retry reopens the held session without a payment check and completes all chapters',async()=>{
   const {id,row}=await held();const kept=row.metadata.chapters.length;paid=false;
   const reopened=await post('retry',{id});expect(reopened.status).toBe(202);
-  expect(await reopened.json()).toMatchObject({status:'generating',id});expect(row.metadata).toMatchObject({attempts:0,transientAttempts:0,retryable:null,chapterRounds:{},retryReopens:1});
+  expect(await reopened.json()).toMatchObject({status:'generating',id});expect(row.metadata).toMatchObject({attempts:0,transientAttempts:0,retryable:null,chapterRounds:{},retryReopens:1});expect(Date.now()-new Date(row.metadata.retryReopenedAt).getTime()).toBeLessThan(60000);
   expect(row.metadata.chapters).toHaveLength(kept);
   const done=await drive(id);expect(done.status).toBe('completed');expect(done.report.chapters).toHaveLength(27);expect(refunds).toBe(0);
   expect((await post('retry',{id})).status).toBe(409);

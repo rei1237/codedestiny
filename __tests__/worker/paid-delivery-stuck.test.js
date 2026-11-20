@@ -61,6 +61,28 @@ test('6일이 지난 정체 문서는 시도 횟수와 무관하게 7일 무시 
   expect(stuck.shouldSettleStuck({ deliveryWatch: { stalls: 6 } }, START)).toBe(true);
 });
 
+// 다시 시도로 재개방한 문서는 재개방 시각부터 나이를 잰다 — 6일째 열린 다시 시도가 다음 크론에 바로 다시 확정되지 않게.
+// 환불 시각(생성 + 7일)은 재개방과 무관하게 그대로다.
+test('재개방한 문서의 정체 나이는 재개방 시각부터 재고, 환불 시각은 생성 + 7일 그대로다', () => {
+  const day6 = START + 6 * 86400000;
+  const generic = { createdAt: new Date(START), llmMeta: { retryable: { reopenedAt: new Date(day6) } } };
+  const heukwol = { createdAt: new Date(START), metadata: { retryReopenedAt: new Date(day6) } };
+  expect(stuck.shouldSettleStuck(generic, day6 + 600000)).toBe(false);
+  expect(stuck.shouldSettleStuck(heukwol, day6 + 600000)).toBe(false);
+  expect(stuck.shouldSettleStuck({ createdAt: new Date(START) }, day6 + 600000)).toBe(true);
+  expect(stuck.shouldSettleStuck({ ...generic, deliveryWatch: { stalls: 6 } }, day6 + 600000)).toBe(true);
+  expect(stuck.retryRefundAt(generic, day6).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);
+  expect(stuck.retryRefundAt(heukwol, day6).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);
+});
+
+test('복구 크론은 정체 나이 판정에 쓰는 재개방 시각을 함께 읽는다', async () => {
+  const model = memoryModel(baseDoc('partial'));
+  let selected = '';
+  model.find = () => ({ sort() { return this; }, limit() { return this; }, select(fields) { selected = fields; return this; }, lean: async () => [] });
+  await runCron(model, 'new-year-ai', jest.fn(), START);
+  expect(selected.split(/\s+/)).toEqual(expect.arrayContaining(['llmMeta.retryable.reopenedAt', 'metadata.retryReopenedAt']));
+});
+
 test('partial 이 진전 없이 6번 복구되면 다음 크론에서 다시 시도 가능한 실패로 두고 환불하지 않는다', async () => {
   const model = memoryModel(baseDoc('partial'));
   const resume = jest.fn(async () => new Response('{}', { status: 503 }));

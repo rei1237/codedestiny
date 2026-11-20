@@ -255,7 +255,7 @@ async function retryHeukwol(env,userId,id) {
   // CAS: 같은 보류 건이 아직 창 안이고 잠겨 있지 않을 때만 연다. 동시 다시 시도·환불 요청 중 하나만 이긴다.
   const reopened=await ServiceExecutionTransaction.updateOne({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY,status:'pending',
     refundStatus:{$in:[null,'none']},'metadata.retryable.refundAt':{$gt:at},$or:[{'lock.until':null},{'lock.until':{$lt:at}}]},
-    {$set:{'metadata.attempts':0,'metadata.transientAttempts':0,'metadata.retryable':null,'metadata.retryReopens':Number(doc.metadata.retryReopens||0)+1,
+    {$set:{'metadata.attempts':0,'metadata.transientAttempts':0,'metadata.retryable':null,'metadata.retryReopens':Number(doc.metadata.retryReopens||0)+1,'metadata.retryReopenedAt':at,
       ...(isV2(doc.metadata)?{'metadata.chapterRounds':{},'metadata.lastIssue':''}:{}),
       reasonCode:'HEUKWOL_RETRY_REOPENED',timeoutAt:new Date(now+3600000),nextRetryAt:at}});
   if(reopened?.matchedCount!==1)return error(409,'EXECUTION_CHANGED','진행 상태가 바뀌었어요. 저장된 상담을 다시 확인해 주세요.');

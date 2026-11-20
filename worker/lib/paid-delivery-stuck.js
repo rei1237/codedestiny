@@ -56,9 +56,19 @@ export function retryRefundAt(doc, now = Date.now()) {
   return new Date((Number.isFinite(created) ? created : now) + RETRY_REFUND_AFTER_MS);
 }
 
+// 정체 나이의 시작: 다시 시도로 재개방한 문서는 재개방 시각부터 잰다 — 6일째 연 다시 시도가 다음 크론에 바로 다시 확정되지 않게.
+// 공용·찻집·연애 비책·네오는 llmMeta.retryable.reopenedAt, 흑월은 metadata.retryReopenedAt 에 남긴다.
+// 환불 시각(retryRefundAt)은 생성 + 7일 그대로다(재개방이 기한을 늘리지 않는다).
+function stuckAgeStart(doc) {
+  const reopened = Math.max(0, ...[doc?.llmMeta?.retryable?.reopenedAt, doc?.metadata?.retryReopenedAt].map(ms).filter(Number.isFinite));
+  const created = docCreatedAt(doc);
+  if (!(reopened > 0)) return created;
+  return Number.isFinite(created) ? Math.max(created, reopened) : reopened;
+}
+
 export function shouldSettleStuck(doc, now) {
   if (Number(doc?.deliveryWatch?.stalls || 0) >= STUCK_SETTLE_STALLS) return true;
-  const created = docCreatedAt(doc);
+  const created = stuckAgeStart(doc);
   return Number.isFinite(created) && now - created >= STUCK_SETTLE_AGE_MS;
 }
 
