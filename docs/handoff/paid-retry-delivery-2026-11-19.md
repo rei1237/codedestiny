@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "R10 전문가 상담 지도: 서비스 안내 전문가 상담 묶음(#guide-expert·/consultations/)과 계약 목록 KNOWN_RETRY_PENDING 29개를 대조해 정확한 대상 표를 만든 뒤 묶음별 TDD. 시작 전 main CI(R9 push) 1회 확인"
+next: "R10 남은 전문가 상담 6종(astrology-ai → ziwei-ai → sukuyo-compatibility-ai → karma-destiny-ai → naming-prompt → fusion-fortune)을 베다점(실측 'R10 베다점')과 같은 모양으로 서비스마다 TDD·커밋. 공용 패널 app/components/ExpertRetryPanel.tsx 와 환불 크론 EXPERT_RETRY_SETTLERS 표에 한 줄씩 붙인다. 6종 끝나면 R9 절차로 머지·체인·push"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -70,6 +70,15 @@ next: "R10 전문가 상담 지도: 서비스 안내 전문가 상담 묶음(#gu
 - [x] R8 검증기: 계약 목록 각 서비스가 "실패 시 retryable + 다시 시도 경로 + 7일 환불"을 갖는지 fail-closed 로 검사(`scripts/verify-paid-llm-delivery-contract.mjs` 확장, 변이 1종으로 무는지 확인). 문서 `docs/context/ai-and-db.md` 유료 LLM 전달 계약 절 갱신. — `2c36ae32f`(검증기) + `acce61a44`(문서). 상세는 실측 "R8 검증기".
 - [x] R9 대표 7종 머지 → `npm test --prefix apps/toss` → `npm run check:fast -- --base=<origin/main SHA>` → `node scripts/run-paid-gate-suite.mjs --base=<SHA>` → `node scripts/verify-myeongri-tables.mjs` → `npm run check:pre-push` → push → main CI(PR CI·Paid Flow Gates) 녹색. — `30d6c6a95`(origin/main `a933d2a1b` 머지) + 이 문서 커밋, `git push origin HEAD:main`. 상세는 실측 "R9 머지". push 뒤 main CI 결과는 다음 세션이 첫 push 전에 1회 확인한다.
 - [ ] R10 "다른 기능들" + 전문가 상담(사용자 요청 2026-11-20으로 범위 확대): 서비스 안내의 전문가 상담 묶음(`#guide-expert` / `/consultations/`)의 유료 LLM 상담 전부 — 예: vedic·ziwei·astrology·nakshatra·karma·sukuyo 등 계약 목록에 있는 전문가 상담 — 에 같은 다시 시도 우선 정책(무료 다시 시도 → 생성 + 7일 또는 고객 요청 시 환불). 🔴 추측하지 말고 정확한 목록을 먼저 지도로 만든다(안내 소스·계약 목록 대조). 그다음 계약 목록 나머지 서비스에 같은 정책을 묶음별로(서비스마다 커밋). 지도 → TDD → 검사 체인 → push.
+  - [x] 지도 — `22f171334` (실측 "R10 전문가 상담 지도")
+  - [x] vedic-ai — `b0dd824ba`(워커·환불 크론·보관함·검증기·테스트) + `f474e9484`(공용 패널·웹 UI·보존 해시) + `4e78dc0f9`(sitemap 원장). 실측 "R10 베다점"
+  - [ ] astrology-ai
+  - [ ] ziwei-ai
+  - [ ] sukuyo-compatibility-ai
+  - [ ] karma-destiny-ai
+  - [ ] naming-prompt
+  - [ ] fusion-fortune
+  - [ ] 6종 끝 → R9 절차(origin/main 머지·미러/sitemap 재생성·체인·check:pre-push·조상 확인·push·CI 1회). 그 전에는 push 하지 않는다(지시).
 - [ ] R11 최종 보고 + 운영 승격 승인 질문(AskUserQuestion, 추천 "CI 녹색 뒤 1회 승격"). 승격 직전 `git log 25d9bc034..origin/main` 으로 다른 세션 커밋을 확인해 질문에 적는다.
 - [ ] R12 정리: 워크트리 배수(`npm run worktree:remove -- <경로>`, 다른 체크아웃에서), 스크래치 삭제, 이 문서 `status: done`.
 
@@ -88,6 +97,20 @@ next: "R10 전문가 상담 지도: 서비스 안내 전문가 상담 묶음(#gu
 S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 불일치, 흑월 근거 실패 3→5, '조심'인데 '기회' 톤. 연애 비책 정체 환불 재시도가 `refundEligibleAt` 미사용(R5: 창 안 정체는 해소, 생성 7일 경과 정체는 기존 경로). 마스터 인연의 서 운영 스크립트 재개방 위험 미확인. S14 프롬프트 최적화 대기.
 
 ## 실측
+### R10 베다점 (2026-11-20, 워크트리 커밋 `b0dd824ba`·`f474e9484`·`4e78dc0f9`, push 안 함)
+- 시작 전: R9 push `34f58616f` 의 PR CI 44697640465·Paid Flow Gates 44697640393 둘 다 success(1회 확인).
+- paid-gate-auditor 사전 감사 반영: 다시 시도 전용 문구(llmFailed "자동으로 복구됩니다" 금지), 표지 저장 try/catch(실패 시 기존 즉시 환불로 떨어짐), isLive 보수적(generating/partial + updatedAt < 120s), 카드 환불이 실패하면 증빙 claim 을 풀지 않고 표지도 정산 안 함(크론이 다시 돈다), 새 라우트의 Toss 는 404/409. 결제 동결 영향 없음(verify:payment-freeze 통과). 보안 분류기 접미사 정규식(`worker/security/index.js:583,585`)이 `/retry`→start, `/refund-request`→ensure 로 서비스 무관하게 덮는다.
+- 서버(`worker/routes/vedic-ai.js`): 차트 계산이 끝난 뒤(`calculated`) 웹 결제 건의 생성 실패만 `generation_failed` + `llmMeta.retryable`(`retryableFailureMeta`, refundAt = 생성 + 7일, `access` 스냅샷: accessType·paymentId·paymentDocId·source·evidenceType·evidenceId·purchaseId·prepaid·amount 화이트리스트) → 503 `LLM_FAILED` + `{refunded:false, retry:{available, refundAt, sessionId}}`. 시작 409·`/result` 409 에도 같은 payload. Toss·계산 오류·표지 저장 실패·창 지남은 기존 즉시 환불.
+  - `POST /api/vedic-ai/retry`: 소유자만(`reopenRetryableConsultation` CAS), 상한 다 쓴 묶음만 시도 수 0 으로(`vedicRetryReset`, ":" 없는 키만), 완성 묶음 유지 → `handleStart`(resumeSessionId). `POST /api/vedic-ai/refund-request`: `markRetryableRefundDue` → `settleVedicRetryRefund`(이용권 복원 → 카드 환불 → 성공 시에만 claim 해제·`refundSettledAt`).
+  - 크론: export `settleDueVedicRetryRefunds` → `worker/lib/consultation-delivery-refund.js` 의 새 표 `EXPERT_RETRY_SETTLERS`(리터럴 dynamic import, 서비스마다 try/catch, 테스트는 `options.expertRetrySettlers`로 교체 — 두 테스트 deps 에 `expertRetrySettlers: []` 추가). 남은 6종은 이 표에 한 줄씩.
+  - 보관함: `worker/lib/record-library.js` `retryHeld` 가 이미 일반형이라 주석만, 테스트에 vedic → `retry_available`·`/vedic-ai/result/?id=v1`.
+  - 검증기: vedic-ai 를 `KNOWN_RETRY_PENDING` → `RETRY_FIRST_POLICY`(`retryableFailureMeta`, `settleDueVedicRetryRefunds`, REFUND_CRON).
+- 클라이언트: 공용 `app/components/ExpertRetryPanel.tsx`(ko·en·ja·zh-CN·zh-TW, 나머지 영어 폴백, 날짜·일수 약속 없음; `expertRetryHoldOf`·`probeExpertRetryHold`·패널은 sessionId 만 POST). 결과 화면은 폴링 실패 시 `/result?id` 를 한 번 더 읽어 보류면 패널. 입력 흐름(`startConsultation`/`handleSubmit`)은 보류 실패를 `RETRY_HELD:<id>` 로 받아 `/vedic-ai/result/?id=` 로 이동. 테스트 `__tests__/ui/expert-retry-panel.test.mjs`(4).
+- 🔴 함정: `__tests__/fixtures/result-presentation-preservation.json` 이 vedic(그리고 astrology 결과·new-year·sukuyo)의 이름 붙은 함수 해시를 고정한다 — `startConsultation`·`handleSubmit`·`pollVedicResult`·`resumeSavedConsultation` 포함. 의도한 결제 함수 변경이면 그 함수만 같은 방식(ts AST getText, CRLF→LF, sha256)으로 다시 고정하고 커밋 메시지에 적는다. `pollVedicResult`·`resumeSavedConsultation` 은 건드리지 않았다(래핑으로 우회).
+- 🔴 함정: Edit 도구가 CRLF 파일을 LF 로 바꾼다(검증기에서 실측) — CRLF 파일은 node 패치(\r\n 정규화 후 되돌림). 모의 모델의 `instanceof Date` 는 structuredClone 된 Date 에서 거짓(다른 realm) → toString 검사. 앱 파일을 고칠 때마다 sitemap 원장 드리프트 → 마지막 수정 뒤 `npm run sitemap:generate`.
+- 검사(모두 exit 0): jest vedic-paid-delivery·record-library·paid-llm-delivery-contract 125/125, node --test consultation-delivery-refund 56/56, vedic UI 2종 6/6, ziwei-result-disclosure 외 3 25/25, expert-retry-panel 4/4, verify:paid-llm-delivery("다시 시도 우선 8개 … 대기 28개, 변이 32/32"), verify:vedic-ai-flow·payment-freeze·no-nested-retry·ai-prompt-billing-policy·worker-no-undef·cron-mongo-op-coverage, `npm run check:fast -- --base=34f58616f` critical 자동 승격 jest 484 스위트(1 skip) 8324 통과, `npm test --prefix apps/toss` 1765/1765(임시 정션 → 정션만 제거), verify-myeongri-tables OK, `node scripts/run-paid-gate-suite.mjs --base=34f58616f` 통과 91 / 실패 0(벽시계 941s, 전체 npm test 포함)
+- 감사 메모(보고만): 보류 동안 코인 자동 환불 `/api/billing/refund` 는 claim 이 잡혀 있어 409 REFUND_NOT_ELIGIBLE. `consultation-delivery-refund.js`·`paid-delivery-stuck.js` 는 paid-flow-gates 트리거 경로에 없다(기존 공백). 미확인: resolveBillingEvidence 의 증빙 시간 제한 유무.
+
 ### R10 전문가 상담 지도 (2026-11-20, 읽기 전용 조사 · 기점 `34f58616f`)
 - 대상 정본: `lib/brand/service-guide-webtoon.mjs:72-74` `guideGroups` expert ids = `app/consultations/stories.ts:5` `expertStoryIds` = ziwei·astrology·vedic·sukuyo-compat·legacy-naming·karma·fusion(7). 라우트 매핑 `app/consultations/ConsultationHub.tsx:31-33`, 기록 `lib/records/service-registry.js`. 계약 서비스 id = ziwei-ai·astrology-ai·vedic-ai·sukuyo-compatibility-ai·naming-prompt·karma-destiny-ai·fusion-fortune — 7개 모두 `KNOWN_RETRY_PENDING` 에 있다. nakshatra·human-design 등은 안내의 전문가 묶음이 아니다(나머지 계약 서비스는 R10 밖, 후속).
 - 공통: 7개 모두 `settleStuckDelivery` 없음(fusion 제외 6개는 `KNOWN_STUCK_SETTLE_GAPS` — 정체 감시는 경보만), 7개 모두 Toss 네이티브 분기(`nativeTossContext`/`worker/toss/native-*.js`)가 있고 Toss 는 실패 시 환불 없이 lease 재시도. `/retry`·`/refund-request` 없음.
