@@ -54,3 +54,15 @@ test('vedic web flow routes a held failure to the result page retry panel', () =
   assert.match(client, /expertRetryHoldOf\(data\)/);
   assert.match(client, /window\.location\.assign\(`\/vedic-ai\/result\/\?id=/);
 });
+
+test('astrology web flow routes a held failure to the result page retry panel, never on Toss', () => {
+  const result = fs.readFileSync('app/astrology-ai/result/AstrologyAiResultClient.tsx', 'utf8');
+  assert.match(result, /apiBase="\/api\/astrology-ai"/);
+  assert.match(result, /response\.status === 409 \? expertRetryHoldOf\(payload, resultId\)/);
+  assert.match(result, /retryHold && paymentSurface !== "toss"/);
+  const client = fs.readFileSync('app/astrology-ai/AstrologyAiClient.tsx', 'utf8');
+  assert.match(client, /paymentSurface === "toss" \? null : expertRetryHoldOf\(data\)/);
+  assert.match(client, /paymentSurface === "toss" \? null : await probeExpertRetryHold\(`\/api\/astrology-ai\/result\//);
+  assert.match(client, /window\.location\.assign\(`\/astrology-ai\/result\/\?id=/);
+  assert.equal(client.match(/code\.startsWith\(ASTROLOGY_RETRY_HELD\)/g)?.length, 2, 'submit and paid resume both route a held failure');
+});

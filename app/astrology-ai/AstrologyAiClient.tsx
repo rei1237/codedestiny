@@ -25,6 +25,7 @@ import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { expertRetryHoldOf, probeExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
@@ -1546,6 +1547,9 @@ function sleep(ms: number) {
 const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
 const RESULT_POLL_MAX_ATTEMPTS = 40;
 
+// 2026-11-20 R10: 웹 결제 건 생성 실패가 무료 다시 시도로 보류됐다는 내부 오류 코드 접두어(뒤에 상담 id).
+const ASTROLOGY_RETRY_HELD = "RETRY_HELD:";
+
 async function pollAstrologyResult(sessionId: string, scope: LocaleRequestScope, paymentSurface: "web" | "toss"): Promise<Consultation | null> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
@@ -1803,13 +1807,20 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
         const pendingSessionId = toText(asRecord(data).sessionId);
         if (!pendingSessionId) throw new Error("SERVER_ERROR");
         console.info("[AstrologyAI] generation pending, polling result", { sessionId: pendingSessionId });
-        const polled = await pollAstrologyResult(pendingSessionId, scope, paymentSurface);
+        // 2026-11-20 R10: 폴링이 실패로 끝나면 그 건이 다시 시도 보류인지 확인해 결과 화면(다시 시도·환불 요청)으로 보낸다.
+        const polled = await pollAstrologyResult(pendingSessionId, scope, paymentSurface).catch(async (failure) => {
+          const hold = paymentSurface === "toss" ? null : await probeExpertRetryHold(`/api/astrology-ai/result/${encodeURIComponent(pendingSessionId)}`, pendingSessionId);
+          throw hold ? new Error(`${ASTROLOGY_RETRY_HELD}${hold.sessionId}`) : failure;
+        });
         if (!polled || !scope.isCurrent()) return false;
         next = polled;
       } else {
         if (paymentSurface === "toss" && response.status === 401) throw new Error("LOGIN_REQUIRED");
         if (paymentSurface === "toss" && response.status === 403) throw new Error("ACCESS_DENIED");
         if ("ok" in data && data.ok === false) {
+          // 2026-11-20 R10: 웹 결제 건 생성 실패를 서버가 무료 다시 시도로 보류했다(환불 전).
+          const hold = paymentSurface === "toss" ? null : expertRetryHoldOf(data);
+          if (hold) throw new Error(`${ASTROLOGY_RETRY_HELD}${hold.sessionId}`);
           const reason = toText(data.reason || "SERVER_ERROR");
           throw new Error(reason || "SERVER_ERROR");
         }
@@ -1853,6 +1864,7 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
       return await startConsultation(idempotencyKey, extractPaymentContext(grant?.payload, idempotencyKey), payload);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      if (code.startsWith(ASTROLOGY_RETRY_HELD)) { openHeldRetry(code); return false; }
       console.error("[AstrologyAI] resume generation failed", { requestId: idempotencyKey, code });
       setError(errorText(code));
       setPhase("idle");
@@ -1861,6 +1873,13 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
       lockRef.current = false;
     }
   });
+
+  // 결제는 그대로 보류됐다 — 같은 건을 결과 화면에서 무료로 다시 시도하거나 환불을 요청한다(새 결제·차감 없음).
+  function openHeldRetry(code: string) {
+    clearProgressTimers();
+    idempotencyKeyRef.current = makeIdempotencyKey();
+    window.location.assign(`/astrology-ai/result/?id=${encodeURIComponent(code.slice(ASTROLOGY_RETRY_HELD.length))}`);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -1956,6 +1975,7 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
       await startConsultation(idempotencyKey, extractPaymentContext(gate, idempotencyKey));
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      if (code.startsWith(ASTROLOGY_RETRY_HELD)) { openHeldRetry(code); return; }
       const paymentCancelled = code === "PAYMENT_CANCELLED";
       if (code === "LOGIN_REQUIRED" || code === "PAYMENT_VERIFY_FAILED" || code === "PAYMENT_CANCELLED" || code === "INVALID_INPUT") {
         console.error("[AstrologyAI] access check failed", { requestId: idempotencyKey, code });
