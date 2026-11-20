@@ -54,6 +54,9 @@ export const FAILURE_COPY = {
   refundRequestLabel: "다시 시도 대신 환불 요청",
   refundPending: "환불 요청을 받았습니다. 처리가 끝나면 이용권과 결제가 되돌아갑니다.",
   refundRequestFailed: "환불 요청을 전하지 못했습니다. 잠시 뒤 다시 눌러 주세요.",
+  // 집필이 일시 장애·조회 상한으로 멈춘 책: 같은 결제 건으로 이미 쓴 장 다음부터 이어 쓴다.
+  resumeFreeLabel: "이어서 생성 · 추가 결제·차감 없음",
+  resumeFailed: "이어서 쓰기를 시작하지 못했습니다. 잠시 뒤 다시 눌러 주세요.",
 } as const;
 
 // 서버 reason → 세계관 문구. 여기에 없는 reason 은 friendlyErrorMessage 가 걸러 준다.
