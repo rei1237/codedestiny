@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "A1 계산 모듈(saju-compat-premium-facts) + 테스트"
+next: "A3 App Router 입력·결과 페이지 + 카탈로그 표시 전환(.tmp/a3-registry-switch.patch) + 월정석 deferUsage 클라이언트"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -11,6 +11,7 @@ next: "A1 계산 모듈(saju-compat-premium-facts) + 테스트"
 2. "그냥 가격도 만원으로 올리도록해 그리고 정확하게 버그 없이 생성되도록해주고 기존 정적으로 생성하는 기능은 간단 연예인 궁합이나 유명인 궁합 등은 무료로 볼 수 있도록해줘 이 궁합 서비스는 고급 궁합 기능이 되어야하며, 상대방의 바람끼라든지 이미 세팅된 계산 값으로도 볼 수 있도록해줘"
 3. "그외에도 최고의 서버 전문가로서 llm 상담들이 결제 이후에 제공이 안되어서 매출을 날리는 문제가 없도록 문제점을 분석해서 해결해도 함께 해줘"
 4. "그리고 새로 만든 사주 궁합 진입점을 고급스러운 달빛 예화 느낌으로 만들어줘"
+5. (코디네이터 전달, 2026-11-20) "llm 서비스들의 다시 시도는 이미 생성된 부분은 살리면서 안된 부분만 생성하도록해주고 중복해서 수정하지 않도록 주의해"
 
 ## 첫 행동
 - 작업 위치는 이 워크트리다: `D:\Development\codedestiny-worktrees\saju-compat-premium-20261120-175330`, 브랜치 `wt/saju-compat-premium-20261120-175330`, 기점 `34f58616f`.
@@ -90,8 +91,8 @@ next: "A1 계산 모듈(saju-compat-premium-facts) + 테스트"
 - 진입점: 사주 탭의 무료 정적 궁합 결과 아래와 SEO 소개 페이지 `/saju/compatibility/`에 둔다. 디자인은 고급스러운 달빛 예화 톤이다(`docs/context/design-canon.md` §달빛 예화 기본 UI 계약, `DESIGN.md` §2, `styles/yehwa-motifs.css`의 생성 마스크 재사용).
 
 ## 단계
-- [ ] A1 계산 모듈 `worker/lib/saju-compat-premium-facts.js`와 테스트 `__tests__/worker/saju-compat-premium-facts.test.js` → check:fast → 커밋
-- [ ] A2 카탈로그(paid-feature-registry·billing·saju-service-catalog·service-registry), 프롬프트, 라우트, 모델, worker 배선, 계약·RETRY_FIRST 등록, paid-delivery 테스트 → 커밋
+- [x] A1 계산 모듈 `worker/lib/saju-compat-premium-facts.js`와 테스트 `__tests__/worker/saju-compat-premium-facts.test.js` → check:fast → 커밋
+- [x] A2 카탈로그(paid-feature-registry·billing·saju-service-catalog·service-registry), 프롬프트, 라우트, 모델, worker 배선, 계약·RETRY_FIRST 등록, paid-delivery 테스트 → 커밋
 - [ ] A3 App Router 입력·결과 페이지, dev-preview fixture, 보관함 등록, SEO 소개 페이지 갱신 → 커밋
 - [ ] B 사주 탭: 결제 없이 정적 궁합 결과를 보여 주고, 그 아래 달빛 예화 톤의 고급 궁합 CTA를 둔다(sessionStorage 프리필). 그다음 sync:public → 커밋
 - [ ] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
@@ -100,3 +101,56 @@ next: "A1 계산 모듈(saju-compat-premium-facts) + 테스트"
 - [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
 
 ## 실측 (단계마다 추가)
+
+### A1·A2 서버 (2026-11-20, 서브에이전트, mock 만)
+커밋(워크트리 `wt/saju-compat-premium-20261120-175330`, push·머지 안 함):
+- f7af59f98 A1 계산 모듈 `worker/lib/saju-compat-premium-facts.js` + jest 6/6
+- af940f015 A2-a 서버 SKU(`paid-feature-registry.js:367` saju-compat-premium 100코인/10,000원 "사주 고급 궁합", `compat-saju-compatibility` 유지) + P0 인벤토리(내 항목만 접합)
+- d6d08605e A2-b 모델 `SajuCompatPremiumConsultation`(models.js) + 프롬프트 `worker/lib/saju-compat-premium-prompt.js`(4그룹 overview·temperament·trust·timing) + jest
+- 3d365a0cb A2-c 라우트 `worker/routes/saju-compat-premium.js`
+- 5c6d3dcf2 A2-e 행동 테스트 `__tests__/ui/saju-compat-premium-paid-delivery.behavior.test.js` (node --test 6/6)
+- 740d2bf6c A2-d 배선·등록(공용 모듈은 등록 한 줄씩만)
+- 8f37a3217 sitemap lastmod 재생성(paid-feature-registry 가 다수 라우트 import 그래프에 있어 서명 이동 — M 머지 뒤 다시 `npm run sitemap:generate` 필요)
+- d50ef70b5 늦은 정산 models 에 MonthlyCreditLedger 추가(감사 지적 3). 이 커밋의 `npm run check:fast` 는 test:node 5536 통과·1 실패 — 실패는 `__tests__/fortune/sky-and-range.test.mjs` 가 워크트리에 없는 gitignore 산출물 `fortune/data/daily-2026-11-20.json` ENOENT(환경, 무관; `npm run fortune:build-data` 후 재확인 가능)
+
+설계 결정(계획과 다른 점): 계획의 love-secret 식 자체 정산기 대신 **신년운세식 공용 경로**를 따랐다.
+`RETRY_FIRST_POLICY` = `{ marker: "retryableFailureMeta", settle: { symbol: "expireRetryableConsultations", cron: RECOVERY_CRON, generic: true } }`.
+이유: 검증된 공용 환불 엔진(`settleFailedConsultationRefund`)을 재사용하고 공용 파일 diff 를 한 줄씩으로 줄여 R10 과의 충돌면을 최소화.
+등록 위치: `paid-delivery-stuck.js` GENERIC_STUCK_SETTLERS, `consultation-delivery-refund.js` import+SERVICES, `consultation-recovery-task.js` loadAdapters, `consultation-recovery-registry.js`(어댑터·계약·테스트), `security/index.js` CHECKPOINT_RESUME_MODELS(재개 호출은 batch 버킷), `scripts/lib/paid-delivery-inventory.mjs`, `scripts/verify-paid-llm-delivery-contract.mjs` RETRY_FIRST_POLICY, `worker/index.js` lazy 핸들러+`/api/saju-compat-premium` 분기. KNOWN_RETRY_PENDING·KNOWN_REFUND_GAPS·KNOWN_STUCK_SETTLE_GAPS 불변. auth.js 경로 목록은 RED 라 건드리지 않음.
+
+요청 5 구현: 한 요청 = 한 그룹 생성·체크포인트(`llmMeta.groups.<key>`). /retry·복구 크론 재개 모두 완성 그룹은 고르지 않고 빠진 그룹만 생성. 다시 시도 reset(`sajuCompatPremiumRetryReset`)은 완성 그룹의 행·시도 수를 그대로 두고 미완성 그룹만 비운다. 완성 전 본문 비노출.
+테스트가 단언: overview·temperament 저장 → trust 2회 실패 → /retry → LLM 호출은 `['trust','timing']` 뿐, 저장 행 바이트 동일, 차감 1회. 변이(리셋이 전부 비우게) 시 이 테스트만 실패하는 것 확인.
+
+검증 명령(전부 exit 0):
+- `npm run verify:paid-llm-delivery` — 다시 시도 우선 8개, 계약 37, 변이 37/37·32/32
+- `verify:paid-feature-billing-policy`, `verify:ai-prompt-billing-policy`, `verify:ai-consultation-flows`(5/5), `verify:staging-llm-mock`, `verify:worker-security-guards`, `verify:payment-p0-inventory`(173종), `verify:payment-freeze`
+- `node scripts/run-mock-tests.mjs jest security.ai-route-buckets + 프롬프트·facts` 69/69
+- `node scripts/check-changed.mjs --profile=fast --skip-build --committed-head --base=d6d08605e` → 처음 sitemap 드리프트로 막힘 → 재생성 커밋 8f37a3217 후 나머지 검사 통과
+- paid-gate-auditor: 차단 사유 없음. 비차단 위험은 아래.
+
+프런트 API 계약(A3 입력):
+- 공통: 로그인 필수(401 `LOGIN_REQUIRED`). 본문 JSON. 에러는 `{ok:false, reason, message}`.
+- `POST /api/saju-compat-premium/prepare` body `{ self, partner, relationType, idempotencyKey(≥12자) }`
+  (person = `{ birthDate:'YYYY-MM-DD', birthTime?:'HH:mm', birthTimeUnknown?:bool, gender:'male'|'female', name?, calendar? }` — facts 정규화 기준)
+  → 200 `{ok:true, validation:{version,mode:'validate',self:{dayPillar,timeUnknown},partner:{...}}, accessType}`
+  → 402 `{ok:false, reason:'PAYMENT_REQUIRED', validation, paymentPayload}` (paymentPayload = coin-gate 결제창 payload, featureKey `saju-compat-premium`, amountKRW 10000, coinPrice 100)
+  → 400 `INVALID_INPUT` / 422 `CALCULATION_FAILED {side}`
+- `POST /generate` body = prepare 와 같은 입력 + idempotencyKey + 결제 증빙(billingGate/billingConsume/paymentId 등, 신년운세와 같은 키) 또는 `{ resumeSessionId }`
+  → 202 `{ok, sessionId, resumeSessionId, status:'partial'|'generating', progress:{completed,total:4}, continue?}` — 클라이언트는 `{resumeSessionId}` 로 /generate 를 반복(한 요청 한 그룹, ~90초 이내)
+  → 200 `{ok, sessionId, status:'completed', saved:true, accessType, relationType, progress, result}` (result = assembleSajuCompatPremiumResult: chapters[4], staticCards(pastLife·partner.timeUnknown 등), actionTips, temperamentCaution …)
+  → 402 `PAYMENT_REQUIRED {paymentPayload}` / 409 `GENERATION_FAILED` + retry
+  → 503 `{reason:'LLM_ERROR', sessionId, refunded:false, retry:{available:true, refundAt, sessionId}}`
+  → 503 `RESULT_STORAGE_UNAVAILABLE`/`RESULT_DELIVERY_PENDING` (같은 세션으로 재시도)
+- `GET /result?sessionId=` → 200 완성본 / 202 진행 중(`continue:true` 면 /generate 재개) / 409 `GENERATION_FAILED {retry}` / 403 `PAYMENT_REVOKED`·`PAYMENT_REFUNDED`
+  `GET /result` (sessionId 없음) → `{ok, pendingSessionId, sessions:[{sessionId,relationType,selfName,partnerName,createdAt,updatedAt}]}` (보관함용, 최근 10건)
+- `POST /retry {sessionId}` → 무료 이어쓰기(추가 결제·차감 없음). 응답은 /generate 와 같음.
+- `POST /refund-request {sessionId}` → 200 `{ok, sessionId, refunded, refundStatus}` / 409 `NOT_RETRYABLE`
+
+남은 위험·A3 필수:
+1. 🔴 월정석: 클라이언트가 deferUsage 없이 즉시 차감하면 `finishDelivery` 가 `MONTHLY_CREDIT_GATE_REQUIRED` 로 delivery_pending 에 갇힌다. A3 는 `NewYearAiClient.tsx:790-791` 처럼 `deferUsage:true, usagePolicy:"apply_after_success"` 를 보내고 `verify-new-year-ai-flow.mjs:66-67` 같은 단언을 추가할 것.
+2. 코인만 결제 건의 환불은 공용 엔진에서 manual_review 로 간다(신년운세와 동일).
+3. 테스트는 이용권 접근만 다룬다. 월정석/deferred·직접 결제·증빙 재사용(409) 경로는 코드 읽기로만 확인.
+4. paid-flow-gates.yml 트리거 glob 이 `worker/routes/*-ai.js` 라 이 라우트·prompt·facts 단독 변경은 그 워크플로가 안 돈다(CI 변경 = RED, 사용자 결정 필요).
+5. 공용 파일(paid-delivery-stuck·consultation-delivery-refund·검증기)을 R10 도 수정 중 — M 머지 때 한 줄 충돌 가능.
+6. 범위 밖 보고: P0 인벤토리 재생성 시 saju-guardian-unlock 5000→3000 드리프트(기존), `docs/context/payment-gating.md:375` 가 compat-saju-compatibility 를 10,000원으로 적음(레지스트리는 5,000원).
+7. 카탈로그 표시 전환(js/core/service-registry.js·lib/saju/saju-service-catalog.mjs)은 감사가 가격 불일치를 지적해 A3 로 미룸 — 패치 보관 `.tmp/a3-registry-switch.patch`(미추적, A3 에서 적용 후 삭제).
