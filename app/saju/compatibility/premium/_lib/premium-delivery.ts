@@ -82,6 +82,48 @@ export function emptyPerson(): PremiumPerson {
   return { name: "", gender: "", birthDate: "", birthTime: "", birthTimeUnknown: false, calendarType: "solar", isLeapMonth: false };
 }
 
+// 사주 탭 무료 궁합 결과의 진입 카드가 남기는 한 번짜리 입력(js/saju-engine.js _SE_SAJU_COMPAT_PREMIUM_PREFILL_KEY).
+// 🔴 개인정보라 URL 이 아니라 sessionStorage 로 받고, 읽자마자 지운다. 30분 지난 값·모양이 틀린 값은 버린다.
+export const PREMIUM_PREFILL_KEY = "cd:sajuCompatPremium:prefill:v1";
+const PREMIUM_PREFILL_TTL_MS = 30 * 60 * 1000;
+
+function prefillPerson(raw: unknown): PremiumPerson {
+  const base = emptyPerson();
+  if (!raw || typeof raw !== "object") return base;
+  const src = raw as Record<string, unknown>;
+  const birthDate = typeof src.birthDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(src.birthDate) ? src.birthDate : "";
+  const birthTime = typeof src.birthTime === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(src.birthTime) ? src.birthTime : "";
+  const calendarType = src.calendarType === "lunar" ? "lunar" : "solar";
+  return {
+    name: typeof src.name === "string" ? src.name.trim().slice(0, 20) : "",
+    gender: src.gender === "male" || src.gender === "female" ? src.gender : "",
+    birthDate,
+    birthTime,
+    birthTimeUnknown: !birthTime && (src.birthTimeUnknown === true || Boolean(birthDate)),
+    calendarType,
+    isLeapMonth: calendarType === "lunar" && src.isLeapMonth === true,
+  };
+}
+
+export function readPremiumPrefill(now = Date.now()): PremiumInput | null {
+  let raw: string | null = null;
+  try {
+    raw = window.sessionStorage.getItem(PREMIUM_PREFILL_KEY);
+    if (raw !== null) window.sessionStorage.removeItem(PREMIUM_PREFILL_KEY);
+  } catch {
+    return null;
+  }
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown> | null;
+    if (!parsed || parsed.v !== 1 || !(now - Number(parsed.savedAt || 0) < PREMIUM_PREFILL_TTL_MS)) return null;
+    const relationType = RELATION_OPTIONS.some((option) => option.value === parsed.relationType) ? (parsed.relationType as RelationType) : "dating";
+    return { self: prefillPerson(parsed.self), partner: prefillPerson(parsed.partner), relationType };
+  } catch {
+    return null;
+  }
+}
+
 export function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `scp-${crypto.randomUUID()}`;
   return `scp-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;

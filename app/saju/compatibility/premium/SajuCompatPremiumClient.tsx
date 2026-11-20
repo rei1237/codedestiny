@@ -3,7 +3,7 @@
 // 사주 고급 궁합 입력 화면. prepare → (필요하면) runBillingCoinGate → 첫 /generate 로 상담을 만든 뒤 결과 화면으로 넘긴다.
 // 🔴 결제 복귀(usePaidResume)도 게이트를 다시 타지 않고 같은 코어(startGeneration)를 부른다 — 재과금 방지.
 // 🔴 월정석은 성공 전달 뒤에만 차감한다: buildBillingGateInput 이 deferUsage + apply_after_success 를 싣는다.
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import {
@@ -33,6 +33,7 @@ import {
   createIdempotencyKey,
   emptyPerson,
   postJson,
+  readPremiumPrefill,
   resultHref,
   runPremiumGeneration,
   type PremiumInput,
@@ -140,6 +141,12 @@ export default function SajuCompatPremiumClient() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const lockRef = useRef(false);
+
+  // 사주 탭 무료 궁합에서 넘어왔으면 두 사람 입력을 채운다. 서버 렌더와 어긋나지 않게 마운트 뒤에 한 번만 읽는다(읽으면 지워진다).
+  useEffect(() => {
+    const prefill = readPremiumPrefill();
+    if (prefill) setInput(prefill);
+  }, []);
   const idempotencyKeyRef = useRef("");
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     lockRef.current = false;
