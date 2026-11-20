@@ -181,6 +181,8 @@ function requestBody(accessToken = "") {
   };
 }
 
+const EXECUTION_CTX = Object.freeze({ waitUntil() {}, passThroughOnException() {} });
+
 function post(path, body) {
   return new Request(`https://code-destiny.test/api/ziwei-ai${path}`, {
     method: "POST",
@@ -328,7 +330,8 @@ test("Family 이용권: 실제 prepare → generate는 provider-free 결과를 �
 
   let generateResponse;
   for (let wave = 0; wave < 7; wave++) {
-    generateResponse = await handleZiweiAiRoutes(post("/generate", requestBody(preparePayload.accessToken)), env);
+    // 운영처럼 ExecutionContext 를 넘긴다 — ctx 가 recoveryAuth 자리로 새면 소유자 없는 생성이 된다(2026-11-21 회귀).
+    generateResponse = await handleZiweiAiRoutes(post("/generate", requestBody(preparePayload.accessToken)), env, EXECUTION_CTX);
     if (wave < 6) { expect(generateResponse.status).toBe(202); expect(consumePassForFeatureMock).not.toHaveBeenCalled(); }
   }
   const generated = await generateResponse.json();
@@ -352,7 +355,7 @@ test("Family 이용권: 실제 prepare → generate는 provider-free 결과를 �
   }));
   expect(structuredLlmMock).toHaveBeenCalledTimes(7);
 
-  const replayResponse = await handleZiweiAiRoutes(post("/generate", requestBody(preparePayload.accessToken)), env);
+  const replayResponse = await handleZiweiAiRoutes(post("/generate", requestBody(preparePayload.accessToken)), env, EXECUTION_CTX);
   const replayed = await replayResponse.json();
 
   expect(replayResponse.status).toBe(200);

@@ -134,7 +134,7 @@ const SECTION_LOCK_TTL_MS = 90 * 1000;
 const LIFE_BOOK_MAX_SECTION_ATTEMPTS = 4;
 // 2번째 시도부터는 게이트 하한의 0.6배 이상이면 분량 보강 없이 받아들인다.
 const LIFE_BOOK_RETRY_LENGTH_ACCEPT_RATIO = 0.6;
-// 세션당 웨이브 상한. /generate 는 레이트리밋상 하루 60회라 무한 재개를 막아야 한다.
+// 세션당 웨이브 상한(무한 재개 방지). /generate 는 이어짓기 일일 버킷(하루 600회)에 센다.
 const MAX_GENERATION_WAVES = 32; // Same total part-attempt budget, one part per request.
 const SECTION_TIMEOUT_MS = 45000;
 const LIFE_BOOK_RESULT_TEXT_MAX_CHARS = 140000;
@@ -3087,6 +3087,13 @@ async function handleResult(request, env, pathId = "") {
   return json(payload, { headers: { "Cache-Control": "private, max-age=300" } });
 }
 
+// 2026-11-21 사용자 요청: 결제한 책은 끝까지 생성된다. 클라는 책 1권을 /generate 웨이브 반복으로 완주하므로
+// 이 경로는 이어짓기 일일 버킷(security WAVE_GENERATE_SERVICE_KEYS)에 센다 — /start 일일 60회에 묶이면
+// 책 1권이 웨이브 수십 번을 써서 결제 뒤에도 429 로 끊긴다. 비용 상한은 책당 웨이브 상한과 결제 확인이 맡는다.
+function handleGenerate(request, env) {
+  return handleStart(request, env, "/api/life-book-ai/generate");
+}
+
 async function handleStart(request, env, route = "/api/life-book-ai/generate", recoveryAuth = null) {
   logLifeBookAi("LLM Generate Start", { route });
   let body = await readJson(request);
@@ -3867,9 +3874,8 @@ export async function handleLifeBookAiRoutes(request, env = {}) {
     if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/life-book-ai/prepare" : "/api/life-book-ai/ensure-access");
     }
-    if (method === "POST" && (path === "/generate" || path === "/start")) {
-      return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start");
-    }
+    if (method === "POST" && path === "/generate") return await handleGenerate(request, env);
+    if (method === "POST" && path === "/start") return await handleStart(request, env, "/api/life-book-ai/start");
     if (method === "POST" && path === "/retry") return await handleRetry(request, env);
     if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
