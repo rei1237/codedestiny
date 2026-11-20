@@ -41,13 +41,14 @@ export default function PassCycleCard({
         <p className={styles.label}>{copy.title}</p>
         <span className={styles.tier}>{copy.tierLabel}</span>
       </div>
-      <p className={styles.amounts}>
-        {copy.summary(formatWon(spentWon), formatWon(capWon))}
-      </p>
+      {/* 남은 금액이 가장 중요한 숫자다. 크게 먼저 보여 주고, 사용/총 한도는 그 아래에 둔다. */}
+      <p className={styles.remaining}>{copy.remaining(formatWon(remainingWon))}</p>
       <div className={styles.track}>
         <div className={styles.fill} style={{ width: `${Math.max(0, Math.min(100, percent))}%` }} />
       </div>
-      <p className={styles.remaining}>{copy.remaining(formatWon(remainingWon))}</p>
+      <p className={styles.amounts}>
+        {copy.summary(formatWon(spentWon), formatWon(capWon))}
+      </p>
     </section>
   );
 }

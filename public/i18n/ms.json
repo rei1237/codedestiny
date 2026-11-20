@@ -2990,7 +2990,7 @@
         "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
-        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options."
       },
       "passBadge": "Pas Balang Madu",
       "passStoreTitle": "Kedai Pas Balang Madu",
@@ -2998,7 +2998,9 @@
       "passHint": {
         "store": "Bayar sekali dan buka banyak kandungan sehingga had penggunaan habis. Sudah ada? Ketik untuk semak.",
         "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran.",
-        "upgrade": "Tahap semasa anda tidak membuka kandungan ini. Lihat tahap lebih luas."
+        "upgrade": "Tahap semasa anda tidak membuka kandungan ini. Lihat tahap lebih luas.",
+        "limitShort": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+        "exhausted": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance."
       },
       "applyMethod": {
         "label": "Gunakan kaedah",
@@ -3069,7 +3071,7 @@
         "comingSoon": "Akan datang",
         "back": "Kembali"
       },
-      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -3077,7 +3079,10 @@
         "kakaopay": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
         "mobile": "You'll return to this screen automatically once your mobile identity verification is complete.",
         "gift": "You'll return to this screen automatically once your gift certificate PIN is verified."
-      }
+      },
+      "passLimitShortTitle": "Not enough allowance left",
+      "passExhaustedTitle": "Reading allowance used up",
+      "passMonthlyShortAmount": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones."
     },
     "overlay": {
       "unlockPreparing": {

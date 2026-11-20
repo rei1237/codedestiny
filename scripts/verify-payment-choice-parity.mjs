@@ -516,6 +516,13 @@ const REQUIRED_ALL = [
   // 그 자리에서 띄우는 소진 문구. 세 렌더러가 같은 키로 같은 말을 해야 한다.
   "payment.directModal.passMonthlyRemaining",
   "payment.directModal.passMonthlyExhausted",
+  // 2026-11-20: 이용권 카드가 못 여는 사유(남은 한도 부족·상담 한도 소진)별 제목·안내와, 402 안내에
+  // 남은 금액을 싣는 문구. 한도를 다 써도 이용권은 유지된다(11-04 정책) — "종료" 문구를 쓰지 않는다.
+  "payment.directModal.passLimitShortTitle",
+  "payment.directModal.passExhaustedTitle",
+  "payment.directModal.passHint.limitShort",
+  "payment.directModal.passHint.exhausted",
+  "payment.directModal.passMonthlyShortAmount",
   // 단건 카드. 🔴 소비자에게 PG사(PortOne·KG이니시스)를 노출하지 않는 문구로 2026-08-11 개정됐다.
   "payment.directModal.directTitleLabel",
   "payment.directModal.directHint",

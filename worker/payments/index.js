@@ -554,7 +554,7 @@ const PASS_FAILURE_CODES = Object.freeze({
    없다. 한도를 다 쓴 이용권은 라이트 운세만 열고 상담은 이 문구로 막는다(profile-limits.js isPassBudgetExhausted).
    verify:pass-tier-policy 가 리셋 문구 0건을 단언한다. */
 const PASS_FAILURE_MESSAGES = Object.freeze({
-  monthly_pass_limit_exceeded: "이번 이용권의 남은 한도로는 이 서비스를 열 수 없습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
+  monthly_pass_limit_exceeded: "남은 이용권 한도가 이 서비스 가격보다 적습니다. 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
   pass_access_conflict: "이용권 상태를 확인하지 못했습니다. 원화 단건 결제 또는 월정석으로 이용해 주세요.",
   family_pass_required: "이 상품은 Family 이용권 또는 원화 단건 결제로 이용해 주세요.",
 });

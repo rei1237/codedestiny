@@ -1,5 +1,7 @@
 import UIKit
 import Capacitor
+import AuthenticationServices
+import CryptoKit
 import Photos
 import ImageIO
 import SafariServices
@@ -83,6 +85,7 @@ class CodeDestinyViewController: CAPBridgeViewController {
         bridge?.registerPluginInstance(CodeDestinyLocalePlugin())
         bridge?.registerPluginInstance(CodeDestinyNavigationPlugin())
         bridge?.registerPluginInstance(CodeDestinyStatusBarPlugin())
+        bridge?.registerPluginInstance(CodeDestinyAuthPlugin())
 
         guard let webView = webView else { return }
         // Same color as the splash and the web boot gate so launch, overscroll and keyboard edges never flash white.
@@ -350,8 +353,13 @@ class CodeDestinyNavigationPlugin: CAPPlugin, CAPBridgedPlugin {
               CodeDestinyLinks.isWeb(url) else { return nil }
 
         if CodeDestinyLinks.isOwnHost(url) {
+            if url.path.hasPrefix("/api/auth/oauth/") {
+                // OAuth never runs inside the WKWebView (provider pages, cookies and passkeys belong to the system
+                // browser). The bridge normally starts it through CodeDestinyAuth; this catches any link it missed.
+                DispatchQueue.main.async { CodeDestinyAuthSession.shared.start(url, presenter: self.bridge?.viewController) { _ in } }
+                return NSNumber(value: true)
+            }
             if url.path.hasPrefix("/api/auth/") {
-                // OAuth start URLs keep Capacitor's default (system browser) until Phase 5 moves them to ASWebAuthenticationSession.
                 return nil
             }
             if url.path.hasPrefix("/api/") {
@@ -369,6 +377,142 @@ class CodeDestinyNavigationPlugin: CAPPlugin, CAPBridgedPlugin {
             CodeDestinyLinks.presentInAppBrowser(url, from: self.bridge?.viewController)
         }
         return NSNumber(value: true)
+    }
+}
+
+// Phase 5: system-browser OAuth. ASWebAuthenticationSession hands the com.codedestiny.app://auth callback
+// back to us; we re-dispatch it as an opened URL so the existing appUrlOpen listener (the same one Android
+// uses) exchanges the one-time social_grant at /api/auth/oauth/complete.
+final class CodeDestinyAuthSession: NSObject, ASWebAuthenticationPresentationContextProviding {
+    static let shared = CodeDestinyAuthSession()
+    static let callbackScheme = "com.codedestiny.app"
+    private var session: ASWebAuthenticationSession?
+    private weak var presenter: UIViewController?
+
+    func start(_ url: URL, presenter: UIViewController?, completion: @escaping (Result<URL, Error>) -> Void) {
+        session?.cancel()
+        self.presenter = presenter
+        let next = ASWebAuthenticationSession(url: url, callbackURLScheme: Self.callbackScheme) { [weak self] callbackURL, error in
+            DispatchQueue.main.async {
+                self?.session = nil
+                if let callbackURL = callbackURL, callbackURL.scheme == Self.callbackScheme, callbackURL.host == "auth" {
+                    _ = ApplicationDelegateProxy.shared.application(UIApplication.shared, open: callbackURL, options: [:])
+                    completion(.success(callbackURL))
+                } else {
+                    completion(.failure(error ?? ASWebAuthenticationSessionError(.canceledLogin)))
+                }
+            }
+        }
+        // Shared (non-ephemeral) so a user already signed in to Google/Kakao/Naver in Safari is not asked again.
+        // Our own session is never a browser cookie in the app (Bearer + one-time grant), so nothing leaks back.
+        next.prefersEphemeralWebBrowserSession = false
+        next.presentationContextProvider = self
+        session = next
+        if !next.start() {
+            session = nil
+            completion(.failure(ASWebAuthenticationSessionError(.presentationContextInvalid)))
+        }
+    }
+
+    func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        presenter?.view.window ?? UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }.first ?? ASPresentationAnchor()
+    }
+}
+
+// JS surface: CodeDestinyAuth.startOAuth({ url }), signInWithApple(), getAppleCredentialState({ user }).
+// Sign in with Apple is native (ASAuthorizationController); the server verifies the identity token
+// (aud = bundle id, nonce = sha256(rawNonce)) and is disabled (503) until the Apple keys are configured.
+@objc(CodeDestinyAuthPlugin)
+class CodeDestinyAuthPlugin: CAPPlugin, CAPBridgedPlugin, ASAuthorizationControllerDelegate, ASAuthorizationControllerPresentationContextProviding {
+    let identifier = "CodeDestinyAuthPlugin"
+    let jsName = "CodeDestinyAuth"
+    let pluginMethods: [CAPPluginMethod] = [
+        CAPPluginMethod(name: "startOAuth", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "signInWithApple", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "getAppleCredentialState", returnType: CAPPluginReturnPromise),
+    ]
+    private var appleCall: CAPPluginCall?
+    private var rawNonce = ""
+
+    @objc func startOAuth(_ call: CAPPluginCall) {
+        guard let raw = call.getString("url"), let url = URL(string: raw), CodeDestinyLinks.isOwnHost(url),
+              url.scheme == "https", url.path.hasPrefix("/api/auth/oauth/") else {
+            call.reject("OAuth URL is not allowed", "AUTH_URL_REJECTED"); return
+        }
+        DispatchQueue.main.async {
+            CodeDestinyAuthSession.shared.start(url, presenter: self.bridge?.viewController) { result in
+                switch result {
+                case .success: call.resolve(["completed": true])
+                case .failure(let error):
+                    let cancelled = (error as? ASWebAuthenticationSessionError)?.code == .canceledLogin
+                    call.reject(cancelled ? "Sign-in was cancelled" : "Sign-in could not start", cancelled ? "AUTH_CANCELLED" : "AUTH_UNAVAILABLE")
+                }
+            }
+        }
+    }
+
+    @objc func signInWithApple(_ call: CAPPluginCall) {
+        var bytes = [UInt8](repeating: 0, count: 32)
+        guard SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes) == errSecSuccess else {
+            call.reject("Sign in with Apple is unavailable", "AUTH_UNAVAILABLE"); return
+        }
+        rawNonce = Data(bytes).base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-").replacingOccurrences(of: "/", with: "_").replacingOccurrences(of: "=", with: "")
+        let request = ASAuthorizationAppleIDProvider().createRequest()
+        request.requestedScopes = [.fullName, .email]
+        request.nonce = SHA256.hash(data: Data(rawNonce.utf8)).map { String(format: "%02x", $0) }.joined()
+        DispatchQueue.main.async {
+            self.appleCall?.reject("Superseded", "AUTH_CANCELLED")
+            self.appleCall = call
+            let controller = ASAuthorizationController(authorizationRequests: [request])
+            controller.delegate = self
+            controller.presentationContextProvider = self
+            controller.performRequests()
+        }
+    }
+
+    @objc func getAppleCredentialState(_ call: CAPPluginCall) {
+        guard let user = call.getString("user"), !user.isEmpty else { call.resolve(["state": "notFound"]); return }
+        ASAuthorizationAppleIDProvider().getCredentialState(forUserID: user) { state, _ in
+            let name: String
+            switch state {
+            case .authorized: name = "authorized"
+            case .revoked: name = "revoked"
+            case .transferred: name = "transferred"
+            default: name = "notFound"
+            }
+            call.resolve(["state": name])
+        }
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        guard let call = appleCall else { return }
+        appleCall = nil
+        guard let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+              let tokenData = credential.identityToken, let identityToken = String(data: tokenData, encoding: .utf8) else {
+            call.reject("Sign in with Apple returned no token", "AUTH_UNAVAILABLE"); return
+        }
+        let code = credential.authorizationCode.flatMap { String(data: $0, encoding: .utf8) } ?? ""
+        call.resolve([
+            "identityToken": identityToken,
+            "authorizationCode": code,
+            "rawNonce": rawNonce,
+            "user": credential.user,
+            "givenName": credential.fullName?.givenName ?? "",
+            "familyName": credential.fullName?.familyName ?? "",
+        ])
+    }
+
+    func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
+        guard let call = appleCall else { return }
+        appleCall = nil
+        let cancelled = (error as? ASAuthorizationError)?.code == .canceled
+        call.reject(cancelled ? "Sign-in was cancelled" : "Sign in with Apple failed", cancelled ? "AUTH_CANCELLED" : "AUTH_UNAVAILABLE")
+    }
+
+    func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
+        bridge?.viewController?.view.window ?? ASPresentationAnchor()
     }
 }
 

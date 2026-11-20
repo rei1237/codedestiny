@@ -1,7 +1,7 @@
 import {ProfileCard} from '../lib/models.js';
 import {getBillingFeaturePricing} from '../lib/billing-feature-registry.js';
 import {buildHeukwolAnalysis,heukwolProfileBirth} from '../lib/heukwol-analysis.js';
-import {HEUKWOL_FEATURE_KEY,HEUKWOL_CHAPTERS,HEUKWOL_MIN_CHARS,HEUKWOL_DELIVERY_PLAN_VERSION,heukwolDeliveryV2Enabled,generateHeukwolChapter} from '../lib/heukwol-report.js';
+import {HEUKWOL_FEATURE_KEY,HEUKWOL_CHAPTERS,HEUKWOL_MIN_CHARS,HEUKWOL_DELIVERY_PLAN_VERSION,HEUKWOL_TRANSIENT_ATTEMPTS,heukwolDeliveryV2Enabled,generateHeukwolChapter,isHeukwolTransientError} from '../lib/heukwol-report.js';
 import {TossNativeConsultation} from './models.js';
 import {nativeOwnerFilter,prepareNativeConsultation,verifiedIntent} from './native-tea.js';
 import {TossError} from './policy.js';
@@ -55,19 +55,23 @@ export async function heukwolWave(env,auth,id,advance){
   const progress=locked.savedResult||{},chapters=[...(progress.chapters||[])],rounds={...(progress.rounds||{})};
   const next=HEUKWOL_CHAPTERS.find(c=>!chapters.some(done=>done.key===c.key));
   const v2=locked.input.planVersion===HEUKWOL_DELIVERY_PLAN_VERSION;
-  let attempts=progress.attempts||0,failed=false,lastIssue='';
+  let attempts=progress.attempts||0,transient=Number(progress.transient||0),failed=false,lastIssue='';
   try{
     if(next)chapters.push(await generateHeukwolChapter(env,locked.input.analysis,next,locked.input.question,chapters,undefined,
       {deliveryPlanVersion:locked.input.planVersion,relaxed:attempts>=1,finalAttempt:attempts>=2,repairIssue:progress.lastIssue||''}));
-    attempts=0;
+    attempts=0;transient=0;
   }catch(e){
-    attempts++;lastIssue=String(e.heukwolIssue||'').slice(0,120);
+    lastIssue=String(e.heukwolIssue||'').slice(0,120);
+    // R6b: 공급자·일시 오류(응답 없음·타임아웃·JSON 파싱 실패)는 품질 시도를 깎지 않고 별도 상한 안에서 다시 시도한다.
+    // 상한을 넘긴 일시 오류는 품질 시도로 센다(fail-closed, 무한 반복 없음).
+    if(isHeukwolTransientError(e)&&transient<HEUKWOL_TRANSIENT_ATTEMPTS)transient++;
+    else attempts++;
     if(attempts>=3){
       if(v2&&next){rounds[next.key]=(rounds[next.key]||0)+1;if(rounds[next.key]>=3)failed=true;else attempts=0;}
       else failed=true;
     }
   }
-  const savedResult={chapters,rounds,attempts,lastIssue,failed};
+  const savedResult={chapters,rounds,attempts,transient,lastIssue,failed};
   if(!failed&&chapters.length===HEUKWOL_CHAPTERS.length){
     const totalChars=chapters.reduce((sum,c)=>sum+c.totalChars,0);
     if(!v2&&totalChars<HEUKWOL_MIN_CHARS)savedResult.failed=true;

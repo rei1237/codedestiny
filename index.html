@@ -9331,25 +9331,25 @@ root.querySelector('[data-cd-free-promo-share]').addEventListener('click',functi
       <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passStandard">작은 꿀단지</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="standard" data-cd-play-policy="flower-20261104" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"14,900"}'>14,900원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"5,000"}'>건당 5,000원 이하</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"20,000"}'>누적 20,000원까지</span>
+      <span class="cdh-pass__tier-line cdh-pass__tier-line--total" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"20,000"}'>누적 20,000원까지</span>
     </a></li>
     <li class="cdh-pass__tier"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=premium">
       <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passPremium">중간 꿀단지</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="premium" data-cd-play-policy="flower-20261104" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"34,900"}'>34,900원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"10,000"}'>건당 10,000원 이하</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"60,000"}'>누적 60,000원까지</span>
+      <span class="cdh-pass__tier-line cdh-pass__tier-line--total" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"60,000"}'>누적 60,000원까지</span>
     </a></li>
     <li class="cdh-pass__tier"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=vvip">
       <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passVvip">큰 꿀단지</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="vvip" data-cd-play-policy="flower-20261104" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"64,900"}'>64,900원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passPerLimit" data-cd-vars='{"amount":"30,000"}'>건당 30,000원 이하</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"120,000"}'>누적 120,000원까지</span>
+      <span class="cdh-pass__tier-line cdh-pass__tier-line--total" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"120,000"}'>누적 120,000원까지</span>
     </a></li>
     <li class="cdh-pass__tier cdh-pass__tier--family"><a class="cdh-pass__tier-link" href="/points/?source=flower-membership&amp;plan=family">
       <span class="cdh-pass__tier-name" data-cd-trans="home.overseasCopy.passFamily">패밀리 꿀단지</span>
       <strong class="cdh-pass__tier-price"><span data-cd-play-price data-cd-play-pass="family" data-cd-play-policy="flower-20261104" data-cd-trans="home.overseasCopy.krwAmount" data-cd-vars='{"amount":"154,000"}'>154,000원</span> <small data-cd-trans="home.gardenCopy.passPer">· 기간 제한 없음</small></strong>
       <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passNoLimit" data-cd-vars='{"amount":"99,999,999,900"}'>유료 리딩 건당 한도 없음</span>
-      <span class="cdh-pass__tier-line" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"350,000"}'>누적 350,000원까지</span>
+      <span class="cdh-pass__tier-line cdh-pass__tier-line--total" data-cd-trans="home.overseasCopy.passTotal" data-cd-vars='{"amount":"350,000"}'>누적 350,000원까지</span>
     </a></li>
   </ul>
   <p class="cdh-pass__light" data-cd-trans="home.gardenCopy.passLight" data-cd-vars='{"count":"66","amount":"3,000"}'>모든 꿀단지에 라이트 운세 66종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 3,000원 상당이며, 대표 상담은 제외예요.</p>
@@ -20489,13 +20489,17 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     var passDisabledClass = ' is-store';
     var passCoverage = opts.membershipCoverage && typeof opts.membershipCoverage === 'object' ? opts.membershipCoverage : null;
     var passLimitLabel = _cdFormatMembershipPassLimitLabel(passCoverage);
+    // 왜 못 여는지(건당 상한·남은 한도 부족·소진). 카드 제목·안내 분기 전용이며 판정은 서버가 한다.
+    var _cdPassShortfall = '';
     // 활성 스냅샷이 월 잔여를 알고 있으면 "이번 달 남은 한도"를 덧붙인다(coin-gate 응답이 되쓴 값).
     // 모르면(null) 아무것도 붙이지 않는다 — 추정치를 보여 주지 않는다.
     try {
       var _cdPassCardApi = _cdPassVerdict();
       var _cdPassCardSnap = _cdPassCardApi ? _cdReadSubscriptionSnapshot() : null;
       var _cdPassCardRemaining = _cdPassCardSnap && _cdPassCardSnap.state === 'active' ? Number(_cdPassCardSnap.monthlySpendRemainingCoin) : NaN;
-      var _cdPassCardMonthlyLimit = _cdPassCardSnap ? _cdPassCardApi.monthlyLimitForTier(_cdPassCardSnap.tier) : 0;
+      // 분모는 서버 누적 한도(재구매로 쌓인 값) → 현행 정책 표. legacy 표를 쓰지 않는다.
+      var _cdPassCardMonthlyLimit = _cdPassCardSnap ? _cdPassCardApi.displayMonthlyLimit(_cdPassCardSnap) : 0;
+      _cdPassShortfall = _cdPassCardSnap ? _cdPassCardApi.passShortfallReason(_cdPassCardSnap, coinPrice) : '';
       if (Number.isFinite(_cdPassCardRemaining) && _cdPassCardMonthlyLimit > 0) {
         passLimitLabel += ' · ' + _cdPaymentI18n('payment.directModal.passMonthlyRemaining', '이용권 남은 한도 {remaining} / {limit}', {
           remaining: formatCoinValueWon(Math.max(0, Math.floor(_cdPassCardRemaining))),
@@ -20509,12 +20513,20 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     var passTierBadgeLabel = hasActivePassTier
       ? passTierName.toUpperCase() + ' ' + _cdPaymentI18n('payment.directModal.passBadge', '꿀단지 이용권')
       : _cdPaymentI18n('payment.directModal.passBadge', '꿀단지 이용권');
-    var passButtonTitle = hasActivePassTier
-      ? _cdPaymentI18n('payment.directModal.passUpgradeTitle', '이용권 등급 올리기')
-      : _cdPaymentI18n('payment.directModal.passBuyTitle', '이용권으로 열기');
-    var passHint = hasActivePassTier
-      ? _cdPaymentI18n('payment.directModal.passHint.upgrade', '지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.')
-      : _cdPaymentI18n('payment.directModal.passHint.store', '한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
+    var passButtonTitle = _cdPassShortfall === 'exhausted'
+      ? _cdPaymentI18n('payment.directModal.passExhaustedTitle', '상담 한도를 다 썼어요')
+      : _cdPassShortfall === 'limit_short'
+        ? _cdPaymentI18n('payment.directModal.passLimitShortTitle', '남은 한도가 부족해요')
+        : hasActivePassTier
+          ? _cdPaymentI18n('payment.directModal.passUpgradeTitle', '이용권 등급 올리기')
+          : _cdPaymentI18n('payment.directModal.passBuyTitle', '이용권으로 열기');
+    var passHint = _cdPassShortfall === 'exhausted'
+      ? _cdPaymentI18n('payment.directModal.passHint.exhausted', '이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제로 열거나 이용권을 다시 구매해 한도를 더할 수 있어요.')
+      : _cdPassShortfall === 'limit_short'
+        ? _cdPaymentI18n('payment.directModal.passHint.limitShort', '남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 단건 결제로 열거나 더 큰 이용권을 확인해 보세요.')
+        : hasActivePassTier
+          ? _cdPaymentI18n('payment.directModal.passHint.upgrade', '지금 등급으로는 이 콘텐츠가 열리지 않아요. 더 넓은 등급을 확인해 보세요.')
+          : _cdPaymentI18n('payment.directModal.passHint.store', '한 번 결제하고 이용 한도를 다 쓸 때까지 여러 콘텐츠를 열 수 있어요. 이미 있다면 눌러서 바로 확인돼요.');
     // 어느 카드를 '추천'으로 올릴지는 세 렌더러가 공유하는 순수 함수 하나가 정한다(js/core/checkout-entry.js).
     // 🔴 서버를 부르지 않는다 — 입력은 전부 이 시점에 이미 갖고 있는 값이라 결제창 왕복이 늘지 않는다.
     // 이용권 판정 자체는 여전히 카드를 눌렀을 때 서버가 한다(아래 refreshDirectEntitlementStatus).
@@ -21010,7 +21022,11 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
             if (_cdPassMonthlyApi && _cdPassMonthlyApi.isMonthlyLimitPayload(_cdPassMonthlyPayload)) {
               node.disabled = false;
               node.classList.remove('is-loading');
-              status(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.'), true);
+              var _cdPassShortSnap = _cdReadSubscriptionSnapshot();
+              var _cdPassShortRemaining = _cdPassShortSnap && _cdPassShortSnap.state === 'active' ? Number(_cdPassShortSnap.monthlySpendRemainingCoin) : NaN;
+              status(Number.isFinite(_cdPassShortRemaining)
+                ? _cdPaymentI18n('payment.directModal.passMonthlyShortAmount', '남은 한도 {remaining}이 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요.', { remaining: formatCoinValueWon(Math.max(0, Math.floor(_cdPassShortRemaining))) })
+                : _cdPaymentI18n('payment.directModal.passMonthlyExhausted', '남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요.'), true);
               return;
             }
             status(_cdPaymentI18n('payment.directModal.passMissGoStore', '보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.'), true);
@@ -23016,7 +23032,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passUnknown', '이용권이 있으시면 아래 이용권 카드를 누르면 그 자리에서 확인됩니다.');
         } else if (_cdPassOutcomeStatus === 'payment_required' && _cdPassOutcomeReason === 'monthly_pass_limit_exceeded') {
           // 이용권은 있는데 이번 달 한도를 다 썼다 — '이용권으로는 안 열린다'가 아니라 '한도 소진'을 말한다.
-          _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요.');
+          _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMonthlyExhausted', '남은 이용권 한도로는 이 상담을 열 수 없어요. 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 결제 방법을 안내해 드릴게요.');
         } else if (_cdPassOutcomeStatus === 'payment_required') {
           _cdPassOutcomeNote = _cdPaymentI18n('payment.directModal.note.passMiss', '보유하신 이용권으로는 이 콘텐츠가 무료로 열리지 않아 결제 방법을 고르는 창을 열었어요.');
         }
@@ -26856,7 +26872,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
             _cdRevokeOptimisticPassUnlock(item.featureKey, 'monthly-pass-limit');
             try { _cdClearPaidPrecheckCache('monthly-pass-limit'); } catch (_) {}
             try {
-              if (typeof toast === 'function') toast(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.'));
+              if (typeof toast === 'function') toast(_cdPaymentI18n('payment.directModal.passMonthlyExhausted', '남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요.'));
             } catch (_) {}
             return;
           }

@@ -12,6 +12,14 @@ test('흐름별 롤백 플래그는 boolean 코드 상수다', async () => {
   const flags = await import('../../lib/guided-flow/flags.mjs');
   assert.equal(typeof flags.GUIDED_DAILY_TAROT_ENABLED, 'boolean');
   assert.equal(typeof flags.GUIDED_HEALING_TAROT_ENABLED, 'boolean');
+  assert.equal(typeof flags.GUIDED_FREE_SAJU_ENABLED, 'boolean');
+});
+
+test('/saju/free/ 는 플래그로 공통 플로우판과 원본 FreeSajuForm 사이를 고른다(3c-A2)', () => {
+  const entry = read('app/saju/free/FreeSajuEntry.tsx');
+  assert.match(entry, /GUIDED_FREE_SAJU_ENABLED\s*\?\s*dynamic\(\(\) => import\("\.\/FreeSajuGuided"\)/);
+  assert.match(entry, /:\s*dynamic\(\(\) => import\("\.\/FreeSajuForm"\)/);
+  assert.match(read('app/saju/free/page.js'), /<FreeSajuEntry \/>/);
 });
 
 test('셸은 영냥이 전용 밤 예화 CSS 를 싣지 않는다(꿀꿀 흐름 번들 분리)', () => {

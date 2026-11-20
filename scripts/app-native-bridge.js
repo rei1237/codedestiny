@@ -484,7 +484,7 @@
     if (/underage/i.test(code)) return nativeAppText("authUnderage");
     if (/guardian/i.test(code)) return nativeAppText("authGuardian");
     if (/database|temporarily unavailable|timeout/i.test(code)) return nativeAppText("authServer");
-    if (/duplicate|already/i.test(code)) return nativeAppText("authDuplicate");
+    if (/duplicate|already|grant_used/i.test(code)) return nativeAppText("authDuplicate");
     if (code === "google_token_exchange_failed") return nativeAppText("authGoogle");
     return nativeAppText("authFailed") + code.slice(0, 80);
   }
@@ -535,6 +535,104 @@
   function browserPlugin() {
     var p = plugins();
     return (p && p.Browser) || null;
+  }
+  // iOS 전용 인증 플러그인(CodeDestinyViewController.swift 의 CodeDestinyAuthPlugin). 안드로이드는 null.
+  function iosAuthPlugin() {
+    if (!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios")) return null;
+    var p = plugins();
+    return (p && p.CodeDestinyAuth && p.CodeDestinyAuth.startOAuth) ? p.CodeDestinyAuth : null;
+  }
+
+  // 오류 분류(Phase 5): 401 만 "다시 로그인", 503·네트워크·시간 초과는 "잠시 후 다시 시도"다.
+  // 일시 장애를 로그인 실패처럼 보이게 하면 사용자가 계정 문제로 오해한다.
+  function describeAuthExchangeError(status, reason) {
+    var code = Number(status) || 0;
+    if (code === 401) return nativeAppText("authFailed") + String(reason || "").slice(0, 80);
+    if (code === 0 || code === 503 || code >= 500 || /abort|signal|timed? ?out|network|failed to fetch/i.test(String(reason || ""))) {
+      return nativeAppText("authDelayed");
+    }
+    return describeSocialError(reason);
+  }
+
+  // 네이티브 Sign in with Apple → 서버 검증 → 1회용 social_grant 를 기존 딥링크 교환 경로로 넘긴다.
+  async function openNativeAppleSignIn(input) {
+    var plugin = iosAuthPlugin();
+    var credential;
+    try {
+      credential = await plugin.signInWithApple();
+    } catch (e) {
+      var cancelled = String((e && e.code) || "") === "AUTH_CANCELLED";
+      notifyAuthCancelled(cancelled ? "cancelled" : "unavailable");
+      if (!cancelled) toast(nativeAppText("authUnavailable"));
+      return { ok: false, code: cancelled ? "AUTH_CANCELLED" : "NATIVE_AUTH_UNAVAILABLE" };
+    }
+    showAuthProgress(nativeAppText("authChecking"));
+    var nextPath = String(input.nextPath || "/");
+    var result;
+    try {
+      result = await postJson("/api/auth/oauth/apple/native", {
+        identityToken: credential.identityToken,
+        authorizationCode: credential.authorizationCode,
+        rawNonce: credential.rawNonce,
+        givenName: credential.givenName || "",
+        familyName: credential.familyName || "",
+        nextPath: nextPath,
+        flow: String(input.flow || "login"),
+      }, { timeoutMs: 20000 });
+    } catch (e) {
+      hideAuthProgress();
+      notifyAuthCancelled("exchange_failed");
+      toast(describeAuthExchangeError(0, String(e && e.message || e)));
+      return { ok: false, code: "APPLE_EXCHANGE_FAILED" };
+    }
+    var payload = result.payload || {};
+    if (result.ok && payload.signupPath) {
+      try { localStorage.setItem("cd_apple_user_id", String(credential.user || "")); } catch (e) { /* noop */ }
+      window.location.assign(String(payload.signupPath));
+      return { ok: true, provider: "apple", signup: true };
+    }
+    if (!result.ok || !payload.socialGrant) {
+      hideAuthProgress();
+      notifyAuthCancelled("exchange_failed");
+      toast(describeAuthExchangeError(result.status, payload.code || payload.message || ""));
+      return { ok: false, code: String(payload.code || "APPLE_EXCHANGE_FAILED"), status: result.status };
+    }
+    try { localStorage.setItem("cd_apple_user_id", String(credential.user || "")); } catch (e) { /* noop */ }
+    var appUrl = "com.codedestiny.app://auth?social_grant=" + encodeURIComponent(payload.socialGrant)
+      + "&next=" + encodeURIComponent(String(payload.nextPath || nextPath));
+    try {
+      await completeMobileOAuth(appUrl);
+    } catch (e) {
+      hideAuthProgress();
+      notifyAuthCancelled("exchange_failed");
+      toast(describeAuthExchangeError(e && e.status, String(e && e.message || e)));
+      return { ok: false, code: "APPLE_EXCHANGE_FAILED" };
+    }
+    return { ok: true, provider: "apple" };
+  }
+
+  // 앱 실행 때 Apple 자격 상태를 확인한다. 사용자가 설정에서 연결을 끊었으면(revoked) 앱 세션을 내린다.
+  async function checkAppleCredentialState() {
+    var plugin = iosAuthPlugin();
+    if (!plugin || !plugin.getAppleCredentialState) return;
+    var appleUser = "";
+    try { appleUser = localStorage.getItem("cd_apple_user_id") || ""; } catch (e) { return; }
+    if (!appleUser) return;
+    try {
+      var state = await plugin.getAppleCredentialState({ user: appleUser });
+      var name = String((state && state.state) || "");
+      if (name !== "revoked" && name !== "notFound") return;
+      trace("appleCredential:" + name, {});
+      try {
+        localStorage.removeItem("cd_apple_user_id");
+        localStorage.removeItem("fortune_auth_token");
+        localStorage.removeItem("fortune_auth_refresh_token");
+        localStorage.removeItem("fortune_auth_user");
+      } catch (e) { /* noop */ }
+      window.dispatchEvent(new CustomEvent("cd:auth-changed", {
+        detail: { source: "apple-credential-" + name, event: "logout", at: Date.now() },
+      }));
+    } catch (e) { /* 상태를 모르면 아무것도 바꾸지 않는다 */ }
   }
 
   function unavailable(message, extra) {
@@ -661,6 +759,10 @@
      */
     async openAuth(input) {
       var provider = String((input && input.provider) || "").trim().toLowerCase();
+      // Apple 은 iOS 에서만 네이티브 시트로 연다(웹 SIWA 는 Services ID 경로라 앱에서 쓰지 않는다).
+      if (provider === "apple" && iosAuthPlugin()) {
+        return await openNativeAppleSignIn(input || {});
+      }
       if (["google", "naver", "kakao"].indexOf(provider) === -1) {
         trace("openAuth:unsupported", { provider: provider });
         return { ok: false, code: "OAUTH_PROVIDER_UNSUPPORTED", message: "Unsupported provider." };
@@ -679,6 +781,24 @@
         flow: (input && input.flow) || "login",
         extraParams: (input && input.extraParams) || null,
       });
+      // iOS: SFSafariViewController(Browser 플러그인)는 커스텀 스킴 복귀를 받지 못한다.
+      // ASWebAuthenticationSession 이 com.codedestiny.app://auth 를 받아 appUrlOpen 으로 다시 흘려보낸다.
+      var iosAuth = iosAuthPlugin();
+      if (iosAuth) {
+        trace("openAuth:iosSession", { provider: provider });
+        showAuthProgress();
+        try {
+          await iosAuth.startOAuth({ url: startUrl });
+        } catch (e) {
+          openAuthStartedAt = 0;
+          hideAuthProgress();
+          var cancelled = String((e && e.code) || "") === "AUTH_CANCELLED";
+          notifyAuthCancelled(cancelled ? "cancelled" : "unavailable");
+          if (!cancelled) toast(nativeAppText("authUnavailable"));
+          return { ok: false, code: cancelled ? "AUTH_CANCELLED" : "NATIVE_AUTH_UNAVAILABLE" };
+        }
+        return { ok: true, provider: provider };
+      }
       var browser = browserPlugin();
       if (!browser || !browser.open) {
         openAuthStartedAt = 0;
@@ -762,7 +882,10 @@
     }, { timeoutMs: 20000 });
     if (!result.ok || !result.payload || !result.payload.accessToken) {
       trace("deepLink:exchangeFailed", { status: result.status, message: (result.payload && result.payload.message) || "" });
-      throw new Error(String((result.payload && result.payload.message) || "Mobile OAuth completion failed."));
+      var exchangeError = new Error(String((result.payload && (result.payload.code || result.payload.message)) || "Mobile OAuth completion failed."));
+      // 오류 분류(Phase 5)가 상태 코드로 갈린다 — 401 만 다시 로그인, 503·네트워크는 재시도 안내.
+      exchangeError.status = Number(result.status) || 0;
+      throw exchangeError;
     }
 
     storeAuthSession(result.payload, "mobile-app-oauth");
@@ -846,9 +969,7 @@
           trace("deepLink:failed", { message: message });
           // 사유를 그대로 버리지 않는다 — 기기 트레이스에서 실제로 나온 실패는
           // 503 "Database is temporarily unavailable." 였고, 고정 문구로는 재시도해야 할지 알 수 없었다.
-          toast(/abort|signal|timed? ?out/i.test(message)
-            ? nativeAppText("authDelayed")
-            : describeSocialError(message));
+          toast(describeAuthExchangeError(error && error.status, message));
         });
     });
   }
@@ -1590,7 +1711,7 @@
   // onClick 이 없다 — 그 사이에 누르면 브라우저가 href 를 그대로 따라간다.
   // 이 스크립트는 <head> 동기 스크립트라 항상 React 보다 먼저 살아 있으므로 여기서 선점한다.
   // (셸·회원가입 등 같은 링크를 쓰는 다른 화면도 함께 커버된다.)
-  var OAUTH_PATH_RE = /^\/api\/auth\/oauth\/(google|naver|kakao)\/start/;
+  var OAUTH_PATH_RE = /^\/api\/auth\/oauth\/(google|naver|kakao|apple)\/start/;
 
   function installOAuthAnchorGuard() {
     document.addEventListener("click", function (event) {
@@ -1607,6 +1728,8 @@
       }
       var match = OAUTH_PATH_RE.exec(url.pathname);
       if (!match) return;
+      // Apple 웹 버튼은 iOS 에서만 네이티브 시트로 돌린다(Phase 5). 안드로이드는 종전대로 둔다.
+      if (match[1] === "apple" && !iosAuthPlugin()) return;
 
       event.preventDefault();
       event.stopPropagation();
@@ -1743,6 +1866,8 @@
     }
     installAppLocaleBridge();
     installAppUrlListener();
+    // iOS 만: Apple 연결이 해제됐으면 세션을 내린다(안드로이드는 플러그인이 없어 즉시 빠진다).
+    checkAppleCredentialState();
     installBackButton();
     installOfflineNotice();
     installExternalLinkGuard();

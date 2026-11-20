@@ -12435,7 +12435,17 @@
       var passCardApi = _dpPassVerdict();
       var passCardSnap = passCardApi && hasActivePassTier ? _dpReadSubscriptionSnapshot() : null;
       var passCardRemaining = passCardSnap && passCardSnap.state === 'active' ? Number(passCardSnap.monthlySpendRemainingCoin) : NaN;
-      var passCardMonthlyLimit = passCardSnap ? passCardApi.monthlyLimitForTier(passCardSnap.tier) : 0;
+      // 분모는 서버 누적 한도(재구매로 쌓인 값) → 현행 정책 표. legacy 표를 쓰지 않는다.
+      var passCardMonthlyLimit = passCardSnap ? passCardApi.displayMonthlyLimit(passCardSnap) : 0;
+      // 왜 못 여는지(건당 상한·남은 한도 부족·소진). 카드 제목·안내 분기 전용이며 판정은 서버가 한다.
+      var passShortfall = passCardSnap ? passCardApi.passShortfallReason(passCardSnap, cost) : '';
+      if (passShortfall === 'exhausted') {
+        passTitle = _dpCheckoutText('payment.directModal.passExhaustedTitle', '상담 한도를 다 썼어요');
+        passHint = _dpCheckoutText('payment.directModal.passHint.exhausted', '이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제로 열거나 이용권을 다시 구매해 한도를 더할 수 있어요.');
+      } else if (passShortfall === 'limit_short') {
+        passTitle = _dpCheckoutText('payment.directModal.passLimitShortTitle', '남은 한도가 부족해요');
+        passHint = _dpCheckoutText('payment.directModal.passHint.limitShort', '남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 단건 결제로 열거나 더 큰 이용권을 확인해 보세요.');
+      }
       if (Number.isFinite(passCardRemaining) && passCardMonthlyLimit > 0) {
         passHint += ' · ' + _dpCheckoutText('payment.directModal.passMonthlyRemaining', '이용권 남은 한도 {remaining} / {limit}', {
           remaining: _dpCheckoutFormatKrw(Math.max(0, Math.floor(passCardRemaining)) * 100),
@@ -12806,7 +12816,11 @@
               hit.classList.remove('is-loading');
               var passMonthlyNode = root.querySelector('[data-payment-status]');
               if (passMonthlyNode) {
-                passMonthlyNode.textContent = _dpCheckoutText('payment.directModal.passMonthlyExhausted', '이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요.');
+                var passShortSnap = _dpReadSubscriptionSnapshot();
+                var passShortRemaining = passShortSnap && passShortSnap.state === 'active' ? Number(passShortSnap.monthlySpendRemainingCoin) : NaN;
+                passMonthlyNode.textContent = Number.isFinite(passShortRemaining)
+                  ? _dpCheckoutText('payment.directModal.passMonthlyShortAmount', '남은 한도 {remaining}이 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요.', { remaining: _dpCheckoutFormatKrw(Math.max(0, Math.floor(passShortRemaining)) * 100) })
+                  : _dpCheckoutText('payment.directModal.passMonthlyExhausted', '남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요.');
                 passMonthlyNode.style.color = '#fca5a5';
               }
               return;

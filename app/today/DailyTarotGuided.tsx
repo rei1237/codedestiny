@@ -150,6 +150,13 @@ function DailyFlow({cards,boot}:{cards:DailyTarotCard[];boot:Boot}){
   flow.start();
  },[controller,flow,save]);
 
+ // 원본 DailyTarot 의 '어제 카드 마저 보기'와 같다: 지난 날짜 그대로 고르기·펼치기·결과를 이어 연다.
+ const resume=useCallback(()=>{
+  const current=readingRef.current;
+  if(!current)return;
+  controller.restore({stepId:stepFor(current),answers:answersOf(current)});
+ },[controller]);
+
  const toggle=useCallback((slot:number)=>{
   const current=readingRef.current;
   if(!current||current.revealed>0)return;
@@ -184,7 +191,10 @@ function DailyFlow({cards,boot}:{cards:DailyTarotCard[];boot:Boot}){
    <p>{t('dailyTarot.sharedBody')}</p>
    <ol>{shared.map((id,index)=><li key={id}><strong>{DAILY_POSITIONS[index]} · {cards[id].name}</strong><p>{DAILY_MEANINGS[id][index]}</p></li>)}</ol>
   </div>:null}
-  {reading&&!todays?<p className={tarot.note} role="status">{t('dailyTarot.newDayBody')}</p>:null}
+  {reading&&!todays?<div className={tarot.newDay}>
+   <p className={tarot.note} role="status">{t('dailyTarot.newDayBody')}</p>
+   <button type="button" className="cd-btn cd-btn--secondary" onClick={resume}>{t('dailyTarot.resumeYesterday')}</button>
+  </div>:null}
   <GuidedLanding
    titleAs="h2"
    eyebrow={t('dailyTarot.eyebrow')}

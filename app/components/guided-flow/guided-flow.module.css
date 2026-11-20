@@ -380,6 +380,83 @@
   color: var(--gf-muted);
   text-wrap: pretty;
 }
+/* 히어로 문장(紋章: 덩굴 띠 + 달무리 + 초승달)과 맺음 가지 — ServiceIntroSection.module.css 의 .crest·.halo·.moon·.sprig 와
+ * 같은 값이다. 그 모듈을 import 하지 않는 이유: Next 가 소개 카드 CSS 를 홈 CSS 와 한 공용 청크(83KB)로 묶어
+ * 가이드 화면에 렌더 차단으로 실었다(3c-perf, 2026-11-20). 마스크 기하는 guidedHeroMasks.generated.module.css(생성기)가 소유한다.
+ * 🔴 박스 크기(crest 240/300px, sprig 110/132px)를 바꾸면 생성기의 획 굵기 역보정도 같이 바꾼다. */
+.crest {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  width: 240px;
+  height: 24px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.crest::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--si-ink);
+  opacity: 0.62;
+  -webkit-mask: var(--si-mask-vine) center / 100% 100% no-repeat;
+  mask: var(--si-mask-vine) center / 100% 100% no-repeat;
+}
+.halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  border: 1px solid color-mix(in srgb, var(--si-ink) 46%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--si-ink) 22%, transparent);
+  transform: translate(-50%, -50%);
+}
+/* 마스크 알파용 검정(색이 아니다) — 원본의 #000 과 같다. */
+.moon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, var(--si-moon-hi), var(--si-moon-mid) 52%, var(--si-moon-lo));
+  transform: translate(-50%, -50%);
+  -webkit-mask: radial-gradient(circle at 74% 28%, transparent 0 39%, black calc(39% + 0.6px));
+  mask: radial-gradient(circle at 74% 28%, transparent 0 39%, black calc(39% + 0.6px));
+}
+.sprig {
+  position: absolute;
+  right: 18px;
+  bottom: 16px;
+  width: 110px;
+  height: 40px;
+  background: var(--si-ink);
+  opacity: 0.5;
+  pointer-events: none;
+  -webkit-mask: var(--si-mask-sprig) center / 100% 100% no-repeat;
+  mask: var(--si-mask-sprig) center / 100% 100% no-repeat;
+}
+@media (min-width: 640px) {
+  .crest {
+    width: 300px;
+    height: 30px;
+  }
+  .halo {
+    width: 30px;
+    height: 30px;
+  }
+  .moon {
+    width: 19px;
+    height: 19px;
+  }
+  .sprig {
+    right: 26px;
+    width: 132px;
+    height: 48px;
+  }
+}
 .block {
   position: relative;
   display: flex;

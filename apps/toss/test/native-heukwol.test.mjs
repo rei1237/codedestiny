@@ -14,7 +14,7 @@ const bundled=await build({
     const stubs={
       '../lib/models.js':'export const ProfileCard={};',
       '../lib/heukwol-analysis.js':'export const buildHeukwolAnalysis=()=>{},heukwolProfileBirth=()=>{};',
-      '../lib/heukwol-report.js':`export const HEUKWOL_CHAPTERS=[{key:"a"},{key:"b"}],HEUKWOL_FEATURE_KEY="heukwol-warning-consultation",HEUKWOL_DELIVERY_PLAN_VERSION=2,HEUKWOL_MIN_CHARS=40000,heukwolDeliveryV2Enabled=()=>true,generateHeukwolChapter=(...args)=>globalThis.__tossHeukwol.generate(...args);`,
+      '../lib/heukwol-report.js':`export const HEUKWOL_CHAPTERS=[{key:"a"},{key:"b"}],HEUKWOL_FEATURE_KEY="heukwol-warning-consultation",HEUKWOL_DELIVERY_PLAN_VERSION=2,HEUKWOL_MIN_CHARS=40000,HEUKWOL_TRANSIENT_ATTEMPTS=4,isHeukwolTransientError=e=>e?.heukwolTransient===true,heukwolDeliveryV2Enabled=()=>true,generateHeukwolChapter=(...args)=>globalThis.__tossHeukwol.generate(...args);`,
       './models.js':'export const TossNativeConsultation=globalThis.__tossHeukwol;',
       './native-tea.js':`export const prepareNativeConsultation=()=>{},nativeOwnerFilter=(auth,nativeService)=>({ownerId:auth.ownerId,nativeService}),verifiedIntent=async(env,auth,row)=>{if(!row||row.ownerId!==auth.ownerId||!globalThis.__tossHeukwol.active)throw Error("NO_ACCESS");return row;};`,
     };
@@ -76,4 +76,27 @@ test('v2 never skips an exhausted chapter: rounds retry it, then the order close
   assert.deepEqual(seen.slice(0,3),[['b',false,false],['b',true,false],['b',true,true]]);
   assert.equal((await heukwolLibraryItem({},auth,{requestId:row._id,_id:row.orderId})).state,'GENERATION_FAILED');
   assert.equal((await heukwolWave({},auth,row._id,true)).status,'failed');assert.equal(seen.length,9);
+});
+
+// R6b: 공급자·일시 오류(응답 없음·JSON 파싱 실패)는 품질 시도를 깎지 않는다. 별도 상한(4회)을 넘기면 품질 시도로 센다.
+test('transient provider failures use their own bounded counter and keep the JSON repair hint',async()=>{
+  const auth={ownerId:'test-f'},row={_id:'test-intent-4',orderId:'test-order-4',nativeService:'heukwol',...auth,status:'paid',
+    generationStartedAt:null,savedResult:{chapters:[{key:'a',totalChars:8}],attempts:0},input:{planVersion:2,year:2027,question:'모의 질문',analysis:{}}};
+  const query=read=>({lean:async()=>structuredClone(read())});
+  const matches=filter=>Object.entries(filter).every(([k,v])=>k==='$or'?!row.generationStartedAt:isDeepStrictEqual(row[k],v));
+  mocks.findOne=filter=>query(()=>matches(filter)?row:null);
+  mocks.findOneAndUpdate=(filter,update)=>query(()=>matches(filter)?Object.assign(row,update.$set):null);
+  mocks.active=true;
+  const seen=[];
+  mocks.generate=async(env,basis,chapter,question,previous,u,options)=>{seen.push([options.relaxed,options.finalAttempt,options.repairIssue]);
+    throw Object.assign(Error('HEUKWOL_JSON_INVALID'),{heukwolTransient:true,heukwolIssue:'HEUKWOL_JSON_INVALID'});};
+  for(let i=0;i<4;i++){const view=await heukwolWave({},auth,row._id,true);assert.equal(view.status,'generating');}
+  assert.equal(row.savedResult.attempts,0);assert.equal(row.savedResult.transient,4);
+  assert.deepEqual(seen.map(([r,f])=>[r,f]),[[false,false],[false,false],[false,false],[false,false]]);
+  assert.deepEqual(seen.slice(1).map(x=>x[2]),['HEUKWOL_JSON_INVALID','HEUKWOL_JSON_INVALID','HEUKWOL_JSON_INVALID']);
+  await heukwolWave({},auth,row._id,true);
+  assert.equal(row.savedResult.attempts,1);assert.equal(row.savedResult.transient,4);
+  mocks.generate=async(env,basis,chapter)=>({...chapter,content:'모의 저장본',totalChars:8});
+  assert.equal((await heukwolWave({},auth,row._id,true)).status,'completed');
+  assert.equal(row.savedResult.attempts,0);assert.equal(row.savedResult.transient,0);
 });

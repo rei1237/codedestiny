@@ -22,6 +22,8 @@ export type PassVerdictSnapshot = {
   monthlySpendRemainingCoin?: number | null;
   /** monthlySpendRemainingCoin 을 마지막으로 반영한 시각. 판정에는 쓰지 않는다(신선도 상한 없음). */
   monthlyCheckedAt?: number | null;
+  /** 서버가 준 누적 이용 한도(coin, 재구매 누적 포함). 표시 전용 — 판정에는 쓰지 않는다. */
+  monthlyLimitCoin?: number | null;
 };
 
 export type PassVerdictDeniedReason = "" | "subscription_snapshot_none" | "snapshot_pass_limit_exceeded" | "monthly_pass_limit_exceeded";
@@ -67,6 +69,13 @@ declare const passVerdict: {
   normalizeTier(value: unknown): PassVerdictTier;
   passLimitForTier(tier: unknown): number;
   monthlyLimitForTier(tier: unknown): number;
+  /** 정책 버전별 기본 이용 한도(coin). 표시 전용. */
+  monthlyLimitForPolicy(tier: unknown, policyVersion?: string): number;
+  /** 화면에 보여 줄 이용 한도 총액(coin): 서버 누적 한도 → 정책 표, 남은 한도보다 작지 않게. */
+  displayMonthlyLimit(snapshot: PassVerdictSnapshot | null): number;
+  /** 이용권 카드 문구 분기용 사유. 판정은 서버가 한다. */
+  passShortfallReason(snapshot: PassVerdictSnapshot | null, coinCost: number): "" | "per_use_cap" | "exhausted" | "limit_short";
+  PASS_EXHAUSTED_REMAINING_COIN: number;
   normalizeUserId(userId: unknown): string;
   snapshotKey(userId: unknown): string;
   normalizeDate(value: unknown): string | null;

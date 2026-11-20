@@ -1,8 +1,5 @@
-import {
-  MIN_PASS_COVERABLE_COIN,
-  MONTHLY_PASS_LIMITS_KRW,
-  PASS_LIMITS_KRW,
-} from "@/worker/lib/profile-limits";
+import { MIN_PASS_COVERABLE_COIN } from "@/worker/lib/profile-limits";
+import { CURRENT_PASS_PLANS } from "@/lib/payment/pass-policy.js";
 
 export type PassTier = "standard" | "premium" | "vvip" | "family";
 
@@ -73,9 +70,20 @@ function normalizeTier(value: unknown): PassTier | null {
   return PASS_TIER_ORDER.includes(value as PassTier) ? value as PassTier : null;
 }
 
+// 현행 판매 정책(flower-20261104)의 건당 상한·총 한도. legacy 표(큰 꿀단지 건당 20,000원)를 쓰면
+// 30,000원 상담이 "패밀리 이상"으로 잘못 보인다.
+type PassPlanRow = { maxCoveredCoin: number; monthlyLimitCoin: number };
+const CURRENT_PLANS = CURRENT_PASS_PLANS as unknown as Record<PassTier, PassPlanRow>;
+function currentPerUseCapKRW(tier: PassTier): number {
+  return Number(CURRENT_PLANS[tier]?.maxCoveredCoin || 0) * 100;
+}
+function currentMonthlyLimitKRW(tier: PassTier): number {
+  return Number(CURRENT_PLANS[tier]?.monthlyLimitCoin || 0) * 100;
+}
+
 function resolveMinimumTier(canonicalPriceKRW: number): PassTier | null {
   const price = Math.max(0, Math.floor(Number(canonicalPriceKRW || 0)));
-  return PASS_TIER_ORDER.find((tier) => price <= Number(PASS_LIMITS_KRW[tier] || 0)) || null;
+  return PASS_TIER_ORDER.find((tier) => price <= currentPerUseCapKRW(tier)) || null;
 }
 
 /** Display-only description of pass coverage. Server payment enforcement remains authoritative. */
@@ -89,7 +97,12 @@ export function describePassEligibility(
   const currentTier = normalizeTier(passUsage?.tier);
   const currentRank = currentTier ? PASS_TIER_ORDER.indexOf(currentTier) : -1;
   const minimumRank = minimumTier ? PASS_TIER_ORDER.indexOf(minimumTier) : -1;
-  const monthlyLimitKRW = currentTier ? Number(MONTHLY_PASS_LIMITS_KRW[currentTier] || 0) : 0;
+  // 서버가 준 누적 한도(재구매로 쌓인 값)가 있으면 그것이 정본이다.
+  const monthlyLimitKRW = currentTier ? (Number(passUsage?.limitKRW) || currentMonthlyLimitKRW(currentTier)) : 0;
+  // 서버가 준 건당 상한이 있으면 그것을 따른다(옛 정책 이용권 보유자의 상한이 현행 표와 다를 수 있다).
+  const serverPerUseKRW = Number(passUsage?.perItemLimitKRW) || 0;
+  const priceKRW = Math.max(0, Math.floor(Number(canonicalPriceKRW || 0)));
+  const withinServerPerUse = !serverPerUseKRW || priceKRW <= serverPerUseKRW;
   const usedKRW = Math.max(0, Number(passUsage?.usedKRW || 0));
   const remainingKRW = passUsage?.remainingKRW == null
     ? Math.max(0, monthlyLimitKRW - usedKRW)
@@ -101,7 +114,7 @@ export function describePassEligibility(
       && monthlyLimitKRW > 0
       && remainingKRW < minimumCoverableKRW,
   );
-  const coveredByCurrentPass = Boolean(minimumTier && currentTier && currentRank >= minimumRank && !monthlyExhausted);
+  const coveredByCurrentPass = Boolean(minimumTier && currentTier && currentRank >= minimumRank && withinServerPerUse && !monthlyExhausted);
 
   if (!minimumTier) {
     return { minimumTier: null, coveredByCurrentPass: false, monthlyExhausted, label: getEligibilityCopy(locale).notCovered };
@@ -129,7 +142,7 @@ export function describePassEligibility(
 export function isConsultationAllowanceExhausted(passUsage?: PassUsageSnapshot | null): boolean {
   const tier = normalizeTier(passUsage?.tier);
   if (!tier || !passUsage) return false;
-  const limitKRW = Number(passUsage.limitKRW) || Number(MONTHLY_PASS_LIMITS_KRW[tier] || 0);
+  const limitKRW = Number(passUsage.limitKRW) || currentMonthlyLimitKRW(tier);
   if (limitKRW <= 0) return false;
   const remainingKRW = passUsage.remainingKRW == null
     ? Math.max(0, limitKRW - Math.max(0, Number(passUsage.usedKRW || 0)))

@@ -61,6 +61,28 @@ test('6일이 지난 정체 문서는 시도 횟수와 무관하게 7일 무시 
   expect(stuck.shouldSettleStuck({ deliveryWatch: { stalls: 6 } }, START)).toBe(true);
 });
 
+// 다시 시도로 재개방한 문서는 재개방 시각부터 나이를 잰다 — 6일째 열린 다시 시도가 다음 크론에 바로 다시 확정되지 않게.
+// 환불 시각(생성 + 7일)은 재개방과 무관하게 그대로다.
+test('재개방한 문서의 정체 나이는 재개방 시각부터 재고, 환불 시각은 생성 + 7일 그대로다', () => {
+  const day6 = START + 6 * 86400000;
+  const generic = { createdAt: new Date(START), llmMeta: { retryable: { reopenedAt: new Date(day6) } } };
+  const heukwol = { createdAt: new Date(START), metadata: { retryReopenedAt: new Date(day6) } };
+  expect(stuck.shouldSettleStuck(generic, day6 + 600000)).toBe(false);
+  expect(stuck.shouldSettleStuck(heukwol, day6 + 600000)).toBe(false);
+  expect(stuck.shouldSettleStuck({ createdAt: new Date(START) }, day6 + 600000)).toBe(true);
+  expect(stuck.shouldSettleStuck({ ...generic, deliveryWatch: { stalls: 6 } }, day6 + 600000)).toBe(true);
+  expect(stuck.retryRefundAt(generic, day6).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);
+  expect(stuck.retryRefundAt(heukwol, day6).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);
+});
+
+test('복구 크론은 정체 나이 판정에 쓰는 재개방 시각을 함께 읽는다', async () => {
+  const model = memoryModel(baseDoc('partial'));
+  let selected = '';
+  model.find = () => ({ sort() { return this; }, limit() { return this; }, select(fields) { selected = fields; return this; }, lean: async () => [] });
+  await runCron(model, 'new-year-ai', jest.fn(), START);
+  expect(selected.split(/\s+/)).toEqual(expect.arrayContaining(['llmMeta.retryable.reopenedAt', 'metadata.retryReopenedAt']));
+});
+
 test('partial 이 진전 없이 6번 복구되면 다음 크론에서 다시 시도 가능한 실패로 두고 환불하지 않는다', async () => {
   const model = memoryModel(baseDoc('partial'));
   const resume = jest.fn(async () => new Response('{}', { status: 503 }));
@@ -130,6 +152,24 @@ test('다시 시도 창이 지난 뒤 다시 정체되면 바로 환불로 넘�
   expect(out).toEqual({ outcome: 'generation_failed', refundStatus: 'pending' });
   expect(model.doc.status).toBe('generation_failed');
   expect(model.doc.llmMeta.refundEligibleAt).toBeTruthy();
+});
+
+// 토스 문서는 다시 시도 화면이 없고 공용 환불 크론(runPendingConsultationRefunds)이 accessSource toss 를 고르지 않는다.
+// 운영 복구(supportRecovery) 문서는 고객 다시 시도 흐름 밖이다. 둘 다 다시 시도 대기로 두면 7일 방치되므로 바로 정산한다.
+test.each([
+  ['토스', { accessSource: 'toss' }, 'manual_review'],
+  ['운영 복구', { supportRecovery: true }, 'refunded'],
+])('%s 문서의 정체 확정은 다시 시도 대기로 두지 않고 바로 정산한다', async (_label, extra, refundStatus) => {
+  const doc = baseDoc('partial', { deliveryWatch: { baseline: 1, stalls: 6 }, ...(extra.accessSource ? { accessSource: extra.accessSource } : {}) });
+  if (extra.supportRecovery) doc.llmMeta.supportRecovery = { active: true };
+  const model = memoryModel(doc);
+  const refund = jest.fn(async () => ({ refundStatus }));
+  const out = await stuck.settleStuckConsultation({}, { service: 'life-book-ai', model, doc: model.doc, now: START + 3600000, refund });
+  expect(out).toEqual({ outcome: 'generation_failed', refundStatus });
+  expect(refund).toHaveBeenCalledWith({}, { service: 'life-book-ai', id: 'session-1', userId: 'owner' });
+  expect(model.doc.status).toBe('generation_failed');
+  expect(model.doc.llmMeta.refundEligibleAt).toBeTruthy();
+  expect(model.doc.llmMeta.retryable).toBeUndefined();
 });
 
 // S16: 공용 설정자는 완성 판정(isComplete)을 통과한 delivery_pending 만 구제 전달하고, 미완성은 실패+환불한다.
@@ -286,6 +326,21 @@ test('복구 크론은 기존 환불 크론보다 먼저 창이 지난 다시 �
       loadAdapter: async () => ({ resumeConsultationOnServer: jest.fn() }) });
   } finally { log.mockRestore(); }
   expect(seenAtRefund).toBe(new Date(due).toISOString());
+});
+
+test('기한 만료로 닫힌 다시 시도 실패는 붙잡아 둔 결제 증빙 claim 을 푼다(토스 문서는 제외)', async () => {
+  const due = START + stuck.RETRY_REFUND_AFTER_MS;
+  const held = memoryModel(retryableDoc(START, { idempotencyKey: 'paid-request', llmMeta: { ...retryableDoc(START).llmMeta, claimEvidenceIds: ['receipt-1', 'paid-request'] } }));
+  const toss = memoryModel(retryableDoc(START, { accessSource: 'toss', idempotencyKey: 'toss-request', llmMeta: { ...retryableDoc(START).llmMeta, claimEvidenceIds: ['receipt-2'] } }));
+  const releaseClaim = jest.fn(async () => ({ released: 1 }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await runConsultationRecovery({}, { now: due, connectDb: async () => {}, adapters: [['new-year-ai', 'M', {}], ['life-book-ai', 'T', {}]], models: { M: held, T: toss },
+      releaseClaim, refundRecovery: async () => ({ outcomes: [] }), loadAdapter: async () => ({ resumeConsultationOnServer: jest.fn() }) });
+  } finally { log.mockRestore(); }
+  expect(held.doc.llmMeta.retryable.refundReason).toBe('RETRY_WINDOW_EXPIRED');
+  expect(releaseClaim).toHaveBeenCalledTimes(1);
+  expect(releaseClaim).toHaveBeenCalledWith({}, { userId: held.doc.userId, requestId: 'paid-request', evidenceIds: ['receipt-1', 'paid-request'] });
 });
 
 test('복구 크론은 어댑터의 isStuckDeliveryComplete 를 공용 설정자에 넘긴다', async () => {

@@ -466,7 +466,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-df6b3d1c4da1";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-6af8ee1bc22b";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1188,7 +1188,21 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const passMonthlyRemaining = passMonthlySnapshot && passMonthlySnapshot.state === "active"
     ? Number(passMonthlySnapshot.monthlySpendRemainingCoin)
     : Number.NaN;
-  const passMonthlyLimit = passMonthlySnapshot ? passVerdict.monthlyLimitForTier(passMonthlySnapshot.tier) : 0;
+  // 분모는 서버가 준 누적 한도(재구매로 쌓인 값) → 현행 정책 표 순서다. legacy 표(작은 꿀단지 30,000원)를 쓰지 않는다.
+  const passMonthlyLimit = passMonthlySnapshot ? passVerdict.displayMonthlyLimit(passMonthlySnapshot) : 0;
+  // 왜 못 여는지에 따라 카드 제목·안내를 가른다(건당 상한 → 더 큰 등급, 남은 한도 부족·소진 → 단건 결제·재구매).
+  // 판정은 여전히 카드를 눌렀을 때 서버가 한다.
+  const passShortfall = passMonthlySnapshot ? passVerdict.passShortfallReason(passMonthlySnapshot, coinPrice) : "";
+  const passCardTitle = passShortfall === "exhausted"
+    ? checkoutEntry.text("payment.directModal.passExhaustedTitle", "상담 한도를 다 썼어요")
+    : passShortfall === "limit_short"
+      ? checkoutEntry.text("payment.directModal.passLimitShortTitle", "남은 한도가 부족해요")
+      : passStoreTitle;
+  const passCardHint = passShortfall === "exhausted"
+    ? checkoutEntry.text("payment.directModal.passHint.exhausted", "이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제로 열거나 이용권을 다시 구매해 한도를 더할 수 있어요.")
+    : passShortfall === "limit_short"
+      ? checkoutEntry.text("payment.directModal.passHint.limitShort", "남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 단건 결제로 열거나 더 큰 이용권을 확인해 보세요.")
+      : passStoreHint;
   const passMonthlyHint = Number.isFinite(passMonthlyRemaining) && passMonthlyLimit > 0
     ? checkoutEntry.text("payment.directModal.passMonthlyRemaining", "이용권 남은 한도 {remaining} / {limit}", {
       remaining: formatCoinValueWon(Math.max(0, Math.floor(passMonthlyRemaining))),
@@ -1283,11 +1297,11 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         allow: canShowPassStore,
         dataMode: "pass-store",
         extraClass: " is-store",
-        ariaLabel: `${passStoreTitle}${optionRecommendAria("pass")}`,
+        ariaLabel: `${passCardTitle}${optionRecommendAria("pass")}`,
         glyph: "🎫",
         badgeLabel: passLabel,
-        titleHtml: escapePaymentText(passStoreTitle),
-        descHtml: escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint),
+        titleHtml: escapePaymentText(passCardTitle),
+        descHtml: escapePaymentText(passHint ? `${passCardHint} ${passHint}` : passCardHint),
       },
       direct: {
         allow: canShowDirect,
@@ -1601,7 +1615,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             // 월 한도 소진(decisionReason MONTHLY_PASS_LIMIT_EXCEEDED)은 이용권이 **있는** 상태다 — 상점으로 보내면
             // 이미 가진 이용권을 또 사라는 화면이 된다. 모달을 연 채 단건·월정석을 고르게 한다.
             if (passVerdict.isMonthlyLimitPayload(passDeniedPayload)) {
-            setStatus(checkoutEntry.text("payment.directModal.passMonthlyExhausted", "이용 한도를 모두 사용해 이용권이 종료되었어요. 다시 구매하면 새 이용 한도로 시작하며, 지금은 단건 결제나 월정석으로 열 수 있어요."), true);
+            const passShortSnap = readSubscriptionSnapshotForUser();
+            const passShortRemaining = passShortSnap && passShortSnap.state === "active" ? Number(passShortSnap.monthlySpendRemainingCoin) : Number.NaN;
+            setStatus(Number.isFinite(passShortRemaining)
+              ? checkoutEntry.text("payment.directModal.passMonthlyShortAmount", "남은 한도 {remaining}이 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요.", {
+                remaining: formatCoinValueWon(Math.max(0, Math.floor(passShortRemaining))),
+              })
+              : checkoutEntry.text("payment.directModal.passMonthlyExhausted", "남은 한도가 이 상담 가격보다 적어요 · 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 이 상담은 단건 결제나 월정석으로 열 수 있어요."), true);
             return;
           }
           setStatus("보유하신 이용권으로는 열리지 않아 이용권 상점으로 이동합니다.");
@@ -4443,7 +4463,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
         passOutcomeNote: toText(initialSnapshot?.source) === "pass_budget_exhausted"
           ? checkoutEntry.text(
             "payment.directModal.note.passMonthlyExhausted",
-            "이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요.",
+            "남은 이용권 한도로는 이 상담을 열 수 없어요. 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 결제 방법을 안내해 드릴게요.",
           )
           : "",
       });
@@ -4848,7 +4868,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
           passOutcomeNote: passVerdict.isMonthlyLimitPayload(parsed.raw)
             ? checkoutEntry.text(
               "payment.directModal.note.passMonthlyExhausted",
-              "이용 한도를 모두 사용해 이용권이 종료되었어요. 결제 방법을 안내해 드릴게요.",
+              "남은 이용권 한도로는 이 상담을 열 수 없어요. 이용권은 그대로이고 가벼운 운세는 계속 이용할 수 있어요. 결제 방법을 안내해 드릴게요.",
             )
             : "",
         });

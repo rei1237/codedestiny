@@ -2990,7 +2990,7 @@
         "passSaveUnverified": "No hemos podido guardar el resultado de aplicar tu pase. Vuelve a comprobarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passCheckFailed": "No hemos podido comprobar tu pase. Vuelve a intentarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago.",
-        "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
+        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options."
       },
       "passBadge": "Pase a la luz de la luna",
       "passStoreTitle": "Tienda de pases a la luz de la luna",
@@ -2998,7 +2998,9 @@
       "passHint": {
         "store": "Paga una vez y abre muchos contenidos hasta agotar el límite de uso. ¿Ya tienes uno? Toca para comprobarlo.",
         "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago.",
-        "upgrade": "Tu nivel actual no abre este contenido. Echa un vistazo a un nivel superior."
+        "upgrade": "Tu nivel actual no abre este contenido. Echa un vistazo a un nivel superior.",
+        "limitShort": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. Open it with a one-time payment or check a larger pass.",
+        "exhausted": "Your pass stays active and light fortunes stay open. Open this reading with a one-time payment, or buy the pass again to add to your allowance."
       },
       "applyMethod": {
         "label": "Aplicar método",
@@ -3069,7 +3071,7 @@
         "comingSoon": "Próximamente",
         "back": "Atrás"
       },
-      "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Buying again starts a new usage limit; for now you can open this with a one-time payment or moonstones.",
+      "passMonthlyExhausted": "Your remaining allowance is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones.",
       "passMonthlyRemaining": "Pass allowance left {remaining} / {limit}",
       "wait": {
         "card": "After you finish verifying in your card or payment app, come back to this browser and checkout will continue automatically.",
@@ -3077,7 +3079,10 @@
         "kakaopay": "Approve the payment in KakaoTalk, then come back to this browser and checkout will continue automatically.",
         "mobile": "You'll return to this screen automatically once your mobile identity verification is complete.",
         "gift": "You'll return to this screen automatically once your gift certificate PIN is verified."
-      }
+      },
+      "passLimitShortTitle": "Not enough allowance left",
+      "passExhaustedTitle": "Reading allowance used up",
+      "passMonthlyShortAmount": "Your remaining allowance of {remaining} is less than this reading's price · Your pass stays active and light fortunes stay open. You can open this reading with a one-time payment or moonstones."
     },
     "overlay": {
       "unlockPreparing": {

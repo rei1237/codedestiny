@@ -32,6 +32,8 @@ const {
   lifeBookLengthBoostTarget,
   lifeBookSectionValid,
   dropPriorHalfRepeats,
+  repairLifeBookSectionResult,
+  salvageLifeBookSectionJson,
 } = __lifeBookAiTestUtils;
 
 test('a missing middle chapter cannot shift the identity or short-draft allowance of later chapters', () => {
@@ -427,8 +429,9 @@ describe("인생 총운 판 3(장별 두 번 생성)", () => {
     expect(halves.every((s) => s.planVersion === 3 && s.chapterId === `chapter-${s.index + 1}` && s.minChars === 1200)).toBe(true);
     expect(halves.filter((s) => s.questionOwner).map((s) => s.id)).toEqual(["chapter-1-a"]);
     expect(halves.find((s) => s.id === "chapter-2-b").targetChars).toBe(2200);
-    expect(generationWaveCap(plan)).toBe(52);
-    expect(generationWaveCap(buildSectionPlan(lifeFortuneInput))).toBe(32);
+    // L1(2026-11-20): 모든 조각이 시도 4회를 다 쓸 수 있게 판 길이 × 4 + 2.
+    expect(generationWaveCap(plan)).toBe(102);
+    expect(generationWaveCap(buildSectionPlan(lifeFortuneInput))).toBe(62);
     expect(buildSectionPlan(lifeBookInput, { version: 3 })).toHaveLength(15);
   });
 
@@ -640,4 +643,116 @@ test('native life-book orders keep original validation, mode pricing keys and no
   expect(fortune.featureKey).toBe('life-fortune-ai-consultation');
   expect(fortune.inputHash).not.toBe(book.inputHash);
   expect(()=>nativeLifeBookContract({...body,birthInfo:{...birthInfo,birthDate:'not-a-date'}})).toThrow();
+});
+
+// L1(2026-11-20, 사용자 원문: "생성 조건과 실패 조건을 너무 어렵게 하지말고 정확한 분량이 아니더라도 전달이 잘되도록해줘").
+// 마지막 시도는 반려하지 않고 결정적으로 고친다. 빈 본문만은 고칠 수 없어 실패로 남는다(S16 완전성 유지).
+describe("마지막 시도 결정적 교정(L1)", () => {
+  const prose = "첫 문장은 타고난 기운을 짚습니다. 둘째 문장은 관계의 흐름을 봅니다.\n\n마지막 문단은 생활의 순서를 정리하세요. 작은 약속부터 지키세요. 쉬는 날을 먼저 정하세요.";
+
+  test("장: 비어 있는 요약·조언을 본문에서 채우고 마지막 시도 판정을 통과한다", () => {
+    for (const input of [lifeBookInput, lifeFortuneInput]) {
+      const plan = buildSectionPlan(input);
+      const section = plan.find(row => row.id === "chapter-3");
+      const result = { ok: true, chars: 10, body: { chapterNumber: 3, title: "엉뚱한 제목", summary: "", content: prose, advice: [], evidenceRefs: [...section.evidenceRefs] } };
+      expect(lifeBookSectionValid(section, result.body, input, { lastChance: true })).toBe(false);
+      repairLifeBookSectionResult(plan, {}, section, result, input);
+      expect(result.body.summary).toBe("첫 문장은 타고난 기운을 짚습니다.");
+      expect(result.body.advice.length).toBeGreaterThanOrEqual(input === lifeFortuneInput ? 3 : 1);
+      expect(result.body.advice.every(Boolean)).toBe(true);
+      expect(result.ok).toBe(true);
+      expect(lifeBookSectionValid(section, result.body, input, { lastChance: true })).toBe(true);
+    }
+  });
+
+  test("장: 목록 항목이 있으면 조언으로 먼저 쓴다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const section = plan.find(row => row.id === "chapter-2");
+    const result = { ok: true, body: { title: section.title, summary: "요약", content: `${prose}\n- 아침마다 하루 계획을 적으세요.\n- 저녁에는 정리하세요.`, advice: [] } };
+    repairLifeBookSectionResult(plan, {}, section, result, lifeBookInput);
+    expect(result.body.advice).toEqual(["아침마다 하루 계획을 적으세요.", "저녁에는 정리하세요."]);
+    expect(result.body.summary).toBe("요약");
+  });
+
+  test("판독: 비어 있는 지침과 제목을 채운다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const section = plan.find(row => row.kind === "expert");
+    const result = { ok: true, body: { title: "", content: prose, guidance: [] } };
+    repairLifeBookSectionResult(plan, {}, section, result, lifeBookInput);
+    expect(result.body.title).toBe(section.title);
+    expect(result.body.guidance.length).toBeGreaterThan(0);
+    expect(lifeBookSectionValid(section, result.body, lifeBookInput, { lastChance: true })).toBe(true);
+  });
+
+  test("프레임: 빈 마무리·한 줄 요약을 10장 요약(없으면 1장 첫 문장)으로 채운다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const frame = plan.find(row => row.kind === "frame");
+    const sections = buildSectionsAtTarget(plan);
+    const result = { ok: true, body: { title: "", subtitle: "", coreSummary: { oneLine: "" }, finalMessage: "" } };
+    repairLifeBookSectionResult(plan, sections, frame, result, lifeBookInput);
+    expect(result.body.finalMessage).toBe(sections["chapter-10"].body.summary);
+    expect(result.body.coreSummary.oneLine).toBe(sections["chapter-10"].body.summary);
+    expect(result.body.title).toBeTruthy();
+    expect(lifeBookSectionValid(frame, result.body, lifeBookInput, { lastChance: true })).toBe(true);
+    delete sections["chapter-10"];
+    sections["chapter-1"].body.content = "1장 첫 문장입니다. 다음 문장입니다.";
+    const noBody = { ok: false, body: null, error: "SECTION_JSON_MISSING" };
+    repairLifeBookSectionResult(plan, sections, frame, noBody, lifeBookInput);
+    expect(noBody.body.finalMessage).toBe("1장 첫 문장입니다.");
+    expect(noBody.ok).toBe(true);
+  });
+
+  test("금칙어가 든 문장만 빼고 나머지는 전달한다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const section = plan.find(row => row.id === "chapter-4");
+    const result = { ok: true, body: { title: section.title, summary: "요약", content: `${prose}\nAI 가 쓴 문장은 빠집니다. 남는 문장은 그대로 있습니다.`, advice: ["하나"] } };
+    expect(lifeBookSectionValid(section, result.body, lifeBookInput, { lastChance: true })).toBe(false);
+    repairLifeBookSectionResult(plan, {}, section, result, lifeBookInput);
+    expect(result.body.content).not.toMatch(/\bAI\b/);
+    expect(result.body.content).toContain("남는 문장은 그대로 있습니다.");
+    expect(lifeBookSectionValid(section, result.body, lifeBookInput, { lastChance: true })).toBe(true);
+  });
+
+  test("빈 본문은 고칠 수 없어 실패로 남는다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const section = plan.find(row => row.id === "chapter-5");
+    const result = { ok: false, body: { title: section.title, summary: "", content: "", advice: [] } };
+    repairLifeBookSectionResult(plan, {}, section, result, lifeBookInput);
+    expect(result.ok).toBe(false);
+    expect(lifeBookSectionValid(section, result.body, lifeBookInput, { lastChance: true })).toBe(false);
+    const failed = { ok: false, body: null, failure: { code: "LLM_PROVIDER_UNAVAILABLE" } };
+    repairLifeBookSectionResult(plan, buildSectionsAtTarget(plan), plan.find(row => row.kind === "frame"), failed, lifeBookInput);
+    expect(failed.body).toBe(null);
+  });
+
+  test("반복 문장 검사는 마지막 시도에서 건너뛴다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const section = plan.find(row => row.id === "chapter-6");
+    const line = "같은 문장이 여러 번 되풀이되어 본문을 채우고 있으며 이 문장은 충분히 길게 이어집니다.";
+    const body = { title: section.title, summary: "요약", content: Array.from({ length: 12 }, () => line).join(" "), advice: ["하나"] };
+    expect(lifeBookSectionValid(section, body, lifeBookInput)).toBe(false);
+    expect(lifeBookSectionValid(section, body, lifeBookInput, { lastChance: true })).toBe(true);
+  });
+
+  test("깨지거나 잘린 JSON 에서도 본문을 살린다", () => {
+    expect(salvageLifeBookSectionJson('{"title":"3장","summary":"요약","content":"완결된 본문입니다."}')).toEqual({ title: "3장", summary: "요약", content: "완결된 본문입니다." });
+    const truncated = salvageLifeBookSectionJson('{"title":"3장","summary":"요약","content":"첫 문장은 끝났습니다.\n둘째 문장도 끝났습니다. 셋째 문장은 중간에서 잘');
+    expect(truncated.title).toBe("3장");
+    expect(truncated.summary).toBe("요약");
+    expect(truncated.content).toBe("첫 문장은 끝났습니다.\n둘째 문장도 끝났습니다.");
+    expect(salvageLifeBookSectionJson("그냥 산문으로 온 답입니다. 둘째 문장입니다.")).toEqual({ content: "그냥 산문으로 온 답입니다. 둘째 문장입니다." });
+    expect(salvageLifeBookSectionJson("")).toBe(null);
+  });
+
+  test("책 단위 금칙어 검사는 사용자 입력(profileSummary)을 보지 않는다", () => {
+    const plan = buildSectionPlan(lifeBookInput);
+    const input = { ...lifeBookInput, birthInfo: { ...birthInfo, name: "AI 시스템" } };
+    const report = assembleReport(input, plan, buildSectionsAtTarget(plan));
+    expect(report.profileSummary.name).toBe("AI 시스템");
+    expect(isLifeBookComplete(report)).toBe(true);
+    expect(getLifeBookReportQualityIssues(JSON.stringify(report), input, lifeBookLengthOptions(plan, buildSectionsAtTarget(plan)))).not.toContain("forbidden_terms");
+    // 모델이 쓴 본문의 금칙어는 그대로 막는다.
+    report.finalMessage = "AI 가 쓴 마무리";
+    expect(isLifeBookComplete(report)).toBe(false);
+  });
 });
