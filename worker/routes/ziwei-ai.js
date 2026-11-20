@@ -3216,8 +3216,9 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
     if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/ziwei-ai/prepare" : "/api/ziwei-ai/ensure-access");
     }
+    // 🔴 ctx(ExecutionContext)를 넘기지 않는다 — handleStart 의 4번째 인자는 recoveryAuth 라서 ctx 가 로그인 사용자 자리에 들어간다(2026-11-21).
     if (method === "POST" && (path === "/generate" || path === "/start")) {
-      return await handleStart(request, env, path === "/generate" ? "/api/ziwei-ai/generate" : "/api/ziwei-ai/start", ctx);
+      return await handleStart(request, env, path === "/generate" ? "/api/ziwei-ai/generate" : "/api/ziwei-ai/start");
     }
     if (method === "POST" && path === "/retry") return await handleRetry(request, env);
     if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);

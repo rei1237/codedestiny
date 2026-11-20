@@ -53,7 +53,7 @@
 | 표면 | 스타일 | 고치는 곳 |
 |---|---|---|
 | 영냥이 | CSS Modules + `_home/*.css`, 키프레임 애니메이션 포함 | `app/yeongnyangi/` |
-| 그 밖 App Router | Tailwind. 읽기형·허브·정책 화면은 DESIGN.md §8 표면 3종 중 하나 | `app/**` |
+| 그 밖 App Router | Tailwind. 읽기형·허브·정책 화면은 DESIGN.md §8 표면 3종 중 하나. 예외: 마스터 모션 래퍼(`app/components/master-motion/`)와 ExpertCharacterStage 는 CSS 키프레임(transform·opacity)을 쓴다(2026-11-21) | `app/**` |
 | 정적 셸(꽃돼지 `/ggulggul/`, 로케일) | `index.html` 정본 → `npm run sync:public` 으로 미러 생성 | `index.html` |
 
 - 신규 화면은 몰입형이다. 전역 헤더·푸터를 붙이지 않는다([design-and-ui](design-and-ui.md) 20행).
@@ -73,7 +73,7 @@
 1. `/` 정체 → 꿀꿀 운세 진입(`app/page.js`). CLAUDE.md·BASELINE 정정.
 2. 영냥이 누락 → PRODUCT·design-and-ui·content-assets 에 상담가 셋과 이 파일 링크.
 3. `dark:` 필수(07-09·08-15) ↔ 금지(DESIGN.md §9, 09-05) → 금지.
-4. 애니메이션 "Tailwind 만" → 영냥이 CSS 키프레임 예외.
+4. 애니메이션 "Tailwind 만" → 영냥이 CSS 키프레임 예외. 2026-11-21 마스터 모션 래퍼(`MasterMotion`, 홈 `js/core/yehwa-home.mjs` 의 `mountMasterMotion`)도 예외 — 그 래퍼 안에서만, transform·opacity·reduced-motion 정지·화면 안에서만 재생.
 5. 테마 축 → DESIGN.md §9 에 `--yn-*`, "App Router 는 네오 단일"에 영냥이 예외.
 6. 반경 "3종" → 6단.
 7. "따뜻한 존댓말" 일괄 → 화자별 표. 상담실·기능 이름은 둘 다 살아 있어 개명하지 않음.

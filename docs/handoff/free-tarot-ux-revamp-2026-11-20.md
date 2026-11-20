@@ -270,7 +270,7 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
   - 렌더 차단 CSS(dev, 첫 HTML stylesheet 합): 켬/끔 동일 — `/saju/free/` 1,047,800B(5개), `/saju/animal-destiny/` 970,406B(3개), `/yeon-star-hug/` 933,935B(1개).
   - 경계 diff(`git diff origin/main...HEAD --stat`): 결제·이용권·월정석·auth·records·library·worker·api·라우트·리다이렉트·wrangler·.env·package-lock 변경 0.
   - SEO: 공개 page.tsx·metadata·H1·canonical·robots 무변경, 데모는 dev 전용·noindex·사이트맵 밖, 사이트맵 원장만 재생성. 그 외 항목 영향 없음.
-  - main CI(push 전 1회): MAINCI_RESULT
+  - main CI(push 전 1회): **빨강, 남의 커밋 때문** → W1 은 push 하지 않음. `b354e1e0c`(paid-retry 머지) Critical checks `verify:mongo-query-index-shapes` 실패(`worker/lib/fusion-fortune-recovery-task.js:85,156` 선두 키 불일치), `0531128af`(W4 문서) Static guards `verify:pig-sprite-crop` 실패(`app/components/master-motion/MasterMotion.module.css:76` `calc(100% / var(--mm-n))`). origin/main `96b4a4564` 에서도 로컬 재현. W1 은 두 파일을 건드리지 않음. 브랜치 `wt/guided-birth-w1-20261121-033459` 는 커밋 완료·origin/main 머지 완료 상태로 남김 — main 이 초록이 되면 그 브랜치를 main 에 ff 머지·push.
 - 롤백: `lib/guided-flow/flags.mjs` 의 해당 `GUIDED_BIRTH_*_ENABLED = false`(흐름별), 전체는 `git revert a9be008d1`(연결만) 또는 W1 커밋 전부.
 - 남은 위험·후속:
   1. 셸 sticky CTA 가 실제로는 붙지 않음(기존 결함): 호스트 래퍼(`SeoLandingTemplate.jsx` main, 동물·별빛 포옹 페이지 래퍼)의 `overflow-hidden` 이 sticky 기준을 바꿔, 시각·확인 단계처럼 긴 단계에서 360×844 첫 화면에 "다음/확인"이 하단 내비(cd-mnav) 뒤에 놓임(무료 사주 시각·확인, 별빛 포옹 시각). 스크롤하면 누를 수 있음. 셸 CSS(`bottom: var(--cd-mnav-offset)`)는 맞음. 고치려면 공용 래퍼를 `overflow-x-clip` 류로 바꿔야 해 범위 밖 — 셸 공통 후속.
@@ -280,3 +280,24 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
   5. 숫자 칸 날짜는 `birthDateTextInputProps` 대신 `normalizeBirthDateInput` 으로 검증.
   6. 기존: `scripts/test-mobile-platform-journeys.mjs` 가 A3 이전 동물 입력을 기대.
   7. "3단계 vs 1/6" 문구(셸 공통, 기록만).
+
+## W4 마스터 모션 결과 (2026-11-21)
+
+요청 원문: "각 전문가, 대표 상담에서 설정된 마스터들이 움직이거나 주변에 꽃이 휘날리는 효과를 주도록해줘 현재 이미지 생성은 어렵기 때문에 바로 안되더라도 후속으로 진행가능하도록해주면 좋겠다" / "서비스 기능에 회귀는 없어야해"
+
+- 커밋: c038f3980 (코드·미러·문서), 이 기록 커밋은 그 다음.
+- 만든 것: `app/components/master-motion/MasterMotion.tsx`(+module.css), `lib/master-motion/flags.mjs`(`MASTER_MOTION_ENABLED`), 홈 `js/core/yehwa-home.mjs` 의 `mountMasterMotion`(같은 이름 상수, 스타일은 JS 로 늦게 주입 — 렌더 차단 CSS 불변), 후속 그림 규격 `docs/design/master-motion-assets.md`.
+- 적용: ProductMasterStrip 아바타(꽃잎 3), MasterProfile 소개장·초상(꽃잎 6; 대표 상담 3종 연애 비책·신년운세·인생의 책 + 전문가 상담 소개장), ExpertCharacterStage inline·loading(기존 breathe 재사용, 겹침 없음; result 는 PDF 캡처라 제외), 홈 기본 마스터 카드 4장(꽃잎 4씩).
+- 동작: transform·opacity 키프레임만, JS 애니메이션 루프 없음, useSpritePlaybackGate(화면 안·탭 보임·reduced-motion 아님)일 때만 꽃잎 DOM 생성, absolute·pointer-events:none·aria-hidden. 영냥이 변형(금빛 별가루, 분홍 없음)은 구현했으나 이번 대상 화면은 전부 꿀꿀 쪽이라 아직 쓰는 곳 없음.
+- 후속 그림 훅: `motion?: { frames?, video?, poster }` — MasterProfileData·ProductMaster 타입, 레지스트리 `components/fortune/master-profiles.ts` 주석. 빠진 표정 그림: 연이 greet·worry, 영냥이 explain·worry·cheer·serious.
+- 검증(실측, dev 서버 360·960, 쿠키 배너 닫음):
+  - 플래그 OFF: 마스터 모션 요소 0, reduce 기준 화면과 픽셀 차이 0~0.15%(이미지 로딩 잡음).
+  - 플래그 ON+reduce: 꽃잎 0, 기준 화면과 픽셀 차이 0~0.105% → 레이아웃 동일.
+  - 플래그 ON+no-preference: 꽃잎 DOM love 6/12·newyear 6·lifebook 6·astro 3·홈 16; CLS 는 OFF 와 같음(기존 값, 모션 기인 없음).
+  - visual-checker 18장 PASS(꽃잎이 초상 밖·글자·배지 위로 넘치지 않음, 이동 ≤2px). 홈 꽃잎은 8px 라 캡처에서 못 잡았으나 계산 스타일로 표시 확인(on, opacity .85, 분홍→금).
+  - 렌더 차단 CSS: index.html·yehwa-home.css 변경 0줄(sync 가 바꾼 것은 og 이미지 build 해시뿐). App Router 는 MasterMotion.module.css 3,984B(해당 라우트 청크).
+  - diff 경계: 결제·이용권·보관함·인증·라우트 파일 변경 없음.
+  - check:fast : critical 승격, paid-gate 78/0·lint·typecheck·sitemap(ledger 재생성 후)·남은 26단계(test:jest 포함) 통과. test:node 1건 실패는 fortune/data/daily-2026-11-21.json 부재(발행 cron 산출물, git 미추적) — 날짜 의존 기존 실패, 이 변경과 무관 / check:pre-push 통과(머지 후 커밋 트리).
+  - 미검증: perf:home 전후(dist 빌드 필요 — 이 작업에서는 돌리지 않음), 실기기 저사양 합성 비용.
+- 롤백: `lib/master-motion/flags.mjs`·`js/core/yehwa-home.mjs` 의 `MASTER_MOTION_ENABLED=false`(+ `npm run sync:public`) 또는 c038f3980 `git revert`.
+- 남은 위험: 저사양 기기 합성 비용; 꽃잎이 그려질 때 컴포지팅 레이어로 소개장 목록 글자 AA 가 서브픽셀→그레이스케일로 바뀜(가독성 영향 없음); 후속 그림이 들어오면 용량·디코딩 재측정.

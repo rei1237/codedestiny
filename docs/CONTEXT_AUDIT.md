@@ -398,3 +398,10 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **해소**: 사용자 요청이 우선이다. `<details>`·`<summary>` 를 걷고 카드를 상시 노출한다. 카드 마크업·`data-action`·결제 진입·`data-cd-cross-sell="saju_result"` 계측과 마커 `cd-result-more-v20261114` 는 그대로다. 머리에 문구 없는 예화 구분선(`.cd-yehwa-divider`)만 얹었다(새 i18n 키 없음).
 - **남은 위험**: F1 이 줄이려던 결과 화면 CTA 과다가 되돌아온다. 전환 영향은 별도 관찰한다.
 - **롤백**: 이 변경의 커밋(`feat(saju): reopen the three consultation cards ...`) 하나를 `git revert`.
+
+## 2026-11-21 마스터 모션(W4) ↔ "애니메이션은 넣지 않는다"(signature-masters 인수인계)·"Tailwind 만"(design-canon §7-4)
+
+- **충돌**: 대표 상담 마스터 띠·소개장은 "애니메이션 없음"으로 만들었고, design-canon 은 App Router 애니메이션을 Tailwind 로만(영냥이 예외) 허용했다. 2026-11-21 사용자가 "각 전문가, 대표 상담에서 설정된 마스터들이 움직이거나 주변에 꽃이 휘날리는 효과를 주도록해줘 … 바로 안되더라도 후속으로 진행가능하도록" 요청했다.
+- **해소**: 사용자 요청이 우선이다. 범위는 마스터 모션 래퍼(`app/components/master-motion/MasterMotion.tsx`)·ExpertCharacterStage·홈 `js/core/yehwa-home.mjs` 의 `mountMasterMotion` 으로 한정한다. transform·opacity 키프레임만, 꽃잎 8개 이하·pointer-events:none, 움직임 줄이기면 정지, 화면 안에서만 재생, JS 애니메이션 루프 없음. 다른 App Router 화면의 "Tailwind 만" 규칙은 그대로다.
+- **남은 위험**: 저사양 기기 합성 비용(꽃잎은 화면 안 래퍼에서만 돈다). 후속 그림(`motion` 필드)이 들어오면 용량·디코딩 비용을 다시 잰다.
+- **롤백**: `lib/master-motion/flags.mjs` 와 `js/core/yehwa-home.mjs` 의 `MASTER_MOTION_ENABLED` 를 false(끄면 감싸기 전과 같은 DOM) 또는 W4 커밋 `git revert`.
