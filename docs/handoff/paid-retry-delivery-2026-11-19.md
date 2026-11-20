@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "R10 남은 전문가 상담 6종(astrology-ai → ziwei-ai → sukuyo-compatibility-ai → karma-destiny-ai → naming-prompt → fusion-fortune)을 베다점(실측 'R10 베다점')과 같은 모양으로 서비스마다 TDD·커밋. 공용 패널 app/components/ExpertRetryPanel.tsx 와 환불 크론 EXPERT_RETRY_SETTLERS 표에 한 줄씩 붙인다. 6종 끝나면 R9 절차로 머지·체인·push"
+next: "R10 남은 4종(sukuyo-compatibility-ai(PG 단건 포함) → karma-destiny-ai(7일 차감 보류) → naming-prompt(PG 단건) → fusion-fortune(24시간 → 7일 창))을 베다점·점성술·자미두수(실측 'R10 베다점'·'R10 점성술'·'R10 자미두수')와 같은 모양으로 서비스마다 TDD·커밋. 사용자 결정 2026-11-20 3건은 위 결정 절에 있다(다시 묻지 않는다). 공용 패널 app/components/ExpertRetryPanel.tsx 와 환불 크론 EXPERT_RETRY_SETTLERS 표에 한 줄씩 붙인다. 4종 끝나면 R9 절차로 머지·체인·push"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -34,6 +34,11 @@ next: "R10 남은 전문가 상담 6종(astrology-ai → ziwei-ai → sukuyo-com
   1. 네오 첫 브리핑: **"다시 시도 먼저로 변경 (추천)"** → 승인됨. 이번 묶음(R1·R3·R4) 밖이라 R2b 단계로 둔다. 다시 묻지 않는다.
   2. 환불 기한: **"결제(생성 시작) 후 7일 (추천)"** → `refundAt` 은 다시 시도 가능으로 바뀐 시각이 아니라 **상담 생성 시각 + 7일**, 늘리지 않는다. 복구 크론 7일 창과 같다. 반영 `3915323c7`.
 - **사용자 추가 요청 2026-11-20 (원문, 승인된 범위)**: "보관함에서도 다시 시도 가능한 건은 따로 표시해주고 대표 상담, 전문가 상담은 그렇게 가능하도록해" → R7b(보관함 표시) 추가, R10 범위를 전문가 상담 전체로 확대. 다시 묻지 않는다.
+- **사용자 결정 2026-11-20 (AskUserQuestion, 원문 — 막혀 있던 3건 해제, 다시 묻지 않는다)**
+  1. fusion-fortune: **"7일 다시 시도로 통일 (추천)"** → 24시간 자동 환불을 다른 서비스와 같은 7일 다시 시도 창으로 바꾼다(refundAt = 생성 + 7일, 무료 다시 시도, 고객 환불 요청은 언제든).
+  2. naming-prompt·sukuyo-compatibility PG 카드 단건: **"다시 시도+7일 환불 도입 (추천)"** → 무료 다시 시도 + 7일 경과/환불 요청 시 자동 환불을 넣는다(기존 공용 카드 자동 환불 함수 재사용, mock 으로만 검증).
+  3. karma-destiny-ai: **"7일간 차감 보류 (추천)"** → 다시 시도 대기 동안 deferred usage 취소를 미룬다. 다시 시도가 성공하면 차감 확정, 7일 경과·환불 요청 시 취소.
+  - 순서: astrology-ai → ziwei-ai → sukuyo-compatibility-ai(PG 포함) → karma-destiny-ai → naming-prompt → fusion-fortune. 컨텍스트가 부족하면 커밋된 서비스 경계에서 멈추고 `next` 갱신.
 
 ## 설계 (가정 — 최종 보고에 명시하고 사용자 확인을 받는다)
 현재(S16): 대표 6종은 완성본만 전달하고, 진전 없이 약 1시간이면 `generation_failed` + 자동 전액 환불(`worker/lib/paid-delivery-stuck.js` `settleStuckConsultation`). 신년운세는 기존 구제·환불 경로.
@@ -72,8 +77,8 @@ next: "R10 남은 전문가 상담 6종(astrology-ai → ziwei-ai → sukuyo-com
 - [ ] R10 "다른 기능들" + 전문가 상담(사용자 요청 2026-11-20으로 범위 확대): 서비스 안내의 전문가 상담 묶음(`#guide-expert` / `/consultations/`)의 유료 LLM 상담 전부 — 예: vedic·ziwei·astrology·nakshatra·karma·sukuyo 등 계약 목록에 있는 전문가 상담 — 에 같은 다시 시도 우선 정책(무료 다시 시도 → 생성 + 7일 또는 고객 요청 시 환불). 🔴 추측하지 말고 정확한 목록을 먼저 지도로 만든다(안내 소스·계약 목록 대조). 그다음 계약 목록 나머지 서비스에 같은 정책을 묶음별로(서비스마다 커밋). 지도 → TDD → 검사 체인 → push.
   - [x] 지도 — `22f171334` (실측 "R10 전문가 상담 지도")
   - [x] vedic-ai — `b0dd824ba`(워커·환불 크론·보관함·검증기·테스트) + `f474e9484`(공용 패널·웹 UI·보존 해시) + `4e78dc0f9`(sitemap 원장). 실측 "R10 베다점"
-  - [ ] astrology-ai
-  - [ ] ziwei-ai
+  - [x] astrology-ai — `ff1da44e5`(워커·실행 가드·환불 크론·보관함·검증기·테스트) + `f665216e0`(입력·결과 화면 패널·보존 해시). 실측 "R10 점성술"
+  - [x] ziwei-ai — `ac855a7d1`(워커·환불 크론·보관함·검증기·테스트) + `835dc1e75`(단일 화면 패널) + `cf8e4f6c4`(sitemap 원장). 실측 "R10 자미두수"
   - [ ] sukuyo-compatibility-ai
   - [ ] karma-destiny-ai
   - [ ] naming-prompt
@@ -97,6 +102,30 @@ next: "R10 남은 전문가 상담 6종(astrology-ai → ziwei-ai → sukuyo-com
 S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 불일치, 흑월 근거 실패 3→5, '조심'인데 '기회' 톤. 연애 비책 정체 환불 재시도가 `refundEligibleAt` 미사용(R5: 창 안 정체는 해소, 생성 7일 경과 정체는 기존 경로). 마스터 인연의 서 운영 스크립트 재개방 위험 미확인. S14 프롬프트 최적화 대기.
 
 ## 실측
+### R10 점성술·자미두수 검사 체인 (2026-11-20, HEAD `cf8e4f6c4`, push 안 함)
+- 모두 exit 0: `npm run check:fast -- --base=34f58616f`(critical 자동 승격, jest 484 스위트(1 skip) 8341 통과) · `node scripts/run-paid-gate-suite.mjs --base=34f58616f` 통과 91 / 실패 0(벽시계 1277s, 전체 npm test 포함) · `npm test --prefix apps/toss` 1765/1765(임시 정션 → 정션만 제거, 본 체크아웃 node_modules 유지 확인) · `node scripts/verify-myeongri-tables.mjs` OK(검사 29건, 대조 키 216개 잔차 0).
+- 미검증: 두 서비스 패널의 headed 브라우저 화면 확인은 하지 않았다(동작 테스트만).
+
+### R10 자미두수 (2026-11-20, `ac855a7d1`·`835dc1e75`·`cf8e4f6c4`)
+- 서버(`worker/routes/ziwei-ai.js`): 베다점 모양. `calculated` = 이어서 하기(`delivery_pending`)이거나 명반이 풀린 뒤. 웹 결제 건 생성 실패만 보류(`ziweiRetryMeta`, 접근 스냅샷 `ziweiRefundAccessSnapshot` — 토큰 없음) → 503 + retry payload, 시작 409 에도. `POST /retry`·`POST /refund-request`, `ziweiRetryReset` 은 상한을 다 쓴 미사용 묶음만 풀고 그 묶음의 `:skipped`·`:salvaged`·`:emptyRescue` 표지를 지운다. `ziweiRetryOwner` 는 Toss·다른 serviceType(운명의 섬, 컬렉션 공유) 거절. 정산 `settleZiweiRetryRefund`: 이용권 복원 → 카드 환불(실패면 "failed", claim 유지) → 증빙 해제 → `refundSettledAt` → `logStuckSettled`. 크론 export `settleDueZiweiRetryRefunds` → `EXPERT_RETRY_SETTLERS`. 검증기 ziwei-ai → `RETRY_FIRST_POLICY`. 보관함 테스트 `recoveryHref:'/ziwei-ai/?cid=z1'`.
+- 🔴 함정: `__tests__/ui/ziwei-execution-lifecycle.test.mjs` 가 `resolveStartAccess`·`handleResult`·`applyUsageOnce`·`verifyPaymentForStart`·`saveZiweiDelivery` 를 기준 커밋 20904183a 에 고정한다. `handleResult` 를 고쳤다가 가드에 걸려 되돌리고, `/result` 409 의 retry payload 는 웹 래퍼 `handleWebZiweiResult` 에서 붙였다(가드 약화 없음). Toss `handleTossZiweiResult` 는 의도적으로 그대로.
+- 클라이언트(`app/ziwei-ai/ZiweiAiClient.tsx`, 결과 화면 없음): `retryHold` 상태 + `showHeldRetry`/`heldRetryFor`(Toss 는 null), 저장 상담 재개 catch·폴링 catch·생성 응답에서 보류를 잡아 같은 화면에 `ExpertRetryPanel`(apiBase `/api/ziwei-ai`, CSS `.ziweiRetryPanel` 등 전역 style 블록).
+- 검사(모두 exit 0): jest ziwei-paid-delivery 55/55(변이 `calculated`→false 시 10 실패), 관련 23 스위트 295/295, ziwei-paid·섬·만료 주문 75/75, consultation-recovery-task·expert-consult-system-term 9/9; node --test consultation-delivery-refund 56/56, ziwei-execution-lifecycle 15/15, ziwei UI 14파일 전부, expert-retry-panel 6/6; Toss native-ziwei 3종 17/17, ziwei-chart-flow·japanese-copy·ui-poll 통과; verify:paid-llm-delivery(다시 시도 우선 10 · 대기 26 · 변이 36/36·40/40 · 알려진 자동 환불 공백 13), verify-ziwei-ai-consultation-flow·llm-generation-resilience·analysis-basis-contract·payment-service-boundary·ziwei-worker-chart-facts·ziwei-consult-categories·ziwei-personality-context·phone-encryption.
+
+### R10 점성술 (2026-11-20, `ff1da44e5`·`f665216e0`)
+- 서버(`worker/routes/astrology-ai.js`): 베다점 모양(`astrologyRetryMeta`·`astrologyRefundAccessSnapshot`·`astrologyRetryPayload`·`astrologyRetryReset`·`astrologyRetryOwner`·`handleRetry`·`handleRefundRequest`·`settleAstrologyRetryRefund`, export `settleDueAstrologyRetryRefunds` → `EXPERT_RETRY_SETTLERS`). 계산 오류 422·Toss·표지 저장 실패·창 지남은 기존 즉시 환불(`failServiceExecution(forceRefundOnClose)` 포함).
+- 실행 가드: `worker/lib/checkpoint-refund-guard.js` 의 다시 시도 창 기능 키를 `RETRY_WINDOW_FEATURES`(neo + `astrology-ai-consultation`)로 넓혔다 — 창 안 보류는 `recoverable`(타임아웃 환불 아님), 창이 지나면 기존 `missing` → 환불. 테스트 `checkpoint-timeout-refund` 1건 추가.
+- 클라이언트: 입력 화면 `AstrologyAiClient.tsx` 는 보류를 `RETRY_HELD:<id>` 로 받아 `/astrology-ai/result/?id=` 로 이동, 결과 화면 `AstrologyAiResultClient.tsx` 는 `/result` 409 의 retry 로 `ExpertRetryPanel`. 보존 픽스처 해시 재고정(`009a9124…`→`50a02bba…`, 의도한 결제 흐름 함수 변경, 커밋 메시지에 기록).
+- 검사(모두 exit 0): 서버 jest 224/224, UI 12/12·10/10, Toss 38/38, verify:paid-llm-delivery 통과.
+
+### R10 점성술·자미두수 범위 밖 발견 (보고만, 고치지 않음)
+- paid-flow-gates 트리거 경로에 astrology 라우트·`ExpertRetryPanel`·가드·환불 lib 파일이 없고, change-risk 가 이들에 deepRequired=false.
+- 자미두수 웹 `handleResult` 의 완료 목록 조회에 serviceType 필터가 없다(운명의 섬과 컬렉션 공유).
+- 보류된 실행이 600초마다 다시 큐에 올라 sweeper 를 굶길 수 있다. `failServiceExecution` 결과를 무시한다.
+- 점성술: 완성됐지만 품질 검사에 떨어지는 결과는 다시 시도가 같은 실패를 반복할 수 있다.
+- 정산 중 이용권 환불이 throw 하면 점성술은 대기로 남지만, 자미두수 `restorePrepaidAccessOnFailure` 는 실패를 삼키고 false → 기록이 "not_required" 로 정산될 수 있다(기존 함수 동작).
+- 자미두수 라우터가 `ctx` 를 `handleStart` 의 `recoveryAuth` 인자로 넘긴다(기존).
+
 ### R10 베다점 (2026-11-20, 워크트리 커밋 `b0dd824ba`·`f474e9484`·`4e78dc0f9`, push 안 함)
 - 시작 전: R9 push `34f58616f` 의 PR CI 44697640465·Paid Flow Gates 44697640393 둘 다 success(1회 확인).
 - paid-gate-auditor 사전 감사 반영: 다시 시도 전용 문구(llmFailed "자동으로 복구됩니다" 금지), 표지 저장 try/catch(실패 시 기존 즉시 환불로 떨어짐), isLive 보수적(generating/partial + updatedAt < 120s), 카드 환불이 실패하면 증빙 claim 을 풀지 않고 표지도 정산 안 함(크론이 다시 돈다), 새 라우트의 Toss 는 404/409. 결제 동결 영향 없음(verify:payment-freeze 통과). 보안 분류기 접미사 정규식(`worker/security/index.js:583,585`)이 `/retry`→start, `/refund-request`→ensure 로 서비스 무관하게 덮는다.
