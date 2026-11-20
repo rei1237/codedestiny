@@ -13,6 +13,10 @@ const dedicated = (key: string) => ({
   sheetHeight: 1024,
 });
 
+/**
+ * 마스터 모션(W4): 각 항목에 선택 필드 `motion: { frames?, video?, poster }` 를 넣으면 MasterMotion 이 CSS 숨쉬기 대신
+ * 그 그림을 돌린다(productMasters 의 항목도 같다). 지금은 비어 있어 CSS 모션·꽃잎만 쓴다. 규격·빠진 그림: docs/design/master-motion-assets.md
+ */
 export const masterProfiles = {
   master: {
     name: "마스터", role: "인연의 서 · 사랑의 패턴을 읽는 안내자",

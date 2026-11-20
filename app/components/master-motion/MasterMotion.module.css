@@ -1,0 +1,103 @@
+/* 마스터 모션(W4) — transform·opacity 만 움직인다. 레이어는 전부 absolute·pointer-events:none 이라 레이아웃과 터치를 바꾸지 않는다.
+   색은 기존 토큰만 쓴다: 꿀꿀 꽃잎 = --cd-accent-soft → --cd-gold(예화 로즈·샴페인 골드), 영냥이 별가루 = --yn-gold(분홍 없음). */
+.root { position: relative; }
+.inline { display: inline-flex; flex: none; vertical-align: top; border-radius: 50%; }
+
+/* 숨쉬기 = ExpertCharacterStage.module.css breathe 와 같은 6s·-3px, 여기에 아주 작은 흔들림(±0.4deg)만 더한다. */
+.root[data-motion="on"] > :first-child,
+.root[data-motion="on"] > .art {
+  transform-origin: 50% 100%;
+  animation: mmBreathe 6s ease-in-out infinite;
+}
+
+.petals {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  --mm-size: 10px;
+  --mm-paint: linear-gradient(135deg, var(--cd-accent-soft), var(--cd-gold));
+  --mm-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1C15 5 16.5 11.5 10 19C3.5 11.5 5 5 10 1Z'/%3E%3C/svg%3E");
+}
+.petals[data-density="sm"] { --mm-size: 6px; }
+.petals[data-variant="yeongnyangi"] {
+  --mm-size: 7px;
+  --mm-paint: var(--yn-gold, var(--cd-gold));
+  --mm-shape: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 0L12 8L20 10L12 12L10 20L8 12L0 10L8 8Z'/%3E%3C/svg%3E");
+}
+.petals[data-variant="yeongnyangi"][data-density="sm"] { --mm-size: 5px; }
+
+/* 레인 = 높이 100% 줄. translateY(100%) 가 곧 컨테이너 높이라 크기와 무관하게 위에서 아래까지 내려간다. */
+.petal {
+  position: absolute;
+  top: 0;
+  left: calc(6% + var(--mm-i) * 16%);
+  width: var(--mm-size);
+  height: 100%;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: mmFall calc(7s + var(--mm-i) * 1.3s) linear calc(var(--mm-i) * -2.3s) infinite;
+}
+.petals[data-density="sm"] .petal { left: calc(12% + var(--mm-i) * 30%); }
+.petal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--mm-size);
+  height: var(--mm-size);
+  background: var(--mm-paint);
+  -webkit-mask: var(--mm-shape) center / contain no-repeat;
+  mask: var(--mm-shape) center / contain no-repeat;
+  animation: mmSpin calc(2.6s + var(--mm-i) * .4s) ease-in-out infinite alternate;
+}
+.petals[data-variant="yeongnyangi"] .petal::before { animation-name: mmTwinkle; }
+
+/* 후속 그림(영상·프레임). 초상 위에 같은 크기로 겹친다. */
+.art {
+  position: absolute;
+  inset: var(--mm-art-inset, 0);
+  width: auto;
+  height: auto;
+  overflow: hidden;
+  border-radius: inherit;
+  object-fit: cover;
+  pointer-events: none;
+}
+video.art { width: calc(100% - 2 * var(--mm-art-inset, 0px)); height: calc(100% - 2 * var(--mm-art-inset, 0px)); }
+.frames {
+  display: flex;
+  width: calc(var(--mm-n) * 100%);
+  height: 100%;
+  animation: mmFrames calc(var(--mm-n) * 120ms) steps(var(--mm-n)) infinite;
+}
+.frames img { display: block; width: calc(100% / var(--mm-n)); height: 100%; object-fit: cover; }
+
+@keyframes mmBreathe {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  25% { transform: translateY(-1.5px) rotate(.4deg); }
+  50% { transform: translateY(-3px) rotate(0); }
+  75% { transform: translateY(-1.5px) rotate(-.4deg); }
+}
+@keyframes mmFall {
+  0% { transform: translate3d(0, -14px, 0); opacity: 0; }
+  12% { opacity: .85; }
+  80% { opacity: .85; }
+  100% { transform: translate3d(14px, 100%, 0); opacity: 0; }
+}
+@keyframes mmSpin {
+  from { transform: translateX(-4px) rotate(-35deg); }
+  to { transform: translateX(4px) rotate(40deg); }
+}
+@keyframes mmTwinkle {
+  from { transform: scale(.55) rotate(0); opacity: .55; }
+  to { transform: scale(1) rotate(45deg); opacity: 1; }
+}
+@keyframes mmFrames { to { transform: translateX(-100%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .petals, .art { display: none; }
+  .root > * { animation: none !important; }
+}

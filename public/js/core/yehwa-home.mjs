@@ -137,7 +137,43 @@ export function mountYehwaHome(root) {
   root.ownerDocument.defaultView.addEventListener('hashchange', revealFragment, {signal:controller.signal});
   return () => { controller.abort(); delete root.dataset.yhMounted; };
 }
+// 마스터 모션(W4, 2026-11-21 사용자 요청): 홈 기본 마스터 카드 그림에 숨쉬기·흔들림과 꽃잎 4장. transform·opacity 만 쓰고,
+// 화면에 보일 때만 돌며 움직임 줄이기면 아무것도 붙이지 않는다. 렌더 차단 CSS(yehwa-home.css)는 건드리지 않으려고 스타일을 여기서 늦게 넣는다.
+// 롤백: false. App Router 쪽 스위치는 lib/master-motion/flags.mjs 의 같은 이름 상수다.
+export const MASTER_MOTION_ENABLED = true;
+const MASTER_MOTION_CSS = ".yh-basic-masters__art-wrap[data-mm-motion]>img{transform-origin:50% 100%}.yh-basic-masters__art-wrap[data-mm-motion=on]>img{animation:cdMmBreathe 6s ease-in-out infinite}.cd-mm-petals{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;display:none}[data-mm-motion=on]>.cd-mm-petals{display:block}.cd-mm-petal{position:absolute;top:0;left:calc(8% + var(--mm-i)*21%);width:8px;height:100%;opacity:0;animation:cdMmFall calc(7s + var(--mm-i)*1.3s) linear calc(var(--mm-i)*-2.3s) infinite}.cd-mm-petal::before{content:'';position:absolute;top:0;left:0;width:8px;height:8px;background:linear-gradient(135deg,var(--cd-accent-soft),var(--cd-gold));-webkit-mask:var(--cd-mm-shape) center/contain no-repeat;mask:var(--cd-mm-shape) center/contain no-repeat;animation:cdMmSpin calc(2.6s + var(--mm-i)*.4s) ease-in-out infinite alternate}.cd-mm-petals{--cd-mm-shape:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M10 1C15 5 16.5 11.5 10 19C3.5 11.5 5 5 10 1Z'/%3E%3C/svg%3E\")}@keyframes cdMmBreathe{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-1.5px) rotate(.4deg)}50%{transform:translateY(-3px) rotate(0)}75%{transform:translateY(-1.5px) rotate(-.4deg)}}@keyframes cdMmFall{0%{transform:translate3d(0,-14px,0);opacity:0}12%{opacity:.85}80%{opacity:.85}100%{transform:translate3d(14px,100%,0);opacity:0}}@keyframes cdMmSpin{from{transform:translateX(-4px) rotate(-35deg)}to{transform:translateX(4px) rotate(40deg)}}@media (prefers-reduced-motion:reduce){.cd-mm-petals{display:none!important}.yh-basic-masters__art-wrap[data-mm-motion]>img{animation:none!important}}";
+export function mountMasterMotion(doc) {
+  const view = doc?.defaultView;
+  if (!MASTER_MOTION_ENABLED || !view || doc.documentElement.dataset.cdMasterMotion) return;
+  const wraps = [...doc.querySelectorAll('#cdHomeFunnel .yh-basic-masters__art-wrap')].filter(wrap => wrap.querySelector(':scope > img'));
+  const reduce = view.matchMedia?.('(prefers-reduced-motion: reduce)');
+  if (!wraps.length || reduce?.matches || typeof view.IntersectionObserver !== 'function') return;
+  doc.documentElement.dataset.cdMasterMotion = 'true';
+  const style = doc.createElement('style');
+  style.id = 'cd-master-motion';
+  style.textContent = MASTER_MOTION_CSS;
+  doc.head.append(style);
+  const observer = new view.IntersectionObserver(entries => entries.forEach(entry => {
+    entry.target.dataset.mmMotion = entry.isIntersecting && !reduce?.matches ? 'on' : 'off';
+  }), {rootMargin: '160px', threshold: 0.01});
+  wraps.forEach(wrap => {
+    const layer = doc.createElement('span');
+    layer.className = 'cd-mm-petals';
+    layer.setAttribute('aria-hidden', 'true');
+    for (let i = 0; i < 4; i += 1) {
+      const petal = doc.createElement('span');
+      petal.className = 'cd-mm-petal';
+      petal.dataset.mmPetal = '';
+      petal.style.setProperty('--mm-i', String(i));
+      layer.append(petal);
+    }
+    wrap.querySelector(':scope > img').after(layer);
+    wrap.dataset.mmMotion = 'off';
+    observer.observe(wrap);
+  });
+  reduce?.addEventListener?.('change', () => wraps.forEach(wrap => { if (reduce.matches) wrap.dataset.mmMotion = 'off'; }));
+}
 if (typeof document !== 'undefined') {
-  const boot = () => document.querySelectorAll('#cdHomeFunnel [data-yh-home]').forEach(mountYehwaHome);
+  const boot = () => { document.querySelectorAll('#cdHomeFunnel [data-yh-home]').forEach(mountYehwaHome); mountMasterMotion(document); };
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
 }

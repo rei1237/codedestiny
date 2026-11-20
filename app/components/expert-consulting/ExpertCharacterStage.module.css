@@ -91,7 +91,8 @@
 .talk[data-on="true"] { opacity: 1; }
 
 .stage[data-motion="on"][data-placement="hero"] .frame,
-.stage[data-motion="on"][data-placement="loading"] .frame {
+.stage[data-motion="on"][data-placement="loading"] .frame,
+.stage[data-motion="on"][data-master-motion][data-placement="inline"] .frame {
   animation: breathe 6s ease-in-out infinite;
 }
 

@@ -53,6 +53,8 @@
   --profile-line: var(--pe-line, currentColor);
 }
 .portrait { width: 100%; height: auto; border-radius: var(--cd-r-card); }
+/* 마스터 모션(W4)이 켜졌을 때만 소개장 아닌 초상을 감싸는 칸. 초상과 같은 자리·크기를 그대로 차지한다. */
+.motionSlot { display: flex; min-width: 0; border-radius: var(--cd-r-card); }
 .copy { min-width: 0; word-break: keep-all; overflow-wrap: anywhere; }
 .copy .name { margin: 0; font-family: var(--font-display, var(--font-body)); font-size: var(--cd-t-display); line-height: 1.3; }
 .copy p { max-width: 60ch; margin: 16px 0 0; }
@@ -107,6 +109,7 @@
   .profile { width: calc(100% - 40px); margin-block: 36px; }
   .introduction { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .portrait { max-width: 280px; justify-self: center; }
+  .motionSlot { width: 100%; max-width: 280px; justify-self: center; }
   .frame { width: min(100%, 300px); justify-self: center; }
   .frame .portrait { max-width: none; }
   .dossier > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }

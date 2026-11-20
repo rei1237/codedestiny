@@ -3,6 +3,8 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
+import { MASTER_MOTION_ENABLED } from "@/lib/master-motion/flags.mjs";
+import { MasterPetals } from "@/app/components/master-motion/MasterMotion";
 import {
   getExpertCharacter,
   getExpertCharacterName,
@@ -45,6 +47,7 @@ const talkSteps = (line: string) => Math.min(12, Math.max(4, Math.round(line.len
  * - 프레임은 스프라이트 원본 비율로 고정해 표정이 바뀌어도 레이아웃이 흔들리지 않는다.
  * - aria-live 는 로딩·오류 대사에만 건다(장식 대사는 읽지 않게).
  * - 화면 밖·탭 숨김·reduced-motion 이면 숨쉬기 모션을 끈다.
+ * - 마스터 모션(W4): 플래그가 켜지면 inline 무대도 같은 breathe 를 쓰고(두 번 겹치지 않게 프레임 하나에만), 결과(PDF 캡처) 밖 무대에 꽃잎을 얹는다.
  */
 export default function ExpertCharacterStage({
   character,
@@ -93,6 +96,7 @@ export default function ExpertCharacterStage({
   const isHero = placement === "hero";
   // 결과 표지·끝맺음은 PDF 캡처 대상 안에 있다. 지연 로드면 화면 밖 컷이 빈 칸으로 찍힌다.
   const loading = isHero ? undefined : placement === "result" ? "eager" : "lazy";
+  const masterMotion = MASTER_MOTION_ENABLED && placement !== "result";
 
   return (
     <figure
@@ -104,6 +108,7 @@ export default function ExpertCharacterStage({
       data-fit={config.spriteFit}
       data-motion={gate.canAnimate ? "on" : "off"}
       data-aspect={spriteAspect ? "custom" : undefined}
+      data-master-motion={masterMotion ? "ggulggul" : undefined}
     >
       <div className={styles.frame} style={{ aspectRatio: spriteAspect ?? config.spriteAspect }}>
         <Image
@@ -133,6 +138,7 @@ export default function ExpertCharacterStage({
               />
             ))
           : null}
+        {masterMotion && gate.canAnimate ? <MasterPetals density={placement === "inline" ? "sm" : "md"} /> : null}
       </div>
       {line ? (
         <figcaption className={styles.bubble} aria-live={announces ? "polite" : undefined}>
