@@ -77,6 +77,7 @@ export default function YeongnyangiGuide(){
     <h2 id="yn-faq-teaser-title">결제 전에 궁금한 거 있냥?</h2>
     <p className={styles.teaserBubble}>가격, 상담 구성, 결과 보는 곳까지 영냥이가 컷으로 설명해 줄게냥.</p>
     <p><a className={styles.teaserLink} href="/yeongnyangi/faq/">영냥이에게 물어보기</a></p>
+    <p className={styles.note}>영냥이 이야기가 궁금하면 <a href="/yeongnyangi/season-1/">영냥이 웹툰 시즌 1</a>부터 읽어 보라냥.</p>
    </div>
   </section>
  </article>;
