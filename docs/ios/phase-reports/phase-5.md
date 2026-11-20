@@ -95,7 +95,9 @@
   - 브리지: iOS 는 ASWebAuthenticationSession, 안드로이드는 Browser, 취소 무안내, 401/503/네트워크 분류
   - handoff: iOS UA 는 커스텀 스킴, 안드로이드 intent:// 기대값 그대로
 - 기존 인증·탈퇴 jest 19개 스위트 201건 통과(pii-crypto 를 mock 하는 4개 스위트가 깨지지 않도록 namespace import 사용).
-- `npm run check:fast`, `npm run check:pre-push`, ios-shell-build 결과는 핸드오프 문서(docs/handoff/ios-phase5-2026-11-20.md)의 단계 기록을 정본으로 한다.
+- `npm run check:fast` exit 0(1차는 native-app-copy 테스트의 boot 스텁 누락으로 exit 1 → 스텁 추가), `npm run check:pre-push` exit 0.
+- CI(4f954a814): PR CI·Paid Flow Gates·Secret Scan·Release 모두 success. iOS Shell Build push 실행 https://github.com/rei1237/codedestiny/actions/runs/44718720848 success(Swift 컴파일·실행·링크 전달 단언 통과).
+- 수동 실행 https://github.com/rei1237/codedestiny/actions/runs/44726434656 은 실행 확인 단계에서 failure. 원인은 워크플로의 `launchctl list | grep -q` 가 pipefail 아래 SIGPIPE 로 거짓이 되는 경쟁(로그 `signal 13: Broken pipe`). 같은 SHA push 실행이 통과해 코드 회귀가 아니다. 워크플로 수정은 범위 밖이라 후속 과제로 남긴다.
 - 미검증: 실제 기기에서의 Apple·구글·네이버·카카오 로그인(승인 범위 밖, 시크릿 미등록).
 
 ## 5. 레드팀 반려 사유(스스로 막은 것)
