@@ -82,7 +82,9 @@ test('랜딩 → 고르기(취소 가능) → 펼치기 → 결과, 원본과 �
   await v.click(v.byText('다음'));
   await flush();
   assert.equal(v.heading(), '오늘의 세 장');
-  assert.ok(v.w.document.body.textContent.includes('자리별 읽기'));
+  // 4단계(GUIDED_WEBTOON_RESULT_ENABLED): 결과는 연이 화자 웹툰 컷으로 나오고 면책 문장이 한 번 붙는다.
+  assert.ok(v.w.document.querySelector('[data-narrator="yeoni"] li[data-kind="card"]'));
+  assert.ok(v.w.document.body.textContent.includes('타로는 마음을 돌아보는 도구'));
   const names = globalThis.__events.map(([n]) => n);
   for (const n of ['daily_tarot_start', 'daily_tarot_complete']) assert.ok(names.includes(n), `${n} 누락: ${names}`);
   assert.ok(globalThis.__events.every(([n, p]) => !n.startsWith('daily_tarot_') || p.service === 'yeoni_daily'));

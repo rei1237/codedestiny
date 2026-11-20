@@ -16,6 +16,10 @@ import {trackEvent} from '@/lib/analytics';
 import {DAILY_MEANINGS,DAILY_POSITIONS,DAILY_TAROT_KEY,kstDay,newDailyReading,restoreDailyReading,pickDailyCard,revealDailyCard,sharedDailyCards} from '@/lib/tarot/daily-three.mjs';
 import PublicInsightCard from '@/components/fortune/PublicInsightCard';
 import type {DailyTarotCard} from './DailyTarot';
+import {GUIDED_WEBTOON_RESULT_ENABLED} from '@/lib/guided-flow/flags.mjs';
+import {buildTarotWebtoon} from '@/lib/webtoon-result/narrator.mjs';
+import NarratorWebtoon from '@/app/components/webtoon/NarratorWebtoon';
+import type {WebtoonCut} from '@/app/components/webtoon/CutReader';
 
 interface Reading {version:number;date:string;deck:number[];picks:number[];revealed:number}
 interface MasterReading {
@@ -25,6 +29,7 @@ interface MasterReading {
  between:string;
  synthesis:{flow:string;caution:string;action:string};
  close:string;
+ arc?:string;
 }
 interface MasterInput {cards:{code:string;reversed:boolean}[];category:string;surface:string;positions:string[];positionTexts:string[]}
 
@@ -298,7 +303,31 @@ function RevealStep({reading,cards,selected,reduced,revealOne,next,clearAnswer,t
 }
 
 function ResultStep({reading,cards,selected,master,masterFailed,t}:{reading:Reading;cards:DailyTarotCard[];selected:number[];master:MasterReading|null;masterFailed:boolean;t:T}){
- const rows=master?.positions??selected.map((id,index)=>({label:DAILY_POSITIONS[index],text:DAILY_MEANINGS[id][index]}));
+ const rows=useMemo(()=>master?.positions??selected.map((id,index)=>({label:DAILY_POSITIONS[index],text:DAILY_MEANINGS[id][index]})),[master,selected]);
+ // 4단계 캐릭터 웹툰(플래그). 엔진 해석문은 그대로 싣고 연이 대사·표정만 결정적으로 덧붙인다(저장하지 않는다).
+ const webtoon=useMemo(()=>GUIDED_WEBTOON_RESULT_ENABLED?buildTarotWebtoon({
+  narrator:'yeoni',t,seedKey:`${reading.date}:${selected.join(',')}`,
+  cards:selected.map((id,index)=>{
+   const sources=[cards[id].thumb,cards[id].image,cards[id].fallback].filter(Boolean);
+   return {position:DAILY_POSITIONS[index],name:cards[id].name,code:cards[id].code,reversed:false,text:rows[index]?.text??'',
+    image:{src:sources[0]??'',fallbacks:sources.slice(1),w:480,h:720}};
+  }),
+  verdict:master?.verdict,synthesis:master?.synthesis??null,close:master?.close,arc:master?.arc,
+ }):null,[t,reading.date,selected,cards,rows,master]);
+ if(webtoon)return <div className={tarot.result}>
+  <p className={tarot.dateLabel}>{t('dailyTarot.dateLabel',{date:reading.date})}</p>
+  <NarratorWebtoon cuts={webtoon.cuts as WebtoonCut[]} narrator="yeoni" flowId={FLOW_ID} labels={{
+   toolbar:t('webtoon.toolbarLabel'),textOnly:t('webtoon.textOnly'),fontSize:t('webtoon.fontSize'),
+   fontBase:t('webtoon.fontBase'),fontLarge:t('webtoon.fontLarge'),progress:t('webtoon.progressLabel'),
+   reader:t('webtoon.readerLabel',{name:t('webtoon.yeoni.name')}),
+  }}/>
+  {master?<>
+   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('dailyTarot.energyTitle')}</h3><dl className={tarot.energy}>{master.energy.map(row=><div key={row.label}><dt>{row.label}</dt><dd><b>{row.head}</b>{row.body}</dd></div>)}</dl></section>
+   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('dailyTarot.betweenTitle')}</h3><p className={tarot.body}>{master.between}</p></section>
+  </>:null}
+  {masterFailed?<p className={tarot.note} role="status">{t('dailyTarot.fallbackNote')}</p>:null}
+  <ResultTail reading={reading} cards={cards} selected={selected} t={t}/>
+ </div>;
  return <div className={tarot.result}>
   <p className={tarot.dateLabel}>{t('dailyTarot.dateLabel',{date:reading.date})}</p>
   {master?<div className={tarot.verdict}><small>{t('dailyTarot.verdictLabel')}</small><p>{master.verdict}</p></div>:null}
@@ -320,6 +349,13 @@ function ResultStep({reading,cards,selected,master,masterFailed,t}:{reading:Read
    <p>{t('dailyTarot.fallbackQuote')}</p><small>{t('dailyTarot.signature')}</small>
    <p className={tarot.note} role="status">{t('dailyTarot.fallbackNote')}</p>
   </div>:null}
+  <ResultTail reading={reading} cards={cards} selected={selected} t={t}/>
+ </div>;
+}
+
+// 결과 아래 공통(유료 안내·공유 카드·끝맺음·다음 질문). 웹툰 판과 이전 판이 같은 것을 쓴다.
+function ResultTail({reading,cards,selected,t}:{reading:Reading;cards:DailyTarotCard[];selected:number[];t:T}){
+ return <>
   <div className={tarot.paid}>
    <b>{t('dailyTarot.paidTitle')}</b>
    <p>{t('dailyTarot.paidBody')}</p>
@@ -328,5 +364,5 @@ function ResultStep({reading,cards,selected,master,masterFailed,t}:{reading:Read
   <PublicInsightCard brand="daily" source="daily" day={reading.date} choices={selected.map((id,index)=>({id:String(id),label:DAILY_POSITIONS[index]+' · '+cards[id].name,text:DAILY_MEANINGS[id][index]}))}/>
   <p className={tarot.note}>{t('dailyTarot.endingNote')}</p>
   <FreeQuestionNext category="tarot" source="daily_tarot_result"/>
- </div>;
+ </>;
 }
