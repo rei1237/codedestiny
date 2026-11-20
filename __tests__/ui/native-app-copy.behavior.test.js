@@ -24,7 +24,7 @@ function fixture() {
   dom.window.setTimeout = () => 1;
   const ctx = vm.createContext({window:dom.window, document:dom.window.document, console, exitHintTimer:null,
     resetExitIntent() {}, trace() {}, openAuthStartedAt:0, appPlugin:()=>null, billingPlugin:()=>null, browserPlugin:()=>null});
-  for(const name of ['installAppLocaleBridge','installAppUrlListener','installBackButton','installExternalLinkGuard','installDiagnosticsGesture','installProfileSheetProbe','installLogoutCredentialClear']) ctx[name]=()=>{};
+  for(const name of ['installAppLocaleBridge','installAppUrlListener','installBackButton','installExternalLinkGuard','installDiagnosticsGesture','installProfileSheetProbe','installLogoutCredentialClear','checkAppleCredentialState']) ctx[name]=()=>{};
   const names=['nativeAppCopy','nativeAppText','showExitHint','describeSocialError','cdAppText','offlineNoticeNode','syncOfflineNotice','installOfflineNotice','boot'];
   vm.runInContext(names.map(extract).join('\n'),ctx);
   return {dom,ctx};

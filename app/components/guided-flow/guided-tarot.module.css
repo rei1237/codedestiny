@@ -458,3 +458,12 @@
     transition: none;
   }
 }
+.newDay {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--cd-sp-sm);
+}
+.newDay .note {
+  flex: 1 1 16rem;
+}

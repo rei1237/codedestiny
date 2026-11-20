@@ -112,3 +112,27 @@ test('지난날 카드는 새 하루 안내와 함께 랜딩에서 새로 시작
   assert.ok(globalThis.__events.some(([n]) => n === 'daily_tarot_return'));
   await v.close();
 });
+
+test('지난날 카드는 "어제 카드 마저 보기"로 이어 읽고, 첫 CTA 는 오늘 새 카드를 연다(원본 DailyTarot 와 같은 선택지)', async () => {
+  const half = JSON.stringify({ version: 1, date: '2020-01-01', deck: Array.from({ length: 22 }, (_, i) => i), picks: [0, 1, 2], revealed: 0 });
+  const v = await mount('http://localhost/today/', { [KEY]: half });
+  const resume = v.byText('어제 카드 마저 보기');
+  assert.ok(resume, '어제 카드 이어 보기 버튼이 있어야 한다');
+  await v.click(resume); await flush();
+  assert.equal(v.heading(), '세 장을 펼쳐요', '세 장을 고른 지난 카드는 펼치기에서 이어진다');
+  assert.equal(v.saved().date, '2020-01-01', '이어 보기는 지난 날짜를 지킨다');
+  await v.close();
+
+  const done = JSON.stringify({ version: 1, date: '2020-01-01', deck: Array.from({ length: 22 }, (_, i) => i), picks: [0, 1, 2], revealed: 3 });
+  const r = await mount('http://localhost/today/', { [KEY]: done });
+  await r.click(r.byText('어제 카드 마저 보기')); await flush();
+  assert.equal(r.heading(), '오늘의 세 장');
+  assert.equal(r.saved().date, '2020-01-01');
+  await r.close();
+
+  const n = await mount('http://localhost/today/', { [KEY]: done });
+  await n.click(n.byText('오늘의 세 장 펼치기')); await flush();
+  assert.notEqual(n.saved().date, '2020-01-01', '첫 CTA 는 오늘 날짜로 새로 시작한다');
+  assert.equal(n.saved().picks.length, 0);
+  await n.close();
+});

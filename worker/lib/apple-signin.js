@@ -10,6 +10,7 @@ export const APPLE_ISSUER = "https://appleid.apple.com";
 export const APPLE_AUTHORIZE_ENDPOINT = "https://appleid.apple.com/auth/authorize";
 export const APPLE_TOKEN_ENDPOINT = "https://appleid.apple.com/auth/token";
 export const APPLE_JWKS_ENDPOINT = "https://appleid.apple.com/auth/keys";
+export const APPLE_REVOKE_ENDPOINT = "https://appleid.apple.com/auth/revoke";
 export const APPLE_PRIVATE_RELAY_DOMAIN = "privaterelay.appleid.com";
 
 const JWKS_CACHE_TTL_MS = 60 * 60 * 1000;
@@ -60,6 +61,50 @@ export function isAppleSiwaConfigured(env) {
   return Boolean(config.teamId && config.servicesId && config.keyId && config.privateKey);
 }
 
+/**
+ * 네이티브(iOS 앱) Sign in with Apple 설정(2026-11-20, iOS Phase 5). 웹과 같은 팀·키를 쓰지만
+ * client_id 는 Services ID 가 아니라 앱 번들 ID 다(id_token aud·client_secret sub 모두).
+ * 🔴 번들 ID 도 env(APPLE_APP_BUNDLE_ID)에서만 읽는다 — 하나라도 없으면 엔드포인트는 503 으로 닫힌다.
+ */
+export function readAppleNativeConfig(env) {
+  const base = readAppleSiwaConfig(env);
+  return {
+    teamId: base.teamId,
+    keyId: base.keyId,
+    privateKey: base.privateKey,
+    bundleId: String(getEnv(env, "APPLE_APP_BUNDLE_ID") || "").trim(),
+  };
+}
+
+export function isAppleNativeSiwaConfigured(env) {
+  const config = readAppleNativeConfig(env);
+  return Boolean(config.teamId && config.keyId && config.privateKey && config.bundleId);
+}
+
+/** 앱은 원 nonce 를 보관하고 Apple 에는 sha256 hex 를 보낸다. id_token 의 nonce 클레임은 이 해시다. */
+export async function hashAppleNativeNonce(rawNonce) {
+  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(String(rawNonce || "")));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+/** 탈퇴 때 앱이 받은 refresh token 을 무효화한다. 실패는 호출부가 로그로만 남긴다. */
+export async function revokeAppleToken({ token, config, fetchImpl }) {
+  const clientId = config.bundleId || config.servicesId;
+  const clientSecret = await buildAppleClientSecret({ ...config, clientId });
+  const response = await fetchImpl(APPLE_REVOKE_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      token: String(token || ""),
+      token_type_hint: "refresh_token",
+    }).toString(),
+  });
+  if (!response?.ok) throw appleError("apple_revoke_failed");
+  return true;
+}
+
 function pemToPkcs8Bytes(pem) {
   const body = String(pem || "")
     .replace(/-----BEGIN [^-]+-----/g, "")
@@ -92,7 +137,8 @@ export async function buildAppleClientSecret(config, nowSec = Math.floor(Date.no
     iat: nowSec,
     exp: nowSec + CLIENT_SECRET_TTL_SEC,
     aud: APPLE_ISSUER,
-    sub: config.servicesId,
+    // 웹은 Services ID, 네이티브 앱은 번들 ID 다(clientId 가 있으면 그쪽).
+    sub: config.clientId || config.servicesId,
   })));
   const signingInput = `${header}.${payload}`;
   // WebCrypto ECDSA 서명은 이미 JWS 가 요구하는 r||s(64바이트) 형식이다.
@@ -190,17 +236,20 @@ export async function verifyAppleIdToken(idToken, { clientId, nonce, fetchImpl, 
 
 /** 인가 코드를 Apple 토큰으로 바꾼다. id_token 만 쓴다(Apple 은 별도 프로필 API 가 없다). */
 export async function exchangeAppleAuthorizationCode({ code, redirectUri, config, fetchImpl }) {
+  const clientId = config.clientId || config.servicesId;
   const clientSecret = await buildAppleClientSecret(config);
+  const params = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    code: String(code || ""),
+    grant_type: "authorization_code",
+  });
+  // 네이티브 앱의 인가 코드에는 redirect_uri 가 없다. 웹은 항상 넘긴다.
+  if (!config.clientId || redirectUri) params.set("redirect_uri", String(redirectUri || ""));
   const response = await fetchImpl(APPLE_TOKEN_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json" },
-    body: new URLSearchParams({
-      client_id: config.servicesId,
-      client_secret: clientSecret,
-      code: String(code || ""),
-      grant_type: "authorization_code",
-      redirect_uri: String(redirectUri || ""),
-    }).toString(),
+    body: params.toString(),
   });
   const body = await response?.json?.().catch(() => null);
   if (!response?.ok || !body?.id_token) throw appleError("apple_token_exchange_failed");
