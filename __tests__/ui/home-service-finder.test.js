@@ -69,10 +69,17 @@ async function boot(extraTiles = [], { home = false } = {}) {
   return { window, doc: window.document };
 }
 
-const names = (panel) =>
-  Array.from(panel.querySelectorAll(".fortune-gateway__rec-name")).map((n) =>
+// 모든 운세는 24개씩 이어 그린다 — 전체를 검증하는 테스트는 '더 보기'를 끝까지 펼친다.
+const expandAll = (panel) => {
+  for (let guard = 0; guard < 50; guard += 1) {
+    const more = panel.querySelector(".cd-af__more");
+    if (!more) break;
+    more.click();
+  }
+};
+const names = (panel) => (expandAll(panel), Array.from(panel.querySelectorAll(".fortune-gateway__rec-name")).map((n) =>
     n.firstChild.textContent.trim(),
-  );
+  ));
 
 test("레지스트리와 엔진이 실려 서로 맞물린다", async () => {
   const { window } = await boot();
@@ -860,6 +867,7 @@ test('지역 이미지 오류는 초상 또는 공용 장식·최종 숨김으�
 
 test('세계관 표시가 무료·유료 진입 계약이나 가격을 바꾸지 않는다', async () => {
   const { panel, window } = await bootAllFortunes();
+  expandAll(panel);
   for (const item of window.__cdServiceRegistry) {
     const card = [...panel.querySelectorAll('.fortune-gateway__rec')].find(node => node.querySelector('[data-pvw-title]').textContent===item.name);
     assert.ok(card, item.id);
@@ -886,4 +894,49 @@ test('지역·담당자·개수 문구는 12개 사전과 한국어 복원 원�
   const text=doc.querySelector('[data-key="home.worldSearch.skyIntro"]');
   assert.equal(text.textContent,'Explore the stars.');
   assert.ok(text.dataset.cdOriginText.includes('별과 시간'));
+});
+
+test("모든 운세는 처음 24개만 그리고 더 보기로 이어 붙이며, 같은 카드 노드를 재사용한다", async () => {
+  const { window, doc, panel } = await bootAllFortunes();
+  const total = window.__cdServiceRegistry.length + 1;
+  assert.equal(panel.querySelectorAll(".fortune-gateway__rec").length, 24);
+  const more = panel.querySelector(".cd-af__more");
+  assert.ok(more, "더 보기 버튼이 없다");
+  const first = panel.querySelector(".fortune-gateway__rec");
+  doc.querySelector('#cdAllFortunesRoot [data-method="saju"]').click();
+  doc.querySelector('#cdAllFortunesRoot [data-method="saju"]').click();
+  assert.equal(panel.querySelector(".fortune-gateway__rec"), first, "카드 노드가 재사용되지 않았다");
+  assert.equal(names(panel).length, total);
+});
+
+test("모든 운세 가격 칩은 방식 칩과 함께 AND 로 좁히고, 방식을 바꿔도 가격이 남는다", async () => {
+  const { doc, panel } = await bootAllFortunes();
+  const root = doc.getElementById("cdAllFortunesRoot");
+  root.querySelector('[data-price="free"]').click();
+  const freeOnly = names(panel);
+  assert.ok(freeOnly.length > 0);
+  root.querySelector('[data-method="tarot"]').click();
+  assert.equal(root.querySelector('[data-price="free"]').getAttribute("aria-pressed"), "true", "방식 선택이 가격 칩을 해제했다");
+  const both = names(panel);
+  assert.ok(both.length <= freeOnly.length);
+  for (const card of panel.querySelectorAll(".fortune-gateway__rec")) assert.equal(card.hasAttribute("data-pvw-paid"), false);
+});
+
+test("모든 운세 정렬은 낮은 가격순에서 무료가 앞, 가격 불명이 뒤에 오고 초기화로 추천순에 돌아온다", async () => {
+  const { window, doc, panel } = await bootAllFortunes();
+  const root = doc.getElementById("cdAllFortunesRoot");
+  const sort = root.querySelector("[data-cd-sort]");
+  const recommended = names(panel);
+  sort.value = "priceAsc";
+  sort.dispatchEvent(new window.Event("change"));
+  const asc = names(panel);
+  assert.equal(asc.length, recommended.length);
+  assert.deepEqual([...asc].sort(), [...recommended].sort());
+  sort.value = "priceDesc";
+  sort.dispatchEvent(new window.Event("change"));
+  const desc = names(panel);
+  assert.notDeepEqual(desc, asc);
+  root.querySelector("[data-cd-finder-reset]").click();
+  assert.equal(sort.value, "recommended");
+  assert.deepEqual(names(panel), recommended);
 });

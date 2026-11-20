@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju dan Tarot bersama Yeongnyangi →",
       "publicRecordsTitle": "Rekod analisis awam Park Byung-ha (Neo), pengamal Saju berpengalaman 10 tahun",
       "publicRecordsLink": "Bandingkan tarikh, catatan asal dan hasil",
-      "passLight": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan. Tanpa mengira bacaan yang kini percuma, nilainya {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan."
+      "passLight": "Setiap Balang Madu menyertakan {count} Bacaan Ringan tanpa had kekerapan. Tanpa mengira bacaan yang kini percuma, nilainya {amount} KRW jika setiap satu digunakan sekali. Konsultasi utama tidak disertakan.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Tanya Yeoni dan Neo perkara yang paling ingin anda tahu sekarang",
