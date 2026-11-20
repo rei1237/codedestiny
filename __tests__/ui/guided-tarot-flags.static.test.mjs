@@ -103,3 +103,15 @@ test('/yeon-star-hug/ 는 플래그로 입력만 공통 플로우판으로 바�
   assert.match(guided, /if \(stepId === "result"\) return null;/);
   assert.equal(/authFetch|\/api\//.test(guided), false, '입력 플로우는 서버를 직접 부르지 않는다(별자리 신호 조회는 원본 applyProfileAndAstro 안)');
 });
+
+test('/yeongnyangi/room/ 출석 운세 16종은 플래그로 고르기·질문만 공통 플로우판으로 바꾸고 출석 게이트·결과는 원본을 쓴다(3c-A5)', async () => {
+  const flags = await import('../../lib/guided-flow/flags.mjs');
+  assert.equal(typeof flags.GUIDED_YN_FREE_FORTUNE_ENABLED, 'boolean');
+  const page = read('app/yeongnyangi/_components/FreeFortune.tsx');
+  assert.match(page, /GUIDED_YN_FREE_FORTUNE_ENABLED\?dynamic\(\(\)=>import\('\.\/FreeFortuneGuided'\),\{ssr:false\}\):null/);
+  assert.match(page, /const guided=Boolean\(FreeFortuneGuided\)&&!guest&&Boolean\(state\?\.unlocked\);/);
+  assert.match(page, /\{guided\?guidedStep==='result'&&[\s\S]*?:<>\r?\n\s*<div className="free-categories"/, '플래그 끔·게스트·잠김은 원본 칩·폼 그대로');
+  assert.match(page, /run=\{read\}/);
+  const guided = read('app/yeongnyangi/_components/FreeFortuneGuided.tsx');
+  assert.equal(/authFetch|fetch\(|\/api\//.test(guided), false, '플로우판은 서버를 직접 부르지 않는다(출석·멸치·읽기는 원본 read 안)');
+});

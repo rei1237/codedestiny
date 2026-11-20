@@ -16,6 +16,11 @@ import '../_home/free-fortune.css';
 import NatalChartTable from './NatalChartTable';
 import ResultSharing from './ResultSharing';
 import {ANSWER_FIRST_LAYOUT_V1} from '@/lib/result-layout';
+import dynamic from 'next/dynamic';
+import {GUIDED_YN_FREE_FORTUNE_ENABLED} from '@/lib/guided-flow/flags.mjs';
+
+// 3c-A5: 16종이 열린 로그인 사용자의 고르기·질문만 공통 스텝 플로우로 바꾼다. 끄면(false) 아래 원본 칩·폼 그대로. 출석·멸치·열기는 양쪽 같다.
+const FreeFortuneGuided=GUIDED_YN_FREE_FORTUNE_ENABLED?dynamic(()=>import('./FreeFortuneGuided'),{ssr:false}):null;
 
 export function Reading({reading}:{reading:FreeReading}){
  useEffect(()=>{trackEvent("free_result_view",{feature_id:reading.category,surface:"yeongnyangi_free",content_type:reading.kind,content_version:reading.version});},[reading]);
@@ -41,6 +46,7 @@ export default function FreeFortune(){
  const [reaction,setReaction]=useState<'idle'|'award'|'receive'|'unimpressed'|'ready'>('idle');
  const lock=useRef(false),version=useRef(0),timers=useRef<ReturnType<typeof setTimeout>[]>([]),currentDay=useRef('');
  const attendanceVersion=useRef(0);
+ const [guidedStep,setGuidedStep]=useState<string|null>(null);
  function clearReactionTimers(){timers.current.forEach(clearTimeout);timers.current=[];}
  const config=freeCategories.find(item=>item.id===category)!;
  const description=config.id==='vedic'?'인도에서 전해진 별 읽는 법으로 너의 리듬을 살펴볼까? 삶을 대하는 태도와 마음의 결을 같이 읽어줄게.':productCuriosity[config.id as keyof typeof productCuriosity]?.description||config.description;
@@ -78,22 +84,25 @@ export default function FreeFortune(){
   }
   catch(reason){if(v===attendanceVersion.current&&account===readDestinyProfileAccountId())fail(reason);}finally{lock.current=false;setBusy(false);}
  }
- async function read(event:FormEvent){
-  event.preventDefault();if(lock.current)return;trackEvent("free_feature_start",{feature_id:category,surface:"yeongnyangi_free"});lock.current=true;setBusy(true);setError('');const v=++version.current;
-  try{const data=await fortuneApi<{result:FreeReading}>('free/reading',{category,profileId:profileId||undefined,draft});if(v===version.current)setReading(data.result);}
-  catch(reason){if(v===version.current)fail(reason);}finally{lock.current=false;setBusy(false);}
+ async function read(event?:FormEvent):Promise<boolean>{
+  event?.preventDefault();if(lock.current)return false;trackEvent("free_feature_start",{feature_id:category,surface:"yeongnyangi_free"});lock.current=true;setBusy(true);setError('');const v=++version.current;
+  try{const data=await fortuneApi<{result:FreeReading}>('free/reading',{category,profileId:profileId||undefined,draft});if(v===version.current){setReading(data.result);return true;}return false;}
+  catch(reason){if(v===version.current)fail(reason);return false;}finally{lock.current=false;setBusy(false);}
  }
- return <section tabIndex={-1} id="daily" className="room-daily free-fortune" aria-labelledby="daily-title">
+ const guided=Boolean(FreeFortuneGuided)&&!guest&&Boolean(state?.unlocked);
+ return <><section tabIndex={-1} id="daily" className="room-daily free-fortune" aria-labelledby="daily-title" style={guided?{width:'100%',boxSizing:'border-box'}:undefined}>
   <div className="free-welcome"><div className={`anchovy-cat ${reaction}`}><Image src={reaction==='unimpressed'||reaction==='receive'?'/assets/yeongnyangi/original/neo-fish-curse.webp':'/assets/yeongnyangi/fish/reaction-anchovy.webp'} width={240} height={240} alt={reaction==='unimpressed'||reaction==='receive'?'한쪽 앞발은 거절하면서 다른 앞발은 이미 멸치를 받는 영냥이':'작은 멸치를 들고 이야기를 기다리는 영냥이'}/>{reaction==='receive'&&<Image className="incoming-anchovy" src="/assets/yeongnyangi/fish/anchovy.webp" width={64} height={32} alt=""/>}{reaction==='unimpressed'&&<span className="anchovy-sigh" aria-hidden="true">훗, 작구만?</span>}</div><div><h2 id="daily-title">멸치 세 마리,<br/>오늘의 이야기.</h2><p className="anchovy-dialogue" aria-live="polite">{reaction==='receive'?'멸치?':reaction==='unimpressed'?'훗, 작구만?':reaction==='ready'?'그래도 운세를 제대로 봐줄게.':reaction==='award'?'왔구나. 오늘 멸치는 챙겨뒀어. 잊은 줄 알았지?':'멸치? 훗, 작구만? 그래도 운세를 제대로 봐줄게.'}</p></div></div>
   <div className="attendance-bar"><div className="anchovy-balance"><Image src="/assets/yeongnyangi/fish/anchovy.webp" width={72} height={36} alt="멸치"/><span>내 멸치<strong>{state?`${state.balance}마리`:'로그인 후 확인'}</strong></span>{reaction==='award'&&<span className="anchovy-award" aria-hidden="true"><Image src="/assets/yeongnyangi/fish/anchovy.webp" width={48} height={24} alt=""/>멸치 +1</span>}</div><div className="attendance-actions">{guest?<button className="free-primary" type="button" onClick={loginForCurrentPage}>로그인하고 출석하기<ArrowRight size={17}/></button>:state?<><button type="button" onClick={()=>void action('attendance')} disabled={busy||state.attended}>{state.attended?<Check size={17}/>:<Gift size={17}/>} {state.attended?'오늘 출석 완료':'출석하고 멸치 받기'}</button><button type="button" className="free-primary" onClick={()=>void action('free/unlock')} disabled={busy||state.unlocked||state.balance<(state.unlockCost??3)}>{state.unlocked?<BookOpen size={17}/>:<ArrowRight size={17}/>} {state.unlocked?'오늘의 16종 열림':`멸치 ${state.unlockCost??3}마리 건네기`}</button></>:<p>출석 수첩을 확인하고 있어.</p>}</div></div>
   <p className="free-policy">한국 시간 기준 하루 한 번 출석하면 멸치 1마리. 3마리로 오늘의 16종 전체를 열 수 있어. 남은 멸치는 계속 쌓아둘게.</p><p className="free-status" role="status">{notice}</p>
   {error&&<div className="free-error" role="alert"><p>{error}</p>{!guest&&<button type="button" disabled={busy} onClick={()=>refresh().then(()=>setError('')).catch(fail)}>상태 다시 확인</button>}</div>}
   {guest&&<p className="free-policy"><a href="/saju/" data-cd-cross-sell="guest_free_saju">무료 만세력 시작하기</a> · 출생 정보를 입력하고 회원가입 또는 로그인 후 원국과 성향을 확인해요.</p>}
   <ProfilePicker state={profileState}/>
+  {guided?guidedStep==='result'&&(category==='horary'?<QuestionSkyConsultation mode="horary-v1"/>:<>{birthCategories.has(config.id)&&<p className="free-policy">이미 읽은 운세는 그날 처음 확인한 프로필과 질문으로 유지돼.</p>}{reading&&<Reading reading={reading}/>}</>):<>
   <div className="free-categories" role="group" aria-label="무료 운세 16종">{freeCategories.map(item=><button type="button" key={item.id} aria-pressed={category===item.id} onClick={()=>setCategory(item.id)}>{item.label.replace(' 프롬프트','')}</button>)}</div>
   {category==='horary'?<QuestionSkyConsultation mode="horary-v1"/>:!state?.unlocked?<div className="free-locked"><h3>{config.label}</h3><p>{description}</p><p>출석 멸치로 오늘의 이야기를 열어줘. 금액을 결제하거나 AI를 호출하는 과정은 없어.</p></div>:<>
    {birthCategories.has(config.id)&&<p className="free-policy">이미 읽은 운세는 그날 처음 확인한 프로필과 질문으로 유지돼.</p>}
    {reading?<Reading reading={reading}/>:<form onSubmit={read} className="free-question"><h3>{config.label}</h3><p>{description}</p><label>궁금한 이야기<textarea rows={3} value={draft.question||''} onChange={event=>setDraft({...draft,question:event.target.value})} maxLength={900} placeholder="오늘 내가 살펴볼 선택은 무엇일까?"/></label>{extra.length>0&&<details><summary>이 분야의 질문 단서 더하기</summary>{extra.map(field=><label key={field.id}>{field.label}<input value={draft[field.id]||''} onChange={event=>setDraft({...draft,[field.id]:event.target.value})} maxLength={500} placeholder={field.placeholder}/></label>)}</details>}{birthCategories.has(config.id)&&!profileId&&<p>본인 프로필을 선택하거나 새로 만들어 줘.</p>}<button className="free-primary" disabled={busy||(birthCategories.has(config.id)&&!profileId)}>{busy?'이야기를 정리하고 있어':'오늘의 이야기 읽기'}<ArrowRight size={17}/></button><small>한 번 읽은 이야기는 오늘 동안 그대로 보관돼. 다시 읽어도 멸치를 더 쓰지 않아.</small></form>}
   </>}
- </section>;
+  </>}
+ </section>{guided&&FreeFortuneGuided&&<FreeFortuneGuided categories={freeCategories.map(item=>({id:item.id,label:item.label.replace(' 프롬프트','')}))} category={category} onCategory={setCategory} label={config.label} description={description} extra={extra} isBirth={birthCategories.has(config.id)} needsProfile={birthCategories.has(config.id)&&!profileId} draft={draft} onDraft={setDraft} hasReading={Boolean(reading&&reading.category===category)} isHorary={category==='horary'} error={error} run={read} onStepChange={setGuidedStep}/>}</>;
 }

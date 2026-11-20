@@ -1,0 +1,107 @@
+/* 3c-A5 영냥이 방(/yeongnyangi/room/) 안의 출석 운세 공통 스텝 플로우 자리. 색은 셸의 --gf-*(영냥이 밤 토큰)만 쓴다(새 hex 없음). */
+/* 원본 .room-daily.free-fortune 상자 바로 아래에 같은 폭으로 붙는다. .free-fortune 클래스를 쓰지 않아 원본 상자 CSS 가 번지지 않는다. */
+.slot {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0 auto 20px;
+  width: 100%;
+  max-width: 940px;
+  box-sizing: border-box;
+}
+/* 셸 기본 폭(--gf-max 40rem) 대신 위 원본 상자와 같은 폭으로 편다. */
+.slot > [data-brand] {
+  max-width: none;
+}
+@media (max-width: 640px) {
+  /* 좁은 화면의 원본 상자는 화면 끝까지 붙으므로 같은 폭으로 붙인다. */
+  .slot {
+    margin: 0 0 14px;
+  }
+  .slot > [data-brand] {
+    border-radius: 18px;
+  }
+}
+
+/* .ynOriginal button 요소 초기화(border 0·background none·color inherit, 명시도 0,1,1)가 셸 모듈 클래스(0,1,0)를 이긴다.
+   슬롯 안에서만 셸 선택지·주 버튼의 값으로 되돌린다(셸 CSS 는 건드리지 않는다). */
+.slot button[aria-pressed] {
+  border: 1px solid var(--gf-line);
+  background: var(--gf-raised);
+  color: var(--gf-ink);
+}
+.slot button[aria-pressed='true'] {
+  border-color: var(--gf-gold);
+  background: var(--gf-selected);
+}
+.slot :global(.cd-yehwa-button--primary) {
+  border: 1px solid var(--gf-gold-fill);
+}
+
+/* 16종 고르기: 한 줄 하나면 너무 길어 두 칸(넓으면 네 칸)으로 놓는다. */
+.chips > [role='group'] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 720px) {
+  .chips > [role='group'] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.extra {
+  display: grid;
+  gap: var(--cd-sp-xs);
+}
+.extra > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--cd-btn-h);
+  color: var(--gf-gold);
+  cursor: pointer;
+}
+
+/* 결과 단계: 본문은 원본 상자 안에 원본 그대로 그려지고, 여기에는 다음 행동만 둔다. */
+.after {
+  /* 셸 밖이라 셸의 영냥이 매핑(guided-flow.module.css .flow[data-brand='yeongnyangi'])을 같은 --yn-* 로 다시 건다. */
+  --gf-surface: var(--yn-night);
+  --gf-raised: var(--yn-surface);
+  --gf-ink: var(--yn-ivory);
+  --gf-muted: var(--yn-muted);
+  --gf-gold: var(--yn-gold);
+  --gf-line: color-mix(in srgb, var(--yn-gold) 55%, var(--yn-night));
+  display: grid;
+  gap: var(--cd-sp-sm);
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-section);
+  background: var(--gf-surface);
+  color: var(--gf-ink);
+}
+.after > p {
+  margin: 0;
+  color: var(--gf-muted);
+}
+.actions {
+  display: grid;
+  gap: var(--cd-sp-sm);
+}
+@media (min-width: 480px) {
+  .actions {
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  }
+}
+.slot .action {
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-sm) var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-control);
+  background: var(--gf-raised);
+  color: var(--gf-ink);
+  font: inherit;
+  cursor: pointer;
+}
+.slot .action:focus-visible {
+  outline: 2px solid var(--gf-gold);
+  outline-offset: 2px;
+}
