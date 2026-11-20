@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-20
-next: "A4 화면 검증 — 사주 탭 무료 궁합 결과 상단·끝 타일과 고급 궁합 prefill 화면을 visual-checker 로 최종 판정(B 재판정 미회수), ?preview=success|failed 확인"
+updated: 2026-11-21
+next: "M 머지·push"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -95,7 +95,7 @@ next: "A4 화면 검증 — 사주 탭 무료 궁합 결과 상단·끝 타일�
 - [x] A2 카탈로그(paid-feature-registry·billing·saju-service-catalog·service-registry), 프롬프트, 라우트, 모델, worker 배선, 계약·RETRY_FIRST 등록, paid-delivery 테스트 → 커밋
 - [x] A3 App Router 입력·결과 페이지, dev-preview fixture, 보관함 등록, SEO 소개 페이지 갱신 → 커밋
 - [x] B 사주 탭: 결제 없이 정적 궁합 결과를 보여 주고, 그 아래 달빛 예화 톤의 고급 궁합 CTA를 둔다(sessionStorage 프리필). 그다음 sync:public → 커밋
-- [ ] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
+- [x] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
 - [ ] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>`
 - [ ] C·D 감사 결과를 paid-retry R10에 넘긴다. 상대 세션이 끝났으면 이어서 구현하고, 아니면 보고만 한다.
 - [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
@@ -199,3 +199,23 @@ next: "A4 화면 검증 — 사주 탭 무료 궁합 결과 상단·끝 타일�
 5. verify:adsense-readiness 는 dist 가 필요해 로컬 미실행 — CI 에서 확인.
 6. 입력 화면 경미: 날짜 placeholder 대비 2.44:1, “태어난 시간” 칸만 어두운 바탕(대비 6.2:1 통과). A4 에서 재확인.
 7. 전체페이지 스크린샷에서 lazy 이미지가 단색으로 찍힐 수 있다(요소 스크린샷으로 실렌더 확인) — A4 촬영 때 주의.
+
+### A4 화면 검증 + 레거시 판매 종료 (2026-11-20~21, 서브에이전트, mock 만)
+
+커밋: 74e366e8b(`compat-saju-compatibility` saleEnabled:false, 가격 50 유지, payment-gating.md 기록, 테스트 2건), b74a3a499(입력 placeholder·태어난 시간 칸 CSS + sitemap 원장 재생성).
+
+- 판매 종료 선감사: paid-gate-auditor·regression-scout 모두 SAFE. assertFeatureEnabled 는 신규 과금 진입점에서만 불리고, 재열람(/api/saju-compat-basic/generate·보관함·_seSajuCompatLegacyPending·_seRunSajuCompatResume·Toss 네이티브·복구)은 판매 상태를 읽지 않는다.
+- verify 전부 exit 0: paid-feature-billing-policy, payment-policy-md, payment-freeze, payment-p0-inventory, app-store-billing-policy, paid-llm-delivery, paid-gate-price-coverage, paid-access-integrity. jest(run-mock-tests) 6 suites 200/200, node --test per-use-price-parity 1/1·native-saju-compat 1/1.
+- check:fast: 1차 sitemap drift → sitemap:generate → 재실행 exit 0(jest 8 suites 116/116, node --test 47/47 등).
+- 화면(next dev :3127, headed Chrome, 390 isMobile·1280, 쿠키 동의 사전 설정, 결과 세션만 로컬 stub): visual-checker 판정 30+2장. 무료 궁합 상단(B급·73/100)·CTA·끝(탭바 비겹침, 시간 모름만 정오 안내), prefill 나(사용자·1995-03-14·09:00·여성)·상대(모름=빈 칸+체크 / 앎=14:30), 진입 카드(실제 일러스트·CTA), 입력 390 우측 여백 16px·가로 넘침 없음, success 4장·failed(다시 시도+환불 요청)·truncated(안내+이어서 보기) 모두 PASS. truncated 버튼이 흐린 것은 preview 모드 disabled(의도).
+- A3 경미 항목: placeholder 2.44:1 → 4.83:1, 태어난 시간 칸 배경 #fffaf3 로 다른 칸과 일치(수정). CTA 카드 꽃가지 겹침은 최악 5.67:1 로 가독성 문제 없음 → 변경 없음.
+
+남은 위험·후속(보고만):
+1. Google Play: 판매 종료 전에 만든 intent 의 verify/restore 가 PRODUCT_SALE_DISABLED 를 낼 수 있다(app-store.js:1138·:358·:383, payment-gating.md:399 와 상충). 미승인 Play 구매는 자동 환불이라 금전 손실은 없다.
+2. 이용권 복귀 재게이트(destiny-profile.js:5054)·coin-gate 같은 requestId 재생이 403 — 사용자 혼란, 금전 손실 없음. PRODUCT_SALE_DISABLED 문구가 "준비 중"으로 읽힌다.
+3. docs/product-details/product-ledger.json:965 saleStatus 미갱신. Toss 네이티브는 판매 상태 검사가 없다(나중에 승인될 경우 대비).
+4. 상대 시간칸에 포커스 후 비워 두면 blur 가 12:00 을 다시 채워 시간을 아는 것으로 처리된다(js/destiny-profile.js _dpBindTypedBirthInputs, 기존 동작). 상대 성별은 궁합 폼에 없어 prefill 안 됨(설계).
+5. 무료 궁합 등급 배지(흰 글자/파란 그라데이션) 대비 3.1~3.55:1 — 기존 디자인, 범위 밖.
+6. CTA·진입 카드 머리말 "달빛 아래 연이가 쓰는 두 사람의 이야기" — 11-19 달빛 명칭 폐기 결정 범위에 문구도 들어가는지 확인 필요.
+7. 빈 입력의 시간칸에 "08:35" 회색이 보인다(placeholder 예시로 추정, 미확인).
+8. M 머지 때 루트 main 이 앞서 있으므로 fetch 후 머지, 머지 뒤 sitemap:generate·sync:public 재실행 필요.
