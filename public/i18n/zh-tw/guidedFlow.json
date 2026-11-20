@@ -202,6 +202,40 @@
         "fallback": "我們靜靜地讀牌面呈現的場景吧。",
         "mindFallback": "看看你心裡先浮現的是哪個場景。"
       }
+    },
+    "animalDestiny": {
+      "eyebrow": "十二運星動物圖鑑 · 免費",
+      "title": "尋找你的命運動物",
+      "subtitle": "根據出生日期解讀日干與十二運星，找到與你相似的動物。",
+      "cta": "開始尋找動物",
+      "freeHint": "無需登入即可查看基本結果。",
+      "aboutTitle": "這是什麼？",
+      "aboutBody": "把出生那天的氣與十二運星的流轉對照起來，告訴你與你性格相似的動物，以及牠一天的節奏。",
+      "guideTitle": "進行方式",
+      "guide1Title": "出生日期與曆法",
+      "guide1Body": "如有已儲存的資料，選擇後即可直接填入。",
+      "guide2Title": "出生時間·性別",
+      "guide2Body": "不知道也沒關係，可留空或選擇不透露。",
+      "guide3Title": "顯示的名字",
+      "guide3Body": "用於結果卡片，可以留空。",
+      "dateTitle": "請告訴我你的出生日期",
+      "dateLabel": "出生日期 (YYYY-MM-DD)",
+      "calendarTitle": "是哪種曆法？",
+      "solar": "陽曆",
+      "lunar": "農曆",
+      "leap": "農曆閏月",
+      "timeTitle": "知道出生時間嗎？",
+      "timeLabel": "出生時間（選填）",
+      "timeHint": "不知道的話請留空並點擊下一步。",
+      "genderTitle": "請選擇性別",
+      "female": "女",
+      "male": "男",
+      "genderSkip": "不透露",
+      "nameTitle": "結果卡片上用什麼名字？",
+      "nameLabel": "名字或暱稱（選填）",
+      "nameHint": "可以留空並點擊下一步。",
+      "computingTitle": "正在尋找你的命運動物",
+      "computingBody": "正在對照日干與十二運星。"
     }
   }
 }
