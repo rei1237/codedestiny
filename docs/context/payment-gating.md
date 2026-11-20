@@ -372,7 +372,7 @@
 | 카드 | 키 | 계산·전달 위치 | 생성 모델 | 서버 전달 | 묶음 포함 |
 | --- | --- | --- | --- | --- | --- |
 | 시빌(시빌라 연간 대비 리포트) | `premium-sibyl-dominator` (unlock, 20,000원) | `worker/routes/sibyl.js`가 `sibyl-annual.js`로 계산하고 `sibyl-report-store.js`가 저장·재열람. 모델 호출 코드 없음 | 아니오 | 예(서버가 해금 확인 후 배달) | 아니오. 이미 단독 영구 해금으로 팔리는 상품이고 Interfaces 목록에 없다. 묶음에 넣을지는 사용자 결정 |
-| 궁합 무료/유료 경계 | `compat-saju-compatibility` (회당 10,000원) | 2026-10-04 승인으로 LLM 서술 결과 | 예 | 예 | 아니오(회당) |
+| 궁합 무료/유료 경계 | `compat-saju-compatibility` (회당 5,000원, cost 50 — 2026-11-20 코드 확인) | 2026-10-04 승인으로 LLM 서술 결과. 2026-11-20부터 고급 궁합은 별도 키 `saju-compat-premium`(회당 10,000원, `worker/routes/saju-compat-premium.js`)이다 | 예 | 예 | 아니오(회당) |
 | 이집트 | `egyptOracle` (회당 3,000원), `egyptian_oracle_ai_prompt` (회당 5,000원) | `js/oracle-kcg.js`의 `showKemetSpread`, 질문은 프롬프트 생성 | 해당 없음(출생 기반 아님) | 아니오(브라우저) | 아니오(회당, 출생 기반 영구 해금이 아님) |
 | 오늘의 운세 상세 | `daily-fortune-reading` (회당 3,000원) | `app/today/TodayHubClient.tsx`가 `/api/fortune/today-hub` 호출. 일자마다 바뀌는 결과 | 아니오(엔진 계산) | 예 | 아니오(날마다 바뀌는 회당 상품) |
 | 인연의 장소 | `destiny_meeting_place` (회당 7,000원) | `DestinyMeetingPlacePage.tsx`가 브라우저 엔진 `generateDestinyMeetingPlaceResult`로 계산 | 아니오 | 아니오(브라우저) | 아니오. 비모델이지만 회당 상품이다. 묶음 포함은 사용자 결정 |
