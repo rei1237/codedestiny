@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "A3 App Router 입력·결과 페이지 + 카탈로그 표시 전환(.tmp/a3-registry-switch.patch) + 월정석 deferUsage 클라이언트"
+next: "B 사주 탭 무료 궁합 + 달빛 예화 고급 궁합 CTA(sessionStorage 프리필) — 무료 문구를 넣을 때 saju-bundle-copy.static.test.js:227·셸 레거시 문구·feature-visual-details 인벤토리를 함께 갱신"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -93,7 +93,7 @@ next: "A3 App Router 입력·결과 페이지 + 카탈로그 표시 전환(.tmp/
 ## 단계
 - [x] A1 계산 모듈 `worker/lib/saju-compat-premium-facts.js`와 테스트 `__tests__/worker/saju-compat-premium-facts.test.js` → check:fast → 커밋
 - [x] A2 카탈로그(paid-feature-registry·billing·saju-service-catalog·service-registry), 프롬프트, 라우트, 모델, worker 배선, 계약·RETRY_FIRST 등록, paid-delivery 테스트 → 커밋
-- [ ] A3 App Router 입력·결과 페이지, dev-preview fixture, 보관함 등록, SEO 소개 페이지 갱신 → 커밋
+- [x] A3 App Router 입력·결과 페이지, dev-preview fixture, 보관함 등록, SEO 소개 페이지 갱신 → 커밋
 - [ ] B 사주 탭: 결제 없이 정적 궁합 결과를 보여 주고, 그 아래 달빛 예화 톤의 고급 궁합 CTA를 둔다(sessionStorage 프리필). 그다음 sync:public → 커밋
 - [ ] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
 - [ ] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>`
@@ -152,5 +152,32 @@ next: "A3 App Router 입력·결과 페이지 + 카탈로그 표시 전환(.tmp/
 3. 테스트는 이용권 접근만 다룬다. 월정석/deferred·직접 결제·증빙 재사용(409) 경로는 코드 읽기로만 확인.
 4. paid-flow-gates.yml 트리거 glob 이 `worker/routes/*-ai.js` 라 이 라우트·prompt·facts 단독 변경은 그 워크플로가 안 돈다(CI 변경 = RED, 사용자 결정 필요).
 5. 공용 파일(paid-delivery-stuck·consultation-delivery-refund·검증기)을 R10 도 수정 중 — M 머지 때 한 줄 충돌 가능.
-6. 범위 밖 보고: P0 인벤토리 재생성 시 saju-guardian-unlock 5000→3000 드리프트(기존), `docs/context/payment-gating.md:375` 가 compat-saju-compatibility 를 10,000원으로 적음(레지스트리는 5,000원).
-7. 카탈로그 표시 전환(js/core/service-registry.js·lib/saju/saju-service-catalog.mjs)은 감사가 가격 불일치를 지적해 A3 로 미룸 — 패치 보관 `.tmp/a3-registry-switch.patch`(미추적, A3 에서 적용 후 삭제).
+6. (A3 에서 payment-gating.md:375 가격 정정 완료) 범위 밖 보고: P0 인벤토리 재생성 시 saju-guardian-unlock 5000→3000 드리프트(기존), `docs/context/payment-gating.md:375` 가 compat-saju-compatibility 를 10,000원으로 적음(레지스트리는 5,000원).
+7. (A3 에서 적용·패치 삭제 완료) 카탈로그 표시 전환(js/core/service-registry.js·lib/saju/saju-service-catalog.mjs)은 감사가 가격 불일치를 지적해 A3 로 미룸 — 패치 보관 `.tmp/a3-registry-switch.patch`(미추적, A3 에서 적용 후 삭제).
+
+### A3 프런트·보관함·SEO (2026-11-20, 서브에이전트, mock 만)
+
+커밋(워크트리 브랜치, push·머지 안 함):
+- e0afd07bc 입력·결과 페이지(`app/saju/compatibility/premium/`, `result/`), `_lib/premium-delivery.ts`, dev-preview fixture(`lib/dev-preview/fixtures/saju-compat-premium.ts`), `scripts/verify-saju-compat-premium-flow.mjs`(+ `verify:ai-consultation-flows` 체인), 프롬프트 랩 제외 등록, 리뷰 카탈로그 love-coach 에 키 추가
+- b82dcaf26 보관함: `lib/records/service-registry.js`·`reading-registry.js`(view 'saju-compat')·`SavedServiceReading.tsx`, record-library 테스트
+- f43d058a7 SEO: 소개 페이지 달빛 예화 진입 카드(`PremiumCompatEntry.jsx`, tea-saju-compat 이미지), 소개 문구에 고급 궁합 10,000원(“무료” 주장 제거), `/saju/compatibility/premium*` noindex(index-policy·_headers·public/_headers·adsense 원장·index-policy 테스트), sitemap lastmod 재생성, payment-gating.md:375 가격 정정(5,000원/cost 50)
+- 2914c74fb 카탈로그 표시 전환(js/core/service-registry.js·lib/saju/saju-service-catalog.mjs) + sync:public 미러 + generated JSON + feature-visual-details 인벤토리(recordFeatureKey 분리)
+- 6c08b6e93 화면 검증에서 나온 대비 수정: premium.module.css 가 /saju 어두운 몸체 위에서 진한 글자를 쓰던 문제 → 화면 자체 밤 표면·밝은 토큰
+
+흐름: prepare → runBillingCoinGate(`buildBillingGateInput` 은 verify:paid-gate-price-coverage 때문에 클라이언트 파일 안에 둠, `deferUsage:true`·`usagePolicy:"apply_after_success"`·membershipCreditCost 1000) → generate 루프(resumeSessionId) → 완성본만 결과 화면, 실패 시 무료 다시 시도·환불 요청. idempotency 키는 결과 이동 때 초기화.
+
+검증(실측):
+- check:fast: test:node·결제 verify 전부 통과, jest 2건(admin-prompt-lab-coverage·review-catalog-moderation) 실패 → 등록 후 개별 재실행 65/65 통과. CSS 수정 뒤 check:fast 전체 재실행 exit 0(jest 포함).
+- verify 통과: checkout-pass-card, portone-single-payment, ai-prompt-billing-policy, pass-tier-policy, payment-p0-inventory, paid-feature-billing-policy, payment-freeze, paid-llm-delivery, paid-resume-wiring, paid-gate-no-dead-end, paid-gate-scope, paid-feature-common-flow, paid-service-offer, paid-gate-profile-scope, paid-access-integrity, paid-gate-price-coverage, saju-compat-premium-flow(변이 deferUsage:false → exit 1 확인)
+- 단위: saju-service-catalog.static 4/4, home-service-finder 45/45, index-policy 11/11, feature-visual-details 15/15, record-library 32, records-reading-content 6, tsc 0, lint ok, sitemap drift OK
+- paid-gate-auditor: 조건부 PASS(문구·verify 배선·크레딧 fallback·키 초기화 반영)
+- 렌더(next dev :3127, Playwright 390px): `/saju/compatibility/` 200 index·진입 카드·이미지 로드 확인, `/saju/compatibility/premium/` 200 noindex, `result/?preview=success|failed|truncated` 200 noindex·pageerror 0. visual-checker: 1차 대비 실패(1.29:1) → CSS 수정 후 입력·성공·실패·중단 PASS(제목 13:1, 본문 9.5:1 이상). 성공 화면 정적 카드 + 4장 렌더·비난조 라벨 없음, 실패 화면 무료 다시 시도·환불 요청 노출, 미완성 본문 비노출.
+
+남은 위험:
+1. B 에서 “기본 궁합 무료” 문구를 넣을 때 `__tests__/ui/saju-bundle-copy.static.test.js:227`(무료 주장 금지 단언)·정적 셸 레거시 문구·feature-visual-details 인벤토리를 함께 바꿔야 한다.
+2. 감사 2: `/prepare` 가 진입 때 이용권을 판정(AI 상담 11종 기존 패턴). 감사 6: 홈 레지스트리 `saju-compatibility` 항목이 aliases `runCompat` 을 유지한 채 고급으로 바뀌어 레거시 5,000원 상품이 따로 안 보일 수 있다(미검증).
+3. paid-flow-gates.yml 트리거가 `app/saju/**` 를 덮지 않는다(CI 변경 = RED, 사용자 결정).
+4. 프롬프트 랩 미등록(제외 사유만 등록).
+5. verify:adsense-readiness 는 dist 가 필요해 로컬 미실행 — CI 에서 확인.
+6. 입력 화면 경미: 날짜 placeholder 대비 2.44:1, “태어난 시간” 칸만 어두운 바탕(대비 6.2:1 통과). A4 에서 재확인.
+7. 전체페이지 스크린샷에서 lazy 이미지가 단색으로 찍힐 수 있다(요소 스크린샷으로 실렌더 확인) — A4 촬영 때 주의.
