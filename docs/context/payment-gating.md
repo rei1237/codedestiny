@@ -74,6 +74,17 @@
 - 환불: 전달 전 최종 실패만 30방울 1회 복원(`refundTerminalFamilyQuota` → `refundChatHoney`).
 - 범위: 연이 기본 상담 전용. 질문 티어·네오·공동 상담 제외. 실결제·운영 DB 검증은 이번 변경에 포함하지 않으며 개발 검증은 mock 으로 한다.
 
+## 2026-11-20 승인: 기본 사주 궁합 무료 전환과 고급 궁합 10,000원
+
+사용자 요청("기존 정적으로 생성하는 기능은 … 무료로 볼 수 있도록", "이 궁합 서비스는 고급 궁합 기능이 되어야", "가격도 만원으로")에 따라 사주 탭의 기본 궁합을 무료로 제공하고 유료 궁합을 고급 궁합으로 교체한다.
+
+- 기본 궁합 무료 전환: 사주 탭 `runCompat`은 결제 없이 브라우저 정적 계산(궁합 분석·전생 인연)을 보여 준다. 결과 아래에 고급 궁합 진입 CTA를 둔다.
+- 레거시 판매 종료: `compat-saju-compatibility`의 saleEnabled: false. 키와 가격(5,000원, cost 50)은 과거 주문·환불·재개 대조용으로 유지한다. 낡은 번들·직접 호출의 새 청구는 `assertFeatureEnabled`가 `PRODUCT_SALE_DISABLED`로 막는다.
+- 재열람 유지: `/api/saju-compat-basic/generate`(기존 증빙 재개)·`/archive`·`/archive/:id`, 결제 대기 재개(`_seSajuCompatLegacyPending`·`_seRunSajuCompatResume`), 토스 네이티브 재열람, 서버 복구·환불 조회는 판매 상태를 보지 않으므로 그대로 동작한다. generate 라우트는 닫지 않는다(운명의 섬 410 선례와 다름).
+- 고급 궁합: `saju-compat-premium` 회당 10,000원(cost 100), `worker/routes/saju-compat-premium.js`, App Router `/saju/compatibility/premium/`. 실패 시 무료 다시 시도 우선, 7일 경과 또는 고객 요청 시 환불.
+- 알려진 제약(선례와 같음): 판매 종료 전에 만든 Google Play 의도의 verify·restore와 coin-gate 같은 requestId 재요청은 `PRODUCT_SALE_DISABLED`가 될 수 있다(금전 손실 없음, 별도 과제).
+- 운영 승격과 실결제 검증은 별도이며, 개발 검증은 mock으로 한다.
+
 ## 2026-11-05 승인: 명리 타로 세 장 무료 전환
 
 사용자 요청에 따라 명리 타로 세 장 풀이를 무료로 제공한다. 심층 풀이는 이미 LLM으로 판매 중인 찻집 상담(`fortune-tea-house-tarot-consultation`, 5,000원)으로 연결한다.
@@ -372,7 +383,7 @@
 | 카드 | 키 | 계산·전달 위치 | 생성 모델 | 서버 전달 | 묶음 포함 |
 | --- | --- | --- | --- | --- | --- |
 | 시빌(시빌라 연간 대비 리포트) | `premium-sibyl-dominator` (unlock, 20,000원) | `worker/routes/sibyl.js`가 `sibyl-annual.js`로 계산하고 `sibyl-report-store.js`가 저장·재열람. 모델 호출 코드 없음 | 아니오 | 예(서버가 해금 확인 후 배달) | 아니오. 이미 단독 영구 해금으로 팔리는 상품이고 Interfaces 목록에 없다. 묶음에 넣을지는 사용자 결정 |
-| 궁합 무료/유료 경계 | `compat-saju-compatibility` (회당 5,000원, cost 50 — 2026-11-20 코드 확인) | 2026-10-04 승인으로 LLM 서술 결과. 2026-11-20부터 고급 궁합은 별도 키 `saju-compat-premium`(회당 10,000원, `worker/routes/saju-compat-premium.js`)이다 | 예 | 예 | 아니오(회당) |
+| 궁합 무료/유료 경계 | `compat-saju-compatibility` (회당 5,000원, cost 50 — 2026-11-20 코드 확인, 2026-11-20 신규 판매 종료·재열람 유지) | 2026-10-04 승인으로 LLM 서술 결과. 2026-11-20 기본 궁합은 무료 정적 결과로 전환. 2026-11-20부터 고급 궁합은 별도 키 `saju-compat-premium`(회당 10,000원, `worker/routes/saju-compat-premium.js`)이다 | 예 | 예 | 아니오(회당) |
 | 이집트 | `egyptOracle` (회당 3,000원), `egyptian_oracle_ai_prompt` (회당 5,000원) | `js/oracle-kcg.js`의 `showKemetSpread`, 질문은 프롬프트 생성 | 해당 없음(출생 기반 아님) | 아니오(브라우저) | 아니오(회당, 출생 기반 영구 해금이 아님) |
 | 오늘의 운세 상세 | `daily-fortune-reading` (회당 3,000원) | `app/today/TodayHubClient.tsx`가 `/api/fortune/today-hub` 호출. 일자마다 바뀌는 결과 | 아니오(엔진 계산) | 예 | 아니오(날마다 바뀌는 회당 상품) |
 | 인연의 장소 | `destiny_meeting_place` (회당 7,000원) | `DestinyMeetingPlacePage.tsx`가 브라우저 엔진 `generateDestinyMeetingPlaceResult`로 계산 | 아니오 | 아니오(브라우저) | 아니오. 비모델이지만 회당 상품이다. 묶음 포함은 사용자 결정 |

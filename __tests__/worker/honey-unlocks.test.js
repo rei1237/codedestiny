@@ -123,6 +123,13 @@ test('명리 타로 세 장은 신규 판매만 닫고 과거 주문 대조용 �
   expect(FEATURE_KEY_PRICE_TABLE['tarot-myeongri-three-card'].cost).toBe(50);
   expect(assertFeatureEnabled({ featureKey: 'tarot-myeongri-three-card' }).ok).toBe(false);
 });
+test('기본 사주 궁합 레거시 키는 신규 판매만 닫고 과거 주문 대조용 가격을 유지한다', async () => {
+  const { FEATURE_KEY_PRICE_TABLE } = await import('../../worker/lib/paid-feature-registry.js');
+  const { assertFeatureEnabled } = await import('../../worker/lib/billing-feature-registry.js');
+  expect(FEATURE_KEY_PRICE_TABLE['compat-saju-compatibility'].cost).toBe(50);
+  expect(assertFeatureEnabled({ featureKey: 'compat-saju-compatibility' }).ok).toBe(false);
+  expect(assertFeatureEnabled({ featureKey: 'saju-compat-premium' }).ok).toBe(true);
+});
 const pairInput = { date:'1990-05-01',calType:'solar',hour:12,minute:0,gender:'F' };
 test('Free sukuyo requests reject new spends for duplicate, changed input and foreign profiles', async () => {
  const f=fixture(90);

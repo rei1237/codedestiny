@@ -281,7 +281,9 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "compat-astro-synastry": { cost: 50, reason: "점성술 셜럭 시나스트리 궁합" },
   "compat-astro-direct-synastry": { cost: 50, reason: "점성술 직접 입력 시나스트리 궁합" },
   "compat-ziwei-compatibility": { cost: 50, reason: "자미두수 궁합 분석" },
-  "compat-saju-compatibility": { cost: 50, reason: "사주 궁합 분석" },
+  // 🔴 2026-11-20 기본 궁합 무료 전환으로 **신규 판매 종료**. 키·가격은 기존 구매자 재열람(/api/saju-compat-basic)·
+  //    결제 대기 재개·환불 조회가 참조하므로 유지한다. 새 결제는 saju-compat-premium(10,000원)이 받는다.
+  "compat-saju-compatibility": { saleEnabled: false, cost: 50, reason: "사주 궁합 분석" },
   "compat-sukuyo-compatibility": { cost: 50, reason: "숙요점 궁합 분석" },
   "vedic-compatibility-per-use": { cost: 50, reason: "베다점 궁합 분석" },
   "nakshatra-compat": { cost: 50, amountKRW: 5000, reason: "나크샤트라 동서 통합 궁합" },
