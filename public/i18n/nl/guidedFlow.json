@@ -236,6 +236,38 @@
       "nameHint": "You can leave it blank and tap Next.",
       "computingTitle": "Finding your destiny animal",
       "computingBody": "Matching your day stem with the twelve life stages."
+    },
+    "starHug": {
+      "eyebrow": "Yeon's heart constellation · Free",
+      "title": "Let Yeon hold your heart today",
+      "subtitle": "With your mood, your sign and one worry, Yeon reads today's heart constellation card for you.",
+      "cta": "Start my heart constellation",
+      "freeHint": "Free, no sign-in needed.",
+      "aboutTitle": "What is this?",
+      "aboutBody": "Yeon matches the mood you pick with your birth sign and makes a comforting message and a symbol card for today.",
+      "guideTitle": "How it works",
+      "guide1Title": "One feeling right now",
+      "guide1Body": "Pick the mood closest to how you feel.",
+      "guide2Title": "Birth date (optional)",
+      "guide2Body": "If you have a saved profile, pick it to fill this in.",
+      "guide3Title": "Check your sign",
+      "guide3Body": "Confirm the sign matched from your birth date, or pick one yourself.",
+      "guide4Title": "One worry (optional)",
+      "guide4Body": "Write what is on your mind, or pick a sample sentence.",
+      "emotionTitle": "Which feeling is closest right now?",
+      "birthTitle": "Would you share your birth date?",
+      "dateLabel": "Birth date, 8 digits (e.g. 19990125)",
+      "timeLabel": "Birth time (optional)",
+      "nameLabel": "Name or nickname (optional)",
+      "birthHint": "It's fine if you don't know. Leave it blank and tap next.",
+      "signTitle": "Is this your sign?",
+      "signLabel": "My sign",
+      "concernTitle": "Anything you want to tell Yeon?",
+      "concernLabel": "One worry (optional)",
+      "concernHint": "Leave it blank and Yeon will read today's overall mood.",
+      "samplesLabel": "Sample sentences",
+      "readingTitle": "Yeon is reading your heart constellation",
+      "readingBody": "Matching your mood and sign to pick today's card."
     }
   }
 }

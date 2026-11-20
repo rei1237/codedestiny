@@ -236,6 +236,38 @@
       "nameHint": "비워 두고 다음을 눌러도 돼요.",
       "computingTitle": "운명의 동물을 찾고 있어요",
       "computingBody": "일간과 12운성을 맞춰 보고 있어요."
+    },
+    "starHug": {
+      "eyebrow": "꿀꿀 운세 · 연이의 마음 별자리",
+      "title": "연이가 오늘 마음을 안아 줄게요",
+      "subtitle": "지금 감정과 별자리, 고민 한 줄로 연이가 오늘의 마음 별자리 카드를 읽어 드려요.",
+      "cta": "마음 별자리 시작",
+      "freeHint": "로그인 없이 무료로 볼 수 있어요.",
+      "aboutTitle": "이 기능은?",
+      "aboutBody": "고른 감정과 태어난 날의 별자리를 맞춰, 오늘 마음을 다독이는 한마디와 상징 카드를 만들어 드려요.",
+      "guideTitle": "이렇게 진행돼요",
+      "guide1Title": "지금 감정 하나",
+      "guide1Body": "가장 가까운 마음 하나를 골라요.",
+      "guide2Title": "생년월일 (선택)",
+      "guide2Body": "저장한 프로필이 있으면 골라서 바로 채울 수 있어요.",
+      "guide3Title": "별자리 확인",
+      "guide3Body": "생년월일로 맞춘 별자리를 확인하거나 직접 골라요.",
+      "guide4Title": "고민 한 줄 (선택)",
+      "guide4Body": "털어놓고 싶은 이야기를 적거나 예시 문장을 골라요.",
+      "emotionTitle": "지금 어떤 마음에 가까워요?",
+      "birthTitle": "생년월일을 알려 주실래요?",
+      "dateLabel": "생년월일 8자리 (예: 19990125)",
+      "timeLabel": "태어난 시각 (선택)",
+      "nameLabel": "부를 이름 또는 별명 (선택)",
+      "birthHint": "몰라도 괜찮아요. 비워 두고 다음을 눌러도 돼요.",
+      "signTitle": "이 별자리가 맞나요?",
+      "signLabel": "내 별자리",
+      "concernTitle": "연이에게 털어놓고 싶은 고민이 있나요?",
+      "concernLabel": "고민 한 줄 (선택)",
+      "concernHint": "비워 두면 오늘 마음 흐름을 중심으로 읽어 드려요.",
+      "samplesLabel": "예시 문장",
+      "readingTitle": "연이가 마음 별자리를 읽고 있어요",
+      "readingBody": "감정과 별자리를 맞춰 오늘의 카드를 고르고 있어요."
     }
   }
 }

@@ -39,6 +39,10 @@ import {
 } from "@/lib/yeon/astroSignal";
 import { getYeonSpriteFrame } from "@/lib/yeon/yeonSpriteMood";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import dynamic from "next/dynamic";
+import { GUIDED_STAR_HUG_ENABLED } from "@/lib/guided-flow/flags.mjs";
+
+const YeonStarHugGuided = GUIDED_STAR_HUG_ENABLED ? dynamic(() => import("./YeonStarHugGuided"), { ssr: false }) : null;
 
 const YEON_STAR_HUG_TEXT_TRANSLATIONS = {
   ko: {
@@ -2631,6 +2635,8 @@ export default function YeonStarHugPage() {
   const [astroLoading, setAstroLoading] = useState(false);
   const [astroError, setAstroError] = useState("");
   const profileSyncVersionRef = useRef(0);
+  // 스텝 플로우(GUIDED_STAR_HUG_ENABLED): 결과 단계에서만 원본 입력 패널+결과를 그린다. setter 는 원본 입력 패널과 같은 것.
+  const [guidedStep, setGuidedStep] = useState<string | null>(null);
 
   const applyProfileAndAstro = async (profile: DestinyProfileCard, isCancelled: () => boolean) => {
     if (isCancelled()) return;
@@ -2748,6 +2754,17 @@ export default function YeonStarHugPage() {
     const normalized = String(value || "").replace(/\D/g, "").slice(0, 4);
     setBirthTimeInput(normalized);
   };
+
+  const handleBirthDateInputChangeRef = useRef(handleBirthDateInputChange);
+  handleBirthDateInputChangeRef.current = handleBirthDateInputChange;
+  const guidedSetters = useMemo(() => ({
+    emotion: (value: string) => { if (EMOTIONS.some((item) => item.key === value)) setSelectedEmotion(value as EmotionKey); },
+    birthDate: (value: string) => handleBirthDateInputChangeRef.current(value),
+    birthTime: (value: string) => setBirthTimeInput(String(value || "").replace(/\D/g, "").slice(0, 4)),
+    name: (value: string) => setProfileNameInput(value.slice(0, 30)),
+    sign: (value: string) => { if (ZODIAC_SIGNS.some((item) => item.sign === value)) setSelectedSign(value as ZodiacSign); },
+    concern: (value: string) => setConcernText(value),
+  }), []);
 
   const activeEmotion = useMemo(
     () => EMOTIONS.find((item) => item.key === selectedEmotion) ?? EMOTIONS[0],
@@ -2872,6 +2889,7 @@ export default function YeonStarHugPage() {
       </div>
 
       <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-6">
+        {YeonStarHugGuided ? null : (
         <m.section
           initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
@@ -2909,7 +2927,23 @@ export default function YeonStarHugPage() {
             )}
           </div>
         </m.section>
+        )}
 
+        {YeonStarHugGuided ? (
+          <YeonStarHugGuided
+            emotions={EMOTIONS}
+            signs={ZODIAC_SIGNS}
+            samples={GENERAL_CONCERN_SAMPLES}
+            values={{ emotion: selectedEmotion, birthDate: birthDateInput, birthTime: birthTimeInput, name: profileNameInput, sign: selectedSign, concern: concernText }}
+            onChange={guidedSetters}
+            onProfileSelect={async(_seed,profile)=>{const version=++profileSyncVersionRef.current;await applyProfileAndAstro(profile,()=>version!==profileSyncVersionRef.current);}}
+            profileNote={profileSyncNote}
+            run={runConsultation}
+            ready={Boolean(consultation && reading)}
+            onStepChange={setGuidedStep}
+          />
+        ) : null}
+        {!YeonStarHugGuided || guidedStep === "result" ? (
         <section className="grid gap-6 lg:grid-cols-[minmax(300px,0.8fr)_minmax(0,1.8fr)] lg:items-start">
           <m.article
             initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
@@ -3237,6 +3271,7 @@ export default function YeonStarHugPage() {
             )}
           </div>
         </section>
+        ) : null}
 
         <section className="grid gap-3 rounded-3xl border border-white/45 bg-white/75 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.14)] backdrop-blur-sm md:grid-cols-3">
           <article>

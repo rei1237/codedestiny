@@ -236,6 +236,38 @@
       "nameHint": "可以留空并点击下一步。",
       "computingTitle": "正在寻找你的命运动物",
       "computingBody": "正在对照日干与十二运星。"
+    },
+    "starHug": {
+      "eyebrow": "妍伊的心灵星座 · 免费",
+      "title": "今天让妍伊抱抱你的心",
+      "subtitle": "用此刻的心情、星座和一句烦恼，妍伊为你解读今天的心灵星座卡。",
+      "cta": "开始心灵星座",
+      "freeHint": "无需登录，免费查看。",
+      "aboutTitle": "这是什么？",
+      "aboutBody": "妍伊会把你选的心情和生日星座对应起来，做出一句安慰的话和今天的象征卡。",
+      "guideTitle": "进行方式",
+      "guide1Title": "此刻的一种心情",
+      "guide1Body": "选出最接近的一种心情。",
+      "guide2Title": "出生日期（可选）",
+      "guide2Body": "有已保存的档案时，选一下就能填好。",
+      "guide3Title": "确认星座",
+      "guide3Body": "确认按出生日期匹配的星座，或自己选择。",
+      "guide4Title": "一句烦恼（可选）",
+      "guide4Body": "写下想说的话，或选一句示例。",
+      "emotionTitle": "现在的心情更接近哪一种？",
+      "birthTitle": "可以告诉我你的出生日期吗？",
+      "dateLabel": "出生日期 8 位数字（例：19990125）",
+      "timeLabel": "出生时间（可选）",
+      "nameLabel": "称呼或昵称（可选）",
+      "birthHint": "不知道也没关系，留空直接点下一步。",
+      "signTitle": "是这个星座吗？",
+      "signLabel": "我的星座",
+      "concernTitle": "有想对妍伊说的烦恼吗？",
+      "concernLabel": "一句烦恼（可选）",
+      "concernHint": "留空的话，会以今天的心情走向为主来解读。",
+      "samplesLabel": "示例句子",
+      "readingTitle": "妍伊正在解读你的心灵星座",
+      "readingBody": "正在对照心情和星座，挑选今天的卡片。"
     }
   }
 }
