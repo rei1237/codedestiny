@@ -65,7 +65,7 @@ export const REASON_COPY: Record<string, string> = {
   GENERATION_ALREADY_FAILED: "이 원고는 잉크가 번진 채로 남았습니다. 새 원고로 다시 시작해 주세요.",
   GENERATION_STALLED: "집필이 오래 멈춰 있었습니다. 새 원고로 다시 시작합니다.",
   LIFE_FORTUNE_REPORT_INVALID: "총운의 장이 다 채워지지 않았습니다. 다시 펼쳐 주세요.",
-  PAYMENT_VERIFY_FAILED: "달빛 값이 아직 책방에 닿지 않았습니다. 잠시 후 다시 시도해 주세요.",
+  PAYMENT_VERIFY_FAILED: "결제 확인이 아직 책방에 닿지 않았습니다. 잠시 후 다시 시도해 주세요.",
   PAYMENT_REQUIRED: "이 책은 이용권 또는 결제 확인 후 펼쳐집니다. 결제창을 확인해 주세요.",
   PAYMENT_CANCELLED: "결제를 멈추셨습니다. 필요할 때 다시 펼칠 수 있습니다.",
   LOGIN_REQUIRED: "책방 문을 열려면 먼저 이름을 밝혀 주세요. 로그인 후 다시 시도해 주세요.",
