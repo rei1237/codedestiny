@@ -113,7 +113,7 @@ function fixture(accessType = 'pass', env = {}) {
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'isLifeBookSoftIssue', 'scrubLifeBookSectionResult', 'lifeBookDeliveryResponse', 'dropPriorHalfRepeats', 'lifeBookRetryMeta', 'lifeBookRetryPayload', 'lifeBookRepairTargets', 'lifeBookRetryReset', 'handleRetry', 'handleRefundRequest']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'isLifeBookSoftIssue', 'scrubLifeBookSectionResult', 'lifeBookDeliveryResponse', 'dropPriorHalfRepeats', 'lifeBookRetryMeta', 'lifeBookRetryPayload', 'lifeBookHeldClaimFields', 'lifeBookRepairTargets', 'lifeBookRetryReset', 'handleRetry', 'handleRefundRequest']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
@@ -964,4 +964,20 @@ test('L2: an unexpected server error on a held book returns the retry state inst
   // 보류가 아닌 문서의 알 수 없는 오류는 그대로 500 이다.
   const fresh = fixture(); fresh.ctx.LifeBookAiConsultation.findOne = () => { throw new Error('unexpected read failure'); };
   assert.equal((await fresh.post()).status, 500);
+});
+
+// L2: 다시 시도 동안 붙잡아 둔 결제 증빙 claim 은 환불 요청(처음 한 번)·기한 만료(복구 크론이 llmMeta.claimEvidenceIds 로) 때 푼다.
+test('L2: a held book records its billing claim and releases it once on the first refund request', async () => {
+  const f = v2Fixture(); f.ctx.generateSectionOnce = async () => terminalFailure;
+  f.ctx.resolveStartAccess = async () => ({ ok: true, accessType: 'paid', paymentId: 'original-receipt', claimEvidenceId: 'evidence-1' });
+  const released = [];
+  f.ctx.releaseRequestBillingEvidence = async (_env, args) => { released.push(clone(args)); return { released: 1 }; };
+  for (let i = 0; i < 4 && f.doc?.status !== 'generation_failed'; i++) await f.post();
+  assert.ok(retryOpen(f.doc)); assert.equal(released.length, 0, 'the retry keeps the claim');
+  assert.deepEqual(f.doc.llmMeta.claimEvidenceIds, ['evidence-1']);
+  const ask = () => f.ctx.handleRefundRequest(new Request('https://mock.test/api/life-book-ai/refund-request', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: f.doc.id }) }), {});
+  assert.equal((await ask()).status, 200);
+  assert.deepEqual(released, [{ userId: 'owner', requestId: 'original-paid-request', evidenceIds: ['evidence-1'] }]);
+  assert.equal((await ask()).status, 200); assert.equal(released.length, 1, 'idempotent repeats do not release again');
 });

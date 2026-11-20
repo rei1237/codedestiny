@@ -2722,6 +2722,13 @@ function lifeBookRetryMeta(request, auth, doc, code) {
   return retryableFailureMeta(doc || {}, Date.now(), clean(code || "LLM_GENERATION_FAILED", 40));
 }
 
+// 다시 시도 동안 붙잡아 둔 결제 증빙 claim 을 문서에 남긴다 — 환불 요청·기한 만료(복구 크론) 때 이 값으로 푼다.
+function lifeBookHeldClaimFields(doc, access) {
+  const prior = Array.isArray(doc?.llmMeta?.claimEvidenceIds) ? doc.llmMeta.claimEvidenceIds : [];
+  const ids = [...new Set([...prior, access?.claimEvidenceId].map(id => clean(id, 160)).filter(Boolean))];
+  return ids.length ? { "llmMeta.claimEvidenceIds": ids } : {};
+}
+
 // 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
 function lifeBookRetryPayload(doc) {
   const state = publicRetryState(doc, Date.now());
@@ -2792,7 +2799,7 @@ async function finishLifeBookDelivery({ request, env, auth, access, pending, pri
     const at = new Date().toISOString();
     const retry = lifeBookRetryMeta(request, auth, pending, "LIFE_BOOK_RESULT_INCOMPLETE");
     const failed = await saveLifeBookState({ userId: auth.userId, id: pending.id, lockToken: pending.llmMeta?.lockToken || "", status: "delivery_pending", values: {
-      status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry } : { "llmMeta.refundEligibleAt": at }), "llmMeta.lockedAt": null, "llmMeta.lockToken": "",
+      status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry, ...lifeBookHeldClaimFields(pending, access) } : { "llmMeta.refundEligibleAt": at }), "llmMeta.lockedAt": null, "llmMeta.lockToken": "",
       generationError: { code: "LIFE_BOOK_RESULT_INCOMPLETE", message: "Life book result is incomplete.", at },
       ...(pending.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": at } : {}),
     } });
@@ -3545,7 +3552,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         const failedAt = new Date().toISOString();
         const retry = lifeBookRetryMeta(request, auth, lock.doc || doc, error?.code);
         await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: {
-          status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry } : { "llmMeta.refundEligibleAt": failedAt }),
+          status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry, ...lifeBookHeldClaimFields(lock.doc || doc, access) } : { "llmMeta.refundEligibleAt": failedAt }),
           ...(retry ? error?.lifeBookRepairRows || {} : {}),
           ...(recovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
             code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
@@ -3593,7 +3600,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         await LifeBookAiConsultation.findOne({ id: sessionId, userId: clean(auth.userId) }).lean().catch(() => null) || existing, error?.code);
       const failedOwner = error.lifeBookFailureClaimed || await LifeBookAiConsultation.findOneAndUpdate(
         { id: sessionId, userId: clean(auth.userId), status: { $in: ["generating", "partial"] }, "llmMeta.lockedAt": null, "llmMeta.waveCount": { $gte: waveCap } },
-        { $set: { status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry } : { "llmMeta.refundEligibleAt": failedAt }),
+        { $set: { status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry, ...lifeBookHeldClaimFields(existing, access) } : { "llmMeta.refundEligibleAt": failedAt }),
           ...(existing?.llmMeta?.supportRecovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
           code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
           message: clean(error?.message || error, 500), at: new Date().toISOString(),
@@ -3686,6 +3693,12 @@ async function handleRefundRequest(request, env) {
     if (refund) return json(refund.body, { status: refund.status });
     if (marked.reason === "NOT_FOUND") return invalidInput(MESSAGES.resultNotFound, 404);
     return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  }
+  // 다시 시도 동안 붙잡아 둔 claim 은 처음 환불 요청 때 한 번 푼다(멱등 재요청은 건너뜀). 토스 네이티브는 claim 을 쓰지 않는다.
+  if (!marked.idempotent) {
+    const held = await LifeBookAiConsultation.findOne(owner).lean().catch(() => null);
+    const evidenceIds = (Array.isArray(held?.llmMeta?.claimEvidenceIds) ? held.llmMeta.claimEvidenceIds : []).map(id => clean(id, 160)).filter(Boolean);
+    if (evidenceIds.length && held.accessSource !== "toss") await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: clean(held.idempotencyKey, 180), evidenceIds }).catch(() => null);
   }
   const settlement = await settleLifeBookFailureRefund(env, sessionId, auth.userId);
   const refundStatus = settlement?.refundStatus || "pending";
