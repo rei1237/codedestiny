@@ -342,6 +342,18 @@ test('R7b: held retries show as retry_available with the service retry entry, ne
     expect(library.recordMetadata(heukwol,pending)).toMatchObject({status:'retry_available',recoveryHref:'/heukwol/?result=heukwol%3Aheld'});
     expect(library.recordMetadata(recordService('tea'),{resultId:'t1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/fortune-tea-house/?recoverResultId=t1'});
     expect(library.recordMetadata(recordService('neo'),{id:'n1',...llmHeld()}).recoveryHref).toBe('/neo-operation-room/result/?attemptId=n1');
+    // R10 전문가 상담: 베다점 보류 건은 결과 화면(다시 시도·환불 요청 버튼)으로 간다.
+    expect(library.recordMetadata(recordService('vedic'),{id:'v1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/vedic-ai/result/?id=v1'});
+    expect(library.recordMetadata(recordService('astrology'),{id:'a1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/astrology-ai/result/?id=a1'});
+    expect(library.recordMetadata(recordService('ziwei'),{id:'z1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/ziwei-ai/?cid=z1'});
+    expect(library.recordMetadata(recordService('karma'),{id:'k1',...llmHeld()})).toMatchObject({status:'retry_available',recoveryHref:'/karma-destiny-ai/result/?sessionId=k1'});
+    // R10 작명: 보관함 원본(paid-results, id=_id)에는 결과 경로가 없어 작명 결과 화면(executionId)으로 보낸다.
+    const namingHeld=extra=>({_id:'p1',executionId:'exec-1',featureId:'premium-naming-prompt',status:'generation_failed',result:{namingPrompt:{retryable:{since:earlier,refundAt:later,...extra}}}});
+    const paid=recordService('paid-results');
+    expect(library.recordMetadata(paid,namingHeld())).toMatchObject({status:'retry_available',recoveryHref:'/naming-ai/result?executionId=exec-1'});
+    for(const extra of [{refundAt:earlier},{refundSettledAt:earlier}])expect(library.recordStatus(namingHeld(extra),paid,now)).toBe('failed');
+    const due=namingHeld();due.result.namingPrompt.refundEligibleAt=earlier;expect(library.recordStatus(due,paid,now)).toBe('failed');
+    const toss=namingHeld();toss.result.namingPrompt.tossIntentId='t';expect(library.recordStatus(toss,paid,now)).toBe('failed');
   }finally{Date.now=realNow;}
-  for(const field of ['llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
+  for(const field of ['result.namingPrompt.retryable','result.namingPrompt.refundEligibleAt','result.namingPrompt.tossIntentId','executionId','llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
 });

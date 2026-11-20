@@ -47,6 +47,7 @@ import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 import {nativeTossContext} from '../toss/native-context.js';
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "astrology-ai";
@@ -63,6 +64,8 @@ const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습�
 const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 // 🔴 카드 단건 결제가 실제로 환불된 경우에만 쓴다 — 위 LLM_ERROR_MESSAGE 의 "결제 권한은 보존"과
 //    정반대의 사실이라, 환불하고도 저 문구를 내보내면 사용자는 재시도가 무료라고 믿고 결제창을 다시 만난다.
+// 2026-11-20 R10 다시 시도 우선: 보류된 실패에만 쓴다(즉시 환불 문구와 섞지 않는다).
+const LLM_RETRY_MESSAGE = "전문가 상담 답변을 생성하는 중 문제가 발생했어요. 추가 결제나 차감 없이 다시 시도할 수 있어요.";
 const CARD_REFUNDED_MESSAGE = "상담을 완성하지 못했습니다. 결제하신 금액은 자동으로 환불되니 확인 후 다시 시도해 주세요.";
 const RESULT_NOT_FOUND_MESSAGE = "저장된 점성술 상담 결과를 찾지 못했습니다. 로그인 상태와 결과 링크를 다시 확인해 주세요.";
 const ASTROLOGY_AI_MIN_RESULT_CHARS = 20000;
@@ -1842,7 +1845,10 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
   if(existing && nativeTossContext(request)) await nativeTossContext(request).assertStored(existing);
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  if (existing?.status === "generation_failed" && !nativeTossContext(request)) {
+    const retry = astrologyRetryPayload(request, existing);
+    return json({ ok: false, reason: "GENERATION_FAILED", message: retry.retry ? LLM_RETRY_MESSAGE : LLM_ERROR_MESSAGE, ...retry }, { status: 409 });
+  }
   if (existing?.status === "generating" && !existing.llmMeta?.resumeBody && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 120000) return json({ ...publicSession(existing), retryable: true }, { status: 202 });
   const pricing = getPricing();
   const settlementModels = { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger };
@@ -1885,6 +1891,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
+  // 차트 계산까지 끝난 뒤의 생성 실패만 다시 시도 보류 대상이다. 계산 실패는 기존 즉시 환불을 유지한다.
+  let calculated = false;
   try {
     if(!nativeTossContext(request))await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
     if (doc.status !== "delivery_pending") {
@@ -1895,6 +1903,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       }
       const basis = await resolveExpertCalculation('astrology', doc.astrologyChart, () => calculateAstrologyChart(env, normalized, request.url), { env, snapshot: doc.llmMeta?.engineFacts, existing: Boolean(existing), input: normalized.input });
       const chart = basis.value;
+      calculated = true;
       doc = await saveAstrologyDelivery(locked, { astrologyChart: chart, ...(basis.engineFacts ? { llmMeta: { ...doc.llmMeta, engineFacts: basis.engineFacts } } : {}) }, sessionId);
       const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateSectionedConsultation(env, normalized.input, chart, {
         minLength: ASTROLOGY_AI_MIN_RESULT_CHARS, maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
@@ -1936,7 +1945,20 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     if(nativeTossContext(request) && (error?.status === 401 || error?.status === 403)) return json({ok:false,reason:error.code||"ACCESS_DENIED"},{status:error.status});
     // 완성 본문이 있으면(delivery_pending) 일시 장애로 덮거나 환불하지 않는다 — 같은 전달을 다시 시도한다.
     if (doc?.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
-    await saveAstrologyDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "GENERATION_FAILED", 80) } }, sessionId);
+    const generationError = { code: clean(error?.code || "GENERATION_FAILED", 80) };
+    // 2026-11-20 R10 다시 시도 우선(사용자 요청 "대표 상담, 전문가 상담은 그렇게 가능하도록해"): 웹 결제 건은 바로 환불하지 않고
+    // 창(생성 + 7일) 안에서 무료 다시 시도를 연다. 증빙 claim·실행 가드·이용권·카드는 보류 동안 그대로 둔다(다시 시도가 같은 증빙을 재확인).
+    // 표지를 못 남기면 아래 기존 즉시 환불로 간다(fail-closed). Toss 네이티브·계산 실패·창 경과는 기존 즉시 환불.
+    const retryable = calculated ? astrologyRetryMeta(request, doc, error, access) : null;
+    if (retryable) {
+      try {
+        const failed = await saveAstrologyDelivery(locked, { status: "generation_failed", generationError, llmMeta: { ...doc.llmMeta, retryable } }, sessionId);
+        console.warn("[astrology-ai] generation held for retry", { sessionId, code: generationError.code });
+        return json({ ok: false, reason: "LLM_ERROR", message: LLM_RETRY_MESSAGE, ...astrologyRetryPayload(request, failed) }, { status: 503 });
+      } catch { /* 아래 즉시 환불 */ }
+    }
+    // 보류 표지 저장이 실패했으면 표지 없는 llmMeta 로 덮는다(환불된 건이 다시 시도로 열리지 않게).
+    await saveAstrologyDelivery(locked, { status: "generation_failed", generationError, ...(retryable ? { llmMeta: doc.llmMeta } : {}) }, sessionId);
     if(!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds });
     if(!nativeTossContext(request)) await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
     // 결제 화면 pass-check 가 미리 차감한 이용권은 실행 문서가 없다 — 같은 (기능, requestId) 증빙으로 되돌린다.
@@ -1999,7 +2021,8 @@ async function handleResult(request, env, pathId = "") {
     );
   }
   if (consultation.status !== "completed") {
-    return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
+    const retry = astrologyRetryPayload(request, consultation);
+    return json({ ok: false, reason: "GENERATION_FAILED", message: retry.retry ? LLM_RETRY_MESSAGE : LLM_ERROR_MESSAGE, ...retry }, { status: 409 });
   }
   if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
@@ -2032,6 +2055,120 @@ async function handleBasis(request, env) {
   }
 }
 
+// 2026-11-20 R10 다시 시도 우선(베다점 R10 과 같은 정책). 환불 시각 = 생성 + 7일, 고객 요청 때는 즉시.
+function astrologyRetryMeta(request, doc, error, access) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return null;
+  const meta = retryableFailureMeta(doc || {}, Date.now(), clean(error?.code || "LLM_ERROR", 40));
+  return meta ? { ...meta, access: astrologyRefundAccessSnapshot(access) } : null;
+}
+// 보류 뒤 정산이 요청 없이도 같은 증빙을 되돌릴 수 있게 실패 당시의 접근 증빙만 남긴다(토큰·결제 원문 없음).
+function astrologyRefundAccessSnapshot(access = {}) {
+  const out = {};
+  for (const key of ["accessType", "paymentId", "paymentDocId", "claimEvidenceId", "source"]) if (access[key]) out[key] = clean(access[key], 180);
+  return out;
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function astrologyRetryPayload(request, doc) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return {};
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc?.id || "");
+  return state ? { sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+// 다시 시도는 상한(2)을 다 쓰고도 본문이 없는 섹션만 시도 수를 새로 연다. 받아들인 섹션·분량 보완 기록(key:lengthRepair)은 그대로 둔다.
+function astrologyRetryReset(fresh) {
+  const attempts = { ...(fresh?.llmMeta?.attempts || {}) };
+  const sections = fresh?.llmMeta?.sections || {};
+  for (const [key, value] of Object.entries(attempts)) {
+    if (key.includes(":") || Number(value || 0) < 2 || sections[key]?.text) continue;
+    attempts[key] = 0;
+  }
+  return { "llmMeta.attempts": attempts };
+}
+async function astrologyRetryOwner(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth?.userId) return { response: loginRequired() };
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 120);
+  if (!sessionId) return { response: notFound() };
+  await connectDb(env);
+  const owner = { id: sessionId, userId: auth.userId };
+  const stored = await AstrologyAiConsultation.findOne(owner).lean();
+  if (!stored || stored.accessSource === "toss") return { response: notFound() };
+  return { owner };
+}
+// 다시 시도(무료): 같은 소유자의 보류 건만 이어쓰기(partial)로 되돌리고 기존 재개 경로(resumeSessionId)로 돈다.
+async function handleRetry(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  const { response, owner } = await astrologyRetryOwner(request, env);
+  if (response) return response;
+  const reopened = await reopenRetryableConsultation(AstrologyAiConsultation, owner, Date.now(), { reset: astrologyRetryReset });
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const latest = await AstrologyAiConsultation.findOne(owner).lean().catch(() => null);
+    if (!latest) return notFound();
+    if (latest.status === "completed") return json(publicSession(latest));
+    return json({ ok: false, reason: reopened.reason, message: LLM_ERROR_MESSAGE, ...astrologyRetryPayload(request, latest) }, { status: 409 });
+  }
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  return handleStart(new Request(request.url, { method: "POST", headers, body: JSON.stringify({ resumeSessionId: owner.id }) }), env);
+}
+// 고객 환불 요청: 보류 건을 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 환불 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const { response, owner } = await astrologyRetryOwner(request, env);
+  if (response) return response;
+  const marked = await markRetryableRefundDue(AstrologyAiConsultation, owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  let refundStatus = "pending";
+  try { refundStatus = (await settleAstrologyRetryRefund(env, owner)).refundStatus; }
+  catch (error) { console.warn("[astrology-ai] retry refund failed", { message: clean(error?.message || error, 300) }); }
+  return json({ ok: true, sessionId: owner.id, refunded: refundStatus === "refunded", refundStatus });
+}
+// 보류 건의 환불 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 순서는 기존 즉시 환불과 같다: 실행 가드(월정석·이용권 billing-gate) → 결제 화면 이용권 → 카드. 카드 환불이 실패하면
+// 증빙 claim 을 풀지 않고 표시도 하지 않아 다음 크론이 다시 시도한다. 실행 가드·이용권 복구는 각자 멱등이다.
+async function settleAstrologyRetryRefund(env, { id, userId }, model = AstrologyAiConsultation, now = Date.now()) {
+  const owner = { id: clean(id, 120), userId };
+  const fresh = await model.findOne(owner).lean();
+  const meta = fresh?.llmMeta;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || fresh.accessSource === "toss") return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
+  const access = meta.retryable.access || {};
+  const auth = { userId: fresh.userId };
+  const idempotencyKey = clean(fresh.idempotencyKey, 180);
+  const error = Object.assign(new Error("retry closed without delivery"), { code: clean(meta.retryable.refundReason || "RETRY_REFUND", 80) });
+  await failRefundableExecution(env, auth, idempotencyKey, owner.id, error);
+  let passRestored = false;
+  if (access.source === "pass-receipt") {
+    passRestored = Boolean((await refundPassUseEvidence({ userId: fresh.userId, featureKey: FEATURE_KEY, requestId: idempotencyKey, refundId: `astrology-ai:${idempotencyKey}` }))?.refunded);
+  }
+  const card = await refundCardPaymentOnFailure(env, auth, access, error);
+  if (card?.refundFailed) return { refundStatus: "failed" };
+  await releaseRequestBillingEvidence(env, { userId: clean(fresh.userId), requestId: idempotencyKey, evidenceIds: [access.paymentDocId, access.claimEvidenceId] });
+  const refundStatus = passRestored || card?.refunded ? "refunded" : access.source === "billing-gate" ? "requested" : "not_required";
+  await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+    "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": refundStatus } });
+  logStuckSettled({ service: "astrology-ai", sessionId: owner.id, outcome: "retry_refund", refundStatus });
+  return { refundStatus };
+}
+// 환불 크론: 창이 지난 보류(다시 연 뒤 방치된 건 포함)를 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// 점성술은 lockedAt 대신 generationLease(120초) + updatedAt 으로 생성 중을 표시하므로 isLive 로 살아 있는 생성을 제외한다.
+export async function settleDueAstrologyRetryRefunds(env, { now = Date.now(), model = AstrologyAiConsultation, limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  const isLive = (doc, at) => ["generating", "partial"].includes(doc.status) && at - new Date(doc.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS;
+  try { await expireRetryableConsultations(model, now, { isLive }); }
+  catch { outcomes.push({ service: "astrology-ai", refundStatus: "pending" }); }
+  const due = await model.find({ status: "generation_failed", "llmMeta.retryable": { $exists: true }, "llmMeta.refundEligibleAt": { $exists: true },
+    "llmMeta.retryable.refundSettledAt": { $exists: false }, accessSource: { $ne: "toss" }, userId: { $exists: true, $ne: null } })
+    .sort({ updatedAt: 1 }).limit(limit).select("id userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: "astrology-ai", refundStatus: (await settleAstrologyRetryRefund(env, doc, model, now)).refundStatus }); }
+    catch { outcomes.push({ service: "astrology-ai", refundStatus: "pending" }); }
+  }
+  return outcomes;
+}
+
 export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/astrology-ai");
@@ -2049,6 +2186,8 @@ export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
     if (method === "POST" && path === "/basis") return await handleBasis(request, env);
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

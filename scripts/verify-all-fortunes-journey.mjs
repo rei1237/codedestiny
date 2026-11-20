@@ -248,6 +248,9 @@ try {
       }
 
       // 10) 유료 카드는 상세 시트(#tilePvwOverlay)를 맨 위에 연다 — 데스크톱 모달 시트가 최상위 레이어에 남아 덮으면 안 된다.
+      // 모바일은 "지금 마음에 닿은 상담" 팝업이 늦게 떠서 최상위 레이어로 모든 클릭을 가로챈다 — 먼저 닫는다.
+      await page.evaluate(() => document.querySelector('[data-signature-letter-today]')?.click());
+      await page.waitForTimeout(500);
       await page.evaluate(() => window.cdOpenAllFortunes());
       if (await waitRoot(page, `${tag} paid`, host)) {
         await typeQuery(page, '');

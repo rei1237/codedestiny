@@ -11,6 +11,7 @@ import { usePaidResume } from "@/app/hooks/usePaidResume";
 import { runNamingReader } from "@/lib/naming-paid-reader.js";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { clearNamingRetryPayload } from "../retryHandoff";
+import ExpertRetryPanel, { expertRetryHoldOf, type ExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 import { parseAssistantSections, toDisplayText } from "@/lib/llm-text";
 import { currentNamingResultCopy } from "./resultCopy";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
@@ -177,6 +178,8 @@ export default function NamingAiResultClient({nativeRead}:{nativeRead?:NamingNat
   const [failed, setFailed] = useState(false);
   const [error, setError] = useState("");
   const [retryKey, setRetryKey] = useState(0);
+  // R10: 웹 회차가 다시 시도 보류면 서버가 retry 를 돌려준다 — 추가 결제·차감 없는 다시 시도·환불 요청 패널을 띄운다.
+  const [retryHold, setRetryHold] = useState<ExpertRetryHold | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
   const [viewAll, setViewAll] = usePagedViewerMode("namingAiViewerModeV1");
@@ -228,7 +231,7 @@ export default function NamingAiResultClient({nativeRead}:{nativeRead?:NamingNat
     let alive = true;
     const inScope = captureDelivery();
     const active = () => alive && inScope();
-    setError(""); setFailed(false); setPending(true);
+    setError(""); setFailed(false); setPending(true); setRetryHold(null);
     const read = async (url: string, body?: Record<string, unknown>) => {
       const response = await authFetch(url, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : { method: "GET" });
       if (response.status === 401 && active()) handleSessionInvalidated({ redirect: true });
@@ -247,6 +250,7 @@ export default function NamingAiResultClient({nativeRead}:{nativeRead?:NamingNat
     }).catch(caught => {
       if (!active()) return;
       setFailed(true); setError(friendlyErrorMessage(caught, COPY.errGenerateFailed)); setLoading(false);
+      if (!nativeRead) setRetryHold(expertRetryHoldOf((caught as { retryHold?: unknown } | null)?.retryHold, executionId));
     });
     return () => { alive = false; };
   }, [queryReady, executionId, retryKey, deliveryOwner, captureDelivery, nativeRead]);
@@ -449,14 +453,24 @@ export default function NamingAiResultClient({nativeRead}:{nativeRead?:NamingNat
                 {failed ? COPY.headingGenerateFailed : COPY.headingCannotOpen}
               </h1>
               <p className="mt-3 text-sm leading-7 text-[color:var(--nm-t-c8aaff-85)]">{error}</p>
+              {retryHold && (
+                <ExpertRetryPanel
+                  apiBase="/api/naming-prompt"
+                  hold={retryHold}
+                  onRetried={() => { setRetryHold(null); setRetryKey(key => key + 1); }}
+                  className="mt-6 grid gap-3 text-sm leading-7 text-[color:var(--nm-t-c8aaff-85)] [&_h2]:font-black [&_h2]:text-[color:var(--nm-t-f4eeff)]"
+                  primaryClassName={`inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[color:var(--nm-b-c4b5fd)] px-5 text-sm font-black text-[color:var(--nm-t-0a0818)] transition hover:bg-[color:var(--nm-b-d5cafe)] disabled:opacity-60 ${VIOLET_GLOW}`}
+                  secondaryClassName="inline-flex min-h-11 items-center justify-center rounded-full border border-[color:var(--nm-l-c4b5fd-25)] px-5 text-sm font-bold text-[color:var(--nm-t-f4eeff)] disabled:opacity-60"
+                />
+              )}
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                <button
+                {!retryHold && <button
                   type="button"
                   onClick={handleRetry}
                   className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--nm-b-c4b5fd)] px-5 text-sm font-black text-[color:var(--nm-t-0a0818)] transition hover:bg-[color:var(--nm-b-d5cafe)] ${VIOLET_GLOW}`}
                 >
                   {COPY.retry}
-                </button>
+                </button>}
                 <Link
                   href="/naming-ai"
                   className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[color:var(--nm-l-c4b5fd-25)] bg-[color:var(--nm-b-13102a-60)] px-5 text-sm font-bold text-[color:var(--nm-t-f4eeff)] transition hover:border-[color:var(--nm-l-c4b5fd-55)]"

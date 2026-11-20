@@ -56,6 +56,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-
 import { ZIWEI_AI_GROUP_PLAN_VERSION, ZIWEI_V2_GROUP_SPECS, ZIWEI_V2_NO_QUESTION_LINE, ZIWEI_V2_NO_QUESTION_RULE, ZIWEI_V2_SECTION_RULES, buildZiweiFallbackMeta, detectZiweiSoftIssues, salvageZiweiGroup, scrubZiweiSoftIssues, ziweiAiDeliveryV2Enabled, ziweiSoftIssueHint } from "../lib/ziwei-ai-delivery-v2.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked, neverPaidExpiredOrder } from "../lib/paid-result-revocation.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -211,6 +212,8 @@ const MESSAGES = Object.freeze({
   calculationFailed: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   serverFailed: "자미두수 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  // 2026-11-20 R10: 웹 결제 건 생성 실패를 무료 다시 시도로 보류했을 때의 안내(환불은 고객 요청 또는 생성 + 7일).
+  llmRetry: "전문가 상담문을 생성하는 중 문제가 발생했어요. 추가 결제나 차감 없이 다시 시도할 수 있어요.",
 });
 
 const TOPICS = new Set([
@@ -2772,7 +2775,10 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
   else if (existing?.accessSource === 'toss') return notFound();
   if (existing && (existing.inputHash !== normalized.inputHash || (existing.serviceType && existing.serviceType !== SERVICE_KEY))) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   if (existing?.status === "completed") return json(publicConsultation(existing));
-  if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  if (existing?.status === "generation_failed" && !nativeTossContext(request)) {
+    const retry = ziweiRetryPayload(request, existing);
+    return json({ ok: false, reason: "GENERATION_FAILED", message: retry.retry ? MESSAGES.llmRetry : MESSAGES.llmFailed, ...retry }, { status: 409 });
+  }
   let initialChart, preparationId;
   try {
     if (existing?.status !== "delivery_pending") {
@@ -2826,12 +2832,15 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
+  // 명반(계산)까지 확보한 뒤의 실패만 다시 시도로 보류한다. 계산·준비 실패는 기존 즉시 환불·안내.
+  let calculated = doc.status === "delivery_pending";
   try {
     if (doc.status !== "delivery_pending") {
       // A concurrent lease holder's persisted snapshot wins over our preflight candidate.
       const chart = doc.llmMeta?.calculationPreparationId
         ? preparedZiweiChart(await resolveZiweiPreparation({ model: ZiweiCalculationPreparation, userId: clean(auth.userId), requestId: idempotencyKey, inputHash: normalized.inputHash, input: normalized.input, rawBody: body, existing: doc, action: "generate", year: new Date().getFullYear(), calendarAuthorityV2: env?.ZIWEI_CALENDAR_AUTHORITY_V2 === 'true' }))
         : readZiweiExecutionSnapshot(doc) || initialChart;
+      calculated = Boolean(chart);
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
       const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses, answerVoice: pinAnswerVoice(doc.llmMeta || {}, env), planVersion: doc.llmMeta?.groupPlanVersion,
@@ -2863,7 +2872,20 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     if (nativeTossContext(request) && error?.status) return json({ ok: false, reason: error.code || 'ACCESS_DENIED' }, { status: error.status });
     // Once a complete body exists, payment/apply uncertainty must retry that same delivery, never refund or regenerate.
     if (doc.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
-    await saveZiweiDelivery(locked, { status: "generation_failed", generationError: { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message, 500) } }, sessionId);
+    const generationError = { code: clean(error?.code || "LLM_GENERATION_FAILED", 80), message: clean(error?.message, 500) };
+    // 2026-11-20 R10 다시 시도 우선(베다점·점성술 R10 과 같은 정책): 웹 결제 건은 바로 환불·복원하지 않고 창(생성 + 7일)
+    // 안에서 무료 다시 시도를 연다. 증빙 claim·이용권·월정석·코인·카드는 보류 동안 그대로 둔다(다시 시도가 같은 증빙을 재확인).
+    // 표지를 못 남기면 아래 기존 즉시 환불로 간다(fail-closed). Toss 네이티브·계산 실패·창 경과는 기존 즉시 환불.
+    const retryable = calculated ? ziweiRetryMeta(request, doc, error, access) : null;
+    if (retryable) {
+      try {
+        const failed = await saveZiweiDelivery(locked, { status: "generation_failed", generationError, llmMeta: { ...doc.llmMeta, retryable } }, sessionId);
+        logZiweiAi("Generation held for retry", { route, requestId: idempotencyKey, code: generationError.code }, "warn");
+        return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmRetry, ...ziweiRetryPayload(request, failed) }, { status: 503 });
+      } catch { /* 아래 즉시 환불 */ }
+    }
+    // 보류 표지 저장이 실패했으면 표지 없는 llmMeta 로 덮는다(환불된 건이 다시 시도로 열리지 않게).
+    await saveZiweiDelivery(locked, { status: "generation_failed", generationError, ...(retryable ? { llmMeta: doc.llmMeta } : {}) }, sessionId);
     const restored = !nativeTossContext(request) && await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
     if (!nativeTossContext(request)) await releaseRequestBillingEvidence(env, { userId: clean(auth.userId), requestId: idempotencyKey, evidenceIds }).catch(() => null);
     const refund = nativeTossContext(request) ? {} : await refundCardPaymentOnFailure(env, auth, access, error);
@@ -2884,7 +2906,13 @@ async function handleWebZiweiResult(request, env) {
   await connectDb(env);
   const tossRecord = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), accessSource: 'toss', ...(id ? { id } : {}) }).lean();
   if (tossRecord) return id ? notFound() : json({ ok: true, pendingSessionId: '', consultations: [] });
-  return handleResult(request, env);
+  const response = await handleResult(request, env);
+  // 2026-11-20 R10: handleResult 는 실행 수명주기 기준선으로 고정돼 있어(ziwei-execution-lifecycle 테스트) 여기서 덧붙인다.
+  // 생성 실패(409)가 무료 다시 시도 보류면 다시 시도·환불 요청 상태를 함께 돌려준다(소유자·서비스 확인은 handleResult 가 마쳤다).
+  if (response.status !== 409 || !id) return response;
+  const held = await ZiweiAiConsultation.findOne({ id, userId: clean(auth.userId), status: "generation_failed" }).lean().catch(() => null);
+  const retry = held && (!held.serviceType || held.serviceType === SERVICE_KEY) ? ziweiRetryPayload(request, held) : {};
+  return retry.retry ? json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmRetry, ...retry }, { status: 409 }) : response;
 }
 
 async function handleTossZiweiResult(request, env) {
@@ -3059,6 +3087,125 @@ async function handleBasis(request, env) {
   }
 }
 
+// 2026-11-20 R10 다시 시도 우선(베다점·점성술 R10 과 같은 정책). 환불 시각 = 생성 + 7일, 고객 요청 때는 즉시.
+function ziweiRetryMeta(request, doc, error, access) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return null;
+  const meta = retryableFailureMeta(doc || {}, Date.now(), clean(error?.code || "LLM_ERROR", 40));
+  return meta ? { ...meta, access: ziweiRefundAccessSnapshot(access) } : null;
+}
+// 보류 뒤 정산이 요청 없이도 같은 증빙을 되돌릴 수 있게 실패 당시의 접근 증빙만 남긴다(토큰·결제 원문 없음).
+function ziweiRefundAccessSnapshot(access = {}) {
+  const out = {};
+  for (const key of ["accessType", "paymentId", "evidenceType", "evidenceId", "purchaseId", "source"]) if (access?.[key]) out[key] = clean(access[key], 180);
+  if (access?.prepaid === true) out.prepaid = true;
+  if (Number.isFinite(Number(access?.amount)) && Number(access.amount) > 0) out.amount = Math.floor(Number(access.amount));
+  if (Array.isArray(access?.claimEvidenceIds)) out.claimEvidenceIds = access.claimEvidenceIds.map(value => clean(value, 180));
+  return out;
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function ziweiRetryPayload(request, doc) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return {};
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc?.id || "");
+  return state ? { sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+// 다시 시도는 상한(2)을 다 쓰고도 쓸 수 있는 본문이 없는 묶음만 시도 수와 건너뜀·구제 표지를 새로 연다.
+// 받아들인 묶음·분량 보완 기록(key:lengthRepair)·메타 시도는 그대로 둔다.
+function ziweiRetryReset(fresh) {
+  const attempts = { ...(fresh?.llmMeta?.attempts || {}) };
+  const groups = fresh?.llmMeta?.groups || {};
+  const usable = value => Object.values(value || {}).some(row => typeof row?.body === "string" && countPaidReportBodyChars(row.body) >= 40)
+    && !hasRepeatedReportPassage(ziweiSectionBody(value)) && !collectZiweiCrossSectionDuplicates(value).length;
+  for (const [key, value] of Object.entries(attempts)) {
+    if (key.includes(":") || key === "meta" || Number(value || 0) < ZIWEI_GROUP_MAX_ATTEMPTS || usable(groups[key])) continue;
+    attempts[key] = 0;
+    for (const flag of ["skipped", "salvaged", "emptyRescue"]) delete attempts[`${key}:${flag}`];
+  }
+  return { "llmMeta.attempts": attempts };
+}
+async function ziweiRetryOwner(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth?.userId) return { response: loginRequired() };
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 120);
+  if (!sessionId) return { response: notFound() };
+  await connectDb(env);
+  const owner = { id: sessionId, userId: clean(auth.userId) };
+  const stored = await ZiweiAiConsultation.findOne(owner).lean();
+  if (!stored || stored.accessSource === "toss" || (stored.serviceType && stored.serviceType !== SERVICE_KEY)) return { response: notFound() };
+  return { owner };
+}
+// 다시 시도(무료): 같은 소유자의 보류 건만 이어쓰기(partial)로 되돌리고 기존 재개 경로(resumeSessionId)로 돈다.
+async function handleRetry(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: MESSAGES.llmFailed }, { status: 409 });
+  const { response, owner } = await ziweiRetryOwner(request, env);
+  if (response) return response;
+  const reopened = await reopenRetryableConsultation(ZiweiAiConsultation, owner, Date.now(), { reset: ziweiRetryReset });
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const latest = await ZiweiAiConsultation.findOne(owner).lean().catch(() => null);
+    if (!latest) return notFound();
+    if (latest.status === "completed") return json(publicConsultation(latest));
+    return json({ ok: false, reason: reopened.reason, message: MESSAGES.llmFailed, ...ziweiRetryPayload(request, latest) }, { status: 409 });
+  }
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  return handleStart(new Request(request.url, { method: "POST", headers, body: JSON.stringify({ resumeSessionId: owner.id }) }), env, "/api/ziwei-ai/retry");
+}
+// 고객 환불 요청: 보류 건을 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 환불 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const { response, owner } = await ziweiRetryOwner(request, env);
+  if (response) return response;
+  const marked = await markRetryableRefundDue(ZiweiAiConsultation, owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  let refundStatus = "pending";
+  try { refundStatus = (await settleZiweiRetryRefund(env, owner)).refundStatus; }
+  catch (error) { logZiweiAi("Retry refund failed", { message: clean(error?.message || error, 300) }, "warn"); }
+  return json({ ok: true, sessionId: owner.id, refunded: refundStatus === "refunded", refundStatus });
+}
+// 보류 건의 환불 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 순서는 기존 즉시 환불과 같다: 결제 화면 이용권·월정석·코인 복원 → 카드. 카드 환불이 실패하면 증빙 claim 을 풀지 않고
+// 표시도 하지 않아 다음 크론이 다시 시도한다. 이용권·월정석·코인 복원은 각자 표지로 멱등이다.
+async function settleZiweiRetryRefund(env, { id, userId }, model = ZiweiAiConsultation, now = Date.now()) {
+  const owner = { id: clean(id, 120), userId };
+  const fresh = await model.findOne(owner).lean();
+  const meta = fresh?.llmMeta;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || fresh.accessSource === "toss"
+    || (fresh.serviceType && fresh.serviceType !== SERVICE_KEY)) return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
+  const access = meta.retryable.access || {};
+  const auth = { userId: fresh.userId };
+  const idempotencyKey = clean(fresh.idempotencyKey, 180);
+  const error = Object.assign(new Error("retry closed without delivery"), { code: clean(meta.retryable.refundReason || "RETRY_REFUND", 80) });
+  const restored = await restorePrepaidAccessOnFailure({ userId: fresh.userId, access, idempotencyKey, pricing: getPricing(), error });
+  const card = await refundCardPaymentOnFailure(env, auth, access, error);
+  if (card?.refundFailed) return { refundStatus: "failed" };
+  await releaseRequestBillingEvidence(env, { userId: clean(fresh.userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds })
+    .catch(releaseError => logZiweiAi("Retry evidence release failed", { message: clean(releaseError?.message || releaseError, 300) }, "warn"));
+  const refundStatus = restored || card?.refunded ? "refunded" : "not_required";
+  await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+    "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": refundStatus } });
+  logStuckSettled({ service: "ziwei-ai", sessionId: owner.id, outcome: "retry_refund", refundStatus });
+  return { refundStatus };
+}
+// 환불 크론: 창이 지난 보류(다시 연 뒤 방치된 건 포함)를 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// 자미두수는 lockedAt 대신 generationLease(120초) + updatedAt 으로 생성 중을 표시하므로 isLive 로 살아 있는 생성을 제외한다.
+export async function settleDueZiweiRetryRefunds(env, { now = Date.now(), model = ZiweiAiConsultation, limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  const isLive = (doc, at) => ["generating", "partial"].includes(doc.status) && at - new Date(doc.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS;
+  try { await expireRetryableConsultations(model, now, { isLive }); }
+  catch { outcomes.push({ service: "ziwei-ai", refundStatus: "pending" }); }
+  const due = await model.find({ status: "generation_failed", "llmMeta.retryable": { $exists: true }, "llmMeta.refundEligibleAt": { $exists: true },
+    "llmMeta.retryable.refundSettledAt": { $exists: false }, accessSource: { $ne: "toss" }, userId: { $exists: true, $ne: null } })
+    .sort({ updatedAt: 1 }).limit(limit).select("id userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: "ziwei-ai", refundStatus: (await settleZiweiRetryRefund(env, doc, model, now)).refundStatus }); }
+    catch { outcomes.push({ service: "ziwei-ai", refundStatus: "pending" }); }
+  }
+  return outcomes;
+}
+
 export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/ziwei-ai");
@@ -3072,6 +3219,8 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
     if (method === "POST" && (path === "/generate" || path === "/start")) {
       return await handleStart(request, env, path === "/generate" ? "/api/ziwei-ai/generate" : "/api/ziwei-ai/start", ctx);
     }
+    if (method === "POST" && path === "/retry") return await handleRetry(request, env);
+    if (method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

@@ -33,7 +33,10 @@ import {
   fusionConsultationPublicStatus,
   getLatestPendingFusionConsultation,
   requestFusionRecovery,
+  reopenFusionRetry,
+  markFusionRetryRefundDue,
 } from "../lib/fusion-fortune-consultation.js";
+import { publicRetryState } from "../lib/paid-delivery-stuck.js";
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 
@@ -210,9 +213,18 @@ export async function runFusionFortuneDeliveryStage(env, { userId, requestId, bo
   return { ...result, consultationId };
 }
 
-/** 자동 환불로 넘어간 주문은 본문·재개 입력 대신 환불 상태만 돌려준다. 예약 전이면 진행 중으로 본다. */
+/** 자동 환불로 넘어간 주문은 본문·재개 입력 대신 환불 상태만 돌려준다. 예약 전이면 진행 중으로 본다.
+ * R10: 다시 시도 보류(생성 + 7일 창 안·환불 전)는 추가 결제 없는 다시 시도와 환불 요청 선택지를 돌려준다. */
 function fusionRefundResponse(consultation) {
   if (consultation?.status !== "generation_failed") return null;
+  const hold = publicRetryState(consultation);
+  if (hold) {
+    return respond({
+      ok: false, status: 409, reason: "RETRY_AVAILABLE", refunded: false, retryable: false, requestId: consultation.idempotencyKey,
+      message: "결과를 끝까지 만들지 못했어요. 추가 결제 없이 다시 시도하거나 환불을 요청할 수 있어요.",
+      retry: { available: true, refundAt: hold.refundAt, sessionId: consultation.id },
+    });
+  }
   const refund = consultationRefundResponse(consultation) || consultationRefundResponse({ llmMeta: { deliveryRefund: { status: "pending" } } });
   return respond({ status: refund.status, ...refund.body });
 }
@@ -471,6 +483,29 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   return new Response(transformer.readable, { headers: SSE_HEADERS });
 }
 
+/** R10: 보류 주문 다시 시도(같은 회차, 추가 결제·차감 없음)와 고객 환불 요청. sessionId 는 상담 id 다. */
+async function handleFusionRetryRoute(request, env, refund) {
+  const auth = (nativeTossContext(request)?.auth || await requireUserFromRequest(request, env, { allowDbFallback: true }));
+  const body = await readJson(request);
+  await connectDb(env);
+  const userId = String(auth.userId), id = String(body?.sessionId || "").slice(0, 120);
+  const doc = await withMongoRetry(env, () => getFusionFortuneConsultation({ userId, id }));
+  if (!doc) return respond({ ok: false, status: 404, error: "FUSION_FORTUNE_RESULT_NOT_FOUND", message: "저장된 결과를 찾지 못했어요." });
+  if (refund) {
+    const marked = await withMongoRetry(env, () => markFusionRetryRefundDue({ userId, id }), { retries: 0 });
+    if (!marked) return respond({ ok: false, status: 409, reason: "NOT_RETRYABLE", message: "환불을 요청할 수 있는 상태가 아니에요. 결제 내역을 확인해 주세요." });
+    const { settleFailedConsultationRefund } = await import("../lib/consultation-delivery-refund.js");
+    const settled = await settleFailedConsultationRefund(env, { service: "fusion-fortune", id, userId });
+    const refundStatus = settled?.refundStatus || "pending";
+    return json({ ok: true, refunded: refundStatus === "refunded", refundStatus });
+  }
+  if (await isPaidResultRevoked(userId, FUSION_FORTUNE_PAID_FEATURE_KEY, [doc.idempotencyKey])) {
+    return respond({ ok: false, status: 409, reason: "PAYMENT_REVOKED", message: "취소·환불된 결제는 다시 시도할 수 없어요." });
+  }
+  const reopened = await withMongoRetry(env, () => reopenFusionRetry({ userId, id }), { retries: 0 });
+  if (!reopened) return respond({ ok: false, status: 409, reason: "RETRY_UNAVAILABLE", message: "다시 시도할 수 있는 기간이 지났거나 환불이 진행 중이에요." });
+  return json({ ok: true, status: "partial", requestId: reopened.idempotencyKey, nextStage: reopened.nextStage || (hasFusionStageOneResult(reopened.result) ? 2 : 1) });
+}
 
 export async function handleFusionFortuneRoutes(request, env, ctx = null) {
   const native = nativeTossContext(request);
@@ -519,7 +554,10 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
       return await handleFusionFortuneResultRoute(request, env);
     }
 
-    if (["/status", "/generate", "/generate/stream", "/result"].includes(path)) return methodNotAllowed();
+    if (method === "POST" && path === "/retry") return await handleFusionRetryRoute(request, env, false);
+    if (method === "POST" && path === "/refund-request") return await handleFusionRetryRoute(request, env, true);
+
+    if (["/status", "/generate", "/generate/stream", "/result", "/retry", "/refund-request"].includes(path)) return methodNotAllowed();
     return notFound();
   } catch (error) {
     if (native && error instanceof TossError) return json({ok:false,error:error.code,retryable:error.status >= 500 || error.status === 429}, {status:error.status});

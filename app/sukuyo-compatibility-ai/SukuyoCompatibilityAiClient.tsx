@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import ExpertRetryPanel, { expertRetryHoldOf, type ExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 import { getAuthState } from "@/app/_lib/auth-store";
 import { readSukuyoDraft, saveSukuyoDraft, clearSukuyoDraft } from "@/apps/toss/service/sukuyo-draft-bootstrap.mjs";
 import { rememberTossTeaPrice, type TossTeaPriceSelection } from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
@@ -1389,6 +1390,8 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
   const [phase, setPhase] = useState<"idle" | "access" | "payment" | "start" | "chat">("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  // 2026-11-20 R10: 생성 실패를 다시 시도로 보류한 건(웹 결제) — 무료 다시 시도·환불 요청 버튼을 보인다.
+  const [retryHold, setRetryHold] = useState<ExpertRetryHold | null>(null);
   const submitKeyRef = useRef("");
   // busy 는 phase 파생값이라 React state 갱신 전에 같은 틱의 두 번째 클릭이 그대로 통과한다.
   // 그러면 생성 요청이 두 번 나가고, 서버의 startLocks 는 인메모리라 다른 isolate 로 갈리면
@@ -1399,7 +1402,7 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
   const captureDeliveryScope = usePaidDeliveryScope(() => {
     pendingGenerationRef.current = null; submitKeyRef.current = ""; submitLockRef.current = false;
     if(paymentSurface === "toss"){tossCheckRevision.current++;setPersonA({...EMPTY_PERSON});setPersonB({...EMPTY_PERSON});setTossPrice(null);setResultOpen(false);setRetryRecord(null);setCheckingRecord(false);}
-    setConsultation(null); setRecentList([]); setError(""); setNotice(""); setPhase("idle"); setResumeEpoch(value => value + 1);
+    setConsultation(null); setRecentList([]); setError(""); setNotice(""); setRetryHold(null); setPhase("idle"); setResumeEpoch(value => value + 1);
   });
   const { seed: profileSeed, seedVersion } = useAiProfileSeed({enabled:paymentSurface !== "toss"});
   const formTouchedRef = useRef(false);
@@ -1420,6 +1423,8 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
 
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
+  // 새 생성이 시작되면 이전 보류 안내를 내린다(다시 시도 성공·새 상담 모두).
+  useEffect(() => { if (phase === "start") setRetryHold(null); }, [phase]);
   const consultationType: ConsultationType = "compatibility";
   const result = useMemo(() => latestAssistantJson(consultation), [consultation]);
   const [fallbackViewAll, setFallbackViewAll] = usePagedViewerMode("sukuyoCompatFallbackViewerV1");
@@ -1523,6 +1528,16 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
     }
   }, []);
 
+  // 결제는 그대로 보류됐다 — 같은 건을 이 화면에서 무료로 다시 시도하거나 환불을 요청한다(새 결제·차감 없음). Toss 는 기존 흐름.
+  function heldRetryOf(data: unknown, id: string) {
+    return paymentSurface === "toss" ? null : expertRetryHoldOf(data, id);
+  }
+  function showHeldRetry(hold: ExpertRetryHold) {
+    pendingGenerationRef.current = null; submitKeyRef.current = "";
+    rememberConsultationUrl(hold.sessionId);
+    setRetryHold(hold); setError(""); setNotice(""); setPhase("idle");
+  }
+
   async function loadRecentConsultation(id: string) {
     if (submitLockRef.current) return;
     const ownerCurrent = captureDeliveryScope(),revision=paymentSurface === "toss" ? ++tossCheckRevision.current : 0;
@@ -1535,6 +1550,8 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
       if (!isCurrent()) return;
       const denied=paymentSurface === "toss" ? tossSukuyoFailure(response.status,data) : "";
       if(denied === "LOGIN_REQUIRED" || denied === "ACCESS_DENIED" || denied === "ORDER_REFUNDED")throw new Error(denied);
+      const savedHold = !data.ok && "retry" in data ? heldRetryOf(data, id) : null;
+      if (savedHold) { showHeldRetry(savedHold); return; }
       if (!data.ok) throw new Error(data.reason || "SERVER_ERROR");
       if(paymentSurface === "toss" && data.status === "generation_failed"){
         if(typeof data.sessionId!=="string" || !/^[0-9a-f]{24}$/i.test(data.sessionId) || typeof data.idempotencyKey!=="string" || !data.idempotencyKey)throw new Error("RESULT_MISMATCH");
@@ -1656,6 +1673,9 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
       const sessionId = data.sessionId || data.consultation?.id || (/^[0-9a-f]{24}$/i.test(data.resultId || "") ? data.resultId : "");
       if (sessionId) { pending.sessionId = sessionId; rememberConsultationUrl(sessionId); }
       if (status === 503 && data.reason === "RESULT_STORAGE_UNAVAILABLE" && ++failures <= 2) { await sleep(failures * 1500); continue; }
+      // 2026-11-20 R10: 웹 결제 건 생성 실패를 서버가 무료 다시 시도로 보류했다(환불 전).
+      const startHold = !data.ok && "retry" in data ? heldRetryOf(data, sessionId || "") : null;
+      if (startHold) { showHeldRetry(startHold); return false; }
       if (!data.ok) throw new Error(status === 402 && paymentWasRequired ? "PAYMENT_VERIFY_FAILED" : data.reason || "SERVER_ERROR");
       failures = 0;
       if (data.consultation) setConsultation(data.consultation);
@@ -2179,6 +2199,16 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
               {!phaseText && notice && <span>{notice}</span>}
               {error && <span>{error}</span>}
             </div>
+          )}
+          {retryHold && paymentSurface !== "toss" && (
+            <ExpertRetryPanel
+              apiBase="/api/sukuyo-compatibility-ai"
+              hold={retryHold}
+              onRetried={() => { const id = retryHold.sessionId; setRetryHold(null); void loadRecentConsultation(id); }}
+              className={styles.retryPanel}
+              primaryClassName={`${styles.primaryButton} ${styles.retryAction}`}
+              secondaryClassName={`${styles.retryAction} ${styles.retrySecondary}`}
+            />
           )}
         </section>}
       </section>

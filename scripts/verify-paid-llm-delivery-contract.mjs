@@ -87,6 +87,14 @@ export const RETRY_FIRST_POLICY = Object.freeze({
   "heukwol": { marker: "retryRefundAt", settle: { symbol: "settleDueHeukwolRetryRefunds", cron: REFUND_CRON } },
   "fortune-tea-house": { marker: "retryRefundAt", settle: { symbol: "settleDueTeaHouseRetryRefunds", cron: REFUND_CRON } },
   "master-love-codex": { marker: "retryRefundAt", settle: { symbol: "codexRetryDue", cron: CODEX_RECOVERY_CRON } },
+  // R10 전문가 상담(2026-11-20)
+  "vedic-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueVedicRetryRefunds", cron: REFUND_CRON } },
+  "astrology-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueAstrologyRetryRefunds", cron: REFUND_CRON } },
+  "ziwei-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueZiweiRetryRefunds", cron: REFUND_CRON } },
+  "sukuyo-compatibility-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueSukuyoRetryRefunds", cron: REFUND_CRON } },
+  "karma-destiny-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueKarmaRetryRefunds", cron: REFUND_CRON } },
+  "naming-prompt": { marker: "retryableFailureMeta", settle: { symbol: "settleDueNamingRetryRefunds", cron: REFUND_CRON } },
+  "fusion-fortune": { marker: "retryableFailureMeta", settle: { symbol: "settleDueFusionRetryRefunds", cron: REFUND_CRON } },
 });
 // 크론 파일이 실제로 스케줄러에서 도는지: 파일 → [호출하는 파일, 그 파일이 참조해야 하는 진입 기호].
 export const RETRY_CRON_CHAIN = Object.freeze({
@@ -97,9 +105,9 @@ export const RETRY_CRON_CHAIN = Object.freeze({
 const STUCK_LIB = "worker/lib/paid-delivery-stuck.js";
 // 아직 즉시 환불(다시 시도 우선 전) 서비스 — 정확히 일치해야 한다. R10 에서 서비스별로 RETRY_FIRST_POLICY 로 옮긴다.
 export const KNOWN_RETRY_PENDING = Object.freeze([
-  "astrology-ai", "vedic-ai", "ziwei-ai", "sukuyo-compatibility-ai", "nakshatra-ai", "human-design-report", "destiny-compass-ai",
-  "relationship-boundary-test", "naming-prompt", "celestial-harmony", "fortune", "karma-destiny-ai", "feature-question", "ziwei-deep-report",
-  "fusion-fortune", "yeongnyangi", "fortune-chat-question", "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic",
+  "nakshatra-ai", "human-design-report", "destiny-compass-ai",
+  "relationship-boundary-test", "celestial-harmony", "fortune", "feature-question", "ziwei-deep-report",
+  "yeongnyangi", "fortune-chat-question", "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic",
   "pet-saju-ai", "geomancy-oracle", "animal-totem", "guardian-fortune", "toss-native", "palm",
 ]);
 const RETRY_ROUTE_RE = /path\s*===\s*["'](?:\/api\/[a-z0-9-]+)?\/retry["']/;

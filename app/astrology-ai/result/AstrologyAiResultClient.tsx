@@ -14,6 +14,7 @@ import { astrologyShareChoices } from "@/lib/consultation-sharing";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import ExpertRetryPanel, { expertRetryHoldOf, type ExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import ConsultationReading from "@/components/fortune/ConsultationReading";
 import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
@@ -481,6 +482,8 @@ export default function AstrologyAiResultClient({paymentSurface = "web"}: {payme
   const [error, setError] = useState("");
   const [denied, setDenied] = useState(false);
   const [retryableFailure, setRetryableFailure] = useState(false);
+  // 2026-11-20 R10: 생성 실패를 다시 시도로 보류한 건(웹 결제) — 무료 다시 시도·환불 요청 버튼을 보인다.
+  const [retryHold, setRetryHold] = useState<ExpertRetryHold | null>(null);
   const retryFailed = useRef(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
@@ -601,6 +604,7 @@ export default function AstrologyAiResultClient({paymentSurface = "web"}: {payme
       }
       setLoading(true);
       setError("");
+      setRetryHold(null);
       try {
         const previewState = readDevPreviewState();
         if (previewState) {
@@ -628,6 +632,12 @@ export default function AstrologyAiResultClient({paymentSurface = "web"}: {payme
             if (!alive) return;
             await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
             continue;
+          }
+          // 실패로 끝난 건이 다시 시도 보류인지 확인한다(서버 409 본문의 retry).
+          const hold = response.status === 409 ? expertRetryHoldOf(payload, resultId) : null;
+          if (hold) {
+            if (alive) setRetryHold(hold);
+            return;
           }
           if (!response.ok || payload?.ok === false) {
             throw new Error(toText(payload?.message) || "저장된 상담 결과를 불러오지 못했습니다.");
@@ -751,7 +761,20 @@ export default function AstrologyAiResultClient({paymentSurface = "web"}: {payme
           </div>
         )}
 
-        {!loading && (error || (consultation && consultation.status !== "completed")) && (
+        {!loading && retryHold && paymentSurface !== "toss" && (
+          <div className="mb-5 grid place-items-center rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 p-6 text-center shadow-2xl shadow-black/25">
+            <ExpertRetryPanel
+              apiBase="/api/astrology-ai"
+              hold={retryHold}
+              onRetried={() => { setRetryHold(null); setResumeEpoch(value => value + 1); }}
+              className="max-w-md break-keep text-sm leading-7 text-rose-50 [&_h2]:text-xl [&_h2]:font-black [&_h2]:text-white"
+              primaryClassName="mt-4 block w-full min-h-11 rounded-lg bg-[#f5d487] px-4 font-black text-[#120d24] disabled:opacity-60"
+              secondaryClassName="mt-3 block w-full min-h-11 rounded-lg border border-white/30 px-4 disabled:opacity-60"
+            />
+          </div>
+        )}
+
+        {!loading && !retryHold && (error || (consultation && consultation.status !== "completed")) && (
           <div className="mb-5 grid place-items-center rounded-lg border border-[#f5d487]/25 bg-[#f5d487]/10 p-6 text-center shadow-2xl shadow-black/25" role="status">
             <div className="max-w-md">
               {error ? <AlertCircle className="mx-auto h-7 w-7 text-rose-200" aria-hidden="true" /> : <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#f5d487] motion-reduce:animate-none" aria-hidden="true" />}

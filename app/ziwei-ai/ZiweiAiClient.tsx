@@ -29,6 +29,7 @@ import Image from "next/image";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { authFetch } from "@/app/_lib/auth-client";
+import ExpertRetryPanel, { expertRetryHoldOf, probeExpertRetryHold, type ExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 const ConsultationReading = dynamic(() => import('@/components/fortune/ConsultationReading'), { ssr: false, loading: () => <p role="status">상담 풀이를 준비하고 있어요.</p> });
@@ -847,6 +848,8 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  // 2026-11-20 R10: 생성 실패를 다시 시도로 보류한 건(웹 결제) — 무료 다시 시도·환불 요청 버튼을 보인다.
+  const [retryHold, setRetryHold] = useState<ExpertRetryHold | null>(null);
   const [consultation, setConsultation] = useState<Consultation | null>(null);
   // 서버가 계산한 명반 근거 — 대기 화면과 결과의 접힌 근거 영역에서 그대로 제공한다.
   const [basis, setBasis] = useState<AnalysisBasis | null>(null);
@@ -939,10 +942,21 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
     }finally{if(isCurrent())busyRef.current=false;}
   }
 
+  // 결제는 그대로 보류됐다 — 같은 건을 이 화면에서 무료로 다시 시도하거나 환불을 요청한다(새 결제·차감 없음).
+  function showHeldRetry(hold: ExpertRetryHold) {
+    idempotencyRef.current = "";
+    rememberConsultationUrl(hold.sessionId);
+    setRetryHold(hold); setError(""); setNotice(""); setPhase("idle");
+  }
+  // 결과 조회가 실패로 끝났을 때 그 건이 다시 시도 보류인지 확인한다(서버 409 본문의 retry). Toss 는 기존 흐름.
+  async function heldRetryFor(id: string) {
+    return paymentSurface === "toss" || !id ? null : await probeExpertRetryHold(`/api/ziwei-ai/result?id=${encodeURIComponent(id)}`, id);
+  }
+
   async function resumeSavedConsultation(id: string) {
     if (busyRef.current) return false;
     const isCurrent = captureOwner();
-    busyRef.current = true; setPhase("reading"); setError(""); rememberConsultationUrl(id);
+    busyRef.current = true; setPhase("reading"); setError(""); setRetryHold(null); rememberConsultationUrl(id);
     try {
       const data = await pollZiweiResult(id, isCurrent, partial => { if (isCurrent()) setConsultation(partial); });
       if (!isCurrent()) return false;
@@ -950,7 +964,11 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
       setPhase("ready");
       return data.consultation?.status === "completed";
     } catch (caught) {
-      if (isCurrent()) { setError(caught instanceof Error ? caught.message : ERROR_TEXT.NETWORK_ERROR); setPhase("idle"); }
+      const hold = await heldRetryFor(id);
+      if (isCurrent()) {
+        if (hold) showHeldRetry(hold);
+        else { setError(caught instanceof Error ? caught.message : ERROR_TEXT.NETWORK_ERROR); setPhase("idle"); }
+      }
       return false;
     } finally { if (isCurrent()) busyRef.current = false; }
   }
@@ -1054,7 +1072,7 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
 
   async function generateConsultation(idempotencyKey: string, payload: ReturnType<typeof buildConsultationPayload>, extra: Record<string, unknown>) {
     const isCurrent = captureOwner();
-    setPhase("reading"); setNotice("명궁과 신궁의 흐름을 맞춰보는 중..."); releasePaidFeatureGate(idempotencyKey);
+    setPhase("reading"); setNotice("명궁과 신궁의 흐름을 맞춰보는 중..."); setRetryHold(null); releasePaidFeatureGate(idempotencyKey);
     const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/generate", { ...payload, ...extra, idempotencyKey }, idempotencyKey);
     if (!isCurrent()) return false;
     if (data.consultation) { setConsultation(data.consultation); rememberConsultationUrl(data.consultation.id); }
@@ -1062,12 +1080,21 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
     const resumeId = data.sessionId || (data.retryable ? data.resultId : "");
     if ((status === 202 || (status === 503 && data.retryable)) && resumeId) {
       rememberConsultationUrl(resumeId);
-      const resolved = await pollZiweiResult(resumeId, isCurrent, partial => { if (isCurrent()) setConsultation(partial); });
+      let held: ExpertRetryHold | null = null;
+      const resolved = await pollZiweiResult(resumeId, isCurrent, partial => { if (isCurrent()) setConsultation(partial); }).catch(async (failure) => {
+        held = await heldRetryFor(resumeId);
+        if (!held) throw failure;
+        return { ok: false } as ApiResult;
+      });
       if (!isCurrent()) return false;
+      if (held) { showHeldRetry(held); return false; }
       if (resolved.consultation) setConsultation(resolved.consultation);
       setPhase("ready"); setNotice("");
       return resolved.consultation?.status === "completed";
     }
+    // 2026-11-20 R10: 웹 결제 건 생성 실패를 서버가 무료 다시 시도로 보류했다(환불 전).
+    const hold = paymentSurface === "toss" ? null : expertRetryHoldOf(data);
+    if (hold) { showHeldRetry(hold); return false; }
     throw new Error(mapError(data, status));
   }
 
@@ -1431,6 +1458,16 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
           {/* 캐릭터 한 줄은 사실 문구 앞에만 둔다 — 결제·재시도 안내는 그대로. */}
           {error && <ExpertCharacterStage character="musung" mood={musungError.mood} line={musungError.text} placement="inline" />}
           {error && <p className="error" role="alert">{error}</p>}
+          {retryHold && paymentSurface !== "toss" && (
+            <ExpertRetryPanel
+              apiBase="/api/ziwei-ai"
+              hold={retryHold}
+              onRetried={() => { setRetryHold(null); setResumeEpoch(value => value + 1); }}
+              className="ziweiRetryPanel"
+              primaryClassName="primaryBtn ziweiRetryAction"
+              secondaryClassName="ziweiRetryAction ziweiRetrySecondary"
+            />
+          )}
           {paymentSurface === "toss" && !consultation && tossRecovery === 'allowed' && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>void retryTossZiwei()}>{tossCopy.resume}</button>}
           {paymentSurface === "toss" && error && tossLastError.current?.code === 'LOGIN_REQUIRED' && <a href={'/login/?next='+encodeURIComponent('/ziwei-ai/'+(typeof window !== 'undefined'?window.location.search:''))}>{tossCopy.loginLink}</a>}
           {paymentSurface === "toss" && error && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('cid') && <button type="button" style={{minHeight:44}} disabled={busy} onClick={()=>setResumeEpoch(value=>value+1)}>{tossCopy.retryAuthority}</button>}
@@ -1711,6 +1748,12 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
         .notice,.error{display:flex;align-items:center;gap:7px;margin:0;border-radius:8px;padding:10px 11px;font-size:13px;line-height:1.5}
         .notice{border:1px solid rgba(245,217,145,.30);background:rgba(245,217,145,.10);color:#fff0b8}
         .error{border:1px solid rgba(248,113,113,.38);background:rgba(127,29,29,.30);color:#fecaca}
+        .ziweiRetryPanel{display:grid;gap:8px;border:1px solid rgba(245,217,145,.30);border-radius:8px;background:rgba(245,217,145,.10);padding:12px;color:#fff0b8;font-size:13px;line-height:1.6;word-break:keep-all}
+        .ziweiRetryPanel h2{margin:0;color:#fffaf0;font-family:var(--font-display);font-size:15px}
+        .ziweiRetryPanel p{margin:0}
+        .ziweiRetryAction{width:100%;min-height:44px}
+        .ziweiRetrySecondary{border:1px solid rgba(255,255,255,.30);border-radius:8px;background:transparent;color:#fffaf0;cursor:pointer}
+        .ziweiRetryAction:disabled{opacity:.6}
         .resultPane{grid-column:1/-1;min-height:640px;padding:18px}
         .emptyState,.loadingState{min-height:584px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;text-align:center;color:#d7ceff}
         .emptyState strong,.loadingState strong{color:#fffaf0;font-family:var(--font-display);font-size:21px}

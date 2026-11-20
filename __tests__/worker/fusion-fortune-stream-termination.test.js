@@ -44,6 +44,8 @@ beforeAll(async () => {
     })),
     jest.unstable_mockModule("../../worker/lib/fusion-fortune-consultation.js", () => ({
       requestFusionRecovery: async () => null,
+      reopenFusionRetry: async () => null,
+      markFusionRetryRefundDue: async () => false,
       claimFusionDeliveryLease: async () => ({ token: "lease" }),
       releaseFusionDeliveryLease: async () => {},
       fusionConsultationPublicStatus: consultation => ["generating", "delivery_pending"].includes(consultation.status) ? "partial" : consultation.status || "completed",
