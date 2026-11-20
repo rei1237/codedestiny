@@ -181,6 +181,8 @@
 /public/js/core/payment-service.js
 /public/js/core/pet/crafted-details.mjs
 /public/js/core/play-display-price.js
+/public/js/core/popular-services.mjs
+/public/js/core/popular-top5.mjs
 /public/js/core/premium-chapter-orchestrator.js
 /public/js/core/profile-character-card.mjs
 /public/js/core/profile-characters.mjs

@@ -6,7 +6,7 @@
 // - 표본이 적은(POPULAR_MIN_ORDERS 미만) 서비스는 순위에 넣지 않고, 빈 자리는 아래 큐레이션
 //   순서로 채워 source:"curated"(화면 표기 "추천")로 구분한다 — 가짜 순위를 만들지 않는다.
 // 이름·주소·그림·featureKey 는 js/core/service-registry.js 와 같아야 한다
-// (__tests__/worker/popular-services.test.js 가 대조한다).
+// (__tests__/worker/popular-services.route.test.js 가 대조한다).
 
 export const POPULAR_WINDOW_DAYS = 30;
 export const POPULAR_MIN_ORDERS = 3;
