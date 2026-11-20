@@ -77,7 +77,8 @@
       "endingNote": "今天可以重讀這些牌。明天會有新的三張等著你。",
       "sharedTitle": "朋友分享的三張牌",
       "sharedBody": "只分享了牌的象徵，沒有個人資訊或問題。",
-      "newDayBody": "新的一天來了。把之前的牌收起來，翻開今天的三張吧。",
+      "newDayBody": "新的一天來了。可以接著讀完之前的牌，也可以重新開始今天的三張。",
+      "resumeYesterday": "繼續看昨天的牌",
       "storageNote": "此瀏覽器無法保存，只能在本次訪問中查看結果。"
     },
     "healingTarot": {

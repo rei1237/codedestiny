@@ -77,7 +77,8 @@
       "endingNote": "You can reread these cards today. Three new cards will be waiting tomorrow.",
       "sharedTitle": "Three cards a friend shared",
       "sharedBody": "Only the card symbols were shared, with no personal details or question.",
-      "newDayBody": "A new day has come. Set the old cards aside and spread today's three cards.",
+      "newDayBody": "A new day has come. Finish reading your last cards, or start today's three fresh.",
+      "resumeYesterday": "Finish yesterday's cards",
       "storageNote": "This browser cannot save, so you can only see the result during this visit."
     },
     "healingTarot": {
