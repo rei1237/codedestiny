@@ -17633,7 +17633,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Prepare both people’s details and check pass, Moonstone and single-payment terms before analysis.",
+      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22352,7 +22352,11 @@
       "love": "बातचीत की लय और अनबन के बाद करीब आने के तरीके जानें।",
       "business": "देखें कि आप ज़िम्मेदारियाँ कैसे बाँटते हैं और साथ में फैसले कैसे लेते हैं।",
       "friend": "दोनों के लिए सहज संपर्क और निजी समय का संतुलन समझें।",
-      "preview": "रिपोर्ट की रूपरेखा देखें"
+      "preview": "रिपोर्ट की रूपरेखा देखें",
+      "freeBadge": "Free",
+      "showcaseBadge": "Basic free",
+      "showcasePrice": "Free",
+      "showcaseNote": "Premium reading ₩10,000"
     },
     "reading": {
       "contents": "मिलान की विषय सूची",

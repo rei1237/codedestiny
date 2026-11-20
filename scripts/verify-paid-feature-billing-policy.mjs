@@ -196,8 +196,21 @@ assert.doesNotMatch(registrySource, /openSibylModal:\s*"premium-sibyl-dominator"
 // premium-ziwei 가격표도 같은 날 레지스트리에서 삭제됐으므로 이 별칭이 남아 있으면 안 된다.
 assert.doesNotMatch(registrySource, /navigateToZiweiChart:/, "free ziwei chart entry must not be gated as paid");
 
-for (const text of ["점성술 셜럭 시나스트리 궁합", "점성술 직접 입력 시나스트리 궁합", "자미두수 궁합 분석", "사주 궁합 분석"]) {
+for (const text of ["점성술 셜럭 시나스트리 궁합", "점성술 직접 입력 시나스트리 궁합", "자미두수 궁합 분석"]) {
   assert.match(sajuEngineSource, new RegExp(text), `${text} must still call the common paid gate`);
+}
+// 2026-11-20: 기본 사주 궁합(runCompat)은 무료 정적 결과다. 새 구매는 사주 고급 궁합(/saju/compatibility/premium/)에서만
+// 받는다. runCompat 본문이 다시 코인 게이트·옛 LLM 진입을 부르면 무료 약속이 깨지고 이중 과금 위험이 생기므로 막는다.
+{
+  const start = sajuEngineSource.indexOf("async function runCompat(");
+  assert.ok(start >= 0, "runCompat must exist in js/saju-engine.js");
+  const end = sajuEngineSource.indexOf("async function _seSajuCompatLegacyPending(", start);
+  assert.ok(end > start, "runCompat body boundary (_seSajuCompatLegacyPending) must follow runCompat");
+  const body = sajuEngineSource.slice(start, end).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  assert.doesNotMatch(body, /_cdCoinGatePerUse|_seSajuCompatLlmEntry|cdRequirePaid|_cdCoinGate/, "free runCompat must not call the paid gate or the legacy LLM entry");
+  assert.match(body, /runCompatCore\(/, "free runCompat must render the static result");
+  assert.match(sajuEngineSource, /_seSajuCompatAppendPremiumCta\(resultArea/, "free saju compatibility result must keep the premium CTA");
+  assert.match(sajuEngineSource, /\/saju\/compatibility\/premium\//,"premium CTA must link to /saju/compatibility/premium/");
 }
 
 assert.match(sukuyoEngineSource, /SY_PAID_FEATURES/, "Sukuyo runtime must centralize paid feature metadata");
