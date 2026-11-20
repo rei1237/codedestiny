@@ -526,16 +526,42 @@
     });
   }
 
+  /* 그릴 글자의 폰트 조각을 먼저 부른다. fonts.ready 는 화면에 이미 쓰인 조각만 기다려서, 화면에 없는 글자(푸터·키워드·범례 문장)는
+   * 조각이 안 내려온 채 캔버스에 그려져 폴백 글꼴이 된다. 실패하거나 느려도 저장은 막지 않는다(상한 2.5초). */
+  function fontTexts(c) {
+    var s = [c.question, c.brand, c.title, c.mindLine, c.combo, c.hd, c.luck, c.footer].concat(c.keywords || []);
+    (c.engines || []).forEach(function (e) { s.push(e.name); });
+    if (c.meme) {
+      s.push(c.meme.luckMark, c.meme.comboLabel);
+      c.meme.cells.forEach(function (x) { s.push(x.label, x.line, x.shortLine, x.pct + '%'); });
+      c.meme.legend.forEach(function (x) { s.push(x.god, x.name, x.line, x.pct + '%'); });
+    }
+    return s.filter(Boolean).join(' ');
+  }
+  function loadFonts(doc, model, p) {
+    var fs = doc.fonts, c = content(model);
+    if (!fs || typeof fs.load !== 'function' || !c) return Promise.resolve();
+    var all = fontTexts(c), head = [c.title, c.combo].filter(Boolean).join(' ');
+    var jobs = [[500, p.font, all], [600, p.font, all], [800, p.font, all], [700, p.serif, head]].map(function (j) {
+      try { return Promise.resolve(fs.load(j[0] + ' 32px ' + j[1], j[2])).then(null, function () {}); } catch (e) { return Promise.resolve(); }
+    });
+    var ready = fs.ready ? Promise.resolve(fs.ready).then(null, function () {}) : Promise.resolve();
+    var cap = new Promise(function (resolve) { root.setTimeout(resolve, 2500); });
+    return Promise.race([Promise.all(jobs.concat(ready)), cap]);
+  }
+
   /* mode: 'share' 는 파일 공유가 되면 공유, 아니면 저장. 'save' 는 저장. 사용자가 닫으면 false. */
   function share(model, opts) {
     opts = opts || {};
     var doc = root.document;
     var scope = doc.getElementById('destinyAnatomyCard');
     var canvas = doc.createElement('canvas');
-    var fonts = doc.fonts && doc.fonts.ready ? doc.fonts.ready.then(null, function () {}) : Promise.resolve();
+    var pal;
     var name = 'destiny-anatomy.png';
-    return Promise.all([fonts, loadMark(scope)]).then(function (r) {
-      var pal = palette(scope);
+    return Promise.resolve().then(function () {
+      pal = palette(scope);
+      return Promise.all([loadFonts(doc, model, pal), loadMark(scope)]);
+    }).then(function (r) {
       if (!draw(canvas, model, {palette: pal, mark: r[1], format: opts.format})) throw new Error('no content');
       return toBlob(canvas).then(null, function () {
         // 메달 그림이 캔버스를 오염시켰으면 메달 없이 다시 그린다.

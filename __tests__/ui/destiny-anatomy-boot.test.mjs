@@ -275,6 +275,36 @@ test('공유 실행: 취소는 저장하지 않고, 파일 공유 미지원·오
   await assert.rejects(()=>S.share(m,{mode:'save'})); assert.equal(downloads,2);
 });
 
+test('공유 저장: 그릴 글자의 폰트 조각을 먼저 부르고, 폰트가 멈춰도 저장을 막지 않는다', async () => {
+  const {ctx, dom, doc} = setup('<section id="destinyAnatomyCard"></section>');
+  const m = model(ctx, 'ko'); let downloads = 0;
+  const canvasContext = new Proxy({}, {get(target, key) {
+    if (key === 'measureText') return (text) => ({width: String(text).length * 12});
+    if (key === 'createLinearGradient' || key === 'createRadialGradient') return () => ({addColorStop() {}});
+    return key in target ? target[key] : () => {};
+  }, set(target, key, value) { target[key] = value; return true; }});
+  dom.window.HTMLCanvasElement.prototype.getContext = () => canvasContext;
+  dom.window.HTMLCanvasElement.prototype.toBlob = (cb) => cb(new Blob(['png'], {type: 'image/png'}));
+  dom.window.HTMLAnchorElement.prototype.click = () => { downloads++; };
+  ctx.getComputedStyle = () => ({color: 'rgb(50, 20, 30)', fontFamily: 'sans-serif', fontWeight: '400', getPropertyValue: () => 'sans-serif'});
+  ctx.setTimeout = (fn) => { fn(); return 0; }; ctx.File = File; ctx.URL = {createObjectURL: () => 'blob:test', revokeObjectURL() {}};
+  ctx.navigator = {canShare: () => false};
+  const S = ctx.DestinyAnatomyShareCard, c = S.content(m), calls = [];
+  doc.fonts = {ready: Promise.resolve(), load: (font, text) => { calls.push([font, text]); return Promise.resolve([]); }};
+  assert.equal((await S.share(m, {mode: 'save'})).status, 'saved');
+  const loaded = calls.map((x) => x[0]).join('|');
+  for (const w of [500, 600, 800, 700]) assert.ok(loaded.includes(`${w} 32px`), `${w} ${loaded}`);
+  const text = calls.find((x) => x[0].startsWith('600 '))[1];
+  assert.ok(text.includes(c.footer) && text.includes(c.meme.legend[0].line) && text.includes(c.engines[0].name));
+  assert.ok(!/viewBox|M\d/.test(text), '그림 좌표는 글자가 아니다');
+  // 폰트 적재가 끝나지 않아도(상한 타이머 만료) 저장은 진행한다. 거부돼도 마찬가지.
+  doc.fonts = {ready: new Promise(() => {}), load: () => new Promise(() => {})};
+  assert.equal((await S.share(m, {mode: 'save'})).status, 'saved');
+  doc.fonts = {ready: Promise.resolve(), load: () => { throw new SyntaxError('bad font'); }};
+  assert.equal((await S.share(m, {mode: 'save'})).status, 'saved');
+  assert.equal(downloads, 3);
+});
+
 test('첫 화면은 영역 크기에 맞는 공감 문구와 범례를 읽고 전문 해설은 챕터에 둔다', () => {
   const {ctx, doc} = setup('');
   const el = doc.createElement('div');
