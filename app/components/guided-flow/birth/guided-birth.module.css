@@ -204,6 +204,8 @@
 }
 .edit {
   padding: 0 var(--cd-sp-sm);
+  /* 요약 카드(raised) 위 투명 버튼이라 경계는 금색으로 3:1 을 넘긴다(꿀꿀 선 색은 2.8:1). */
+  border-color: var(--gf-gold);
 }
 
 @media (hover: hover) {
