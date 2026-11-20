@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-20
-next: "R10 남은 4종(sukuyo-compatibility-ai(PG 단건 포함) → karma-destiny-ai(7일 차감 보류) → naming-prompt(PG 단건) → fusion-fortune(24시간 → 7일 창))을 베다점·점성술·자미두수(실측 'R10 베다점'·'R10 점성술'·'R10 자미두수')와 같은 모양으로 서비스마다 TDD·커밋. 사용자 결정 2026-11-20 3건은 위 결정 절에 있다(다시 묻지 않는다). 공용 패널 app/components/ExpertRetryPanel.tsx 와 환불 크론 EXPERT_RETRY_SETTLERS 표에 한 줄씩 붙인다. 4종 끝나면 R9 절차로 머지·체인·push"
+next: "R10 남은 2종(naming-prompt(PG 단건, 실측 'R10 작명 감사'의 조건 6개 필수) → fusion-fortune(24시간 → 7일 창))을 서비스마다 TDD·커밋. 끝나면 R9 절차로 머지·체인·push"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -79,8 +79,8 @@ next: "R10 남은 4종(sukuyo-compatibility-ai(PG 단건 포함) → karma-desti
   - [x] vedic-ai — `b0dd824ba`(워커·환불 크론·보관함·검증기·테스트) + `f474e9484`(공용 패널·웹 UI·보존 해시) + `4e78dc0f9`(sitemap 원장). 실측 "R10 베다점"
   - [x] astrology-ai — `ff1da44e5`(워커·실행 가드·환불 크론·보관함·검증기·테스트) + `f665216e0`(입력·결과 화면 패널·보존 해시). 실측 "R10 점성술"
   - [x] ziwei-ai — `ac855a7d1`(워커·환불 크론·보관함·검증기·테스트) + `835dc1e75`(단일 화면 패널) + `cf8e4f6c4`(sitemap 원장). 실측 "R10 자미두수"
-  - [ ] sukuyo-compatibility-ai
-  - [ ] karma-destiny-ai
+  - [x] sukuyo-compatibility-ai — `507567a56`(워커·PG 단건 7일 환불·크론·검증기·테스트) + `d62ca2d77`(웹 패널·보존 해시·sitemap). 실측 "R10 숙요 궁합·카르마"
+  - [x] karma-destiny-ai — `e59c36a1b`(워커·7일 차감 보류·크론·보관함·검증기·테스트) + `22a543a4f`(결과 화면 패널). 실측 "R10 숙요 궁합·카르마"
   - [ ] naming-prompt
   - [ ] fusion-fortune
   - [ ] 6종 끝 → R9 절차(origin/main 머지·미러/sitemap 재생성·체인·check:pre-push·조상 확인·push·CI 1회). 그 전에는 push 하지 않는다(지시).
@@ -102,6 +102,17 @@ next: "R10 남은 4종(sukuyo-compatibility-ai(PG 단건 포함) → karma-desti
 S15 품질: 한자 증가, 연애 비책 용신 데이터("금") vs 판정(토) 불일치, 흑월 근거 실패 3→5, '조심'인데 '기회' 톤. 연애 비책 정체 환불 재시도가 `refundEligibleAt` 미사용(R5: 창 안 정체는 해소, 생성 7일 경과 정체는 기존 경로). 마스터 인연의 서 운영 스크립트 재개방 위험 미확인. S14 프롬프트 최적화 대기.
 
 ## 실측
+### R10 숙요 궁합·카르마 (2026-11-20, push 안 함)
+- sukuyo: `check:fast --base=HEAD~1`(d62ca2d77) exit 0 — jest 484 스위트(1 skip) 8347 통과. 첫 실행은 `timeout 590` 래핑으로 124 종료 + yeongnyangi-reading-invariance 부하 flake(단독 재실행 통과) → 래핑 없이 재실행.
+- karma: 보류 = `llmMeta.retryable`(생성+7일). 보류 중 이용권 복원·deferred usage 취소·증빙 해제 없음 → 다시 시도 성공 시 기존 경로가 차감 확정(usage requestId original-paid-request). 환불 요청·7일 크론(`settleDueKarmaRetryRefunds`, EXPERT_RETRY_SETTLERS)이 이용권 복원(refundId `karma-destiny-ai:<requestId>`) → deferred 면 PaidExecutionRecord 를 generation_failed 로 직접 갱신(크론엔 요청·인증이 없어 billing 라우트 대신, `handleDeferredUsageCancel` 과 같은 갱신) → 증빙 해제. 이용권 복원이 던지면 정산 표시 없이 크론 재시도.
+- karma 검증(모두 exit 0): karma-paid-delivery 47/47(새 6건 TDD 적색 확인 뒤 녹색), chapter-plan·relationship·paid-delivery-stuck·security.ai-route-buckets 92/92, record-library 32/32(karma retry_available 단언 추가), consultation-delivery-refund node --test 통과, UI node --test 7파일 38/38(toss karma-ui-recovery 포함, 보존 해시 재고정 불필요), `verify:paid-llm-delivery` ok(다시 시도 우선 12개, 변이 48/48), `sitemap:generate` 변경 없음, `check:fast --base=d62ca2d77` exit 0(484 스위트, 8354 통과).
+- 범위 밖(보고만): karma 카드 deferred 결제는 PG 자동 환불이 없다(usage 취소만). `worker/routes/billing.js` 줄 상한 6487/6488. `handleDeferredUsageCancel` 의 `$ne:'completed'` 약점.
+
+### R10 작명 감사 (2026-11-20, paid-gate-auditor, 판정: 조건부 진행)
+- 🔴 작명 단건 카드는 지금 실패 환불이 없다(`naming-prompt.js` "단건은 환불하지 않는다", restoreNamingAccessOnFailure 는 월정석·이용권만) → 카드 환불은 **새 실제 PG 취소 경로**(`autoRefundSinglePaymentDeliveryFailure`, 사용자 결정 2 로 승인, mock 만).
+- 🔴 공용 `reopenRetryableConsultation`·`markRetryableRefundDue`·`expireRetryableConsultations` 그대로 쓰면 fail-open: PaidExecutionRecord 스키마에 llmMeta·generationError 가 없어(strict) $set 이 조용히 버려지고 식별 키는 executionId. → 표지는 `result.namingPrompt.retryable`(Mixed) 에 두고 작명 전용 reopen/mark/expire 를 executionId+userId+status+updatedAt CAS 로 구현. `retryableFailureMeta`·`publicRetryState` 는 `{status, createdAt, _id, llmMeta: result.namingPrompt}` 로 감싸 쓴다(검증기가 import 를 본다).
+- 조건: (1) 보류는 confirmedEmptyNamingFailure 분기에서만, Toss(tossIntentId)·CALCULATION_UNAVAILABLE·표지 저장 실패·창 경과는 기존 즉시 경로. (2) reopen 은 generation_failed 를 벗어나고 delivery.attempts 예산·limited·lease 를 풀어야 한다(아니면 beginNamingGeneration 이 409 GENERATION_LIMIT_REACHED). (3) 정산: 이용권·월정석 복원 → 없으면 카드 환불 → 카드 실패면 미표시(크론 재시도) → 레코드 `refunded`. (4) EXPERT_RETRY_SETTLERS·RETRY_FIRST_POLICY 배선. (5) /retry 전에 `isPaidResultRevoked` 로 철회 건 409(코인 환불 뒤 무료 재생성 이중 혜택 방지). (6) `checkpoint-refund-guard.js` RETRY_WINDOW_FEATURES 검토. 기존 `naming-prompt-v2.route.test.js:168-174`("실패 즉시 이용권 환불") 기대값 변경 필요. 보관함은 paid-results 소스(id=_id, resultPath 없음) 라 retryHeld 에 작명 분기·투영·recoveryHref(`/naming-ai/result?executionId=`) 가 따로 필요.
+
 ### R10 점성술·자미두수 검사 체인 (2026-11-20, HEAD `cf8e4f6c4`, push 안 함)
 - 모두 exit 0: `npm run check:fast -- --base=34f58616f`(critical 자동 승격, jest 484 스위트(1 skip) 8341 통과) · `node scripts/run-paid-gate-suite.mjs --base=34f58616f` 통과 91 / 실패 0(벽시계 1277s, 전체 npm test 포함) · `npm test --prefix apps/toss` 1765/1765(임시 정션 → 정션만 제거, 본 체크아웃 node_modules 유지 확인) · `node scripts/verify-myeongri-tables.mjs` OK(검사 29건, 대조 키 216개 잔차 0).
 - 미검증: 두 서비스 패널의 headed 브라우저 화면 확인은 하지 않았다(동작 테스트만).
