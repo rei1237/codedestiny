@@ -1,0 +1,220 @@
+/* 오늘의 세 장: 카드 고르기 부채꼴 + 선택 트레이.
+ * 셸(guided-flow.module.css)의 사설 --gf-* 토큰과 --cd-* 간격·모션 토큰만 읽는다(새 색·새 hex 없음).
+ * 공유 모듈(guided-tarot.module.css)은 다른 4개 흐름이 같이 쓰므로 건드리지 않고, 이 화면만 따로 둔다.
+ * 22장은 360px 에서 겹치면 탭이 안 되므로 "가로로 밀어 고르는 부채"다. 카드 한 장의 보이는 폭은 44px 이상.
+ * 모션은 transform·opacity 만. reduced-motion 이면 전부 멈춘다(셸 data-reduced 와 미디어 쿼리 양쪽). */
+
+/* ── 선택 트레이: 지나온 흐름 · 현재의 갈림길 · 앞으로의 방향 ── */
+.tray {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cd-sp-sm);
+  margin: var(--cd-sp-sm) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.traySlot {
+  display: flex;
+  min-width: 0;
+  min-height: 64px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: var(--cd-sp-xs);
+  border: 1px dashed var(--gf-line);
+  border-radius: var(--cd-r-sm);
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+  text-align: center;
+  word-break: keep-all;
+}
+.traySlot[data-filled='true'] {
+  border-style: solid;
+  border-color: var(--gf-gold);
+  color: var(--gf-ink);
+  animation: fan-fill 220ms var(--cd-ease-out) both;
+}
+.trayThumb {
+  width: 24px;
+  height: 36px;
+  border: 1px solid var(--gf-gold);
+  border-radius: 3px;
+  background: var(--gf-raised) var(--gf-card-back, none) center / cover no-repeat;
+}
+@keyframes fan-fill {
+  from {
+    opacity: 0.4;
+    transform: scale(0.94);
+  }
+}
+
+/* ── 부채 무대 ── */
+.wrap {
+  position: relative;
+  margin-top: var(--cd-sp-sm);
+  overflow: hidden;
+  border-radius: var(--cd-r-md, var(--cd-r-sm));
+}
+.stage {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 36px var(--cd-sp-md) 20px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+.fan {
+  display: flex;
+  width: max-content;
+  align-items: flex-end;
+}
+
+/* --k: 가운데에서 몇 칸 떨어졌는지(소수). 각도·내려앉는 정도가 k 에 비례해 부채꼴이 된다. */
+.card {
+  position: relative;
+  flex: none;
+  width: 62px;
+  aspect-ratio: 2 / 3;
+  margin-left: -18px;
+  padding: 0;
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-sm);
+  background: var(--gf-raised) var(--gf-card-back, none) center / cover no-repeat;
+  cursor: pointer;
+  scroll-snap-align: center;
+  transform-origin: 50% 130%;
+  transform: translateY(calc(var(--k) * var(--k) * 0.32px)) rotate(calc(var(--k) * 1.9deg));
+  transition: transform var(--cd-dur-base) var(--cd-ease-out), opacity var(--cd-dur-base) var(--cd-ease-out);
+  animation: fan-deal 380ms var(--cd-ease-out) backwards;
+  animation-delay: calc(var(--i) * 16ms);
+}
+.card:first-child {
+  margin-left: 0;
+}
+/* 금빛 글로우: box-shadow 를 직접 전환하지 않고 opacity 만 바꾼다. */
+.card::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--cd-r-sm) + 3px);
+  box-shadow: 0 0 14px 2px var(--gf-gold);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--cd-dur-base) var(--cd-ease-out);
+}
+.card[aria-pressed='true'] {
+  z-index: 3;
+  border: 2px solid var(--gf-gold);
+  transform: translateY(-24px) rotate(0deg) scale(1.08);
+}
+.card[aria-pressed='true']::after {
+  opacity: 0.85;
+}
+.card:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.card[aria-pressed='true']:disabled {
+  opacity: 1;
+}
+.card:focus-visible {
+  z-index: 4;
+  outline: 2px solid var(--gf-gold);
+  outline-offset: 3px;
+}
+@media (hover: hover) {
+  .card:hover:not(:disabled):not([aria-pressed='true']) {
+    z-index: 2;
+    transform: translateY(calc(var(--k) * var(--k) * 0.32px - 10px)) rotate(calc(var(--k) * 1.9deg));
+  }
+}
+.order {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--cd-r-pill);
+  background: var(--gf-gold-fill);
+  color: var(--gf-on-gold);
+  font-size: var(--cd-t-caption);
+  font-weight: 700;
+}
+@keyframes fan-deal {
+  from {
+    opacity: 0;
+    transform: translateY(56px) rotate(0deg) scale(0.9);
+  }
+}
+
+/* ── 흩날리는 꽃잎(장식, 탭을 가리지 않는다) ── */
+.petal {
+  position: absolute;
+  top: 0;
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+  animation: fan-petal 9s linear infinite;
+}
+.petal:nth-of-type(1) {
+  left: 12%;
+  animation-delay: 0s;
+}
+.petal:nth-of-type(2) {
+  left: 52%;
+  width: 22px;
+  height: 22px;
+  animation-delay: 3s;
+  animation-duration: 11s;
+}
+.petal:nth-of-type(3) {
+  left: 84%;
+  animation-delay: 6s;
+  animation-duration: 10s;
+}
+@keyframes fan-petal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) rotate(0deg);
+  }
+  15% {
+    opacity: 0.55;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-36px, 190px, 0) rotate(160deg);
+  }
+}
+
+:global([data-reduced='true']) .card,
+:global([data-reduced='true']) .traySlot,
+:global([data-reduced='true']) .petal {
+  animation: none;
+}
+:global([data-reduced='true']) .card,
+:global([data-reduced='true']) .card::after {
+  transition: none;
+}
+:global([data-reduced='true']) .petal {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .traySlot,
+  .petal {
+    animation: none;
+  }
+  .card,
+  .card::after {
+    transition: none;
+  }
+  .petal {
+    display: none;
+  }
+}

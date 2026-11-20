@@ -10,6 +10,7 @@ import {GuidedFlowShell,GuidedLanding} from '@/app/components/guided-flow/Guided
 import {type GuidedStep,useGuidedFlow} from '@/app/components/guided-flow/useGuidedFlow';
 import {useGuidedT} from '@/app/components/guided-flow/useGuidedT';
 import tarot from '@/app/components/guided-flow/guided-tarot.module.css';
+import fan from './daily-tarot-fan.module.css';
 import {historyStateFor,readHistoryState,snapshotKey,stepFromSearch,urlWithStep} from '@/lib/guided-flow/step-controller.mjs';
 import {FreeQuestionNext} from '../components/QuestionJourney';
 import {trackEvent} from '@/lib/analytics';
@@ -250,13 +251,29 @@ function PickStep({reading,onToggle,reduced,next,t}:{reading:Reading;onToggle:(s
  },[count,reduced,locked]);
  return <>
   <p className={tarot.pickMeta}><span className={tarot.pickCount}>{t('dailyTarot.pickCount',{count})}</span>{locked?null:<span>{t('dailyTarot.pickHint')}</span>}</p>
-  <div className={tarot.pickGrid} role="group" aria-label={t('dailyTarot.pickGroup')}>
-   {reading.deck.map((_:number,slot:number)=>{
-    const order=reading.picks.indexOf(slot),taken=order>=0;
-    return <button key={slot} type="button" className={tarot.pickCard} aria-pressed={taken} disabled={locked||(!taken&&count>=3)} aria-label={t('dailyTarot.pickCard',{n:slot+1})} onClick={()=>onToggle(slot)}>
-     {taken?<span className={tarot.pickOrder} aria-hidden="true">{order+1}</span>:null}
-    </button>;
-   })}
+  <ul className={fan.tray} aria-hidden="true">
+   {DAILY_POSITIONS.map((position:string,index:number)=><li key={position} className={fan.traySlot} data-filled={index<count}>
+    {index<count?<span className={fan.trayThumb}/>:null}
+    <span>{position}</span>
+   </li>)}
+  </ul>
+  <div className={fan.wrap}>
+   {/* eslint-disable-next-line @next/next/no-img-element -- 장식용 정적 WebP */}
+   <img className={fan.petal} src="/images/fortune-tea-house/renewal/prop-petals.webp" alt="" aria-hidden="true" width={28} height={28} decoding="async"/>
+   {/* eslint-disable-next-line @next/next/no-img-element -- 장식용 정적 WebP */}
+   <img className={fan.petal} src="/images/fortune-tea-house/renewal/prop-petals.webp" alt="" aria-hidden="true" width={22} height={22} decoding="async"/>
+   {/* eslint-disable-next-line @next/next/no-img-element -- 장식용 정적 WebP */}
+   <img className={fan.petal} src="/images/fortune-tea-house/renewal/prop-petals.webp" alt="" aria-hidden="true" width={28} height={28} decoding="async"/>
+   <div className={fan.stage}>
+    <div className={fan.fan} role="group" aria-label={t('dailyTarot.pickGroup')}>
+     {reading.deck.map((_:number,slot:number)=>{
+      const order=reading.picks.indexOf(slot),taken=order>=0;
+      return <button key={slot} type="button" className={fan.card} style={{'--i':slot,'--k':slot-(reading.deck.length-1)/2} as CSSProperties} aria-pressed={taken} disabled={locked||(!taken&&count>=3)} aria-label={t('dailyTarot.pickCard',{n:slot+1})} onClick={()=>onToggle(slot)}>
+       {taken?<span className={fan.order} aria-hidden="true">{order+1}</span>:null}
+      </button>;
+     })}
+    </div>
+   </div>
   </div>
  </>;
 }
