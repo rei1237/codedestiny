@@ -921,7 +921,7 @@ function qualityTrapFixture(issueFor) {
 const retryRequest = (f, sessionId = f.doc.id) => f.ctx.handleRetry(new Request('https://mock.test/api/life-book-ai/retry', {
   method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify({ sessionId }) }), {});
 
-for (const issue of ['chapter_3_summary_missing', 'forbidden_terms']) test(`L2: a book held for ${issue} regenerates on retry and completes`, async () => {
+for (const issue of ['chapter_3_summary_missing', 'forbidden_terms']) test(`L2: a book held for ${issue} regenerates on retry (cache bypassed) and completes`, async () => {
   const { f, state } = qualityTrapFixture(issue);
   for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
   assert.equal(f.doc.status, 'generation_failed'); assert.ok(retryOpen(f.doc));
@@ -935,6 +935,7 @@ for (const issue of ['chapter_3_summary_missing', 'forbidden_terms']) test(`L2: 
   if (issue === 'chapter_3_summary_missing') assert.ok(f.calls.includes('section2'));
   assert.ok(f.calls.length < 15, 'retry does not rewrite the whole book');
   assert.equal(f.doc.status, 'completed'); assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+  assert.ok(state.retryCaches.length && state.retryCaches.every(cache => cache === null), 'retry bypasses the LLM cache');
 });
 
 test('L2: a reset with no failed or repair-marked row still reopens one chapter for regeneration', () => {

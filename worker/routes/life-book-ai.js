@@ -3327,7 +3327,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               truncatedRetry: stored?.error === "SECTION_TRUNCATED",
               finalProviderAttempt: attempt >= LIFE_BOOK_MAX_SECTION_ATTEMPTS,
               // 재시도는 캐시를 우회해야 같은 짧은 응답을 다시 받지 않는다.
-              cache: attempt > 1 ? null : {
+              // 다시 시도로 다시 여는 장(저장 행이 이미 있음)도 첫 시도부터 캐시를 우회한다 — 같은 나쁜 응답을 재생하지 않게.
+              cache: attempt > 1 || stored ? null : {
                 store: createLlmCacheStore(env),
                 deterministic: true,
                 ttlSeconds: 30 * 24 * 60 * 60,
