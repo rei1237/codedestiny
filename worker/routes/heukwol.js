@@ -8,7 +8,7 @@ import { claimRequestBillingEvidence } from '../lib/billing-evidence-claim.js';
 import { isStoredPaidResultRevoked } from '../lib/paid-result-revocation.js';
 import { startServiceExecution, completeServiceExecution, failServiceExecution } from '../lib/service-execution-task.js';
 import { buildHeukwolAnalysis, heukwolProfileBirth } from '../lib/heukwol-analysis.js';
-import { HEUKWOL_FEATURE_KEY, HEUKWOL_CHAPTERS, HEUKWOL_MIN_CHARS, HEUKWOL_DELIVERY_PLAN_VERSION, heukwolDeliveryV2Enabled, generateHeukwolChapter } from "../lib/heukwol-report.js";
+import { HEUKWOL_FEATURE_KEY, HEUKWOL_CHAPTERS, HEUKWOL_MIN_CHARS, HEUKWOL_DELIVERY_PLAN_VERSION, HEUKWOL_TRANSIENT_ATTEMPTS, heukwolDeliveryV2Enabled, generateHeukwolChapter, isHeukwolTransientError } from "../lib/heukwol-report.js";
 import { json, readJson, handleRouteError } from '../lib/http.js';
 import { logStuckSettled, retryRefundAt } from '../lib/paid-delivery-stuck.js';
 
@@ -122,7 +122,7 @@ export async function advanceHeukwol(env,userId,id) {
           relaxed:(meta.attempts||0)>=1,finalAttempt:(meta.attempts||0)>=HEUKWOL_V2_ATTEMPTS_PER_ROUND-1,repairIssue:meta.lastIssue||''})
         :await generateHeukwolChapter(env,meta.analysis,next,meta.input.question,chapters);
       chapters=[...chapters.filter(c=>c.key!==next.key),chapter];
-      const checkpoint=await ServiceExecutionTransaction.updateOne(owned,{$set:{'metadata.chapters':chapters,'metadata.attempts':0,...(v2?{'metadata.lastIssue':''}:{}),heartbeatAt:new Date()}});
+      const checkpoint=await ServiceExecutionTransaction.updateOne(owned,{$set:{'metadata.chapters':chapters,'metadata.attempts':0,'metadata.transientAttempts':0,...(v2?{'metadata.lastIssue':''}:{}),heartbeatAt:new Date()}});
       if(checkpoint.modifiedCount!==1)throw new Error('HEUKWOL_SAVE_UNCONFIRMED');
     }
     if(v2?!pendingChapters({...meta,chapters}).length:chapters.length===HEUKWOL_CHAPTERS.length) {
@@ -133,6 +133,16 @@ export async function advanceHeukwol(env,userId,id) {
     const saved=await readOwned(env,userId,id);
     return saved?json(visible(saved),{status:saved.status==='success'?200:202}):error(404,'RESULT_NOT_AVAILABLE','결과 접근을 확인해 주세요.');
   } catch(e) {
+    // R6b: 공급자·일시 오류는 품질 시도를 깎지 않고 별도 상한 안에서 다시 시도한다. 상한을 넘기면 아래 품질 시도로 센다(fail-closed).
+    const transient=Number(claimed.metadata.transientAttempts||0);
+    if(isHeukwolTransientError(e)&&transient<HEUKWOL_TRANSIENT_ATTEMPTS) {
+      const v2=isV2(claimed.metadata);
+      const released=await ServiceExecutionTransaction.updateOne(owned,{$set:{'metadata.transientAttempts':transient+1,
+        ...(v2?{'metadata.lastIssue':String(e?.heukwolIssue||'')}:{}),'lock.token':'','lock.until':null,reasonCode:'HEUKWOL_RETRYABLE'}});
+      if(released.matchedCount!==1)return error(409,'EXECUTION_CHANGED','진행 상태가 바뀌었어요. 저장된 상담을 다시 확인해 주세요.');
+      if(v2){const saved=await readOwned(env,userId,id);return saved?json(visible(saved),{status:saved.status==='success'?200:202}):error(404,'RESULT_NOT_AVAILABLE','결과 접근을 확인해 주세요.');}
+      return error(503,'HEUKWOL_RETRYABLE','완성된 장은 보관했어요. 이어서 작성하기를 눌러 주세요.');
+    }
     const attempts=(claimed.metadata.attempts||0)+1;
     if(isV2(claimed.metadata))return failHeukwolWaveV2(env,userId,id,owned,claimed,attempts,e);
     if(attempts>=MAX_ATTEMPTS&&!DETERMINISTIC_FAILURE.test(String(e?.message||''))
@@ -245,7 +255,7 @@ async function retryHeukwol(env,userId,id) {
   // CAS: 같은 보류 건이 아직 창 안이고 잠겨 있지 않을 때만 연다. 동시 다시 시도·환불 요청 중 하나만 이긴다.
   const reopened=await ServiceExecutionTransaction.updateOne({userId,executionKey:id,featureKey:HEUKWOL_FEATURE_KEY,status:'pending',
     refundStatus:{$in:[null,'none']},'metadata.retryable.refundAt':{$gt:at},$or:[{'lock.until':null},{'lock.until':{$lt:at}}]},
-    {$set:{'metadata.attempts':0,'metadata.retryable':null,'metadata.retryReopens':Number(doc.metadata.retryReopens||0)+1,
+    {$set:{'metadata.attempts':0,'metadata.transientAttempts':0,'metadata.retryable':null,'metadata.retryReopens':Number(doc.metadata.retryReopens||0)+1,
       ...(isV2(doc.metadata)?{'metadata.chapterRounds':{},'metadata.lastIssue':''}:{}),
       reasonCode:'HEUKWOL_RETRY_REOPENED',timeoutAt:new Date(now+3600000),nextRetryAt:at}});
   if(reopened?.matchedCount!==1)return error(409,'EXECUTION_CHANGED','진행 상태가 바뀌었어요. 저장된 상담을 다시 확인해 주세요.');

@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import {jest} from '@jest/globals';
-const rows=new Map();let account='owner',paid=true,revoked=false,failGeneration=false,calls=0,refunds=0,testEnv={},chapterChars=2000,failKeys=new Set(),seenOptions=[];
+const rows=new Map();let account='owner',paid=true,revoked=false,failGeneration=false,calls=0,refunds=0,testEnv={},chapterChars=2000,failKeys=new Set(),seenOptions=[],transientLeft=0;
 const clone=v=>v?structuredClone(v):v;
 function set(row,values){for(const [path,value] of Object.entries(values||{})){const parts=path.split('.');let at=row;while(parts.length>1){const k=parts.shift();at[k]||={};at=at[k];}at[parts[0]]=value;}}
 function match(q){const row=rows.get(`${q.userId}:${q.executionKey}`);if(!row||row.featureKey!==q.featureKey&&q.featureKey)return null;if(q.status&&row.status!==q.status)return null;if(q['lock.token']&&row.lock?.token!==q['lock.token'])return null;return row;}
@@ -19,13 +19,13 @@ jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({
 }));
 const CHAPTERS=Array.from({length:27},(_,i)=>({key:`chapter-${i}`,title:`${i}장`}));
 jest.unstable_mockModule('../../worker/lib/heukwol-report.js',()=>({HEUKWOL_FEATURE_KEY:'heukwol-warning-consultation',HEUKWOL_CHAPTERS:CHAPTERS,HEUKWOL_MIN_CHARS:40000,
- HEUKWOL_DELIVERY_PLAN_VERSION:2,heukwolDeliveryV2Enabled:env=>String(env?.HEUKWOL_DELIVERY_V2_ENABLED??'').toLowerCase()!=='false',
- generateHeukwolChapter:async(_env,_analysis,c,_q,_prev,_gen,options)=>{calls++;seenOptions.push({key:c.key,...(options||{})});if(failGeneration||failKeys.has(c.key))throw Object.assign(new Error('mock unavailable'),{heukwolIssue:'HEUKWOL_CHAPTER_SHORT'});return {...c,warning:`경고 ${c.key}`,interpretation:`해석 ${c.key}`,strategy:`대응 ${c.key}`,content:`본문 ${c.key}`,totalChars:chapterChars};}}));
+ HEUKWOL_DELIVERY_PLAN_VERSION:2,HEUKWOL_TRANSIENT_ATTEMPTS:4,isHeukwolTransientError:e=>e?.heukwolTransient===true,heukwolDeliveryV2Enabled:env=>String(env?.HEUKWOL_DELIVERY_V2_ENABLED??'').toLowerCase()!=='false',
+ generateHeukwolChapter:async(_env,_analysis,c,_q,_prev,_gen,options)=>{calls++;seenOptions.push({key:c.key,...(options||{})});if(transientLeft>0){transientLeft--;throw Object.assign(new Error('HEUKWOL_JSON_INVALID'),{heukwolTransient:true,heukwolIssue:'HEUKWOL_JSON_INVALID'});}if(failGeneration||failKeys.has(c.key))throw Object.assign(new Error('mock unavailable'),{heukwolIssue:'HEUKWOL_CHAPTER_SHORT'});return {...c,warning:`경고 ${c.key}`,interpretation:`해석 ${c.key}`,strategy:`대응 ${c.key}`,content:`본문 ${c.key}`,totalChars:chapterChars};}}));
 let handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery,settleDueHeukwolRetryRefunds;
 beforeAll(async()=>{({handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery,settleDueHeukwolRetryRefunds}=await import('../../worker/routes/heukwol.js'));});
 const input={profileId:'profile',year:new Date().getUTCFullYear()+1,question:'같은 일을 반복하지 않으려면 어떤 조건을 확인할까요?',requestId:'heukwol-test-1234'};
 const post=(path,body=input)=>handleHeukwolRoutes(new Request(`https://test.invalid/api/heukwol/${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),testEnv);
-beforeEach(()=>{rows.clear();account='owner';paid=true;revoked=false;failGeneration=false;calls=0;refunds=0;testEnv={};chapterChars=2000;failKeys=new Set();seenOptions=[];});
+beforeEach(()=>{rows.clear();account='owner';paid=true;revoked=false;failGeneration=false;calls=0;refunds=0;testEnv={};chapterChars=2000;failKeys=new Set();seenOptions=[];transientLeft=0;});
 const V1={HEUKWOL_DELIVERY_V2_ENABLED:'false'};
 test('prepare cannot call LLM or start billing; unproven purchase is blocked',async()=>{
  expect((await post('prepare')).status).toBe(200);expect(rows.size).toBe(0);expect(calls).toBe(0);
@@ -80,6 +80,27 @@ describe('delivery plan v2 (new sessions only)',()=>{
   expect(tries.map(o=>o.finalAttempt)).toEqual([false,false,true]);
   expect(tries.map(o=>o.repairIssue)).toEqual(['','HEUKWOL_CHAPTER_SHORT','HEUKWOL_CHAPTER_SHORT']);
   expect(rows.get('owner:'+data.id).metadata.chapters.map(c=>c.key)).toEqual(['chapter-0','chapter-1']);
+ });
+ // R6b: 공급자·일시 오류(JSON 파싱 실패 등)는 품질 시도를 깎지 않는다. 별도 상한(4회) 뒤에는 품질 시도로 센다(fail-closed).
+ test('transient provider failures keep the quality attempts, carry the JSON repair hint and stay bounded',async()=>{
+  const data=await (await post('start')).json(),row=rows.get('owner:'+data.id),done=row.metadata.chapters.length,from=seenOptions.length;transientLeft=4;
+  for(let i=0;i<4;i++){const r=await advanceHeukwol({},'owner',data.id);expect(r.status).toBe(202);expect((await r.json()).status).toBe('generating');}
+  expect(row.metadata.attempts).toBe(0);expect(row.metadata.transientAttempts).toBe(4);expect(row.metadata.lastIssue).toBe('HEUKWOL_JSON_INVALID');
+  transientLeft=1;await advanceHeukwol({},'owner',data.id);
+  expect(row.metadata.attempts).toBe(1);expect(row.metadata.transientAttempts).toBe(4);
+  await advanceHeukwol({},'owner',data.id);
+  const tries=seenOptions.slice(from);expect(new Set(tries.map(o=>o.key))).toEqual(new Set([CHAPTERS[done].key]));
+  expect(tries.map(o=>o.finalAttempt)).toEqual([false,false,false,false,false,false]);
+  expect(tries.map(o=>o.relaxed)).toEqual([false,false,false,false,false,true]);
+  expect(tries.slice(1).every(o=>o.repairIssue==='HEUKWOL_JSON_INVALID')).toBe(true);
+  expect(row.metadata.chapters).toHaveLength(done+1);expect(row.metadata.transientAttempts).toBe(0);expect(row.metadata.attempts).toBe(0);
+ });
+ test('v1 transient failures answer 503 without spending attempts and still hold after the bounded counter (control)',async()=>{
+  testEnv=V1;const {id}=await (await post('start')).json(),row=rows.get('owner:'+id);transientLeft=7;
+  for(let i=0;i<4;i++)expect((await advanceHeukwol({},'owner',id)).status).toBe(503);
+  expect(row.metadata.attempts).toBe(0);
+  for(let i=0;i<3;i++)await advanceHeukwol({},'owner',id);
+  expect(refunds).toBe(0);expect(row.status).toBe('pending');expect(row.metadata.retryable?.refundAt).toBeTruthy();
  });
  // S16: 라운드를 다 쓴 장은 건너뛰지 않는다. 다음 라운드에 다시 써서 27장 전체로만 완료한다.
  test('an exhausted chapter goes back for another round and the report completes only with all 27 chapters',async()=>{
@@ -168,7 +189,7 @@ describe('free retry before refund',()=>{
  test('retry reopens the held session without a payment check and completes all chapters',async()=>{
   const {id,row}=await held();const kept=row.metadata.chapters.length;paid=false;
   const reopened=await post('retry',{id});expect(reopened.status).toBe(202);
-  expect(await reopened.json()).toMatchObject({status:'generating',id});expect(row.metadata).toMatchObject({attempts:0,retryable:null,chapterRounds:{},retryReopens:1});
+  expect(await reopened.json()).toMatchObject({status:'generating',id});expect(row.metadata).toMatchObject({attempts:0,transientAttempts:0,retryable:null,chapterRounds:{},retryReopens:1});
   expect(row.metadata.chapters).toHaveLength(kept);
   const done=await drive(id);expect(done.status).toBe('completed');expect(done.report.chapters).toHaveLength(27);expect(refunds).toBe(0);
   expect((await post('retry',{id})).status).toBe(409);

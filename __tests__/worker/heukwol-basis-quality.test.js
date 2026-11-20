@@ -4,7 +4,7 @@ import { buildHeukwolAnalysis, heukwolProfileBirth } from '../../worker/lib/heuk
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
 import { buildNeoBasisPayload } from '../../worker/lib/neo-operation-room-basis.js';
-import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
+import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, isHeukwolTransientError, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
 import { assertWorkersAiInputTokenLimit, workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 const now = new Date('2026-11-06T00:00:00Z');
@@ -300,6 +300,19 @@ describe('delivery plan v2 chapter acceptance', () => {
     await generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], capture).catch(() => {});
     expect(seen).toEqual(['persona', 'persona', 'persona']);
     expect(buildOutputLanguageDirective('ko', { register: 'persona' })).not.toContain('존댓말로 작성');
+  });
+  // R6b: 공급자 실패·JSON 파싱 실패는 품질 탈락과 구분되는 일시 오류로 표시하고, 파싱 실패는 수리 힌트 이슈를 단다.
+  test('provider and JSON parse failures are tagged transient; quality issues are not', async () => {
+    const outcome = p => p.then(() => null, e => e);
+    const down = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async () => ({ ok: false, error: 'http_503' }), v2()));
+    expect(down.message).toBe('HEUKWOL_GENERATION_UNAVAILABLE');expect(isHeukwolTransientError(down)).toBe(true);
+    const thrown = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async () => { throw new Error('fetch failed'); }, v2()));
+    expect(isHeukwolTransientError(thrown)).toBe(true);
+    const broken = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], async () => ({ ok: true, text: '{"warning": "끊긴' }), v2()));
+    expect(isHeukwolTransientError(broken)).toBe(true);expect(broken.heukwolIssue).toBe('HEUKWOL_JSON_INVALID');
+    expect(HEUKWOL_REPAIR_HINTS.HEUKWOL_JSON_INVALID).toBeTruthy();
+    const weak = await outcome(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue), v2()));
+    expect(weak.heukwolIssue).toBe('HEUKWOL_CHAPTER_SHORT');expect(isHeukwolTransientError(weak)).toBe(false);
   });
   test('without the v2 option the v1 validator still rejects short chapters', async () => {
     await expect(generateHeukwolChapter({}, analysis, HEUKWOL_CHAPTERS[0], '질문', [], providerOf(shortValue)))

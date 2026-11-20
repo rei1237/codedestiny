@@ -181,7 +181,13 @@ export const HEUKWOL_REPAIR_HINTS = Object.freeze({
   HEUKWOL_UNSUPPORTED_CLAIM: '확정·확률 표현을 쓰지 말고 조건부 경고로 바꾸세요.',
   HEUKWOL_EVIDENCE_INVALID: 'evidenceIds에는 계산 근거에 있는 ID만 넣으세요.',
   HEUKWOL_MONTH_EVIDENCE_REQUIRED: '월별 장은 그 달 구간의 saju-/ziwei- ID를 evidenceIds에 하나 이상 넣으세요.',
+  HEUKWOL_JSON_INVALID: '이전 응답이 JSON으로 읽히지 않았습니다. 설명·코드펜스 없이 반환 JSON 객체 하나만 쓰고 문자열 안 따옴표·줄바꿈은 이스케이프하세요.',
 });
+// R6b: 공급자·일시 오류(응답 없음·타임아웃·5xx/429·JSON 파싱 실패)는 품질 탈락이 아니다.
+// 라우트는 이 표식이 있는 실패를 품질 시도(attempts)와 따로 세고, 별도 상한을 넘기면 품질 시도로 넘긴다(무한 반복 없음).
+export const HEUKWOL_TRANSIENT_ATTEMPTS = 4;
+const heukwolTransient = (code, cause, issue='') => Object.assign(new Error(code),{heukwolTransient:true,cause,...(issue?{heukwolIssue:issue}:{})});
+export const isHeukwolTransientError = e => e?.heukwolTransient === true;
 const HEUKWOL_UNSUPPORTED = /100\s*[%％]|반드시\s*(?:사고|불행|재앙)|결제하면.{0,20}(?:막|해결)|사고\s*(?:발생\s*)?확률\s*[:：]?\s*\d/;
 const scrubUnsupported = text => String(text||'').split(/(?<=[.!?。？！]["'”’)\]」』]*)\s+/u)
   .filter(sentence=>!HEUKWOL_UNSUPPORTED.test(sentence)).join(' ').trim();
@@ -227,7 +233,8 @@ export function validateHeukwolChapterV2(value, analysis, chapter, {finalAttempt
 export async function generateHeukwolChapter(env, analysis, chapter, question, previous=[], generate=callGeminiJsonWithRetry, options={}) {
   const v2=Number(options?.deliveryPlanVersion)===HEUKWOL_DELIVERY_PLAN_VERSION;
   const hint=v2?HEUKWOL_REPAIR_HINTS[options?.repairIssue]||'':'';
-  const result=await generate(env,heukwolPrompt(analysis,chapter,question,previous,hint),{
+  let result;
+  try { result=await generate(env,heukwolPrompt(analysis,chapter,question,previous,hint),{
     attempts:1,baseTokens:16000,capTokens:16000,temperature:0.4,taskType:'fortune',
     // R6b: 연이(존댓말)·네오(반말) 두 화자가 말투를 나눠 쓰므로 공용 ko "존댓말" 최우선 지시를 끈다(한국어 전용 계약은 유지).
     // 켜 두면 네오 대응까지 합니다체가 되어 HEUKWOL_CHAPTER_REGISTER 로 결정적으로 탈락한다(영냥이 7757ef597 선례).
@@ -235,9 +242,11 @@ export async function generateHeukwolChapter(env, analysis, chapter, question, p
     // 원칙 17: 폴백 하한은 장 하한의 30%. 장 하한과 같게 두면 쓸 만한 폴백 답변까지 버려 장이 비어 버린다.
     timeoutMs:60000,fallbackToWorkersAI:true,fallbackMinChars:Math.round(HEUKWOL_CHAPTER_MIN_CHARS*0.3),
     ...(v2 || typeof options.finalAttempt === 'boolean' ? { finalProviderAttempt: options.finalAttempt === true } : {}),
-  });
-  if (!result?.ok) throw new Error('HEUKWOL_GENERATION_UNAVAILABLE');
-  const value = JSON.parse(result.text);
+  }); } catch (cause) { throw heukwolTransient('HEUKWOL_GENERATION_UNAVAILABLE', cause); }
+  if (!result?.ok) throw heukwolTransient('HEUKWOL_GENERATION_UNAVAILABLE');
+  let value;
+  try { value = JSON.parse(result.text); } catch (cause) { throw heukwolTransient('HEUKWOL_JSON_INVALID', cause, 'HEUKWOL_JSON_INVALID'); }
+  if (!value || typeof value !== 'object') throw heukwolTransient('HEUKWOL_JSON_INVALID', null, 'HEUKWOL_JSON_INVALID');
   let prior = previous.map(item => item.content || '').join('\n');
   for (const field of ['warning', 'interpretation', 'strategy']) {
     const raw = value[field];
