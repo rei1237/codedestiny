@@ -109,7 +109,10 @@ export async function settleStuckConsultation(env, { service, model, doc, now, r
   const prevRefundAt = ms(prev?.refundAt);
   const refundAt = Number.isFinite(prevRefundAt) ? new Date(prevRefundAt) : retryRefundAt(fresh, now);
   // 다시 시도 창 안: 환불하지 않고 다시 시도 가능으로 둔다.
-  if (refundAt.getTime() > now) {
+  // 운영 복구(supportRecovery)·토스(accessSource toss) 문서는 예외로 바로 정산한다 — 토스엔 다시 시도 화면이 없고
+  // 공용 환불 크론(runPendingConsultationRefunds)이 토스를 고르지 않아, 여기서 settle 이 manual_review 로 넘겨야 방치되지 않는다.
+  const deferrable = !fresh.llmMeta?.supportRecovery && fresh.accessSource !== 'toss';
+  if (deferrable && refundAt.getTime() > now) {
     const since = prev?.since ? new Date(prev.since) : new Date(now);
     const retryable = { ...(prev || {}), since, refundAt, code: 'DELIVERY_STUCK' };
     const result = await model.updateOne(cas, { $set: { ...failed, ...llmMetaFields(fresh, { ...unlock, 'llmMeta.retryable': retryable }) } });
@@ -117,9 +120,9 @@ export async function settleStuckConsultation(env, { service, model, doc, now, r
     logSettled({ service, sessionId, outcome: 'retryable', stalls });
     return { outcome: 'retryable', refundAt: refundAt.toISOString() };
   }
-  // 다시 시도 창이 지난 뒤의 정체: 기존처럼 환불 대상으로 확정하고 공용 환불을 부른다.
+  // 다시 시도 창이 지난 뒤의 정체(또는 위 예외 문서): 기존처럼 환불 대상으로 확정하고 공용 환불을 부른다.
   const result = await model.updateOne(cas, { $set: { ...failed, ...llmMetaFields(fresh, { ...unlock, 'llmMeta.refundEligibleAt': at,
-    'llmMeta.retryable.refundReason': 'RETRY_WINDOW_EXPIRED' }) } });
+    ...(deferrable ? { 'llmMeta.retryable.refundReason': 'RETRY_WINDOW_EXPIRED' } : {}) }) } });
   if (!result?.modifiedCount) return { outcome: 'progressed' };
   let refundStatus = 'pending';
   try {

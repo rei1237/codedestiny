@@ -132,6 +132,24 @@ test('다시 시도 창이 지난 뒤 다시 정체되면 바로 환불로 넘�
   expect(model.doc.llmMeta.refundEligibleAt).toBeTruthy();
 });
 
+// 토스 문서는 다시 시도 화면이 없고 공용 환불 크론(runPendingConsultationRefunds)이 accessSource toss 를 고르지 않는다.
+// 운영 복구(supportRecovery) 문서는 고객 다시 시도 흐름 밖이다. 둘 다 다시 시도 대기로 두면 7일 방치되므로 바로 정산한다.
+test.each([
+  ['토스', { accessSource: 'toss' }, 'manual_review'],
+  ['운영 복구', { supportRecovery: true }, 'refunded'],
+])('%s 문서의 정체 확정은 다시 시도 대기로 두지 않고 바로 정산한다', async (_label, extra, refundStatus) => {
+  const doc = baseDoc('partial', { deliveryWatch: { baseline: 1, stalls: 6 }, ...(extra.accessSource ? { accessSource: extra.accessSource } : {}) });
+  if (extra.supportRecovery) doc.llmMeta.supportRecovery = { active: true };
+  const model = memoryModel(doc);
+  const refund = jest.fn(async () => ({ refundStatus }));
+  const out = await stuck.settleStuckConsultation({}, { service: 'life-book-ai', model, doc: model.doc, now: START + 3600000, refund });
+  expect(out).toEqual({ outcome: 'generation_failed', refundStatus });
+  expect(refund).toHaveBeenCalledWith({}, { service: 'life-book-ai', id: 'session-1', userId: 'owner' });
+  expect(model.doc.status).toBe('generation_failed');
+  expect(model.doc.llmMeta.refundEligibleAt).toBeTruthy();
+  expect(model.doc.llmMeta.retryable).toBeUndefined();
+});
+
 // S16: 공용 설정자는 완성 판정(isComplete)을 통과한 delivery_pending 만 구제 전달하고, 미완성은 실패+환불한다.
 test('완성 판정을 통과하지 못한 delivery_pending 정체는 구제 전달하지 않고 다시 시도 가능한 실패로 둔다', async () => {
   const model = memoryModel(baseDoc('delivery_pending', { deliveryWatch: { baseline: 1, stalls: 6 } }));
