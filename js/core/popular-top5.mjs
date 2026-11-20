@@ -13,7 +13,7 @@ import { findPopularService, POPULAR_TOP_N, POPULAR_WINDOW_DAYS } from './popula
 export const POPULAR_TOP5_ENABLED = true;
 export const POPULAR_TOP5_ENDPOINT = '/api/popular-services';
 // 행 높이 고정(64px) × 5 + 머리글. 자리를 미리 잡아 두어 데이터가 와도 아래 내용이 밀리지 않는다.
-export const POPULAR_TOP5_RESERVED_HEIGHT = 452;
+export const POPULAR_TOP5_RESERVED_HEIGHT = 484;
 
 const STYLE_ID = 'cd-popular-top5-style';
 const CSS = `.cd-pop5{box-sizing:border-box;min-height:${POPULAR_TOP5_RESERVED_HEIGHT}px;margin:24px auto;max-width:640px;padding:20px 16px;border:1px solid var(--cd-yehwa-line);border-radius:var(--cd-r-card,20px);background:var(--cd-surface);color:var(--cd-text)}`
@@ -22,11 +22,12 @@ const CSS = `.cd-pop5{box-sizing:border-box;min-height:${POPULAR_TOP5_RESERVED_H
   + '.cd-pop5__list{list-style:none;margin:0;padding:0}.cd-pop5__item+.cd-pop5__item{border-top:1px solid var(--cd-yehwa-line)}'
   + '.cd-pop5__link{display:flex;align-items:center;gap:12px;height:64px;padding:0 4px;color:var(--cd-text);text-decoration:none;border-radius:12px}'
   + '.cd-pop5__link:focus-visible{outline:none;box-shadow:var(--cd-focus-ring)}@media (hover:hover){.cd-pop5__link:hover .cd-pop5__name{text-decoration:underline}}'
-  + '.cd-pop5__badge{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:36px;height:28px;padding:0 8px;box-sizing:border-box;border-radius:var(--cd-r-pill,999px);font-size:15px;font-weight:700;line-height:1;border:1px solid var(--cd-yehwa-line-deep);color:var(--cd-text);background:var(--cd-accent-soft)}'
+  + '.cd-pop5__badge{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;min-width:48px;height:28px;padding:0 8px;box-sizing:border-box;border-radius:var(--cd-r-pill,999px);font-size:15px;font-weight:700;line-height:1;border:1px solid var(--cd-yehwa-line-deep);color:var(--cd-text);background:var(--cd-accent-soft)}'
   + '.cd-pop5__badge--curated{font-size:13px;font-weight:600;background:transparent;color:var(--cd-text-muted)}'
-  + '.cd-pop5__img{flex:0 0 auto;width:44px;height:44px;border-radius:12px;object-fit:cover;background:var(--cd-accent-soft)}'
+  + '.cd-pop5 img.cd-pop5__img{flex:0 0 auto;width:44px;height:44px;border-radius:12px;object-fit:cover;background:var(--cd-accent-soft)}'
   + '.cd-pop5__name{flex:1 1 auto;min-width:0;font-size:17px;line-height:1.5;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
   + '.cd-pop5__arrow{flex:0 0 auto;color:var(--cd-text-muted)}'
+  + '.cd-pop5[data-cd-pop5-shell]{max-width:none;margin:24px 0}'
   + 'html:not([lang|=ko]) .cd-pop5{display:none!important}'
   + '.cd-pop5__note{margin:8px 0 0;font-size:13px;line-height:1.6;color:var(--cd-text-muted)}';
 

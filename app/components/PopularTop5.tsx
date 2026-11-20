@@ -3,7 +3,7 @@
 // 자리(높이)를 미리 잡아 두고 실패하면 자리째 치운다. 렌더 차단 CSS 를 늘리지 않으려고 스타일은 모듈이 늦게 넣는다.
 import { useEffect, useRef, useState } from 'react';
 
-const RESERVED_STYLE = { boxSizing: 'border-box' as const, minHeight: 452, maxWidth: 640, margin: '24px auto' };
+const RESERVED_STYLE = { boxSizing: 'border-box' as const, minHeight: 484, maxWidth: 640, margin: '24px auto' };
 
 export default function PopularTop5() {
   const ref = useRef<HTMLElement>(null);
