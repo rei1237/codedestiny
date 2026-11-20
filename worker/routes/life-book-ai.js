@@ -2728,12 +2728,32 @@ function lifeBookRetryPayload(doc) {
   return state ? { refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId: String(doc.id || "") } } : {};
 }
 
+// L2: 품질·조립 결손으로 닫힐 때 다시 쓸 책임 장. 모든 장이 통과·시도 소진이면 리셋할 행이 없어 다시 시도가
+// 생성 없이 같은 결손으로 또 실패했다. 결손을 장에 매핑하고, 못 찾으면 가장 짧은 장 하나를 다시 쓴다(전체 재생성 금지).
+function lifeBookRepairTargets(issues, plan, sections) {
+  const rows = Array.isArray(plan) ? plan : [];
+  const reopened = Object.fromEntries(Object.entries(sections || {}).map(([id, row]) => [id, { ...row, attempts: 0 }]));
+  const targets = mapIssuesToSections(issues, rows, reopened).targets.filter(id => sections?.[id]);
+  if (targets.length) return targets;
+  const shortest = rows.filter(section => section.kind === "chapter" && sections?.[section.id])
+    .sort((a, b) => Number(sections[a.id].chars || 0) - Number(sections[b.id].chars || 0))[0];
+  return shortest ? [shortest.id] : [];
+}
+
 // 다시 시도는 빠진 장만 다시 쓴다: 통과한 장은 그대로, 실패·보수 대기 장만 시도 수를 새로 연다. 웨이브 예산도 새로 연다.
+// 다시 쓸 장이 하나도 없으면(예전 품질 실패 보류 건) 실패 사유의 결손 책임 장을 보수 대기로 연다.
 function lifeBookRetryReset(fresh) {
   const stored = fresh?.llmMeta?.sections && typeof fresh.llmMeta.sections === "object" ? fresh.llmMeta.sections : {};
   const sections = {};
   for (const [id, row] of Object.entries(stored)) {
     sections[id] = row && typeof row === "object" && (!row.ok || row.needsRepair) ? { ...row, attempts: 0, failure: null } : row;
+  }
+  const plan = Array.isArray(fresh?.llmMeta?.plan) ? fresh.llmMeta.plan : [];
+  if (plan.length && plan.every(section => sections[section.id]?.ok && !sections[section.id].needsRepair)) {
+    const issues = String(fresh?.generationError?.message || "").replace(/^.*quality check failed:\s*/, "").split(/,\s*/).filter(Boolean);
+    for (const id of lifeBookRepairTargets(issues, plan, sections)) {
+      sections[id] = { ...sections[id], attempts: 0, failure: null, needsRepair: true, repairKind: "quality" };
+    }
   }
   return { "llmMeta.sections": sections, "llmMeta.waveCount": 0 };
 }
@@ -3453,6 +3473,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
           if (blockingIssues.length || unfinishedSections.length || !isLifeBookComplete(finalReport)) {
             const error = new Error(`Life book result quality check failed: ${blockingIssues.join(", ") || (unfinishedSections.length ? `unfinished_sections:${unfinishedSections.map(section => section.id).join(",")}` : "incomplete_report")}`);
             error.code = isLifeFortuneInput(normalized.input) ? "LIFE_FORTUNE_REPORT_INVALID" : "LLM_QUALITY_CHECK_FAILED";
+            // L2: 모든 장이 통과한 채 책 단위 결손으로 닫히면 책임 장을 보수 대기로 남겨, 다시 시도가 실제로 다시 쓰게 한다.
+            if (!unfinishedSections.length) error.lifeBookRepairRows = Object.fromEntries(lifeBookRepairTargets(blockingIssues, plan, sections)
+              .map(id => [`llmMeta.sections.${id}`, { ...sections[id], needsRepair: true, repairKind: "quality" }]));
             throw error;
           }
 
@@ -3522,6 +3545,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         const retry = lifeBookRetryMeta(request, auth, lock.doc || doc, error?.code);
         await saveLifeBookState({ userId: auth.userId, id: sessionId, lockToken: lock.lockToken, values: {
           status: "generation_failed", ...(retry ? { "llmMeta.retryable": retry } : { "llmMeta.refundEligibleAt": failedAt }),
+          ...(retry ? error?.lifeBookRepairRows || {} : {}),
           ...(recovery ? { "llmMeta.supportRecovery.active": false, "llmMeta.supportRecovery.finishedAt": failedAt } : {}), generationError: {
             code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
             message: clean(error?.message || error, 500), at: new Date().toISOString(),

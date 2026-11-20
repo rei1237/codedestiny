@@ -113,7 +113,7 @@ function fixture(accessType = 'pass', env = {}) {
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'isLifeBookSoftIssue', 'scrubLifeBookSectionResult', 'lifeBookDeliveryResponse', 'dropPriorHalfRepeats', 'lifeBookRetryMeta', 'lifeBookRetryPayload', 'lifeBookRetryReset', 'handleRetry', 'handleRefundRequest']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'isLifeBookSoftIssue', 'scrubLifeBookSectionResult', 'lifeBookDeliveryResponse', 'dropPriorHalfRepeats', 'lifeBookRetryMeta', 'lifeBookRetryPayload', 'lifeBookRepairTargets', 'lifeBookRetryReset', 'handleRetry', 'handleRefundRequest']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
@@ -901,4 +901,50 @@ test('S16: an in-progress 202 response carries progress only, no report body or 
   const done = await (await f.post()).json();
   assert.equal(done.status, 'completed'); assert.ok(done.reportJson?.chapters?.length === 15);
   assert.ok(done.messages.some(message => message.role === 'assistant' && message.content));
+});
+
+// L2: 품질·조립 결손으로 닫힌 책은 모든 장이 ok·시도 소진이라 리셋 대상이 없었다 — 다시 시도가 생성 없이 같은 결손으로 또 실패했다.
+// 다시 시도는 결손 책임 장을 실제로 다시 쓰고(캐시 우회) 완성해야 한다.
+function qualityTrapFixture(issueFor) {
+  const f = fixture();
+  f.ctx.buildSectionPlan = () => Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', index: i, planVersion: 2, evidenceRefs: [], minChars: 2000, targetChars: 4000 }));
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['mapIssuesToSections']);
+  const state = { retrying: false, healed: false, retryCaches: [] };
+  const base = f.ctx.generateSectionOnce;
+  f.ctx.generateSectionOnce = async (env, section, prompt, options) => {
+    if (state.retrying) { state.retryCaches.push(options?.cache ?? null); if (section.id === 'section2') state.healed = true; }
+    return base(env, section, prompt, options);
+  };
+  f.ctx.getLifeBookReportQualityIssues = () => state.healed ? [] : [issueFor];
+  return { f, state };
+}
+const retryRequest = (f, sessionId = f.doc.id) => f.ctx.handleRetry(new Request('https://mock.test/api/life-book-ai/retry', {
+  method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify({ sessionId }) }), {});
+
+for (const issue of ['chapter_3_summary_missing', 'forbidden_terms']) test(`L2: a book held for ${issue} regenerates on retry and completes`, async () => {
+  const { f, state } = qualityTrapFixture(issue);
+  for (let i = 0; i < 40 && !['completed', 'generation_failed'].includes(f.doc?.status); i++) await f.post();
+  assert.equal(f.doc.status, 'generation_failed'); assert.ok(retryOpen(f.doc));
+  // 모든 장이 통과·시도 소진 상태라도 다시 시도는 최소 한 장을 실제로 다시 쓴다.
+  if (issue === 'chapter_3_summary_missing') state.healed = false;
+  state.retrying = true; f.calls.length = 0;
+  if (issue === 'forbidden_terms') f.ctx.getLifeBookReportQualityIssues = () => f.calls.length ? [] : [issue];
+  await retryRequest(f);
+  for (let i = 0; i < 10 && !['completed', 'generation_failed'].includes(f.doc.status); i++) await f.post();
+  assert.ok(f.calls.length >= 1, 'retry must call the provider at least once');
+  if (issue === 'chapter_3_summary_missing') assert.ok(f.calls.includes('section2'));
+  assert.ok(f.calls.length < 15, 'retry does not rewrite the whole book');
+  assert.equal(f.doc.status, 'completed'); assert.equal(f.charges, 1); assert.equal(f.refunds, 0);
+});
+
+test('L2: a reset with no failed or repair-marked row still reopens one chapter for regeneration', () => {
+  const f = fixture();
+  load(f.ctx, 'worker/routes/life-book-ai.js', ['mapIssuesToSections']);
+  const plan = Array.from({ length: 4 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', index: i }));
+  const sections = Object.fromEntries(plan.map((row, i) => [row.id, { id: row.id, ok: true, needsRepair: false, attempts: 3, chars: 3000 - i * 10 }]));
+  const fromMessage = f.ctx.lifeBookRetryReset({ llmMeta: { plan, sections }, generationError: { message: 'Life book result quality check failed: chapter_2_summary_missing' } });
+  assert.deepEqual(Object.entries(fromMessage['llmMeta.sections']).filter(([, row]) => row.needsRepair).map(([id]) => id), ['section1']);
+  assert.equal(fromMessage['llmMeta.sections'].section1.attempts, 0);
+  const fallback = f.ctx.lifeBookRetryReset({ llmMeta: { plan, sections }, generationError: { message: 'incomplete_report' } });
+  assert.deepEqual(Object.entries(fallback['llmMeta.sections']).filter(([, row]) => row.needsRepair).map(([id]) => id), ['section3']);
 });
