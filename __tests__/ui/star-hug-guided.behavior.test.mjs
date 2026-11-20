@@ -19,9 +19,12 @@ const mocks = {
 export default function Picker({ onSelect }) { return createElement('button', { type: 'button', onClick: () => onSelect({}, globalThis.__profile) }, '저장 프로필'); }`,
   analytics: 'export const trackEvent = (name, params) => { (globalThis.__events ||= []).push([name, params]); };',
 };
-const MOCK_PATHS = [[/SavedBirthProfilePicker$/, 'picker'], [/\/analytics$/, 'analytics']];
+const MOCK_PATHS = [[/SavedBirthProfilePicker$/, 'picker'], [/\/analytics$/, 'analytics'], [/guided-flow\/flags\.mjs$/, 'flags']];
 
-async function load() {
+// 플래그 고정: 실제 flags.mjs 를 그대로 내보내되 넘긴 값만 덮어쓴다(W1 플래그 끔 = 이전 동작 확인용).
+const FLAGS_PATH = require('node:path').resolve('lib/guided-flow/flags.mjs').replace(/\\/g, '/');
+async function load(flags = {}) {
+  mocks.flags = `export * from '${FLAGS_PATH}';\n${Object.entries(flags).map(([k, v]) => `export const ${k} = ${JSON.stringify(v)};`).join('\n')}`;
   const output = await build({
     stdin: { contents: "export { default } from './app/yeon-star-hug/YeonStarHugGuided';", resolveDir: process.cwd(), loader: 'ts' },
     bundle: true, write: false, format: 'cjs', platform: 'node',
@@ -29,6 +32,7 @@ async function load() {
     external: ['react', 'react/jsx-runtime', 'react-dom'],
     plugins: [{ name: 'star-hug-mocks', setup(b) {
       b.onResolve({ filter: /.*/ }, (args) => {
+        if (args.namespace === 'mock') return undefined;
         const hit = MOCK_PATHS.find(([re]) => re.test(args.path));
         return hit ? { path: hit[1], namespace: 'mock' } : undefined;
       });
@@ -41,7 +45,8 @@ async function load() {
   return mod.exports;
 }
 
-const { default: YeonStarHugGuided } = await load();
+const { default: LegacyGuided } = await load({ GUIDED_BIRTH_STAR_HUG_ENABLED: false });
+let YeonStarHugGuided = LegacyGuided;
 const EMOTIONS = [{ key: 'happy', label: '행복해' }, { key: 'calm', label: '편안해' }, { key: 'worried', label: '걱정돼' }];
 const SIGNS = [{ sign: '물병자리', period: '1.20~2.18' }, { sign: '황소자리', period: '4.20~5.20' }, { sign: '사자자리', period: '7.23~8.22' }];
 const SAMPLES = ['요즘 마음이 자꾸 가라앉아요.', '새로운 시작이 두려워요.'];
@@ -153,3 +158,55 @@ test('저장 프로필을 고르면 원본 onProfileSelect 로 생년월일·이
   assert.equal(v.q('select[name="sign"]').value, '물병자리');
   await v.close();
 });
+
+// ── W1 공용 출생 입력(GUIDED_BIRTH_STAR_HUG_ENABLED): 감정 → 이름 → 생년월일(선택) → 시각 → 확인 → 별자리 → 고민, 원본 상태·run 은 같다 ──
+{
+  const { default: BirthGuided } = await load({ GUIDED_BIRTH_STAR_HUG_ENABLED: true });
+
+  test('W1 출생 입력: 이름 → 년·월·일 → 시진 → 확인 → 별자리(자동 매칭) → 원본 run 1회, 원본 값 형식(8·4자리) 유지', async () => {
+    YeonStarHugGuided = BirthGuided;
+    globalThis.__profile = undefined;
+    const v = await mount();
+    await v.click(v.byText('마음 별자리 시작'));
+    await v.click(v.byText('걱정돼')); await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '어떻게 불러 드릴까요?');
+    await v.setValue(v.q('input[name="name"]'), '달님');
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '생년월일을 알려 주세요');
+    await v.setValue(v.q('input[name="birth-year"]'), '1990');
+    await v.setValue(v.q('input[name="birth-month"]'), '5');
+    await v.setValue(v.q('input[name="birth-day"]'), '15');
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '태어난 시각을 아세요?');
+    await v.click(v.byText('묘시'));
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '입력한 정보가 맞나요?');
+    await v.click(v.byText('확인'));
+    assert.equal(v.heading(), '이 별자리가 맞나요?');
+    assert.equal(v.q('select[name="sign"]').value, '황소자리');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('다음'));
+    await waitFor(() => v.q('#original'));
+    assert.deepEqual(globalThis.__runs, [{ emotion: 'worried', birthDate: '19900515', birthTime: '0630', name: '달님', sign: '황소자리', concern: '' }]);
+    assert.ok(!JSON.stringify(globalThis.__events).includes('1990'), '측정에 생년월일을 싣지 않는다');
+    await v.close();
+  });
+
+  test('W1 출생 입력: 저장 프로필은 원본 onProfileSelect 로 채우고 확인 요약으로 간다', async () => {
+    YeonStarHugGuided = BirthGuided;
+    globalThis.__profile = { date: '19880203', time: '2310', name: '별' };
+    const v = await mount();
+    await v.click(v.byText('마음 별자리 시작'));
+    await v.click(v.byText('편안해')); await v.click(v.byText('다음'));
+    await v.click(v.byText('저장 프로필')); await flush();
+    await waitFor(() => v.heading() === '입력한 정보가 맞나요?');
+    const text = v.w.document.body.textContent;
+    assert.ok(text.includes('별') && text.includes('1988년 2월 3일') && text.includes('23:10'), '원본이 받은 프로필 값이 요약에 보인다');
+    await v.click(v.byText('확인'));
+    assert.equal(v.q('select[name="sign"]').value, '물병자리');
+    await v.click(v.byText('다음')); await v.click(v.byText('다음'));
+    await waitFor(() => v.q('#original'));
+    assert.deepEqual(globalThis.__runs[0], { emotion: 'calm', birthDate: '19880203', birthTime: '2310', name: '별', sign: '물병자리', concern: '' });
+    await v.close();
+  });
+}

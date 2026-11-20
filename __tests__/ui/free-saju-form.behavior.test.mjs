@@ -21,14 +21,22 @@ const mocks = {
 export const computeFreeSaju = async (input) => { (globalThis.__inputs ||= []).push(input); if (globalThis.__fail) throw new Error('bad'); return globalThis.__reading; };`,
 };
 
-async function load(entry) {
+// 플래그 고정: 실제 flags.mjs 를 그대로 내보내되 넘긴 값만 덮어쓴다(W1 플래그 끔 = 이전 동작 확인용).
+const FLAGS_PATH = require('node:path').resolve('lib/guided-flow/flags.mjs').replace(/\\/g, '/');
+async function load(entry, flags = {}) {
   const output = await build({
     entryPoints: [entry], bundle: true, write: false, format: 'cjs', platform: 'node',
     jsx: 'automatic', alias: { '@': process.cwd() }, logLevel: 'silent', loader: { '.json': 'json' },
     external: ['react', 'react/jsx-runtime', 'react-dom'],
     plugins: [{ name: 'free-saju-mocks', setup(b) {
       b.onResolve({ filter: /(\/analytics|free-saju\/engine)$/ }, (args) => ({ path: args.path.endsWith('engine') ? 'engine' : 'analytics', namespace: 'mock' }));
-      b.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({ contents: mocks[args.path], loader: 'js', resolveDir: process.cwd() }));
+      b.onResolve({ filter: /guided-flow\/flags\.mjs$/ }, (args) => (args.namespace === 'mock' ? undefined : { path: 'flags', namespace: 'mock' }));
+      b.onLoad({ filter: /.*/, namespace: 'mock' }, (args) => ({
+        contents: args.path === 'flags'
+          ? `export * from '${FLAGS_PATH}';\n${Object.entries(flags).map(([k, v]) => `export const ${k} = ${JSON.stringify(v)};`).join('\n')}`
+          : mocks[args.path],
+        loader: 'js', resolveDir: process.cwd(),
+      }));
       b.onLoad({ filter: /\.css$/ }, () => ({ contents: 'export default new Proxy({}, { get: (_, k) => String(k) });', loader: 'js' }));
     } }],
   });
@@ -104,7 +112,7 @@ const RESULT_LINE = '년주 庚午 · 월주 辛巳 · 일주 甲子 · 시주 �
 
 // ── 공통 스텝 플로우 판(FreeSajuGuided, 3c-A2): 원본과 같은 엔진 입력·측정·결과 문구 ──
 {
-  const FreeSajuGuided = await load('app/saju/free/FreeSajuGuided.tsx');
+  const FreeSajuGuided = await load('app/saju/free/FreeSajuGuided.tsx', { GUIDED_BIRTH_FREE_SAJU_ENABLED: false });
   const heading = (v) => v.q('[id^="gf-title-"]')?.textContent;
   async function walk(v, { date = '19900515', calendar = '음력 윤달', time = '' } = {}) {
     await v.click(v.byText('명식 보기 시작'));
@@ -153,5 +161,61 @@ const RESULT_LINE = '년주 庚午 · 월주 辛巳 · 일주 甲子 · 시주 �
     assert.ok(f.text().includes('입력한 날짜와 달력 구분을 확인해 주세요.'));
     assert.deepEqual(globalThis.__events.filter(([n]) => n.startsWith('free_saju_chart_')).map(([n]) => n), ['free_saju_chart_started']);
     await f.close();
+  });
+}
+
+// ── W1 공용 출생 입력(GUIDED_BIRTH_FREE_SAJU_ENABLED): 년·월·일 칸 → 달력 → 시진 칩 → 확인 요약, 엔진 입력은 같다 ──
+{
+  const FreeSajuGuided = await load('app/saju/free/FreeSajuGuided.tsx', { GUIDED_BIRTH_FREE_SAJU_ENABLED: true });
+  const heading = (v) => v.q('[id^="gf-title-"]')?.textContent;
+
+  test('W1 출생 입력: 칸 자동 이동·즉시 검증 → 시진 칩 → 확인 요약(수정하기) → 같은 엔진 입력·결과', async () => {
+    const v = await mount(FreeSajuGuided);
+    await v.click(v.byText('명식 보기 시작'));
+    assert.equal(heading(v), '생년월일을 알려 주세요');
+    const year = v.q('input[name="birth-year"]');
+    assert.equal(year.getAttribute('inputmode'), 'numeric');
+    await v.setValue(year, '1990');
+    assert.equal(v.w.document.activeElement, v.q('input[name="birth-month"]'), '연도 네 자리 뒤 월 칸으로');
+    await v.setValue(v.q('input[name="birth-month"]'), '02');
+    await v.setValue(v.q('input[name="birth-day"]'), '30');
+    assert.ok(v.text().includes('날짜를 다시 확인해 주세요'), '없는 날짜는 바로 알려 준다');
+    assert.equal(v.byText('다음').disabled, true);
+    await v.setValue(v.q('input[name="birth-month"]'), '05');
+    await v.setValue(v.q('input[name="birth-day"]'), '15');
+    await v.click(v.byText('다음'));
+    assert.equal(heading(v), '어떤 달력 기준인가요?');
+    await v.click(v.byText('음력 윤달')); await v.click(v.byText('다음'));
+    assert.equal(heading(v), '태어난 시각을 아세요?');
+    await v.click(v.byText('묘시'));
+    await v.click(v.byText('다음'));
+    assert.equal(heading(v), '입력한 정보가 맞나요?');
+    assert.ok(v.text().includes('1990년 5월 15일') && v.text().includes('묘시 (05:30~07:29)'));
+    assert.equal(v.q('input[name="birth-place"]'), null, '태어난 장소는 이 흐름에서 묻지 않는다');
+    await v.click(v.q('button[aria-label="태어난 시각 수정하기"]'));
+    assert.equal(heading(v), '태어난 시각을 아세요?');
+    await v.click(v.byText('시간을 몰라요'));
+    assert.equal(heading(v), '입력한 정보가 맞나요?');
+    assert.ok(v.text().includes('모름'));
+    await v.click(v.byText('확인')); await flush();
+    assert.equal(heading(v), '내 명식');
+    assert.deepEqual(globalThis.__inputs, [{ birthDate: '1990-05-15', birthTime: null, calendarType: 'lunar', leapMonth: true }]);
+    assert.ok(v.text().includes(RESULT_LINE));
+    await v.close();
+  });
+
+  test('W1 출생 입력: 직접 입력 시각은 HH:mm 로 엔진에 간다(time_known=true)', async () => {
+    const v = await mount(FreeSajuGuided);
+    await v.click(v.byText('명식 보기 시작'));
+    await v.setValue(v.q('input[name="birth-year"]'), '19900515');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('양력')); await v.click(v.byText('다음'));
+    await v.setValue(v.q('input[name="time"]'), '0730');
+    assert.equal(v.q('input[name="time"]').value, '07:30');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('확인')); await flush();
+    assert.deepEqual(globalThis.__inputs[0], { birthDate: '1990-05-15', birthTime: '07:30', calendarType: 'solar', leapMonth: false });
+    assert.equal(globalThis.__events.find(([n]) => n === 'free_saju_chart_started')[1].time_known, true);
+    await v.close();
   });
 }

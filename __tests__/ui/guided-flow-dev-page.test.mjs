@@ -43,3 +43,11 @@ test('Next dev discovers the same route and the page keeps its noindex metadata 
   assert.deepEqual(output.metadata.robots, { index: false, follow: false });
   assert.equal(output.default().type, 'main');
 });
+
+test('W1 출생 입력 데모도 개발에서만 보이고 noindex 다', () => {
+  const birth = new URL('../../app/dev/guided-flow/birth/page.dev.tsx', import.meta.url);
+  assert.equal(existsSync(new URL('../../app/dev/guided-flow/birth/page.tsx', import.meta.url)), false);
+  assert.equal(createValidFileMatcher(nextConfig(PHASE_PRODUCTION_BUILD).pageExtensions ?? defaults, app).isAppRouterPage(fileURLToPath(birth)), false);
+  assert.equal(createValidFileMatcher(nextConfig(PHASE_DEVELOPMENT_SERVER).pageExtensions, app).isAppRouterPage(fileURLToPath(birth)), true);
+  assert.match(readFileSync(birth, 'utf8'), /robots: \{ index: false, follow: false \}/);
+});
