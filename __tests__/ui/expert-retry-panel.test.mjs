@@ -75,3 +75,11 @@ test('ziwei web flow shows the retry panel in place for a held failure, never on
   assert.match(client, /paymentSurface === "toss" \|\| !id \? null : await probeExpertRetryHold\(`\/api\/ziwei-ai\/result\?id=/);
   assert.equal(client.match(/await heldRetryFor\(/g)?.length, 2, 'saved resume and submit polling both check for a held failure');
 });
+
+test('sukuyo compatibility web flow shows the retry panel in place for a held failure, never on Toss', () => {
+  const client = fs.readFileSync('app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx', 'utf8');
+  assert.match(client, /apiBase="\/api\/sukuyo-compatibility-ai"/);
+  assert.match(client, /retryHold && paymentSurface !== "toss"/);
+  assert.match(client, /paymentSurface === "toss" \? null : expertRetryHoldOf\(data, id\)/);
+  assert.equal(client.match(/= !data\.ok && "retry" in data \? heldRetryOf\(data, /g)?.length, 2, 'saved result and start both check for a held failure');
+});
