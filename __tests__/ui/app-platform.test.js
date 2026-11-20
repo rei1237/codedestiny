@@ -53,8 +53,8 @@ test("SSR(window 없음)은 isApp 규칙을 따른다", () => {
   assert.equal(sandbox.globalThis.__cdAppContext.getPlatform(), "web");
 });
 
-function runBridge(capacitor) {
-  const dom = new JSDOM("<!doctype html><html><body></body></html>", { url: "capacitor://localhost/", runScripts: "outside-only" });
+function runBridge(capacitor, url = "capacitor://localhost/") {
+  const dom = new JSDOM("<!doctype html><html><body></body></html>", { url, runScripts: "outside-only" });
   dom.window.fetch = async () => { throw new Error("network forbidden"); };
   if (capacitor) dom.window.Capacitor = capacitor;
   dom.window.eval(bridgeSource);
@@ -79,4 +79,14 @@ test("Capacitor 주입 전에는 추정값을 찍지 않고, load 뒤 주입되�
     dom.window.dispatchEvent(new dom.window.Event("load"));
     assert.equal(dom.window.document.documentElement.getAttribute("data-platform"), "ios");
   } finally { dom.window.close(); }
+});
+
+test("브릿지는 하이드레이션 전에 주소의 /index.html 꼬리를 떼어 프리렌더 경로와 맞춘다", () => {
+  for (const [from, to] of [["/index.html", "/"], ["/saju/index.html?lang=ko#top", "/saju/?lang=ko#top"]]) {
+    const dom = runBridge({ isNativePlatform: () => true, getPlatform: () => "ios", Plugins: {} }, "https://localhost" + from);
+    try {
+      const { pathname, search, hash } = dom.window.location;
+      assert.equal(pathname + search + hash, to);
+    } finally { dom.window.close(); }
+  }
 });

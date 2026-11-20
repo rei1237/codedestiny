@@ -3,17 +3,17 @@
 
   "shellRuntime.g0": {
     "ko": "유료 결제 상품은 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.",
-    "en": "Paid products are the Pass and per-item KRW single payments; Moonlight Stone is not a separately purchasable or rechargeable product.",
+    "en": "Paid products are the Pass and per-item KRW single payments; Moonstone is not a separately purchasable or rechargeable product.",
     "ja": "有料商品はパスと商品ごとのウォン単発決済であり、月精石は別途購入・チャージする商品ではありません。",
     "zh-CN": "付费商品为 通行证与按商品的韩元单次支付；月精石不是可单独购买或充值的商品。",
     "zh-TW": "付費商品為 通行證與按商品的韓元單次付款；月精石不是可單獨購買或儲值的商品。",
     "vi": "Sản phẩm trả phí gồm Thẻ Pass và thanh toán lẻ bằng KRW theo từng mục; Nguyệt Tinh Thạch không phải sản phẩm mua hay nạp riêng.",
-    "hi": "भुगतान वाले उत्पाद पास और प्रति-आइटम KRW एकल भुगतान हैं; मूनलाइट स्टोन अलग से खरीदा या रिचार्ज किया जाने वाला उत्पाद नहीं है।",
-    "es": "Los productos de pago son el Pase y los pagos únicos en KRW por artículo; la Piedra de Luz Lunar no es un producto que se compre o recargue por separado.",
-    "fr": "Les produits payants sont le Pass et les paiements uniques en KRW par article ; la Pierre de Clair de Lune n'est pas un produit achetable ou rechargeable séparément.",
-    "de": "Kostenpflichtige Produkte sind der Pass und Einzelzahlungen in KRW je Artikel; der Mondlichtstein ist kein separat kauf- oder aufladbares Produkt.",
-    "nl": "Betaalde producten zijn de Pas en losse betalingen in KRW per item; de Maanlichtsteen is geen apart te kopen of op te waarderen product.",
-    "ms": "Produk berbayar ialah Pas dan pembayaran tunggal KRW bagi setiap item; Batu Cahaya Bulan bukan produk yang dibeli atau ditambah nilai secara berasingan."
+    "hi": "भुगतान वाले उत्पाद पास और प्रति-आइटम KRW एकल भुगतान हैं; मूनस्टोन अलग से खरीदा या रिचार्ज किया जाने वाला उत्पाद नहीं है।",
+    "es": "Los productos de pago son el Pase y los pagos únicos en KRW por artículo; la Piedra Lunar no es un producto que se compre o recargue por separado.",
+    "fr": "Les produits payants sont le Pass et les paiements uniques en KRW par article ; la Pierre de Lune n'est pas un produit achetable ou rechargeable séparément.",
+    "de": "Kostenpflichtige Produkte sind der Pass und Einzelzahlungen in KRW je Artikel; der Mondstein ist kein separat kauf- oder aufladbares Produkt.",
+    "nl": "Betaalde producten zijn de Pas en losse betalingen in KRW per item; de Maansteen is geen apart te kopen of op te waarderen product.",
+    "ms": "Produk berbayar ialah Pas dan pembayaran tunggal KRW bagi setiap item; Batu Bulan bukan produk yang dibeli atau ditambah nilai secara berasingan."
   },
   "shellRuntime.g1": {
     "ko": "이용권과 상품별 원화 단건 결제는 결제일 또는 계약내용을 받은 날부터 7일 이내 청약철회를 요청할 수 있습니다. 청약철회 신청 시 구매 당시 사용한 결제 수단으로만 환금 처리되며, 신용카드 결제의 경우 카드사 정책에 따라 환급 기간이 상이할 수 있습니다.",
@@ -101,31 +101,31 @@
   },
   "shellRuntime.g7": {
     "ko": "월정석은 각 지급분이 지급된 날로부터 30일간만 유효하며, 그 기간 내에 사용하지 않은 지급분은 자동으로 소멸합니다. 여러 번 나눠 지급받은 경우 각 지급분이 자기 지급일 기준으로 개별 만료하고, 사용 시에는 먼저 만료되는 지급분부터 차감됩니다. 소멸된 월정석은 복구되지 않습니다.",
-    "en": "Each Moonlight Stone grant is valid for 30 days from the day it was issued; anything unused within that window expires automatically. If you received several grants, each expires on its own schedule, and spending draws first from the grant that expires soonest. Expired Moonlight Stone cannot be restored.",
+    "en": "Each Moonstone grant is valid for 30 days from the day it was issued; anything unused within that window expires automatically. If you received several grants, each expires on its own schedule, and spending draws first from the grant that expires soonest. Expired Moonstone cannot be restored.",
     "ja": "月精石は各付与分が付与された日から30日間のみ有効で、その期間内に使用しなかった分は自動的に消滅します。複数回に分けて付与された場合、それぞれが自身の付与日を基準に個別に期限を迎え、使用時は先に期限が来る分から差し引かれます。消滅した月精石は復元されません。",
     "zh-CN": "月精石每笔发放自发放之日起仅 30 天内有效，期限内未使用的部分将自动失效。若分多次获得，各笔按各自发放日单独到期；使用时优先扣除最早到期的部分。已失效的月精石无法恢复。",
     "zh-TW": "月精石每筆發放自發放之日起僅 30 天內有效，期限內未使用的部分將自動失效。若分多次取得，各筆按各自發放日單獨到期；使用時優先扣除最早到期的部分。已失效的月精石無法復原。",
     "vi": "Mỗi lần cấp Nguyệt Tinh Thạch chỉ có hiệu lực 30 ngày kể từ ngày cấp; phần chưa dùng trong thời hạn đó sẽ tự động mất. Nếu được cấp nhiều lần, mỗi lần hết hạn theo mốc riêng và khi sử dụng sẽ trừ từ phần hết hạn sớm nhất. Nguyệt Tinh Thạch đã mất không được khôi phục.",
-    "hi": "मूनलाइट स्टोन का प्रत्येक आवंटन जारी होने की तारीख़ से 30 दिनों तक ही मान्य है; उस अवधि में अप्रयुक्त हिस्सा स्वतः समाप्त हो जाता है। कई बार मिलने पर हर आवंटन अपनी तिथि से अलग-अलग समाप्त होता है, और खर्च पहले सबसे जल्दी समाप्त होने वाले से कटता है। समाप्त मूनलाइट स्टोन बहाल नहीं होता।",
-    "es": "Cada concesión de Piedra de Luz Lunar es válida 30 días desde su emisión; lo no usado en ese plazo caduca automáticamente. Si recibiste varias, cada una caduca por su cuenta y el consumo se descuenta primero de la que caduca antes. La Piedra caducada no se restaura.",
-    "fr": "Chaque attribution de Pierre de Clair de Lune est valable 30 jours à compter de son octroi ; ce qui n'est pas utilisé dans ce délai expire automatiquement. En cas d'attributions multiples, chacune expire selon sa propre date et la consommation débite d'abord celle qui expire le plus tôt. Les Pierres expirées ne sont pas restituées.",
-    "de": "Jede Gutschrift an Mondlichtstein ist 30 Tage ab Ausgabe gültig; nicht Genutztes verfällt in diesem Zeitraum automatisch. Bei mehreren Gutschriften verfällt jede nach ihrem eigenen Datum, und beim Einlösen wird zuerst die zuerst verfallende Gutschrift verbraucht. Verfallener Mondlichtstein wird nicht wiederhergestellt.",
-    "nl": "Elke toekenning van Maanlichtsteen is 30 dagen geldig vanaf de dag van uitgifte; wat je binnen die periode niet gebruikt, vervalt automatisch. Bij meerdere toekenningen verloopt elke afzonderlijk, en bij besteding gaat de eerst vervallende er als eerste af. Vervallen Maanlichtsteen wordt niet hersteld.",
-    "ms": "Setiap pemberian Batu Cahaya Bulan sah selama 30 hari dari tarikh ia dikeluarkan; bahagian yang tidak digunakan dalam tempoh itu luput secara automatik. Jika menerima beberapa kali, setiap pemberian luput mengikut tarikhnya sendiri, dan penggunaan ditolak daripada yang luput paling awal. Batu Cahaya Bulan yang luput tidak boleh dipulihkan."
+    "hi": "मूनस्टोन का प्रत्येक आवंटन जारी होने की तारीख़ से 30 दिनों तक ही मान्य है; उस अवधि में अप्रयुक्त हिस्सा स्वतः समाप्त हो जाता है। कई बार मिलने पर हर आवंटन अपनी तिथि से अलग-अलग समाप्त होता है, और खर्च पहले सबसे जल्दी समाप्त होने वाले से कटता है। समाप्त मूनस्टोन बहाल नहीं होता।",
+    "es": "Cada concesión de Piedra Lunar es válida 30 días desde su emisión; lo no usado en ese plazo caduca automáticamente. Si recibiste varias, cada una caduca por su cuenta y el consumo se descuenta primero de la que caduca antes. La Piedra caducada no se restaura.",
+    "fr": "Chaque attribution de Pierre de Lune est valable 30 jours à compter de son octroi ; ce qui n'est pas utilisé dans ce délai expire automatiquement. En cas d'attributions multiples, chacune expire selon sa propre date et la consommation débite d'abord celle qui expire le plus tôt. Les Pierres expirées ne sont pas restituées.",
+    "de": "Jede Gutschrift an Mondstein ist 30 Tage ab Ausgabe gültig; nicht Genutztes verfällt in diesem Zeitraum automatisch. Bei mehreren Gutschriften verfällt jede nach ihrem eigenen Datum, und beim Einlösen wird zuerst die zuerst verfallende Gutschrift verbraucht. Verfallener Mondstein wird nicht wiederhergestellt.",
+    "nl": "Elke toekenning van Maansteen is 30 dagen geldig vanaf de dag van uitgifte; wat je binnen die periode niet gebruikt, vervalt automatisch. Bij meerdere toekenningen verloopt elke afzonderlijk, en bij besteding gaat de eerst vervallende er als eerste af. Vervallen Maansteen wordt niet hersteld.",
+    "ms": "Setiap pemberian Batu Bulan sah selama 30 hari dari tarikh ia dikeluarkan; bahagian yang tidak digunakan dalam tempoh itu luput secara automatik. Jika menerima beberapa kali, setiap pemberian luput mengikut tarikhnya sendiri, dan penggunaan ditolak daripada yang luput paling awal. Batu Bulan yang luput tidak boleh dipulihkan."
   },
   "shellRuntime.g8": {
     "ko": "월정석은 구매·충전 상품이 아닌 보너스 혜택이므로 현금 환불 대상 결제 상품이 아닙니다. 다만 월정석을 지급한 원인이 되는 상품(예: 이용권)이 환급 대상인 경우, 해당 상품에 대해서만 환급 처리됩니다.",
-    "en": "Moonlight Stone is a bonus benefit, not a purchasable or rechargeable product, so it is not itself eligible for a cash refund. However, if the product that granted it (for example, a Pass) qualifies for a refund, the refund applies to that product only.",
+    "en": "Moonstone is a bonus benefit, not a purchasable or rechargeable product, so it is not itself eligible for a cash refund. However, if the product that granted it (for example, a Pass) qualifies for a refund, the refund applies to that product only.",
     "ja": "月精石は購入・チャージ商品ではなくボーナス特典であるため、現金返金の対象となる決済商品ではありません。ただし月精石を付与した原因となる商品（例：パス）が返金対象である場合、その商品についてのみ返金処理されます。",
     "zh-CN": "月精石属赠送权益，并非可购买或充值的商品，因此本身不适用现金退款。但若发放月精石的来源商品（如 通行证）符合退款条件，则仅就该商品办理退款。",
     "zh-TW": "月精石屬贈送權益，並非可購買或儲值的商品，因此本身不適用現金退款。但若發放月精石的來源商品（如 通行證）符合退款條件，則僅就該商品辦理退款。",
     "vi": "Nguyệt Tinh Thạch là quyền lợi thưởng, không phải sản phẩm mua hay nạp, nên bản thân nó không thuộc diện hoàn tiền mặt. Tuy nhiên, nếu sản phẩm phát sinh khoản thưởng đó (ví dụ Thẻ Pass) đủ điều kiện hoàn tiền thì chỉ sản phẩm đó được hoàn.",
-    "hi": "मूनलाइट स्टोन एक बोनस लाभ है, खरीदा या रिचार्ज किया जाने वाला उत्पाद नहीं, इसलिए यह स्वयं नकद रिफंड के योग्य नहीं है। हालाँकि जिस उत्पाद (जैसे पास) के कारण यह मिला, वह रिफंड योग्य हो तो केवल उसी उत्पाद का रिफंड होगा।",
-    "es": "La Piedra de Luz Lunar es una ventaja de bonificación, no un producto comprable o recargable, por lo que no da derecho a reembolso en efectivo. Ahora bien, si el producto que la otorgó (por ejemplo, un Pase) es reembolsable, el reembolso se aplica solo a ese producto.",
-    "fr": "La Pierre de Clair de Lune est un avantage bonus, non un produit achetable ou rechargeable ; elle n'ouvre donc pas droit à un remboursement en espèces. En revanche, si le produit qui l'a octroyée (par exemple un Pass) est remboursable, le remboursement porte uniquement sur ce produit.",
-    "de": "Der Mondlichtstein ist ein Bonusvorteil und kein kauf- oder aufladbares Produkt; er selbst ist daher nicht bar erstattungsfähig. Ist jedoch das Produkt, das ihn gewährt hat (z. B. ein Pass), erstattungsfähig, wird ausschließlich dieses Produkt erstattet.",
-    "nl": "De Maanlichtsteen is een bonusvoordeel, geen koop- of oplaadbaar product, en komt dus zelf niet in aanmerking voor restitutie in geld. Komt het product dat hem verstrekte (bijvoorbeeld een Pas) wél voor restitutie in aanmerking, dan geldt de terugbetaling alleen voor dat product.",
-    "ms": "Batu Cahaya Bulan ialah faedah bonus, bukan produk yang dibeli atau ditambah nilai, jadi ia sendiri tidak layak untuk bayaran balik tunai. Namun jika produk yang memberikannya (contohnya Pas) layak dibayar balik, bayaran balik dikenakan pada produk itu sahaja."
+    "hi": "मूनस्टोन एक बोनस लाभ है, खरीदा या रिचार्ज किया जाने वाला उत्पाद नहीं, इसलिए यह स्वयं नकद रिफंड के योग्य नहीं है। हालाँकि जिस उत्पाद (जैसे पास) के कारण यह मिला, वह रिफंड योग्य हो तो केवल उसी उत्पाद का रिफंड होगा।",
+    "es": "La Piedra Lunar es una ventaja de bonificación, no un producto comprable o recargable, por lo que no da derecho a reembolso en efectivo. Ahora bien, si el producto que la otorgó (por ejemplo, un Pase) es reembolsable, el reembolso se aplica solo a ese producto.",
+    "fr": "La Pierre de Lune est un avantage bonus, non un produit achetable ou rechargeable ; elle n'ouvre donc pas droit à un remboursement en espèces. En revanche, si le produit qui l'a octroyée (par exemple un Pass) est remboursable, le remboursement porte uniquement sur ce produit.",
+    "de": "Der Mondstein ist ein Bonusvorteil und kein kauf- oder aufladbares Produkt; er selbst ist daher nicht bar erstattungsfähig. Ist jedoch das Produkt, das ihn gewährt hat (z. B. ein Pass), erstattungsfähig, wird ausschließlich dieses Produkt erstattet.",
+    "nl": "De Maansteen is een bonusvoordeel, geen koop- of oplaadbaar product, en komt dus zelf niet in aanmerking voor restitutie in geld. Komt het product dat hem verstrekte (bijvoorbeeld een Pas) wél voor restitutie in aanmerking, dan geldt de terugbetaling alleen voor dat product.",
+    "ms": "Batu Bulan ialah faedah bonus, bukan produk yang dibeli atau ditambah nilai, jadi ia sendiri tidak layak untuk bayaran balik tunai. Namun jika produk yang memberikannya (contohnya Pas) layak dibayar balik, bayaran balik dikenakan pada produk itu sahaja."
   },
   "shellRuntime.g9": {
     "ko": "본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수는 문의하기 또는 고객지원 이메일을 통해 진행하시기 바랍니다.",

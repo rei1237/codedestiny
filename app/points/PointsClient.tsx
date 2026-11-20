@@ -969,12 +969,12 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       failed: "실패",
       pending: "대기",
     },
-    subscriptionAria: "달빛 이용권",
+    subscriptionAria: "꿀단지 이용권",
     toastCloseLabel: "알림 닫기",
     monthlyBonusAria: "월정석 보너스 잔량과 사용 내역",
     walletAria: "이용권 상점 안내",
     refundAgreement: "원화 결제된 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.",
-    passAlt: "달빛 이용권",
+    passAlt: "꿀단지 이용권",
     wonSinglePaymentAria: "원화 결제 안내",
     paymentFailureGuide: [
       "창 닫기/취소: 결제가 취소되어 이용권 권한이 생성되지 않습니다.",
@@ -982,8 +982,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       "카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.",
     ],
     accountInfoAria: "계정 정보",
-    currentPassAria: "현재 달빛 이용권",
-    passRemainingTitle: "달빛 이용권 상태",
+    currentPassAria: "현재 꿀단지 이용권",
+    passRemainingTitle: "꿀단지 이용권 상태",
     monthlyBonusPendingTitle: "월정석 정보 대기",
     monthlyBonusEmptyTitle: "월정석 사용 내역 없음",
     passOrderHistoryPendingTitle: "이용권 주문 내역 대기",
@@ -1001,7 +1001,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     passCycleTitle: "이번 이용권 이용 한도",
     passCycleSummary: (spent, cap) => `${spent} / ${cap} 사용`,
     passCycleRemaining: (remaining) => `${remaining} 남음`,
-    subscriptionPaymentChoiceTitle: "달빛 이용권 결제 방식 선택",
+    subscriptionPaymentChoiceTitle: "꿀단지 이용권 결제 방식 선택",
     passWonOnlyNotice: "이용권은 원화 단건 결제로만 구매할 수 있습니다.",
     passConditionsTitle: "이용권 조건",
     giftActivationNotice: "서버 결제 확인 후 선물 링크를 만들 수 있으며, 받는 사람이 로그인하여 수령한 날부터 이용권이 활성화됩니다.",
@@ -1104,12 +1104,12 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       failed: "Failed",
       pending: "Pending",
     },
-    subscriptionAria: "Moonlight pass",
+    subscriptionAria: "Honey Jar pass",
     toastCloseLabel: "Close notification",
     monthlyBonusAria: "Moon credit bonus balance and activity",
     walletAria: "Pass shop guide",
     refundAgreement: "I understand that the KRW pass activates immediately after payment and refunds may be limited once paid features are used.",
-    passAlt: "Moonlight pass",
+    passAlt: "Honey Jar pass",
     wonSinglePaymentAria: "KRW payment guide",
     paymentFailureGuide: [
       "Window closed/cancelled: payment is cancelled and pass access is not created.",
@@ -1117,8 +1117,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       "Card issuer maintenance: try again later or choose another payment method.",
     ],
     accountInfoAria: "Account information",
-    currentPassAria: "Current moonlight pass",
-    passRemainingTitle: "Moonlight pass status",
+    currentPassAria: "Current Honey Jar pass",
+    passRemainingTitle: "Honey Jar pass status",
     monthlyBonusPendingTitle: "Moonstone info unavailable",
     monthlyBonusEmptyTitle: "No moonstone usage history",
     passOrderHistoryPendingTitle: "Pass order history unavailable",
@@ -1166,9 +1166,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   ms: null as unknown as PointsPageCopy,
 };
 
-POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, passCommonLine: (count) => `すべてのパス共通: ライト占い${count}種を回数制限なし · 꿀꿀 운세とヨンニャンイのどちらでも · 期間制限なし`, passConsultLimit: (amount) => `相談上限 ${amount}`, passReachNone: "ヨンニャンイの相談は対象外です", passReachFish: (fish) => `ヨンニャンイ ${fish}まで`, passReachFusion: (assorted, omakase) => `ヨンニャンイ ${assorted}・${omakase}まで`, passCount: (fish, count) => `${fish} ${count}回`, passCountsLine: (counts) => `1種類だけ使う場合 ${counts}`, passDetails: "詳しい条件", passBackToConsultation: "この相談に戻る", defaultUserName: "ユーザー", defaultMemberName: "会員", periodLabel: "期間制限なし", passTerminationNote: "相談上限を使い切ってもパスは維持され、ライト占いは引き続き利用できます。再度購入すると新しい相談上限で始まります。 残額が対象の相談の最低料金を下回ると、相談枠は消化済みとなります。この状態で再購入しても残額は繰り越されません。", passLightLine: (count, amount) => `ライト占い${count}種を回数制限なし · 現在有料の占いだけで${amount}相当`, passAlt: "月明かり利用券", closeLabel: "閉じる", passCycleAria: "今回の利用券の利用上限", passCycleTitle: "今回の利用券の利用上限", passCycleSummary: (spent, cap) => `${spent} / ${cap} 利用`, passCycleRemaining: (remaining) => `残り ${remaining}`, subscriptionPaymentChoiceTitle: "月明かり利用券の決済方法を選択", passWonOnlyNotice: "利用券はウォン単発決済でのみ購入できます。", passConditionsTitle: "利用券の条件", giftActivationNotice: "サーバー決済確認後にギフトリンクを作成でき、受取人がログインして受け取った日から利用券が有効になります。", selfActivationNotice: "決済完了と同時にアカウントで有効化され、利用期間の定めなく維持されます。相談上限を使い切ってもライト占いは引き続き利用できます。", passWonOnlyActivationNotice: "利用券はウォン単発決済でのみ有効化でき、月光石では購入できません。", monthlyStoneNotUsableForPass: "保有している月光石は利用券の購入に使用できません。月光石自体は購入・チャージや現金払い戻しができず、各付与分は付与日から30日間のみ有効で未使用分は消滅します。", giftPendingRefundNotice: "未受領のギフトは既存の払い戻し規定に従って払い戻し審査を依頼できます。受領済みのギフトは運営確認が必要です。", passRefundWindowNotice: "ウォンで決済された利用券は、有料機能利用前であれば決済日から7日以内に払い戻しを申請でき、利用権の特典利用が開始された部分は払い戻しが制限される場合があります。", refundPolicyLinkLabel: "払い戻し規定の詳細を見る", giftPrepareLegend: "運命のギフトを準備する", giftNoAccountNotice: "受取人のアカウント情報なしでギフトリンクを送ることができます。", giftSenderNameLabel: "送り主の名前(任意)", giftRecipientNameLabel: "受取人の名前(任意)", giftMessageLabel: "ギフトメッセージ(任意)", giftGuidanceSummaryLabel: "ギフトの受け取り・利用・払い戻し案内", contentValueWonNotice: "コンテンツの価値はウォンで表示され、安全な決済ウィンドウで決済します。" };
-POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, passCommonLine: (count) => `所有蜜罐通用：${count}种轻量运势不限次数 · 꿀꿀 운세与灵喵均可使用 · 不限期限`, passConsultLimit: (amount) => `咨询额度 ${amount}`, passReachNone: "不适用于灵喵咨询", passReachFish: (fish) => `灵喵可用至${fish}`, passReachFusion: (assorted, omakase) => `灵喵可用至${assorted}、${omakase}`, passCount: (fish, count) => `${fish} ${count}次`, passCountsLine: (counts) => `只用一种鱼时：${counts}`, passDetails: "详细条件", passBackToConsultation: "返回本次咨询", defaultUserName: "用户", defaultMemberName: "会员", periodLabel: "不限期限", passTerminationNote: "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。重新购买将以新的咨询额度开始。 剩余额度低于适用咨询的最低价格时，视为额度用尽。此时重新购买，剩余额度不会结转。", passLightLine: (count, amount) => `${count}种轻量运势不限次数 · 仅计目前收费的运势，价值${amount}`, passAlt: "月光通行证", closeLabel: "关闭", passCycleAria: "本次通行证的使用额度", passCycleTitle: "本次通行证使用额度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩余 ${remaining}`, subscriptionPaymentChoiceTitle: "选择月光通行证的支付方式", passWonOnlyNotice: "通行证仅支持韩元单笔支付购买。", passConditionsTitle: "通行证条件", giftActivationNotice: "服务器确认支付后即可生成礼物链接,通行证从接收人登录领取当天起生效。", selfActivationNotice: "支付完成后立即在账户中激活,不设使用期限。咨询额度用完后,轻量运势仍可继续使用。", passWonOnlyActivationNotice: "通行证仅可通过韩元单笔支付激活,无法使用月光石购买。", monthlyStoneNotUsableForPass: "您持有的月光石无法用于购买通行证。月光石本身无法购买、充值或兑换现金,每笔发放自发放之日起仅30天内有效,未使用部分将失效。", giftPendingRefundNotice: "未领取的礼物可依据现行退款政策申请退款审核。已领取的礼物需要运营方确认。", passRefundWindowNotice: "以韩元支付的通行证可在付费功能使用前、自付款日起7天内申请退款,通行证权益已开始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策详情", giftPrepareLegend: "准备命运之礼", giftNoAccountNotice: "无需接收人的账户信息即可发送礼物链接。", giftSenderNameLabel: "赠送人姓名(选填)", giftRecipientNameLabel: "接收人姓名(选填)", giftMessageLabel: "礼物留言(选填)", giftGuidanceSummaryLabel: "礼物领取、使用与退款说明", contentValueWonNotice: "内容价值以韩元显示,通过安全支付窗口完成支付。" };
-POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], passCommonLine: (count) => `所有蜜罐通用：${count}種輕量運勢不限次數 · 꿀꿀 운세與靈喵皆可使用 · 不限期限`, passConsultLimit: (amount) => `諮詢額度 ${amount}`, passReachNone: "不適用於靈喵諮詢", passReachFish: (fish) => `靈喵可用至${fish}`, passReachFusion: (assorted, omakase) => `靈喵可用至${assorted}、${omakase}`, passCount: (fish, count) => `${fish} ${count}次`, passCountsLine: (counts) => `只用一種魚時：${counts}`, passDetails: "詳細條件", passBackToConsultation: "返回本次諮詢", defaultUserName: "使用者", defaultMemberName: "會員", passTerminationNote: "諮詢額度用完後，通行證仍然保留，輕量運勢可繼續使用。重新購買將以新的諮詢額度開始。 剩餘額度低於適用諮詢的最低價格時，視為額度用盡。此時重新購買，剩餘額度不會結轉。", passLightLine: (count, amount) => `${count}種輕量運勢不限次數 · 僅計目前收費的運勢，價值${amount}`, passAlt: "月光通行證", closeLabel: "關閉", passCycleAria: "本次通行證的使用額度", passCycleTitle: "本次通行證使用額度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩餘 ${remaining}`, subscriptionPaymentChoiceTitle: "選擇月光通行證的支付方式", passWonOnlyNotice: "通行證僅支援韓元單筆支付購買。", passConditionsTitle: "通行證條件", giftActivationNotice: "伺服器確認支付後即可產生禮物連結,通行證從接收人登入領取當天起生效。", selfActivationNotice: "支付完成後立即在帳戶中啟用,不設使用期限。諮詢額度用完後,輕量運勢仍可繼續使用。", passWonOnlyActivationNotice: "通行證僅可透過韓元單筆支付啟用,無法使用月光石購買。", monthlyStoneNotUsableForPass: "您持有的月光石無法用於購買通行證。月光石本身無法購買、儲值或兌換現金,每筆發放自發放之日起僅30天內有效,未使用部分將失效。", giftPendingRefundNotice: "未領取的禮物可依現行退款政策申請退款審核。已領取的禮物需要營運方確認。", passRefundWindowNotice: "以韓元支付的通行證可在付費功能使用前、自付款日起7天內申請退款,通行證權益已開始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策詳情", giftPrepareLegend: "準備命運之禮", giftNoAccountNotice: "無需接收人的帳戶資訊即可傳送禮物連結。", giftSenderNameLabel: "贈送人姓名(選填)", giftRecipientNameLabel: "接收人姓名(選填)", giftMessageLabel: "禮物留言(選填)", giftGuidanceSummaryLabel: "禮物領取、使用與退款說明", contentValueWonNotice: "內容價值以韓元顯示,並透過安全支付頁面完成付款。" };
+POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, passCommonLine: (count) => `すべてのパス共通: ライト占い${count}種を回数制限なし · 꿀꿀 운세とヨンニャンイのどちらでも · 期間制限なし`, passConsultLimit: (amount) => `相談上限 ${amount}`, passReachNone: "ヨンニャンイの相談は対象外です", passReachFish: (fish) => `ヨンニャンイ ${fish}まで`, passReachFusion: (assorted, omakase) => `ヨンニャンイ ${assorted}・${omakase}まで`, passCount: (fish, count) => `${fish} ${count}回`, passCountsLine: (counts) => `1種類だけ使う場合 ${counts}`, passDetails: "詳しい条件", passBackToConsultation: "この相談に戻る", defaultUserName: "ユーザー", defaultMemberName: "会員", periodLabel: "期間制限なし", passTerminationNote: "相談上限を使い切ってもパスは維持され、ライト占いは引き続き利用できます。再度購入すると新しい相談上限で始まります。 残額が対象の相談の最低料金を下回ると、相談枠は消化済みとなります。この状態で再購入しても残額は繰り越されません。", passLightLine: (count, amount) => `ライト占い${count}種を回数制限なし · 現在有料の占いだけで${amount}相当`, passAlt: "はちみつ壺利用券", closeLabel: "閉じる", passCycleAria: "今回の利用券の利用上限", passCycleTitle: "今回の利用券の利用上限", passCycleSummary: (spent, cap) => `${spent} / ${cap} 利用`, passCycleRemaining: (remaining) => `残り ${remaining}`, subscriptionPaymentChoiceTitle: "はちみつ壺利用券の決済方法を選択", passWonOnlyNotice: "利用券はウォン単発決済でのみ購入できます。", passConditionsTitle: "利用券の条件", giftActivationNotice: "サーバー決済確認後にギフトリンクを作成でき、受取人がログインして受け取った日から利用券が有効になります。", selfActivationNotice: "決済完了と同時にアカウントで有効化され、利用期間の定めなく維持されます。相談上限を使い切ってもライト占いは引き続き利用できます。", passWonOnlyActivationNotice: "利用券はウォン単発決済でのみ有効化でき、月精石では購入できません。", monthlyStoneNotUsableForPass: "保有している月精石は利用券の購入に使用できません。月精石自体は購入・チャージや現金払い戻しができず、各付与分は付与日から30日間のみ有効で未使用分は消滅します。", giftPendingRefundNotice: "未受領のギフトは既存の払い戻し規定に従って払い戻し審査を依頼できます。受領済みのギフトは運営確認が必要です。", passRefundWindowNotice: "ウォンで決済された利用券は、有料機能利用前であれば決済日から7日以内に払い戻しを申請でき、利用権の特典利用が開始された部分は払い戻しが制限される場合があります。", refundPolicyLinkLabel: "払い戻し規定の詳細を見る", giftPrepareLegend: "運命のギフトを準備する", giftNoAccountNotice: "受取人のアカウント情報なしでギフトリンクを送ることができます。", giftSenderNameLabel: "送り主の名前(任意)", giftRecipientNameLabel: "受取人の名前(任意)", giftMessageLabel: "ギフトメッセージ(任意)", giftGuidanceSummaryLabel: "ギフトの受け取り・利用・払い戻し案内", contentValueWonNotice: "コンテンツの価値はウォンで表示され、安全な決済ウィンドウで決済します。" };
+POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, passCommonLine: (count) => `所有蜜罐通用：${count}种轻量运势不限次数 · 꿀꿀 운세与灵喵均可使用 · 不限期限`, passConsultLimit: (amount) => `咨询额度 ${amount}`, passReachNone: "不适用于灵喵咨询", passReachFish: (fish) => `灵喵可用至${fish}`, passReachFusion: (assorted, omakase) => `灵喵可用至${assorted}、${omakase}`, passCount: (fish, count) => `${fish} ${count}次`, passCountsLine: (counts) => `只用一种鱼时：${counts}`, passDetails: "详细条件", passBackToConsultation: "返回本次咨询", defaultUserName: "用户", defaultMemberName: "会员", periodLabel: "不限期限", passTerminationNote: "咨询额度用完后，通行证仍然保留，轻量运势可继续使用。重新购买将以新的咨询额度开始。 剩余额度低于适用咨询的最低价格时，视为额度用尽。此时重新购买，剩余额度不会结转。", passLightLine: (count, amount) => `${count}种轻量运势不限次数 · 仅计目前收费的运势，价值${amount}`, passAlt: "蜜罐通行证", closeLabel: "关闭", passCycleAria: "本次通行证的使用额度", passCycleTitle: "本次通行证使用额度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩余 ${remaining}`, subscriptionPaymentChoiceTitle: "选择蜜罐通行证的支付方式", passWonOnlyNotice: "通行证仅支持韩元单笔支付购买。", passConditionsTitle: "通行证条件", giftActivationNotice: "服务器确认支付后即可生成礼物链接,通行证从接收人登录领取当天起生效。", selfActivationNotice: "支付完成后立即在账户中激活,不设使用期限。咨询额度用完后,轻量运势仍可继续使用。", passWonOnlyActivationNotice: "通行证仅可通过韩元单笔支付激活,无法使用月精石购买。", monthlyStoneNotUsableForPass: "您持有的月精石无法用于购买通行证。月精石本身无法购买、充值或兑换现金,每笔发放自发放之日起仅30天内有效,未使用部分将失效。", giftPendingRefundNotice: "未领取的礼物可依据现行退款政策申请退款审核。已领取的礼物需要运营方确认。", passRefundWindowNotice: "以韩元支付的通行证可在付费功能使用前、自付款日起7天内申请退款,通行证权益已开始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策详情", giftPrepareLegend: "准备命运之礼", giftNoAccountNotice: "无需接收人的账户信息即可发送礼物链接。", giftSenderNameLabel: "赠送人姓名(选填)", giftRecipientNameLabel: "接收人姓名(选填)", giftMessageLabel: "礼物留言(选填)", giftGuidanceSummaryLabel: "礼物领取、使用与退款说明", contentValueWonNotice: "内容价值以韩元显示,通过安全支付窗口完成支付。" };
+POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], passCommonLine: (count) => `所有蜜罐通用：${count}種輕量運勢不限次數 · 꿀꿀 운세與靈喵皆可使用 · 不限期限`, passConsultLimit: (amount) => `諮詢額度 ${amount}`, passReachNone: "不適用於靈喵諮詢", passReachFish: (fish) => `靈喵可用至${fish}`, passReachFusion: (assorted, omakase) => `靈喵可用至${assorted}、${omakase}`, passCount: (fish, count) => `${fish} ${count}次`, passCountsLine: (counts) => `只用一種魚時：${counts}`, passDetails: "詳細條件", passBackToConsultation: "返回本次諮詢", defaultUserName: "使用者", defaultMemberName: "會員", passTerminationNote: "諮詢額度用完後，通行證仍然保留，輕量運勢可繼續使用。重新購買將以新的諮詢額度開始。 剩餘額度低於適用諮詢的最低價格時，視為額度用盡。此時重新購買，剩餘額度不會結轉。", passLightLine: (count, amount) => `${count}種輕量運勢不限次數 · 僅計目前收費的運勢，價值${amount}`, passAlt: "蜜罐通行證", closeLabel: "關閉", passCycleAria: "本次通行證的使用額度", passCycleTitle: "本次通行證使用額度", passCycleSummary: (spent, cap) => `已使用 ${spent} / ${cap}`, passCycleRemaining: (remaining) => `剩餘 ${remaining}`, subscriptionPaymentChoiceTitle: "選擇蜜罐通行證的支付方式", passWonOnlyNotice: "通行證僅支援韓元單筆支付購買。", passConditionsTitle: "通行證條件", giftActivationNotice: "伺服器確認支付後即可產生禮物連結,通行證從接收人登入領取當天起生效。", selfActivationNotice: "支付完成後立即在帳戶中啟用,不設使用期限。諮詢額度用完後,輕量運勢仍可繼續使用。", passWonOnlyActivationNotice: "通行證僅可透過韓元單筆支付啟用,無法使用月精石購買。", monthlyStoneNotUsableForPass: "您持有的月精石無法用於購買通行證。月精石本身無法購買、儲值或兌換現金,每筆發放自發放之日起僅30天內有效,未使用部分將失效。", giftPendingRefundNotice: "未領取的禮物可依現行退款政策申請退款審核。已領取的禮物需要營運方確認。", passRefundWindowNotice: "以韓元支付的通行證可在付費功能使用前、自付款日起7天內申請退款,通行證權益已開始使用的部分退款可能受限。", refundPolicyLinkLabel: "查看退款政策詳情", giftPrepareLegend: "準備命運之禮", giftNoAccountNotice: "無需接收人的帳戶資訊即可傳送禮物連結。", giftSenderNameLabel: "贈送人姓名(選填)", giftRecipientNameLabel: "接收人姓名(選填)", giftMessageLabel: "禮物留言(選填)", giftGuidanceSummaryLabel: "禮物領取、使用與退款說明", contentValueWonNotice: "內容價值以韓元顯示,並透過安全支付頁面完成付款。" };
 
 for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale[]) {
   POINTS_PAGE_COPY[locale] = POINTS_PAGE_COPY.en;
@@ -1341,7 +1341,7 @@ function formatMonthlyCreditLedgerAmount(entry: MonthlyCreditLedgerItem, copy: P
 function formatMonthlyCreditLedgerReason(entry: MonthlyCreditLedgerItem) {
   const reason = String(entry.reason || "").trim();
   if (reason.includes("membership_credit_access")) return "유료 기능 이용";
-  if (reason.includes("monthly-credit membership pass purchase")) return "달빛 이용권 활성화";
+  if (reason.includes("monthly-credit membership pass purchase")) return "꿀단지 이용권 활성화";
   if (reason) return reason;
   if (entry.type === "MONTHLY_CREDIT_GRANT") return "보너스 월정석 지급";
   if (entry.type === "MONTHLY_CREDIT_SPEND") return "보너스 월정석 사용";
@@ -1973,7 +1973,7 @@ function MonthlyCreditBonusCard({
           <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">보너스 월정석</p>
           <h3 className="mt-1 text-lg font-black text-white">월정석 잔량</h3>
           <p className="mt-1 text-sm text-slate-200">
-            월정석은 달빛 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다. 받은 날로부터 30일간만 유효하고, 그 안에 쓰지 않은 지급분은 소멸합니다.
+            월정석은 꿀단지 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다. 받은 날로부터 30일간만 유효하고, 그 안에 쓰지 않은 지급분은 소멸합니다.
           </p>
         </div>
         <div className="rounded-[18px] border border-[#f3dd9a]/48 bg-[#f3dd9a]/18 px-4 py-3 text-left sm:text-right">
@@ -2058,9 +2058,9 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
             </div>
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">
-                연이의 달빛 이용권 상점
+                연이의 꿀단지 이용권 상점
               </p>
-              <p className="mt-1 text-[17px] font-black leading-tight text-white">{name} 님의 달빛 이용권 상점</p>
+              <p className="mt-1 text-[17px] font-black leading-tight text-white">{name} 님의 꿀단지 이용권 상점</p>
             </div>
           </div>
 
@@ -2169,7 +2169,7 @@ function MoonlightActivePassCard({
               </div>
             )}
             <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">나의 달빛 이용권 혜택</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">나의 꿀단지 이용권 혜택</p>
               <h2 className="mt-1 text-xl font-black leading-tight text-white">{title}</h2>
               <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--moon-teal)]">
                 <span className="h-2 w-2 rounded-full bg-[color:var(--moon-teal)] shadow-[0_0_12px_rgba(94,234,212,0.76)]" aria-hidden="true" />
@@ -2257,7 +2257,7 @@ function MoonlightMonthlyCreditCard({
             <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">보너스 월정석</p>
             <h2 className="mt-2 text-2xl font-black text-white">월정석의 흐름을 불러오는 중이에요</h2>
             <p className="mt-3 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-              달빛 이용권과 보너스 혜택을 조용히 정돈하고 있어요.
+              꿀단지 이용권과 보너스 혜택을 조용히 정돈하고 있어요.
             </p>
           </div>
           <div className="moonstone-counter flex min-h-[168px] min-w-[196px] flex-col items-center justify-center rounded-[22px] px-8 py-6 text-center">
@@ -2332,7 +2332,7 @@ function MoonlightMonthlyCreditCard({
             <MoonIcon phase="crescent" className="h-14 w-14" title={copy.monthlyBonusEmptyTitle} />
             <p className="mt-3 text-base font-black text-white">아직 달빛이 흐르지 않았어요</p>
             <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
-              달빛 이용권을 구매하면 보너스 월정석을 받을 수 있어요.
+              꿀단지 이용권을 구매하면 보너스 월정석을 받을 수 있어요.
             </p>
           </div>
         ) : (
@@ -2436,7 +2436,7 @@ function MoonlightShopPlans({
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
 
-          <h2 className="mt-2 text-2xl font-black text-white">문라이트 패스(꿀단지 이용권)</h2>
+          <h2 className="mt-2 text-2xl font-black text-white">꿀단지 이용권</h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -2628,7 +2628,7 @@ function MoonlightOrderHistory({
       ) : payments.length === 0 ? (
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
           <ShopPigImage className="h-[72px] w-[72px] object-contain drop-shadow-[0_6px_14px_rgba(3,4,18,0.5)]" />
-          <p className="mt-3 text-base font-black text-white">첫 번째 달빛 이용권을 구매해보세요</p>
+          <p className="mt-3 text-base font-black text-white">첫 번째 꿀단지 이용권을 구매해보세요</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             이용권 주문 내역이 이곳에 차분히 쌓입니다.
           </p>
@@ -2722,7 +2722,7 @@ export default function PointsPage() {
   const authState = useAuthStore();
   const userAccess = useUserAccess();
   const authStoreUserId = authState.user?.id || "";
-  // 영냥이 세트 카드도 달빛 이용권 카드와 같은 원화 청구 고지를 쓴다(문구 정본은 이 파일의 useOverseasCharge 하나).
+  // 영냥이 세트 카드도 꿀단지 이용권 카드와 같은 원화 청구 고지를 쓴다(문구 정본은 이 파일의 useOverseasCharge 하나).
 
   /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
   const redirectHandledRef = useRef(false);
@@ -3031,7 +3031,7 @@ export default function PointsPage() {
       destination.searchParams.set("paid_pass_resume", "1");
       destination.searchParams.set("paymentId", orderId);
     }
-    pushToast("success", "달빛 이용권이 적용되었습니다. 원래 보시던 화면으로 돌아갈게요.");
+    pushToast("success", "꿀단지 이용권이 적용되었습니다. 원래 보시던 화면으로 돌아갈게요.");
     // 🔴 예전에는 스냅샷을 지우고 떠났다. 그러면 목적지의 재예열이 idle(1200~2200ms)이라, 도착 직후
     // 첫 클릭이 snapshotVerdictOnly 진입 판정에서 indeterminate 로 떨어져 **방금 이용권을 산 사용자에게
     // 결제창이 다시 뜨는** 레이스가 났다(이중구매 노출). 인증이 가장 뜨거운 지금 서버 정본을 직접 받아
@@ -4876,17 +4876,17 @@ export default function PointsPage() {
                 />
                 <div>
                   <p className="text-xs font-extrabold tracking-[0.22em] text-[#ded4ff] uppercase">
-                    연이의 달빛 이용권 상점
+                    연이의 꿀단지 이용권 상점
                   </p>
                   {/* 🔴 h1 이 아니라 h2 다(2026-09-07). 이 블록은 `{false &&}` 로 죽어 있지만
                       verify:hydrated-h1-integrity 는 파일을 정적으로 읽으므로, 여기 h1 이 남아 있으면
                       "서버 h1(MoonShopFrame 히어로) + ssr:false 클라이언트 h1" 으로 잡힌다.
                       /points 의 h1 정본은 app/points/MoonShopFrame.tsx 의 MoonlightShopHero 하나다. */}
                   <h2 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
-                    연이의 달빛 이용권 상점
+                    연이의 꿀단지 이용권 상점
                   </h2>
                   <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
-                    달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
+                    꿀단지 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
                   </p>
                   <p className="mt-1 text-[13px] font-semibold text-[#ffe8a3]">
                     이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.

@@ -219,6 +219,12 @@
   CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
   Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
 
+# iOS 유니버설 링크(AASA). 확장자가 없어 규칙이 없으면 application/octet-stream 으로 나가고 Apple 이 거부한다.
+# 파일은 Team ID 가 있을 때만 생긴다(scripts/write-apple-app-site-association.mjs). 파일이 없으면 이 경로는 지금처럼 404 다.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=3600
+
 # Version/status files: no-store cache
 /version.json
   Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate

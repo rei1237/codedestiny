@@ -121,7 +121,7 @@ type SubscriptionStatusCopy = {
 const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = {
   ko: {
     ariaLabel: "현재 이용권 상태",
-    eyebrow: "나의 달빛 이용권 혜택",
+    eyebrow: "나의 꿀단지 이용권 혜택",
     fallbackBenefit: "단건 결제 가능",
     currentUsing: (label) => `현재 ${label} 이용 중 · 이용 한도 안에서 이용 가능`,
     summary: ({ label, benefit, value }) => `${label} · ${benefit} · ${value}`,
@@ -175,7 +175,7 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
   },
   en: {
     ariaLabel: "Current pass status",
-    eyebrow: "My Moonlight Pass benefits",
+    eyebrow: "My Honey Jar Pass benefits",
     fallbackBenefit: "Single payments available",
     currentUsing: (label) => `${label} is active · Available within your usage limit`,
     summary: ({ label, benefit, value }) => `${label} · ${benefit} · ${value}`,
@@ -229,7 +229,7 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
   },
   ja: {
     ariaLabel: "現在の利用券ステータス",
-    eyebrow: "私の月明かり利用券特典",
+    eyebrow: "私のはちみつ壺利用券特典",
     fallbackBenefit: "単品決済が利用できます",
     currentUsing: (label) => `現在 ${label} を利用中 · 利用上限の範囲内で使えます`,
     summary: ({ label, benefit, value }) => `${label} · ${benefit} · ${value}`,
@@ -283,7 +283,7 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
   },
   "zh-CN": {
     ariaLabel: "当前通行证状态",
-    eyebrow: "我的月光通行证权益",
+    eyebrow: "我的蜜罐通行证权益",
     fallbackBenefit: "可单次付款",
     currentUsing: (label) => `当前正在使用 ${label} · 可在使用额度内继续使用`,
     summary: ({ label, benefit, value }) => `${label} · ${benefit} · ${value}`,
@@ -337,7 +337,7 @@ const SUBSCRIPTION_STATUS_COPY: Record<LoadingLocale, SubscriptionStatusCopy> = 
   },
   "zh-TW": {
     ariaLabel: "目前通行證狀態",
-    eyebrow: "我的月光通行證權益",
+    eyebrow: "我的蜜罐通行證權益",
     fallbackBenefit: "可單次付款",
     currentUsing: (label) => `目前正在使用 ${label} · 可在使用額度內繼續使用`,
     summary: ({ label, benefit, value }) => `${label} · ${benefit} · ${value}`,

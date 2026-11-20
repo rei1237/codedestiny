@@ -838,22 +838,22 @@
       "aria": "Mondlicht-Schicksalskollektion"
     },
     "passMini": {
-      "aria": "Moonlight-Passführer",
-      "kicker": "MOONLIGHT PASS",
-      "title": "Lassen Sie Ihre Glücksroutine mit einem Mondschein-Pass sanfter ablaufen",
-      "desc": "Der Moonlight Pass öffnet – innerhalb eines festgelegten Bereichs, bis sein Nutzungslimit aufgebraucht ist – die Readings, zu denen du oft zurückkehrst. Die Zeichen des Tages laufen ohne Unterbrechung weiter.",
-      "guideLabel": "MONDLICHT-WEGWEISER",
+      "aria": "Honigglas-Passführer",
+      "kicker": "HONIGGLAS-PASS",
+      "title": "Lassen Sie Ihre Glücksroutine mit einem Honigglas-Pass sanfter ablaufen",
+      "desc": "Der Honigglas-Pass öffnet – innerhalb eines festgelegten Bereichs, bis sein Nutzungslimit aufgebraucht ist – die Readings, zu denen du oft zurückkehrst. Die Zeichen des Tages laufen ohne Unterbrechung weiter.",
+      "guideLabel": "HONIGGLAS-PASS-GUIDE",
       "guideTitle": "Bis dein Nutzungslimit aufgebraucht ist, öffnen sich oft besuchte Deutungen sanfter zuerst",
       "guideText": "Vom Kleinen Honigglas bis zum Familien-Honigglas öffnen sich Tarot-, Orakel- und Saju-Deutungen innerhalb deines Mondlicht-Rahmens zuerst ohne Zahlungsfluss. Tiefere Deutungen außerhalb dieses Rahmens führen nur bei Bedarf zur einmaligen KRW-Zahlung.",
-      "toggle": "Offene Moonlight-Vorteile",
-      "heroAria": "Überprüfen Sie die im Moonlight Flow kostenlos verfügbaren Dienste",
-      "heroTitle": "Den Umfang des Moonlight Pass ansehen",
-      "heroSub": "Setze die Readings, zu denen du am häufigsten zurückkehrst, in deinem Moonlight Pass fort",
+      "toggle": "Honigglas-Vorteile anzeigen",
+      "heroAria": "Mit dem Honigglas-Pass nutzbare Dienste ansehen",
+      "heroTitle": "Den Umfang des Honigglas-Passes ansehen",
+      "heroSub": "Setze die Readings, zu denen du am häufigsten zurückkehrst, in deinem Honigglas-Pass fort",
       "heroCta": "Anzeigen",
       "balanceLabel": "Monatlicher Steinsaldo",
       "balanceEmpty": "0 übrig",
       "balanceHint": "Überprüfen Sie Ihr monatliches Steinguthaben. Durch das Teilen auf KakaoTalk werden weitere monatliche Steine ​​hinzugefügt.",
-      "primaryAction": "Finden Sie den Pass, der zu mir passt",
+      "primaryAction": "Honigglas-Pass ansehen",
       "chipsAria": "Vorteile des Hauptpasses",
       "chipIncluded": "Sofort mit dem Pass öffnen",
       "chipThirtyDays": "Pass",
@@ -883,15 +883,15 @@
       "familyCta": "Familien-Honigglas ansehen",
       "premiumNote": "Das Mittlere Honigglas ist die ausgewogenste Wahl, wenn Sie oft Inhalte um 10.000 KRW nutzen.",
       "footnote": "Pässe haben keine Laufzeitbegrenzung und enden, wenn das Nutzungslimit aufgebraucht ist. Bei diesem Pass handelt es sich nicht um ein Abonnement mit automatischer Verlängerung. Dienste außerhalb des Passbereichs können mit einer einmaligen KRW-Zahlung pro Produkt genutzt werden.",
-      "howtoAria": "So nutzt du den Moonlight Pass",
-      "howtoTitle": "So läuft der Moonlight Pass",
-      "step1Label": "Wähle einen Mondbereich",
+      "howtoAria": "So nutzt du den Honigglas-Pass",
+      "howtoTitle": "So läuft der Honigglas-Pass",
+      "step1Label": "Wähle die Größe deines Honigglases",
       "step1Text": "Mit einem Pass ohne Laufzeitbegrenzung und ohne automatische Verlängerung legst du zuerst die Preisspanne der Readings fest, die du oft ansiehst.",
       "step2Label": "Readings im Bereich öffnen ohne Bezahlung",
       "step2Text": "Tarot-, Orakel- und Saju-Readings innerhalb deines Bereichs öffnen sich sofort, ganz ohne Bezahlfenster.",
       "step3Label": "Nur tiefere Readings kosten pro Nutzung",
       "step3Text": "Readings außerhalb deines Bereichs führen nur bei Bedarf zu einer einmaligen KRW-Zahlung.",
-      "terminationNote": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine.",
+      "terminationNote": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondsteine.",
       "noExpiryNote": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung"
     },
     "promptHub": {
@@ -933,7 +933,7 @@
     },
     "passFooter": {
       "aria": "Übergeben Sie die Fußzeilenanleitung",
-      "eyebrow": "Mondscheinpass",
+      "eyebrow": "Honigglas-Pass",
       "savingsBadge": "Mit Pass bis zu einem Drittel des Preises",
       "title": "Drei Readings zu 5.000 KRW kosten bereits mehr als der Pass für 14.900 KRW",
       "desc": "Readings innerhalb der gewählten Preisspanne öffnen sich, bis Ihr Nutzungslimit aufgebraucht ist; nur teurere Readings zahlen Sie bei Bedarf einzeln. Die vier Stufen sind 5.000 KRW · 10.000 KRW · 30.000 KRW und alle im Pass enthaltenen Inhalte – wählen Sie die Preisklasse, die Sie am häufigsten nutzen.",
@@ -941,9 +941,9 @@
       "point1": "Öffnet sofort, ohne Bezahlvorgang",
       "point2": "Ohne Laufzeitbegrenzung · Keine automatische Verlängerung",
       "point3": "Ein Pass ohne automatische Verlängerung",
-      "mascotAria": "Vorteile des Moonlight Pass ansehen · Moonlight-Pass-Shop",
-      "mascotAlt": "Bild der Moonlight-Pass-Vorteile",
-      "mascotKicker": "Moonlight Pass Guide",
+      "mascotAria": "Vorteile des Honigglas-Passes ansehen · Honigglas-Pass-Shop",
+      "mascotAlt": "Bild der Honigglas-Pass-Vorteile",
+      "mascotKicker": "Honey Jar Pass Guide",
       "mascotText": "Wie oft im Monat und zu welchem Preis — klär diese zwei Dinge, und der passende Bereich ergibt sich.",
       "cta": "Alle vier Pässe vergleichen und wählen"
     },
@@ -1704,7 +1704,7 @@
       "searchPlaceholder": "Liebe, Geld, Jobwechsel … Deutungen suchen",
       "filterToggle": "Filter",
       "filterMorePurpose": "Weitere Anliegen",
-      "shareReward": "100 Mondlichtsteine, wenn sich ein Freund registriert",
+      "shareReward": "100 Mondsteine, wenn sich ein Freund registriert",
       "shareTerms": "Nur wenn dein Freund die Registrierung über den mit diesem Button geteilten Link abschließt · Höchstens 500 pro Tag · Ab Erhalt 30 Tage nutzbar",
       "todayGateCta": "Profil erstellen und Tagesdeutung ansehen",
       "todayGateDesc": "Anhand deines Geburtsdatums berechnen wir den heutigen Saju-Tagespfeiler, die 27 Sukuyo-Mondhäuser und die vedische Mondposition passend zu deinem Geburtshoroskop.",
@@ -2003,7 +2003,7 @@
     },
     "passCopy": {
       "myTitle": "Meine Pässe",
-      "flowerPass": "🌸 Moonlight Pass Blumenschwein",
+      "flowerPass": "🌸 Honigglas-Pass Blumenschwein",
       "packPass": "Yeongnyangi-Pass",
       "packTitle": "Yeongnyangi-Beratungspässe",
       "packName": "{fish}-Set mit {total} Nutzungen",
@@ -2289,7 +2289,7 @@
       "pace": "Ohne Zeitlimit, in deinem Tempo.",
       "end": "Leichte Deutungen bleiben nutzbar, auch wenn das Beratungsbudget aufgebraucht ist.",
       "alt": "Blumenferkel Yeoni und Yeongnyangi halten gemeinsam einen Honigtopf",
-      "moon": "Mondschein-Pass!",
+      "moon": "Honigglas-Pass!",
       "choose": "Wähle deinen Honigtopf.",
       "value": "Wert zum Einzelpreis",
       "price": "Passpreis",
@@ -2305,7 +2305,7 @@
       "hint": "Bild wählen, um Preise und Vorteile zu vergleichen.",
       "select": "Wählen",
       "selected": "Ausgewählt",
-      "compactTitle": "Honigtopf-Pässe",
+      "compactTitle": "Honigglas-Pässe",
       "conditions": "Leistungsumfang und Bedingungen",
       "otherServices": "Pässe für andere Dienste ansehen",
       "lightBanner": "Auch der kleine Honigtopf enthält alle {count} leichten Deutungen.",
@@ -2968,7 +2968,7 @@
       "monthlyTitle": "Mit Mondsteinen öffnen",
       "requiredMonthly": "Erforderliche Credits",
       "currentMonthly": "Aktueller Kontostand",
-      "musicTrackSub": "Mit dem Mondscheinpass hörst du alle Titel sofort. MP3-Downloads gibt es nur für Titel, die per Einzelkauf oder mit Mondsteinen gekauft wurden.",
+      "musicTrackSub": "Mit dem Honigglas-Pass hörst du alle Titel sofort. MP3-Downloads gibt es nur für Titel, die per Einzelkauf oder mit Mondsteinen gekauft wurden.",
       "defaultTitle": "Kostenpflichtiger Dienst",
       "passApplyFailed": "Dein Pass konnte nicht angewendet werden.",
       "passAppliedUiFailed": "Dein Pass wurde angewendet, aber die Anzeige wurde nicht aktualisiert. Bitte nicht bezahlen – tippe einfach noch einmal auf diese Karte.",
@@ -2992,8 +2992,8 @@
         "passMiss": "Dein Pass öffnet diesen Inhalt nicht kostenlos – hier sind die Zahlungsoptionen.",
         "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
-      "passBadge": "Mondscheinpass",
-      "passStoreTitle": "Moonlight Pass Shop",
+      "passBadge": "Honigglas-Pass",
+      "passStoreTitle": "Honey Jar Pass Shop",
       "passRetryTitle": "Überprüfen Sie erneut, ob die Prüfung bestanden hat",
       "passHint": {
         "store": "Einmal zahlen und viele Inhalte öffnen, bis das Nutzungslimit aufgebraucht ist. Schon einen? Tippen zum Prüfen.",
@@ -3099,7 +3099,7 @@
       },
       "clean": {
         "pass": {
-          "eyebrow": "MOONLIGHT PASS CHECK",
+          "eyebrow": "HONIGGLAS-PASS-PRÜFUNG",
           "title": "Überprüfen Sie Ihren Pass",
           "message": "Wir prüfen, ob Ihr Pass dies sofort öffnen kann.",
           "meta": "Falls verfügbar, fahren Sie ohne Checkout-Fenster fort."
@@ -3135,13 +3135,13 @@
           "meta": "Sie können es ansehen, sobald die Überprüfung abgeschlossen ist."
         },
         "monthly": {
-          "eyebrow": "MOONLIGHT STONE CHECK",
+          "eyebrow": "MONDSTEIN-PRÜFUNG",
           "title": "Überprüfung der monatlichen Kreditzahlung",
           "message": "Öffnen Sie den Zugriff auf Inhalte mit Ihrem monatlichen Guthaben.",
           "meta": "Gutschriftsabzug und Zugriffsrechte sicher aufeinander abstimmen."
         },
         "subscription": {
-          "eyebrow": "AKTIVIERUNG DES MOONLIGHT PASS",
+          "eyebrow": "AKTIVIERUNG DES HONIGGLAS-PASSES",
           "title": "Zahlung des KRW-Passes wird überprüft",
           "message": "Genehmigung und Aktivierung der Passzahlung werden geprüft.",
           "meta": "Passstufe und Dauer sicher anwenden."
@@ -3170,7 +3170,7 @@
       },
       "default": {
         "pass": {
-          "eyebrow": "MOONLIGHT PASS CHECK",
+          "eyebrow": "HONIGGLAS-PASS-PRÜFUNG",
           "title": "Überprüfen Sie Ihren Pass",
           "message": "Wir prüfen, ob Ihr Pass dies sofort öffnen kann.",
           "meta": "Falls verfügbar, fahren Sie ohne Checkout-Fenster fort."
@@ -3206,13 +3206,13 @@
           "meta": "Sie können es ansehen, sobald die Überprüfung abgeschlossen ist."
         },
         "monthly": {
-          "eyebrow": "MOONLIGHT STONE CHECK",
+          "eyebrow": "MONDSTEIN-PRÜFUNG",
           "title": "Überprüfung der monatlichen Kreditzahlung",
           "message": "Öffnen Sie den Zugriff auf Inhalte mit Ihrem monatlichen Guthaben.",
           "meta": "Gutschriftsabzug und Zugriffsrechte sicher aufeinander abstimmen."
         },
         "subscription": {
-          "eyebrow": "AKTIVIERUNG DES MOONLIGHT PASS",
+          "eyebrow": "AKTIVIERUNG DES HONIGGLAS-PASSES",
           "title": "Zahlung des KRW-Passes wird überprüft",
           "message": "Genehmigung und Aktivierung der Passzahlung werden geprüft.",
           "meta": "Passstufe und Dauer sicher anwenden."
@@ -3264,10 +3264,10 @@
       "allFeatures": "Alle im Pass enthaltenen Inhalte",
       "upTo": "Verfügbar bis {amount}",
       "benefits": "Vorteile auf einen Blick",
-      "closeAria": "Moonlight Pass Shop-Guide schließen",
-      "openAria": "Öffnen Sie den Moonlight Pass Shop-Guide",
-      "title": "Moonlight Pass Shop-Guide",
-      "subtitle": "Pässe werden per Einmalzahlung in KRW gekauft; Mondlichtsteine werden für einzelne kostenpflichtige Funktionen verwendet.",
+      "closeAria": "Honigglas-Pass Shop-Guide schließen",
+      "openAria": "Öffnen Sie den Honigglas-Pass Shop-Guide",
+      "title": "Honigglas-Pass Shop-Guide",
+      "subtitle": "Pässe werden per Einmalzahlung in KRW gekauft; Mondsteine werden für einzelne kostenpflichtige Funktionen verwendet.",
       "footerNotice": "Bei diesem Pass handelt es sich nicht um ein Produkt mit automatischer Verlängerung. Sie müssen ihn erneut kaufen, sobald das Nutzungslimit aufgebraucht ist.",
       "packages": {
         "standard": {
@@ -3293,7 +3293,7 @@
       "monthlyButton": "Mit {credits} Monatsguthaben bezahlen",
       "monthlyButtonBusy": "Pass wird mit Monatsguthaben aktiviert...",
       "monthlyButtonShort": "{credits} nötig · Guthaben zu gering",
-      "terminationNotice": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondlichtsteine."
+      "terminationNotice": "Der Pass bleibt aktiv, auch wenn das Beratungslimit aufgebraucht ist, und leichte Deutungen bleiben verfügbar. Für weitere Signature-Beratungen kaufe einen neuen Pass oder nutze eine Einzelzahlung oder Mondsteine."
     },
     "access": {
       "passAppliedContinue": "Mit Ihrem Pass geöffnet."
@@ -3352,7 +3352,7 @@
       "signupButton": "Registrieren"
     },
     "passCheckingGreeting": "Pass wird überprüft",
-    "passCheckingNote": "Ihr Mondlicht-Pass und Ihre Mitgliedsstufe werden sicher abgeglichen.",
+    "passCheckingNote": "Ihr Honigglas-Pass und Ihre Mitgliedsstufe werden sicher abgeglichen.",
     "exitBenefit": {
       "title": "Schließe die kostenlose Manseryeok-Anleitung ab und erhalte {amount} Mondsteine",
       "copy": "Einmal nach der Anmeldung und kostenlosen Manseryeok-Übersicht mit deinem gespeicherten Profil abholen. Wer das frühere Anmeldegeschenk erhalten hat, erhält keine zweite Gutschrift. Wert: 5.000 KRW. Ab Ausgabe {days} Tage als Rabatt auf berechtigte Dienste ab 10.000 KRW nutzbar.",
@@ -6036,7 +6036,7 @@
       "passActiveUnlockDesc": "Ihr Premium-Pass schaltet dies dauerhaft ohne einmalige Zahlung frei.",
       "unlockTitle": "Dauerhafte Entsperrung: {amount}",
       "unlockDesc": "Einmal entsperren und weiter verwenden. Ein Premium-Pass kann es auch freischalten.",
-      "ziweiConsultDesc": "Die Eingabe ist kostenlos. Beim Klicken auf die Schaltfläche „Beratung erstellen“ wird eine einmalige Zahlung von 30.000 Won oder die Überprüfung Ihres Pass/Mondlichtsteins durchgeführt."
+      "ziweiConsultDesc": "Die Eingabe ist kostenlos. Beim Klicken auf die Schaltfläche „Beratung erstellen“ wird eine einmalige Zahlung von 30.000 Won oder die Überprüfung Ihres Pass/Mondsteins durchgeführt."
     }
   },
   "famousSaju": {
@@ -7714,12 +7714,12 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Mondlicht-Vorteile einklappen"
+      "kr1a9l9": "Honigglas-Vorteile einklappen"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {
         "k1yqmdmg": {
-          "ariaLabel": "Informationen zum Mondlicht-Pass"
+          "ariaLabel": "Informationen zum Honigglas-Pass"
         }
       }
     },
@@ -8135,7 +8135,7 @@
         "kxatr2b": "Wählbare Abläufe, die die Facetten Ihrer Sorgen sanft entwirren",
         "kyk2x3o": "Entscheidungshilfe basierend auf Glückszyklus und Jahreszyklus",
         "n12NPC": "Täglich wechselndes Inselwetter und Gespräche mit 12-Haus-NPCs",
-        "n30000": "Einzelzahlung von 30.000 Won oder Pass · Mondlichtstein",
+        "n30000": "Einzelzahlung von 30.000 Won oder Pass · Mondstein",
         "kfib4kf": "Die Energie der beiden Optionen an der Weggabelung vergleichen",
         "k1vetwxt": "Ihr Lebenskurs, gelesen aus dem Glückszyklus und dem Jahr, das Sie durchlaufen",
         "k67hhx7": "Eine Zukunftssimulation, die skizziert, was auf jede Wahl folgt",
@@ -8367,7 +8367,7 @@
     },
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
-        "k1ubfgod": "300 Mondlichtsteine"
+        "k1ubfgod": "300 Mondsteine"
       },
       "cdFeedbackBody": {
         "k2a2ghh": "A bug, an awkward screen, a moment of \"I wish this existed\" — anything is welcome.",
@@ -8729,9 +8729,9 @@
       "011": "Temperatur"
     },
     "message": {
-      "001": "Mondlichtstein-Informationen werden überprüft.",
-      "002": "Mondlichtstein wird aktiviert und ist bald verfügbar.",
-      "003": "Mondlichtstein wird aktiviert und ist bald verfügbar.",
+      "001": "Mondstein-Informationen werden überprüft.",
+      "002": "Mondstein wird aktiviert und ist bald verfügbar.",
+      "003": "Mondstein wird aktiviert und ist bald verfügbar.",
       "004": "Kartenzahlung wird vorbereitet.",
       "005": "Zahlung abgeschlossen. Ergebnisse werden geladen.",
       "006": "Pass wird überprüft.",
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
+      "tagline": "A Honey Jar Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",
@@ -21037,7 +21037,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Preis pro Deutung · 1 Folgefrage inklusive · Für Tarot gilt kein Moonstone; für Vier Säulen, Kompatibilität und Sukuyo schon.",
+      "priceNote": "Preis pro Deutung · 1 Folgefrage inklusive · Für Tarot gilt kein Mondstein; für Vier Säulen, Kompatibilität und Sukuyo schon.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -21068,7 +21068,7 @@
       "question": "My question",
       "price": "Single-reading price",
       "scope": "Kernantwort · Deutungsgrundlagen · Handlungsschritte · Brief von Yeoni · 1 Folgefrage",
-      "policy": "Für Tarot gilt kein Moonstone; ob Pass gilt, wird im nächsten Schritt geprüft. Nach Erhalt Ihrer Deutung können Sie ohne Zusatzkosten 1 Folgefrage auf derselben Grundlage stellen (Geburtshoroskop, Karten oder Geburts-Mondstation).",
+      "policy": "Für Tarot gilt kein Mondstein; ob Pass gilt, wird im nächsten Schritt geprüft. Nach Erhalt Ihrer Deutung können Sie ohne Zusatzkosten 1 Folgefrage auf derselben Grundlage stellen (Geburtshoroskop, Karten oder Geburts-Mondstation).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",

@@ -1015,7 +1015,7 @@ window.__cdServiceRegistry = [
   },
   {
     id: "points",
-    name: "달빛 이용권",
+    name: "꿀단지 이용권",
     desc: "여러 운세를 편하게 이용하는 이용권",
     href: "/points/",
     price: "이용권",

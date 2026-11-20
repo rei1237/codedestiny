@@ -466,7 +466,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2179916719ec";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-df6b3d1c4da1";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1131,7 +1131,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   //  대칭으로, 실제 노출 제한은 allowedPaymentModes만 담당한다.)
   let canShowDirect = (!allowedPaymentModes || allowedPaymentModes.includes("direct") || allowedPaymentModes.includes("direct_krw") || allowedPaymentModes.includes("card"));
   const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
-  const musicTrackSub = checkoutEntry.text("payment.directModal.musicTrackSub", "달빛 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.");
+  const musicTrackSub = checkoutEntry.text("payment.directModal.musicTrackSub", "꿀단지 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.");
   const monthlyCost = resolveKnownMembershipCreditCost(opts, coinPrice);
   const callerMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
   const hasCallerMonthlyBalance = typeof callerMonthlyBalanceRaw === "number" && Number.isFinite(callerMonthlyBalanceRaw) && callerMonthlyBalanceRaw >= 0;
@@ -1172,7 +1172,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 활성 유료 등급일 때만 등급명을 배지로 노출하고, 그 외에는 중립적인 상점 라벨을 쓴다.
   // 🔴 결제창 문구는 셸·독립 정적과 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
   // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
-  const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "달빛 이용권");
+  const passBadgeLabel = checkoutEntry.text("payment.directModal.passBadge", "꿀단지 이용권");
   const passLabel = hasActivePassTier ? (formatPassTierLabel(passTier, getCurrentLoadingLocale()) || passBadgeLabel) : passBadgeLabel;
   const passStoreTitle = hasActivePassTier
     ? checkoutEntry.text("payment.directModal.passUpgradeTitle", "이용권 등급 올리기")

@@ -230,7 +230,10 @@ export default async function InsightArticlePage({ params }) {
   });
   if (slug === PUBLIC_RECORD_PATH.split('/').filter(Boolean).at(-1)) {
     articleJsonLd.about = buildAuthorPersonJsonLd();
-    articleJsonLd.citation = publicRecordCopy.ko.rows.map(row => ({ '@type': 'CreativeWork', url: row.url, name: row.title, author: { '@id': 'https://code-destiny.com/#author' } }));
+    articleJsonLd.citation = publicRecordCopy.ko.rows.flatMap(row => [
+      { '@type': 'CreativeWork', url: row.url, name: row.title, author: { '@id': 'https://code-destiny.com/#author' } },
+      { '@type': 'CreativeWork', url: row.source, name: `${row.sourceLabel} 공식 기록 · ${row.event}` },
+    ]);
   }
   const breadcrumb = buildBreadcrumbJsonLd([
     { name: "꿀꿀운세 홈", path: "/" },

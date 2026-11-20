@@ -24,7 +24,7 @@ import { computeSunHealingReading, loadSunHealingEngine } from "./_lib/sun-heali
 
 type TarotOrientation = "upright" | "reversed";
 
-type TarotCardDto = {
+export type TarotCardDto = {
   cardId: string;
   name?: string;
   nameKr?: string;
@@ -35,7 +35,7 @@ type TarotCardDto = {
   localImageUrl?: string;
 };
 
-type HealingReadingDto = {
+export type HealingReadingDto = {
   subtitle?: string;
   oneLineMessage?: string;
   sunLine?: string;
@@ -78,7 +78,7 @@ type RecoveryRoutineDto = {
   timeGuide?: string;
 };
 
-type ReadingFetchResult = {
+export type ReadingFetchResult = {
   reading: HealingReadingDto | null;
   highlights: string[];
 };
@@ -87,7 +87,7 @@ type Stage = "intro" | "spread" | "result";
 
 type SectionTone = "neutral" | "warm" | "focus";
 
-const SPREAD_CARD_COUNT = 4 as const;
+export const SPREAD_CARD_COUNT = 4 as const;
 // lib/tarot/spreads.mjs의 healing_rising_four_card 포지션 키와 동일해야 한다.
 const HEALING_POSITIONS = ["hidden_truth", "embrace_pain", "silver_lining", "step_forward"] as const;
 
@@ -97,7 +97,7 @@ function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function safeCardTitle(copy: SunHealingTarotCopy, card?: TarotCardDto, idx?: number) {
+export function safeCardTitle(copy: SunHealingTarotCopy, card?: TarotCardDto, idx?: number) {
   const base = (card?.nameKr || card?.name || "").trim();
   if (!base) return typeof idx === "number" ? copy.cardFallbackTitle(idx) : "";
   return `${base} (${copy.orientationLabel(card?.orientation)})`;
@@ -128,7 +128,7 @@ const TAROT_IMAGE_MAP: Record<string, string> = {
   P13:"queenofpentacles.webp",P14:"kingofpentacles.webp",
 };
 
-function cardImageUrl(card?: TarotCardDto) {
+export function cardImageUrl(card?: TarotCardDto) {
   const cardId = String(card?.cardId || "").trim().toUpperCase();
   if (cardId) {
     const fn = TAROT_IMAGE_MAP[cardId];
@@ -169,7 +169,7 @@ function cardNamesOf(cardId: string): [string, string] {
   return [cardId, cardId];
 }
 
-function drawHealingCards(): TarotCardDto[] {
+export function drawHealingCards(): TarotCardDto[] {
   const pool = Object.keys(TAROT_IMAGE_MAP);
   for (let i = pool.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -450,130 +450,42 @@ function buildSunHealingAiPromptText(args: {
   ].filter(Boolean).join("\n");
 }
 
-export default function SunHealingTarot({ onExit, onShare, listenBack }: {
-  onExit?: () => void;
+/** 공유: onShare(토스 등) → navigator.share → 클립보드 순. 기본 화면과 공통 스텝 플로우판이 같이 쓴다. */
+export async function shareSunHealingReading({ reading, highlights, copy, onShare }: {
+  reading: HealingReadingDto | null;
+  highlights: string[];
+  copy: SunHealingTarotCopy;
   onShare?: (title: string, summary: string) => Promise<void>;
-  listenBack?: (callback: () => void) => () => void;
-} = {}) {
-  const copy = useSunHealingTarotCopy();
-  const reduceMotion = useReducedMotion();
-  const [stage, setStage] = useState<Stage>("intro");
-  const [cards, setCards] = useState<TarotCardDto[]>([]);
-  const [revealedCount, setRevealedCount] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [reading, setReading] = useState<HealingReadingDto | null>(null);
-  const [consultingHighlights, setConsultingHighlights] = useState<string[]>([]);
-  const [readingError, setReadingError] = useState("");
-  const [glowingCard, setGlowingCard] = useState<number | null>(null);
+}) {
+  const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;
+  const firstLine = String(reading?.oneLineMessage || reading?.sunLine || "").trim();
+  if (onShare) { await onShare(copy.shareTitle, firstLine); return; }
+  const highlightText = highlights.length ? `\n핵심 회복 메시지\n${highlights.slice(0, 2).map((line) => `• ${line}`).join("\n")}\n` : "";
+  const text = `${copy.shareTextPrefix}${firstLine ? `${firstLine}\n` : ""}${highlightText}\n${url}`;
+  try {
+    const nav = navigator as Navigator & { share?: (data: object) => Promise<void> };
+    if (nav.share) {
+      await nav.share({ title: copy.shareTitle, text, url });
+      return;
+    }
+  } catch {}
+  try {
+    await navigator.clipboard.writeText(text);
+    alert(copy.linkCopiedAlert);
+  } catch {
+    alert(copy.shareUnsupportedAlert);
+  }
+}
+
+/** 결과 본문(조언·종합 흐름·카드별 풀이·회복 루틴·확언·AI 프롬프트 패널). 기본 화면과 공통 스텝 플로우판이 같이 쓴다. */
+export function SunHealingResultBody({ reading, cards, copy }: { reading: HealingReadingDto | null; cards: TarotCardDto[]; copy: SunHealingTarotCopy }) {
   const [aiPromptCopyStatus, setAiPromptCopyStatus] = useState("");
-  const readingPromiseRef = useRef<Promise<ReadingFetchResult> | null>(null);
-
-
-  const progressPct = useMemo(() => clamp((revealedCount / SPREAD_CARD_COUNT) * 100, 0, 100), [revealedCount]);
-
-  const goHome = useCallback(() => {
-    if (onExit) onExit();
-    else window.location.assign(SHELL_HOME_PATH);
-  }, [onExit]);
-
-  useEffect(() => listenBack?.(() => {
-    if (stage === "result") setStage("spread");
-    else if (stage === "spread") setStage("intro");
-    else goHome();
-  }), [listenBack, stage, goHome]);
-
-  const requestReading = useCallback(async (cardsToRead: TarotCardDto[]): Promise<ReadingFetchResult> => {
-    // 무료 기능: 로그인이 필요한 /api/tarot/reading 대신 같은 결정론 엔진을 브라우저에서 계산한다.
-    const { reading: nextReading, highlights } = await computeSunHealingReading<HealingReadingDto>(cardsToRead);
-    if (nextReading) nextReading.consultingHighlights = highlights;
-    return { reading: nextReading, highlights };
-  }, []);
-
-  const start = useCallback(() => {
-    setReading(null);
-    setConsultingHighlights([]);
-    setReadingError("");
-    setAiPromptCopyStatus("");
-    setRevealedCount(0);
-    // 카드 뽑기는 즉시 처리하고, 엔진 청크 로드와 해석 계산은 카드를 뒤집는 동안 미리 해 둔다.
-    loadSunHealingEngine().catch(() => {});
-    const drawn = drawHealingCards();
-    setCards(drawn);
-    setStage("spread");
-    const prefetch = requestReading(drawn);
-    prefetch.catch(() => {});
-    readingPromiseRef.current = prefetch;
-  }, [requestReading]);
-
-
-  const canFlip = useCallback((idx: number) => idx === revealedCount && idx < SPREAD_CARD_COUNT && stage === "spread" && !loading, [loading, revealedCount, stage]);
-
-  const flip = useCallback((idx: number) => {
-    if (!canFlip(idx)) return;
-    setGlowingCard(idx);
-    setRevealedCount((v) => v + 1);
-    setTimeout(() => setGlowingCard(null), 1000);
-  }, [canFlip]);
-
-  const fetchReading = useCallback(async () => {
-    if (revealedCount < SPREAD_CARD_COUNT || cards.length !== SPREAD_CARD_COUNT) return;
-
-    setLoading(true);
-    setReadingError("");
-    setAiPromptCopyStatus("");
-    try {
-      const pending = readingPromiseRef.current;
-      readingPromiseRef.current = null;
-      let result: ReadingFetchResult;
-      try {
-        result = pending ? await pending : await requestReading(cards);
-      } catch {
-        // 프리페치(엔진 청크 로드)가 실패했으면 한 번 새로 계산한다.
-        result = await requestReading(cards);
-      }
-      if (!result.reading) throw new Error("empty healing reading");
-      setReading(result.reading);
-      setConsultingHighlights(result.highlights);
-      setStage("result");
-    } catch (error) {
-      console.error(error);
-      setReadingError(copy.fetchErrorAlert);
-    } finally {
-      setLoading(false);
-    }
-  }, [cards, copy, requestReading, revealedCount]);
-
-
-  const share = useCallback(async () => {
-    const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;
-    const firstLine = String(reading?.oneLineMessage || reading?.sunLine || "").trim();
-    if (onShare) { await onShare(copy.shareTitle, firstLine); return; }
-    const highlightText = consultingHighlights.length ? `\n핵심 회복 메시지\n${consultingHighlights.slice(0, 2).map((line) => `• ${line}`).join("\n")}\n` : "";
-    const text = `${copy.shareTextPrefix}${firstLine ? `${firstLine}\n` : ""}${highlightText}\n${url}`;
-    try {
-      const nav = navigator as Navigator & { share?: (data: object) => Promise<void> };
-      if (nav.share) {
-        await nav.share({ title: copy.shareTitle, text, url });
-        return;
-      }
-    } catch {}
-    try {
-      await navigator.clipboard.writeText(text);
-      alert(copy.linkCopiedAlert);
-    } catch {
-      alert(copy.shareUnsupportedAlert);
-    }
-  }, [consultingHighlights, copy, reading, onShare]);
-
-  const POSITION_LABELS = copy.positionLabels;
-  const POSITION_LABELS_SHORT = copy.positionLabelsShort;
   const resultCards = useMemo(() => normalizeReadingCards(reading, cards), [reading, cards]);
   const resultRoutines = useMemo(() => {
     if (Array.isArray(reading?.recoveryRoutines) && reading.recoveryRoutines.length) return reading.recoveryRoutines.slice(0, 3);
     return (reading?.actionPlan || []).slice(0, 3).map((line) => ({ title: line.split(":")[0] || "회복 루틴", action: line.includes(":") ? line.split(":").slice(1).join(":").trim() : line, timeGuide: "10분" }));
   }, [reading]);
   const resultStory = String(reading?.storyFlow || reading?.integrationMessage || "").trim();
-  const resultSunLine = String(reading?.oneLineMessage || reading?.sunLine || reading?.summary || "").trim();
   const aiPromptText = useMemo(() => buildSunHealingAiPromptText({ reading, cards, resultCards, resultRoutines }), [cards, reading, resultCards, resultRoutines]);
 
   const copyAiPrompt = useCallback(async () => {
@@ -602,6 +514,185 @@ export default function SunHealingTarot({ onExit, onShare, listenBack }: {
   useEffect(() => {
     setAiPromptCopyStatus("");
   }, [aiPromptText]);
+
+  return (
+    <div className="min-w-0 space-y-5 rounded-lg border border-white/80 bg-white/76 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
+      <section className="rounded-lg border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(254,243,199,0.82),rgba(255,237,213,0.68),rgba(204,251,241,0.4))] p-5 shadow-inner">
+        <p className="text-xs font-semibold tracking-normal text-amber-700/78">{copy.adviceEyebrow}</p>
+        <h3 className="mt-2 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.adviceHeading}</h3>
+        <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.opening || copy.adviceFallback}</p>
+      </section>
+      {resultStory ? (
+        <ReadingCard title={copy.overallFlowTitle} tone="neutral" icon={Sparkles} text={resultStory} />
+      ) : null}
+      <section className="space-y-3">
+        <div>
+          <p className="text-xs font-semibold text-teal-700">{copy.cardDetailEyebrow}</p>
+          <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.cardDetailHeading}</h3>
+        </div>
+        {resultCards.map((item, idx) => (
+          <ResultCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} card={cards[idx]} copy={copy} />
+        ))}
+      </section>
+      {resultRoutines.length ? (
+        <section>
+          <p className="text-xs font-semibold text-teal-700">{copy.routineEyebrow}</p>
+          <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.routineHeading}</h3>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            {resultRoutines.map((item, idx) => (
+              <RoutineCard key={`${item.title}-${idx}`} item={item} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+      {reading?.affirmation ? (
+        <section className="rounded-lg border border-teal-200/70 bg-teal-50/76 p-5">
+          <p className="text-xs font-semibold text-teal-700">{copy.affirmationLabel}</p>
+          <p className="mt-2 font-serif text-xl font-semibold leading-8 text-stone-900">{reading.affirmation}</p>
+        </section>
+      ) : null}
+      {reading?.notice ? <p className="text-xs leading-6 text-stone-500">{reading.notice}</p> : null}
+      {aiPromptText ? (
+        <section
+          className="tarot-healing-ai-prompt-panel rounded-lg border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(255,247,237,0.9),rgba(240,253,250,0.5))] p-5 shadow-[0_20px_58px_rgba(180,120,35,0.16)]"
+          data-marker="tarot-healing-ai-prompt-bottom-v20260621"
+        >
+          <details className="group">
+          <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+            <span>
+              <span className="tarot-healing-ai-prompt-kicker block text-xs font-semibold tracking-normal text-teal-700">{copy.promptPanelKicker}</span>
+              <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.promptPanelTitle}</h3>
+            </span>
+            <ChevronDown className="h-5 w-5 shrink-0 text-amber-700 transition-transform group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <p className="tarot-healing-ai-prompt-lead mt-3 text-sm leading-7 text-stone-700">
+            {copy.promptPanelLead}
+          </p>
+          <textarea
+            id="tarotHealingAiPromptOutput"
+            className="tarot-healing-ai-prompt-output mt-4 min-h-[230px] w-full resize-y rounded-lg border border-amber-200/80 bg-white/86 p-4 text-sm leading-7 text-stone-800 outline-none shadow-inner focus:border-amber-400"
+            value={aiPromptText}
+            readOnly
+          />
+          <div className="tarot-healing-ai-prompt-actions mt-3 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={copyAiPrompt}
+              className="tarot-healing-ai-prompt-copy inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/92 px-5 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"
+            >
+              <Clipboard className="h-4 w-4" />
+              {copy.promptCopyButton}
+            </button>
+            <span className="tarot-healing-ai-prompt-status text-xs font-semibold text-teal-700" aria-live="polite">
+              {aiPromptCopyStatus}
+            </span>
+          </div>
+          </details>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+export default function SunHealingTarot({ onExit, onShare, listenBack }: {
+  onExit?: () => void;
+  onShare?: (title: string, summary: string) => Promise<void>;
+  listenBack?: (callback: () => void) => () => void;
+} = {}) {
+  const copy = useSunHealingTarotCopy();
+  const reduceMotion = useReducedMotion();
+  const [stage, setStage] = useState<Stage>("intro");
+  const [cards, setCards] = useState<TarotCardDto[]>([]);
+  const [revealedCount, setRevealedCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [reading, setReading] = useState<HealingReadingDto | null>(null);
+  const [consultingHighlights, setConsultingHighlights] = useState<string[]>([]);
+  const [readingError, setReadingError] = useState("");
+  const [glowingCard, setGlowingCard] = useState<number | null>(null);
+  const readingPromiseRef = useRef<Promise<ReadingFetchResult> | null>(null);
+
+
+  const progressPct = useMemo(() => clamp((revealedCount / SPREAD_CARD_COUNT) * 100, 0, 100), [revealedCount]);
+
+  const goHome = useCallback(() => {
+    if (onExit) onExit();
+    else window.location.assign(SHELL_HOME_PATH);
+  }, [onExit]);
+
+  useEffect(() => listenBack?.(() => {
+    if (stage === "result") setStage("spread");
+    else if (stage === "spread") setStage("intro");
+    else goHome();
+  }), [listenBack, stage, goHome]);
+
+  const requestReading = useCallback(async (cardsToRead: TarotCardDto[]): Promise<ReadingFetchResult> => {
+    // 무료 기능: 로그인이 필요한 /api/tarot/reading 대신 같은 결정론 엔진을 브라우저에서 계산한다.
+    const { reading: nextReading, highlights } = await computeSunHealingReading<HealingReadingDto>(cardsToRead);
+    if (nextReading) nextReading.consultingHighlights = highlights;
+    return { reading: nextReading, highlights };
+  }, []);
+
+  const start = useCallback(() => {
+    setReading(null);
+    setConsultingHighlights([]);
+    setReadingError("");
+    setRevealedCount(0);
+    // 카드 뽑기는 즉시 처리하고, 엔진 청크 로드와 해석 계산은 카드를 뒤집는 동안 미리 해 둔다.
+    loadSunHealingEngine().catch(() => {});
+    const drawn = drawHealingCards();
+    setCards(drawn);
+    setStage("spread");
+    const prefetch = requestReading(drawn);
+    prefetch.catch(() => {});
+    readingPromiseRef.current = prefetch;
+  }, [requestReading]);
+
+
+  const canFlip = useCallback((idx: number) => idx === revealedCount && idx < SPREAD_CARD_COUNT && stage === "spread" && !loading, [loading, revealedCount, stage]);
+
+  const flip = useCallback((idx: number) => {
+    if (!canFlip(idx)) return;
+    setGlowingCard(idx);
+    setRevealedCount((v) => v + 1);
+    setTimeout(() => setGlowingCard(null), 1000);
+  }, [canFlip]);
+
+  const fetchReading = useCallback(async () => {
+    if (revealedCount < SPREAD_CARD_COUNT || cards.length !== SPREAD_CARD_COUNT) return;
+
+    setLoading(true);
+    setReadingError("");
+    try {
+      const pending = readingPromiseRef.current;
+      readingPromiseRef.current = null;
+      let result: ReadingFetchResult;
+      try {
+        result = pending ? await pending : await requestReading(cards);
+      } catch {
+        // 프리페치(엔진 청크 로드)가 실패했으면 한 번 새로 계산한다.
+        result = await requestReading(cards);
+      }
+      if (!result.reading) throw new Error("empty healing reading");
+      setReading(result.reading);
+      setConsultingHighlights(result.highlights);
+      setStage("result");
+    } catch (error) {
+      console.error(error);
+      setReadingError(copy.fetchErrorAlert);
+    } finally {
+      setLoading(false);
+    }
+  }, [cards, copy, requestReading, revealedCount]);
+
+
+  const share = useCallback(
+    () => shareSunHealingReading({ reading, highlights: consultingHighlights, copy, onShare }),
+    [consultingHighlights, copy, reading, onShare],
+  );
+
+  const POSITION_LABELS = copy.positionLabels;
+  const POSITION_LABELS_SHORT = copy.positionLabelsShort;
+  const resultSunLine = String(reading?.oneLineMessage || reading?.sunLine || reading?.summary || "").trim();
 
   return (
     <MotionConfig reducedMotion="user">
@@ -758,81 +849,7 @@ export default function SunHealingTarot({ onExit, onShare, listenBack }: {
                   <button type="button" onClick={goHome} className="min-h-11 rounded-full bg-stone-900 px-4 text-sm font-bold text-white shadow-[0_16px_34px_rgba(68,64,60,0.18)] transition-colors hover:bg-amber-950">{copy.otherFortuneButton}</button>
                 </div>
               </aside>
-              <div className="min-w-0 space-y-5 rounded-lg border border-white/80 bg-white/76 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
-                <section className="rounded-lg border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(254,243,199,0.82),rgba(255,237,213,0.68),rgba(204,251,241,0.4))] p-5 shadow-inner">
-                  <p className="text-xs font-semibold tracking-normal text-amber-700/78">{copy.adviceEyebrow}</p>
-                  <h3 className="mt-2 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.adviceHeading}</h3>
-                  <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.opening || copy.adviceFallback}</p>
-                </section>
-                {resultStory ? (
-                  <ReadingCard title={copy.overallFlowTitle} tone="neutral" icon={Sparkles} text={resultStory} />
-                ) : null}
-                <section className="space-y-3">
-                  <div>
-                    <p className="text-xs font-semibold text-teal-700">{copy.cardDetailEyebrow}</p>
-                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.cardDetailHeading}</h3>
-                  </div>
-                  {resultCards.map((item, idx) => (
-                    <ResultCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} card={cards[idx]} copy={copy} />
-                  ))}
-                </section>
-                {resultRoutines.length ? (
-                  <section>
-                    <p className="text-xs font-semibold text-teal-700">{copy.routineEyebrow}</p>
-                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.routineHeading}</h3>
-                    <div className="mt-3 grid gap-3 md:grid-cols-3">
-                      {resultRoutines.map((item, idx) => (
-                        <RoutineCard key={`${item.title}-${idx}`} item={item} />
-                      ))}
-                    </div>
-                  </section>
-                ) : null}
-                {reading?.affirmation ? (
-                  <section className="rounded-lg border border-teal-200/70 bg-teal-50/76 p-5">
-                    <p className="text-xs font-semibold text-teal-700">{copy.affirmationLabel}</p>
-                    <p className="mt-2 font-serif text-xl font-semibold leading-8 text-stone-900">{reading.affirmation}</p>
-                  </section>
-                ) : null}
-                {reading?.notice ? <p className="text-xs leading-6 text-stone-500">{reading.notice}</p> : null}
-                {aiPromptText ? (
-                  <section
-                    className="tarot-healing-ai-prompt-panel rounded-lg border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(255,247,237,0.9),rgba(240,253,250,0.5))] p-5 shadow-[0_20px_58px_rgba(180,120,35,0.16)]"
-                    data-marker="tarot-healing-ai-prompt-bottom-v20260621"
-                  >
-                    <details className="group">
-                    <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-                      <span>
-                        <span className="tarot-healing-ai-prompt-kicker block text-xs font-semibold tracking-normal text-teal-700">{copy.promptPanelKicker}</span>
-                        <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.promptPanelTitle}</h3>
-                      </span>
-                      <ChevronDown className="h-5 w-5 shrink-0 text-amber-700 transition-transform group-open:rotate-180" aria-hidden="true" />
-                    </summary>
-                    <p className="tarot-healing-ai-prompt-lead mt-3 text-sm leading-7 text-stone-700">
-                      {copy.promptPanelLead}
-                    </p>
-                    <textarea
-                      id="tarotHealingAiPromptOutput"
-                      className="tarot-healing-ai-prompt-output mt-4 min-h-[230px] w-full resize-y rounded-lg border border-amber-200/80 bg-white/86 p-4 text-sm leading-7 text-stone-800 outline-none shadow-inner focus:border-amber-400"
-                      value={aiPromptText}
-                      readOnly
-                    />
-                    <div className="tarot-healing-ai-prompt-actions mt-3 flex flex-wrap items-center gap-3">
-                      <button
-                        type="button"
-                        onClick={copyAiPrompt}
-                        className="tarot-healing-ai-prompt-copy inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/92 px-5 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"
-                      >
-                        <Clipboard className="h-4 w-4" />
-                        {copy.promptCopyButton}
-                      </button>
-                      <span className="tarot-healing-ai-prompt-status text-xs font-semibold text-teal-700" aria-live="polite">
-                        {aiPromptCopyStatus}
-                      </span>
-                    </div>
-                    </details>
-                  </section>
-                ) : null}
-              </div>
+              <SunHealingResultBody reading={reading} cards={cards} copy={copy} />
             </m.section>
           ) : null}
         </AnimatePresence>

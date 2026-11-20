@@ -6531,7 +6531,7 @@ async function handleShareReward(request, auth) {
 async function handleSubscribe(request, auth) {
   return json({
     ok: false,
-    message: "이전 달빛 이용권 신청 방식은 종료되었습니다. 1~12개월 달빛 이용권은 원화 단건 결제로 이용해 주세요.",
+    message: "이전 꿀단지 이용권 신청 방식은 종료되었습니다. 1~12개월 꿀단지 이용권은 원화 단건 결제로 이용해 주세요.",
     code: "COIN_SUBSCRIPTION_DISABLED",
   }, { status: 410 });
 }

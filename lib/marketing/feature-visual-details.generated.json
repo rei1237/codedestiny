@@ -1200,7 +1200,7 @@
     },
     {
       "slug": "points",
-      "title": "달빛 이용권",
+      "title": "꿀단지 이용권",
       "href": "/points/",
       "featureKey": "points",
       "accessType": "unknown",
@@ -10100,7 +10100,7 @@
     },
     "points": {
       "slug": "points",
-      "title": "달빛 이용권",
+      "title": "꿀단지 이용권",
       "href": "/points/",
       "featureKey": "points",
       "featureKeyTo": "",
@@ -10113,7 +10113,7 @@
       ],
       "category": "사주·심층 상담",
       "headline": "유료 기능을 자주 본다면 매번 결제하지 않아도 됩니다.",
-      "description": "달빛 이용권은 기간 제한 없이 정해진 이용 한도만큼 유료 기능을 여는 이용권이에요. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.",
+      "description": "꿀단지 이용권은 기간 제한 없이 정해진 이용 한도만큼 유료 기능을 여는 이용권이에요. 보유 현황과 사용 내역을 여기서 확인할 수 있어요.",
       "panels": [
         {
           "title": "이런 질문에 도움이 됩니다",

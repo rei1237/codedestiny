@@ -6,6 +6,6 @@ import styles from './trust-record-line.module.css';
 export default function TrustRecordLine({ variant = 'full', className = '' }: { variant?: 'full' | 'short'; className?: string }) {
   return <p className={`${styles.line} ${className}`.trim()} lang="ko" data-cd-trust-record={variant}>
     {trustRecordCopy[variant]}{' '}
-    <Link className={styles.link} href={trustRecordCopy.href} prefetch={false}>{trustRecordCopy.link} <span aria-hidden="true">›</span></Link>
+    <Link className={styles.link} href={trustRecordCopy.href} prefetch={false}>{trustRecordCopy.publicLink} <span aria-hidden="true">›</span></Link>
   </p>;
 }

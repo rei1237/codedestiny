@@ -24,6 +24,7 @@
  *   ⑪ 홈 셸(index.html)의 표식이 실제로 붙어 있고, 결과 페이지 구간에는 하나도 없다.
  *   ⑫ 앱 라우터의 크로스셀 면이 전부 표식을 달았거나, 안 다는 이유가 적혀 있다(미분류는 실패).
  *   ⑬ 앱 런타임에서는 동의 배너를 띄우지 않고, 그 판정은 정본 __cdAppContext.isApp() 뿐이다.
+ *   ⑭ 공통 스텝 플로우 guided_* 4종은 한 모듈에서만 리터럴로 쏘고, 분해 파라미터를 싣고, KPI 문서에 등록돼 있다.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -784,4 +785,36 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   assert.match(body, /cdTrack\('question_select', \{[^}]*question_id: picked/, "질문 타일 선택에서 question_select(question_id) 발화가 사라졌다");
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 검색 CTA primary/related/directory/next_step 공개값·단일 발화 · 실제 카탈로그 계측 · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제");
+/* ⑭ 공통 스텝 플로우 이벤트(2026-11-20, docs/context/guided-step-flow-spec.md §7)
+ *   - 네 이름 모두 리터럴로 발견되고(⑨ 의 점유 목록에 들어간다) GA4 이름 규칙(소문자 snake, 40자)을 지킨다.
+ *   - 발화 지점은 guided-flow-analytics.ts 하나 — 기능마다 따로 쏘면 같은 단계가 두 번 집계된다.
+ *   - 분해 파라미터 5종을 싣고, docs/analytics-kpi.md 인벤토리에 등록돼 있다. */
+{
+  const GUIDED = ["guided_step_view", "guided_step_complete", "guided_flow_complete", "guided_flow_abandon"];
+  const MODULE = "app/components/guided-flow/guided-flow-analytics.ts";
+  const discovered = collectEmittedEventNames();
+  const kpiDoc = fs.readFileSync(path.join(ROOT, "docs/analytics-kpi.md"), "utf8");
+  const moduleSource = fs.readFileSync(path.join(ROOT, MODULE), "utf8");
+  const owners = new Map(GUIDED.map((name) => [name, []]));
+  const scan = (dir) => {
+    for (const entry of fs.readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) { if (!["node_modules", ".next", "dist", "out"].includes(entry.name)) scan(rel); continue; }
+      if (!/\.(?:js|jsx|mjs|ts|tsx)$/.test(entry.name)) continue;
+      const text = fs.readFileSync(path.join(ROOT, rel), "utf8");
+      for (const name of GUIDED) if (new RegExp(`(?:cdTrack|trackEvent)\\(\\s*["']${name}["']`).test(text)) owners.get(name).push(rel);
+    }
+  };
+  for (const dir of ["js", "app", "lib"]) scan(dir);
+  for (const name of GUIDED) {
+    assert.ok(discovered.has(name), `${name} 을 발화 리터럴로 찾지 못했다 — ${MODULE} 가 이름을 변수로 넘기면 ⑨ 가 못 막는다`);
+    assert.match(name, /^[a-z][a-z0-9_]{0,39}$/, `${name} 이 GA4 이벤트 이름 규칙을 어긴다`);
+    assert.deepEqual(owners.get(name), [MODULE], `${name} 발화 지점이 ${MODULE} 하나가 아니다: ${owners.get(name).join(", ")}`);
+    assert.ok(kpiDoc.includes("`" + name + "`"), `${name} 이 docs/analytics-kpi.md 이벤트 인벤토리에 없다`);
+  }
+  for (const param of ["feature_id", "surface", "flow_id", "step_id", "step_index"]) {
+    assert.ok(moduleSource.includes(`${param}:`), `${MODULE} 가 분해 파라미터 ${param} 을 싣지 않는다`);
+  }
+}
+
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 검색 CTA primary/related/directory/next_step 공개값·단일 발화 · 실제 카탈로그 계측 · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 영냥이 포털 클릭/도착 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류 · 배너 앱 억제 · 스텝 플로우 이벤트");

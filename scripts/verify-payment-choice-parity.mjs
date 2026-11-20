@@ -2,7 +2,7 @@
 //
 // 이 서비스에는 결제창 렌더러가 3종 있다 — 정적 셸 인라인(index.html + 5미러), React(app/_lib/billing-client.ts),
 // 독립 정적 페이지 폴백(js/destiny-profile.js + public 사본). 과거에는 넷(celestial-harmony 전용 포함)이 서로
-// 다른 디자인이었고, 그중 일부는 "달빛 이용권 상점" 카드 자체가 없어 이용권 전환 경로가 끊겼다.
+// 다른 디자인이었고, 그중 일부는 "꿀단지 이용권 상점"(옛 이름) 카드 자체가 없어 이용권 전환 경로가 끊겼다.
 //
 // 여기서 강제하는 계약:
 //   1) 세 구현 모두 동일한 정본 CSS(js/core/checkout-entry.js의 PAYMENT_CHOICE_CSS_RULES 배열)를 주입한다.

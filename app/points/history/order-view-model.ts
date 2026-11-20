@@ -52,7 +52,7 @@ export type OrderDetailViewModel = {
 const COPY = {
   ko: {
     moonstone: "월정석",
-    pass: "달빛 이용권",
+    pass: "꿀단지 이용권",
     // 폐지된 전용 재화의 라벨. 과거 주문이 이 productType 으로 저장돼 있어 계속 필요하다.
     guardian: "오늘의 귀인 운세 대화권",
     fusion: "초융합 운세 상담권",
@@ -70,7 +70,7 @@ const COPY = {
   },
   en: {
     moonstone: "Moonlight credit",
-    pass: "Moonlight Pass",
+    pass: "Honey Jar Pass",
     guardian: "Guardian Fortune conversation pass",
     fusion: "Fusion Fortune consultation pass",
     feature: "Feature pass",

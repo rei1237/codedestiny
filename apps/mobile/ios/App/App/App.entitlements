@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Universal links and password autofill. The site serves the AASA only after the Team ID is set
+	     (lib/app-links/apple-app-site-association.mjs). www is omitted: it 301s to the apex and Apple
+	     does not follow redirects for the AASA. -->
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:code-destiny.com</string>
+		<string>webcredentials:code-destiny.com</string>
+	</array>
+</dict>
+</plist>

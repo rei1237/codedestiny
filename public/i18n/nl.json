@@ -838,22 +838,22 @@
       "aria": "Snelkoppelingen voor het verzamelen van maanverlichte bestemmingen"
     },
     "passMini": {
-      "aria": "Maanlichtpasgids",
-      "kicker": "MAANLICHTPAS",
-      "title": "Laat uw fortuinroutine zachter stromen met een maanlichtpas",
-      "desc": "De Moonlight Pass opent, binnen een vastgesteld bereik en tot de gebruikslimiet op is, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
-      "guideLabel": "MAANLICHTGIDS",
+      "aria": "Honingpot-pasgids",
+      "kicker": "HONINGPOT-PAS",
+      "title": "Ga met een Honingpot-pas ontspannener verder met de readings die je vaak bekijkt",
+      "desc": "De Honingpot-pas opent, binnen een vastgesteld bereik en tot de gebruikslimiet op is, de readings waar je vaak naar terugkeert. De tekenen van vandaag lopen ononderbroken door.",
+      "guideLabel": "HONINGPOT-PASGIDS",
       "guideTitle": "Tot je gebruikslimiet op is, openen de lezingen die je vaak gebruikt eerst zachter",
       "guideText": "Van de Kleine honingpot tot de Gezinshoningpot openen tarot-, orakel- en saju-lezingen eerst binnen je maanlichtbereik zonder betaalstroom. Diepere lezingen buiten dat bereik gaan alleen wanneer nodig door naar een eenmalige KRW-betaling.",
-      "toggle": "Open maanlichtvoordelen",
-      "heroAria": "Bekijk de gratis beschikbare diensten in de maanlichtstroom",
-      "heroTitle": "Bekijk het bereik van de Moonlight Pass",
-      "heroSub": "Zet de readings waar je het vaakst naar terugkeert voort binnen je Moonlight Pass",
+      "toggle": "Honingpot-voordelen bekijken",
+      "heroAria": "Bekijk wat je met de Honingpot-pas kunt gebruiken",
+      "heroTitle": "Bekijk het bereik van de Honingpot-pas",
+      "heroSub": "Zet de readings waar je het vaakst naar terugkeert voort binnen je Honingpot-pas",
       "heroCta": "Bekijken",
       "balanceLabel": "Maandelijkse steenbalans",
       "balanceEmpty": "0 over",
       "balanceHint": "Uw maandelijkse stenensaldo controleren. Delen op KakaoTalk voegt meer maandelijkse stenen toe.",
-      "primaryAction": "Vind de pas die bij mij past",
+      "primaryAction": "Honingpot-pas bekijken",
       "chipsAria": "Kernpasvoordelen",
       "chipIncluded": "Direct openen met je pas",
       "chipThirtyDays": "Pas",
@@ -883,15 +883,15 @@
       "familyCta": "Bekijk Gezinshoningpot",
       "premiumNote": "De Middelgrote honingpot is de meest gebalanceerde keuze als je vaak content rond KRW 10.000 gebruikt.",
       "footnote": "Passen hebben geen tijdslimiet en stoppen zodra de gebruikslimiet op is. Deze pas is geen abonnement dat automatisch wordt verlengd. Diensten buiten het pasbereik kunnen worden gebruikt met een eenmalige KRW-betaling per product.",
-      "howtoAria": "Zo gebruik je de moonlight pass",
-      "howtoTitle": "Zo loopt de moonlight pass door",
-      "step1Label": "Kies een moonlight-bereik",
+      "howtoAria": "Zo gebruik je de Honingpot-pas",
+      "howtoTitle": "Zo loopt de Honingpot-pas door",
+      "step1Label": "Kies de maat van je honingpot",
       "step1Text": "Met een pass zonder tijdslimiet en zonder automatische verlenging stel je eerst het prijsbereik in van de readings die je vaak bekijkt.",
       "step2Label": "Readings binnen bereik openen zonder betaling",
       "step2Text": "Tarot-, orakel- en saju-readings binnen je bereik openen meteen, zonder betaalvenster.",
       "step3Label": "Alleen diepere readings betaal je per keer",
       "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling.",
-      "terminationNote": "Je pas blijft actief als de consultlimiet op is, en lichte duidingen blijven beschikbaar. Voor meer signature-consulten koop je een nieuwe pas of gebruik je een eenmalige betaling of Maanlichtstenen.",
+      "terminationNote": "Je pas blijft actief als de consultlimiet op is, en lichte duidingen blijven beschikbaar. Voor meer signature-consulten koop je een nieuwe pas of gebruik je een eenmalige betaling of Maanstenen.",
       "noExpiryNote": "Geen tijdslimiet · Geen automatische verlenging"
     },
     "promptHub": {
@@ -933,7 +933,7 @@
     },
     "passFooter": {
       "aria": "Voettekstgids doorgeven",
-      "eyebrow": "Maanlichtpas",
+      "eyebrow": "Honingpot-pas",
       "savingsBadge": "Met een pas tot een derde van de prijs",
       "title": "Drie readings van KRW 5.000 kosten al meer dan de pass van KRW 14.900",
       "desc": "Readings binnen het bereik dat je kiest openen tot je gebruikslimiet op is; alleen duurdere readings betaal je los wanneer je ze nodig hebt. De vier bereiken zijn KRW 5.000 · 10.000 · 30.000 en alle content die de pass dekt, dus kies de prijs die je het vaakst bekijkt.",
@@ -941,9 +941,9 @@
       "point1": "Gaat direct open, zonder afrekenen",
       "point2": "Geen tijdslimiet · Geen automatische verlenging",
       "point3": "Een pass zonder automatische verlenging",
-      "mascotAria": "Voordelen van de Moonlight Pass bekijken · Moonlight Pass-winkel",
-      "mascotAlt": "Afbeelding met voordelen van de Moonlight Pass",
-      "mascotKicker": "Moonlight Pass Guide",
+      "mascotAria": "Voordelen van de Honingpot-pas bekijken · Honingpot-pas-winkel",
+      "mascotAlt": "Afbeelding met voordelen van de Honingpot-pas",
+      "mascotKicker": "Honey Jar Pass Guide",
       "mascotText": "Hoe vaak per maand en tegen welke prijs — bepaal die twee en het juiste bereik rolt eruit.",
       "cta": "Vergelijk de vier passes en kies"
     },
@@ -1704,7 +1704,7 @@
       "searchPlaceholder": "Liefde, geld, ander werk… zoek een duiding",
       "filterToggle": "Filters",
       "filterMorePurpose": "Andere vragen",
-      "shareReward": "100 Maanlichtstenen als een vriend zich registreert",
+      "shareReward": "100 Maanstenen als een vriend zich registreert",
       "shareTerms": "Alleen toegekend als je vriend de registratie afrondt via de link die je met deze knop deelt · Maximaal 500 per dag · 30 dagen geldig vanaf ontvangst",
       "todayGateCta": "Maak een profiel en bekijk je dagduiding",
       "todayGateDesc": "Met je geboortedatum berekenen we de Saju-dagpijler, de 27 Sukuyo-maanhuizen en de Vedische maanpositie op basis van je eigen geboortehoroscoop.",
@@ -2003,7 +2003,7 @@
     },
     "passCopy": {
       "myTitle": "Mijn passen",
-      "flowerPass": "🌸 Moonlight Pass Bloemvarken",
+      "flowerPass": "🌸 Honingpot-pas Bloemvarken",
       "packPass": "Yeongnyangi-pas",
       "packTitle": "Yeongnyangi-consultatiepassen",
       "packName": "{fish}-set van {total} keer",
@@ -2289,7 +2289,7 @@
       "pace": "Zonder tijdslimiet, in je eigen tempo.",
       "end": "Lichte duidingen blijven beschikbaar, ook als het consulttegoed op is.",
       "alt": "Bloemenbiggetje Yeoni en Yeongnyangi houden samen één honingpot vast",
-      "moon": "Maanlichtpas!",
+      "moon": "Honingpot-pas!",
       "choose": "Kies jouw Honingpot.",
       "value": "Waarde tegen losse prijzen",
       "price": "Pasprijs",
@@ -2968,7 +2968,7 @@
       "monthlyTitle": "Openen met maanstenen",
       "requiredMonthly": "Vereiste tegoeden",
       "currentMonthly": "Huidig saldo",
-      "musicTrackSub": "Met een Maanlichtpas luister je meteen naar alle nummers. MP3-downloads zijn alleen mogelijk voor nummers die met een eenmalige aankoop of met maanstenen zijn gekocht.",
+      "musicTrackSub": "Met een Honingpot-pas luister je meteen naar alle nummers. MP3-downloads zijn alleen mogelijk voor nummers die met een eenmalige aankoop of met maanstenen zijn gekocht.",
       "defaultTitle": "Betaalde dienst",
       "passApplyFailed": "We konden je pas niet toepassen.",
       "passAppliedUiFailed": "Je pas is toegepast, maar het scherm is niet bijgewerkt. Betaal niet – tik nog een keer op deze kaart.",
@@ -2992,8 +2992,8 @@
         "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties.",
         "passMonthlyExhausted": "Your pass usage limit is fully used, so the pass has ended. Here are the payment options."
       },
-      "passBadge": "Maanlichtpas",
-      "passStoreTitle": "Moonlight Pass-winkel",
+      "passBadge": "Honingpot-pas",
+      "passStoreTitle": "Honingpot-pas-winkel",
       "passRetryTitle": "Controleer de pas opnieuw",
       "passHint": {
         "store": "Betaal één keer en open veel content tot de gebruikslimiet op is. Heb je er al een? Tik om te checken.",
@@ -3099,7 +3099,7 @@
       },
       "clean": {
         "pass": {
-          "eyebrow": "MAANLICHT PASSCHECK",
+          "eyebrow": "HONINGPOT-PASCHECK",
           "title": "Controle van uw pas",
           "message": "Controleren of je pas dit meteen kan openen.",
           "meta": "Indien beschikbaar, gaat u verder zonder afrekenvenster."
@@ -3135,13 +3135,13 @@
           "meta": "Je kunt het bekijken zodra de verificatie is voltooid."
         },
         "monthly": {
-          "eyebrow": "MAANLICHT STEEN CHECK",
+          "eyebrow": "MAANSTEENCHECK",
           "title": "Maandelijkse kredietbetaling controleren",
           "message": "Toegang tot inhoud openen met uw maandelijkse tegoed.",
           "meta": "Veilig matchen van kredietaftrek en toegangsrechten."
         },
         "subscription": {
-          "eyebrow": "ACTIVERING VAN DE MAANLICHTPAS",
+          "eyebrow": "ACTIVERING VAN DE HONINGPOT-PAS",
           "title": "Controle van de betaling van de KRW-pas",
           "message": "Goedkeuring en activering van de pasbetaling controleren.",
           "meta": "Veilig toepassen van pasniveau en duur."
@@ -3170,7 +3170,7 @@
       },
       "default": {
         "pass": {
-          "eyebrow": "MAANLICHT PASSCHECK",
+          "eyebrow": "HONINGPOT-PASCHECK",
           "title": "Controle van uw pas",
           "message": "Controleren of je pas dit meteen kan openen.",
           "meta": "Indien beschikbaar, gaat u verder zonder afrekenvenster."
@@ -3206,13 +3206,13 @@
           "meta": "Je kunt het bekijken zodra de verificatie is voltooid."
         },
         "monthly": {
-          "eyebrow": "MAANLICHT STEEN CHECK",
+          "eyebrow": "MAANSTEENCHECK",
           "title": "Maandelijkse kredietbetaling controleren",
           "message": "Toegang tot inhoud openen met uw maandelijkse tegoed.",
           "meta": "Veilig matchen van kredietaftrek en toegangsrechten."
         },
         "subscription": {
-          "eyebrow": "ACTIVERING VAN DE MAANLICHTPAS",
+          "eyebrow": "ACTIVERING VAN DE HONINGPOT-PAS",
           "title": "Controle van de betaling van de KRW-pas",
           "message": "Goedkeuring en activering van de pasbetaling controleren.",
           "meta": "Veilig toepassen van pasniveau en duur."
@@ -3264,10 +3264,10 @@
       "allFeatures": "Alle content die de pass dekt",
       "upTo": "Beschikbaar tot {amount}",
       "benefits": "Voordelen in één oogopslag",
-      "closeAria": "Sluit de Moonlight Pass Shop-gids",
-      "openAria": "Open de Moonlight Pass Shop-gids",
-      "title": "Moonlight Pass-winkelgids",
-      "subtitle": "Passen koop je met een eenmalige betaling in KRW; Maanlichtstenen gebruik je voor afzonderlijke betaalde functies.",
+      "closeAria": "Sluit de Honingpot-pas Shop-gids",
+      "openAria": "Open de Honingpot-pas Shop-gids",
+      "title": "Honingpot-pas-winkelgids",
+      "subtitle": "Passen koop je met een eenmalige betaling in KRW; Maanstenen gebruik je voor afzonderlijke betaalde functies.",
       "footerNotice": "Deze pas is geen product dat automatisch wordt verlengd. U moet hem opnieuw kopen zodra de gebruikslimiet op is.",
       "packages": {
         "standard": {
@@ -3293,7 +3293,7 @@
       "monthlyButton": "Betalen met {credits} maandtegoed",
       "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
       "monthlyButtonShort": "{credits} nodig · saldo te laag",
-      "terminationNotice": "Je pas blijft actief als de consultlimiet op is, en lichte duidingen blijven beschikbaar. Voor meer signature-consulten koop je een nieuwe pas of gebruik je een eenmalige betaling of Maanlichtstenen."
+      "terminationNotice": "Je pas blijft actief als de consultlimiet op is, en lichte duidingen blijven beschikbaar. Voor meer signature-consulten koop je een nieuwe pas of gebruik je een eenmalige betaling of Maanstenen."
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."
@@ -3352,7 +3352,7 @@
       "signupButton": "Schrijf je in"
     },
     "passCheckingGreeting": "Pas wordt gecontroleerd",
-    "passCheckingNote": "We synchroniseren veilig uw Maanlichtsteen Pas en lidmaatschapsniveau.",
+    "passCheckingNote": "We synchroniseren veilig uw Honingpot-pas en lidmaatschapsniveau.",
     "exitBenefit": {
       "title": "Voltooi de gratis Manseryeok-uitleg voor {amount} maanstenen",
       "copy": "Eenmalig ophalen na inloggen en gratis Manseryeok met je opgeslagen profiel. Eerdere ontvangers van het registratiecadeau ontvangen geen tweede gift. Ter waarde van 5.000 KRW. Vanaf uitgifte {days} dagen geldig voor korting op geschikte diensten vanaf 10.000 KRW.",
@@ -6036,7 +6036,7 @@
       "passActiveUnlockDesc": "Uw premium pas ontgrendelt deze permanent zonder eenmalige betaling.",
       "unlockTitle": "Permanente ontgrendeling: {amount}",
       "unlockDesc": "Eén keer ontgrendelen en blijven gebruiken. Een premium pas kan deze ook ontgrendelen.",
-      "ziweiConsultDesc": "Invoer is gratis. Wanneer u op de knop 'Consult genereren' klikt, wordt een eenmalige betaling van 30.000 KRW of een Pas/Maanlichtsteen-check uitgevoerd."
+      "ziweiConsultDesc": "Invoer is gratis. Wanneer u op de knop 'Consult genereren' klikt, wordt een eenmalige betaling van 30.000 KRW of een Pas/Maansteen-check uitgevoerd."
     }
   },
   "famousSaju": {
@@ -7714,12 +7714,12 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Maanlichtvoordelen inklappen"
+      "kr1a9l9": "Honingpot-voordelen inklappen"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {
         "k1yqmdmg": {
-          "ariaLabel": "Informatie over Maanlicht Pas"
+          "ariaLabel": "Informatie over Honingpot-pas"
         }
       }
     },
@@ -8135,7 +8135,7 @@
         "kxatr2b": "Keuzegerichte stroom die de lagen van zorgen verzacht",
         "kyk2x3o": "Keuzeadvies gebaseerd op geluk-cyclus en jaarlijkse cyclus",
         "n12NPC": "Dagelijks wisselend eilandweer en gesprekken met 12 huizen NPC's",
-        "n30000": "Eenmalige betaling van 30.000 KRW of Pas/Maanlichtsteen",
+        "n30000": "Eenmalige betaling van 30.000 KRW of Pas/Maansteen",
         "kfib4kf": "Vergelijk de energie van de twee opties op het kruispunt",
         "k1vetwxt": "Je levenskoers, gelezen uit de geluk-cyclus en het jaar dat je doorloopt",
         "k67hhx7": "Een toekomstsimulatie die schetst wat op elke keuze volgt",
@@ -8367,7 +8367,7 @@
     },
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
-        "k1ubfgod": "300 Maanlichtstenen"
+        "k1ubfgod": "300 Maanstenen"
       },
       "cdFeedbackBody": {
         "k2a2ghh": "A bug, an awkward screen, a moment of \"I wish this existed\" — anything is welcome.",
@@ -8729,9 +8729,9 @@
       "011": "Klimaatregeling"
     },
     "message": {
-      "001": "Maanlichtsteen-info wordt gecontroleerd",
-      "002": "Maanlichtsteen wordt geactiveerd, binnenkort beschikbaar",
-      "003": "Maanlichtsteen wordt geactiveerd, binnenkort beschikbaar",
+      "001": "Maansteen-info wordt gecontroleerd",
+      "002": "Maansteen wordt geactiveerd, binnenkort beschikbaar",
+      "003": "Maansteen wordt geactiveerd, binnenkort beschikbaar",
       "004": "Kaartbetaling voor één item wordt voorbereid",
       "005": "Betaling voltooid, resultaten worden geladen",
       "006": "Pas wordt gecontroleerd",
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
+      "tagline": "A Honey Jar Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",
@@ -21037,7 +21037,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Prijs per consult · inclusief 1 vervolgvraag · Voor tarot geldt geen Moonstone; voor Vier Pilaren, compatibiliteit en Sukuyo wel.",
+      "priceNote": "Prijs per consult · inclusief 1 vervolgvraag · Voor tarot geldt geen Maansteen; voor Vier Pilaren, compatibiliteit en Sukuyo wel.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -21068,7 +21068,7 @@
       "question": "My question",
       "price": "Single-reading price",
       "scope": "Kernantwoord · onderbouwing van de duiding · acties · brief van Yeoni · 1 vervolgvraag",
-      "policy": "Voor tarot geldt geen Moonstone; of Pass geldt, wordt in de volgende stap gecontroleerd. Na ontvangst van je consult kun je zonder extra kosten 1 vervolgvraag stellen op dezelfde basis (geboortekaart, kaarten of geboortemaanhuis).",
+      "policy": "Voor tarot geldt geen Maansteen; of Pass geldt, wordt in de volgende stap gecontroleerd. Na ontvangst van je consult kun je zonder extra kosten 1 vervolgvraag stellen op dezelfde basis (geboortekaart, kaarten of geboortemaanhuis).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",

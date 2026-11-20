@@ -24,7 +24,9 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "./today-hub.module.css";
 import TypewriterReading from "./TypewriterReading";
-import DailyTarot, {type DailyTarotCard} from "./DailyTarot";
+import type {DailyTarotCard} from "./DailyTarot";
+import dynamic from "next/dynamic";
+import { GUIDED_DAILY_TAROT_ENABLED } from "@/lib/guided-flow/flags.mjs";
 import { FusionCrossSell } from "../components/FusionCrossSell";
 import { ArrowLeft, Home } from "lucide-react";
 import { hasFreeReadingSession } from '@/app/_lib/free-reading-access';
@@ -77,6 +79,10 @@ interface HubResponse {
 type TodaySystem = "saju" | "sukuyo" | "vedic" | "number";
 type DetailLoadState = "idle" | "loading" | "failed" | "loaded";
 
+// 연이 오늘의 세 장: 공통 스텝 플로우 판(3c-A1). 롤백은 lib/guided-flow/flags.mjs 를 false 로(원본 DailyTarot 그대로).
+const DailyTarotPanel = GUIDED_DAILY_TAROT_ENABLED
+  ? dynamic(() => import("./DailyTarotGuided"), { ssr: false })
+  : dynamic(() => import("./DailyTarot"), { ssr: false });
 const SYSTEM_ART: Record<TodaySystem, {src:string;alt:string;invitation:string}> = {
   saju: {src:"/images/consultation/saju-yeoni-entry-v2-640.webp",alt:"오행의 흐름이 담긴 책을 펼치는 연이",invitation:"오늘의 기운 속에서, 내 힘을 어디에 쓸지 함께 살펴봐요."},
   sukuyo: {src:"/images/consultation/sukuyo-yeoni-entry-v1-640.webp",alt:"달빛 정원에서 스물일곱 별의 흐름을 안내하는 연이",invitation:"가까이 다가갈 때와 잠시 쉬어갈 때, 달의 흐름에 귀 기울여요."},
@@ -1321,7 +1327,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           </button>
         </div>
 
-        {locale === "ko" && period === "today" && dailyTarotCards && <DailyTarot cards={dailyTarotCards}/>}
+        {locale === "ko" && period === "today" && dailyTarotCards && <DailyTarotPanel cards={dailyTarotCards}/>}
         </>}
         </div>
         {locale === "ko" && period === "tomorrow" && <section className="mt-8 text-rose-50" aria-labelledby="tomorrow-preparation">

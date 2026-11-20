@@ -77,9 +77,9 @@ export function MoonlightShopHero() {
             className="w-56 max-w-full flex-shrink-0 rounded-2xl sm:w-52"
           />
           <div className="min-w-0 max-w-2xl">
-            <h1 className="mt-2 break-keep text-3xl font-black leading-tight text-white sm:text-4xl">연이의 달빛 이용권 상점</h1>
+            <h1 className="mt-2 break-keep text-3xl font-black leading-tight text-white sm:text-4xl">연이의 꿀단지 이용권 상점</h1>
             <p className="mt-3 text-sm font-semibold leading-6 text-[color:var(--moon-silver)] sm:text-base">
-              달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
+              꿀단지 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
             </p>
             <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
               이용권은 원화 단건 결제로만 구매할 수 있습니다. 월정석으로는 이용권을 구매할 수 없습니다.

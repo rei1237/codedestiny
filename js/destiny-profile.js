@@ -133,7 +133,7 @@
       apiConnectionFailed: 'API connection failed. Please try again soon.',
       networkError: 'A network error occurred. Please try again soon.',
       passAppliedOverlay: 'Your pass has been applied.\nThis content is free with your current pass.\nIt will open without any extra payment.',
-      monthlyAppliedOverlay: 'Your Moonlight Stones have been used.\nThis content is unlocked with your Moonlight Stones.\nOpening it now.',
+      monthlyAppliedOverlay: 'Your Moonstones have been used.\nThis content is unlocked with your Moonstones.\nOpening it now.',
       paymentCompleteOverlay: 'Payment complete.\nOpening your content now.\nPlease wait a moment.',
       directResumeConfirming: 'Confirming your {method} payment and saving your access.\nPlease do not pay again.',
       directResumeConfirmingGeneric: 'Confirming your payment and saving your access.\nPlease do not pay again.',
@@ -12422,7 +12422,7 @@
     var passStoreFirst = recommendedOption === 'pass';
     // 🔴 결제창 문구는 셸·React 와 **같은 i18n 키**를 쓴다(js/core/checkout-entry.js 의 text()).
     // 한국어 인자는 ko 정본 폴백이며 public/i18n/*.json 12개와 함께 유지된다.
-    var passBadgeLabel = _dpCheckoutText('payment.directModal.passBadge', '달빛 이용권');
+    var passBadgeLabel = _dpCheckoutText('payment.directModal.passBadge', '꿀단지 이용권');
     var passBadge = hasActivePassTier ? (tierName.toUpperCase() + ' ' + passBadgeLabel) : passBadgeLabel;
     var passTitle = hasActivePassTier
       ? _dpCheckoutText('payment.directModal.passUpgradeTitle', '이용권 등급 올리기')

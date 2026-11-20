@@ -17,6 +17,14 @@
   backdrop-filter: none;
 }
 
+/* iOS 앱: 상단 안전 영역은 이 sticky 헤더가 맡는다. 앱 브릿지(scripts/app-native-bridge.js)가
+   body 에도 padding-top: env(safe-area-inset-top) 을 주므로 둘이 겹쳐 상태바 아래 빈 띠(~60pt)가 생겼다.
+   body 쪽을 0 으로 둔다 — 헤더는 붙어 있을 때도 상태바를 덮어야 하므로 헤더 쪽을 남긴다.
+   웹·Android 에는 data-platform="ios" 가 없어 영향이 없다. */
+:global(html[data-platform="ios"] body):has(.root) {
+  padding-top: 0;
+}
+
 .shell {
   display: flex;
   width: min(1240px, calc(100% - 24px));

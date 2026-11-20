@@ -1,0 +1,460 @@
+/* 공통 스텝 플로우 위의 타로 단계(3c-A1): 셔플·카드 고르기·펼치기·결과 블록.
+ * 셸(guided-flow.module.css)의 사설 --gf-* 토큰만 읽는다. 시간은 명세 D7·D8(셔플 380ms×3, 뒤집기 800ms·간격 350ms).
+ * reduced-motion 은 셸 루트 data-reduced 와 미디어 쿼리 양쪽에서 끈다. */
+
+/* 페이지 안에 끼워 넣는 흐름: 셸의 모바일 100dvh 를 풀어 위아래 본문과 섞인다. */
+.embedded {
+  min-height: 0;
+}
+
+/* ── 셔플 ── */
+.deck {
+  position: relative;
+  width: 96px;
+  height: 144px;
+  margin: var(--cd-sp-md) auto;
+}
+.deckCard {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-sm);
+  background: var(--gf-raised) var(--gf-card-back, none) center / cover no-repeat;
+  animation: gt-shuffle 380ms var(--cd-ease-out) 3 both;
+}
+.deckCard:nth-child(2) {
+  --gt-shuffle-x: -28px;
+  animation-direction: reverse;
+}
+.deckCard:nth-child(3) {
+  animation-delay: 60ms;
+}
+@keyframes gt-shuffle {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateX(var(--gt-shuffle-x, 28px)) rotate(6deg);
+  }
+}
+
+/* ── 카드 고르기: 22장 격자. 360px 에서도 가로 스크롤이 없다. ── */
+.pickMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--cd-sp-xs);
+  margin: 0;
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+}
+.pickCount {
+  color: var(--gf-gold);
+  font-weight: 700;
+}
+.pickGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: var(--cd-sp-sm);
+}
+.pickCard {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  min-height: 66px;
+  padding: 0;
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-sm);
+  background: var(--gf-raised) var(--gf-card-back, none) center / cover no-repeat;
+  cursor: pointer;
+  transition: transform var(--cd-dur-base) var(--cd-ease-out), border-color var(--cd-dur-base) var(--cd-ease-out);
+}
+.pickCard[aria-pressed='true'] {
+  border: 2px solid var(--gf-gold);
+  transform: translateY(-6px);
+}
+.pickCard:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.pickCard:focus-visible {
+  outline: 2px solid var(--gf-gold);
+  outline-offset: 2px;
+}
+.pickOrder {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--cd-r-pill);
+  background: var(--gf-gold-fill);
+  color: var(--gf-on-gold);
+  font-size: var(--cd-t-caption);
+  font-weight: 700;
+}
+
+/* ── 펼치기: 자리별 카드, 뒤집기 800ms. ── */
+.spread {
+  display: grid;
+  grid-template-columns: repeat(var(--gt-count, 3), minmax(0, 1fr));
+  gap: var(--cd-sp-sm);
+}
+/* 4장(힐링): 모바일 2×2, 넓은 화면 한 줄. */
+.spread[data-count='4'] {
+  --gt-count: 2;
+}
+@media (min-width: 720px) {
+  .spread[data-count='4'] {
+    --gt-count: 4;
+  }
+}
+.slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--cd-sp-xs);
+  min-width: 0;
+  margin: 0;
+}
+.slotLabel {
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+  text-align: center;
+}
+.flip {
+  width: 100%;
+  max-width: 132px;
+  aspect-ratio: 2 / 3;
+  padding: 0;
+  border: 0;
+  background: none;
+  perspective: 900px;
+  cursor: pointer;
+}
+.flip:focus-visible {
+  outline: 2px solid var(--gf-gold);
+  outline-offset: 3px;
+  border-radius: var(--cd-r-sm);
+}
+.flipInner {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 800ms var(--cd-ease-out);
+}
+.flip[data-open='true'] .flipInner {
+  transform: rotateY(180deg);
+}
+.flipBack,
+.flipFace {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-sm);
+  backface-visibility: hidden;
+}
+.flipBack {
+  background: var(--gf-raised) var(--gf-card-back, none) center / cover no-repeat;
+}
+.flipFace {
+  transform: rotateY(180deg);
+  background: var(--gf-raised);
+}
+.flipFace img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.slotName {
+  min-height: 1.4em;
+  color: var(--gf-ink);
+  font-size: var(--cd-t-caption);
+  font-weight: 700;
+  text-align: center;
+}
+.hint {
+  margin: 0;
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+  text-align: center;
+}
+
+/* ── 결과 블록 ── */
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-lg);
+}
+.dateLabel {
+  margin: 0;
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+}
+.verdict {
+  margin: 0;
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--gf-paper-line);
+  border-radius: var(--cd-r-card);
+  background: var(--gf-paper);
+  color: var(--gf-paper-ink);
+  text-align: center;
+}
+.verdict small {
+  display: block;
+  margin-bottom: var(--cd-sp-xs);
+  color: var(--gf-paper-ink);
+  font-size: var(--cd-t-caption);
+  opacity: 0.85;
+}
+.verdict p {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-reading-size);
+  line-height: 1.6;
+  text-wrap: balance;
+}
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-sp-sm);
+}
+/* 회복 리딩 본문(SunHealingResultBody)은 밝은 바탕용 고정 색을 쓰고, 원본의 bg-white/86 류 배경은
+   여기서 투명으로 계산된다. 밤 셸 위에서 읽히도록 종이 표면을 깔고, 겹 테두리 한 겹을 걷어 360px 본문 폭을 지킨다. */
+.paperBody {
+  margin-inline: calc(var(--cd-sp-sm) * -1);
+  padding: var(--cd-sp-sm);
+  border: 1px solid var(--gf-paper-line);
+  border-radius: var(--cd-r-card);
+  background: var(--gf-paper);
+  color: var(--gf-paper-ink);
+}
+.paperBody > div {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+/* 안내 문구(stone-500)는 크림 종이 위 4.34:1 이라 종이 잉크로 올린다. */
+.paperBody :global(.text-stone-500) {
+  color: var(--gf-paper-ink);
+}
+/* 셸 폭(최대 약 640px)에서 루틴 3열은 제목이 한 단어씩 꺾여 한 열로 쌓는다. */
+.paperBody :global(.md\:grid-cols-3) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--cd-t-card);
+  font-weight: 400;
+  color: var(--gf-gold);
+}
+.body {
+  margin: 0;
+  max-width: var(--type-reading-measure);
+  font-size: var(--type-reading-size);
+  line-height: var(--type-reading-leading);
+  color: var(--gf-ink);
+}
+.positions {
+  display: grid;
+  gap: var(--cd-sp-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.position {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: var(--cd-sp-sm);
+  align-items: start;
+}
+.position img {
+  width: 56px;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: var(--cd-r-sm);
+}
+.positionLabel {
+  display: block;
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+}
+.positionName {
+  display: block;
+  margin-bottom: var(--cd-sp-xs);
+  font-family: var(--font-display);
+  font-size: var(--cd-t-card);
+  color: var(--gf-ink);
+}
+.energy {
+  display: grid;
+  margin: 0;
+}
+.energy > div {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-sm) 0;
+  border-top: 1px solid var(--gf-line);
+}
+.energy dt {
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+  line-height: 1.7;
+}
+.energy dd {
+  margin: 0;
+  font-size: var(--cd-t-body);
+  line-height: 1.75;
+}
+.energy dd b {
+  display: block;
+}
+.synth {
+  display: grid;
+  gap: var(--cd-sp-md);
+}
+.synth h4 {
+  margin: 0 0 var(--cd-sp-xs);
+  color: var(--gf-gold);
+  font-size: var(--cd-t-caption);
+  font-weight: 700;
+}
+.action {
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--gf-gold);
+  border-radius: var(--cd-r-card);
+}
+.close {
+  margin: 0;
+  text-align: center;
+}
+.close p {
+  margin: 0 auto;
+  max-width: var(--type-reading-measure);
+  font-family: var(--font-display);
+  font-size: var(--type-reading-size);
+  line-height: 1.85;
+  text-wrap: balance;
+}
+.close small {
+  display: block;
+  margin-top: var(--cd-sp-xs);
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+}
+.note {
+  margin: 0;
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+  line-height: 1.8;
+}
+.paid {
+  display: grid;
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-card);
+  background: var(--gf-raised);
+}
+.paid b {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--cd-t-card);
+}
+.paid p {
+  margin: 0;
+  color: var(--gf-muted);
+  font-size: var(--cd-t-body);
+  line-height: 1.75;
+}
+.paidLink {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-xs) var(--cd-sp-md);
+  border: 1px solid var(--gf-gold);
+  border-radius: var(--cd-r-pill);
+  color: var(--gf-gold);
+  font-weight: 700;
+  text-decoration: none;
+}
+.paidLink:focus-visible {
+  outline: 2px solid var(--gf-gold);
+  outline-offset: 3px;
+}
+.shared {
+  display: grid;
+  gap: var(--cd-sp-sm);
+  padding: var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-card);
+}
+.shared h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--cd-t-card);
+}
+.shared ol {
+  display: grid;
+  gap: var(--cd-sp-sm);
+  margin: 0;
+  padding-left: 1.2em;
+}
+.shared p {
+  margin: 0;
+  color: var(--gf-muted);
+}
+/* 결과 아래 여러 버튼(다시 보기·다른 운세 등) */
+.actions {
+  display: grid;
+  gap: var(--cd-sp-sm);
+}
+.actionButton {
+  min-height: var(--cd-btn-h);
+  padding: var(--cd-sp-xs) var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-pill);
+  background: var(--gf-raised);
+  color: var(--gf-ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.actionButton:focus-visible {
+  outline: 2px solid var(--gf-gold);
+  outline-offset: 3px;
+}
+.error {
+  margin: 0;
+  color: var(--gf-ink);
+  font-size: var(--cd-t-body);
+}
+
+:global([data-reduced='true']) .deckCard {
+  animation: none;
+}
+:global([data-reduced='true']) .flipInner,
+:global([data-reduced='true']) .pickCard {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .deckCard {
+    animation: none;
+  }
+  .flipInner,
+  .pickCard {
+    transition: none;
+  }
+}

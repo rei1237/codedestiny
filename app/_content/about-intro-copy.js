@@ -95,7 +95,7 @@ export const ABOUT_INTRO_COPY = {
   "intro.reviews.text7": "영냥이 AI 상담 후기가 아니며 개인의 경험은 결과를 보장하지 않습니다.",
   "intro.reviews.text8": "콘텐츠를 만드는 사람 ↗",
   "intro.welcome.text1": "처음 만난 당신에게,",
-  "intro.welcome.text2": "달빛 선물.",
+  "intro.welcome.text2": "월정석 선물.",
   "intro.welcome.text3": "가입 혜택을 확인하고,",
   "intro.welcome.text4": "나에게 맞는 상담을 만나보세요.",
   "intro.welcome.text5": "보유한 월정석과 유효기간은 계정에서 확인할 수 있어요. 원하는 상담의 이용 조건과 실제 적용 금액은 결제창에서 안내합니다.",
@@ -108,5 +108,5 @@ export const ABOUT_INTRO_COPY = {
   "intro.faq.text4": "이미지 리포트가 자동으로 만들어지나요?",
   "intro.faq.text5": "서비스에서 상담 기반의 제작 프롬프트를 제공합니다. 이미지는 사용자가 ChatGPT 등 외부 도구에 직접 전달해 제작하는 방식입니다.",
   "intro.faq.text6": "가격과 월정석 이용 조건은 어디서 확인하나요?",
-  "intro.faq.text7": "상담 선택 화면과 결제창에서 최신 가격 및 적용 가능한 결제 수단을 확인해 주세요. 보유 월정석과 유효기간은 계정에서 확인할 수 있습니다."
+  "intro.faq.text7": "상담 선택 화면과 결제창에서 최신 가격과 쓸 수 있는 결제 방법을 먼저 보여드립니다. 단건 결제·꿀단지 이용권·월정석의 차이는 FAQ에 정리해 두었고, 보유 월정석과 유효기간은 계정 화면에서 볼 수 있습니다."
 };

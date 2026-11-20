@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { LoadingMotionTone } from "./LoadingProgressMotion";
 
-// 결제/이용권 대기 화면과 달빛 이용권 상점(/points)이 함께 쓰는 마스코트 로고.
+// 결제/이용권 대기 화면과 꿀단지 이용권 상점(/points)이 함께 쓰는 마스코트 로고.
 // 🔴 메인 서비스 로고(부팅 게이트 로고 · PWA 아이콘 계열)를 그대로 쓴다. 로컬 동일 오리진 31,916B 이며,
 // 6개 정적 셸 <head> 에 이미 <link rel="preload" as="image" fetchpriority="high"> 로 선언돼 있어
 // 결제 클릭 시점에는 워엄 캐시다 — 즉 클릭 임계경로에 추가 네트워크가 0 이다.

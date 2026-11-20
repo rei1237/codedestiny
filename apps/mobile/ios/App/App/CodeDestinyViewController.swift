@@ -106,13 +106,61 @@ class CodeDestinyViewController: CAPBridgeViewController {
     }
 
     #if DEBUG
+    private var selfTestObservers: [NSObjectProtocol] = []
+
     // Debug-only, opt-in with the launch argument -cdSelfTest (ios-shell-build.yml). Logs the values the
     // Mac checklist reads by hand in Web Inspector. Release builds never contain this code.
     private func scheduleSelfTest() {
         guard ProcessInfo.processInfo.arguments.contains("-cdSelfTest") else { return }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) { [weak self] in
-            guard let webView = self?.webView else { NSLog("%@", "[cd-selftest] no webView"); return }
-            let script = """
+        selfTestWhenSettled(previous: "", deadline: Date().addingTimeInterval(90))
+    }
+
+    // The first load on a cold CI simulator can take longer than a fixed delay (run 44562306732: still about:blank
+    // at 15 s), and the home page may replace its own URL after boot (?lang=). Wait until the bundled page has
+    // finished loading and its URL has stayed the same for one interval.
+    private func selfTestWhenSettled(previous: String, deadline: Date) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
+            guard let self = self, let webView = self.webView else { NSLog("%@", "[cd-selftest] no webView"); return }
+            webView.evaluateJavaScript("document.readyState + ' ' + location.href") { value, _ in
+                let state = (value as? String) ?? ""
+                let settled = state.hasPrefix("complete capacitor:") && state == previous
+                if settled || Date() > deadline {
+                    if !settled { NSLog("%@", "[cd-selftest] page did not settle: \(state)") }
+                    self.selfTestSnapshot()
+                } else {
+                    self.selfTestWhenSettled(previous: state, deadline: deadline)
+                }
+            }
+        }
+    }
+
+    // Top-inset numbers for the iOS header/status-bar check: env(safe-area-inset-top) read through a fixed probe,
+    // body padding, and the first <header> (GlobalHeader root) padding and position.
+    private static let layoutProbe = """
+    const layout = (() => {
+      const probe = document.createElement("div");
+      probe.style.cssText = "position:fixed;top:0;left:0;width:1px;height:0;visibility:hidden;pointer-events:none;padding-top:env(safe-area-inset-top)";
+      document.documentElement.appendChild(probe);
+      const safeAreaTop = getComputedStyle(probe).paddingTop;
+      probe.remove();
+      const header = document.querySelector("header");
+      const rect = header ? header.getBoundingClientRect() : null;
+      return {
+        scrollY: window.scrollY,
+        safeAreaTop: safeAreaTop,
+        bodyPaddingTop: document.body ? getComputedStyle(document.body).paddingTop : null,
+        dataPlatform: document.documentElement.dataset.platform || null,
+        htmlPaddingTop: getComputedStyle(document.documentElement).paddingTop,
+        headerCount: document.querySelectorAll("header").length,
+        header: header ? { className: String(header.className), position: getComputedStyle(header).position, top: getComputedStyle(header).top, paddingTop: getComputedStyle(header).paddingTop, rectTop: rect.top, height: rect.height } : null
+      };
+    })();
+    """
+
+    private func selfTestSnapshot() {
+        guard let webView = webView else { return }
+        do {
+            let script = Self.layoutProbe + """
             const root = document.documentElement;
             const client = globalThis.__cdNativeBridgeClient;
             let info = "missing";
@@ -129,13 +177,85 @@ class CodeDestinyViewController: CAPBridgeViewController {
               nativeBridge: typeof globalThis.CodeDestinyNative,
               htmlAttributes: Array.from(root.attributes).map((a) => a.name).join(","),
               capacitorPlatform: globalThis.Capacitor && globalThis.Capacitor.getPlatform ? globalThis.Capacitor.getPlatform() : null,
-              info: info
+              info: info,
+              layout: layout
             });
             """
-            webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
+            webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { [weak self] result in
                 switch result {
                 case .success(let value): NSLog("%@", "[cd-selftest] \(value)")
                 case .failure(let error): NSLog("%@", "[cd-selftest] error \(error.localizedDescription)")
+                }
+                // A gap so the workflow's home screenshot is taken before the links move the page.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5) { self?.selfTestLinks() }
+            }
+        }
+    }
+
+    // Link delivery. `simctl openurl` from the host stops at SpringBoard's "Open in …?" confirmation, so the
+    // custom-scheme URL is opened by the app itself through UIApplication.open: it still goes through the OS
+    // (LaunchServices → AppDelegate → ApplicationDelegateProxy → @capacitor/app → appUrlOpen) with no prompt.
+    // A universal link needs a signed build and a served AASA (no Team ID yet), so iOS would route the https URL to
+    // Safari. The step hands the AppDelegate the same NSUserActivity iOS delivers for a universal link instead.
+    private func selfTestLinks() {
+        let center = NotificationCenter.default
+        for name in [Notification.Name.capacitorOpenURL, Notification.Name.capacitorOpenUniversalLink] {
+            selfTestObservers.append(center.addObserver(forName: name, object: nil, queue: .main) { note in
+                let url = ((note.object as? [String: Any])?["url"] as? URL)?.absoluteString ?? "?"
+                NSLog("%@", "[cd-selftest] link-native \(name.rawValue) \(url)")
+            })
+        }
+        guard let scheme = URL(string: "com.codedestiny.app://cd-selftest?probe=scheme") else { return }
+        UIApplication.shared.open(scheme, options: [:]) { opened in
+            NSLog("%@", "[cd-selftest] link-scheme-open \(opened)")
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5) { [weak self] in
+            let activity = NSUserActivity(activityType: NSUserActivityTypeBrowsingWeb)
+            activity.webpageURL = URL(string: "https://code-destiny.com/about/?cd_selftest=universal")
+            let application = UIApplication.shared
+            let accepted = application.delegate?.application?(application, continue: activity, restorationHandler: { _ in }) ?? false
+            NSLog("%@", "[cd-selftest] link-universal-delivered \(accepted)")
+            self?.selfTestLinkResult(deadline: Date().addingTimeInterval(30))
+        }
+    }
+
+    // Logs once the page is the bundled /about/ (or when the deadline passes, with whatever page is showing).
+    private func selfTestLinkResult(deadline: Date) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self = self, let webView = self.webView else { NSLog("%@", "[cd-selftest] link-result no webView"); return }
+            // The bridge's trace (localStorage, same origin) survives the navigation the universal link causes.
+            let script = Self.layoutProbe + """
+            let trace = [];
+            try { trace = JSON.parse(localStorage.getItem("cd_app_trace_v1") || "[]"); } catch (e) {}
+            return JSON.stringify({
+              href: location.href,
+              readyState: document.readyState,
+              title: document.title,
+              layout: layout,
+              trace: trace.filter((e) => /appUrlOpen|universalLink|deepLink/.test(e.step)).slice(-6)
+            });
+            """
+            webView.callAsyncJavaScript(script, arguments: [:], in: nil, in: .page) { result in
+                let value: String
+                switch result {
+                case .success(let output): value = "\(output)"
+                case .failure(let error): value = "error \(error.localizedDescription)"
+                }
+                let arrived = value.contains("\"href\":\"capacitor://localhost/about/") && value.contains("\"readyState\":\"complete\"")
+                if arrived || Date() > deadline {
+                    NSLog("%@", "[cd-selftest] link-result \(value)")
+                    // Run 44574289524: the probe at arrival put the header 62 px down, but a screenshot 2 s later showed
+                    // it under the status bar. Measure again once the page has had time to finish its own scripts.
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
+                        webView.callAsyncJavaScript(Self.layoutProbe + "\nreturn JSON.stringify({ href: location.href, layout: layout });", arguments: [:], in: nil, in: .page) { late in
+                            switch late {
+                            case .success(let output): NSLog("%@", "[cd-selftest] link-layout-late \(output)")
+                            case .failure(let error): NSLog("%@", "[cd-selftest] link-layout-late error \(error.localizedDescription)")
+                            }
+                        }
+                    }
+                } else {
+                    self.selfTestLinkResult(deadline: deadline)
                 }
             }
         }

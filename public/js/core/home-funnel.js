@@ -630,7 +630,7 @@
       item.setAttribute('data-pass-tier', myPassFlower.tier);
       var tierCopy = PASS_TIER_COPY[myPassFlower.tier];
       var usage = myPassFlower.usage;
-      item.appendChild(myPassNode('span', 'cdh-mypass__kind', 'home.passCopy.flowerPass', null, '🌸 꽃돼지 달빛 이용권'));
+      item.appendChild(myPassNode('span', 'cdh-mypass__kind', 'home.passCopy.flowerPass', null, '🌸 꽃돼지 꿀단지 이용권'));
       item.appendChild(myPassNode('strong', 'cdh-mypass__name', 'home.overseasCopy.' + tierCopy[0], null, tierCopy[1]));
       if (usage) {
         if (usage.perItemLimitKRW === null) item.appendChild(myPassNode('span', 'cdh-mypass__line', 'home.overseasCopy.passNoLimit', null, '유료 리딩 건당 한도 없음'));

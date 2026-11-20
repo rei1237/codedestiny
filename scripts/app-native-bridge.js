@@ -22,6 +22,25 @@
   if (window.__cdAppNativeBridgeInstalled) return;
   window.__cdAppNativeBridgeInstalled = true;
 
+  // 주소의 "/index.html" 꼬리를 하이드레이션 전에 떼어 낸다(2026-11-20).
+  //
+  // 앱은 파일 경로로 문서를 연다(appStartPath "/index.html", 빌드가 바꾼 "/route/index.html" 링크).
+  // Next 는 usePathname 을 location 에서 읽으므로 "/" 로 프리렌더된 홈이 클라이언트에서는
+  // "/index.html" 이 되고, AppChrome 의 hideChrome 판정이 서버와 어긋나 React #418 이 난다.
+  // 루트 전체가 클라이언트 렌더로 다시 잡히면서 <html> 속성이 props 로 초기화돼
+  // data-platform·data-runtime-target 까지 사라졌다(iOS CI 실측, 웹 빌드로 재현).
+  // 웹은 워커가 /index.html 을 301 하므로 이 꼬리를 볼 일이 없다. 문서는 그대로 두고 주소만 바꾼다.
+  try {
+    var bootPath = window.location.pathname || "";
+    if (/\/index\.html$/i.test(bootPath)) {
+      window.history.replaceState(
+        window.history.state,
+        "",
+        bootPath.replace(/index\.html$/i, "") + window.location.search + window.location.hash
+      );
+    }
+  } catch (e) { /* noop */ }
+
   // Set the app API origin before any page or payment script runs.
   window.CODE_DESTINY_API_BASE_URL = window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
 
@@ -769,6 +788,23 @@
     return true;
   }
 
+  // iOS 유니버설 링크(https://code-destiny.com/…)가 앱을 열면 같은 경로를 앱 번들 안에서 연다.
+  // 웹 URL 과 앱 내부 경로는 같은 체계다(정적 export 를 그대로 번들에 싣는다). /api 는 화면이 아니다.
+  // Android 는 App Links 가 없어 https 링크가 이 리스너로 오지 않는다(커스텀 스킴만).
+  function universalLinkPath(appUrl) {
+    var parsed;
+    try {
+      parsed = new URL(appUrl);
+    } catch (e) {
+      return "";
+    }
+    if (parsed.protocol !== "https:" || !isOwnHost(parsed.hostname)) return "";
+    if (String(parsed.hostname).toLowerCase() === "api.code-destiny.com") return "";
+    var path = parsed.pathname || "/";
+    if (/^\/api(?:\/|$)/.test(path)) return "";
+    return path + parsed.search + parsed.hash;
+  }
+
   function installAppUrlListener() {
     var app = appPlugin();
     if (!app || !app.addListener) {
@@ -779,6 +815,15 @@
       var appUrl = String((event && event.url) || "");
       trace("appUrlOpen", { url: appUrl.slice(0, 60) });
       if (!appUrl) return;
+      // 콜드 스타트도 같은 길이다 — @capacitor/app 은 appUrlOpen 을 retainUntilConsumed 로 보내
+      // 첫 페이지가 리스너를 붙일 때 전달한다. 로그인이 필요한 화면은 그 페이지의 기존 로그인 게이트가
+      // /login?next=<원래 경로> 로 보내고, 로그인 복귀(next)가 원래 목적지로 돌려놓는다.
+      var inAppPath = universalLinkPath(appUrl);
+      if (inAppPath) {
+        trace("universalLink", { path: inAppPath.split(/[?#]/)[0].slice(0, 60) });
+        window.location.assign(inAppPath);
+        return;
+      }
       openAuthStartedAt = 0;
       // 딥링크로 돌아온 직후 토큰 교환은 네트워크 왕복이다. 그 사이가 비어 있으면 멈춘 것처럼 보인다.
       showAuthProgress(nativeAppText("authChecking"));

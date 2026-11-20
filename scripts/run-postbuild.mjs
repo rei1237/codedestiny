@@ -14,6 +14,8 @@ const requiredPublicExportFiles = [
 const steps = [
   "scripts/prepare-cloudflare-dist.mjs",
   "scripts/write-version-json.mjs",
+  // iOS 유니버설 링크 AASA. Team ID 가 없으면 아무것도 쓰지 않는다(지금 상태).
+  "scripts/write-apple-app-site-association.mjs",
   "scripts/promote-static-shell-to-root.mjs",
   "scripts/promote-static-policy-pages.mjs",
   // 셸 승격이 끝난 뒤, 검증 게이트 앞에서 로케일 산출물을 손본다.

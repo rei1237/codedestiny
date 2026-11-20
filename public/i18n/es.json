@@ -838,22 +838,22 @@
       "aria": "Accesos a la coleccion lunar del destino"
     },
     "passMini": {
-      "aria": "Guía del pase a la luz de la luna",
-      "kicker": "PASE A LA LUZ DE LA LUNA",
-      "title": "Deja que tu rutina de la fortuna fluya más suavemente con un pase a la luz de la luna",
-      "desc": "El Moonlight Pass abre, dentro de un rango definido y hasta que agotes su límite de uso, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
-      "guideLabel": "GUÍA A LA LUZ DE LA LUNA",
+      "aria": "Guía del Pase Tarro de Miel",
+      "kicker": "PASE TARRO DE MIEL",
+      "title": "Sigue con más comodidad las lecturas que más consultas con un Pase Tarro de Miel",
+      "desc": "El Pase Tarro de Miel abre, dentro de un rango definido y hasta que agotes su límite de uso, las lecturas a las que vuelves con frecuencia. Las señales de hoy siguen su curso sin interrupciones.",
+      "guideLabel": "GUÍA DEL PASE TARRO DE MIEL",
       "guideTitle": "Hasta agotar tu límite de uso, las lecturas que abres a menudo se despliegan primero con suavidad",
       "guideText": "Del Tarro de miel pequeño al Tarro de miel familiar, las lecturas de tarot, oráculo y saju se abren primero dentro de tu alcance de luz lunar. Las lecturas más profundas fuera de ese alcance pasan a pago único en KRW solo cuando lo necesitas.",
-      "toggle": "Beneficios abiertos a la luz de la luna",
-      "heroAria": "Consulta los servicios disponibles de forma gratuita en el flujo de luz de la luna.",
-      "heroTitle": "Ver el rango del Moonlight Pass",
-      "heroSub": "Continúa dentro de tu Moonlight Pass las lecturas a las que más vuelves",
+      "toggle": "Ver beneficios del Tarro de Miel",
+      "heroAria": "Ver los servicios disponibles con el Pase Tarro de Miel",
+      "heroTitle": "Ver el rango del Pase Tarro de Miel",
+      "heroSub": "Continúa dentro de tu Pase Tarro de Miel las lecturas a las que más vuelves",
       "heroCta": "Ver",
       "balanceLabel": "Saldo mensual de piedras",
       "balanceEmpty": "Queda 0",
       "balanceHint": "Comprobando su saldo mensual de piedras. Compartir en KakaoTalk agrega más piedras mensuales.",
-      "primaryAction": "Encuentra el pase que me conviene",
+      "primaryAction": "Ver el Pase Tarro de Miel",
       "chipsAria": "Beneficios del pase principal",
       "chipIncluded": "Ábrelo ya con tu pase",
       "chipThirtyDays": "Pase",
@@ -885,13 +885,13 @@
       "footnote": "Los pases no tienen límite de tiempo y terminan al agotar el límite de uso. Este pase no es una suscripción que se renueva automáticamente. Los servicios fuera del rango del pase se pueden utilizar con un pago único en KRW por producto.",
       "howtoAria": "Cómo usar el pase moonlight",
       "howtoTitle": "Así fluye el pase moonlight",
-      "step1Label": "Elige un rango moonlight",
+      "step1Label": "Elige el tamaño de tu tarro de miel",
       "step1Text": "Con un pase sin límite de tiempo ni renovación automática, primero fija el rango de precio de las lecturas que consultas a menudo.",
       "step2Label": "Las lecturas dentro del rango se abren sin pago",
       "step2Text": "Las lecturas de tarot, oráculo y saju dentro de tu rango se abren al instante, sin ventana de pago.",
       "step3Label": "Solo las lecturas más profundas se pagan por uso",
       "step3Text": "Las lecturas fuera de tu rango continúan con un pago único en KRW solo cuando lo necesitas.",
-      "terminationNote": "El pase sigue activo aunque agotes el límite de consultas, y puedes seguir usando las Lecturas Ligeras. Para más consultas destacadas, compra un pase nuevo o usa un pago único o Piedras de Luz Lunar.",
+      "terminationNote": "El pase sigue activo aunque agotes el límite de consultas, y puedes seguir usando las Lecturas Ligeras. Para más consultas destacadas, compra un pase nuevo o usa un pago único o Piedras Lunares.",
       "noExpiryNote": "Sin límite de tiempo · Sin renovación automática"
     },
     "promptHub": {
@@ -941,9 +941,9 @@
       "point1": "Se abre al instante, sin pago",
       "point2": "Sin límite de tiempo · Sin renovación automática",
       "point3": "Pase sin renovación automática",
-      "mascotAria": "Ver las ventajas del Moonlight Pass · Tienda del Moonlight Pass",
-      "mascotAlt": "Imagen de las ventajas del Moonlight Pass",
-      "mascotKicker": "Moonlight Pass Guide",
+      "mascotAria": "Ver las ventajas del Pase Tarro de Miel · Tienda del Pase Tarro de Miel",
+      "mascotAlt": "Imagen de las ventajas del Pase Tarro de Miel",
+      "mascotKicker": "Honey Jar Pass Guide",
       "mascotText": "Cuántas veces al mes y a qué precio: decide esas dos cosas y el rango adecuado aparece solo.",
       "cta": "Compara los cuatro pases y elige"
     },
@@ -1704,7 +1704,7 @@
       "searchPlaceholder": "Amor, dinero, cambio de trabajo… busca una lectura",
       "filterToggle": "Filtros",
       "filterMorePurpose": "Otras inquietudes",
-      "shareReward": "100 Piedras de Luz Lunar cuando se registre un amigo",
+      "shareReward": "100 Piedras Lunares cuando se registre un amigo",
       "shareTerms": "Solo se entregan si tu amigo completa el registro desde el enlace compartido con este botón · Máximo 500 al día · Válidas durante 30 días desde la entrega",
       "todayGateCta": "Crea un perfil y consulta tu fortuna de hoy",
       "todayGateDesc": "Tu fecha de nacimiento permite calcular el pilar diario de Saju, las 27 mansiones de Sukuyo y la posición lunar védica según tu carta personal.",
@@ -2003,7 +2003,7 @@
     },
     "passCopy": {
       "myTitle": "Mis pases",
-      "flowerPass": "🌸 Moonlight Pass de Cerdita Flor",
+      "flowerPass": "🌸 Pase Tarro de Miel de Cerdita Flor",
       "packPass": "Pase de Yeongnyangi",
       "packTitle": "Pases de consulta de Yeongnyangi",
       "packName": "Lote {fish} de {total} usos",
@@ -2289,7 +2289,7 @@
       "pace": "Sin límite de tiempo, a tu ritmo.",
       "end": "Las Lecturas Ligeras siguen disponibles aunque agotes el saldo de consultas.",
       "alt": "Yeoni, la cerdita de las flores, y Yeongnyangi sostienen juntos un Tarro de Miel",
-      "moon": "¡Pase Luz de Luna!",
+      "moon": "¡Pase Tarro de Miel!",
       "choose": "Elige tu Tarro de Miel.",
       "value": "Valor a precios individuales",
       "price": "Precio del pase",
@@ -3099,7 +3099,7 @@
       },
       "clean": {
         "pass": {
-          "eyebrow": "VERIFICACIÓN DEL PASE A LA LUZ DE LA LUNA",
+          "eyebrow": "VERIFICACIÓN DEL PASE TARRO DE MIEL",
           "title": "Comprobando tu pase",
           "message": "Comprobando si su pase puede abrir esto de inmediato.",
           "meta": "Si está disponible, continuará sin una ventana de pago."
@@ -3135,13 +3135,13 @@
           "meta": "Podrás verlo tan pronto como finalice la verificación."
         },
         "monthly": {
-          "eyebrow": "VERIFICACIÓN DE PIEDRA DE LUZ DE LUNA",
+          "eyebrow": "VERIFICACIÓN DE PIEDRAS LUNARES",
           "title": "Comprobando pago de crédito mensual",
           "message": "Abrir acceso al contenido con su saldo de crédito mensual.",
           "meta": "Emparejar de forma segura la deducción de crédito y los derechos de acceso."
         },
         "subscription": {
-          "eyebrow": "ACTIVACIÓN DEL PASE A LA LUZ DE LA LUNA",
+          "eyebrow": "ACTIVACIÓN DEL PASE TARRO DE MIEL",
           "title": "Comprobando el pago del pase KRW",
           "message": "Comprobando la aprobación y activación del pago del pase.",
           "meta": "Aplicar de forma segura el nivel y la duración del pase."
@@ -3170,7 +3170,7 @@
       },
       "default": {
         "pass": {
-          "eyebrow": "VERIFICACIÓN DEL PASE A LA LUZ DE LA LUNA",
+          "eyebrow": "VERIFICACIÓN DEL PASE TARRO DE MIEL",
           "title": "Comprobando tu pase",
           "message": "Comprobando si su pase puede abrir esto de inmediato.",
           "meta": "Si está disponible, continuará sin una ventana de pago."
@@ -3206,13 +3206,13 @@
           "meta": "Podrás verlo tan pronto como finalice la verificación."
         },
         "monthly": {
-          "eyebrow": "VERIFICACIÓN DE PIEDRA DE LUZ DE LUNA",
+          "eyebrow": "VERIFICACIÓN DE PIEDRAS LUNARES",
           "title": "Comprobando pago de crédito mensual",
           "message": "Abrir acceso al contenido con su saldo de crédito mensual.",
           "meta": "Emparejar de forma segura la deducción de crédito y los derechos de acceso."
         },
         "subscription": {
-          "eyebrow": "ACTIVACIÓN DEL PASE A LA LUZ DE LA LUNA",
+          "eyebrow": "ACTIVACIÓN DEL PASE TARRO DE MIEL",
           "title": "Comprobando el pago del pase KRW",
           "message": "Comprobando la aprobación y activación del pago del pase.",
           "meta": "Aplicar de forma segura el nivel y la duración del pase."
@@ -3264,10 +3264,10 @@
       "allFeatures": "Todo el contenido incluido en el pase",
       "upTo": "Disponible hasta {amount}",
       "benefits": "Beneficios de un vistazo",
-      "closeAria": "Cerrar Guía de la tienda Moonlight Pass",
-      "openAria": "Guía de la tienda Open Moonlight Pass",
-      "title": "Guía de compras del Moonlight Pass",
-      "subtitle": "Los pases se compran con un pago único en KRW y las Piedras de Luz Lunar se usan en funciones de pago individuales.",
+      "closeAria": "Cerrar Guía de la tienda Pase Tarro de Miel",
+      "openAria": "Guía de la tienda Open Pase Tarro de Miel",
+      "title": "Guía de compras del Pase Tarro de Miel",
+      "subtitle": "Los pases se compran con un pago único en KRW y las Piedras Lunares se usan en funciones de pago individuales.",
       "footerNotice": "Este pase no es un producto que se renueva automáticamente. Debes comprarlo nuevamente después de agotar su límite de uso.",
       "packages": {
         "standard": {
@@ -3293,7 +3293,7 @@
       "monthlyButton": "Pagar con {credits} créditos mensuales",
       "monthlyButtonBusy": "Activando tu pase con créditos mensuales...",
       "monthlyButtonShort": "Se necesitan {credits} · saldo insuficiente",
-      "terminationNotice": "El pase sigue activo aunque agotes el límite de consultas, y puedes seguir usando las Lecturas Ligeras. Para más consultas destacadas, compra un pase nuevo o usa un pago único o Piedras de Luz Lunar."
+      "terminationNotice": "El pase sigue activo aunque agotes el límite de consultas, y puedes seguir usando las Lecturas Ligeras. Para más consultas destacadas, compra un pase nuevo o usa un pago único o Piedras Lunares."
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."
@@ -3352,7 +3352,7 @@
       "signupButton": "Regístrate"
     },
     "passCheckingGreeting": "Verificando su Pase",
-    "passCheckingNote": "Ajustando de forma segura su Pase de Luz Lunar y nivel de membresía.",
+    "passCheckingNote": "Ajustando de forma segura su Pase Tarro de Miel y nivel de membresía.",
     "exitBenefit": {
       "title": "Completa el tutorial gratuito de Manseryeok y recibe {amount} piedras lunares",
       "copy": "Recíbelas una vez tras iniciar sesión y ver el Manseryeok gratuito con tu perfil guardado. Quienes ya recibieron el regalo de registro no reciben otro. Valor de 5.000 KRW. Válidas {days} días para descuentos en servicios aptos desde 10.000 KRW.",
@@ -6036,7 +6036,7 @@
       "passActiveUnlockDesc": "Su pase premium lo desbloquea permanentemente sin un pago único.",
       "unlockTitle": "Desbloqueo permanente: {amount}",
       "unlockDesc": "Desbloquéalo una vez y sigue usándolo. Un pase premium también puede desbloquearlo.",
-      "ziweiConsultDesc": "La entrada es gratuita. Al pulsar el botón 'Generar consulta', se realizará un pago único de 30.000 wones o se verificará el Pase/Piedra de Luz Lunar."
+      "ziweiConsultDesc": "La entrada es gratuita. Al pulsar el botón 'Generar consulta', se realizará un pago único de 30.000 wones o se verificará el Pase/Piedra Lunar."
     }
   },
   "famousSaju": {
@@ -7714,12 +7714,12 @@
       }
     },
     "honeyMembershipDetails": {
-      "kr1a9l9": "Cerrar beneficios de Piedra de Luz Lunar"
+      "kr1a9l9": "Ocultar beneficios del Tarro de Miel"
     },
     "honeyMembershipMini": {
       "honeyMembershipMiniHeader": {
         "k1yqmdmg": {
-          "ariaLabel": "Información del Pase Luz de Luna"
+          "ariaLabel": "Información del Pase Tarro de Miel"
         }
       }
     },
@@ -8135,7 +8135,7 @@
         "kxatr2b": "Flujo interactivo que suaviza las preocupaciones",
         "kyk2x3o": "Consejos de elección basados en el ciclo de fortuna y el año",
         "n12NPC": "Clima cambiante de la isla y diálogos con 12 NPC de las casas",
-        "n30000": "Pago único de 30,000 wones o Pase · Piedra de Luz Lunar",
+        "n30000": "Pago único de 30,000 wones o Pase · Piedra Lunar",
         "kfib4kf": "Compara la energía de las dos opciones en la encrucijada",
         "k1vetwxt": "El rumbo de tu vida leído en el ciclo de fortuna y el año que atraviesas",
         "k67hhx7": "Una simulación de futuro que esboza lo que sigue a cada elección",
@@ -8367,7 +8367,7 @@
     },
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
-        "k1ubfgod": "300 Piedras de Luz Lunar"
+        "k1ubfgod": "300 Piedras Lunares"
       },
       "cdFeedbackBody": {
         "k2a2ghh": "A bug, an awkward screen, a moment of \"I wish this existed\" — anything is welcome.",
@@ -8729,9 +8729,9 @@
       "011": "Ajuste Térmico"
     },
     "message": {
-      "001": "Verificando información de Piedra de Luz Lunar",
-      "002": "Piedra de Luz Lunar activándose, pronto estará disponible",
-      "003": "Piedra de Luz Lunar activándose, pronto estará disponible",
+      "001": "Verificando información de Piedra Lunar",
+      "002": "Piedra Lunar activándose, pronto estará disponible",
+      "003": "Piedra Lunar activándose, pronto estará disponible",
       "004": "Preparando el pago con tarjeta por un solo artículo",
       "005": "Pago completado, cargando resultados",
       "006": "Verificando su Pase",
@@ -16961,7 +16961,7 @@
       "badge": "Free serial"
     },
     "points": {
-      "tagline": "A Moonlight Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
+      "tagline": "A Honey Jar Pass opens paid features up to a set usage limit, with no time limit. You can check what you hold and how you've used it here.",
       "feats": [
         "When paying every single time is a nuisance",
         "When you don't know how much of your pass is left",
@@ -21037,7 +21037,7 @@
       "sukuyoLine": "The space between two people",
       "sukuyoInfo": "Use both people's birth details to explore lunar mansions and relationship direction, including attraction, misunderstandings, and conversation.",
       "compat": "Saju compatibility readings are also available",
-      "priceNote": "Precio por consulta · incluye 1 pregunta adicional · El tarot no admite Moonstone; Cuatro Pilares, compatibilidad y Sukuyo sí.",
+      "priceNote": "Precio por consulta · incluye 1 pregunta adicional · El tarot no admite Piedras Lunares; Cuatro Pilares, compatibilidad y Sukuyo sí.",
       "previewTitle": "A reading you can return to",
       "example": "Format example — not a real customer's reading",
       "exampleQuestion": "Should I continue this work?",
@@ -21068,7 +21068,7 @@
       "question": "My question",
       "price": "Single-reading price",
       "scope": "Respuesta central · fundamentos de la interpretación · acciones · carta de Yeoni · 1 pregunta adicional",
-      "policy": "El tarot no admite Moonstone, y la aplicación de Pass se comprueba en el siguiente paso. Cuando recibas tu consulta, podrás hacer 1 pregunta adicional sin coste extra, con la misma base (carta natal, cartas o mansión lunar natal).",
+      "policy": "El tarot no admite Piedras Lunares, y la aplicación de Pass se comprueba en el siguiente paso. Cuando recibas tu consulta, podrás hacer 1 pregunta adicional sin coste extra, con la misma base (carta natal, cartas o mansión lunar natal).",
       "edit": "Edit question",
       "continue": "Check access and start",
       "prepare": "Prepare cards for this question",
