@@ -36,6 +36,7 @@ import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
 import { claimRequestBillingEvidence, evidenceAlreadyUsedResult, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+import { STUCK_LIVE_LEASE_MS, expireRetryableConsultations, logStuckSettled, markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const TITLE = "숙요점 전문가 상담";
@@ -136,6 +137,7 @@ const MESSAGES = {
   calculationFailed: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   serverFailed: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
+  llmRetry: "전문가 상담문을 생성하는 중 문제가 발생했어요. 추가 결제나 차감 없이 다시 시도할 수 있어요.",
   networkFailed: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   generating: "두 사람의 별을 읽어 상담문을 쓰고 있어요. 잠시만 기다려 주세요.",
   generationInterrupted: "상담 생성이 중간에 끊겼어요. 이용권은 그대로 보존되니 다시 시도해 주세요.",
@@ -2002,6 +2004,145 @@ async function confirmSukuyoDelivery(userId, sessionId, messages, lease) {
   } catch { throw resultStorageUnavailable(sessionId); }
 }
 
+// 2026-11-20 R10 다시 시도 우선(사용자 결정 "다시 시도+7일 환불 도입", 베다점·점성술·자미두수 R10 과 같은 정책).
+// 웹 생성 실패는 바로 환불하지 않고 추가 결제·차감 없는 다시 시도를 연다. 환불 시각 = 생성 + 7일(연장 없음),
+// 고객이 환불을 요청하면 즉시. 토스 미니앱·계산 실패·표지 저장 실패·창이 지난 실패는 기존 즉시 경로를 그대로 탄다.
+function sukuyoRetryMeta(request, doc, error, access) {
+  if (nativeTossContext(request) || !doc || doc.accessSource === "toss") return null;
+  const meta = retryableFailureMeta(doc, Date.now(), clean(error?.code || "LLM_GENERATION_FAILED", 40));
+  if (!meta) return null;
+  // 보류 뒤 정산이 요청 없이도 같은 증빙을 되돌릴 수 있게 실패 당시의 접근 증빙만 남긴다(토큰·결제 원문 없음).
+  return { ...meta, access: { accessType: clean(access?.accessType, 40), paymentId: clean(access?.paymentId, 180), claimEvidenceId: clean(access?.claimEvidenceId, 180) } };
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function sukuyoRetryPayload(request, doc) {
+  if (nativeTossContext(request) || !doc || doc.accessSource === "toss") return {};
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc._id || "");
+  return state ? { message: MESSAGES.llmRetry, sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+// 본문 없이 실패한 건만 보류되므로(본문이 있으면 partial 로 이어 쓴다) 시도 기록을 모두 새로 연다 — 토스 다시 시도와 같은 처리.
+const sukuyoRetryReset = () => ({ "llmMeta.attempts": {} });
+async function sukuyoRetryOwner(request, env) {
+  let auth;
+  try { auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION }); }
+  catch (error) {
+    if (isTransientMongoError(error)) throw error;
+    return { response: json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 }) };
+  }
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 60);
+  if (!isObjectIdLike(sessionId)) return { response: notFound() };
+  await connectDb(env);
+  const stored = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean();
+  if (!stored || stored.accessSource === "toss") return { response: notFound() };
+  return { owner: { id: sessionId, userId: auth.userId }, auth };
+}
+// 다시 시도(무료): 같은 소유자의 보류 건만 이어쓰기(partial)로 되돌리고 기존 재개 경로(resumeSessionId)로 돈다.
+async function handleRetry(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: MESSAGES.llmFailed }, { status: 409 });
+  const { response, owner, auth } = await sukuyoRetryOwner(request, env);
+  if (response) return response;
+  const reopened = await reopenRetryableConsultation(SukuyoCompatibilityAiConsultation, owner, Date.now(), { reset: sukuyoRetryReset, idKey: "_id" });
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const latest = await SukuyoCompatibilityAiConsultation.findOne({ _id: owner.id, userId: owner.userId }).lean().catch(() => null);
+    if (!latest) return notFound();
+    if (consultationStatus(latest) === "completed") return json({ ok: true, consultation: await serializeConsultation(latest), reused: true });
+    return json({ ok: false, reason: reopened.reason, message: MESSAGES.llmFailed, ...sukuyoRetryPayload(request, latest) }, { status: 409 });
+  }
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  headers.delete("content-length");
+  return handleStart(new Request(request.url, { method: "POST", headers, body: JSON.stringify({ resumeSessionId: owner.id }) }), env, auth);
+}
+// 고객 환불 요청: 보류 건을 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 환불 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  if (nativeTossContext(request)) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const { response, owner } = await sukuyoRetryOwner(request, env);
+  if (response) return response;
+  const marked = await markRetryableRefundDue(SukuyoCompatibilityAiConsultation, owner, Date.now(), "CUSTOMER_REQUEST", { idKey: "_id" });
+  if (!marked.ok) return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  let refundStatus = "pending";
+  try { refundStatus = (await settleSukuyoRetryRefund(env, owner)).refundStatus; }
+  catch (error) {
+    logSukyoAi("[Sukyo AI Retry Refund Failed]", { route: "/api/sukuyo-compatibility-ai/refund-request", errorMessage: clean(error?.message || error, 300) }, error, env);
+  }
+  return json({ ok: true, sessionId: owner.id, refunded: refundStatus === "refunded", refundStatus });
+}
+// PG 카드 단건은 접근 판정에서 이용권(pass)으로 돌아오기도 한다(requestId 로 증명된 카드). 그래서 접근 종류가 아니라
+// 이 상담의 증빙 ID(요청 키·주문 번호·claim 한 결제 문서)로 같은 기능의 결제 완료 카드를 직접 찾는다.
+async function findSukuyoCardPayment(userId, access, idempotencyKey, resumeBody) {
+  const ids = new Set(collectBillingEvidenceIds({ ...(resumeBody && typeof resumeBody === "object" ? resumeBody : {}), idempotencyKey }));
+  for (const value of [access?.paymentId, idempotencyKey]) { const id = clean(value, 180); if (id) ids.add(id); }
+  const clauses = [...ids].flatMap(id => [{ requestId: id }, { idempotencyKey: id }, { merchantUid: id }, { impUid: id }]);
+  const claimId = clean(access?.claimEvidenceId, 160);
+  if (isObjectIdLike(claimId)) clauses.push({ _id: claimId });
+  if (!clauses.length) return null;
+  return Payment.findOne({ userId, featureKey: FEATURE_KEY, paymentType: "digital_content",
+    status: { $in: ["paid", "success", "fulfilled"] }, $or: clauses }).lean();
+}
+// 보류 건의 환불 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 순서는 기존 즉시 환불과 같다: 이용권·코인·월정석 복원 → (복원이 없을 때만) 카드. 카드 환불이 실패하면 증빙 claim 을
+// 풀지 않고 표시도 하지 않아 다음 크론이 다시 시도한다. 복원은 각자 표지로 멱등이다.
+async function settleSukuyoRetryRefund(env, { id, userId }, model = SukuyoCompatibilityAiConsultation, now = Date.now()) {
+  const owner = { _id: clean(id, 60), userId };
+  const fresh = await model.findOne(owner).lean();
+  const meta = fresh?.llmMeta;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || fresh.accessSource === "toss") return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus, 40) || "requested" };
+  const access = meta.retryable.access || {};
+  const idempotencyKey = clean(fresh.idempotencyKey, 180);
+  const error = Object.assign(new Error("retry closed without delivery"), { code: clean(meta.retryable.refundReason || "RETRY_REFUND", 80) });
+  const settle = async (refundStatus) => {
+    await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+      "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": refundStatus } });
+    logStuckSettled({ service: FEATURE_KEY, sessionId: owner._id, outcome: "retry_refund", refundStatus });
+    return { refundStatus };
+  };
+  const restored = await restorePrepaidAccessOnFailure(env, { userId: fresh.userId }, access, error, idempotencyKey).catch(() => false);
+  const prepaid = ["paid", "subscription"].includes(clean(access.accessType).toLowerCase()) && isObjectIdLike(clean(access.paymentId));
+  if (prepaid && !restored) {
+    // 기존 즉시 경로와 같다: 코인·월정석 복원 자격을 확인하지 못하면 원 증빙을 붙잡아 두고 검토로 넘긴다.
+    await model.updateOne({ ...owner, status: "generation_failed" }, { $set: { "generationError.code": "REFUND_REVIEW_REQUIRED" } });
+    return settle("review_required");
+  }
+  let card = null;
+  if (!restored) {
+    try {
+      const payment = await findSukuyoCardPayment(fresh.userId, access, idempotencyKey, meta.resumeBody);
+      // 결제 환불 모듈은 쓸 때만 불러온다(이 라우트를 models 대역으로 띄우는 테스트 보호 — 이용권 정산 모듈과 같은 이유).
+      const { autoRefundSinglePaymentDeliveryFailure } = payment ? await import("../lib/payment-refund.js") : {};
+      if (payment) card = await autoRefundSinglePaymentDeliveryFailure(env, payment, error.code, MESSAGES.llmFailed, "sukuyo_compatibility_ai_generation");
+    } catch (refundError) {
+      card = { refunded: false, refundFailed: true, reason: clean(refundError?.message || refundError, 300) };
+    }
+    if (card?.refundFailed) {
+      logSukyoAi("[Sukyo AI Retry Card Refund Failed]", { route: "/api/sukuyo-compatibility-ai/refund", requestId: idempotencyKey, errorMessage: clean(card.reason, 300) }, null, env);
+      return { refundStatus: "failed" };
+    }
+  }
+  await releaseRequestBillingEvidence(env, { userId: clean(fresh.userId), requestId: idempotencyKey, evidenceIds: [clean(access.claimEvidenceId, 160)] })
+    .catch(releaseError => logSukyoAi("[Sukyo AI Retry Evidence Release Failed]", { route: "/api/sukuyo-compatibility-ai/refund", requestId: idempotencyKey, errorMessage: clean(releaseError?.message || releaseError, 300) }, releaseError, env));
+  return settle(restored || card?.refunded ? "refunded" : "not_required");
+}
+// 환불 크론: 창이 지난 보류(다시 연 뒤 방치된 건 포함)를 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// 숙요 궁합은 lockedAt 대신 generationLease + updatedAt 으로 생성 중을 표시하므로 isLive 로 살아 있는 생성을 제외한다.
+export async function settleDueSukuyoRetryRefunds(env, { now = Date.now(), model = SukuyoCompatibilityAiConsultation, limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  const isLive = (doc, at) => ["generating", "partial"].includes(doc.status) && at - new Date(doc.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS;
+  try { await expireRetryableConsultations(model, now, { isLive, idKey: "_id" }); }
+  catch { outcomes.push({ service: FEATURE_KEY, refundStatus: "pending" }); }
+  const due = await model.find({ status: "generation_failed", "llmMeta.retryable": { $exists: true }, "llmMeta.refundEligibleAt": { $exists: true },
+    "llmMeta.retryable.refundSettledAt": { $exists: false }, accessSource: { $ne: "toss" }, userId: { $exists: true, $ne: null } })
+    .sort({ updatedAt: 1 }).limit(limit).select("_id userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: FEATURE_KEY, refundStatus: (await settleSukuyoRetryRefund(env, { id: String(doc._id), userId: doc.userId }, model, now)).refundStatus }); }
+    catch { outcomes.push({ service: FEATURE_KEY, refundStatus: "pending" }); }
+  }
+  return outcomes;
+}
+
 async function handleStart(request, env, recoveryAuth = null) {
   let auth = null;
   try {
@@ -2080,7 +2221,7 @@ async function handleStart(request, env, recoveryAuth = null) {
     const failedRetry = existingStatus === "generation_failed" && nativeRetryRequested && existing?.generationError?.code !== "REFUND_REVIEW_REQUIRED";
     const manualRetryCount = Number(existing?.llmMeta?.manualRetryCount || 0);
     if (existingStatus === "generation_failed" && (!failedRetry || !Number.isSafeInteger(manualRetryCount) || manualRetryCount < 0 || manualRetryCount >= 2)) return json({ ok: false,
-      reason: existing?.generationError?.code === "REFUND_REVIEW_REQUIRED" ? "REFUND_REVIEW_REQUIRED" : manualRetryCount >= 2 ? "GENERATION_REVIEW_REQUIRED" : "LLM_FAILED" }, { status: 409 });
+      reason: existing?.generationError?.code === "REFUND_REVIEW_REQUIRED" ? "REFUND_REVIEW_REQUIRED" : manualRetryCount >= 2 ? "GENERATION_REVIEW_REQUIRED" : "LLM_FAILED", ...sukuyoRetryPayload(request, existing) }, { status: 409 });
     const accessHash = await inputHash(normalized);
     if (existing?.inputHash && existing.inputHash !== accessHash) return json({ ok: false, reason: "REQUEST_CONFLICT", message: "기존 상담과 입력이 달라요. 저장된 상담에서 이어서 시도해 주세요." }, { status: 409 });
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
@@ -2295,6 +2436,19 @@ async function handleStart(request, env, recoveryAuth = null) {
         if (nativeTossContext(request)) await nativeTossContext(request).assertStored(partial);
         return json({ ok: true, saved: false, status: "partial", retryable: false, reviewRequired: true,
           sessionId, resumeSessionId: sessionId, idempotencyKey, consultation: await serializeConsultation(partial) }, { status: 202 });
+      }
+      // R10: 웹 결제 건은 바로 환불하지 않고 다시 시도를 연다. 복원·카드 환불·증빙 해제는 보류 정산(settleSukuyoRetryRefund)이 맡는다.
+      // 표지 저장이 실패하면 아래 기존 즉시 경로로 내려간다(그 경로의 저장도 실패하면 저장 장애 503).
+      const retryable = sukuyoRetryMeta(request, checkpoint, genError, access);
+      if (retryable) {
+        const held = await saveSukuyoCheckpoint(sessionId, auth.userId, seedFields.generationLease, { status: "generation_failed",
+          generationError: { code: clean(genError?.code || "LLM_GENERATION_FAILED", 80), message: clean(genError?.message || genError, 500), at: new Date().toISOString() },
+          "llmMeta.retryable": retryable }).catch(() => null);
+        if (held) {
+          logSukyoAi("[Sukyo AI LLM Retry Held]", { route: "/api/sukuyo-compatibility-ai/generate", requestId: idempotencyKey,
+            consultationType: normalized.consultationType, providerReason: clean(genError?.code, 120) }, genError, env);
+          return json({ ok: false, reason: "LLM_ERROR", ...sukuyoRetryPayload(request, held) }, { status: 503 });
+        }
       }
       // 실패 확정도 현재 생성 잠금을 소유한 요청만 수행한다. 저장 장애는 환불로 보내지 않는다.
       const prepaid = ["paid", "subscription"].includes(clean(access.accessType).toLowerCase()) && isObjectIdLike(clean(access.paymentId));
@@ -2532,7 +2686,7 @@ async function handleResult(request, env) {
       const retryable = Boolean(validResume && consultation.generationError?.code !== "REFUND_REVIEW_REQUIRED" && Number.isSafeInteger(retries) && retries >= 0 && retries < 2);
       return json({ ok: true, sessionId, idempotencyKey: consultation.idempotencyKey, status, retryable, reviewRequired: !retryable });
     }
-    return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
+    return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed, ...sukuyoRetryPayload(request, consultation) }, { status: 503 });
   }
   if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
@@ -2563,6 +2717,8 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
     if (path === "/ensure-access" || path === "/prepare") return await handleEnsureAccess(request, env);
     if (path === "/start" || path === "/generate") return await handleStart(request, env);
     if (path === "/message") return await handleMessage(request, env);
+    if (path === "/retry") return await handleRetry(request, env);
+    if (path === "/refund-request") return await handleRefundRequest(request, env);
     return notFound();
   } catch (error) {
     logSukyoAi("[Sukyo AI LLM Error]", {

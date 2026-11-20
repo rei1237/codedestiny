@@ -34,7 +34,7 @@ export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'astrology-ai', files: ['worker/routes/astrology-ai.js'], featureKeys: ['astrology-ai-consultation'], refunds: ['failServiceExecution', 'autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'vedic-ai', files: ['worker/routes/vedic-ai.js'], featureKeys: ['vedic-ai-consultation'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'ziwei-ai', files: ['worker/routes/ziwei-ai.js'], featureKeys: ['ziwei-ai-consultation'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
-  { service: 'sukuyo-compatibility-ai', files: ['worker/routes/sukuyo-compatibility-ai.js'], featureKeys: ['sukuyo-compatibility-ai'], refunds: ['refundPassUseEvidence'] },
+  { service: 'sukuyo-compatibility-ai', files: ['worker/routes/sukuyo-compatibility-ai.js'], featureKeys: ['sukuyo-compatibility-ai'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'new-year-ai', files: ['worker/routes/new-year-ai.js'], featureKeys: ['new-year-ai-consultation'], refunds: ['settleFailedConsultationRefund'] },
   { service: 'life-book-ai', files: ['worker/routes/life-book-ai.js'], featureKeys: ['life-book-ai-consultation', 'life-fortune-ai-consultation'], refunds: ['settleFailedConsultationRefund'] },
   { service: 'love-secret-ai', files: ['worker/routes/love-secret-ai.js'], featureKeys: ['love-secret-ai-consultation'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
