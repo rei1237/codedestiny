@@ -960,6 +960,40 @@ const newYearAiConsultationSchema = new mongoose.Schema({
 newYearAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 newYearAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+// 사주 고급 궁합(saju-compat-premium, 2026-11-20). 두 사람 출생 입력은 서버가 계산하고, 결과는 완성본만 result 에 저장한다.
+// 다시 시도는 llmMeta.groups 의 완성 그룹을 보존하고 빠진 그룹만 다시 생성한다.
+const sajuCompatPremiumPersonSchema = new mongoose.Schema({
+  name: { type: String, default: "", trim: true, maxlength: 40 },
+  gender: { type: String, enum: ["male", "female"], required: true },
+  birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+  birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+  birthTimeUnknown: { type: Boolean, default: false },
+  calendarType: { type: String, enum: ["solar", "lunar"], default: "solar" },
+  isLeapMonth: { type: Boolean, default: false },
+}, { _id: false });
+
+const sajuCompatPremiumConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  accessSource: { type: String, enum: ["", "toss"], default: "" },
+  featureKey: { type: String, default: "saju-compat-premium", trim: true, maxlength: 80 },
+  self: { type: sajuCompatPremiumPersonSchema, required: true },
+  partner: { type: sajuCompatPremiumPersonSchema, required: true },
+  relationType: { type: String, required: true, trim: true, maxlength: 20 },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "partial", "delivery_pending", "completed", "generation_failed"], default: "partial", index: true },
+  result: { type: mongoose.Schema.Types.Mixed, default: null },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "sajuCompatPremiumConsultations" });
+
+sajuCompatPremiumConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+sajuCompatPremiumConsultationSchema.index({ userId: 1, createdAt: -1 });
+
 const karmaDestinyAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
   content: { type: String, required: true, trim: true, maxlength: 80000 },
@@ -2105,6 +2139,8 @@ export const ZiweiCalculationPreparation = scopedModel(mongoose.models.ZiweiCalc
   || mongoose.model("ZiweiCalculationPreparation", ziweiCalculationPreparationSchema));
 export const LoveSecretAiConsultation = scopedModel(mongoose.models.LoveSecretAiConsultation
   || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema));
+export const SajuCompatPremiumConsultation = scopedModel(mongoose.models.SajuCompatPremiumConsultation
+  || mongoose.model("SajuCompatPremiumConsultation", sajuCompatPremiumConsultationSchema));
 
 // 관계 경계 테스트는 출생 정보별 회당 결제 결과다. `idempotencyKey`가 같은 재시도는
 // 동일 세션을 재사용하며, 결과는 요청한 계정에서만 조회한다.
