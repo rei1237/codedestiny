@@ -290,3 +290,4 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
   - SEO: 결과는 비공개 상태 화면이라 noindex/robots 변경 없음. 공개 페이지 문구 2곳만 바뀜(title·description·H1·canonical 불변). `/compare/fortune-apps/` 의 `SEO_SERVICE_SCOPES_UPDATED` 날짜는 올리지 않음.
 - 롤백: 두 상수 `FREE_RESULT_GUEST_ENABLED=false` + `npm run sync:public`(끄면 초안 형식·이벤트·모달이 이전과 같음) 또는 W2 커밋 `git revert`.
 - 남은 위험: 회원가입 전환 감소; 무료 사주 `fortune_login_required` 가 거의 0(docs/analytics-kpi.md 에 기록); 코인·결제 401 내부 `_cdPromptLogin`·AI 상담 `redirectToLoginForFortune` 은 결과 복귀 주소로 바뀌지 않음(원래 주소로 복귀); mock 환경 결과 화면 하단 "일시적인 오류" 토스트는 플래그 끔에서도 동일(기존, W2 무관 — 미조사).
+- push 보류(2026-11-21): main PR CI(44815999399, 8e676e4be)가 Static guards "sprite crops" 가드로 red — `app/components/master-motion/MasterMotion.module.css:76` `calc(100% / var(--mm-n))`(W4 c038f3980). W2 무관. W4 수정으로 main 이 녹색이 된 뒤 이 브랜치를 main 에 머지·push 하고 워크트리를 배수한다.
