@@ -16,6 +16,8 @@ import HomeCardDeck from "./components/HomeCardDeck";
 import FreePromoBanner from "./components/FreePromoBanner";
 import HomeDailyEntry from "./components/HomeDailyEntry";
 import HomeMoonlitEntry from "./components/HomeMoonlitEntry";
+import PopularTop5 from "./components/PopularTop5";
+import { POPULAR_TOP5_ENABLED } from "../js/core/popular-top5.mjs";
 import TrustRecordLine from "./components/conversion/TrustRecordLine";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
@@ -131,6 +133,8 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {/* 실제 인기 순위 TOP5(최근 30일 구매, 2026-11-21 사용자 요청). 끄기: js/core/popular-top5.mjs 의 POPULAR_TOP5_ENABLED */}
+        {!IS_APP_BUILD && POPULAR_TOP5_ENABLED && <PopularTop5 />}
         <HomeMoonlitEntry />
         {!IS_APP_BUILD && <FreePromoBanner />}
         {!IS_APP_BUILD && <HomeQuestionGuide />}

@@ -405,3 +405,10 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **해소**: 사용자 요청이 우선이다. 범위는 마스터 모션 래퍼(`app/components/master-motion/MasterMotion.tsx`)·ExpertCharacterStage·홈 `js/core/yehwa-home.mjs` 의 `mountMasterMotion` 으로 한정한다. transform·opacity 키프레임만, 꽃잎 8개 이하·pointer-events:none, 움직임 줄이기면 정지, 화면 안에서만 재생, JS 애니메이션 루프 없음. 다른 App Router 화면의 "Tailwind 만" 규칙은 그대로다.
 - **남은 위험**: 저사양 기기 합성 비용(꽃잎은 화면 안 래퍼에서만 돈다). 후속 그림(`motion` 필드)이 들어오면 용량·디코딩 비용을 다시 잰다.
 - **롤백**: `lib/master-motion/flags.mjs` 와 `js/core/yehwa-home.mjs` 의 `MASTER_MOTION_ENABLED` 를 false(끄면 감싸기 전과 같은 DOM) 또는 W4 커밋 `git revert`.
+
+## 2026-11-21 메인 인기 TOP5(W3) ↔ design-canon §5 "`/` 에 상담 목록은 넣지 않는다"
+
+- **충돌**: design-canon 은 루트 `/` 에 상담 목록을 두지 않고 상담 탐색은 `/ggulggul/` 에 모은다고 정했다. 2026-11-21 사용자가 "도화서원처럼 내 서비스의 메인 화면에도 실제 인기 순위 TOP5가 나오도록해주고" 요청했고, 같은 날 순위 기준으로 "최근 30일 실제 구매 수 (권장)" 를 골랐다.
+- **해소**: 사용자 요청이 우선이다. 예외는 `app/components/PopularTop5.tsx`(HomeCardDeck 바로 아래) 한 구역, 다섯 줄로 한정한다. 순위는 `/api/popular-services`(ops_revenue_facts 읽기 전용 집계, 순위만 공개)에서 오고, 표본 3건 미만 자리는 "추천"으로 표기해 가짜 순위를 만들지 않는다. API 가 실패하면 구역째 숨긴다. 그 밖의 상담 목록·제휴 광고 금지는 그대로다. `/ggulggul/` 에는 상황별 고르기 뒤에 같은 구역을 넣는다.
+- **남은 위험**: API 실패 시 `/` 에서 미리 잡은 자리(484px)가 접히며 아래 내용이 한 번 올라간다(첫 화면 아래라 CLS 영향은 작다고 추정, 미실측). 스테이징 DB 에 구매 사실이 없으면 다섯 자리가 모두 "추천"이다.
+- **롤백**: `js/core/popular-top5.mjs` 의 `POPULAR_TOP5_ENABLED` 를 false(구역·요청 모두 사라짐) 또는 W3 커밋 `git revert`.
