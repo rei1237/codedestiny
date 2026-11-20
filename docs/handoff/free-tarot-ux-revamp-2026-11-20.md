@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 유지, 승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push) — A4 에서 미룬 시코젠 포바일루 검토 포함
+next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 유지, 승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push) — A4 에서 미룬 시코젠 포바일루 검토 포함 (W1 공용 출생 입력 완료 2026-11-21)
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -251,3 +251,32 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_STAR_HUG_ENABLED = false` 또는 `git revert 0042e6025`.
 - A3 후속 "3단계 vs 1/6": 기록만. progressSteps 가 wait 단계를 세므로 고치면 모든 흐름의 셸 동작이 바뀜 → 셸 공통 후속 과제.
 - 남은 위험: (1) 생년월일·이름이 탭 범위 sessionStorage 스냅숏에 남음(원본은 메모리). (2) 결과에서 뒤로 가면 별자리 단계로 감(replace history, A2·A3 와 같은 패턴). (3) 가이드에서는 기본 감정(calm)을 미리 고르지 않아 사용자가 직접 골라야 함. (4) 시각 입력은 원본 BirthTimeInput 이 아니라 네이티브 time input. (5) 감정·별자리·예시 문장 라벨은 원본 데이터 그대로 한국어만. (6) check:fast 부하 타임아웃 반복 가능.
+
+### W1 공용 출생 입력 결과 (2026-11-21)
+
+요청 원문(2026-11-21): "서비스 기능에 회귀는 없어야해" → 흐름별 새 플래그, 끔이면 기존 가이드 입력 그대로. 결과·저장·엔진·URL 불변.
+
+- 만든 것: `app/components/guided-flow/birth/`(GuidedBirthSteps.tsx·birth-steps.ts·guided-birth.module.css). 이름(선택) → 성별 → 생년월일(연·월·일 숫자 칸, 자동 넘김·즉시 검증) → 양력·음력·윤달 → 시각(12지 시진 칩 + 직접 입력 + "시간을 몰라요") → 장소(선택, BirthPlaceInput, 비우면 서울 경도) → 확인 요약(항목별 수정). SavedBirthProfilePicker·birthTimeInput 재사용. 셸 보강: `step-controller.mjs` `mergeAnswers`, `GuidedFlowShell` `ctaLabels`.
+- 연결(장소 단계는 세 곳 모두 생략): A2 `/saju/free/`(`GUIDED_BIRTH_FREE_SAJU_ENABLED`), A3 `/saju/animal-destiny/`(`GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED`), A4 `/yeon-star-hug/`(`GUIDED_BIRTH_STAR_HUG_ENABLED`). 셋 다 `true`. 각 호스트는 `STEPS = FLAG ? BIRTH_STEPS : LEGACY_STEPS`.
+- 개발 데모: `/dev/guided-flow/birth/`(`page.dev.tsx`, dev 서버에서만, noindex, `?brand=yeongnyangi`).
+- i18n: `public/i18n/*/guidedFlow.json` 12개 `birth` 블록(ko/en/ja/zh-CN/zh-TW 저작, 나머지 7개 영어).
+- 커밋: `71fae3587` 준비, `2bd5d766d` 묶음, `a9be008d1` 연결, `9745946a6` 데모, `3eb09f6db` 수정 버튼 테두리 대비, origin/main 머지, 사이트맵 원장 커밋 + 이 문서.
+- 검증(실측):
+  - 테스트 node --test: guided-birth-steps 5/5, free-saju-form 6/6, animal-destiny-guided 6/6, star-hug-guided 5/5, guided-tarot-flags.static 10/10(불린 플래그·LEGACY_STEPS 계약), guided-flow-dev-page 3/3, guided-step-controller 통과. `npx tsc --noEmit` exit 0.
+  - `npm run check:fast -- --base=<origin/main 머지 기준>` exit 0(세 번째 실행): lint, typecheck, test:node 5620/0, 유료 게이트 묶음 78/0, build:worker, jest 8427 통과/1 건너뜀. 앞선 실행 차단 2건: (1) verify:sitemap-drift → `sitemap:generate` 원장 커밋, (2) sky-and-range 는 워크트리에 `fortune/data` 가 없어서 → `npm run fortune:build-data` 뒤 7/7. 브랜치 위 기본 check:fast 는 HEAD 기준이라 "변경 없음" 으로 끝나므로 `--base` 필요.
+  - 대비(합성 측정): 출생 묶음 2브랜드 × 연이/네오 × 360/390/430/960 전부 통과(본문 4.5·UI 3). 꿀꿀 확인 요약 수정 버튼 테두리 2.79 → 금 테두리로 10.26. `verify-guided-flow-contrast.cjs` "guided flow contrast ok: 2 brand(s) x 2 theme(s) x 4 widths".
+  - 실제 걷기(dev, 360/960, 쿠키 배너 닫음): 세 흐름 모두 켬/끔에서 `?step=result` 도달, pageerror 0. 결과 본문 텍스트 켬/끔 동일 — 비로그인 6/6, 로그인(저장 프로필 있음) 6/6. 저장 프로필 선택 시 A3·A4 는 확인 요약으로 바로 이동, 별빛 포옹 결과에 "저장달/1988". 무료 사주는 원본처럼 프로필 선택기 없음.
+  - visual-checker(before=끔/after=켬, 360/960, 비로그인·로그인): 결과 화면 12쌍 동일·깨짐 없음, 랜딩 동일, 입력 단계 넘침·잘림 없음, 대비 8.36~9.73:1. 가로 넘침: scrollWidth = 화면 폭(360/960).
+  - 렌더 차단 CSS(dev, 첫 HTML stylesheet 합): 켬/끔 동일 — `/saju/free/` 1,047,800B(5개), `/saju/animal-destiny/` 970,406B(3개), `/yeon-star-hug/` 933,935B(1개).
+  - 경계 diff(`git diff origin/main...HEAD --stat`): 결제·이용권·월정석·auth·records·library·worker·api·라우트·리다이렉트·wrangler·.env·package-lock 변경 0.
+  - SEO: 공개 page.tsx·metadata·H1·canonical·robots 무변경, 데모는 dev 전용·noindex·사이트맵 밖, 사이트맵 원장만 재생성. 그 외 항목 영향 없음.
+  - main CI(push 전 1회): MAINCI_RESULT
+- 롤백: `lib/guided-flow/flags.mjs` 의 해당 `GUIDED_BIRTH_*_ENABLED = false`(흐름별), 전체는 `git revert a9be008d1`(연결만) 또는 W1 커밋 전부.
+- 남은 위험·후속:
+  1. 셸 sticky CTA 가 실제로는 붙지 않음(기존 결함): 호스트 래퍼(`SeoLandingTemplate.jsx` main, 동물·별빛 포옹 페이지 래퍼)의 `overflow-hidden` 이 sticky 기준을 바꿔, 시각·확인 단계처럼 긴 단계에서 360×844 첫 화면에 "다음/확인"이 하단 내비(cd-mnav) 뒤에 놓임(무료 사주 시각·확인, 별빛 포옹 시각). 스크롤하면 누를 수 있음. 셸 CSS(`bottom: var(--cd-mnav-offset)`)는 맞음. 고치려면 공용 래퍼를 `overflow-x-clip` 류로 바꿔야 해 범위 밖 — 셸 공통 후속.
+  2. A3 랜딩 안내 문구는 옛 순서를 설명하고, A3 순서가 바뀜(이름·성별 먼저).
+  3. 날짜 범위가 1900~오늘로 좁아짐.
+  4. 시진 칩 값의 야자시(23:30~) 경계.
+  5. 숫자 칸 날짜는 `birthDateTextInputProps` 대신 `normalizeBirthDateInput` 으로 검증.
+  6. 기존: `scripts/test-mobile-platform-journeys.mjs` 가 A3 이전 동물 입력을 기대.
+  7. "3단계 vs 1/6" 문구(셸 공통, 기록만).
