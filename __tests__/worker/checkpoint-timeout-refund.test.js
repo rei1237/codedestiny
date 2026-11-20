@@ -131,6 +131,12 @@ describe('neo retryable first-briefing failure',()=>{
  test('other services with a retry marker keep the existing policy',async()=>{
   execution.featureKey='nakshatra-ai-consultation';expect(await inspect(execution)).toBe('missing');
  });
+ // 2026-11-20 R10: 점성술도 같은 표지로 보류한다 — 창 안에서는 타임아웃 환불을 미루고, 창이 지나면 기존 정책.
+ test('astrology held inside the retry window is recoverable, and missing once the window passes',async()=>{
+  execution.featureKey='astrology-ai-consultation';expect(await inspect(execution)).toBe('recoverable');
+  expect(await inspect(execution,{includeResumable:false})).toBe('missing');
+  report.llmMeta.retryable.refundAt=past();expect(await inspect(execution)).toBe('missing');
+ });
 });
 
 // 2026-11-19 R6 다시 시도 우선: 흑월은 종결 실패를 표지(metadata.retryable)로 보류한다. 창(생성 + 7일) 안에서만 타임아웃 환불을 미룬다.

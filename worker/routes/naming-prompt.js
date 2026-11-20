@@ -3,6 +3,7 @@ import { generateNamingWave, namingChaptersText, namingReportComplete, confirmed
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { randomUUID } from "node:crypto";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, publicRetryState, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
@@ -1472,12 +1473,14 @@ async function saveNamingDelivery(filter, fields) {
 const NAMING_MAX_TOTAL_CONTENT_CHARS = 27200;
 const NAMING_PROMPT_TARGET_MIN_CHARS = 24000;
 
-async function markNamingGenerationFailed(env, executionId, error, userId, lease) {
-  await saveNamingDelivery(
+// heldSnapshot: 다시 시도 보류 표지(retryable)를 실은 작명 스냅샷. 있으면 실패 상태와 함께 한 번에 저장한다.
+async function markNamingGenerationFailed(env, executionId, error, userId, lease, heldSnapshot = null) {
+  return saveNamingDelivery(
     { executionId, userId, status: "generating", "result.namingPrompt.deliveryLease": lease },
     {
         status: "generation_failed",
         error: { message: clean(error?.message, 300), code: clean(error?.code, 80) },
+        ...(heldSnapshot ? { result: { namingPrompt: heldSnapshot } } : {}),
     },
   );
 }
@@ -1557,8 +1560,9 @@ async function refundNamingMonthlyCredit(env, auth, access) {
 }
 
 async function restoreNamingAccessOnFailure(env, auth, access) {
+  // failed: 복원 시도 자체가 던졌다 — 다시 시도 보류 정산은 이때 표시하지 않고 크론에 맡긴다.
   if (access?.accessMethod === "monthly") {
-    return refundNamingMonthlyCredit(env, auth, access).catch(() => ({ refunded: false }));
+    return refundNamingMonthlyCredit(env, auth, access).catch(() => ({ refunded: false, failed: true }));
   }
   // 이용권: 결제 화면(pass-check)이나 접근 판정이 이 requestId 로 차감한 한도를 증빙으로 되돌린다.
   // 결제 화면이 예전 기능 키로 차감했을 수 있어, 새 키에 증빙이 없을 때만 예전 키를 본다.
@@ -1572,7 +1576,7 @@ async function restoreNamingAccessOnFailure(env, auth, access) {
       return result?.reason === "PASS_EVIDENCE_NOT_FOUND" ? await refund(LEGACY_FEATURE_KEY) : result;
     } catch (error) {
       console.warn("[naming-prompt] pass restore failed", clean(error?.message || error, 200));
-      return { refunded: false };
+      return { refunded: false, failed: true };
     }
   }
   return { refunded: false };
@@ -1714,6 +1718,9 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
   if(nativeAccess)await nativeAccess.verify(stored);
   if (stored && await isPaidResultRevoked(auth.userId, FEATURE_KEY, [stored.requestId, stored.idempotencyKey, stored.paymentId, stored.orderId])) throw createHttpError(403, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
   if (stored?.status === "completed") return json({ ok: true, result: serializeExecutionResult(stored) });
+  // 보류 건을 /generate 로 다시 부르면 생성 한도 409 대신 다시 시도 안내를 준다(다시 시도는 /retry 가 연다).
+  const heldRetry = stored?.status === "generation_failed" ? namingRetryPayload(stored) : {};
+  if (heldRetry.retry) return json({ ok: false, reason: "RETRY_AVAILABLE", ...heldRetry }, { status: 409 });
   const input = normalizeInput(body.input || original?.inputSnapshot || {});
   validateInput(input);
   const sajuEvidence = await resolveSajuEvidence(input, body.sajuEvidence || original?.originalEvidence, body.sajuEvidenceHash);
@@ -1809,7 +1816,12 @@ async function handleGenerate(request, env, _routeContext = null, recoveryAuth =
       snapshot = { ...snapshot, delivery: wave.state, limited: wave.limited };
       const current = await saveNamingDelivery(filter, { result: { namingPrompt: snapshot } });
       if (wave.limited && delivery.confirmedEmptyNamingFailure(wave.state)) {
-        await markNamingGenerationFailed(env, claim.executionId, Object.assign(new Error("작명첩 품질 기준 미달"), { code: "NAMING_RESULT_TOO_SHORT" }), String(auth.userId), claim.lease);
+        const failure = Object.assign(new Error("작명첩 품질 기준 미달"), { code: "NAMING_RESULT_TOO_SHORT" });
+        // R10: 웹 회차는 환불 대신 다시 시도 보류. 토스·창 경과·표지 저장 실패는 아래 기존 즉시 경로.
+        const retryable = nativeAccess ? null : namingRetryMeta(current, failure.code);
+        const held = retryable ? await markNamingGenerationFailed(env, claim.executionId, failure, String(auth.userId), claim.lease, { ...snapshot, retryable }).catch(() => null) : null;
+        if (held) return json({ ok: false, reason: "LLM_ERROR", message: NAMING_LLM_ERROR_MESSAGE, ...namingRetryPayload(held) }, { status: 503 });
+        await markNamingGenerationFailed(env, claim.executionId, failure, String(auth.userId), claim.lease);
         await restoreNamingAccessOnFailure(env, auth, access);
         return json({ ok: false, retryable: false, reason: "LLM_ERROR", executionId: claim.executionId, resultId: claim.executionId, message: NAMING_LLM_ERROR_MESSAGE }, { status: 503 });
       }
@@ -1838,6 +1850,144 @@ function namingPendingResponse(record) {
   }, { status: 202, headers: { "Retry-After": "3" } });
 }
 
+// 2026-11-20 R10 다시 시도 우선(사용자 결정 "다시 시도+7일 환불 도입", 숙요 궁합 R10 과 같은 정책).
+// 본문을 끝내 받지 못한 웹 회차는 바로 환불하지 않고 추가 결제·차감 없는 다시 시도를 연다. 환불 시각 = 생성 + 7일(연장 없음),
+// 고객이 환불을 요청하면 즉시. PaidExecutionRecord 는 llmMeta 가 없는 strict 스키마라 공용 reopen·mark·expire 대신
+// result.namingPrompt(Mixed) 아래 표지를 두고 executionId + userId + status + updatedAt CAS 로 직접 다룬다.
+const NAMING_RETRY_MESSAGE = "작명 결과를 아직 완성하지 못했어요. 추가 결제·차감 없이 다시 시도할 수 있어요.";
+const namingRetryView = record => ({ status: record?.status, createdAt: record?.createdAt, _id: record?._id, llmMeta: record?.result?.namingPrompt });
+function namingRetryMeta(record, code) {
+  if (!record || record.result?.namingPrompt?.tossIntentId) return null;
+  return retryableFailureMeta(namingRetryView(record), Date.now(), clean(code || "LLM_ERROR", 40));
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function namingRetryPayload(record) {
+  if (!record || record.result?.namingPrompt?.tossIntentId) return {};
+  const state = publicRetryState(namingRetryView(record), Date.now());
+  const sessionId = String(record.executionId || "");
+  return state ? { message: NAMING_RETRY_MESSAGE, executionId: sessionId, resultId: sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+async function namingRetryOwner(request, env) {
+  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  const body = await readJson(request);
+  const record = await findExecutionRecordForUser(env, auth, clean(body?.executionId || body?.resultId || body?.sessionId, 180));
+  if (!record || record.result?.namingPrompt?.tossIntentId) throw createHttpError(404, "작명 결과를 찾을 수 없습니다.", { code: "RESULT_NOT_FOUND" });
+  return { auth, record, owner: { executionId: record.executionId, userId: String(auth.userId) } };
+}
+// 보류 건만 이어쓰기(partial)로 되돌린다: 시도 예산(attempts·invalidAttempts)·limited·lease 를 풀어야 beginNamingGeneration 이
+// 409 GENERATION_LIMIT_REACHED 대신 같은 회차를 다시 선점한다. 완성된 장·후보·접근 증빙은 그대로다(추가 결제·차감 없음).
+async function reopenNamingRetry(owner, now = Date.now()) {
+  const fresh = await PaidExecutionRecord.findOne(owner).lean();
+  const meta = fresh?.result?.namingPrompt;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || meta.tossIntentId) return { ok: false, reason: "NOT_RETRYABLE" };
+  if (!publicRetryState(namingRetryView(fresh), now)) return { ok: false, reason: "RETRY_CLOSED" };
+  const delivery = meta.delivery && typeof meta.delivery === "object" ? { ...meta.delivery, attempts: {}, invalidAttempts: {} } : meta.delivery;
+  const reopened = await PaidExecutionRecord.findOneAndUpdate({ ...owner, status: "generation_failed", updatedAt: fresh.updatedAt }, { $set: {
+    status: "partial", error: null, "result.namingPrompt.delivery": delivery, "result.namingPrompt.limited": false, "result.namingPrompt.deliveryLease": "",
+    "result.namingPrompt.retryable.reopens": Number(meta.retryable.reopens || 0) + 1, "result.namingPrompt.retryable.reopenedAt": new Date(now) } }, { returnDocument: "after" }).lean();
+  return reopened ? { ok: true } : { ok: false, reason: "CONFLICT" };
+}
+async function markNamingRetryRefundDue(owner, now, reason) {
+  const fresh = await PaidExecutionRecord.findOne(owner).lean();
+  const meta = fresh?.result?.namingPrompt;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || meta.tossIntentId) return { ok: false, reason: "NOT_RETRYABLE" };
+  if (meta.refundEligibleAt) return { ok: true };
+  const result = await PaidExecutionRecord.updateOne({ ...owner, status: "generation_failed", updatedAt: fresh.updatedAt }, { $set: {
+    "result.namingPrompt.refundEligibleAt": new Date(now).toISOString(), "result.namingPrompt.retryable.refundReason": clean(reason, 40) } });
+  return Number(result?.modifiedCount ?? result?.nModified ?? 0) > 0 ? { ok: true } : { ok: false, reason: "CONFLICT" };
+}
+// 무료 다시 시도: 철회된 결제 건(코인 환불 뒤 등)은 이중 혜택이 되므로 409. 연 뒤에는 기존 재개 경로(resumeExecutionId)로 돈다.
+async function handleNamingRetry(request, env) {
+  const { auth, record, owner } = await namingRetryOwner(request, env);
+  if (await isPaidResultRevoked(auth.userId, FEATURE_KEY, [record.requestId, record.idempotencyKey, record.paymentId, record.orderId])) {
+    throw createHttpError(409, "취소·환불된 작명 결과입니다.", { code: "PAYMENT_REVOKED" });
+  }
+  const reopened = await reopenNamingRetry(owner);
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const latest = await findExecutionRecordForUser(env, auth, owner.executionId);
+    if (latest?.status === "completed") return json({ ok: true, result: serializeExecutionResult(latest) });
+    return json({ ok: false, reason: reopened.reason, message: NAMING_LLM_ERROR_MESSAGE, ...namingRetryPayload(latest) }, { status: 409 });
+  }
+  return handleGenerate(new Request(request.url, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ resumeExecutionId: owner.executionId }) }), env, null, auth);
+}
+// 고객 환불 요청: 보류 건을 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 환불 크론이 이어 정산).
+async function handleNamingRefundRequest(request, env) {
+  const { owner } = await namingRetryOwner(request, env);
+  const marked = await markNamingRetryRefundDue(owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  let refundStatus = "pending";
+  try { refundStatus = (await settleNamingRetryRefund(env, owner)).refundStatus; }
+  catch (error) { console.warn("[naming-prompt] retry refund failed", clean(error?.message || error, 200)); }
+  return json({ ok: true, executionId: owner.executionId, refunded: refundStatus === "refunded", refundStatus });
+}
+// 단건 카드: 접근 증빙의 주문 번호로 같은 기능의 결제 완료 건을 찾는다(입력 해시 조회와 같은 필터).
+async function findNamingCardPayment(userId, access) {
+  const ids = [...new Set([access?.paymentId, access?.evidenceId, access?.requestId].map(value => clean(value, 180)).filter(Boolean))];
+  if (!ids.length) return null;
+  return Payment.findOne({ userId, paymentType: "digital_content", featureKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
+    status: { $in: Array.from(PAYMENT_SUCCESS_STATUSES) }, $or: ids.flatMap(id => [{ merchantUid: id }, { requestId: id }]) }).lean();
+}
+// 보류 건의 환불 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 월정석·이용권은 기존 즉시 경로와 같은 복원, 단건 카드는 결제 취소(autoRefundSinglePaymentDeliveryFailure, 결제 건 멱등).
+// 복원·취소가 실패하면 표시하지 않아 다음 크론이 다시 시도한다. 환불된 회차는 refunded 로 닫는다.
+async function settleNamingRetryRefund(env, owner, now = Date.now()) {
+  const fresh = await PaidExecutionRecord.findOne(owner).lean();
+  const meta = fresh?.result?.namingPrompt;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || meta.tossIntentId) return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus, 40) || "requested" };
+  const access = meta.access || {};
+  const code = clean(meta.retryable.refundReason || "RETRY_REFUND", 80);
+  let outcome;
+  if (access.accessMethod === "single") {
+    try {
+      const payment = await findNamingCardPayment(fresh.userId, access);
+      // 결제 환불 모듈은 쓸 때만 불러온다(이 라우트를 models 대역으로 띄우는 테스트 보호 — 숙요 궁합과 같은 이유).
+      const { autoRefundSinglePaymentDeliveryFailure } = payment ? await import("../lib/payment-refund.js") : {};
+      outcome = payment ? await autoRefundSinglePaymentDeliveryFailure(env, payment, code, NAMING_LLM_ERROR_MESSAGE, "naming_prompt_generation") : { refunded: false };
+    } catch (refundError) {
+      outcome = { refunded: false, refundFailed: true, reason: clean(refundError?.message || refundError, 300) };
+    }
+  } else {
+    outcome = await restoreNamingAccessOnFailure(env, { userId: fresh.userId }, access);
+  }
+  if (outcome?.refundFailed || outcome?.failed) {
+    console.warn("[naming-prompt] retry refund pending", clean(outcome.reason || code, 200));
+    return { refundStatus: "failed" };
+  }
+  const refundStatus = outcome?.refunded ? "refunded" : "not_required";
+  await PaidExecutionRecord.updateOne({ ...owner, status: "generation_failed" }, { $set: { ...(outcome?.refunded ? { status: "refunded" } : {}),
+    "result.namingPrompt.retryable.refundSettledAt": new Date(now).toISOString(), "result.namingPrompt.retryable.refundStatus": refundStatus } });
+  logStuckSettled({ service: "naming-prompt", sessionId: owner.executionId, outcome: "retry_refund", refundStatus });
+  return { refundStatus };
+}
+// 환불 크론: 창(생성 + 7일)이 지난 보류(다시 연 뒤 방치된 건 포함)를 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// 작명은 lease + updatedAt 으로 생성 중을 표시하므로 갓 갱신된 generating·partial 은 살아 있는 생성으로 보고 건너뛴다.
+export async function settleDueNamingRetryRefunds(env, { now = Date.now(), limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  const scope = { featureId: FEATURE_KEY, "result.namingPrompt.tossIntentId": { $exists: false }, userId: { $exists: true, $ne: null } };
+  try {
+    const expired = await PaidExecutionRecord.find({ ...scope, status: { $in: ["generation_failed", "generating", "partial"] },
+      "result.namingPrompt.retryable.refundAt": { $lte: new Date(now) }, "result.namingPrompt.refundEligibleAt": { $exists: false } })
+      .limit(50).select("executionId userId status updatedAt").lean();
+    for (const doc of expired) {
+      if (doc.status !== "generation_failed" && now - new Date(doc.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS) continue;
+      await PaidExecutionRecord.updateOne({ executionId: doc.executionId, userId: doc.userId, status: doc.status, updatedAt: doc.updatedAt }, { $set: {
+        status: "generation_failed", "result.namingPrompt.deliveryLease": "", "result.namingPrompt.refundEligibleAt": new Date(now).toISOString(),
+        "result.namingPrompt.retryable.refundReason": "RETRY_WINDOW_EXPIRED" } });
+    }
+  } catch { outcomes.push({ service: "naming-prompt", refundStatus: "pending" }); }
+  const due = await PaidExecutionRecord.find({ ...scope, status: "generation_failed", "result.namingPrompt.retryable": { $exists: true },
+    "result.namingPrompt.refundEligibleAt": { $exists: true }, "result.namingPrompt.retryable.refundSettledAt": { $exists: false } })
+    .sort({ updatedAt: 1 }).limit(limit).select("executionId userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: "naming-prompt", refundStatus: (await settleNamingRetryRefund(env, { executionId: doc.executionId, userId: doc.userId }, now)).refundStatus }); }
+    catch { outcomes.push({ service: "naming-prompt", refundStatus: "pending" }); }
+  }
+  return outcomes;
+}
+
 async function handleResult(request, env, id) {
   const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   await connectDb(env);
@@ -1856,6 +2006,7 @@ async function handleResult(request, env, id) {
         reason: "LLM_ERROR",
         status: "generation_failed",
         message: NAMING_LLM_ERROR_MESSAGE,
+        ...namingRetryPayload(record),
       }, { status: 503 });
     }
     const result = serializeExecutionResult(record);
@@ -1876,6 +2027,8 @@ export async function handleNamingPromptRoutes(request, env, ctx = null) {
     if (method === "POST" && path === "/checkout") return await handleCheckout(request, env);
     if (method === "POST" && path === "/verify-payment") return await handleVerifyPayment(request, env);
     if (method === "POST" && path === "/generate") return await handleGenerate(request, env, ctx);
+    if (method === "POST" && path === "/retry") return await handleNamingRetry(request, env);
+    if (method === "POST" && path === "/refund-request") return await handleNamingRefundRequest(request, env);
     if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, decodeURIComponent(path.slice("/result/".length)));
     if (["POST", "GET"].includes(method)) {
       return json({ ok: false, message: "Naming prompt route not found.", code: "NOT_FOUND" }, { status: 404 });

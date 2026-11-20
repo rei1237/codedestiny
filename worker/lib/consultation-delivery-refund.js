@@ -263,6 +263,16 @@ export async function settleFailedConsultationRefund(env, { service, id, userId 
 }
 
 /** Refund obligations outlive the seven-day window used by LLM continuation. */
+// 2026-11-20 R10: 전문가 상담 다시 시도 보류 정산(서비스별 라우트가 export). import 경로는 번들러가 볼 수 있게 리터럴로 둔다.
+const EXPERT_RETRY_SETTLERS = Object.freeze([
+  { service: 'vedic-ai', load: async () => (await import('../routes/vedic-ai.js')).settleDueVedicRetryRefunds },
+  { service: 'astrology-ai', load: async () => (await import('../routes/astrology-ai.js')).settleDueAstrologyRetryRefunds },
+  { service: 'ziwei-ai', load: async () => (await import('../routes/ziwei-ai.js')).settleDueZiweiRetryRefunds },
+  { service: 'sukuyo-compatibility-ai', load: async () => (await import('../routes/sukuyo-compatibility-ai.js')).settleDueSukuyoRetryRefunds },
+  { service: 'karma-destiny-ai', load: async () => (await import('../routes/karma-destiny-ai.js')).settleDueKarmaRetryRefunds },
+  { service: 'naming-prompt', load: async () => (await import('../routes/naming-prompt.js')).settleDueNamingRetryRefunds },
+  { service: 'fusion-fortune', load: async () => (await import('./fusion-fortune-recovery-task.js')).settleDueFusionRetryRefunds },
+]);
 export async function runPendingConsultationRefunds(env, options = {}) {
   const withDb = options.withDb || withPaymentDb;
   const ctx = createPaymentContext({ requestId: 'consultation-refund-reconcile', route: 'CRON consultation-refunds' });
@@ -309,5 +319,11 @@ export async function runPendingConsultationRefunds(env, options = {}) {
     const settleTea = options.teaHouseRetryRefunds || (await import('../routes/fortune-tea-house.js')).settleDueTeaHouseRetryRefunds;
     outcomes.push(...await settleTea(env));
   } catch { outcomes.push({ service: 'fortune-tea-house', refundStatus: 'pending' }); }
+  // 2026-11-20 R10 전문가 상담 다시 시도 보류: 창(생성 + 7일)이 지난 건과 고객 환불 요청 건을 각 서비스의 기존 멱등 환불로 정산한다.
+  // 서비스마다 실패를 격리하고 다음 주기에 다시 돈다. 테스트는 expertRetrySettlers 로 바꿔 끼운다(실제 라우트 import 는 DB 를 연다).
+  for (const { service, load } of options.expertRetrySettlers || EXPERT_RETRY_SETTLERS) {
+    try { outcomes.push(...await (await load())(env)); }
+    catch { outcomes.push({ service, refundStatus: 'pending' }); }
+  }
   return { outcomes };
 }

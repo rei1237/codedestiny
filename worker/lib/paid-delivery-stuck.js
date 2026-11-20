@@ -196,16 +196,17 @@ export function publicRetryState(doc, now = Date.now()) {
 /** 공용 다시 시도. 같은 결제 건(소유자 userId + 문서 id)의 다시 시도 가능 실패만, 환불 전·창 안에서
  * 빠진 장 이어쓰기(partial)로 되돌린다. 완성된 장·결제·이용권 증빙은 건드리지 않는다(추가 결제·차감 없음).
  * 실제 생성은 각 서비스의 기존 이어쓰기 경로(lease·장별 예산)가 맡는다. */
-export async function reopenRetryableConsultation(model, { id, userId } = {}, now = Date.now(), { reset } = {}) {
+// idKey: 문서 식별 필드(기본 'id'). 숙요 궁합처럼 _id 로 찾는 서비스는 '_id' 를 넘긴다(2026-11-20 R10).
+export async function reopenRetryableConsultation(model, { id, userId } = {}, now = Date.now(), { reset, idKey = 'id' } = {}) {
   if (!model || !id || !userId) return { ok: false, reason: 'NOT_FOUND' };
-  const fresh = await model.findOne({ id, userId }).lean();
+  const fresh = await model.findOne({ [idKey]: id, userId }).lean();
   if (!fresh) return { ok: false, reason: 'NOT_FOUND' };
   const retryable = fresh.llmMeta?.retryable;
   if (fresh.status !== 'generation_failed' || !retryable) return { ok: false, reason: 'NOT_RETRYABLE' };
   if (refundStarted(fresh.llmMeta)) return { ok: false, reason: 'REFUND_STARTED' };
   if (!(ms(retryable.refundAt) > now)) return { ok: false, reason: 'RETRY_WINDOW_EXPIRED' };
   const extra = typeof reset === 'function' ? resetFields(reset(fresh)) : {};
-  const result = await model.updateOne({ id, userId, status: 'generation_failed', updatedAt: fresh.updatedAt }, { $set: { ...extra,
+  const result = await model.updateOne({ [idKey]: id, userId, status: 'generation_failed', updatedAt: fresh.updatedAt }, { $set: { ...extra,
     status: 'partial', generationError: null, 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '',
     'llmMeta.retryable.reopens': Number(retryable.reopens || 0) + 1, 'llmMeta.retryable.reopenedAt': new Date(now) } });
   if (!result?.modifiedCount) return { ok: false, reason: 'CONFLICT' };
@@ -215,36 +216,36 @@ export async function reopenRetryableConsultation(model, { id, userId } = {}, no
 }
 
 /** 고객 환불 요청 등: 다시 시도 가능 실패를 기존 공용 환불 크론의 대상으로 넘긴다. 다시 시도는 닫힌다. */
-export async function markRetryableRefundDue(model, { id, userId } = {}, now = Date.now(), reason = 'CUSTOMER_REQUEST') {
+export async function markRetryableRefundDue(model, { id, userId } = {}, now = Date.now(), reason = 'CUSTOMER_REQUEST', { idKey = 'id' } = {}) {
   if (!model || !id || !userId) return { ok: false, reason: 'NOT_FOUND' };
-  const fresh = await model.findOne({ id, userId }).lean();
+  const fresh = await model.findOne({ [idKey]: id, userId }).lean();
   if (!fresh) return { ok: false, reason: 'NOT_FOUND' };
   if (fresh.status !== 'generation_failed' || !fresh.llmMeta?.retryable) return { ok: false, reason: 'NOT_RETRYABLE' };
   if (refundStarted(fresh.llmMeta)) return { ok: true, idempotent: true };
-  const result = await model.updateOne({ id, userId, status: 'generation_failed', updatedAt: fresh.updatedAt }, { $set: {
+  const result = await model.updateOne({ [idKey]: id, userId, status: 'generation_failed', updatedAt: fresh.updatedAt }, { $set: {
     'llmMeta.refundEligibleAt': new Date(now).toISOString(), 'llmMeta.retryable.refundReason': String(reason).slice(0, 40) } });
   return result?.modifiedCount ? { ok: true } : { ok: false, reason: 'CONFLICT' };
 }
 
 /** 다시 시도 창이 지난 건을 환불 대상으로 넘긴다. 다시 연 뒤 방치된 partial·generating 도 포함한다(살아 있는 lease·isLive 는 제외).
  * 복구 크론이 공용 환불 크론보다 먼저 부른다. */
-export async function expireRetryableConsultations(model, now = Date.now(), { limit = 50, isLive, onExpired } = {}) {
+export async function expireRetryableConsultations(model, now = Date.now(), { limit = 50, isLive, idKey = 'id', onExpired } = {}) {
   if (!model) return { expired: 0 };
   const docs = await model.find({ status: { $in: ['generation_failed', 'partial', 'generating'] },
     'llmMeta.retryable.refundAt': { $lte: new Date(now) }, 'llmMeta.refundEligibleAt': { $exists: false },
     'llmMeta.deliveryRefund': { $exists: false }, userId: { $exists: true, $ne: null } })
-    .limit(limit).select('id userId status updatedAt idempotencyKey accessSource llmMeta').lean();
+    .limit(limit).select(`${idKey === 'id' ? 'id' : `id ${idKey}`} userId status updatedAt idempotencyKey accessSource llmMeta`).lean();
   let expired = 0;
   for (const doc of docs) {
     const meta = doc?.llmMeta;
     // 질의 조건을 다시 확인한다(fail-closed).
-    if (!doc?.id || !doc.userId || !meta?.retryable || refundStarted(meta)) continue;
+    if (!doc?.[idKey] || !doc.userId || !meta?.retryable || refundStarted(meta)) continue;
     if (!['generation_failed', 'partial', 'generating'].includes(doc.status)) continue;
     if (!(ms(meta.retryable.refundAt) <= now)) continue;
     // lockedAt 을 쓰지 않는 서비스(연애 비책: delivery.lease + updatedAt)는 isLive 로 살아 있는 생성을 알려 준다.
     if (ms(meta.lockedAt) > now - LIVE_LEASE_MS || (typeof isLive === 'function' && isLive(doc, now))) continue;
     const at = new Date(now).toISOString();
-    const result = await model.updateOne({ id: doc.id, userId: doc.userId, status: doc.status, updatedAt: doc.updatedAt }, { $set: {
+    const result = await model.updateOne({ [idKey]: doc[idKey], userId: doc.userId, status: doc.status, updatedAt: doc.updatedAt }, { $set: {
       status: 'generation_failed', 'llmMeta.lockedAt': null, 'llmMeta.lockToken': '', 'llmMeta.refundEligibleAt': at,
       'llmMeta.retryable.refundReason': 'RETRY_WINDOW_EXPIRED',
       generationError: { code: 'RETRY_WINDOW_EXPIRED', message: 'retry window expired before delivery', at } } });

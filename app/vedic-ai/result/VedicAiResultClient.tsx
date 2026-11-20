@@ -20,6 +20,7 @@ import styles from "../VedicAiClient.module.css";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildVedicPreviewPayload } from "@/lib/dev-preview/fixtures/vedic";
 import { currentVedicResultCopy } from "./resultCopy";
+import ExpertRetryPanel, { probeExpertRetryHold, type ExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 
 // 🔴 결제가 끝난 뒤 사용자가 실제로 결과를 받아 보는 화면이라 한국어 하드코딩이 그대로 노출됐다.
 //    언어 전환은 경로 이동이라 렌더 시점에 한 번 읽으면 충분하다(resultCopy.ts 주석 참조).
@@ -56,6 +57,8 @@ type ViewState =
   | { kind: "login" }
   | { kind: "missing" }
   | { kind: "list"; items: ConsultationListItem[] }
+  // 2026-11-20 R10: 생성 실패를 다시 시도로 보류한 건(웹 결제) — 무료 다시 시도·환불 요청 버튼을 보인다.
+  | { kind: "retry"; hold: ExpertRetryHold }
   | { kind: "detail"; consultation: Consultation };
 
 function toText(value: unknown) {
@@ -90,7 +93,7 @@ export default function VedicAiResultClient() {
   }, []);
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("id") || "";
-    let cancelled = false, hasPartial = false;
+    let cancelled = false, hasPartial = false, sessionId = id;
     const sameOwner = captureOwner();
     const isCurrent = () => !cancelled && sameOwner();
     (async () => {
@@ -102,7 +105,6 @@ export default function VedicAiResultClient() {
           else setView({ kind: "missing" });
           return;
         }
-        let sessionId = id;
         if (!sessionId) {
           const response = await authFetch("/api/vedic-ai/result");
           const data = await response.json();
@@ -118,7 +120,12 @@ export default function VedicAiResultClient() {
         if (result.consultation) setView({ kind: "detail", consultation: result.consultation });
         else if (!hasPartial) setView({ kind: "missing" });
       } catch {
-        if (isCurrent() && !hasPartial) setView({ kind: "missing" });
+        if (!isCurrent()) return;
+        // 실패로 끝난 건이 다시 시도 보류인지 한 번 확인한다(서버 409 본문의 retry).
+        const hold = sessionId ? await probeExpertRetryHold(`/api/vedic-ai/result?id=${encodeURIComponent(sessionId)}`, sessionId) : null;
+        if (!isCurrent()) return;
+        if (hold) setView({ kind: "retry", hold });
+        else if (!hasPartial) setView({ kind: "missing" });
       }
     })();
     return () => { cancelled = true; };
@@ -166,6 +173,24 @@ export default function VedicAiResultClient() {
             <p>{COPY.missingBody}</p>
             {backLink}
           </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (view.kind === "retry") {
+    return (
+      <main className={styles.shell}>
+        <section className={styles.resultPanel}>
+          <ExpertRetryPanel
+            apiBase="/api/vedic-ai"
+            hold={view.hold}
+            onRetried={() => { setView({ kind: "loading" }); setResumeEpoch(value => value + 1); }}
+            className={styles.emptyState}
+            primaryClassName={styles.primaryButton}
+            secondaryClassName={styles.resultListItem}
+          />
+          <div style={{ marginTop: "1rem" }}>{backLink}</div>
         </section>
       </main>
     );

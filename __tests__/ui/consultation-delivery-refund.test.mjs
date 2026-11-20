@@ -97,7 +97,7 @@ function fixture(method = 'cash') {
     },
   };
   // 찻집 이용권 환불 대기는 별도 저장소다 — 기본 픽스처에서는 비어 있게 두고 아래 전용 테스트가 배선을 확인한다.
-  const deps = { now: Date.parse('2026-10-27T00:00:00Z'), withDb: async (_env, _ctx, work) => work(db), teaHousePassRefunds: async () => [], neoRetryRefunds: async () => [], loveSecretRetryRefunds: async () => [], heukwolRetryRefunds: async () => [], teaHouseRetryRefunds: async () => [],
+  const deps = { now: Date.parse('2026-10-27T00:00:00Z'), withDb: async (_env, _ctx, work) => work(db), teaHousePassRefunds: async () => [], neoRetryRefunds: async () => [], loveSecretRetryRefunds: async () => [], heukwolRetryRefunds: async () => [], teaHouseRetryRefunds: async () => [], expertRetrySettlers: [],
     fetchPayment: async () => ({ status: cancelled || partial ? 'cancelled' : 'paid', amount: 30000, currency: 'KRW',
       rawV2: { status: partial ? 'PARTIAL_CANCELLED' : cancelled ? 'CANCELLED' : 'PAID', currency: 'KRW',
         amount: { total: 30000, paid: 30000, cancelled: partial ? 15000 : cancelled ? 30000 : 0 } } }),
@@ -421,4 +421,15 @@ test('the refund cron also settles due tea-house retry refunds and isolates thei
   const g = fixture();
   g.deps.teaHouseRetryRefunds = async () => { throw new Error('TEA_RETRY_DB_DOWN'); };
   assert.deepEqual((await runPendingConsultationRefunds({}, g.deps)).outcomes, [{ service: 'fortune-tea-house', refundStatus: 'pending' }]);
+});
+// 2026-11-20 R10: 전문가 상담(베다점 …) 다시 시도 보류 정산도 같은 크론이 서비스별로 돌리고, 한 서비스 실패는 다른 서비스를 막지 않는다.
+test('the refund cron settles expert retry holds per service and isolates each failure', async () => {
+  const f = fixture(); const seen = [];
+  f.deps.expertRetrySettlers = [
+    { service: 'vedic-ai', load: async () => async (env) => { seen.push(env); throw new Error('VEDIC_DB_DOWN'); } },
+    { service: 'ziwei-ai', load: async () => async () => [{ service: 'ziwei-ai', refundStatus: 'refunded' }] },
+  ];
+  const env = { marker: 1 };
+  assert.deepEqual((await runPendingConsultationRefunds(env, f.deps)).outcomes, [{ service: 'vedic-ai', refundStatus: 'pending' }, { service: 'ziwei-ai', refundStatus: 'refunded' }]);
+  assert.deepEqual(seen, [env]);
 });

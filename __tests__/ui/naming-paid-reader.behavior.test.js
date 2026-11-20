@@ -36,3 +36,11 @@ test('legacy completed results open and bounded failures never acknowledge compl
   const revoked=harness([{status:403,data:{ok:false,message:'revoked'}}]);
   await assert.rejects(runNamingReader('saved-id',revoked.options),/revoked/);assert.equal(revoked.calls.length,1);
 });
+test('R10: a held retry stops at once and hands the hold to the screen instead of spinning on 503',async()=>{
+  const {runNamingReader}=await api;
+  const body={ok:false,reason:'LLM_ERROR',message:'held',refunded:false,retry:{available:true,sessionId:'exec-1'}};
+  for(const status of [503,409]){
+    const h=harness([{status,data:body}]);
+    await assert.rejects(runNamingReader('exec-1',h.options),error=>error.retryHold===body);assert.equal(h.calls.length,1);
+  }
+});

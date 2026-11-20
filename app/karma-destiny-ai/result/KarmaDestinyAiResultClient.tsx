@@ -3,6 +3,7 @@
 import ConsultationMasterIntro from "@/app/components/ConsultationMasterIntro";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
+import ExpertRetryPanel, { expertRetryHoldOf } from "@/app/components/ExpertRetryPanel";
 import { usePaidDeliveryScope } from "@/app/hooks/usePaidDeliveryScope";
 import { useSearchParams } from "next/navigation";
 import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
@@ -992,6 +993,8 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
       if (!isCurrent()) return;
       const {status,code} = (caught || {}) as {status?:number;code?:string};
       if (paymentSurface === "toss") {authorityRevisionRef.current++;setResult(null);setTossDenied([401,403,409,402].includes(status || 0) || code === "RESULT_UNAVAILABLE");setError(status === 401 ? tossLogin : status === 403 ? tossDeniedMessage : ["ORDER_REFUNDED","PAYMENT_REVOKED"].includes(code || "") ? tossRefunded : tossUncertain);return;}
+      // 2026-11-20 R10: 서버가 실패를 무료 다시 시도로 보류했다(환불 전). 저장된 결과를 다시 읽어 다시 시도 패널을 띄운다.
+      if (status === 503 && code === "LLM_ERROR") { setResumeEpoch(value => value + 1); return; }
       transientFailuresRef.current += 1;
       if ((caught instanceof TypeError || (caught as { retryable?: boolean })?.retryable) && transientFailuresRef.current < 6) setError("");
       else setError(friendlyErrorMessage(caught, copy.generationHalted));
@@ -1246,6 +1249,8 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
 
   const isGenerating = ["generating", "partial", "delivery_pending"].includes(result?.status || "");
   const isCompleted = result?.status === "completed";
+  // 웹 결제 건의 보류된 실패만: 추가 결제·차감 없는 다시 시도와 환불 요청을 보인다. Toss 는 기존 흐름.
+  const retryHold = paymentSurface === "toss" || result?.status !== "generation_failed" ? null : expertRetryHoldOf(result, sessionId);
   const shareChoices = isCompleted && paymentSurface !== "toss" ? karmaShareChoices(result) : [];
   const summaryMode = density === "summary" && !exporting;
 
@@ -1587,7 +1592,15 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
         </div>
       )}
 
-      {!isGenerating && !isCompleted && (
+      {!isGenerating && !isCompleted && retryHold && (
+        <ExpertRetryPanel
+          apiBase="/api/karma-destiny-ai"
+          hold={retryHold}
+          onRetried={() => { setError(""); setResumeEpoch(value => value + 1); }}
+          className="kdai-error-state"
+        />
+      )}
+      {!isGenerating && !isCompleted && !retryHold && (
         <section className="kdai-error-state">
           <p>{error || result?.message || copy.reportIncomplete}</p>
           <Link href="/karma-destiny-ai"><ArrowLeft size={17} /> {copy.retryInput}</Link>

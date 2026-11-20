@@ -3,22 +3,29 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 흐름", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume, accessQueue, passOrder, withdrawn;
+let release, settleDue, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
+const getPath = (doc, key) => key.split(".").reduce((row, part) => row?.[part], doc);
+function setPath(doc, key, value) { const parts = key.split("."); const last = parts.pop(); let row = doc; for (const part of parts) row = row[part] ??= {}; row[last] = value; }
+const applySet = (doc, set) => { for (const [key, value] of Object.entries(clone(set))) setPath(doc, key, value); };
 function matches(doc, filter) {
   return Object.entries(filter).every(([key, value]) => {
     if (key === "$or") return value.some(row => matches(doc, row));
-    if (value && typeof value === "object" && !(value instanceof Date)) {
-      if ("$ne" in value) return doc[key] !== value.$ne;
-      if ("$nin" in value) return !value.$nin.includes(doc[key]);
-      if ("$in" in value) return value.$in.includes(doc[key]);
-      if ("$exists" in value) return (doc[key] !== undefined) === value.$exists;
-      if ("$lt" in value) return new Date(doc[key]) < value.$lt;
+    const actual = getPath(doc, key);
+    if (value && typeof value === "object" && Object.prototype.toString.call(value) !== "[object Date]") {
+      if ("$exists" in value && (actual !== undefined && actual !== null) !== value.$exists) return false;
+      if ("$ne" in value) return actual !== value.$ne;
+      if ("$nin" in value) return !value.$nin.includes(actual);
+      if ("$in" in value) return value.$in.includes(actual);
+      if ("$lt" in value) return new Date(actual) < value.$lt;
+      if ("$lte" in value) return new Date(actual) <= value.$lte;
+      return "$exists" in value;
     }
-    return String(doc[key]) === String(value);
+    return String(actual) === String(value);
   });
 }
+function findQuery(rows) { const result = { sort: () => result, limit: n => findQuery(rows.slice(0, n)), select: () => result, lean: async () => clone(rows) }; return result; }
 const model = {
   findOne: filter => { if (lostConfirmation) { lostConfirmation = false; return query(null); } return query(docs.find(doc => matches(doc, filter)) || null); },
   create: async fields => {
@@ -33,14 +40,15 @@ const model = {
       if (current.kind === "confirm") lostConfirmation = true;
     }
     const doc = docs.find(row => matches(row, filter));
-    if (doc) Object.assign(doc, clone(update.$set), { updatedAt: new Date() });
+    if (doc) { applySet(doc, update.$set); doc.updatedAt = new Date(); }
     return query(doc || null);
   },
   updateOne: async (filter, update) => {
     const doc = docs.find(row => matches(row, filter));
-    if (doc) Object.assign(doc, clone(update.$set));
+    if (doc) { applySet(doc, update.$set); doc.updatedAt = new Date(Math.max(Date.now(), new Date(doc.updatedAt || 0).getTime() + 1)); }
     return { modifiedCount: doc ? 1 : 0 };
   },
+  find: filter => findQuery(docs.filter(doc => matches(doc, filter))),
 };
 
 function prose(seed, length) {
@@ -74,10 +82,11 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/vedic-ai-chart.js", () => ({ calculateVedicAiChart: (...args) => chart(...args) }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
-  ({ handleVedicAiRoutes: route, __vedicAiTestUtils: utils } = await import("../../worker/routes/vedic-ai.js"));
+  jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({ claimRequestBillingEvidence: async () => ({ ok: true }), evidenceClaimErrorBody: () => ({}), releaseRequestBillingEvidence: (...args) => release(...args) }));
+  ({ handleVedicAiRoutes: route, __vedicAiTestUtils: utils, settleDueVedicRetryRefunds: settleDue } = await import("../../worker/routes/vedic-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true })); accessQueue = []; passOrder = null; withdrawn = false;
+  docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true })); accessQueue = []; passOrder = null; withdrawn = false; release = jest.fn(async () => ({ released: 1 }));
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const group = utils.VEDIC_SECTION_GROUPS.find(group => group.key === options.logContext.group);
@@ -201,30 +210,102 @@ it("does not start another provider while a different database lease is fresh", 
   docs[0].updatedAt = new Date(Date.now() - 125000);
   expect((await start()).status).toBe(202); expect(provider).toHaveBeenCalledTimes(2);
 });
-it("refunds the card payment once quality attempts are exhausted", async () => {
-  mode = "paid";
+async function post(path, payload) {
+  return route(new Request(`https://mock.test/api/vedic-ai${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }), {});
+}
+async function exhaust() {
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
   for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
-  const response = await start();
+  return start();
+}
+// 2026-11-20 R10 다시 시도 우선: 웹 결제 건은 품질 시도를 다 써도 바로 환불하지 않고 무료 다시 시도를 연다(환불 = 생성 + 7일 또는 고객 요청).
+it("holds a card payment for a free retry once quality attempts are exhausted", async () => {
+  mode = "paid";
+  const response = await exhaust();
   expect(response.status).toBe(503);
-  expect(await response.json()).toMatchObject({ reason: "LLM_FAILED" });
+  const payload = await response.json();
+  expect(payload).toMatchObject({ reason: "LLM_FAILED", refunded: false, sessionId: docs[0].id, retry: { available: true, sessionId: docs[0].id } });
+  expect(Date.parse(payload.retry.refundAt) - docs[0].createdAt.getTime()).toBe(7 * 86400000);
+  expect(refund).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled();
+  expect(docs[0]).toMatchObject({ status: "generation_failed", llmMeta: { retryable: { access: { evidenceType: "direct_payment", paymentDocId: uid } } } });
+  const again = await start();
+  expect(again.status).toBe(409);
+  expect(await again.json()).toMatchObject({ refunded: false, retry: { available: true } });
+  const result = await route(new Request(`https://mock.test/api/vedic-ai/result?id=${docs[0].id}`), {});
+  expect(result.status).toBe(409);
+  expect(await result.json()).toMatchObject({ retry: { available: true, sessionId: docs[0].id } });
+});
+it("retries a held failure without a new charge and keeps the completed groups", async () => {
+  mode = "paid";
+  const original = provider.getMockImplementation();
+  expect((await start()).status).toBe(202);
+  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
+  for (let i = 0; i < 3; i++) await start();
+  expect(docs[0].status).toBe("generation_failed");
+  const kept = clone(docs[0].llmMeta.groups.karma_origin);
+  provider.mockImplementation(original);
+  let response = await post("/retry", { sessionId: docs[0].id });
+  expect(response.status).toBe(202);
+  for (let i = 0; i < 4 && docs[0].status !== "completed"; i++) response = await start({ resumeSessionId: docs[0].id });
+  expect(docs[0].status).toBe("completed"); expect(docs[0].llmMeta.groups.karma_origin).toEqual(kept);
+  expect(docs[0].llmMeta.retryable.reopens).toBe(1);
+  expect(refund).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled(); expect(chart).toHaveBeenCalledTimes(1);
+});
+it("rejects a retry or refund request from another account", async () => {
+  mode = "paid"; await exhaust(); userId = "64b7f2a1c3d4e5f601234568";
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(404);
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(404);
+  expect(docs[0].status).toBe("generation_failed"); expect(refund).not.toHaveBeenCalled();
+});
+it("refunds the card payment once when the customer asks instead of retrying", async () => {
+  mode = "paid"; await exhaust();
+  const response = await post("/refund-request", { sessionId: docs[0].id });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ ok: true, sessionId: docs[0].id });
   expect(refund).toHaveBeenCalledTimes(1);
   expect(refund.mock.calls[0][1]).toMatchObject({ _id: uid, merchantUid: "payment" });
   expect(refund.mock.calls[0][4]).toBe("vedic_ai_generation");
-  expect((await start()).status).toBe(409);
+  expect(release).toHaveBeenCalledTimes(1);
+  expect(docs[0].llmMeta.retryable.refundSettledAt).toBeTruthy();
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(409);
+  await settleDue({}, { model }); expect(refund).toHaveBeenCalledTimes(1);
+});
+it("keeps the claim and the marker unsettled when the card refund fails, so the cron retries", async () => {
+  mode = "paid"; await exhaust();
+  refund.mockResolvedValue({ refunded: true }); refund.mockRejectedValueOnce(new Error("PG down"));
+  await post("/refund-request", { sessionId: docs[0].id });
+  expect(release).not.toHaveBeenCalled(); expect(docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined();
+  expect(await settleDue({}, { model })).toEqual([{ service: "vedic-ai", refundStatus: "refunded" }]);
+  expect(refund).toHaveBeenCalledTimes(2); expect(release).toHaveBeenCalledTimes(1);
+});
+it("settles an expired retry window through the refund cron", async () => {
+  passReceipt = true; await exhaust();
+  expect(passRefund).not.toHaveBeenCalled();
+  docs[0].updatedAt = new Date(Date.now() - 300000);
+  expect(await settleDue({}, { model, now: Date.now() + 8 * 86400000 })).toEqual([{ service: "vedic-ai", refundStatus: "refunded" }]);
+  expect(passRefund).toHaveBeenCalledTimes(1);
+  expect(passRefund.mock.calls[0][0]).toMatchObject({ userId: uid, featureKey: "vedic-ai-consultation", requestId: "original-paid-request" });
+  expect(docs[0].llmMeta).toMatchObject({ retryable: { refundReason: "RETRY_WINDOW_EXPIRED", refundStatus: "refunded" } });
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(409);
+});
+it("does not expire a reopened retry that is generating right now", async () => {
+  mode = "paid"; await exhaust();
+  const later = Date.now() + 8 * 86400000;
+  docs[0].status = "partial"; docs[0].updatedAt = new Date(later - 1000);
+  await settleDue({}, { model, now: later });
+  expect(docs[0].status).toBe("partial"); expect(refund).not.toHaveBeenCalled();
 });
 for (const paid of ["pass", "monthly"]) it(`${paid}: does not attempt a card refund once quality attempts are exhausted`, async () => {
   mode = paid;
-  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
-  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
-  expect((await start()).status).toBe(503);
+  expect((await exhaust()).status).toBe(503);
+  await post("/refund-request", { sessionId: docs[0].id });
   expect(refund).not.toHaveBeenCalled();
 });
-it("restores a pass pre-deducted at checkout once quality attempts are exhausted", async () => {
+it("restores a pass pre-deducted at checkout when the held failure is refunded", async () => {
   passReceipt = true;
-  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
-  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
-  expect((await start()).status).toBe(503);
+  expect((await exhaust()).status).toBe(503);
+  expect(passRefund).not.toHaveBeenCalled();
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(200);
   expect(passRefund).toHaveBeenCalledTimes(1);
   expect(passRefund.mock.calls[0][0]).toMatchObject({ userId: uid, featureKey: "vedic-ai-consultation", requestId: "original-paid-request" });
   expect(refund).not.toHaveBeenCalled();

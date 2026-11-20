@@ -41,6 +41,7 @@ import { FusionResultRail } from "./FusionResultRail";
 import { FusionResultThread } from "./FusionResultThread";
 import { FusionConvergence } from "./FusionConvergence";
 import SavedRecordLink from "@/components/fortune/SavedRecordLink";
+import ExpertRetryPanel, { expertRetryHoldOf, type ExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 import ProductMasterStrip from "@/app/components/ProductMasterStrip";
 import { productMasters } from "@/components/fortune/master-profiles";
 import {
@@ -2101,6 +2102,8 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
   const [questionDetails, setQuestionDetails] = useState({ situation: "", choices: "", timing: "", worry: "" });
   /** 생성 실패는 폼이 아니라 대화 안에 남는다 — 어디까지 진행됐는지와 함께 봐야 재시도를 고른다. */
   const [failure, setFailure] = useState<{ message: string; retryable: boolean; reason?: string } | null>(null);
+  // R10: 미전달 주문이 다시 시도 보류면 서버가 retry 를 돌려준다 — 추가 결제 없는 다시 시도·환불 요청 패널을 띄운다.
+  const [retryHold, setRetryHold] = useState<ExpertRetryHold | null>(null);
   // 2단계 생성: 여섯 체계 섹션(1단계)은 받았는데 종합·판정(2단계)이 끝나지 않은 상태.
   // 실패 카드가 아니라 "이어서 생성" 버튼을 띄운다 — 결제 증빙은 그대로 남는다.
   const [stageTwoFailed, setStageTwoFailed] = useState(false);
@@ -2295,6 +2298,13 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
         type Denial = { reason?: string; code?: string; error?: string | { code?: string }; retryable?: boolean; message?: string };
         const refund = await parseJson<Denial>(response, copy).catch(() => ({} as Denial));
         if (!scope.isCurrent()) return "stale";
+        const hold = refund.reason === "RETRY_AVAILABLE" ? expertRetryHoldOf(refund) : null;
+        if (hold) {
+          setStageTwoFailed(false);
+          setRetryHold(hold);
+          setFailure({ message: copy.resultGenerationFailedMessage, retryable: false, reason: refund.reason });
+          return "stale";
+        }
         if (refund.reason === "PAYMENT_REFUNDED" || refund.reason === "REFUND_PENDING") {
           const done = refund.reason === "PAYMENT_REFUNDED";
           if (done) rememberPaidRequest("");
@@ -2665,6 +2675,8 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
       if ((cause as { retryable?: boolean })?.retryable === false) {
         setStageTwoFailed(false);
         setFailure({ message: cause instanceof Error ? cause.message : copy.resultGenerationFailedMessage, retryable: false, reason: String((cause as { errorCode?: string })?.errorCode || "") });
+        // R10: 보류 응답이면 결과 조회로 다시 시도 선택지(sessionId)를 받아 패널을 띄운다.
+        if ((cause as { errorCode?: string })?.errorCode === "RETRY_AVAILABLE") void recoverPaidResult(requestId, { ...scope, isCurrent });
         return false;
       }
       // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
@@ -2779,6 +2791,14 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
     }
     setError(""); setNotice(""); setFailure(null);
     await runGeneration(requestId, requestBody, recoveredStageRef.current, new URLSearchParams(window.location.search).get("fortuneChatSession") || "", true);
+  };
+
+  /** R10: 다시 시도가 열리면 같은 결제로 저장본을 다시 읽고 이어 생성한다. */
+  const resumeAfterRetry = async () => {
+    setRetryHold(null); setFailure(null);
+    const requestId = paidRequestIdRef.current || readFusionPaidRequest({ ownerId: currentFusionOwner() })?.requestId || "";
+    if (requestId) await recoverPaidResult(requestId);
+    await continueGeneration();
   };
 
   const cancelGeneration = () => requestAbortRef.current?.abort();
@@ -3093,6 +3113,14 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
             <p className="m-0 font-display text-[0.85rem] text-[var(--fx-rose)]">{copy.failureHeading}</p>
             <p className="m-0 mt-2 max-w-[64ch] text-[0.95rem] leading-[1.8] text-[var(--fx-rose)]">{failure.message}</p>
             {failure.reason && <p className="m-0 mt-2 text-[0.75rem] leading-relaxed text-[var(--fx-rose-dim)]">{copy.failureReasonPrefix}<code className="font-mono">{failure.reason}</code>{copy.failureReasonSuffix}</p>}
+            {retryHold && failure.reason === "RETRY_AVAILABLE" && <ExpertRetryPanel
+              apiBase="/api/fusion-fortune"
+              hold={retryHold}
+              onRetried={() => { void resumeAfterRetry(); }}
+              className="mt-4 grid gap-3 text-[0.9rem] leading-[1.8] text-[var(--fx-rose)] [&_h2]:m-0 [&_h2]:font-display [&_h2]:text-[0.85rem] [&_p]:m-0"
+              primaryClassName="min-h-11 rounded-full border border-[rgba(244,190,209,0.45)] bg-[rgba(244,190,209,0.14)] px-5 text-[0.9rem] text-[var(--fx-rose)] transition-colors hover:bg-[rgba(244,190,209,0.24)] disabled:opacity-60 motion-reduce:transition-none"
+              secondaryClassName="min-h-11 rounded-full border border-white/[0.18] px-5 text-[0.88rem] text-[var(--fx-ink-3)] transition-colors hover:text-[var(--fx-ink-1)] disabled:opacity-60 motion-reduce:transition-none"
+            />}
             {failure.retryable && <button
               type="button"
               onClick={() => formRef.current?.requestSubmit()}

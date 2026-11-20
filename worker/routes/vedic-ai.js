@@ -41,6 +41,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { nativeTossContext } from "../toss/native-context.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "vedic-ai";
@@ -177,6 +178,7 @@ const MESSAGES = {
   calculationFailed: "베다 차트를 계산하는 중 문제가 발생했어요. 입력한 출생 정보를 다시 확인해 주세요.",
   serverFailed: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  llmRetry: "전문가 상담문을 생성하는 중 문제가 발생했어요. 추가 결제나 차감 없이 다시 시도할 수 있어요.",
 };
 
 /** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
@@ -1674,7 +1676,10 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   if(existing?.accessSource==='toss'&&!nativeTossContext(request))return notFound();
   if (existing && existing.inputHash !== normalized.inputHash) return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.");
   if (existing?.status === "completed") return json({ ok: true, consultation: consultationPayload(existing) });
-  if (existing?.status === "generation_failed" && !nativeTossContext(request)) return json({ ok: false, reason: "GENERATION_FAILED" }, { status: 409 });
+  if (existing?.status === "generation_failed" && !nativeTossContext(request)) {
+    const retry = vedicRetryPayload(request, existing);
+    return json({ ok: false, reason: "GENERATION_FAILED", ...(retry.retry ? { message: MESSAGES.llmRetry } : {}), ...retry }, { status: 409 });
+  }
   const settlementModels = { User, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger };
   const startAccess = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey, pricing });
   // 이용권으로 시작해 본문까지 만든 상담(delivery_pending)은 그 뒤 한도 소진으로 거절돼도 전달한다(환불·탈퇴·취소 증빙은 제외, fail-closed).
@@ -1719,10 +1724,13 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
   }
   const locked = { ...owner, generationLease: lease, status: { $ne: "completed" } };
+  // 계산(차트)까지 끝난 뒤의 생성 실패만 다시 시도 보류 대상이다. 계산 실패는 기존 즉시 환불을 유지한다.
+  let calculated = false;
   try {
     if (doc.status !== "delivery_pending") {
       const basis = await resolveExpertCalculation('vedic', doc.llmMeta?.chartSnapshot, () => calculateVedicAiChart(env, normalized.input, { requestUrl: request.url }), { env, snapshot: doc.llmMeta?.engineFacts, existing: Boolean(existing), input: normalized.input });
       const chart = basis.value;
+      calculated = true;
       const resumeBody = { ...body, idempotencyKey, locale: doc.locale };
       delete resumeBody.accessToken;
       doc = await saveVedicDelivery(locked, { llmMeta: { ...doc.llmMeta, resumeBody: doc.llmMeta?.resumeBody || resumeBody, chartSnapshot: chart, ...(basis.engineFacts ? { engineFacts: basis.engineFacts } : {}) } }, sessionId);
@@ -1757,7 +1765,20 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     if(nativeTossContext(request)&&error?.status)return json({ok:false,reason:error.code||'ACCESS_DENIED'},{status:error.status});
     // 완성 본문이 있으면(delivery_pending) 일시 장애로 덮거나 환불하지 않는다 — 같은 전달을 다시 시도한다.
     if (doc?.status === "delivery_pending") return json(resultStorageFailurePayload(resultStorageUnavailable(sessionId)), { status: 503 });
-    await saveVedicDelivery(locked, { status: "generation_failed", generationError: { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) } }, sessionId);
+    const generationError = { code: error?.code || "LLM_FAILED", message: clean(error?.message, 500) };
+    // 2026-11-20 R10 다시 시도 우선(사용자 요청 "대표 상담, 전문가 상담은 그렇게 가능하도록해"): 웹 결제 건은 바로 환불하지 않고
+    // 창(생성 + 7일) 안에서 무료 다시 시도를 연다. 증빙 claim·이용권·월정석·코인·카드는 보류 동안 그대로 둔다(다시 시도가 같은 증빙을 재확인).
+    // 표지를 못 남기면 아래 기존 즉시 환불로 간다(fail-closed). Toss 네이티브·계산 실패·창 경과는 기존 즉시 환불.
+    const retryable = calculated ? vedicRetryMeta(request, doc, error, access) : null;
+    if (retryable) {
+      try {
+        const failed = await saveVedicDelivery(locked, { status: "generation_failed", generationError, llmMeta: { ...doc.llmMeta, retryable } }, sessionId);
+        logVedicAi("LLM Failure Retryable", { ...context, sessionId, code: generationError.code }, "warn");
+        return json({ ok: false, reason: "LLM_FAILED", message: MESSAGES.llmRetry, ...vedicRetryPayload(request, failed) }, { status: 503 });
+      } catch { /* 아래 즉시 환불 */ }
+    }
+    // 보류 표지 저장이 실패했으면 표지를 지운 llmMeta 로 덮는다(환불된 건이 다시 시도로 열리지 않게).
+    await saveVedicDelivery(locked, { status: "generation_failed", generationError, ...(retryable ? { llmMeta: doc.llmMeta } : {}) }, sessionId);
     if(!nativeTossContext(request))await releaseRequestBillingEvidence(env, { userId: String(auth.userId), requestId: idempotencyKey, evidenceIds });
     if(!nativeTossContext(request))await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
     if(!nativeTossContext(request))await refundCardPaymentOnFailure(env, auth, access, error);
@@ -1853,7 +1874,8 @@ async function handleResult(request, env) {
     );
   }
   if (consultation.status !== "completed") {
-    return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+    const retry = vedicRetryPayload(request, consultation);
+    return json({ ok: false, reason: "GENERATION_FAILED", message: retry.retry ? MESSAGES.llmRetry : MESSAGES.llmFailed, ...retry }, { status: 409 });
   }
   if (!nativeTossContext(request) && await isStoredPaidResultRevoked(auth.userId, FEATURE_KEY, consultation)) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
@@ -1880,12 +1902,124 @@ async function handleBasis(request, env) {
   }
 }
 
+// 2026-11-20 R10 다시 시도 우선(love-secret-ai R5 와 같은 정책). 환불 시각 = 생성 + 7일, 고객 요청 때는 즉시.
+function vedicRetryMeta(request, doc, error, access) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return null;
+  const meta = retryableFailureMeta(doc || {}, Date.now(), clean(error?.code || "LLM_FAILED", 40));
+  return meta ? { ...meta, access: vedicRefundAccessSnapshot(access) } : null;
+}
+// 보류 뒤 정산이 요청 없이도 같은 증빙을 되돌릴 수 있게 실패 당시의 접근 증빙만 남긴다(본문 토큰·비밀값 없음).
+function vedicRefundAccessSnapshot(access = {}) {
+  const out = { prepaid: access.prepaid === true };
+  for (const key of ["accessType", "paymentId", "paymentDocId", "source", "evidenceType", "evidenceId", "purchaseId"]) if (access[key]) out[key] = clean(access[key], 180);
+  if (Number.isFinite(Number(access.amount))) out.amount = Math.max(0, Math.floor(Number(access.amount)));
+  return out;
+}
+// 응답용 다시 시도 상태. 최상위 retryable 은 클라이언트에서 "자동으로 계속 조회"라는 뜻이라 쓰지 않는다.
+function vedicRetryPayload(request, doc) {
+  if (nativeTossContext(request) || doc?.accessSource === "toss") return {};
+  const state = publicRetryState(doc, Date.now());
+  const sessionId = String(doc?.id || "");
+  return state ? { sessionId, refunded: false, retry: { available: true, refundAt: state.refundAt, sessionId } } : {};
+}
+// 다시 시도는 상한(2)을 다 쓴 묶음만 시도 수를 새로 연다. 완성된 묶음·분량 보완·잘림 기록(group:*)은 그대로 둔다.
+function vedicRetryReset(fresh) {
+  const attempts = { ...(fresh?.llmMeta?.attempts || {}) };
+  for (const [key, value] of Object.entries(attempts)) {
+    if (key.includes(":") || Number(value || 0) < 2) continue;
+    attempts[key] = 0;
+  }
+  return { "llmMeta.attempts": attempts };
+}
+async function retryOwner(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  if (!auth?.userId) return { response: loginRequired() };
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.resultId, 120);
+  if (!sessionId) return { response: notFound() };
+  await connectDb(env);
+  const owner = { id: sessionId, userId: String(auth.userId) };
+  const stored = await VedicAiConsultation.findOne(owner).lean();
+  if (!stored || stored.accessSource === "toss") return { response: notFound() };
+  return { owner };
+}
+// 다시 시도(무료): 같은 소유자의 보류 건만 이어쓰기(partial)로 되돌리고 기존 재개 경로(resumeSessionId)로 돈다.
+async function handleRetry(request, env) {
+  if (request.method !== "POST") return methodNotAllowed();
+  if (nativeTossContext(request)) return json({ ok: false, reason: "RETRY_NOT_AVAILABLE", message: MESSAGES.llmFailed }, { status: 409 });
+  const { response, owner } = await retryOwner(request, env);
+  if (response) return response;
+  const reopened = await reopenRetryableConsultation(VedicAiConsultation, owner, Date.now(), { reset: vedicRetryReset });
+  if (!reopened.ok && reopened.reason !== "CONFLICT") {
+    const latest = await VedicAiConsultation.findOne(owner).lean().catch(() => null);
+    if (!latest) return notFound();
+    if (latest.status === "completed") return json({ ok: true, consultation: consultationPayload(latest) });
+    return json({ ok: false, reason: reopened.reason, message: MESSAGES.llmFailed, ...vedicRetryPayload(request, latest) }, { status: 409 });
+  }
+  const headers = new Headers(request.headers);
+  headers.set("content-type", "application/json");
+  return handleStart(new Request(request.url, { method: "POST", headers, body: JSON.stringify({ resumeSessionId: owner.id }) }), env);
+}
+// 고객 환불 요청: 보류 건을 환불 대상으로 넘기고 바로 정산을 시도한다(실패해도 환불 크론이 이어 정산).
+async function handleRefundRequest(request, env) {
+  if (request.method !== "POST") return methodNotAllowed();
+  if (nativeTossContext(request)) return json({ ok: false, reason: "REFUND_REQUEST_NOT_AVAILABLE" }, { status: 409 });
+  const { response, owner } = await retryOwner(request, env);
+  if (response) return response;
+  const marked = await markRetryableRefundDue(VedicAiConsultation, owner, Date.now(), "CUSTOMER_REQUEST");
+  if (!marked.ok) return json({ ok: false, reason: marked.reason || "NOT_RETRYABLE" }, { status: 409 });
+  let refundStatus = "pending";
+  try { refundStatus = (await settleVedicRetryRefund(env, owner)).refundStatus; }
+  catch (error) { logVedicAi("Retry refund failed", { message: clean(error?.message || error, 300) }, "warn"); }
+  return json({ ok: true, sessionId: owner.id, refunded: refundStatus === "refunded", refundStatus });
+}
+// 보류 건의 환불 1건(고객 요청·창 만료 공용). refundEligibleAt 이 붙은 건만, 정산 표시 전까지만 처리한다.
+// 카드 환불이 실패하면 증빙 claim 을 풀지 않고 표시도 하지 않아 다음 크론이 다시 시도한다. 이용권·월정석·코인 복구는 표식으로 멱등이다.
+async function settleVedicRetryRefund(env, { id, userId }, model = VedicAiConsultation, now = Date.now()) {
+  const owner = { id: clean(id, 120), userId: clean(userId, 80) };
+  const fresh = await model.findOne(owner).lean();
+  const meta = fresh?.llmMeta;
+  if (!fresh || fresh.status !== "generation_failed" || !meta?.retryable || !meta.refundEligibleAt || fresh.accessSource === "toss") return { refundStatus: "skipped" };
+  if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
+  const access = meta.retryable.access || {};
+  const idempotencyKey = clean(fresh.idempotencyKey, 180);
+  const error = Object.assign(new Error("retry closed without delivery"), { code: clean(meta.retryable.refundReason || "RETRY_REFUND", 80) });
+  const restored = await restorePrepaidAccessOnFailure({ userId: owner.userId, access, idempotencyKey, pricing: getPricing(), error, env });
+  const card = await refundCardPaymentOnFailure(env, { userId: owner.userId }, access, error);
+  if (card?.refundFailed) return { refundStatus: "failed" };
+  await releaseRequestBillingEvidence(env, { userId: owner.userId, requestId: idempotencyKey, evidenceIds: [access.paymentId] });
+  const refundStatus = restored || card?.refunded ? "refunded" : access.prepaid ? "requested" : "not_required";
+  await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+    "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": refundStatus } });
+  logStuckSettled({ service: "vedic-ai", sessionId: owner.id, outcome: "retry_refund", refundStatus });
+  return { refundStatus };
+}
+// 환불 크론: 창이 지난 보류(다시 연 뒤 방치된 건 포함)를 닫고, 환불 대상으로 넘어간 건을 한 번씩 정산한다.
+// vedic 은 lockedAt 대신 generationLease(120초) + updatedAt 으로 생성 중을 표시하므로 isLive 로 살아 있는 생성을 제외한다.
+export async function settleDueVedicRetryRefunds(env, { now = Date.now(), model = VedicAiConsultation, limit = 5 } = {}) {
+  await connectDb(env);
+  const outcomes = [];
+  const isLive = (doc, at) => ["generating", "partial"].includes(doc.status) && at - new Date(doc.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS;
+  try { await expireRetryableConsultations(model, now, { isLive }); }
+  catch { outcomes.push({ service: "vedic-ai", refundStatus: "pending" }); }
+  const due = await model.find({ status: "generation_failed", "llmMeta.retryable": { $exists: true }, "llmMeta.refundEligibleAt": { $exists: true },
+    "llmMeta.retryable.refundSettledAt": { $exists: false }, accessSource: { $ne: "toss" }, userId: { $exists: true, $ne: null } })
+    .sort({ updatedAt: 1 }).limit(limit).select("id userId").lean();
+  for (const doc of due) {
+    try { outcomes.push({ service: "vedic-ai", refundStatus: (await settleVedicRetryRefund(env, doc, model, now)).refundStatus }); }
+    catch { outcomes.push({ service: "vedic-ai", refundStatus: "pending" }); }
+  }
+  return outcomes;
+}
+
 export async function handleVedicAiRoutes(request, env) {
   const path = getRoutePath(request, "/api/vedic-ai");
   try {
     if (path === "/basis") return await handleBasis(request, env);
     if (path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (path === "/start") return await handleStart(request, env);
+    if (request.method === "POST" && path === "/retry") return await handleRetry(request, env);
+    if (request.method === "POST" && path === "/refund-request") return await handleRefundRequest(request, env);
     if (path === "/result" || path.startsWith("/result/")) return await handleResult(request, env);
     return notFound();
   } catch (error) {

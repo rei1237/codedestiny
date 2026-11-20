@@ -12,6 +12,7 @@
  *    빈 시드(messages: [])로 덮여 사라진다.
  */
 import { jest } from "@jest/globals";
+import sift from "sift";
 
 const USER_ID = "64b7f2a1c3d4e5f601234567";
 const KEY = "sukuyo-ai-duplicate-window-test";
@@ -39,6 +40,7 @@ let revokedAt = -1;
 let paidMode = "pass";
 let blockedFetch;
 let legacyRefund, monthlyRefund, restoreAllowed;
+let passRefund, cardRefund, cardPayment = null, settleDue;
 
 /** 24-hex ObjectId 모양. 라우트가 /^[0-9a-f]{24}$/ 로 검사한다. */
 let objectIdCounter = 0;
@@ -124,7 +126,10 @@ function createConsultationStore() {
       },
       find(query) {
         findCallArgs.push(query);
-        const rows = docs.filter((d) => matchesFilter(d, query));
+        // R10 정산 크론 질의($exists·점 경로)는 sift 로 본다. 나머지는 기존 최소 매처 그대로.
+        // structuredClone 이 만든 Date 는 바깥 realm 이라 sift 비교가 빗나간다 — 이 realm 의 Date 로 다시 만든 사본으로 본다.
+        const local = (v) => Object.prototype.toString.call(v) === "[object Date]" ? new Date(v.getTime()) : Array.isArray(v) ? v.map(local) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, local(x)])) : v;
+        const rows = docs.filter(JSON.stringify(query).includes("llmMeta") ? (d) => sift(query)(local(d)) : (d) => matchesFilter(d, query));
         const chain = {
           sort: () => chain,
           limit: () => chain,
@@ -191,7 +196,7 @@ beforeAll(async () => {
     User: { findById: () => ({ select: () => ({ lean: async () => ({ role: "user" }) }) }) },
     PaidExecutionRecord: { findOneAndUpdate: jest.fn(async () => ({})), findOne: () => thenableWithLean(revokedAt === 0 ? { id: "revoked" } : null) },
     MonthlyCreditLedger: { find: () => ({ sort: () => ({ lean: async () => [] }) }), findOne: () => thenableWithLean(revokedAt === 3 ? { id: "revoked" } : null) },
-    Payment: { findOne: () => thenableWithLean(revokedAt === 1 ? { id: "revoked" } : null), updateOne: jest.fn(async () => ({})) },
+    Payment: { findOne: query => thenableWithLean(revokedAt === 1 ? { id: "revoked" } : cardPayment && query?.paymentType === "digital_content" ? cardPayment : null), updateOne: jest.fn(async () => ({})) },
     PointHistory: { findOne: query => thenableWithLean(revokedAt === 2 ? { id: "revoked" } : paidMode === "paid" && query.kind === "deduct" ? { _id: "64b7f2a1c3d4e5f600000009", metadata: { accessType: "coin" } } : null), create: jest.fn(async () => ({})), updateOne: jest.fn(async () => ({})) },
     ContentEntitlement: {},
     ServiceExecutionTransaction: {},
@@ -199,6 +204,9 @@ beforeAll(async () => {
 
   jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => paidMode === "subscription" ? { ledgerId: "64b7f2a1c3d4e5f600000008" } : null }));
   legacyRefund = jest.fn(async () => true); monthlyRefund = jest.fn(async () => true);
+  passRefund = jest.fn(); cardRefund = jest.fn();
+  jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ refundPassUseEvidence: passRefund }));
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: cardRefund }));
   const actualEligibility = await import("../../worker/lib/sukuyo-refund-eligibility.js");
   jest.unstable_mockModule("../../worker/lib/sukuyo-refund-eligibility.js", () => ({ ...actualEligibility, canRestoreSukuyoDebit: async () => restoreAllowed }));
   jest.unstable_mockModule("../../worker/lib/sukuyo-legacy-refund.js", () => ({ restoreSukuyoLegacyRefund: legacyRefund }));
@@ -230,6 +238,7 @@ beforeAll(async () => {
   const mod = await import("../../worker/routes/sukuyo-compatibility-ai.js");
   handleSukuyoCompatibilityAiRoutes = mod.handleSukuyoCompatibilityAiRoutes;
   testUtils = mod.__sukuyoCompatibilityAiTestUtils;
+  settleDue = mod.settleDueSukuyoRetryRefunds;
 });
 
 beforeEach(() => {
@@ -239,6 +248,8 @@ beforeEach(() => {
   callGeminiJsonWithRetryMock.mockReset();
   callGeminiTextMock.mockReset();
   legacyRefund.mockClear(); monthlyRefund.mockClear();
+  cardPayment = null; passRefund.mockReset(); passRefund.mockImplementation(async () => ({ refunded: false }));
+  cardRefund.mockReset(); cardRefund.mockImplementation(async () => ({ refunded: true }));
   callGeminiTextMock.mockImplementation(async () => ({ ok: false, error: "not-called" }));
   testUtils.clearStartLocks();
 });
@@ -252,6 +263,13 @@ function mockSectionsResolvedImmediately() {
 
 
 async function runWave() { return handleSukuyoCompatibilityAiRoutes(startRequest(KEY), ENV); }
+const postSession = (path, sessionId) => handleSukuyoCompatibilityAiRoutes(new Request(`https://example.com/api/sukuyo-compatibility-ai${path}`, {
+  method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: String(sessionId) }) }), ENV);
+const claimHeld = () => [...globalThis.__cdBillingEvidenceClaims.values()].some(row => row.userId === USER_ID && row.requestId === KEY);
+async function holdFailure() {
+  callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: buildSectionPayload([]) }));
+  await runWave(); await runWave(); return runWave();
+}
 async function finishReport() { let response; for (let i = 0; i < 6; i++) response = await runWave(); return response; }
 test("본문 다섯 묶음과 요약을 순차 저장하고 완료 때만 결과를 확정한다", async () => {
   mockSectionsResolvedImmediately();
@@ -298,7 +316,9 @@ test.each(['paid', 'subscription'])('%s: 복원 자격을 확인할 수 없으�
   paidMode = mode; restoreAllowed = false;
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
   await runWave(); await runWave(); const held = await runWave();
-  expect(held.status).toBe(409); expect(await held.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+  // R10: 실패는 먼저 다시 시도로 보류된다. 환불 요청 때 복원 자격이 없으면 검토로 넘기고 증빙을 붙잡는다.
+  expect(held.status).toBe(503); expect(await held.json()).toMatchObject({ reason: 'LLM_ERROR', retry: { available: true } });
+  expect(await (await postSession('/refund-request', store.docs[0]._id)).json()).toMatchObject({ ok: true, refunded: false, refundStatus: 'review_required' });
   expect(legacyRefund).not.toHaveBeenCalled(); expect(monthlyRefund).not.toHaveBeenCalled();
   const claims = globalThis.__cdBillingEvidenceClaims;
   expect([...claims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(true);
@@ -309,14 +329,16 @@ test.each(['paid', 'subscription'])('%s: 복원 완료 뒤에는 해당 요청�
   paidMode = mode;
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
   await runWave(); await runWave(); expect((await runWave()).status).toBe(503);
+  expect(legacyRefund).not.toHaveBeenCalled(); expect(monthlyRefund).not.toHaveBeenCalled(); expect(claimHeld()).toBe(true);
+  expect(await (await postSession('/refund-request', store.docs[0]._id)).json()).toMatchObject({ refunded: true, refundStatus: 'refunded' });
   expect(mode === 'paid' ? legacyRefund : monthlyRefund).toHaveBeenCalledTimes(1);
   expect([...globalThis.__cdBillingEvidenceClaims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(false);
 });
 test('복원 응답을 확인하지 못하면 검토 상태와 원 증빙을 유지한다', async () => {
   paidMode = 'paid'; legacyRefund.mockRejectedValueOnce(new Error('response lost'));
   callGeminiJsonWithRetryMock.mockImplementation(async () => ({ ok: true, provider: 'gemini', text: buildSectionPayload([]) }));
-  await runWave(); await runWave(); const response = await runWave();
-  expect(response.status).toBe(409); expect(await response.json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
+  await runWave(); await runWave(); expect((await runWave()).status).toBe(503);
+  expect(await (await postSession('/refund-request', store.docs[0]._id)).json()).toMatchObject({ refundStatus: 'review_required' });
   expect(store.docs[0].generationError.code).toBe('REFUND_REVIEW_REQUIRED');
   expect([...globalThis.__cdBillingEvidenceClaims.values()].some(row => row.userId === USER_ID && row.requestId === KEY)).toBe(true);
   expect(await (await runWave()).json()).toMatchObject({ reason: 'REFUND_REVIEW_REQUIRED' });
@@ -660,9 +682,70 @@ test("판 2: 모든 묶음이 비었을 때만 실패로 확정하고 환불한�
   const doc = store.docs[0];
   expect(doc.status).toBe("generation_failed");
   expect(doc.llmMeta.recoveryReviewRequired).toBeUndefined();
+  // R10: 환불은 다시 시도 보류 뒤 환불 요청(또는 7일 창 만료) 때 한 번.
+  expect(legacyRefund).not.toHaveBeenCalled();
+  expect(await (await postSession("/refund-request", doc._id)).json()).toMatchObject({ refunded: true, refundStatus: "refunded" });
   expect(legacyRefund).toHaveBeenCalledTimes(1);
   expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(15);
   expect((await runV2()).status).toBe(409); expect(callGeminiJsonWithRetryMock).toHaveBeenCalledTimes(15);
+});
+
+describe("R10 다시 시도 우선(2026-11-20)", () => {
+  const card = () => ({ _id: "64b7f2a1c3d4e5f60000000a", userId: USER_ID, featureKey: "sukuyo-compatibility-ai", paymentType: "digital_content", status: "paid", merchantUid: KEY });
+  test("본문 없이 실패하면 환불 없이 보류하고 /retry 로 추가 차감 없이 완성한다", async () => {
+    const held = await holdFailure(); const body = await held.json(); const doc = store.docs[0];
+    expect(held.status).toBe(503);
+    expect(body).toMatchObject({ ok: false, reason: "LLM_ERROR", refunded: false, sessionId: String(doc._id), retry: { available: true, sessionId: String(doc._id) } });
+    expect(body.retryable).toBeUndefined();
+    expect(new Date(body.retry.refundAt).getTime()).toBe(new Date(doc.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000);
+    expect(passRefund).not.toHaveBeenCalled(); expect(cardRefund).not.toHaveBeenCalled();
+    const result = await handleSukuyoCompatibilityAiRoutes(new Request("https://example.com/api/sukuyo-compatibility-ai/result?id=" + doc._id, { method: "GET" }), ENV);
+    expect(result.status).toBe(503); expect(await result.json()).toMatchObject({ retry: { available: true } });
+    mockSectionsResolvedImmediately();
+    expect((await postSession("/retry", doc._id)).status).toBe(202);
+    let last; for (let i = 0; i < 6 && last?.status !== 200; i++) last = await runWave();
+    expect(last.status).toBe(200); expect(store.docs[0].status).toBe("completed");
+    expect(passRefund).not.toHaveBeenCalled(); expect(cardRefund).not.toHaveBeenCalled();
+  });
+  test("환불 요청은 이용권을 한 번만 되돌리고 다시 시도를 닫는다", async () => {
+    passRefund.mockImplementation(async () => ({ refunded: true }));
+    await holdFailure(); const id = store.docs[0]._id;
+    expect(await (await postSession("/refund-request", id)).json()).toMatchObject({ ok: true, refunded: true, refundStatus: "refunded" });
+    expect(await (await postSession("/refund-request", id)).json()).toMatchObject({ refundStatus: "refunded" });
+    expect(passRefund).toHaveBeenCalledTimes(1); expect(passRefund.mock.calls[0][0]).toMatchObject({ requestId: KEY });
+    expect(cardRefund).not.toHaveBeenCalled();
+    expect(await (await postSession("/retry", id)).json()).toMatchObject({ ok: false, reason: "REFUND_STARTED" });
+  });
+  test("요청 키로 증명된 카드 단건은 이용권 복원이 없을 때 카드로 한 번 환불한다", async () => {
+    cardPayment = card();
+    await holdFailure();
+    expect(await (await postSession("/refund-request", store.docs[0]._id)).json()).toMatchObject({ refunded: true, refundStatus: "refunded" });
+    expect(cardRefund).toHaveBeenCalledTimes(1); expect(cardRefund.mock.calls[0][1]).toEqual(cardPayment);
+  });
+  test("이용권이 복원되면 같은 요청의 카드는 다시 환불하지 않는다", async () => {
+    cardPayment = card(); passRefund.mockImplementation(async () => ({ refunded: true }));
+    await holdFailure();
+    expect(await (await postSession("/refund-request", store.docs[0]._id)).json()).toMatchObject({ refunded: true });
+    expect(passRefund).toHaveBeenCalledTimes(1); expect(cardRefund).not.toHaveBeenCalled();
+  });
+  test("카드 환불 실패는 정산 표시 없이 남기고 크론이 다시 정산한다", async () => {
+    cardPayment = card();
+    cardRefund.mockImplementationOnce(async () => ({ refunded: false, refundFailed: true, reason: "pg down" }));
+    await holdFailure();
+    expect(await (await postSession("/refund-request", store.docs[0]._id)).json()).toMatchObject({ refunded: false, refundStatus: "failed" });
+    expect(store.docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined();
+    expect(await settleDue(ENV, { model: store.model })).toEqual([{ service: "sukuyo-compatibility-ai", refundStatus: "refunded" }]);
+    expect(cardRefund).toHaveBeenCalledTimes(2);
+  });
+  test("7일 창이 지나면 크론이 보류를 닫고 자동 환불한다", async () => {
+    passRefund.mockImplementation(async () => ({ refunded: true }));
+    await holdFailure();
+    expect(await settleDue(ENV, { model: store.model })).toEqual([]);
+    expect(passRefund).not.toHaveBeenCalled();
+    const later = Date.now() + 8 * 24 * 60 * 60 * 1000;
+    expect(await settleDue(ENV, { model: store.model, now: later })).toEqual([{ service: "sukuyo-compatibility-ai", refundStatus: "refunded" }]);
+    expect(store.docs[0].generationError.code).toBe("RETRY_WINDOW_EXPIRED"); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("판 2 개인 상담", () => {

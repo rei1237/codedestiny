@@ -4,6 +4,8 @@ import { fusionGroupsForStage } from './fusion-fortune-prompt.js';
 import { hasFusionStageOneResult, isFusionFortuneApiEnabled, FUSION_GENERATION_DEADLINE_MS, FUSION_FORTUNE_PAID_FEATURE_KEY, validateFusionFortuneGroup, fusionValidationOptions, fusionGroupAttemptLimit, fusionGroupWaitsForPlan } from './fusion-fortune.js';
 import { readOrderResumeContext, RESUME_APPROVED_TTL_MS } from '../payments/resume-context.js';
 import { runFusionFortuneDeliveryStage } from '../routes/fusion-fortune.js';
+import { retryableFailureMeta } from './paid-delivery-stuck.js';
+import { markFusionRetryRefundDue } from './fusion-fortune-consultation.js';
 
 const ABANDONED_AFTER_MS = 5 * 60 * 1000;
 const TASK_BUDGET_MS = 4 * 60 * 1000;
@@ -71,18 +73,23 @@ export function buildAbandonedFusionFilter(now) {
 }
 
 /**
- * Undelivered card orders become refund-eligible: budget exhausted (reviewRequired), 24h without
- * completion, or 7 days still waiting for input. The CAS needs an expired lease and an unchanged
+ * Undelivered card orders: budget exhausted (reviewRequired), 24h without completion (or 24h after a
+ * retry reopened it). 2026-11-20 R10 (user decision "7일 다시 시도로 통일"): these are held as
+ * generation_failed + llmMeta.retryable for a free retry until created + 7 days instead of being
+ * refunded at once; the customer can request the refund at any time. Missing input after 7 days and
+ * holds past their window become refund-eligible. The CAS needs an expired lease and an unchanged
  * document, and every save path skips generation_failed, so delivery and refund cannot both win.
- * runPendingConsultationRefunds settles them on the same ten-minute schedule.
+ * runPendingConsultationRefunds settles refund-eligible ones on the same ten-minute schedule.
  */
 export async function markUndeliveredFusionRefunds(env, now) {
   const docs = await withMongoRetry(env, () => FusionFortuneConsultation.find({
     status: { $in: OPEN_STATUSES }, createdAt: { $gte: FUSION_AUTO_REFUND_SINCE }, 'llmMeta.refundEligibleAt': { $exists: false },
     // Without the manual grant the buyer can still resume once; the day rule covers an order nobody resumes.
     'llmMeta.refundSkipped': { $exists: false }, $or: [{ 'generationSnapshot.recovery.reviewRequired': true, 'generationSnapshot.recovery.manualGranted': true },
-      { 'generationSnapshot.context': { $exists: true }, createdAt: { $lte: new Date(now - UNDELIVERED_REFUND_MS) } },
-      { createdAt: { $lte: new Date(now - INPUT_WAIT_MS) } }],
+      { 'generationSnapshot.context': { $exists: true }, 'llmMeta.retryable': { $exists: false }, createdAt: { $lte: new Date(now - UNDELIVERED_REFUND_MS) } },
+      { 'generationSnapshot.context': { $exists: true }, 'llmMeta.retryable.reopenedAt': { $lte: new Date(now - UNDELIVERED_REFUND_MS) } },
+      { createdAt: { $lte: new Date(now - INPUT_WAIT_MS) } },
+      { 'llmMeta.retryable.refundAt': { $lte: new Date(now) } }],
   }).sort({ createdAt: 1 }).limit(MAX_PER_TICK).lean());
   const outcomes = [];
   for (const doc of docs) {
@@ -102,14 +109,18 @@ export async function markUndeliveredFusionRefunds(env, now) {
       continue;
     }
     const recovery = doc.generationSnapshot?.recovery;
-    const reason = recovery?.reviewRequired === true && recovery.manualGranted === true ? 'BUDGET_EXHAUSTED'
+    let reason = recovery?.reviewRequired === true && recovery.manualGranted === true ? 'BUDGET_EXHAUSTED'
       : doc.generationSnapshot?.context ? 'UNDELIVERED_24H' : 'INPUT_MISSING_7D';
-    const llmMeta = { ...meta, refundEligibleAt: new Date(now), refundReason: reason };
+    // Input never arrived: nothing to retry. Otherwise hold for a free retry while the window lasts.
+    const retryable = reason === 'INPUT_MISSING_7D' ? null : retryableFailureMeta(doc, now, reason);
+    if (!retryable && reason !== 'INPUT_MISSING_7D') reason = 'RETRY_WINDOW_EXPIRED';
+    const llmMeta = retryable ? { ...meta, retryable } : { ...meta, refundEligibleAt: new Date(now), refundReason: reason,
+      ...(meta.retryable ? { retryable: { ...meta.retryable, refundReason: reason } } : {}) };
     const marked = await withMongoRetry(env, () => FusionFortuneConsultation.updateOne({
       userId: doc.userId, idempotencyKey: doc.idempotencyKey, status: doc.status, updatedAt: doc.updatedAt,
       $or: [{ generationLease: null }, { 'generationLease.expiresAt': { $lte: new Date(now) } }],
     }, { $set: { status: 'generation_failed', llmMeta } }), { retries: 0 });
-    outcomes.push({ requestId, outcome: marked?.matchedCount ? 'refund_eligible' : 'refund_mark_conflict', reason });
+    outcomes.push({ requestId, outcome: marked?.matchedCount ? (retryable ? 'retry_held' : 'refund_eligible') : 'refund_mark_conflict', reason });
   }
   // Input that never arrived leaves no document. Open a failed one so the refund path can own the order.
   const waiting = await withMongoRetry(env, () => Payment.find({
@@ -132,6 +143,29 @@ export async function markUndeliveredFusionRefunds(env, now) {
     } catch {
       outcomes.push({ requestId, outcome: 'refund_handoff_failed' }); // A racing first write retries next tick.
     }
+  }
+  return outcomes;
+}
+
+/**
+ * R10: holds past created + 7 days are closed and settled through the shared consultation refund.
+ * Called from runPendingConsultationRefunds (EXPERT_RETRY_SETTLERS) on the refund cron.
+ */
+export async function settleDueFusionRetryRefunds(env, { now = Date.now(), limit = 5 } = {}) {
+  await connectDb(env);
+  const docs = await withMongoRetry(env, () => FusionFortuneConsultation.find({
+    status: 'generation_failed', 'llmMeta.retryable': { $exists: true }, 'llmMeta.refundEligibleAt': { $exists: false },
+    'llmMeta.deliveryRefund': { $exists: false }, 'llmMeta.retryable.refundAt': { $lte: new Date(now) },
+  }).sort({ createdAt: 1 }).limit(limit).lean());
+  const outcomes = [];
+  for (const doc of docs) {
+    const id = String(doc.id || ''), userId = String(doc.userId || '');
+    if (!id || !userId || new Date(doc.generationLease?.expiresAt || 0).getTime() > now) continue;
+    const marked = await withMongoRetry(env, () => markFusionRetryRefundDue({ userId, id, now, reason: 'RETRY_WINDOW_EXPIRED' }), { retries: 0 });
+    if (!marked) continue;
+    const { settleFailedConsultationRefund } = await import('./consultation-delivery-refund.js');
+    const settled = await settleFailedConsultationRefund(env, { service: 'fusion-fortune', id, userId });
+    outcomes.push({ service: 'fusion-fortune', refundStatus: settled?.refundStatus || 'pending' });
   }
   return outcomes;
 }

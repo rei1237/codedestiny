@@ -24,6 +24,7 @@ import { readingLocationCopy } from "@/app/yeongnyangi/_lib/current-location-cop
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { expertRetryHoldOf, probeExpertRetryHold } from "@/app/components/ExpertRetryPanel";
 import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
 import GenerationProgress, { LEAVE_SAFE_NOTICE } from "@/components/fortune/GenerationProgress";
 import { masterProfiles } from "@/components/fortune/master-profiles";
@@ -2204,6 +2205,9 @@ function sleep(ms: number) {
 const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
 const RESULT_POLL_MAX_ATTEMPTS = 40;
 
+// 2026-11-20 R10: 웹 결제 건 생성 실패가 무료 다시 시도로 보류됐다는 내부 오류 코드 접두어(뒤에 상담 id).
+const VEDIC_RETRY_HELD = "RETRY_HELD:";
+
 export async function pollVedicResult(sessionId: string, isCurrent = () => true, onPartial?: (consultation: Consultation) => void): Promise<StartResult> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
@@ -3159,7 +3163,11 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
       // 생성이 진행 중(중복 제출 등) — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다.
       setNotice(copy.sessionPendingNotice);
       if (data.consultation) { setConsultation(data.consultation); rememberConsultationUrl(data.consultation.id); }
-      const resolved = await pollVedicResult(data.sessionId, isCurrent, setConsultation);
+      // 2026-11-20 R10: 폴링이 실패로 끝나면 그 건이 다시 시도 보류인지 확인해 결과 화면(다시 시도·환불 요청)으로 보낸다.
+      const resolved = await pollVedicResult(data.sessionId, isCurrent, setConsultation).catch(async (failure) => {
+        const hold = await probeExpertRetryHold(`/api/vedic-ai/result?id=${encodeURIComponent(String(data.sessionId))}`, String(data.sessionId));
+        throw hold ? new Error(`${VEDIC_RETRY_HELD}${hold.sessionId}`) : failure;
+      });
       if (!isCurrent() || resolved.reason === "GENERATION_PAUSED") return false;
       if (resolved.ok && resolved.consultation?.status === "completed") {
         setConsultation(resolved.consultation);
@@ -3173,6 +3181,9 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
       throw new Error(toText(resolved.reason) || "SERVER_ERROR");
     }
     if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
+    // 2026-11-20 R10: 웹 결제 건 생성 실패를 서버가 무료 다시 시도로 보류했다(환불 전).
+    const hold = expertRetryHoldOf(data);
+    if (hold) throw new Error(`${VEDIC_RETRY_HELD}${hold.sessionId}`);
     throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : status >= 500 ? "SERVER_ERROR" : "PREPARE_FAILED"));
   }
 
@@ -3357,6 +3368,13 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
       await startConsultation(requestId, access, true);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      if (code.startsWith(VEDIC_RETRY_HELD)) {
+        // 결제는 그대로 보류됐다 — 같은 건을 결과 화면에서 무료로 다시 시도하거나 환불을 요청한다(새 결제·차감 없음).
+        pendingAccessRef.current = null;
+        requestIdRef.current = "";
+        window.location.assign(`/vedic-ai/result/?id=${encodeURIComponent(code.slice(VEDIC_RETRY_HELD.length))}`);
+        return;
+      }
       const paymentCancelled = code === "PAYMENT_CANCELLED";
       const clearPrepaid = ["LLM_FAILED", "CHART_CALCULATION_FAILED", "BIRTH_PLACE_INVALID", "PAYMENT_VERIFY_FAILED", "PAYMENT_CANCELLED", "LOGIN_REQUIRED", "PREPARE_FAILED"].includes(code);
       if (clearPrepaid) {
