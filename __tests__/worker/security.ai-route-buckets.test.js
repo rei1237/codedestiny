@@ -168,6 +168,7 @@ describe("enforceAiRouteSecurity 의 /generate 일일 버킷", () => {
   });
 
   test.each([
+    ["life-book-ai", "/api/life-book-ai/generate"],
     ["master-love-codex", "/api/master-love-codex/generate"],
     ["nakshatra-ai", "/api/nakshatra-ai/generate"],
     ["naming-prompt", "/api/naming-prompt/generate"],
@@ -179,7 +180,6 @@ describe("enforceAiRouteSecurity 의 /generate 일일 버킷", () => {
 
   test.each([
     ["ziwei-ai", "/api/ziwei-ai/generate"],
-    ["life-book-ai", "/api/life-book-ai/generate"],
     ["love-secret-ai", "/api/love-secret-ai/generate"],
     ["ziwei-island-ai", "/api/ziwei-island-ai/generate"],
     ["sukuyo-compatibility-ai", "/api/sukuyo-compatibility-ai/generate"],

@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: "R11 운영 Release 1회(승인 2026-11-21, 범위 확인 뒤 dispatch) → R12 정리"
+next: "R11 운영 Release 보류 — 5b63b4ecd 이후 다른 세션의 결제 런타임 커밋(03b2743fb·9090d7271) 포함 여부를 사용자에게 재확인한 뒤 1회 dispatch"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -86,6 +86,7 @@ next: "R11 운영 Release 1회(승인 2026-11-21, 범위 확인 뒤 dispatch) �
   - [ ] (push 만 남음 — 2026-11-21 코디네이터 지시로 보류: 라이트 운세 핫픽스를 작게 내보내기 위해 이 묶음은 아직 main 에 올리지 않는다. 핫픽스 운영 반영 뒤 다시 fetch·머지·체인·push) 6종 끝 → R9 절차(origin/main 머지·미러/sitemap 재생성·체인·check:pre-push·조상 확인·push·CI 1회). 그 전에는 push 하지 않는다(지시).
 - [ ] R11 최종 보고 + 운영 승격 승인 질문(AskUserQuestion, 추천 "CI 녹색 뒤 1회 승격"). 승격 직전 `git log 25d9bc034..origin/main` 으로 다른 세션 커밋을 확인해 질문에 적는다.
   - R9b (2026-11-21): 라이트 사주 핫픽스 A(`2951df80c`, origin/main 위 머지) 를 포함한 origin/main 머지 `323cbb330`·두 번째 머지 + sitemap 원장 `352cd4f15`. 겹치는 레지스트리(사주 고급 궁합 SKU·retry-first 와 작명·초융합·전문가 항목) 양쪽 생존을 verify-paid-llm-delivery-contract 로 확인(다시 시도 우선 15개, 변이 60/60). 체인(--base=8d76d7cc9): check:fast exit 0(488 스위트, 8427 통과) · run-paid-gate-suite exit 0(91/0, 1118s) · apps/toss 1766/1766 · verify-myeongri-tables exit 0. 승인 원문(2026-11-21): "같이 올려줘 그럼 모든 변경사항들이 잘 반영되어서 이용권, llm 모두 정상적으로 결제 후 결과가 전달되어야해" + 범위 재승인 "궁합 포함 지금 함께 반영 (추천)"(origin/main `5b63b4ecd` 까지 + A + B).
+  - R9c push (2026-11-21): A `2951df80c`(라이트 사주 핫픽스, 머지 `f5f745dc6`+미러·원장) · B `b354e1e0c`(origin/main `791f71fc9` 위, 마지막 머지 델타는 문서·FAQ 문구·검증 스크립트 — check:pre-push 만 재실행). main CI: A `2951df80c` PR CI·Paid Flow Gates success, B `b354e1e0c` Paid Flow Gates success, 🔴 PR CI 44803842850 failure(Critical checks verify:mongo-query-index-shapes — R10 fusion 스윕 쿼리 2종 미등록) → `bef20f63e` allowlist 갱신(로컬 위반 0, check:fast exit 0, 8427 pass). verify:release(deploy:critical) exit 0. 🔴 Release 미dispatch: `git log 5b63b4ecd..b354e1e0c` 에 다른 세션의 결제 런타임 변경 `03b2743fb`(app/_lib/billing-client.ts 캐시 키·config/payment-freeze.json)·`9090d7271`(js/destiny-profile.js·index.html 런타임) 등이 섞여 범위 규칙(결제·인증·DB·워커 코드면 멈춤)에 걸림. 사용자 재확인 필요. 이후 main 에 다른 세션 워커 커밋 `96b4a4564`(worker/routes/ziwei-ai.js)·`3bf6888ea`(worker/routes/life-book-ai.js·security) 도 추가됨.
 - [ ] R12 정리: 워크트리 배수(`npm run worktree:remove -- <경로>`, 다른 체크아웃에서), 스크래치 삭제, 이 문서 `status: done`.
 
 ## 작업 규칙과 함정 (앞 세션 실측)
