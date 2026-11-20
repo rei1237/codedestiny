@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju và Tarot với Yeongnyangi →",
       "publicRecordsTitle": "Hồ sơ phân tích công khai của Park Byung-ha (Neo), chuyên gia Saju với 10 năm kinh nghiệm",
       "publicRecordsLink": "Đối chiếu ngày, bài gốc và kết quả",
-      "passLight": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt. Không tính các bài hiện đang miễn phí, chúng trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu."
+      "passLight": "Mọi Hũ Mật Ong đều có {count} bài xem nhẹ không giới hạn lượt. Không tính các bài hiện đang miễn phí, chúng trị giá {amount} KRW nếu tính mỗi bài một lần. Không gồm tư vấn tiêu biểu.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Hỏi Yeoni và Neo điều bạn đang băn khoăn nhất",

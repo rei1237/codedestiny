@@ -13,6 +13,7 @@ test('흐름별 롤백 플래그는 boolean 코드 상수다', async () => {
   assert.equal(typeof flags.GUIDED_DAILY_TAROT_ENABLED, 'boolean');
   assert.equal(typeof flags.GUIDED_HEALING_TAROT_ENABLED, 'boolean');
   assert.equal(typeof flags.GUIDED_FREE_SAJU_ENABLED, 'boolean');
+  assert.equal(typeof flags.GUIDED_WEBTOON_RESULT_ENABLED, 'boolean');
 });
 
 test('/saju/free/ 는 플래그로 공통 플로우판과 원본 FreeSajuForm 사이를 고른다(3c-A2)', () => {
@@ -52,4 +53,11 @@ test('/today/ 공통 플로우는 history 를 쌓지 않는다(허브가 popstat
   for (const line of steps.split('\n').filter((l) => /\{id:'/.test(l))) {
     assert.match(line, /history:'(replace|none)'/, `push 기본값 단계: ${line.trim()}`);
   }
+});
+
+test('/today/ 결과는 웹툰 플래그로 캐릭터 웹툰과 이전 섹션 목록 사이를 고른다(4단계)', () => {
+  const src = read('app/today/DailyTarotGuided.tsx');
+  assert.match(src, /GUIDED_WEBTOON_RESULT_ENABLED\?buildTarotWebtoon\(/);
+  assert.match(src, /<NarratorWebtoon /);
+  assert.match(src, /dailyTarot\.positionsTitle/);
 });

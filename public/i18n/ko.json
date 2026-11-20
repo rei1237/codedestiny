@@ -1612,7 +1612,19 @@
       "brandOtherEntry": "꿀꿀 운세 영냥이 사주·타로 →",
       "publicRecordsTitle": "10년 경력 명리학자 박병하(네오)의 공개 분석 기록",
       "publicRecordsLink": "날짜·원문·일치 범위 확인하기",
-      "passLight": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요."
+      "passLight": "모든 꿀단지에 라이트 운세 {count}종이 횟수 제한 없이 포함돼요. 지금 무료로 열려 있는 운세를 빼면 각 1회 기준 {amount}원 상당이며, 대표 상담은 제외예요.",
+      "allPrice": "가격",
+      "allPriceFree": "무료",
+      "allPriceLow": "가벼운",
+      "allPriceMid": "보통",
+      "allPriceHigh": "든든한",
+      "allPricePremium": "프리미엄",
+      "allPriceVvip": "최고가·이용권",
+      "allSort": "정렬",
+      "allSortRecommended": "추천순",
+      "allSortPriceAsc": "낮은 가격순",
+      "allSortPriceDesc": "높은 가격순",
+      "allMore": "더 보기"
     },
     "chatEntry": {
       "title": "연이와 네오에게, 지금 가장 궁금한 한 가지",

@@ -8967,8 +8967,26 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               <button type="button" class="cd-af__chip" data-purpose="self" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k17f5hqf">🔮 나 자신</button>
             </div>
           </div>
+          <div class="cd-af__group">
+            <span class="cd-af__label" id="cdAllFortunesPriceTitle" data-cd-trans="home.gardenCopy.allPrice">가격</span>
+            <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesPriceTitle">
+              <button type="button" class="cd-af__fchip" data-price="free" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceFree">무료</span></button>
+              <button type="button" class="cd-af__fchip" data-price="low" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceLow">가벼운</span></button>
+              <button type="button" class="cd-af__fchip" data-price="mid" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceMid">보통</span></button>
+              <button type="button" class="cd-af__fchip" data-price="high" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceHigh">든든한</span></button>
+              <button type="button" class="cd-af__fchip" data-price="premium" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPricePremium">프리미엄</span></button>
+              <button type="button" class="cd-af__fchip" data-price="vvip" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceVvip">최고가·이용권</span></button>
+            </div>
+          </div>
           <div class="cd-af__status">
             <p class="cd-af__summary" id="cdAllFortunesSummary" aria-live="polite"></p>
+            <label class="cd-af__sort"><span data-cd-trans="home.gardenCopy.allSort">정렬</span>
+              <select data-cd-sort>
+                <option value="recommended" data-cd-trans="home.gardenCopy.allSortRecommended">추천순</option>
+                <option value="priceAsc" data-cd-trans="home.gardenCopy.allSortPriceAsc">낮은 가격순</option>
+                <option value="priceDesc" data-cd-trans="home.gardenCopy.allSortPriceDesc">높은 가격순</option>
+              </select>
+            </label>
             <button type="button" class="cd-af__reset" data-cd-finder-reset data-cd-trans="home.gardenCopy.allReset" hidden>조건 초기화</button>
           </div>
           <details class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">

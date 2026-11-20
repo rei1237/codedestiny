@@ -5690,7 +5690,22 @@ html.neo-mode .cd-af,body.neo-mode .cd-af{--cd-af-ink:#f4eeff;--cd-af-muted:#d8c
 @media (min-width:760px){.cd-af__chips{flex-wrap:wrap;overflow:visible}}
 .cd-af__chip,.cd-af__fchip{flex:none;min-height:44px;padding:0 14px;border:1px solid var(--cd-af-line);border-radius:999px;background:transparent;color:var(--cd-af-ink);font:inherit;font-size:.9rem;font-weight:700;white-space:nowrap;cursor:pointer}
 .cd-af__chip[aria-pressed=true],.cd-af__fchip[aria-pressed=true]{border-color:var(--cd-af-accent);background:var(--cd-af-accent);color:var(--cd-af-on-accent)}
-.cd-af__status{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}
+.cd-af__status{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;flex-wrap:wrap;padding:4px 0}
+html.neo-mode .cd-af__status,body.neo-mode .cd-af__status{--cd-af-bg:#171126}
+.cd-af__sort{display:inline-flex;align-items:center;gap:6px;margin-left:auto;color:var(--cd-af-muted);font-size:.8rem;font-weight:800}
+.cd-af__sort>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cd-af__status{flex-wrap:nowrap}
+.cd-af__summary{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:759px){
+.cd-af{gap:8px}
+.cd-af__group{grid-template-columns:3.2em minmax(0,1fr);align-items:center;gap:6px}
+.cd-af__chip,.cd-af__fchip{min-height:40px;padding:0 12px}
+}
+.cd-af__sort select{min-height:44px;padding:0 10px;border:1px solid var(--cd-af-line);border-radius:12px;background:var(--cd-af-field);color:var(--cd-af-ink);font:inherit;font-size:.9rem;font-weight:700}
+.cd-af__fchip:disabled{opacity:.4;cursor:not-allowed}
+.cd-af__count{margin-left:6px;font-size:.72rem;font-weight:800;opacity:.7}
+.cd-af__more{justify-self:center;margin:12px auto 0;display:block;min-height:44px;padding:0 18px;border:1px solid var(--cd-af-line);border-radius:12px;background:transparent;color:var(--cd-af-ink);font:inherit;font-weight:800;cursor:pointer}
+.cd-af__results .fortune-gateway__rec{content-visibility:auto;contain-intrinsic-size:auto 320px}
 .cd-af__summary{margin:0;color:var(--cd-af-muted);font-size:.85rem}
 .cd-af__reset,.cd-af__empty-reset,.cd-af__browse{min-height:44px;padding:0 14px;border:1px solid var(--cd-af-line);border-radius:12px;background:transparent;color:var(--cd-af-ink);font:inherit;font-size:.9rem;font-weight:800;cursor:pointer}
 .cd-af__browse{justify-self:center}
@@ -10714,8 +10729,26 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
               <button type="button" class="cd-af__chip" data-purpose="self" aria-pressed="false" data-cd-trans="shell.fortuneGatewayDiscover.fortuneGatewayChips.k17f5hqf">🔮 나 자신</button>
             </div>
           </div>
+          <div class="cd-af__group">
+            <span class="cd-af__label" id="cdAllFortunesPriceTitle" data-cd-trans="home.gardenCopy.allPrice">가격</span>
+            <div class="cd-af__chips" role="group" aria-labelledby="cdAllFortunesPriceTitle">
+              <button type="button" class="cd-af__fchip" data-price="free" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceFree">무료</span></button>
+              <button type="button" class="cd-af__fchip" data-price="low" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceLow">가벼운</span></button>
+              <button type="button" class="cd-af__fchip" data-price="mid" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceMid">보통</span></button>
+              <button type="button" class="cd-af__fchip" data-price="high" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceHigh">든든한</span></button>
+              <button type="button" class="cd-af__fchip" data-price="premium" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPricePremium">프리미엄</span></button>
+              <button type="button" class="cd-af__fchip" data-price="vvip" aria-pressed="false"><span data-cd-trans="home.gardenCopy.allPriceVvip">최고가·이용권</span></button>
+            </div>
+          </div>
           <div class="cd-af__status">
             <p class="cd-af__summary" id="cdAllFortunesSummary" aria-live="polite"></p>
+            <label class="cd-af__sort"><span data-cd-trans="home.gardenCopy.allSort">정렬</span>
+              <select data-cd-sort>
+                <option value="recommended" data-cd-trans="home.gardenCopy.allSortRecommended">추천순</option>
+                <option value="priceAsc" data-cd-trans="home.gardenCopy.allSortPriceAsc">낮은 가격순</option>
+                <option value="priceDesc" data-cd-trans="home.gardenCopy.allSortPriceDesc">높은 가격순</option>
+              </select>
+            </label>
             <button type="button" class="cd-af__reset" data-cd-finder-reset data-cd-trans="home.gardenCopy.allReset" hidden>조건 초기화</button>
           </div>
           <details class="cd-af__explore" data-cd-explore aria-labelledby="cdAllFortunesExploreTitle">

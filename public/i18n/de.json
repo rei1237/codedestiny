@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세: Saju und Tarot mit Yeongnyangi →",
       "publicRecordsTitle": "Öffentliche Analysen von Park Byung-ha (Neo), Saju-Berater mit 10 Jahren Erfahrung",
       "publicRecordsLink": "Daten, Originaltexte und Ergebnisse vergleichen",
-      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit. Ohne die heute kostenlosen Deutungen haben sie bei je einer Nutzung einen Wert von {amount} KRW. Signature-Beratungen sind nicht enthalten."
+      "passLight": "Jeder Honigtopf enthält {count} leichte Deutungen ohne Nutzungslimit. Ohne die heute kostenlosen Deutungen haben sie bei je einer Nutzung einen Wert von {amount} KRW. Signature-Beratungen sind nicht enthalten.",
+      "allPrice": "Price",
+      "allPriceFree": "Free",
+      "allPriceLow": "Light",
+      "allPriceMid": "Standard",
+      "allPriceHigh": "Substantial",
+      "allPricePremium": "Premium",
+      "allPriceVvip": "Top tier / Pass",
+      "allSort": "Sort",
+      "allSortRecommended": "Recommended",
+      "allSortPriceAsc": "Price: low to high",
+      "allSortPriceDesc": "Price: high to low",
+      "allMore": "Show more"
     },
     "chatEntry": {
       "title": "Frag Yeoni und Neo, was dich gerade am meisten beschäftigt",

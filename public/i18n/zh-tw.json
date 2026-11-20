@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세：靈喵四柱與塔羅 →",
       "publicRecordsTitle": "十年經驗命理學者朴秉河（Neo）的公開分析紀錄",
       "publicRecordsLink": "查看日期、原文與吻合範圍",
-      "passLight": "所有蜜罐都包含{count}種輕量運勢，不限次數。扣除目前免費的運勢後，按各使用一次計算，價值{amount}韓元。招牌諮詢不包含在內。"
+      "passLight": "所有蜜罐都包含{count}種輕量運勢，不限次數。扣除目前免費的運勢後，按各使用一次計算，價值{amount}韓元。招牌諮詢不包含在內。",
+      "allPrice": "價格",
+      "allPriceFree": "免費",
+      "allPriceLow": "輕量",
+      "allPriceMid": "標準",
+      "allPriceHigh": "進階",
+      "allPricePremium": "高級",
+      "allPriceVvip": "頂級·通行券",
+      "allSort": "排序",
+      "allSortRecommended": "推薦排序",
+      "allSortPriceAsc": "價格由低到高",
+      "allSortPriceDesc": "價格由高到低",
+      "allMore": "查看更多"
     },
     "chatEntry": {
       "title": "向 Yeoni 和 Neo 問出此刻最想知道的一件事",

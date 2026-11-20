@@ -1763,7 +1763,19 @@
       "brandOtherEntry": "꿀꿀 운세：ヨンニャンイの四柱推命・タロット →",
       "publicRecordsTitle": "10年の経験を持つ四柱推命家パク・ビョンハ（ネオ）の公開分析記録",
       "publicRecordsLink": "日付・原文・一致する範囲を確認",
-      "passLight": "すべてのはちみつ壺にライト占い{count}種が回数制限なく含まれます。現在無料の占いを除くと、各1回で{amount}ウォン相当です。代表相談は含まれません。"
+      "passLight": "すべてのはちみつ壺にライト占い{count}種が回数制限なく含まれます。現在無料の占いを除くと、各1回で{amount}ウォン相当です。代表相談は含まれません。",
+      "allPrice": "価格",
+      "allPriceFree": "無料",
+      "allPriceLow": "お手軽",
+      "allPriceMid": "標準",
+      "allPriceHigh": "しっかり",
+      "allPricePremium": "プレミアム",
+      "allPriceVvip": "最上位・利用券",
+      "allSort": "並び替え",
+      "allSortRecommended": "おすすめ順",
+      "allSortPriceAsc": "価格の安い順",
+      "allSortPriceDesc": "価格の高い順",
+      "allMore": "もっと見る"
     },
     "chatEntry": {
       "title": "ヨニとネオに、今いちばん気になるひとつを",
