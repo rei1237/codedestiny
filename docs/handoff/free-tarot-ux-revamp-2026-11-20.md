@@ -186,3 +186,11 @@ next: 5단계 A3 운명 편향·연애 시뮬레이션·인연 장소·운명 �
 - 미룬 것(스펙 범위, 저장 형식 불변): 유료 챕터 리더 적용, 이미지 저장·카카오 공유, 화자 선택 영속화.
 - 없는 표정 그림(보고만): 연이 greet·worry, 영냥이 explain·worry·cheer·serious — `EXPRESSION_ART` 에서 가까운 표정 그림으로 대체(목록은 `MISSING_EXPRESSION_ART`).
 - 남은 위험: (1) 실제 사용자 화면은 로그인 게이트 뒤라 실 세션 확인은 스테이징에서. (2) 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_WEBTOON_RESULT_ENABLED = false`(원래 결과 마크업), 또는 `de993c7e3` revert. (3) 영냥이 화자는 데모에서만 쓰임 — 영냥이 서비스 연결은 5단계 이후.
+- 회귀 점검 (2026-11-21, 사용자 요청 "이 변경으로 인해서 기존 기능들의 회귀가 없어야해" — push 뒤 사후 점검, 회귀 시 revert 전제)
+  - 전체 node 스위트 `node scripts/run-mock-tests.mjs node`: 5577 중 5576 통과. 1건 `sky-and-range` 는 워크트리에 `fortune/data`(gitignore 생성물)가 없어서 실패했고, `npm run fortune:build-data` 뒤 7/7 통과(환경 원인).
+  - jest(`run-mock-tests.mjs jest`): CutReader·reduced-motion 훅·결과 렌더러 소비 스위트 11개 272/272. apps/toss `node --test test/*.test.mjs` 1766/1766(워크트리에 `apps/toss/node_modules` 정션 필요).
+  - 플래그 끔: `__tests__/ui/daily-tarot-guided.behavior.test.mjs` 에 테스트 추가(esbuild 로 `flags.mjs` 를 `GUIDED_WEBTOON_RESULT_ENABLED=false` 로 바꿔 빌드). 끔이면 원래 결과 '오늘의 세 장'·'자리별 읽기'이고 `[data-narrator]` 가 없음, 켬이면 연이 웹툰 → 5/5 통과.
+  - 경계 불변: 4단계 커밋 diff 에 records·library(보관함 재열람)·결제·이용권·인증·worker·API·라우트 파일이 없다. 새 페이지는 dev 전용 `app/dev/webtoon-result/page.dev.tsx` 뿐이고, DailyTarotGuided 의 storage·router·href 는 바뀌지 않았다. 새 속성 `data-line`·`data-cut-index`·`data-source` 를 잡는 기존 CSS·JS 셀렉터는 0개(rg). 훅 본문은 그대로 옮기고 다시 내보냈다.
+  - before/after 화면: before=`9f17a69fe`, after=`0f92a7d74`, dev 서버, reduced-motion, 10페이지(love-secret·entry-webtoon·fortune/today/aries·heukwol·saju/crystals·fortune-tea-house·today·tarot/healing·saju/free·yeongnyangi) × 360·960 = 20장. 상태·H1·title·canonical·robots·텍스트 해시가 20/20 같다. 픽셀은 0% 가 17장이다. 차이가 난 3장은 visual-checker 판정으로 회귀가 아니다.
+    - heukwol-360(22%): 늦게 로드되는 웹툰 이미지가 캡처 순간에 로드됐는지의 차이이고, 패널 좌표와 높이는 같다. 같은 커밋을 재촬영해도 13.5% 차이가 난다.
+    - today 360/960(0.15%·0.07%): Next dev "N" 배지 차이. 재촬영끼리는 0%.
