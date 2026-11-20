@@ -6,8 +6,9 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { progressSteps } from '@/lib/guided-flow/step-controller.mjs';
 import type { GuidedFlow, GuidedStep } from './useGuidedFlow';
-import yehwa from '../ServiceIntroSection.module.css';
-import masks from '../service-intro/yehwaIntroMasks.generated.module.css';
+// 히어로 문장·맺음 가지는 소개 카드 모듈(ServiceIntroSection.module.css)을 빌리지 않고 셸 CSS 로 그린다 —
+// 그 모듈을 import 하면 홈 CSS 와 묶인 83KB 공용 청크가 가이드 화면에 렌더 차단으로 실린다(3c-perf).
+import masks from './guidedHeroMasks.generated.module.css';
 // 영냥이 밤 예화 마스크(--yn-yehwa-mask-*, app/yeongnyangi/yehwa-night.generated.css)는 여기서 import 하지 않는다.
 // 꿀꿀 흐름(/today/·/tarot/healing/)이 영냥이 전용 CSS 를 받지 않게, brand='yeongnyangi' 를 쓰는 화면이 직접 import 한다.
 import styles from './guided-flow.module.css';
@@ -162,11 +163,11 @@ export function GuidedLanding(props: GuidedLandingProps) {
   return (
     <div className={styles.landing}>
       <header className={`${styles.hero} ${masks.masks}`}>
-        <span className={yehwa.crest} aria-hidden="true"><span className={yehwa.halo}><span className={yehwa.moon} /></span></span>
+        <span className={styles.crest} aria-hidden="true"><span className={styles.halo}><span className={styles.moon} /></span></span>
         <p className={styles.eyebrow}>{props.eyebrow}</p>
         <Title className={styles.heroTitle}>{props.title}</Title>
         <p className={styles.heroSub}>{props.subtitle}</p>
-        <span className={yehwa.sprig} aria-hidden="true" />
+        <span className={styles.sprig} aria-hidden="true" />
       </header>
       <section className={styles.block} aria-labelledby="gf-about">
         <Block id="gf-about" className={styles.blockTitle}>{props.aboutTitle}</Block>
