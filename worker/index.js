@@ -508,6 +508,7 @@ const handleHumanDesignReportRoutes = createLazyRouteHandler("./routes/human-des
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
 const handleReviewRoutes = createLazyRouteHandler("./routes/reviews.js", () => import("./routes/reviews.js"), "handleReviewRoutes");
+const handlePopularServicesRoutes = createLazyRouteHandler("./routes/popular-services.js", () => import("./routes/popular-services.js"), "handlePopularServicesRoutes");
 const handleActivationRewardRoutes = createLazyRouteHandler("./routes/activation-rewards.js", () => import("./routes/activation-rewards.js"), "handleActivationRewardRoutes", "api/activation-rewards");
 const handleFeedbackRoutes = createLazyRouteHandler("./routes/feedback.js", () => import("./routes/feedback.js"), "handleFeedbackRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
@@ -1290,6 +1291,11 @@ const app = {
       // 공개 CMS 번들(인증 없음, 발행본만). 관리자 경로는 /api/admin/cms/* 로 admin.js 가 처리한다.
       if (url.pathname === "/api/cms" || url.pathname.startsWith("/api/cms/")) {
         return withCorsHeaders(request, env, await handleCmsRoutes(request, env));
+      }
+
+      // 메인 인기 상담 TOP5(읽기 전용 집계, 순위만 공개).
+      if (url.pathname === "/api/popular-services") {
+        return withCorsHeaders(request, env, await handlePopularServicesRoutes(request, env));
       }
 
       if (url.pathname === "/api/reviews" || url.pathname.startsWith("/api/reviews/")) {
