@@ -66,3 +66,12 @@ test('astrology web flow routes a held failure to the result page retry panel, n
   assert.match(client, /window\.location\.assign\(`\/astrology-ai\/result\/\?id=/);
   assert.equal(client.match(/code\.startsWith\(ASTROLOGY_RETRY_HELD\)/g)?.length, 2, 'submit and paid resume both route a held failure');
 });
+
+test('ziwei web flow shows the retry panel in place for a held failure, never on Toss', () => {
+  const client = fs.readFileSync('app/ziwei-ai/ZiweiAiClient.tsx', 'utf8');
+  assert.match(client, /apiBase="\/api\/ziwei-ai"/);
+  assert.match(client, /retryHold && paymentSurface !== "toss"/);
+  assert.match(client, /paymentSurface === "toss" \? null : expertRetryHoldOf\(data\)/);
+  assert.match(client, /paymentSurface === "toss" \|\| !id \? null : await probeExpertRetryHold\(`\/api\/ziwei-ai\/result\?id=/);
+  assert.equal(client.match(/await heldRetryFor\(/g)?.length, 2, 'saved resume and submit polling both check for a held failure');
+});
