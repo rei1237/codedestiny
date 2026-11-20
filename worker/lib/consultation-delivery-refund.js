@@ -265,6 +265,7 @@ export async function settleFailedConsultationRefund(env, { service, id, userId 
 // 2026-11-20 R10: 전문가 상담 다시 시도 보류 정산(서비스별 라우트가 export). import 경로는 번들러가 볼 수 있게 리터럴로 둔다.
 const EXPERT_RETRY_SETTLERS = Object.freeze([
   { service: 'vedic-ai', load: async () => (await import('../routes/vedic-ai.js')).settleDueVedicRetryRefunds },
+  { service: 'astrology-ai', load: async () => (await import('../routes/astrology-ai.js')).settleDueAstrologyRetryRefunds },
 ]);
 export async function runPendingConsultationRefunds(env, options = {}) {
   const withDb = options.withDb || withPaymentDb;

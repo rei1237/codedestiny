@@ -3,6 +3,8 @@ import { PAID_NARRATIVE_SERVER_RESUME_KEYS } from "./paid-narrative-adapters.js"
 
 // 2026-11-19 R2b: paid-delivery-stuck.js 의 publicRetryState 와 같은 판정. 이 가드는 공용 스위퍼(service-execution-task)가
 // 읽으므로 mongoose 를 끌어오는 그 모듈을 import 하지 않고 여기서 직접 본다(표지 없음·환불 시작·창 경과 → false, fail-closed).
+// llmMeta.retryable 표지로 다시 시도를 보류하는 실행 가드 기능 키. 여기 없는 기능은 보류 중이어도 기존 정책(missing → 환불)이다.
+const RETRY_WINDOW_FEATURES = new Set(["neo-operation-room-consultation", "astrology-ai-consultation"]);
 function neoRetryWindowOpen(doc, now) {
   const meta = doc?.llmMeta, retryable = meta?.retryable;
   if (doc?.status !== "generation_failed" || !retryable) return false;
@@ -60,7 +62,8 @@ export async function inspectCheckpointBeforeTimeoutRefund(execution, { includeR
     if (doc.status === "completed") return "completed";
     // 2026-11-19 R2b 다시 시도 우선: 네오 첫 브리핑의 다시 시도 가능 실패는 창(생성 + 7일) 안·환불 전에만 타임아웃 환불을 미룬다.
     // 창이 지나거나 환불이 예약되면 neoRetryWindowOpen 이 false 라 아래 기존 정책(missing)으로 환불된다. 명시적 종료(includeResumable=false)는 그대로.
-    if (includeResumable && execution.featureKey === "neo-operation-room-consultation" && doc.status === "generation_failed" && neoRetryWindowOpen(doc, Date.now())) return "recoverable";
+    // 2026-11-20 R10: 점성술도 같은 llmMeta.retryable 표지를 쓴다(생성 + 7일 창 안의 보류는 타임아웃 환불 대상이 아니다).
+    if (includeResumable && RETRY_WINDOW_FEATURES.has(execution.featureKey) && doc.status === "generation_failed" && neoRetryWindowOpen(doc, Date.now())) return "recoverable";
     if (["delivery_pending", "partial"].includes(doc.status)) return "recoverable";
     if (doc.status === "generating" && (doc.llmMeta?.resumeBody || doc.llmMeta?.attempts
       || doc.llmMeta?.waveInFlight || doc.llmMeta?.unknownAttempt || doc.sections?.some(section => section.body))) return "recoverable";

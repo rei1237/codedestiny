@@ -8,22 +8,29 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 차트 해석" };
-let route, docs, provider, chart, fault, accessFault, accessQueue, passOrder, withdrawn, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
+let release, card, settleDue, route, docs, provider, chart, fault, accessFault, accessQueue, passOrder, withdrawn, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
+const getPath = (doc, key) => key.split(".").reduce((row, part) => row?.[part], doc);
+function setPath(doc, key, value) { const parts = key.split("."); const last = parts.pop(); let row = doc; for (const part of parts) row = row[part] ??= {}; row[last] = value; }
+const applySet = (doc, set) => { for (const [key, value] of Object.entries(clone(set))) setPath(doc, key, value); };
 function matches(doc, filter) {
   return Object.entries(filter).every(([key, value]) => {
     if (key === "$or") return value.some(row => matches(doc, row));
-    if (value && typeof value === "object" && !(value instanceof Date)) {
-      if ("$ne" in value) return doc[key] !== value.$ne;
-      if ("$nin" in value) return !value.$nin.includes(doc[key]);
-      if ("$in" in value) return value.$in.includes(doc[key]);
-      if ("$exists" in value) return (doc[key] !== undefined) === value.$exists;
-      if ("$lt" in value) return new Date(doc[key]) < value.$lt;
+    const actual = getPath(doc, key);
+    if (value && typeof value === "object" && Object.prototype.toString.call(value) !== "[object Date]") {
+      if ("$exists" in value && (actual !== undefined && actual !== null) !== value.$exists) return false;
+      if ("$ne" in value) return actual !== value.$ne;
+      if ("$nin" in value) return !value.$nin.includes(actual);
+      if ("$in" in value) return value.$in.includes(actual);
+      if ("$lt" in value) return new Date(actual) < value.$lt;
+      if ("$lte" in value) return new Date(actual) <= value.$lte;
+      return "$exists" in value;
     }
-    return String(doc[key]) === String(value);
+    return String(actual) === String(value);
   });
 }
+function findQuery(rows) { const result = { sort: () => result, limit: n => findQuery(rows.slice(0, n)), select: () => result, lean: async () => clone(rows) }; return result; }
 const model = {
   findOne: filter => { if (lostConfirmation) { lostConfirmation = false; return query(null); } return query(docs.find(doc => matches(doc, filter)) || null); },
   create: async fields => {
@@ -38,14 +45,15 @@ const model = {
       if (current.kind === "confirm") lostConfirmation = true;
     }
     const doc = docs.find(row => matches(row, filter));
-    if (doc) Object.assign(doc, clone(update.$set), { updatedAt: new Date() });
+    if (doc) { applySet(doc, update.$set); doc.updatedAt = new Date(); }
     return query(doc || null);
   },
   updateOne: async (filter, update) => {
     const doc = docs.find(row => matches(row, filter));
-    if (doc) Object.assign(doc, clone(update.$set));
+    if (doc) { applySet(doc, update.$set); doc.updatedAt = new Date(Math.max(Date.now(), new Date(doc.updatedAt || 0).getTime() + 1)); }
     return { modifiedCount: doc ? 1 : 0 };
   },
+  find: filter => findQuery(docs.filter(doc => matches(doc, filter))),
 };
 function prose(seed, length = 3650) {
   let text = `## 분석 ${seed}\n${seed}번의 태양 달 상승궁 수성 금성 화성 목성 토성 원소 균형 하우스 트랜짓 선택 기준 실천 루틴.\n`;
@@ -78,11 +86,13 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   jest.unstable_mockModule("../../worker/lib/service-execution-task.js", () => ({ startServiceExecution: async () => ({}), completeServiceExecution: async () => ({}), failServiceExecution: (...args) => refund(...args) }));
-  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => refund(...args) }));
-  ({ handleAstrologyAiRoutes: route } = await import("../../worker/routes/astrology-ai.js"));
+  // card 는 카드 환불 갈래만 센다(refund 는 실행 가드 실패 처리와 카드 환불을 함께 센다).
+  jest.unstable_mockModule("../../worker/lib/payment-refund.js", () => ({ autoRefundSinglePaymentDeliveryFailure: (...args) => { card(...args); return refund(...args); } }));
+  jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({ claimRequestBillingEvidence: async () => ({ ok: true }), evidenceClaimErrorBody: () => ({}), releaseRequestBillingEvidence: (...args) => release(...args) }));
+  ({ handleAstrologyAiRoutes: route, settleDueAstrologyRetryRefunds: settleDue } = await import("../../worker/routes/astrology-ai.js"));
 });
 beforeEach(() => {
-  docs = []; fault = null; accessFault = null; accessQueue = []; passOrder = null; withdrawn = false; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
+  docs = []; fault = null; accessFault = null; accessQueue = []; passOrder = null; withdrawn = false; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true })); release = jest.fn(async () => ({ released: 1 })); card = jest.fn();
   let count = 0;
   provider = jest.fn(async (_env, _prompt, options) => {
     expect(options.attempts).toBe(1); expect(options.timeoutMs).toBeLessThanOrEqual(45000);
@@ -139,13 +149,120 @@ it("stops after two unusable section attempts", async () => {
   expect((await start()).status).toBe(409);
   expect(passRefund).not.toHaveBeenCalled();
 });
-it("restores a pass pre-deducted at checkout when generation fails", async () => {
-  passReceipt = true;
+async function exhaust() {
   provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
-  for (let i = 0; i < 2; i++) await start();
-  expect((await start()).status).toBe(503);
+  for (let i = 0; i < 2; i++) expect((await start()).status).toBe(202);
+  return start();
+}
+function post(path, payload) {
+  return route(new Request(`https://mock.test/api/astrology-ai${path}`, { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify(payload) }), {});
+}
+// 2026-11-20 R10 다시 시도 우선: 웹 결제 건은 품질 시도를 다 써도 바로 환불하지 않고 무료 다시 시도를 연다(환불 = 생성 + 7일 또는 고객 요청).
+it("holds a card payment for a free retry once quality attempts are exhausted", async () => {
+  mode = "paid";
+  const response = await exhaust();
+  expect(response.status).toBe(503);
+  const payload = await response.json();
+  expect(payload).toMatchObject({ reason: "LLM_ERROR", refunded: false, sessionId: docs[0].id, retry: { available: true, sessionId: docs[0].id } });
+  expect(Date.parse(payload.retry.refundAt) - docs[0].createdAt.getTime()).toBe(7 * 86400000);
+  expect(refund).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  expect(docs[0]).toMatchObject({ status: "generation_failed", llmMeta: { retryable: { access: { source: "payment", paymentDocId: uid } } } });
+  const again = await start();
+  expect(again.status).toBe(409);
+  expect(await again.json()).toMatchObject({ refunded: false, retry: { available: true } });
+  const result = await route(new Request(`https://mock.test/api/astrology-ai/result?id=${docs[0].id}`), {});
+  expect(result.status).toBe(409);
+  expect(await result.json()).toMatchObject({ retry: { available: true, sessionId: docs[0].id } });
+});
+it("keeps the immediate refund for a chart calculation failure", async () => {
+  mode = "paid"; refund.mockResolvedValue({ refunded: true });
+  chart.mockImplementation(async () => { throw Object.assign(new Error("ephemeris down"), { code: "ASTRO_EPHEMERIS_FAILED" }); });
+  const response = await start();
+  expect(response.status).toBe(422);
+  expect(await response.json()).not.toHaveProperty("retry");
+  expect(card).toHaveBeenCalledTimes(1); expect(release).toHaveBeenCalledTimes(1);
+  expect(docs[0].llmMeta.retryable).toBeUndefined();
+});
+it("retries a held failure without a new charge and keeps the completed sections", async () => {
+  mode = "paid";
+  const original = provider.getMockImplementation();
+  expect((await start()).status).toBe(202);
+  provider.mockImplementation(async () => ({ ok: true, text: "짧은 결과", provider: "gemini" }));
+  for (let i = 0; i < 3 && docs[0].status !== "generation_failed"; i++) await start();
+  expect(docs[0].status).toBe("generation_failed");
+  const kept = clone(docs[0].llmMeta.sections);
+  expect(Object.keys(kept)).toHaveLength(2);
+  provider.mockImplementation(original);
+  let response = await post("/retry", { sessionId: docs[0].id });
+  expect(response.status).toBe(202);
+  for (let i = 0; i < 4 && docs[0].status !== "completed"; i++) response = await start({ resumeSessionId: docs[0].id });
+  expect(docs[0].status).toBe("completed");
+  for (const [key, row] of Object.entries(kept)) expect(docs[0].llmMeta.sections[key]).toEqual(row);
+  expect(docs[0].llmMeta.retryable.reopens).toBe(1);
+  expect(refund).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled(); expect(chart).toHaveBeenCalledTimes(5);
+});
+it("rejects a retry or refund request from another account", async () => {
+  mode = "paid"; await exhaust(); userId = "64b7f2a1c3d4e5f601234568";
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(404);
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(404);
+  expect(docs[0].status).toBe("generation_failed"); expect(refund).not.toHaveBeenCalled();
+});
+it("refunds the card payment once when the customer asks instead of retrying", async () => {
+  mode = "paid"; await exhaust(); refund.mockResolvedValue({ refunded: true });
+  const response = await post("/refund-request", { sessionId: docs[0].id });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toMatchObject({ ok: true, sessionId: docs[0].id, refunded: true, refundStatus: "refunded" });
+  expect(card).toHaveBeenCalledTimes(1);
+  expect(card.mock.calls[0][1]).toMatchObject({ _id: uid, merchantUid: "payment" });
+  expect(card.mock.calls[0][4]).toBe("astrology_ai_generation");
+  expect(release).toHaveBeenCalledTimes(1);
+  expect(release.mock.calls[0][1]).toMatchObject({ requestId: "original-paid-request", evidenceIds: [uid, undefined] });
+  expect(docs[0].llmMeta.retryable.refundSettledAt).toBeTruthy();
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(409);
+  await settleDue({}, { model }); expect(card).toHaveBeenCalledTimes(1);
+});
+it("closes the execution guard without the timeout reason when the held failure is refunded", async () => {
+  mode = "monthly"; await exhaust();
+  expect(refund).not.toHaveBeenCalled();
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(200);
+  expect(card).not.toHaveBeenCalled();
+  expect(refund).toHaveBeenCalledTimes(1);
+  expect(refund.mock.calls[0][2]).toMatchObject({ executionKey: "astrology-ai-consultation:original-paid-request", reasonCode: "CUSTOMER_REQUEST", forceRefundOnClose: true });
+  expect(refund.mock.calls[0][2].reasonCode).not.toBe("timeout_auto_refund");
+});
+it("keeps the claim and the marker unsettled when the card refund fails, so the cron retries", async () => {
+  mode = "paid"; await exhaust();
+  refund.mockResolvedValue({ refunded: true }); card.mockImplementationOnce(() => { throw new Error("PG down"); });
+  await post("/refund-request", { sessionId: docs[0].id });
+  expect(release).not.toHaveBeenCalled(); expect(docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined();
+  expect(await settleDue({}, { model })).toEqual([{ service: "astrology-ai", refundStatus: "refunded" }]);
+  expect(card).toHaveBeenCalledTimes(2); expect(release).toHaveBeenCalledTimes(1);
+});
+it("settles an expired retry window through the refund cron and restores a checkout pass", async () => {
+  passReceipt = true; await exhaust();
+  expect(passRefund).not.toHaveBeenCalled();
+  docs[0].updatedAt = new Date(Date.now() - 300000);
+  expect(await settleDue({}, { model, now: Date.now() + 8 * 86400000 })).toEqual([{ service: "astrology-ai", refundStatus: "refunded" }]);
+  expect(passRefund).toHaveBeenCalledTimes(1);
+  expect(passRefund.mock.calls[0][0]).toMatchObject({ userId: uid, featureKey: "astrology-ai-consultation", requestId: "original-paid-request" });
+  expect(docs[0].llmMeta).toMatchObject({ retryable: { refundReason: "RETRY_WINDOW_EXPIRED", refundStatus: "refunded" } });
+  expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(409);
+});
+it("does not expire a reopened retry that is generating right now", async () => {
+  mode = "paid"; await exhaust();
+  const later = Date.now() + 8 * 86400000;
+  docs[0].status = "partial"; docs[0].updatedAt = new Date(later - 1000);
+  await settleDue({}, { model, now: later });
+  expect(docs[0].status).toBe("partial"); expect(refund).not.toHaveBeenCalled();
+});
+it("restores a pass pre-deducted at checkout when the held failure is refunded on request", async () => {
+  passReceipt = true;
+  expect((await exhaust()).status).toBe(503);
+  expect(passRefund).not.toHaveBeenCalled();
+  expect((await post("/refund-request", { sessionId: docs[0].id })).status).toBe(200);
   expect(passRefund).toHaveBeenCalledTimes(1);
   expect(passRefund.mock.calls[0][0]).toMatchObject({ featureKey: "astrology-ai-consultation", requestId: "original-paid-request" });
+  expect(card).not.toHaveBeenCalled();
 });
 for (const index of [0, 1, 2, 3]) it(`rejects revoked proof source ${index}`, async () => {
   await start(); blocked = index;
