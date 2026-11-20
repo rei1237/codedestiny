@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 5단계 3c-A4 웨이브 A 남은 흐름 매핑표 작성 후 진행(승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push)
+next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 유지, 승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push) — A4 에서 미룬 시코젠 포바일루 검토 포함
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -60,7 +60,7 @@ next: 5단계 3c-A4 웨이브 A 남은 흐름 매핑표 작성 후 진행(승인
   - [x] 3c-A2. `/saju/free/` 무료 사주 간편 폼 공통 셸 이전(`GUIDED_FREE_SAJU_ENABLED`) + `/today/` "어제 카드 마저 보기" 복구. 직업 스타일·휴먼 디자인·숙요 달력·자미 명반은 사유와 함께 건너뜀. 머지 `36543dc2a` push(2026-11-20). 결과는 아래 "3c-A2 결과".
   - [x] 3c-perf. 가이드 셸이 소개 카드 CSS 를 import 해 `/saju/free/` 에 83KB 렌더 차단 공용 청크가 실리던 회귀 수정. 수정 `ebfd32bfd`, 머지 `7eb4991b7`·원장 `bde984e7c`(2026-11-20). 결과는 아래 "3c-perf 결과".
   - [x] 3c-A3. 12운성 동물(`/saju/animal-destiny/`) 입력 단계만 공통 셸 이전(`GUIDED_ANIMAL_DESTINY_ENABLED`). 운명 편향·연애 시뮬레이션·인연 장소·운명 나침반은 로그인/결제 게이트 때문에 건너뜀. 기능 `f6b5f2d86`(2026-11-21). 결과는 아래 "3c-A3 결과".
-  - [ ] 3c-A4. 웨이브 A 남은 흐름 매핑표 보고 → **사용자 승인 대기**.
+  - [x] 3c-A4. 별빛 포옹(`/yeon-star-hug/`) 입력만 공통 셸 이전(`GUIDED_STAR_HUG_ENABLED`). 심리 테스트·프롬프트 허브·크리스탈·FPTI·오라클(룬)은 게이트·DB·공유 러너 때문에 건너뜀, 시코젠은 A5로 미룸. 기능 `0042e6025`, main 머지 `fae848a18`(2026-11-21). 결과는 아래 "3c-A4 결과".
   - [ ] 3c-A5. 웨이브 A 마무리(플래그 정리 계획·건너뛴 흐름 재검토) 보고 → **사용자 승인 대기**.
 - [x] 4. 캐릭터 웹툰 결과 렌더러 — 2026-11-21 완료(플래그 `GUIDED_WEBTOON_RESULT_ENABLED`, `/today/` 오늘의 세 장 결과). 아래 "4단계 결과".
 - [ ] 5. 타로 UX 통합 — **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식).
@@ -219,3 +219,35 @@ next: 5단계 3c-A4 웨이브 A 남은 흐름 매핑표 작성 후 진행(승인
   - SEO: page.tsx 무변경(H1·title·canonical·robots 동일), 가이드 패널은 ssr:false·랜딩 h2, sitemap 원장만 재생성. 그 외 항목 영향 없음.
 - 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_ANIMAL_DESTINY_ENABLED = false` 또는 `git revert f6b5f2d86`.
 - 남은 위험: (1) 가이드 흐름은 생년월일을 탭 범위 sessionStorage 스냅숏에 둠(원본은 스토어 메모리만). (2) 결과에서 뒤로 가면 `?step=time` 으로 감(결과는 닫힘, A2 와 같은 history 패턴). (3) 저장된 프로필은 시각·이름만 미리 채움(선택 단계는 select 가 자동 진행하므로 제외). (4) 360 에서 다크 카드가 직각·무테(셸 정본이 48rem 미만 풀블리드 설계, A2 와 동일 — 부모 20px 여백 때문에 떠 보임, 셸 공통 후속 과제). (5) 랜딩 안내 "3단계" 문구와 진행 표시 "1/6" 불일치 가능 — 문구 정리 후속. (6) dev 결과 화면의 "전체 풀이를 불러오지 못했어요" 는 로컬에 `/api` 워커를 띄우지 않은 탓으로 추정(원본도 같은 loadPaid 경로, 미검증). (7) check:fast 부하 타임아웃 반복.
+
+### 3c-A4 결과 (2026-11-21) — 별빛 포옹 이전, 나머지 건너뜀·미룸
+
+요청 원문(2026-11-21): "그리고 이 변경으로 인해서 기존 기능들의 회귀가 없어야해" → 플래그 끔 원본·경계 diff·전후 화면 비교 후에만 push.
+
+| 흐름 | 경로·정본 | 판정 | 사유 |
+|---|---|---|---|
+| 별빛 포옹(연이의 마음 별자리) | `/yeon-star-hug/` `YeonStarHugClient.tsx` | **이전** (`GUIDED_STAR_HUG_ENABLED`) | 무료·게이트 없음. 히어로만 셸로 교체: 감정 → 생년월일·시각·이름(선택, 저장 프로필 선택) → 별자리 확인(생년월일 자동 매칭) → 고민 한 줄(선택, 예시 문장) → 읽는 중 → 원래 입력 패널+결과. 값의 정본은 원본 상태, 리딩은 원본 `runConsultation` 1회. 읽기 전용 astro fetch 는 원본 `applyProfileAndAstro` 안에 그대로 |
+| 크리스탈 | `/saju/crystals/start/` | 건너뜀 | 저장 프로필 카드 필수(없으면 `/#dpMasterCard` 리다이렉트), `loadServerCrystalRecord`/`saveServerCrystalRecord`(authFetch, DB 쓰기), 이어하기·후속 분기 |
+| FPTI | `/saju-fpti/` | 건너뜀 | useFreeReadingGuard(popstate 취소가 셸 history 와 충돌), usePaidResume, hasFreeReadingSession, 유료 `/api/fpti/deep-report` |
+| 프롬프트 허브 | `/fortune/prompt-hub/` | 건너뜀 | PromptHubLoginGateModal, useCoinGate, usePaidResume, `/api/honey/attendance` 호출 |
+| 심리 테스트 | `/psychotest/` | 건너뜀 | 22개 맞춤 문항 렌더러(이미 한 화면 한 문항). TestPlayer 를 토스 미니앱과 공유(toss prop·뒤로 처리·결과 저장) → 회귀 위험 큼 |
+| 오라클: 룬 | — | 건너뜀 | useCoinGate(유료) |
+| 오라클: ifa·royal-tea·hwatu-life | 정적 셸 FeatureLandingPage | 웨이브 B | React 흐름 아님. `hwatu-life/play` 는 리다이렉트 |
+| 오라클: 시코젠 포바일루 | — | **A5 로 미룸** | 전체 화면 createPortal 의식 UI 가 셸 sticky CTA 와 충돌. 설계 검토 필요 |
+
+- 커밋: 기능 `0042e6025`, 머지 `0238051cc`, 원장 `6c46a8817`, 두 번째 머지 `fae848a18`(push, `2951df80c..fae848a18`) + 이 문서 커밋.
+- 파일: 새 `app/yeon-star-hug/YeonStarHugGuided.tsx`(ssr:false 동적 로드), `YeonStarHugClient.tsx`(CRLF; 플래그 3항, 히어로 null, 그리드는 결과 단계에서만, `guidedSetters` 가 원본 검증·정규화 통과), `lib/guided-flow/flags.mjs`, `public/i18n/*/guidedFlow.json` 12개(`starHug` 블록, ko/en/ja/zh-CN/zh-TW 저작·나머지 7개 영어), `docs/analytics-kpi.md`(`feature_id=yeon_star_hug`), 테스트 `__tests__/ui/star-hug-guided.behavior.test.mjs`(3건)·`guided-tarot-flags.static.test.mjs`(A4 정적 1건), `config/sitemap-lastmod.json`.
+- 검증(실측):
+  - `npm run check:fast` exit 0(세 번째 실행): lint, sitemap, typecheck 0 오류, test:node 5593/0, 유료·verify 단계, build:worker, jest 488 스위트 8382 통과/1 건너뜀. 앞선 실행: verify:sitemap-drift 차단 → `sitemap:generate`; sky-and-range 실패는 워크트리 `fortune/data` 부재(`npm run fortune:build-data` 뒤 7/7).
+  - 대상 테스트 node --test 14/14(머지 뒤 12/12 재확인). `npm run check:pre-push` 두 머지 뒤 모두 exit 0.
+  - 실제 페이지 걷기(dev, 켬) 360/960: 감정 → 생년월일 → 별자리(자동 황소자리) → 고민 → `?step=result`, 원래 결과(이름 표시), 가이드 제목 없음, 가로 넘침·페이지 오류 0, 새로고침 시 결과 복원.
+  - 플래그 끔(임시 false, 복구 후 clean) 360/960: 원본 화면, title "연이 별빛 상담 | 꿀꿀 운세", H1 "연이의 마음 별자리"(page.tsx, 켬에서도 동일), canonical·robots 켬/끔 동일, 넘침 없음.
+  - 렌더 차단 CSS: SSR 켬/끔 모두 layout.css 하나 933,935B 동일. 가이드 CSS(~40KB dev)는 동적 import 로 지연 로드, ServiceIntro CSS 없음.
+  - visual-checker(off/on 360/960 + 단계 화면): 본문 대비 최저 5.95:1(예시 문장), 나머지 8.4~13.2:1, UI 테두리 3.23:1·진행 막대 3.67:1, CTA·선택지 48px, FAQ·푸터 등 아래 영역 픽셀 동일(360 1,492줄·960 994줄), 결과 화면에 단계 UI 잔존 없음. 지적된 "본문 왼쪽·위 밀림"은 재측정 결과 Playwright 가 쿠키 배너에 가린 버튼을 누르려 `overflow-x-hidden` main 을 스크롤한 측정 착시: JS 클릭·`focus()` 는 (0,0), 배너를 닫으면 모든 단계 main scroll (0,0). 원본(끔)도 같은 main 구조. 히어로 일러스트·빈 결과 안내 카드가 랜딩에서 빠진 것은 의도(셸 랜딩이 대체, 결과 단계에서 원본 그리드 표시).
+  - `verify-guided-flow-contrast.cjs` 는 이번에 미실행(셸 CSS 무변경; visual-checker 픽셀 대비로 대신).
+  - 경계 diff: records·library·결제·이용권·월정석·auth·worker·api·라우트·리다이렉트·wrangler·.env·package-lock·page.tsx 변경 0. 부모 diff 에 href/router/storage/fetch 없음, 가이드 컴포넌트에 router/fetch/api/Storage 없음.
+  - SEO: page.tsx 무변경(H1·title·canonical·robots 동일), 가이드 랜딩 h2·ssr:false, sitemap 원장만 재생성. 그 외 항목 영향 없음.
+  - main CI(push 전 1회): `4296cfaf1` PR CI success. push 뒤 CI 는 다음 push 전 1회 확인.
+- 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_STAR_HUG_ENABLED = false` 또는 `git revert 0042e6025`.
+- A3 후속 "3단계 vs 1/6": 기록만. progressSteps 가 wait 단계를 세므로 고치면 모든 흐름의 셸 동작이 바뀜 → 셸 공통 후속 과제.
+- 남은 위험: (1) 생년월일·이름이 탭 범위 sessionStorage 스냅숏에 남음(원본은 메모리). (2) 결과에서 뒤로 가면 별자리 단계로 감(replace history, A2·A3 와 같은 패턴). (3) 가이드에서는 기본 감정(calm)을 미리 고르지 않아 사용자가 직접 골라야 함. (4) 시각 입력은 원본 BirthTimeInput 이 아니라 네이티브 time input. (5) 감정·별자리·예시 문장 라벨은 원본 데이터 그대로 한국어만. (6) check:fast 부하 타임아웃 반복 가능.
