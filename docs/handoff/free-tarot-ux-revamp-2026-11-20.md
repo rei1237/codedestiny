@@ -278,3 +278,31 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - 원인: c038f3980 의 `MasterMotion.module.css` `.frames img { width: calc(100% / var(--mm-n)) }`. `--mm-n` 이 TSX 인라인 style 에서만 정해지고 같은 CSS 파일에 단위 없는 선언이 없어, 가드가 나눗셈 우변의 단위 없음을 증명하지 못해 실패(구형 엔진의 길이÷길이 무효화 사고 방지 가드 — 가드는 정상 대상, 수정하지 않음).
 - 수선: `.frames` 에 `--mm-n: 1;` 단위 없는 기본값 선언. 인라인 style 이 같은 요소에서 덮으므로 프레임·CSS 모션 동작 불변. `sitemap:generate` 로 원장 서명 9개 갱신(lastmod 날짜 변동 없음).
 - 검증: verify:pig-sprite-crop OK(스타일시트 299개), check:fast --base=origin/main, check:pre-push.
+
+## W3 메인 인기 TOP5 결과 (2026-11-21)
+
+요청 원문: "도화서원처럼 내 서비스의 메인 화면에도 실제 인기 순위 TOP5가 나오도록해주고" / "서비스 기능에 회귀는 없어야해". 승인(2026-11-21): "최근 30일 실제 구매 수 (권장)".
+
+- 커밋: c83762154(API·워커·테스트), fa256e125(섹션·미러), 05ee18768(문서·원장), b0d5126f7(높이·셸 썸네일·폭 수선), 21248891f(원장). origin/main 머지 후 push 3a8cc40ff. 이 기록 커밋은 그 다음.
+- 만든 것
+  - `GET /api/popular-services`(`worker/routes/popular-services.js`, `worker/index.js` 지연 라우트): `ops_revenue_facts` 읽기 전용 aggregate(xpState counted·refundState none·netKRW>0·paidAt 최근 30일·등록 featureKey 만) → featureKey 별 건수 → 3건 이상만 `source:"sales"`, 부족분은 큐레이션 순서로 `"curated"` 채움. 응답 `{asOf, windowDays:30, items:[{featureKey, rank, source}]}` — 건수 비공개. DB 쓰기·새 컬렉션 없음.
+  - 캐시: `readCmsThroughCache` 키 `popular-services:v1:<KST 날짜>`(하루 스냅샷, isolate 메모+caches.default, TTL 1일·stale 3일), 실패 시 전날 키 stale 폴백, 그것도 없으면 503 `{ok:false, items:[]}` no-store. 성공 `public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400`.
+  - 등록부 `js/core/popular-services.mjs`(15개 대표·유료 상담, 이름·주소·그림은 service-registry 와 같게 — 드리프트 테스트 있음), 렌더러 `js/core/popular-top5.mjs`(`POPULAR_TOP5_ENABLED`, 높이 484px 예약, 스타일은 늦게 주입), `/` 는 `app/components/PopularTop5.tsx`(HomeCardDeck 아래), `/ggulggul/` 는 `yehwa-home.mjs` 가 `.yh-situations` 뒤에 끼움. 판매 자리 순위 숫자, 부족분 "추천" 배지 + "최근 30일 구매 기준 · M월 D일 기준" 라벨, 섞이면 안내 한 줄. 한국어 셸·웹에서만(해외 로케일·앱 셸 미표시).
+  - 분석: `popular_top5_click {rank, source, service_id, surface}` — docs/analytics-kpi.md. 기존 `select_item`·`home_section_click` 위임 리스너와 겹치지 않게 그 속성들을 쓰지 않음.
+  - 문서: docs/CONTEXT_AUDIT.md(design-canon §5 와의 충돌·해소), docs/context/design-canon.md 예외 한 문장.
+- 검증(실측)
+  - 워커 테스트 8/8(판매 순위·건수 비노출·전부 추천·당일 캐시·503·전날 stale·405·필터·등록부 드리프트), UI 테스트 3/3, 홈 UI 103/103.
+  - build:worker + verify:worker-size OK(gzip 6.23 MiB / 10 MiB).
+  - paid-gate-auditor PASS(verify-payment-freeze 통과), regression-scout 지적 5건(분석 3중 발화·해외 노출·앱 셸·cdTrack 정규식·주석 경로) 모두 수정.
+  - dev 서버 360·960(쿠키 배너 숨김, API mock): 판매·추천·실패·플래그 OFF. 높이 모든 상태 484px(첫 측정에서 섞인 경우 482px 로 늘어 452→484 로 올림). 실패 시 섹션 없음(fail-closed). 플래그 OFF 요청 0·섹션 0. scrollWidth 가로 넘침 없음.
+  - 플래그 OFF ↔ W3 이전 베이스(0531128af) 픽셀: `/` 360·960 차이 0. `/ggulggul/` 은 실행마다 페이지 높이가 두 값 중 하나로 바뀌는 기존 비결정성(베이스도 같음) — 같은 높이끼리는 차이 0.
+  - 렌더 차단 CSS 바이트 ON = OFF(`/` 링크 2개 1,150,452B, `/ggulggul/` 47개 2,070,484B + 인라인 2,061,557B).
+  - SEO: H1·title·canonical ON/OFF 동일(`/`·`/ggulggul/`). 새 공개 URL 없음(API 는 sitemap 대상 아님).
+  - visual-checker 2차 PASS(ggulggul 썸네일 44×29 → 44×44, 셸 폭 640 → 930 맞춤, 배지 정렬 수선 뒤). 대비 9.6:1·7.9:1·7.4:1.
+  - diff 경계: 결제·이용권·보관함·인증·라우팅 파일 변경 없음(새 API 라우트만).
+  - check:fast: test:node 1건 실패 = fortune/data/daily-2026-11-21.json 부재(W4 와 같은 날짜 의존 기존 실패). check:pre-push 통과(최종 머지 트리).
+  - 기존 실패(베이스에서도 동일, 이 변경과 무관): `scripts/design/verify-yehwa-home.mjs` 가 없어진 `.yh-entry[data-cd-service-id="saju"]` 를 기다리다 시간 초과, `__tests__/ui/home-service-separation.test.cjs` 의 `.yh-concerns` 0개.
+  - 미검증: perf:home(dist 빌드 필요, 돌리지 않음), 스테이징 실응답(빈 DB 면 전부 "추천" 예상), 실데이터 순위.
+- main CI: push 전 확인 시 73f61631 진행 중(직전 8e676e4b 실패는 W4 sprite-crop 가드, 0f8009f2b 로 수선됨). 내 push 3a8cc40ff 의 CI 는 미확인.
+- 롤백: `js/core/popular-top5.mjs` 의 `POPULAR_TOP5_ENABLED=false` + `npm run sync:public`(섹션·요청 모두 사라짐, API 는 남아도 호출 없음) 또는 위 커밋들 `git revert`.
+- 남은 위험: API 실패 시 예약한 484px 가 접혀 아래 내용이 한 번 올라감(첫 화면 아래); DB 장애 동안 503 no-store 라 요청마다 aggregate 재시도; `verify-public-api-edge-cache` 목록에 새 라우트 미포함; `source:"sales"` 는 3건 이상 판매를 함의(정책상 공개 허용 범위 확인 필요); curated 만일 때 약 60px 빈 여백(예약 높이 때문, 의도).
