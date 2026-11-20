@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: "R9 push 보류: 라이트 운세 핫픽스 운영 반영 뒤 push"
+next: "R11 운영 Release 1회(승인 2026-11-21, 범위 확인 뒤 dispatch) → R12 정리"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -85,6 +85,7 @@ next: "R9 push 보류: 라이트 운세 핫픽스 운영 반영 뒤 push"
   - [x] fusion-fortune — `06ec74221`(워커 24시간 → 7일 창·/retry·/refund-request·크론·검증기·테스트) + `c7fc09491`(결과 화면 패널). 실측 "R10 작명·초융합"
   - [ ] (push 만 남음 — 2026-11-21 코디네이터 지시로 보류: 라이트 운세 핫픽스를 작게 내보내기 위해 이 묶음은 아직 main 에 올리지 않는다. 핫픽스 운영 반영 뒤 다시 fetch·머지·체인·push) 6종 끝 → R9 절차(origin/main 머지·미러/sitemap 재생성·체인·check:pre-push·조상 확인·push·CI 1회). 그 전에는 push 하지 않는다(지시).
 - [ ] R11 최종 보고 + 운영 승격 승인 질문(AskUserQuestion, 추천 "CI 녹색 뒤 1회 승격"). 승격 직전 `git log 25d9bc034..origin/main` 으로 다른 세션 커밋을 확인해 질문에 적는다.
+  - R9b (2026-11-21): 라이트 사주 핫픽스 A(`2951df80c`, origin/main 위 머지) 를 포함한 origin/main 머지 `323cbb330`·두 번째 머지 + sitemap 원장 `352cd4f15`. 겹치는 레지스트리(사주 고급 궁합 SKU·retry-first 와 작명·초융합·전문가 항목) 양쪽 생존을 verify-paid-llm-delivery-contract 로 확인(다시 시도 우선 15개, 변이 60/60). 체인(--base=8d76d7cc9): check:fast exit 0(488 스위트, 8427 통과) · run-paid-gate-suite exit 0(91/0, 1118s) · apps/toss 1766/1766 · verify-myeongri-tables exit 0. 승인 원문(2026-11-21): "같이 올려줘 그럼 모든 변경사항들이 잘 반영되어서 이용권, llm 모두 정상적으로 결제 후 결과가 전달되어야해" + 범위 재승인 "궁합 포함 지금 함께 반영 (추천)"(origin/main `5b63b4ecd` 까지 + A + B).
 - [ ] R12 정리: 워크트리 배수(`npm run worktree:remove -- <경로>`, 다른 체크아웃에서), 스크래치 삭제, 이 문서 `status: done`.
 
 ## 작업 규칙과 함정 (앞 세션 실측)
