@@ -356,3 +356,13 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - main CI: push 전 확인 시 73f61631 진행 중(직전 8e676e4b 실패는 W4 sprite-crop 가드, 0f8009f2b 로 수선됨). 내 push 3a8cc40ff 의 CI 는 미확인.
 - 롤백: `js/core/popular-top5.mjs` 의 `POPULAR_TOP5_ENABLED=false` + `npm run sync:public`(섹션·요청 모두 사라짐, API 는 남아도 호출 없음) 또는 위 커밋들 `git revert`.
 - 남은 위험: API 실패 시 예약한 484px 가 접혀 아래 내용이 한 번 올라감(첫 화면 아래); DB 장애 동안 503 no-store 라 요청마다 aggregate 재시도; `verify-public-api-edge-cache` 목록에 새 라우트 미포함; `source:"sales"` 는 3건 이상 판매를 함의(정책상 공개 허용 범위 확인 필요); curated 만일 때 약 60px 빈 여백(예약 높이 때문, 의도).
+
+## 영냥이 홈 무료 배너 제거 (Codex 48fbf2277 적용) (2026-11-21)
+
+요청 원문: "코덱스에서 수정한 영냥이 화면에서는 무료 라이트 운세 화면이 없도록한 변경도 적용해줘" / "서비스 기능에 회귀는 없어야해".
+
+- 적용: Codex 클론 `D:\Development\Temp\yeongnyangi-no-promo-20261120` 의 48fbf2277 을 cherry-pick -x(작성자 유지) → c92607bda. `app/yeongnyangi/_home/FortuneHome.tsx` 에서 `<FreePromoBanner variant="yeongnyangi" compact/>` 와 import 제거, `__tests__/ui/free-promo.test.mjs` 갱신. sitemap 원장은 충돌 → `sitemap:generate` 로 재생성(영냥이 5개 URL 서명만 변경, lastmod 변화 없음).
+- 유지: `FreePromoBanner` 컴포넌트, `/`(app/page.js)·`/ggulggul/`(정적 셸 `.cdh-promo`)·SeoLandingTemplate 배너, Room.tsx `<FreeFortune/>` 16종 무료 운세. 로케일 영냥이 홈은 `LocalizedFortuneHome` 이라 원래 배너가 없었다(서명만 바뀜). Codex "moonlit room and mascot" 커밋은 적용하지 않음.
+- 분석: 배너에 노출·클릭 이벤트가 없어 analytics-kpi.md 변경 없음.
+- 검증: 관련 node 테스트 41/41, check:fast --base=origin/main 통과(첫 회 fortune/data 날짜 파일 부재 1건 → fortune:build-data 뒤 통과), dev 서버 360·960 전후 visual-checker PASS(배너만 사라지고 레이아웃 정상, 가로 넘침 없음). `/`·`/ggulggul/` 배너 남아 있음 확인. title·H1·canonical 전후 동일.
+- 롤백: `git revert c92607bda`.
