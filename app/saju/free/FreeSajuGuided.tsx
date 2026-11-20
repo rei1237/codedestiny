@@ -16,15 +16,28 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { normalizeBirthDateInput } from "@/lib/birthDateInput";
 import { elementBalanceLine } from "@/lib/free-saju/copy";
 import { trackEvent } from "@/lib/analytics";
+import { GUIDED_BIRTH_FREE_SAJU_ENABLED } from "@/lib/guided-flow/flags.mjs";
+import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedBirthTitles } from "@/app/components/guided-flow/birth/GuidedBirthSteps";
+import { BIRTH_CONFIRM, birthSteps, isBirthField } from "@/app/components/guided-flow/birth/birth-steps";
 
 const FLOW_ID = "free-saju-chart";
-const STEPS: GuidedStep[] = [
+const LEGACY_STEPS: GuidedStep[] = [
   { id: "date", kind: "input" },
   { id: "calendar", kind: "choice" },
   { id: "time", kind: "input", required: false },
   { id: "computing", kind: "wait", history: "none", transient: true, restoreTo: "time", awaitWork: true },
   { id: "result", kind: "result", history: "replace" },
 ];
+// W1 공용 출생 입력: 생년월일(년·월·일 칸) → 달력 → 시각(시진 칩·직접·몰라요) → 확인 요약. 답 형식·엔진 입력은 위와 같다.
+// 태어난 장소는 이 계산(computeFreeSaju)이 받지 않아 묻지 않는다. 저장 프로필 고르기도 원본처럼 없다.
+const BIRTH_OPTIONS: GuidedBirthOptions = { idPrefix: "free-saju", fields: ["date", "calendar", "time"] };
+const BIRTH_STEPS: GuidedStep[] = [
+  ...birthSteps(BIRTH_OPTIONS),
+  { id: "computing", kind: "wait", history: "none", transient: true, restoreTo: BIRTH_CONFIRM, awaitWork: true },
+  { id: "result", kind: "result", history: "replace" },
+];
+const BIRTH = GUIDED_BIRTH_FREE_SAJU_ENABLED;
+const STEPS = BIRTH ? BIRTH_STEPS : LEGACY_STEPS;
 
 type Answers = Record<string, string | undefined>;
 
@@ -108,6 +121,7 @@ export default function FreeSajuGuided() {
     slowLine: t("slowLine"),
   }), [t]);
   const titles = {
+    ...(BIRTH ? guidedBirthTitles(t) : {}),
     date: t("freeSaju.dateTitle"), calendar: t("freeSaju.calendarTitle"), time: t("freeSaju.timeTitle"),
     computing: t("freeSaju.computingTitle"), result: t("freeSaju.resultTitle"),
   };
@@ -130,6 +144,10 @@ export default function FreeSajuGuided() {
   />;
 
   const renderStep = (current: GuidedStep) => {
+    if (BIRTH && (isBirthField(current.id) || current.id === BIRTH_CONFIRM)) return <>
+      {current.id === "date" && error ? <p className={tarot.note} role="alert">{error}</p> : null}
+      <GuidedBirthStep flow={flow} step={current} options={BIRTH_OPTIONS} />
+    </>;
     if (current.id === "date") return <>
       <label className={tarot.note} htmlFor="free-saju-date">{t("freeSaju.dateLabel")}</label>
       <input id="free-saju-date" name="date" className={gf.field} autoComplete="bday" {...dateProps} onKeyDown={advanceOnEnter} onFocus={() => { void preloadFreeSajuEngine().catch(() => {}); }} />
@@ -155,5 +173,5 @@ export default function FreeSajuGuided() {
     </div>;
   };
 
-  return <GuidedFlowShell className={tarot.embedded} flow={flow} labels={labels} titles={titles} landing={landing} renderStep={renderStep} />;
+  return <GuidedFlowShell className={tarot.embedded} flow={flow} labels={labels} titles={titles} landing={landing} renderStep={renderStep} ctaLabels={BIRTH ? guidedBirthCtaLabels(t) : undefined} />;
 }

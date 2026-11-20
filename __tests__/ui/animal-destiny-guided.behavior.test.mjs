@@ -33,10 +33,13 @@ export default function Picker({ onSelect }) { return createElement('button', { 
 const MOCK_PATHS = [
   [/lib\/sajuAdapter$/, 'adapter'], [/lib\/paidReading$/, 'paid'], [/lib\/animalMapping$/, 'mapping'],
   [/lib\/twelveStages$/, 'stages'], [/lib\/analysisNarrative$/, 'narrative'], [/SavedBirthProfilePicker$/, 'picker'],
-  [/\/analytics$/, 'analytics'],
+  [/\/analytics$/, 'analytics'], [/guided-flow\/flags\.mjs$/, 'flags'],
 ];
 
-async function load() {
+// 플래그 고정: 실제 flags.mjs 를 그대로 내보내되 넘긴 값만 덮어쓴다(W1 플래그 끔 = 이전 동작 확인용).
+const FLAGS_PATH = require('node:path').resolve('lib/guided-flow/flags.mjs').replace(/\\/g, '/');
+async function load(flags = {}) {
+  mocks.flags = `export * from '${FLAGS_PATH}';\n${Object.entries(flags).map(([k, v]) => `export const ${k} = ${JSON.stringify(v)};`).join('\n')}`;
   const output = await build({
     stdin: {
       contents: `export { default } from './app/saju/animal-destiny/components/AnimalDestinyGuided';
@@ -48,6 +51,7 @@ export { useAnimalDestinyStore } from './app/saju/animal-destiny/store/useAnimal
     external: ['react', 'react/jsx-runtime', 'react-dom', 'zustand'],
     plugins: [{ name: 'animal-mocks', setup(b) {
       b.onResolve({ filter: /.*/ }, (args) => {
+        if (args.namespace === 'mock') return undefined;
         const hit = MOCK_PATHS.find(([re]) => re.test(args.path));
         return hit ? { path: hit[1], namespace: 'mock' } : undefined;
       });
@@ -67,8 +71,10 @@ const waitFor = async (check, ms = 4000) => {
   assert.fail('시간 안에 조건을 만족하지 못함');
 };
 
-const { default: AnimalDestinyGuided, useAnimalDestinyStore } = await load();
-const store = () => useAnimalDestinyStore.getState();
+const { default: AnimalDestinyGuided, useAnimalDestinyStore } = await load({ GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED: false });
+let Component = AnimalDestinyGuided;
+let useStore = useAnimalDestinyStore;
+const store = () => useStore.getState();
 
 async function mount(url = 'http://localhost/saju/animal-destiny/') {
   const dom = new JSDOM('<div id="root"></div>', { url });
@@ -80,7 +86,7 @@ async function mount(url = 'http://localhost/saju/animal-destiny/') {
   globalThis.__inputs = []; globalThis.__paid = []; globalThis.__events = []; globalThis.__fail = false;
   store().reset();
   const root = createRoot(w.document.getElementById('root'));
-  await act(async () => root.render(React.createElement(AnimalDestinyGuided)));
+  await act(async () => root.render(React.createElement(Component)));
   await flush();
   const setValue = async (el, value) => {
     Object.getOwnPropertyDescriptor(w.HTMLInputElement.prototype, 'value').set.call(el, value);
@@ -175,3 +181,54 @@ test('저장 프로필을 고르면 원본 매핑으로 스토어를 채우고 �
   assert.equal(v.q('input[name="name"]').value, '달');
   await v.close();
 });
+
+// ── W1 공용 출생 입력(GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED): 이름 → 성별 → 생년월일 → 달력 → 시각 → 확인, 스토어 입력 6필드는 같다 ──
+{
+  const birth = await load({ GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED: true });
+
+  test('W1 출생 입력: 이름 → 성별 → 년·월·일 → 달력 → 시진 → 확인 → 같은 스토어 입력·유료 확인 1회', async () => {
+    Component = birth.default; useStore = birth.useAnimalDestinyStore;
+    const v = await mount();
+    await v.click(v.byText('동물 찾기 시작'));
+    assert.equal(v.heading(), '결과 카드에 어떤 이름을 쓸까요?');
+    await v.setValue(v.q('input[name="name"]'), '호랑');
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '성별을 골라 주세요');
+    await v.click(v.byText('여성')); await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '생년월일을 알려 주세요');
+    await v.setValue(v.q('input[name="birth-year"]'), '1990');
+    await v.setValue(v.q('input[name="birth-month"]'), '5');
+    await v.setValue(v.q('input[name="birth-day"]'), '15');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('음력 윤달')); await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '태어난 시각을 아세요?');
+    await v.setValue(v.q('input[name="time"]'), '07:30');
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '입력한 정보가 맞나요?');
+    await v.click(v.byText('확인'));
+    await waitFor(() => store().status === 'result');
+    await flush();
+    assert.deepEqual(globalThis.__inputs[0], {
+      name: '호랑', birthDate: '1990-05-15', birthTime: '07:30', gender: 'female', calendarType: 'lunar', lunarLeap: true,
+    }, '원본 입력 카드와 같은 6필드');
+    assert.deepEqual(globalThis.__paid, ['1990-05-15']);
+    assert.equal(v.q('[id^="gf-title-"]'), null, '결과는 원본 AnimalResultScreen 이 그린다');
+    await v.close();
+  });
+
+  test('W1 출생 입력: 저장 프로필을 고르면 원본 매핑으로 스토어를 채우고 확인 요약으로 바로 간다', async () => {
+    Component = birth.default; useStore = birth.useAnimalDestinyStore;
+    globalThis.__seed = { name: '달', birthDate: '1988-02-03', birthTime: '23:10', birthTimeUnknown: false, gender: 'male', calendarType: 'lunar', isLeapMonth: false };
+    const v = await mount();
+    await v.click(v.byText('동물 찾기 시작'));
+    await v.click(v.byText('저장 프로필')); await flush();
+    assert.equal(v.heading(), '입력한 정보가 맞나요?');
+    const text = v.w.document.body.textContent;
+    assert.ok(text.includes('달') && text.includes('1988년 2월 3일') && text.includes('23:10') && text.includes('남성'));
+    assert.deepEqual({ ...store().input }, { ...store().input, name: '달', birthDate: '1988-02-03', birthTime: '23:10', gender: 'male', calendarType: 'lunar', lunarLeap: false });
+    await v.click(v.byText('확인'));
+    await waitFor(() => store().status === 'result');
+    assert.deepEqual(globalThis.__inputs[0], { name: '달', birthDate: '1988-02-03', birthTime: '23:10', gender: 'male', calendarType: 'lunar', lunarLeap: false });
+    await v.close();
+  });
+}

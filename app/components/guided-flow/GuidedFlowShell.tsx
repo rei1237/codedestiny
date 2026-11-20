@@ -44,9 +44,11 @@ type Props = {
   brand?: GuidedFlowBrand;
   /** 루트에 덧붙일 클래스(페이지 안에 끼워 넣을 때 높이 등). */
   className?: string;
+  /** 단계 id → 하단 주 버튼 문구(없으면 labels.next). 예: 확인 요약 단계의 '확인'. */
+  ctaLabels?: Record<string, string>;
 };
 
-export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, brand = 'ggulggul', className }: Props) {
+export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, brand = 'ggulggul', className, ctaLabels }: Props) {
   const { state, step, controller } = flow;
   const titleRef = useRef<HTMLHeadingElement>(null);
   const counted = progressSteps(controller.steps) as GuidedStep[];
@@ -101,7 +103,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, bra
               disabled={!answered}
               onClick={() => { controller.cancelAutoAdvance(); controller.next('cta'); }}
             >
-              {labels.next}
+              {ctaLabels?.[step.id] || labels.next}
             </button>
           ) : null}
           {state.waiting && !state.waiting.minDone ? (

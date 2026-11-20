@@ -16,9 +16,12 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { normalizeBirthDateInput } from "@/lib/birthDateInput";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
+import { GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED } from "@/lib/guided-flow/flags.mjs";
+import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedBirthTitles } from "@/app/components/guided-flow/birth/GuidedBirthSteps";
+import { BIRTH_CONFIRM, type BirthProfileSeed, birthSteps, isBirthField } from "@/app/components/guided-flow/birth/birth-steps";
 
 const FLOW_ID = "animal-destiny-twelve";
-const STEPS: GuidedStep[] = [
+const LEGACY_STEPS: GuidedStep[] = [
   { id: "date", kind: "input" },
   { id: "calendar", kind: "choice" },
   { id: "time", kind: "input", required: false },
@@ -27,6 +30,16 @@ const STEPS: GuidedStep[] = [
   { id: "computing", kind: "wait", history: "none", transient: true, restoreTo: "name", awaitWork: true },
   { id: "result", kind: "result", history: "replace" },
 ];
+// W1 공용 출생 입력: 이름(선택) → 성별 → 생년월일 → 달력 → 시각 → 확인 요약. 단계 id·답 형식·스토어 입력(animalInputFromAnswers)은 같다.
+// 태어난 장소는 12운성 계산이 받지 않아 묻지 않는다.
+const BIRTH_FIELDS = ["name", "gender", "date", "calendar", "time"] as const;
+const BIRTH_STEPS: GuidedStep[] = [
+  ...birthSteps({ fields: BIRTH_FIELDS }),
+  { id: "computing", kind: "wait", history: "none", transient: true, restoreTo: BIRTH_CONFIRM, awaitWork: true },
+  { id: "result", kind: "result", history: "replace" },
+];
+const BIRTH = GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED;
+const STEPS = BIRTH ? BIRTH_STEPS : LEGACY_STEPS;
 
 type Answers = Record<string, string | undefined>;
 
@@ -67,6 +80,7 @@ export default function AnimalDestinyGuided() {
 
   // 저장 프로필로 채운 시각·이름은 그 단계에 들어올 때 미리 채워 둔다(자동 진행은 하지 않는다).
   useEffect(() => {
+    if (BIRTH) return; // W1 은 프로필을 고를 때 답을 한꺼번에 채운다(mergeAnswers).
     if (stepId !== "time" && stepId !== "name") return;
     const current = controller.getState().answers as Answers;
     if (current[stepId]) return;
@@ -112,6 +126,7 @@ export default function AnimalDestinyGuided() {
     slowLine: t("slowLine"),
   }), [t]);
   const titles = {
+    ...(BIRTH ? guidedBirthTitles(t) : {}),
     date: t("animalDestiny.dateTitle"), calendar: t("animalDestiny.calendarTitle"), time: t("animalDestiny.timeTitle"),
     gender: t("animalDestiny.genderTitle"), name: t("animalDestiny.nameTitle"),
     computing: t("animalDestiny.computingTitle"), result: t("animalDestiny.computingTitle"),
@@ -133,6 +148,21 @@ export default function AnimalDestinyGuided() {
     controller.setAnswer(next.birthDate || "");
   }, [controller, setInput]);
 
+  // W1: 저장 프로필을 고르면 원본 매핑으로 스토어를 채운다. 단계 답은 공용 묶음이 같은 프로필에서 채운다.
+  const birthOptions = useMemo<GuidedBirthOptions>(() => ({
+    idPrefix: "animal-destiny", fields: BIRTH_FIELDS, profile: true,
+    onProfile: (seed: BirthProfileSeed) => {
+      setInput({
+        name: seed.name || "",
+        birthDate: seed.birthDate || "",
+        birthTime: seed.birthTimeUnknown ? "" : seed.birthTime || "",
+        gender: seed.gender === "male" || seed.gender === "female" ? seed.gender : "unknown",
+        calendarType: seed.calendarType || "solar",
+        lunarLeap: Boolean(seed.isLeapMonth),
+      });
+    },
+  }), [setInput]);
+
   if (status === "result" && stepId === "result") return null;
 
   const landing = <GuidedLanding
@@ -150,6 +180,7 @@ export default function AnimalDestinyGuided() {
   />;
 
   const renderStep = (current: GuidedStep) => {
+    if (BIRTH && (isBirthField(current.id) || current.id === BIRTH_CONFIRM)) return <GuidedBirthStep flow={flow} step={current} options={birthOptions} />;
     if (current.id === "date") {
       const dateProps = birthDateTextInputProps(String(answers.date || ""), (next) => {
         controller.setAnswer(normalizeBirthDateInput(next));
@@ -183,5 +214,5 @@ export default function AnimalDestinyGuided() {
     return <p className={tarot.note} aria-live="polite">{t("animalDestiny.computingBody")}</p>;
   };
 
-  return <GuidedFlowShell className={tarot.embedded} flow={flow} labels={labels} titles={titles} landing={landing} renderStep={renderStep} />;
+  return <GuidedFlowShell className={tarot.embedded} flow={flow} labels={labels} titles={titles} landing={landing} renderStep={renderStep} ctaLabels={BIRTH ? guidedBirthCtaLabels(t) : undefined} />;
 }

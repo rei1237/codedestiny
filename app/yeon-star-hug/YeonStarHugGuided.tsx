@@ -11,9 +11,12 @@ import { type GuidedStep, useGuidedFlow } from "@/app/components/guided-flow/use
 import { useGuidedT } from "@/app/components/guided-flow/useGuidedT";
 import gf from "@/app/components/guided-flow/guided-flow.module.css";
 import tarot from "@/app/components/guided-flow/guided-tarot.module.css";
+import { GUIDED_BIRTH_STAR_HUG_ENABLED } from "@/lib/guided-flow/flags.mjs";
+import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedBirthTitles } from "@/app/components/guided-flow/birth/GuidedBirthSteps";
+import { BIRTH_CONFIRM, birthSteps, isBirthField } from "@/app/components/guided-flow/birth/birth-steps";
 
 const FLOW_ID = "yeon-star-hug";
-const STEPS: GuidedStep[] = [
+const LEGACY_STEPS: GuidedStep[] = [
   { id: "emotion", kind: "choice" },
   { id: "birth", kind: "input", required: false },
   { id: "sign", kind: "input" },
@@ -21,6 +24,23 @@ const STEPS: GuidedStep[] = [
   { id: "reading", kind: "wait", history: "none", transient: true, restoreTo: "concern" },
   { id: "result", kind: "result", history: "replace" },
 ];
+// W1 공용 출생 입력: 감정 → 이름 → 생년월일(선택) → 시각 → 확인 요약 → 별자리 → 고민. 값의 정본은 여전히 원본 상태다:
+// 단계 답(YYYY-MM-DD·HH:mm)과 원본 값(8자리·4자리)을 서로 비춘다. 태어난 장소는 이 리딩이 받지 않아 묻지 않는다.
+const BIRTH_FIELDS = ["name", "date", "time"] as const;
+const BIRTH_STEPS: GuidedStep[] = [
+  { id: "emotion", kind: "choice" },
+  ...birthSteps({ fields: BIRTH_FIELDS, required: { date: false } }),
+  { id: "sign", kind: "input" },
+  { id: "concern", kind: "input", required: false },
+  { id: "reading", kind: "wait", history: "none", transient: true, restoreTo: "concern" },
+  { id: "result", kind: "result", history: "replace" },
+];
+const BIRTH = GUIDED_BIRTH_STAR_HUG_ENABLED;
+const STEPS = BIRTH ? BIRTH_STEPS : LEGACY_STEPS;
+
+/** 원본 값(8자리 날짜·4자리 시각) ↔ 단계 답(YYYY-MM-DD·HH:mm). */
+export const dateAnswerFromValue = (value: string) => (/^\d{8}$/.test(value) ? `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6)}` : "");
+export const timeAnswerFromValue = (value: string) => (/^\d{4}$/.test(value) ? `${value.slice(0, 2)}:${value.slice(2)}` : "");
 
 export type StarHugValues = {
   emotion: string;
@@ -75,6 +95,11 @@ export default function YeonStarHugGuided({ emotions, signs, samples, values, on
   useEffect(() => {
     const saved = controller.getState().answers as Answers;
     if (text(saved.emotion)) onChange.emotion(text(saved.emotion));
+    if (BIRTH) {
+      if (text(saved.date)) onChange.birthDate(text(saved.date).replace(/-/g, ""));
+      if (text(saved.time)) onChange.birthTime(text(saved.time).replace(":", ""));
+      if (text(saved.name)) onChange.name(text(saved.name));
+    }
     if (Array.isArray(saved.birth)) {
       const [date, time, name] = saved.birth as string[];
       if (date) onChange.birthDate(date);
@@ -97,6 +122,36 @@ export default function YeonStarHugGuided({ emotions, signs, samples, values, on
     if (stepId !== "birth") return;
     controller.setAnswer(birthAnswer(values));
   }, [stepId, values.birthDate, values.birthTime, values.name, controller]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // W1: 원본 값(직접·저장 프로필·프로필 자동 연결·새로고침 복원) → 단계 답. 빈 값은 비추지 않는다(사용자가 지운 답을 되살리지 않게).
+  useEffect(() => {
+    if (!BIRTH) return;
+    const patch: Record<string, string> = {};
+    const date = dateAnswerFromValue(values.birthDate);
+    const time = timeAnswerFromValue(values.birthTime);
+    if (date) patch.date = date;
+    if (time) patch.time = time;
+    if (values.name) patch.name = values.name;
+    controller.mergeAnswers(patch);
+  }, [values.birthDate, values.birthTime, values.name, controller]);
+
+  // W1: 단계 답이 바뀌면 원본 setter 로 보낸다(원본 입력 패널과 같은 setter). 처음 값은 보내지 않는다.
+  const birthNow = { date: text(answers.date), time: text(answers.time), name: text(answers.name) };
+  const birthPrev = useRef(birthNow);
+  useEffect(() => {
+    if (!BIRTH) return;
+    const prev = birthPrev.current;
+    birthPrev.current = birthNow;
+    if (birthNow.date !== prev.date && birthNow.date.replace(/-/g, "") !== values.birthDate) onChange.birthDate(birthNow.date.replace(/-/g, ""));
+    if (birthNow.time !== prev.time && birthNow.time.replace(":", "") !== values.birthTime) onChange.birthTime(birthNow.time.replace(":", ""));
+    if (birthNow.name !== prev.name && birthNow.name !== values.name) onChange.name(birthNow.name);
+  }, [birthNow.date, birthNow.time, birthNow.name]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // W1: 저장 프로필은 원본 onProfileSelect 로만 담는다(음력 프로필 양력 변환·별자리 연결이 원본에 있다). 답은 위 effect 로 흘러온다.
+  const birthOptions = useMemo<GuidedBirthOptions>(() => ({
+    idPrefix: "star-hug", fields: BIRTH_FIELDS, required: { date: false }, nameMaxLength: 30, profile: true, profileFill: false,
+    onProfile: (seed, profile) => { onProfileSelect(seed as ProfileSelect[0], profile as ProfileSelect[1]); },
+  }), [onProfileSelect]);
 
   // 별자리 단계: 원본이 맞춰 둔 별자리(생년월일 자동 매칭·프로필 연결 포함)를 그대로 답으로 비춘다.
   useEffect(() => {
@@ -128,6 +183,7 @@ export default function YeonStarHugGuided({ emotions, signs, samples, values, on
   if (stepId === "result") return null;
 
   const titles = {
+    ...(BIRTH ? guidedBirthTitles(t) : {}),
     emotion: t("starHug.emotionTitle"), birth: t("starHug.birthTitle"), sign: t("starHug.signTitle"),
     concern: t("starHug.concernTitle"), reading: t("starHug.readingTitle"), result: t("starHug.readingTitle"),
   };
@@ -150,6 +206,7 @@ export default function YeonStarHugGuided({ emotions, signs, samples, values, on
   />;
 
   const renderStep = (current: GuidedStep) => {
+    if (BIRTH && (isBirthField(current.id) || current.id === BIRTH_CONFIRM)) return <GuidedBirthStep flow={flow} step={current} options={birthOptions} />;
     if (current.id === "emotion") {
       return <GuidedChoiceList flow={flow} label={t("starHug.emotionTitle")} options={emotions.map((item) => ({ value: item.key, label: item.label }))} />;
     }
@@ -195,5 +252,5 @@ export default function YeonStarHugGuided({ emotions, signs, samples, values, on
     return <p className={tarot.note} aria-live="polite">{t("starHug.readingBody")}</p>;
   };
 
-  return <GuidedFlowShell className={tarot.embedded} flow={flow} labels={labels} titles={titles} landing={landing} renderStep={renderStep} />;
+  return <GuidedFlowShell className={tarot.embedded} flow={flow} labels={labels} titles={titles} landing={landing} renderStep={renderStep} ctaLabels={BIRTH ? guidedBirthCtaLabels(t) : undefined} />;
 }
