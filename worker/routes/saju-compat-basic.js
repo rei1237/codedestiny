@@ -145,6 +145,7 @@ async function handleGenerate(request, env) {
         _accessRoute: ROUTE_PREFIX,
       });
       if (!access?.ok) throw new HttpError(Number(access?.status || 402), "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED" });
+      return { transactionId: access.matchedTransactionId };
     },
     seed: original=>seedSajuCompat(env,original),
   });

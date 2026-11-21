@@ -22,13 +22,25 @@ const EVIDENCE_KEYS = new Set(["transactionId", "purchaseId", "paymentId", "orde
 const stable = value => Array.isArray(value) ? value.map(stable)
   : value && typeof value === "object" ? Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])])) : value;
 export const paidNarrativeInputHash = body => hash(stable(Object.fromEntries(Object.entries(cleanBody(body)).filter(([key]) => !EVIDENCE_KEYS.has(key)))));
+// Only ids and the pass cycle are kept from a verifier's result; auth and user documents are never stored.
+export function paidNarrativeRefundEvidence(result) {
+  const outer = result && typeof result === "object" ? result : {};
+  const access = outer.access && typeof outer.access === "object" ? outer.access : outer;
+  const proof = access.evidence && typeof access.evidence === "object" ? { ...access, ...access.evidence } : access;
+  const id = [proof.transactionId, proof.matchedTransactionId, proof.sourceTransactionId]
+    .find(value => (typeof value === "string" && value.trim()) || value?._bsontype === "ObjectId");
+  const transactionId = id ? String(id).trim().slice(0, 120) : "";
+  const cycleKey = String(proof.passRefund?.cycleKey || "").slice(0, 160), cost = Math.floor(Number(proof.passRefund?.cost) || 0);
+  const passRefund = cycleKey && cost > 0 ? { cycleKey, cost } : null;
+  return transactionId || passRefund ? { ...(transactionId ? { transactionId } : {}), ...(passRefund ? { passRefund } : {}) } : null;
+}
 export const paidNarrativeExecutionKey = (userId, featureKey, requestId) => `paid-narrative:${hash([String(userId), featureKey, requestId])}`;
 export { cleanBody as cleanPaidNarrativeBody };
 // One insert shape for the route and for an intent the cron proved paid
 // (paid-narrative-intent.js), so both land in the same record under the unique key.
 // No updatedAt: schema timestamps add $set.updatedAt to every update, and MongoDB
 // rejects a path under both $set and $setOnInsert (code 40).
-export function paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale, lock, now, timeoutAt, metadata = {} }) {
+export function paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale, lock, now, timeoutAt, metadata = {}, refundEvidence = null }) {
   // A seed may pin its delivery plan; the pin is not evidence, so the hash and prompt stay the same.
   const { deliveryPlanVersion, ...evidence } = seeded;
   const state = { ...evidence, body: cleanBody(original), evidenceHash: hash(evidence), locale, parts: {}, attempts: {}, ...(deliveryPlanVersion ? { deliveryPlanVersion } : {}) };
@@ -37,7 +49,9 @@ export function paidNarrativeInsert({ userId, executionKey, featureKey, reportTy
     reportId: typeof original.sessionId === "string" && original.sessionId ? original.sessionId : executionKey,
     sessionId: typeof original.sessionId === "string" ? original.sessionId : "",
     idempotencyKey: original.requestId,
-    status: "pending", premiumStatus: "generating", metadata: { ...metadata, paidNarrative: state }, lock,
+    // C2: the refund settle (routes/paid-narrative-retry.js) restores by this evidence at created + 7 days.
+    ...(refundEvidence?.transactionId ? { sourceTransactionId: refundEvidence.transactionId } : {}),
+    status: "pending", premiumStatus: "generating", metadata: { ...metadata, ...(refundEvidence?.passRefund ? { passRefund: refundEvidence.passRefund } : {}), paidNarrative: state }, lock,
     timeoutAt, createdAt: now,
   };
 }
@@ -123,7 +137,9 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   // purchase, and its body predates the checkout evidence the route verifier
   // reads. revoked() below still blocks a refunded or cancelled payment.
   if (nativeOrigin) await verify(original, doc);
-  else if (!doc?.metadata?.paidNarrativeProof) await verify(original);
+  // A route verifier may return its access proof; a new record keeps the restorable part (C2 retry-first refund).
+  let refundEvidence = null;
+  if (!nativeOrigin && !doc?.metadata?.paidNarrativeProof) refundEvidence = paidNarrativeRefundEvidence(await verify(original));
   if (await revoked(env, doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
   if (doc && !resumeId && request.method !== "GET" && paidNarrativeInputHash(body) !== paidNarrativeInputHash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
   const deliver = async (busy = false) => {
@@ -140,7 +156,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
     const baseSeed = await seed(original);
     // A tarot engine snapshot signs its unmodified input. The outer origin marker below remains authoritative.
     const seeded = nativeOrigin && !baseSeed.engineFacts ? { ...baseSeed, input: { ...baseSeed.input, accessSource: 'toss' } } : baseSeed;
-    const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale: getAmbientAiLocale() || "ko", lock, now, timeoutAt: new Date(now.getTime() + 600000), ...(nativeOrigin ? { metadata: { tossPaidNarrative: true } } : {}) });
+    const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale: getAmbientAiLocale() || "ko", lock, now, timeoutAt: new Date(now.getTime() + 600000), refundEvidence, ...(nativeOrigin ? { metadata: { tossPaidNarrative: true } } : {}) });
     try {
       const inserted = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ userId, executionKey }, { $setOnInsert: insert }, { upsert: true, returnDocument: "after" }).lean(), { retries: 0 });
       if (!inserted) throw failure(executionKey);

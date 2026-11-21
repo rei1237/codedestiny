@@ -176,6 +176,7 @@ async function promoteOne(env, intent) {
     const promotedAt = new Date();
     const insert = paidNarrativeInsert({ userId, executionKey, featureKey, reportType: INTENT_PRODUCTS[featureKey],
       original: body, seeded, locale, lock: { token: "", until: null }, now: promotedAt, timeoutAt: new Date(promotedAt.getTime() + 600000),
+      refundEvidence: proof.transactionId ? { transactionId: String(proof.transactionId) } : null,
       metadata: { paidNarrativeProof: { source: proof.source, transactionId: proof.transactionId || "", requestId: state.requestId, provenAt: promotedAt } } });
     try {
       await withMongoRetry(env, () => ServiceExecutionTransaction.updateOne({ userId, executionKey }, { $setOnInsert: insert }, { upsert: true }), { retries: 0 });

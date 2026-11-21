@@ -111,7 +111,7 @@ export async function verifyPsychoDreamAccess(request, env = {}, body = {}, know
   // A restored request must not depend on a short-lived browser access token.
   if (typeof body.requestId === "string" && body.requestId) {
     const proof = await verifyPerUsePayment(env, { userId: auth.userId, featureKey: DREAM_PSYCHO_FEATURE_KEY, coinPrice: FEATURE_KEY_PRICE_TABLE[DREAM_PSYCHO_FEATURE_KEY].cost, requestId: body.requestId });
-    if (proof.proven === true) return { ok: true, auth, accessType: proof.source, accessSource: "saved_payment_proof" };
+    if (proof.proven === true) return { ok: true, auth, accessType: proof.source, accessSource: "saved_payment_proof", transactionId: proof.transactionId || "", ...(proof.passRefund ? { passRefund: proof.passRefund } : {}) };
     if (proof.proven === null) return { ok: false, status: 503, code: "PAYMENT_VERIFY_UNAVAILABLE", message: "결제 확인이 지연되고 있어요. 같은 요청을 다시 확인해 주세요." };
   }
 
@@ -813,6 +813,7 @@ async function handlePsychoAnalysis(request, env = {}) {
     verify: async original => {
       const access = await dreamPsychoAccessVerifier(request, env, original, auth);
       if (!access?.ok) throw new HttpError(Number(access?.status || 402), access?.message || "결제 확인이 필요합니다.", { code: access?.code || "PAYMENT_REQUIRED", detail: { ...access?.detail, requiredFeatureKey: DREAM_PSYCHO_FEATURE_KEY } });
+      return { transactionId: access.transactionId, passRefund: access.passRefund };
     },
     seed: seedDreamPsychoNarrative,
   });

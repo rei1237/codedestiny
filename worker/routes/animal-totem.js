@@ -611,7 +611,7 @@ async function verifyAnimalTotemAccess(request, env, input, knownAuth) {
   logPerUsePaymentProof(input.spec.featureKey, proof);
 
   if (proof.proven === true) {
-    return { ok: true, auth, accessSource: proof.source || "per_use_payment" };
+    return { ok: true, auth, accessSource: proof.source || "per_use_payment", transactionId: proof.transactionId || "", ...(proof.passRefund ? { passRefund: proof.passRefund } : {}) };
   }
   // 🔴 판단 보류는 402 가 아니라 503 이다.
   if (proof.proven === null) {
@@ -688,6 +688,7 @@ async function handleReading(request, env) {
       if (input.spec.featureKey !== spec.featureKey) throw invalidInput("저장된 리딩 모드와 일치하지 않습니다.");
       const access = await verifyAnimalTotemAccess(request, env, input, auth);
       if (!access.ok) throw new HttpError(access.status, access.message, { code: access.code, reason: access.reason });
+      return { transactionId: access.transactionId, passRefund: access.passRefund };
     },
     seed: original => seedAnimalTotemNarrative(env, original),
   });

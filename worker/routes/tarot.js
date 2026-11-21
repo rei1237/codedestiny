@@ -346,7 +346,7 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
   logPerUsePaymentProof(NUMEROLOGY_TAROT_READING_FEATURE_KEY, proof);
 
   if (proof.proven === true) {
-    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment" } };
+    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment", transactionId: proof.transactionId || "", ...(proof.passRefund ? { passRefund: proof.passRefund } : {}) } };
   }
 
   // 🔴 DB 일시 장애를 "미결제"로 바꾸지 않는다 — 결제한 사용자를 잠그는 가장 흔한 경로다.
@@ -442,7 +442,7 @@ async function verifyOracleConsultationAccess(request, env, body = {}, verifiedA
   logPerUsePaymentProof(featureKey, proof);
 
   if (proof.proven === true) {
-    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment" } };
+    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment", transactionId: proof.transactionId || "", ...(proof.passRefund ? { passRefund: proof.passRefund } : {}) } };
   }
 
   if (proof.proven === null) {
@@ -558,7 +558,7 @@ async function verifyTarotPerUseAccess(request, env, body, spec, verifiedAuth = 
   logPerUsePaymentProof(spec.featureKey, proof);
 
   if (proof.proven === true) {
-    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment" } };
+    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment", transactionId: proof.transactionId || "", ...(proof.passRefund ? { passRefund: proof.passRefund } : {}) } };
   }
 
   // 🔴 DB 일시 장애를 "미결제"로 바꾸지 않는다 — 결제한 사용자를 잠그는 가장 흔한 경로다.
@@ -1690,6 +1690,7 @@ async function handleLoveTarotDelivery(request, env, body) {
   return deliverLoveTarot(request, env, auth, body, async original => {
     const access = initial || await verifyTarotPerUseAccess(request, env, original, spec, auth);
     if (!access.ok) throw createHttpError(access.status || 402, access.message, { code: access.code, reason: access.reason || "", retryable: ![401, 403].includes(access.status) });
+    return access.evidence;
   }, buildLoveTarotBase);
 }
 
@@ -1704,6 +1705,7 @@ async function handleMindscanDelivery(request, env, body) {
   return deliverMindscan(request, env, auth, body, async original => {
     const access = initial || await verifyTarotPerUseAccess(request, env, original, spec, auth);
     if (!access.ok) throw createHttpError(access.status || 402, access.message, { code: access.code, reason: access.reason || "", retryable: ![401, 403].includes(access.status) });
+    return access.evidence;
   });
 }
 
@@ -1728,6 +1730,7 @@ async function handleOracleDelivery(request, env, body) {
     if (!access.ok) throw createHttpError(access.status || 402, access.message, {
       code: access.code, reason: access.reason || "", retryable: ![401, 403].includes(access.status),
     });
+    return access.evidence;
   });
 }
 

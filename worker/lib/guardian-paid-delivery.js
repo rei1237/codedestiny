@@ -33,6 +33,7 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
       verify: async original => {
         const proof = await resolvePaidAccess({ userId, requestId: original.requestId });
         if (!proof?.ok) throw Object.assign(Error('결제 내역을 확인하지 못했어요.'), { accessStatus: proof?.degraded ? 503 : 403 });
+        return { transactionId: proof.transactionId || proof.sourceTransactionId, passRefund: proof.passRefund };
       },
       seed: async original => {
         const calculated = await contextBuilder(original, { ...contextOptions,

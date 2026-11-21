@@ -91,6 +91,7 @@ async function handleGenerateYogaCourse(request,env){
         _accessRoute:"/api/yoga-guru",
       });
       if(!access?.ok)throw new HttpError(Number(access?.status||402),"결제 확인이 필요합니다.",{code:access?.code||"PAYMENT_REQUIRED"});
+      return {transactionId:access.matchedTransactionId};
     },
     seed:seedYogaCourse,
   });
