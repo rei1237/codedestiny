@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: "C·D: paid-retry R10 완료 후 남은 공백 실측"
+next: "C1: checkpoint-refund-guard 서술형 판정(includeResumable 게이트·종결) TDD — 아래 C·D 실측의 설계 메모부터"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -97,7 +97,12 @@ next: "C·D: paid-retry R10 완료 후 남은 공백 실측"
 - [x] B 사주 탭: 결제 없이 정적 궁합 결과를 보여 주고, 그 아래 달빛 예화 톤의 고급 궁합 CTA를 둔다(sessionStorage 프리필). 그다음 sync:public → 커밋
 - [x] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
 - [x] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>` (실측은 아래 "M 머지·push")
-- [ ] C·D 감사 결과를 paid-retry R10에 넘긴다. 상대 세션이 끝났으면 이어서 구현하고, 아니면 보고만 한다.
+- [x] C·D 실측: 아래 "C·D 실측 (2026-11-21)"
+- [ ] C1 가드 판정 정정(서술형 includeResumable 게이트·소진/창 경과 종결, 코인 복원 경로 확인 선행)
+- [ ] C2 서술형 엔진 다시 시도 우선(빠진·소진 장만 재개, 7일·요청 환불, cron 배선, 검증기 목록 정리)
+- [ ] C3 과금 후 레코드 전 4xx 실패(감사 5) — 범위 밖, 별도
+- [ ] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 범위 밖, 별도
+- [ ] D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — 범위 밖, 별도
 - [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
 
 ## 실측 (단계마다 추가)
@@ -234,3 +239,34 @@ next: "C·D: paid-retry R10 완료 후 남은 공백 실측"
 - push 2: `4e4f6cda1..65d1d4c03`(인벤토리 수정 + 이 문서). verify:staging `--sha=65d1d4c034433abd475473e47689c72e3154561b` PASS(Pages·Worker 모두 65d1d4c03). 프로덕션 승격 없음.
 - 65d1d4c03 CI 1회 확인: AI Locale Gate·Release·Landing·drift watchdog 통과. 🔴 Secret Scan(gitleaks 전체 이력) 실패 — 5c6d3dcf2 행동 테스트의 `scp-key-*` idempotencyKey 3곳(184·232·247행) generic-api-key 오탐. 기존 관례대로 `.gitleaksignore` 에 정확한 지문 3개 등록(bfbed2aff, gitleaks-config 테스트 5/5). PR CI 는 확인 시점에 진행 중.
 - 다음 확인: 이 문서 커밋의 push 뒤 Secret Scan·PR CI 결과를 다음 세션이 `gh run list --branch main --limit 10` 1회로 확인.
+
+### C·D 실측 (2026-11-21)
+
+Base `58ed3c39d` (= origin/main). Worktree `D:\Development\codedestiny-worktrees\delivery-gaps-c-20261121-215250`, branch `wt/delivery-gaps-c-20261121-215250`. Code reading only; nothing executed yet.
+
+**감사 항목 판정**
+
+| # | 판정 | 근거 (현재 코드) |
+|---|---|---|
+| 1 | OPEN | `worker/lib/feature-question-delivery.js:71` is still the only place that passes `onExhausted`. The other `runPaidNarrativeDelivery` callers (expert-follow-up, guardian, love-tarot, mindscan, tarot-oracle, animal-totem, dream, oracle, pet-saju-ai, saju-compat-basic, yoga-guru, toss native 4 files) pass none. The engine imports nothing from paid-delivery-stuck. |
+| 2 | OPEN, request-5 violation | `paid-narrative-delivery.js:47-49` sets `limited` when a missing part has attempts>=2. `:197-200`: once `partialReview` is set (limited and at least one part saved), `missing` is empty, so nothing is ever generated again. No path reopens it, so the result stays smaller than what was paid for. `:272-281` claims exhaustion only when `parts` is 0. |
+| 3 | OPEN | `checkpoint-refund-guard.js:48-49`: the server-resume pair returns `recoverable` without checking attempts, exhaustionClaimed, reviewRequired, or age. `:51`: 14 hardcoded featureKeys return `recoverable` without the `includeResumable` gate, so an explicit close also cannot refund. `service-execution-task.js:846-857` only pushes nextRetryAt forward (on a non-timeout reason it also sets adminReviewRequired). Result: permanent pending. |
+| 4 | OPEN | `paid-narrative-recovery-task.js`: IDLE_MS 300000, MAX_AGE_MS 86400000. Resume stops after 24h and on reviewRequired/exhaustionClaimed. After that, only `paid-narrative-monitor.js` sends an operator alert once (no refund). |
+| 5 | Not re-checked (C3 scope) | Only the love-secret line moved: `love-secret-ai.js:1799` (`REPRESENTATIVE_FACTS_MISMATCH` 409). The other lines need re-confirmation when C3 starts. |
+| 6 | OPEN (accurate, D scope) | All 12 entries in `KNOWN_STUCK_SETTLE_GAPS` (`verify-paid-llm-delivery-contract.mjs:67-71`) are absent from `STUCK_SETTLERS` in `paid-delivery-stuck.js`. The R10 retry-first services (astrology, vedic, ziwei, sukuyo, naming, karma) have a 7-day retry-window settle (RETRY_FIRST_POLICY), but no settle for a stuck isolate. The list is not stale. |
+
+**검증기 목록 재도출**
+- KNOWN_REFUND_GAPS: 13 entries (L59-63). All are still gaps in the narrative engine or route-bound refunds.
+- KNOWN_STUCK_SETTLE_GAPS: 12 entries, accurate (see above).
+- KNOWN_RETRY_PENDING: 22 entries (L107-112). The narrative family (feature-question, tarot-oracle, love-tarot, mindscan, dream, yoga-guru, saju-compat-basic, pet-saju-ai, geomancy-oracle, animal-totem, guardian-fortune, toss-native) does not meet the 4 RETRY_FIRST_POLICY evidence items: the marker import, `/retry`, `/refund-request`, and the cron settle symbol. C2 can remove these only where the evidence genuinely passes.
+
+**요청 5 위반 (이미 저장된 장을 다시 생성하거나 결과를 줄이는 경로)**
+- Narrative engine `paid-narrative-delivery.js:197-200`: an exhausted part is never reopened, so the result shrinks. This is the C2 core.
+- karma `karma-destiny-ai.js:2775-2779`: when a doc in `generating` has a different `schemaVersion`, it is regenerated from scratch. Billing is deferredUsage, so there is no money loss, and it only happens on a schema bump (current REPORT_SCHEMA_VERSION=2). `partial`/`delivery_pending` with a mismatched version gets 409 `REPORT_SCHEMA_CHANGED` at `:2973`. Low risk; leave as is, report only.
+- Shared reopen in `paid-delivery-stuck.js` (`reopenRetryableConsultation`), the representative 7 services, and the R10 services: they keep saved chapters, reset only the budget and lock, and fill only the missing chapters (2026-11-20 Explore audit, consistent with current code).
+
+**C1·C2 설계 메모 (구현 전, 이어받는 쪽 필독)**
+- 🔴 Do not simply have the guard return `missing`. `service-execution-task.js:434` `runCoinRefund` skips when `sourceTransactionId` is absent, and narrative executions don't have one. Coin purchases would end as refund_failed with nothing restored. Only passes have a fallback, via `runPassQuotaRefund` `:487` `passUsageEvidenceId(userId, featureKey, idempotencyKey)`. The claim "코인 자동 복원" in `consultation-recovery-registry.js:33` NARRATIVE_CARD_GAP is likely wrong (needs re-check).
+- C1 (guard): apply the `includeResumable` gate to the 14 keys in `:51`, the same way as `:48`. Make records with exhaustionClaimed or a closed retry window terminal (not `recoverable`). Keep R1 behavior (hold while inside the window).
+- C2 (engine): on exhaustion, whether 0 or some parts are saved, record `paidNarrative.retryable {since, refundAt=createdAt+7d, code}` and let a retry entry reset attempts **only for missing or exhausted parts** (saved parts stay as they are). After 7 days or on a customer request, refund through each product's existing refund adapter (route-bound refunds like feature-question's `refund(state.paymentProof, state.body)` are a constraint: for a settle from cron, the adapter needs to store a re-callable payment proof). Wire it to the cron chain, then remove from the verifier lists only the items that pass.
+- Pitfalls: toss native esbuild stubs, mongo index shape registration, CRLF, regenerating ai-locale-call-inventory, re-running sitemap:generate.
