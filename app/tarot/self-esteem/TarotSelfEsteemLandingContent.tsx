@@ -939,7 +939,7 @@ export default function TarotSelfEsteemLandingContent() {
 
             <div className="flex flex-col gap-4 sm:flex-row">
               <Link
-                href="/?action=openTarotSelfEsteemModal"
+                href="/ggulggul/?action=openTarotSelfEsteemModal"
                 className="group relative inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 px-8 py-4 text-base font-extrabold text-white shadow-lg shadow-emerald-500/40 transition duration-300 hover:-translate-y-0.5 hover:shadow-emerald-500/60 active:translate-y-0"
               >
                 <span className="relative z-10">{copy.primaryCta}</span>
