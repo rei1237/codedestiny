@@ -325,6 +325,7 @@
       "leapHint": "Choose this only if your lunar birthday falls in a leap month.",
       "timeTitle": "Do you know your birth time?",
       "sijinLabel": "Pick a two-hour period",
+      "sijinLateHint": "Born between 23:30 and midnight? Type the exact time below — it counts as that night's Rat hour.",
       "timeLabel": "Enter the time (24-hour)",
       "timePlaceholder": "e.g. 14:30",
       "timeHint": "If you do not know it, tap \"I don't know the time\" below. We will read without the hour pillar.",

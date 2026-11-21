@@ -45,7 +45,10 @@ export function birthSteps(config: BirthStepsConfig): GuidedStep[] {
 
 /* ── 12지 시진 ──
  * 칩은 시진 한가운데 시각(짝수 시 30분)을 넣는다. 23시 기준 경계, 23:30 기준 경계, 서울 진태양시 보정(약 −32분)
- * 어느 쪽으로 계산해도 같은 시지에 들어가는 값이다. 범위 표시는 한국 표준시 관행(30분 경계)을 따른다. */
+ * 어느 쪽으로 계산해도 같은 시지에 들어가는 값이다. 범위 표시는 한국 표준시 관행(30분 경계)을 따른다.
+ * 🔴 야자시: 엔진(js/saju-engine.js 야자시)은 원본 시각 23시대를 **다음 날 일진**으로 본다. 자시 칩 값(00:30)은
+ *    그날 새벽 자시(조자시)라, 23:30~자정 출생이 이 칩을 고르면 일주·시간이 엔진과 하루 어긋난다. 그래서 자시 칩
+ *    범위는 00:00 부터로 적고, 23:30~자정은 직접 입력하도록 안내한다(birth.sijinLateHint). 엔진은 손대지 않는다. */
 export type Sijin = { key: string; branch: string; from: string; to: string; value: string };
 const BRANCHES: [string, string][] = [
   ["zi", "子"], ["chou", "丑"], ["yin", "寅"], ["mao", "卯"], ["chen", "辰"], ["si", "巳"],
@@ -58,7 +61,7 @@ const hhmm = (minutes: number) => {
 export const SIJIN: readonly Sijin[] = BRANCHES.map(([key, branch], index) => ({
   key,
   branch,
-  from: hhmm(23 * 60 + 30 + index * 120),
+  from: index === 0 ? "00:00" : hhmm(23 * 60 + 30 + index * 120),
   to: hhmm(23 * 60 + 30 + index * 120 + 119),
   value: hhmm(30 + index * 120),
 }));

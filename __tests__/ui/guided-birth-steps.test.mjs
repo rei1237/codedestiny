@@ -20,7 +20,9 @@ test('단계는 정해진 순서(이름 → 성별 → 생년월일 → 달력 �
 
 test('12지 시진 칩은 23:30 경계의 2시간 구간이고 값은 구간 한가운데(짝수 시 30분)다', () => {
   assert.equal(lib.SIJIN.length, 12);
-  assert.deepEqual(lib.SIJIN[0], { key: 'zi', branch: '子', from: '23:30', to: '01:29', value: '00:30' });
+  // 자시 칩은 그날 새벽 자시(조자시). 23:30~자정(야자시, 엔진은 다음 날 일진)은 직접 입력으로 받는다.
+  assert.deepEqual(lib.SIJIN[0], { key: 'zi', branch: '子', from: '00:00', to: '01:29', value: '00:30' });
+  assert.equal(lib.SIJIN[11].to, '23:29');
   assert.deepEqual(lib.SIJIN[3], { key: 'mao', branch: '卯', from: '05:30', to: '07:29', value: '06:30' });
   assert.equal(lib.SIJIN[11].value, '22:30');
   assert.equal(lib.sijinForValue('06:30')?.key, 'mao');
