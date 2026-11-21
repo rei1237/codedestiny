@@ -112,7 +112,7 @@ next: 단계 C — gate·bell 장면(세로·가로)과 투명 소품 3종을 co
 
 ## 단계
 - [x] A. 조사: 화풍·기존 시점·에셋 이력·도구(ffmpeg, codex-image) 확인, 설계 확정, 이 문서 갱신·커밋
-- [ ] B. 효과음 합성: 범종·풍경·향 불붙기·연등 떠오름 → `public/assets/moonlit-lotus/audio-v3/` + manifest, 합성 스크립트, 커밋
+- [x] B. 효과음 합성: 범종·풍경·향 불붙기·연등 떠오름 → `public/assets/moonlit-lotus/audio-v3/` + manifest, 합성 스크립트, 커밋 (42b187b60)
 - [ ] C. 그림 생성: 새로 필요한 장면·소품 생성 → 리사이즈·포맷 변환 → `public/assets/moonlit-lotus/ritual-v1/` + manifest(프롬프트 기록), visual-checker 로 화풍 일치 판정, 커밋
 - [ ] D. 연결: 단계별 시점·전환·소품·SFX 를 RitualFlow 에 연결, i18n alt 키, preload, low tier/reduced-motion, 테스트 추가/갱신, check:fast, 커밋
 - [ ] E. 화면 검증: dev(mock) 360·390·844×390·1440 전 흐름 캡처 → visual-checker, 수정, 커밋
