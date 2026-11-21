@@ -21,6 +21,43 @@ function heukwolRetryWindowOpen(doc, now) {
   return new Date(retryable.refundAt ?? NaN).getTime() > now;
 }
 
+// 2026-11-21 C1: paid-narrative executions (paid-narrative-delivery.js) live in this collection with no
+// sourceTransactionId/paymentRef, so the sweep's refunders cannot prove a restore (runCoinRefund skips,
+// card cancel has no ref). A run that can no longer progress on its own is therefore "held": it stays
+// pending (browser resume and the free retry read status pending), nextRetryAt moves to the retry-first
+// refund point (created + 7 days, docs/handoff/paid-retry-delivery-2026-11-19.md) and the C2 settle
+// refunds it there or on a customer request. Exhaustion mirrors paid-narrative-delivery.js limited/v2Exhausted;
+// the 24h window mirrors paid-narrative-recovery-task.js MAX_AGE_MS. A run still progressing stays recoverable.
+const PAID_NARRATIVE_FEATURES = new Set(["pet-saju-ai-consultation", "pet-compatibility-ai", "animal-totem-basic", "animal-totem-deep", "dream-psycho-analysis", "geomancy", "yoga-guru-per-use", "compat-saju-compatibility", "tarot-prompt-maker", "tarot-prompt-maker-standard", "tarot-prompt-maker-deep", "tarot-prompt-maker-master", "tarot-mindscan", "tarot-love-relationship"]);
+const DAY_MS = 86400000, PAID_NARRATIVE_RESUME_WINDOW_MS = DAY_MS, PAID_NARRATIVE_REFUND_AFTER_MS = 7 * DAY_MS;
+function isPaidNarrativeExecution(execution) {
+  return Boolean(execution?.metadata?.paidNarrative?.tasks) && (PAID_NARRATIVE_FEATURES.has(execution.featureKey)
+    || PAID_NARRATIVE_SERVER_RESUME_KEYS.includes(`${execution.featureKey}|${execution.reportType}`));
+}
+export function paidNarrativeHoldCode(execution, { includeResumable = true, now = Date.now() } = {}) {
+  if (!isPaidNarrativeExecution(execution)) return "";
+  const state = execution.metadata.paidNarrative;
+  const tasks = Array.isArray(state.tasks) ? state.tasks : [], parts = state.parts || {}, attempts = state.attempts || {};
+  if (state.exhaustionClaimed) return "PAID_NARRATIVE_EXHAUSTION_CLAIMED";
+  if (execution.metadata.paidNarrativeRecovery?.reviewRequired === true) return "PAID_NARRATIVE_REVIEW_REQUIRED";
+  const ready = tasks.length > 0 && tasks.every(task => parts[task.id]);
+  const exhausted = !ready && (state.deliveryPlanVersion === 2
+    ? tasks.every(task => parts[task.id] || (attempts[task.id] || 0) >= 4)
+    : tasks.some(task => !parts[task.id] && (attempts[task.id] || 0) >= 2));
+  if (exhausted) return "PAID_NARRATIVE_EXHAUSTED";
+  const created = new Date(execution.createdAt ?? NaN).getTime();
+  if (Number.isFinite(created) && now - created > PAID_NARRATIVE_RESUME_WINDOW_MS) return "PAID_NARRATIVE_RESUME_WINDOW_CLOSED";
+  // includeResumable gate: an explicit close of a run with nothing saved is not retried, and not refunded here either.
+  if (!includeResumable && Object.keys(parts).length === 0) return "PAID_NARRATIVE_CLOSE_REQUESTED";
+  return "";
+}
+// Next sweep look for a held run: the 7-day refund point, or daily once that point has passed.
+export function paidNarrativeHoldUntil(execution, now = Date.now()) {
+  const created = new Date(execution?.createdAt ?? NaN).getTime();
+  const refundAt = created + PAID_NARRATIVE_REFUND_AFTER_MS;
+  return new Date(Number.isFinite(refundAt) && refundAt > now + 600000 ? refundAt : now + DAY_MS);
+}
+
 // These routes store the authoritative result before closing the payment execution.
 // A lost close response or a paused checkpoint is not evidence of generation failure.
 const RESULT_MODELS = Object.freeze({
@@ -45,10 +82,11 @@ export async function inspectCheckpointBeforeTimeoutRefund(execution, { includeR
     && heukwolRetryWindowOpen(execution, Date.now())) return "recoverable";
   // Resume adapters define the exact paid product/report pairs that can have
   // persisted narrative checkpoints. Never infer a match from reportType alone.
-  if ((includeResumable || Object.keys(execution.metadata?.paidNarrative?.parts || {}).length > 0) && execution.metadata?.paidNarrative?.tasks
-    && PAID_NARRATIVE_SERVER_RESUME_KEYS.includes(`${execution.featureKey}|${execution.reportType}`)) return "recoverable";
+  if (isPaidNarrativeExecution(execution)) {
+    if (paidNarrativeHoldCode(execution, { includeResumable })) return "held";
+    if (includeResumable || Object.keys(execution.metadata.paidNarrative.parts || {}).length > 0) return "recoverable";
+  }
   if (execution.featureKey === "tarot-celestial-harmony" && execution.metadata?.celestialDelivery?.delivery && !execution.metadata.celestialDelivery.failed && (includeResumable || Object.keys(execution.metadata.celestialDelivery.delivery.parts || {}).length > 0)) return "recoverable";
-  if (["pet-saju-ai-consultation", "pet-compatibility-ai", "animal-totem-basic", "animal-totem-deep", "dream-psycho-analysis", "geomancy", "yoga-guru-per-use", "compat-saju-compatibility", "tarot-prompt-maker", "tarot-prompt-maker-standard", "tarot-prompt-maker-deep", "tarot-prompt-maker-master", "tarot-mindscan", "tarot-love-relationship"].includes(execution.featureKey) && execution.metadata?.paidNarrative?.tasks) return "recoverable";
   const modelName = RESULT_MODELS[execution.featureKey];
   if (!modelName) return "unmanaged";
   const id = execution.reportId || execution.sessionId || execution.metadata?.reportId;

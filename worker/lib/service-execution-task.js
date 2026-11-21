@@ -6,7 +6,7 @@ import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
-import { inspectCheckpointBeforeTimeoutRefund } from "./checkpoint-refund-guard.js";
+import { inspectCheckpointBeforeTimeoutRefund, paidNarrativeHoldCode, paidNarrativeHoldUntil } from "./checkpoint-refund-guard.js";
 
 const DEFAULT_TIMEOUT_SECONDS = 600;
 const DEFAULT_LOCK_SECONDS = 45;
@@ -843,7 +843,19 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
 
   const reason = normalizeReason(reasonCode, reasonMessage);
   {
-    const checkpoint = await inspectCheckpointBeforeTimeoutRefund(execution, { includeResumable: reason.code === "timeout_auto_refund" });
+    const includeResumable = reason.code === "timeout_auto_refund";
+    const checkpoint = await inspectCheckpointBeforeTimeoutRefund(execution, { includeResumable });
+    // C1: a held paid narrative stays pending with its saved parts and no refund claim; the sweep looks
+    // again at the retry-first refund point (created + 7 days) or daily after it, never every 600s.
+    if (checkpoint === "held") {
+      const now = nowDate();
+      const holdCode = paidNarrativeHoldCode(execution, { includeResumable, now: now.getTime() });
+      const updated = await withMongoRetry(env, () => ServiceExecutionTransaction.findOneAndUpdate({ _id: execution._id, status: "pending", "lock.token": execution.lock?.token || "" }, {
+        $set: { nextRetryAt: paidNarrativeHoldUntil(execution, now.getTime()), reasonCode: holdCode, refundStatus: "none", "lock.token": "", "lock.until": null,
+          ...(includeResumable ? {} : { "compensation.adminReviewRequired": true }) },
+      }, { returnDocument: "after" }).lean(), { retries: 0 });
+      return { ok: Boolean(updated), status: updated?.status || "pending", checkpoint, holdCode };
+    }
     if (["completed", "recoverable", "unknown"].includes(checkpoint)) {
       const now = nowDate();
       const fields = checkpoint === "completed"

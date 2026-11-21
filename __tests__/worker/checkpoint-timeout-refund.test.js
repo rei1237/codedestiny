@@ -22,6 +22,7 @@ beforeAll(async()=>{
    findById:()=>query(execution),
    findOneAndUpdate:(filter,update)=>{
     if(filter.status!==execution.status)return query(null);
+    if(filter.nextRetryAt?.$lte && execution.nextRetryAt && execution.nextRetryAt>filter.nextRetryAt.$lte)return query(null);
     if(filter._id && filter['lock.token']!==execution.lock.token)return query(null);
     patch(execution,update);return query(execution);
    },
@@ -164,5 +165,62 @@ describe('heukwol held for a free retry',()=>{
  });
  test('other services with the same marker keep the existing policy',async()=>{
   execution.featureKey='geomancy';expect(await inspect(execution)).toBe('unmanaged');
+ });
+});
+
+// 2026-11-21 C1: a narrative that can no longer progress on its own is held, not retried every 600s
+// forever and not sent into a refund whose coin branch has no sourceTransactionId to restore.
+// The hold keeps status pending (browser resume and the free retry need it) and moves nextRetryAt
+// to the retry-first refund point (created + 7 days), where the C2 settle takes over.
+describe('paid narrative terminal hold',()=>{
+ const DAY=86400000;
+ beforeEach(()=>{execution.featureKey='geomancy';execution.reportType='geomancyOracle';execution.createdAt=new Date(Date.now()-60000);
+  execution.metadata={paidNarrative:{tasks:[{id:'a'},{id:'b'}],parts:{a:'saved'},attempts:{a:1,b:1}}};});
+ test.each([
+  ['a missing part spent its attempts',st=>{st.attempts.b=2;}],
+  ['the engine already claimed exhaustion',st=>{st.exhaustionClaimed=true;}],
+  ['nothing was saved and a part spent its attempts',st=>{st.parts={};st.attempts={a:2,b:1};}],
+ ])('is held when %s',async(_name,edit)=>{
+  edit(execution.metadata.paidNarrative);
+  expect(await inspect(execution)).toBe('held');expect(await inspect(execution,{includeResumable:false})).toBe('held');
+ });
+ test('is held once server recovery marked it for review',async()=>{
+  execution.metadata.paidNarrativeRecovery={reviewRequired:true,code:'DELIVERY_REVIEW_REQUIRED'};expect(await inspect(execution)).toBe('held');
+ });
+ test('is held after the 24h server resume window',async()=>{
+  execution.createdAt=new Date(Date.now()-DAY-60000);expect(await inspect(execution)).toBe('held');
+ });
+ test('a v2 record keeps resuming until its own 4-attempt budget is spent',async()=>{
+  Object.assign(execution.metadata.paidNarrative,{deliveryPlanVersion:2,attempts:{a:1,b:3}});expect(await inspect(execution)).toBe('recoverable');
+  execution.metadata.paidNarrative.attempts.b=4;expect(await inspect(execution)).toBe('held');
+ });
+ test('a progressing narrative stays recoverable for the sweep',async()=>{
+  expect(await inspect(execution)).toBe('recoverable');
+ });
+ test('hard-coded narrative keys follow the includeResumable gate: an explicit close of an empty run is held, not retried',async()=>{
+  execution.reportType='';execution.metadata.paidNarrative.parts={};
+  expect(await inspect(execution)).toBe('recoverable');expect(await inspect(execution,{includeResumable:false})).toBe('held');
+ });
+ test('the sweep holds an exhausted run until the 7-day refund point, once, without a refund claim',async()=>{
+  execution.metadata.paidNarrative.attempts.b=2;
+  const result=await sweep({}, {limit:3});
+  expect(result).toMatchObject({scanned:1,refunded:0,failed:0,pending:1});
+  expect(execution).toMatchObject({status:'pending',refundStatus:'none',reasonCode:'PAID_NARRATIVE_EXHAUSTED'});
+  expect(execution.lock.token).toBe('');expect(execution.metadata.paidNarrative.parts.a).toBe('saved');
+  expect(execution.nextRetryAt.getTime()).toBe(execution.createdAt.getTime()+7*DAY);
+  expect(execution['compensation.adminReviewRequired'] ?? execution.compensation?.adminReviewRequired).toBeUndefined();
+ });
+ test('past the 7-day point the hold re-checks daily instead of every sweep',async()=>{
+  execution.createdAt=new Date(Date.now()-8*DAY);
+  const before=Date.now();await sweep({}, {limit:3});
+  expect(execution).toMatchObject({status:'pending',refundStatus:'none',reasonCode:'PAID_NARRATIVE_RESUME_WINDOW_CLOSED'});
+  expect(execution.nextRetryAt.getTime()).toBeGreaterThanOrEqual(before+DAY);
+ });
+ test('an explicit close of an exhausted run is held, never a refund that cannot restore coins',async()=>{
+  execution.metadata.paidNarrative.attempts.b=2;execution.executionKey='paid-narrative:x';
+  const result=await fail({},execution.userId,{executionKey:'paid-narrative:x',reasonCode:'generation_failed'});
+  expect(result.settlement.checkpoint).toBe('held');
+  expect(execution).toMatchObject({status:'pending',refundStatus:'none',reasonCode:'PAID_NARRATIVE_EXHAUSTED'});
+  expect(execution['compensation.adminReviewRequired'] ?? execution.compensation?.adminReviewRequired).toBe(true);
  });
 });
