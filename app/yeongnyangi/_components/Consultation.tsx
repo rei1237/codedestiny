@@ -69,7 +69,7 @@ import {localizedTarotSpread} from '../_lib/tarot-spread-catalog-locales';
 const hasReviews=visibleReviews().length>0;
 // Every locale opens tarot on the question-first spread order.
 const defaultKind=(domainId:string)=>domainId==='tarot'?consultationKinds.tarot.find(k=>k.id===TAROT_SPREAD_KIND)!:consultationKinds[domainId][0];
-export default function Consultation({initialQuestion='',sajuOnly=false,inputNotice,paymentSurface='web'}:{paymentSurface?:'web'|'toss';initialQuestion?:string;sajuOnly?:boolean;inputNotice?:(body:{question:string;questionDecision?:unknown})=>string}){
+export default function Consultation({initialQuestion='',sajuOnly=false,inputNotice,paymentSurface='web',loadProfilePetArt}:{paymentSurface?:'web'|'toss';loadProfilePetArt?:()=>Promise<(speciesId:string)=>string>;initialQuestion?:string;sajuOnly?:boolean;inputNotice?:(body:{question:string;questionDecision?:unknown})=>string}){
  const [relationshipStage,setRelationshipStage]=useState(''),[relationshipQuestionId,setRelationshipQuestionId]=useState('');
  const [participants,setParticipants]=useState({self:'',partner:''});
  const [touched,setTouched]=useState<Record<string,boolean>>({});
@@ -371,7 +371,7 @@ export default function Consultation({initialQuestion='',sajuOnly=false,inputNot
    {relationship&&tarotOnly&&<><label>{relationshipCopy.self}<input maxLength={40} value={participants.self} onChange={e=>setParticipants({...participants,self:e.target.value})}/></label><label>{relationshipCopy.partner}<input maxLength={40} value={participants.partner} onChange={e=>setParticipants({...participants,partner:e.target.value})}/></label><p>{relationshipCopy.symbolism}</p></>}
    {tarotSpread?<>{guest&&<p>{inputCopy.loginHint}</p>}<TarotSpreadPlanner locale={siteLocale} question={question} onQuestion={setQuestion} plan={tarotPlan} onPlan={plan=>{setTarotPlan(plan);setTierNotice('');}} tier={product.fishId} purposeMode={questionActive} disabled={busy} notice={tierNotice}
     onTier={(fishId,cards)=>{const next=choices.find(item=>item.fishId===fishId);if(next){setProductId(next.id);setTierNotice(tarotSpreadCopy.tierRaised(fishName(fishId,siteLocale),cards));}}}/></>:tarotOnly?<section className={styles.questionIntro} lang={siteLocale}><h2>{inputCopy.tarotHeading}</h2><p>{inputCopy.tarotIntro}</p>{guest&&<p>{inputCopy.loginHint}</p>}</section>:<>
-    <ProfilePicker state={profileState} locale={siteLocale} guided={paymentSurface==='toss'&&siteLocale==='ko'} onEditingChange={setProfileEditing} premium={premiumPicker}/>
+    <ProfilePicker state={profileState} locale={siteLocale} guided={paymentSurface==='toss'&&siteLocale==='ko'} onEditingChange={setProfileEditing} premium={premiumPicker} loadProfilePetArt={premiumPicker?loadProfilePetArt:undefined}/>
     {!guest&&selectedProfile&&<div className={styles.birthDetails}>
     <label className={premiumPicker?styles.birthTimeOption:undefined}><input id="consultation-time-unknown" type="checkbox" checked={timeUnknown} onChange={e=>setTimeUnknown(e.target.checked)}/> {inputCopy.timeUnknown}</label>
     {selectedProfile?.birth?.timeUnknown&&<label>{inputCopy.timeSupplement}<BirthTimeInput  {...fieldProps('time')} value={extraTime} onChange={e=>setExtraTime(e.target.value)}/>{fieldNote('time')}</label>}

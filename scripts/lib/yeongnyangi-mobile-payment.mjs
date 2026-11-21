@@ -441,7 +441,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
     });
     await check(browser,`${engine.name()}-home-profile-catalog`,products[0],390,async f=>{
      f.state.profiles=[];
-     await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{name:/사주보는 고양이/}).waitFor();
+     await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{level:1,name:'운세보는 고양이 영냥이',exact:true}).waitFor();
      assert.equal(await f.page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(11, 18, 32)');
      await f.page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();await f.page.getByText('쓰다듬는 건… 딱 한 번만이야.',{exact:true}).waitFor();
      await f.page.waitForLoadState('load');
@@ -468,10 +468,23 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.goto(base+'/yeongnyangi/room/#story');await f.page.getByRole('dialog',{name:'영냥이의 프롤로그'}).waitFor();
      // WebKit delivers cancelled errors from the previous documents after this multi-route QA flow has already reached the room.
      if(engine===webkit)f.state.errors.length=0;
-     await f.page.getByRole('button',{name:'닫기',exact:true}).click();assert.equal(await f.page.getByRole('link',{name:/상담 내용 살펴보기/}).getAttribute('href'),'/yeongnyangi/fortune/');
+     await f.page.getByRole('button',{name:'닫기',exact:true}).click();
+      const dock=f.page.getByRole('navigation',{name:'영냥이 하단 메뉴'});
+      const roomConsultation=dock.getByRole('link',{name:'상담하기',exact:true});
+      assert.equal(await roomConsultation.getAttribute('href'),'/yeongnyangi/#questions');
+      assert.equal(await dock.getByRole('link',{name:'영냥이의 방',exact:true}).getAttribute('aria-current'),'page');
+      const shelf=f.page.getByRole('navigation',{name:'영냥이의 방 콘텐츠'});
+      for(const [label,href] of [['잡담','#room-chat'],['모자 이야기','#sorting-hat'],['오늘의 무료 운세','#daily'],['오늘·내일 타로','#daily-tarot']]){
+       assert.equal(await shelf.getByRole('link',{name:label,exact:true}).getAttribute('href'),href);
+       await f.page.locator(href).waitFor({state:'attached'});
+      }
      assert.equal(await f.page.getByRole('group',{name:'무료 운세 16종'}).getByRole('button').count(),16);
      await f.page.screenshot({path:`build-cache/yeongnyangi-payment-${engine.name()}-home.png`,fullPage:true});
      assert.equal(f.state.sdk.length,0);assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      await roomConsultation.click();
+      await f.page.waitForURL('**/yeongnyangi/#questions');
+      await f.page.getByRole('heading',{name:'지금 마음에 걸리는 질문은?',exact:true}).waitFor();
+      assert.equal(f.state.creates,1);assert.equal(f.state.sdk.length,0);assert.equal(f.state.orders.size,0);
     });
     for(const scenario of ['handler-delay','idle-return','no-redirect-poll','pending-webhook','read-503','activate-503','generation-failure','generation-interrupted','refund','delivery-refund-pending','delivery-refund-partial','foreign-request','foreign-order','wrong-product','external-return','abandon-back','abandon-from-result','tampered-url','reload-checkout','back-forward','double-click','concurrent-tabs','concurrent-pending-tabs','expired-login','pg-cancel-return','pg-failed-return','inline-payment','inline-cancel','inline-failure']){
      await check(browser,`${engine.name()}-${scenario}`,products[0],390,async f=>{
