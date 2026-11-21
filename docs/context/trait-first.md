@@ -58,7 +58,7 @@ updated: 2026-11-22
 
 ## 남은 과제
 
-- 인연의 서 골든셋 OFF 쪽 빈 응답(0자, 오류 코드 없음) 원인 미확인.
+- 인연의 서 골든셋 OFF 쪽 빈 응답(0자, 오류 코드 없음): 원인은 미기록이지만 운영 전달 구멍은 아니다(2026-11-22 코드 확인). 운영 경로에서 빈 응답은 `generateCodexChapterResponse` 가 `LLM_OUTPUT_EMPTY` 로 던지고([master-love-codex-quality.js](../../worker/lib/master-love-codex-quality.js)), `generateChapter` 가 `ok:false` 실패 장으로 돌려 웨이브가 다시 시도한다 — 빈 본문이 완료로 저장되지 않는다(`__tests__/worker/master-love-codex-quality.test.js` 의 LLM_OUTPUT_EMPTY 3건). 0자는 골든 하니스가 실패 응답의 오류를 기록하지 않은 탓으로 본다(추정).
 - 인생의 책 얼버무림 표현("경향이 있을 수 있습니다")이 ON·OFF 모두에서 걸린다 — 기존 어조 문제.
 - 인연의 서 ON 에서 `label_leak`(근거 id 노출 의심).
 - 2차 엔진(자미·서양·베다·숙요·타로) 확장은 미착수.
