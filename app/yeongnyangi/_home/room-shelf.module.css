@@ -20,9 +20,13 @@
 .shelf{width:100%;grid-template-columns:repeat(6,minmax(0,1fr))}
 .tile{grid-column:span 2}
 .tile:nth-child(n+4){grid-column:span 3}
+/* 900px 미만 카드형 섹션은 화면 가장자리에 붙지 않게 16px 거터. */
+@media(max-width:899px){.content>:global(#sorting-hat){width:auto;margin-inline:16px}}
 @media(min-width:900px){
  :global(.ynOriginal .room-layout).content{grid-template-columns:minmax(0,54%) minmax(0,46%);grid-template-rows:auto auto 1fr;align-items:start}
  .content>:global(.room-presence){grid-column:1;grid-row:1 / 4;min-height:600px}
+ /* 오른쪽 열 높이(약 775px)만큼 늘어나면 첫 화면 캡션이 고정 독(하단 72px) 아래로 숨는다. 600px 에 고정. */
+ :global(.ynOriginal) .content>:global(.room-presence){height:auto}
  .shelf,.reward,.content>:global(.room-companion){grid-column:2}
  .shelf{grid-row:1}.reward{grid-row:2}.content>:global(.room-companion){grid-row:3}
  .content>:global(#sorting-hat),.content>:global(#daily),.content>:global(#daily-tarot){grid-column:1/-1}

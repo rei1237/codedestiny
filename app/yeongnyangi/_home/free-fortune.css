@@ -353,6 +353,10 @@
   background: #e9c78d;
   color: #211432;
 }
+/* 원본 20px auto !important 가 아래 640px 규칙보다 늦게 로드돼 거터가 0이 됐다. 상자 선택자로 특정도를 올려 16px 거터를 보장. */
+@media (max-width: 899px) {
+  .ynOriginal .room-daily.free-fortune { margin-inline: 16px !important; width: auto !important; }
+}
 @media (max-width: 640px) {
   .ynOriginal .free-fortune {
     margin: 14px !important;
