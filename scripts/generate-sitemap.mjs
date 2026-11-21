@@ -19,6 +19,7 @@ import { createRequire } from "node:module";
 import { ILGAN_MONTHLY_MONTHS, ILGAN_MONTHLY_STEMS } from "../lib/saju/ilgan-monthly-registry.mjs";
 import { NEW_YEAR_SEASON, NEW_YEAR_SIGNS } from "../lib/fortune/new-year-registry.mjs";
 import { FREE_FEATURE_DETAILS } from "../lib/marketing/free-feature-details.mjs";
+import { FREE_LIST_PAGE_ENABLED } from "../lib/guided-flow/flags.mjs";
 const requireJson = createRequire(import.meta.url);
 const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
 
@@ -102,6 +103,8 @@ const coreRoutes = [
   ...["love-secret","new-year","life-book","neo","tea","codex","ziwei","astrology","vedic","sukuyo-compat","legacy-naming","karma","fusion"].map(slug => ({path:`/consultations/${slug}`,changefreq:"monthly",priority:0.7})),
   { path: "/saju/career-style", changefreq: "monthly", priority: 0.8 },
   { path: "/saju/free", changefreq: "weekly", priority: 0.85 },
+  // R1 무료 목록 단독 페이지(app/free/). 플래그를 끄면 페이지가 noindex 라 함께 뺀다.
+  ...(FREE_LIST_PAGE_ENABLED ? [{ path: "/free", changefreq: "weekly", priority: 0.85 }] : []),
   // 2026-11-13: 사주 결과 카드 9개의 설명 페이지(app/saju/<slug>/). 레지스트리에서 indexable 인 것만 싣는다(false 면 noindex 라 뺀다).
   ...FREE_FEATURE_DETAILS.filter((detail) => detail.indexable).map((detail) => ({ path: detail.path, changefreq: "monthly", priority: 0.75 })),
   { path: "/consultation-samples", changefreq: "monthly", priority: 0.7 },
