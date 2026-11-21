@@ -13752,7 +13752,8 @@ function zwFlowStarLanding(pd, starName) {
     var e = rows[i];
     var all = [].concat((e && e.stars) || [], (e && e.auxStars) || []);
     for (var j = 0; j < all.length; j += 1) {
-      if (all[j] && all[j].name === starName) {
+      // 🔴 차성(借星 — 빈 궁이 맞은편 주성을 빌려 보여 주는 복사본)은 별이 실제로 앉은 자리가 아니다. 건너뛰어야 사화가 진짜 궁에 떨어진다.
+      if (all[j] && !all[j].borrowed && all[j].name === starName) {
         var idx = ZW_DEEP_ZHI_LIST.indexOf(e.branch);
         return idx >= 0 ? { idx: idx, palace: zwDisplayPalaceName(e.palace) } : null;
       }

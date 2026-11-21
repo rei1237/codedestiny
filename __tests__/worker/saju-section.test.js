@@ -11,6 +11,7 @@ const historyExists = jest.fn();
 const findOne = jest.fn();
 const write = jest.fn(() => { throw new Error("Read route attempted a write"); });
 const connectDb = jest.fn();
+const paymentFindOne = jest.fn();
 // 숙요 본성 심화 해석의 서버 천문 계산: 출생일로 달 황경을 정한다(15일 → 150°, 16일 → 190°).
 const moonLongitudes = jest.fn(async (_env, moments) => moments.map((moment) => (moment.day === 16 ? 190 : 150)));
 // 패리티 픽스처 첫 사례와 같은 출생(1990-05-15 14:30 남) — 그 대운 행으로 section_daewun 을 연다.
@@ -33,6 +34,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   ContentEntitlement: { findOne, findOneAndUpdate: write, create: write, updateOne: write },
   User: { exists, updateOne: write, findOneAndUpdate: write },
   PointHistory: { exists: historyExists, create: write, updateOne: write },
+  Payment: { findOne: paymentFindOne },
   ProfileCard: { modelName: "ProfileCard", findOne: (...args) => profileCards.findOne(...args) },
 }));
 jest.unstable_mockModule("../../worker/lib/cms-records.js", () => ({ primeCmsRecords: jest.fn() }));
@@ -82,6 +84,7 @@ const mapRows = (html) => [...html.matchAll(/<b>(\d+)세 · (\d+)–(\d+)년 · 
 // 그 밖의 문구·계산은 HEAD 클라이언트와 한 글자도 달라지면 안 되므로 패리티는 덧붙인 장을 걷어 낸 HTML 로 본다.
 const withoutExtensions = (html) => html.replace(/<!--saju-ext-->[\s\S]*?<!--\/saju-ext-->/g, "");
 let grants;
+let orders;
 let users;
 let histories;
 
@@ -96,6 +99,19 @@ function matches(doc, query) {
       if ("$exists" in value) return (doc[key] !== undefined) === value.$exists;
     }
     return doc[key] === value;
+  });
+}
+
+function paymentMatches(row, query) {
+  const read = (path) => path.split(".").reduce((value, key) => value?.[key], row);
+  return Object.entries(query).every(([path, cond]) => {
+    const value = read(path);
+    if (cond && typeof cond === "object") {
+      if ("$in" in cond) return cond.$in.includes(value);
+      if ("$nin" in cond) return !cond.$nin.includes(value);
+      if ("$ne" in cond) return value !== cond.$ne;
+    }
+    return String(value) === String(cond);
   });
 }
 
@@ -126,6 +142,8 @@ beforeEach(() => {
   historyExists.mockImplementation(async (query) => histories.find((row) => matches(row, query)) || null);
   findOne.mockImplementation((query) => ({ lean: async () => grants.find((row) => matches(row, query)) || null }));
   claimed.clear();
+  orders = [];
+  paymentFindOne.mockReset().mockImplementation((query) => ({ select: () => ({ lean: async () => orders.find((row) => paymentMatches(row, query)) || null }) }));
   verifyPerUsePayment.mockReset().mockResolvedValue({ proven: false, source: "", reason: "NO_EXISTING_CONSUMPTION" });
 });
 
@@ -733,6 +751,81 @@ describe.each(ZIWEI_KEYS)("%s", (featureKey) => {
 
 // 원국 해석(일주·십성·조후·억부·절기)은 saju_lifetime_bundle 로만 서버에서 내려온다.
 // parts 값은 <template data-natal-slot="칸 id"> 묶음(십성 상세는 data-natal-god)이다. 칸 내용의 sha256 은 HEAD 브라우저 엔진 출력의 sha256(PARITY.natal)과 같아야 한다.
+describe("결제번호(receipt) — 라이트 사주 풀이 결과에 영구 표시", () => {
+  const BUNDLE = "saju_lifetime_bundle";
+  const ORDER_NO = "cd" + "a1b2c3d4e5".repeat(3) + "a1b2c3d4";
+  const paidOrder = (overrides = {}) => ({ merchantUid: ORDER_NO, userId: TEST_USER_ID, status: "paid", orderState: "UNLOCKED", metadata: {}, pricingSnapshot: {}, ...overrides });
+  const bundleGrant = (overrides = {}) => grant({ orderId: ORDER_NO, paymentId: "imp_1", ...overrides }, BUNDLE);
+
+  test.each(["section_summary", "section_daewun"])("번들 보유 계정은 %s 응답에서 주문번호를 받는다", async (featureKey) => {
+    bundleGrant(); orders.push(paidOrder());
+    const result = await request({ ...INPUT, featureKey, daewun: DAEWUN });
+    expect(result.status).toBe(200);
+    expect(result.body.receipt).toEqual({ orderNumber: ORDER_NO });
+    expect(JSON.stringify(result.body)).not.toContain("imp_1");
+    expect(paymentFindOne).toHaveBeenCalledWith(expect.objectContaining({ userId: TEST_USER_ID, merchantUid: ORDER_NO }));
+  });
+
+  test("미보유 계정은 402 이고 번호가 없다", async () => {
+    orders.push(paidOrder());
+    const result = await request(INPUT);
+    expect(result.status).toBe(402);
+    expect(JSON.stringify(result.body)).not.toContain(ORDER_NO);
+    expect(paymentFindOne).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ["환불 주문", { status: "refunded", orderState: "CANCELLED" }],
+    ["취소 주문", { status: "cancelled", orderState: "CANCELLED" }],
+    ["회수 표식 주문", { metadata: { unlockRevoked: true } }],
+    ["결제 전 주문", { status: "pending", orderState: "PENDING" }],
+  ])("%s 로 열린 권한 행은 번호를 주지 않는다", async (_name, patch) => {
+    bundleGrant(); orders.push(paidOrder(patch));
+    const result = await request(INPUT);
+    expect(result.status).toBe(200);
+    expect(result.body.receipt).toBeUndefined();
+    expect(JSON.stringify(result.body)).not.toContain(ORDER_NO);
+  });
+
+  test("주문 문서가 다른 계정 것이면 권한 행에 orderId 가 있어도 번호를 주지 않는다", async () => {
+    bundleGrant(); orders.push(paidOrder({ userId: OTHER_USER_ID }));
+    const result = await request(INPUT);
+    expect(result.status).toBe(200);
+    expect(result.body.receipt).toBeUndefined();
+  });
+
+  test("다른 계정은 같은 생년월일 카드여도 내 번호를 받지 못한다", async () => {
+    bundleGrant(); orders.push(paidOrder());
+    auth.mockResolvedValue({ userId: OTHER_USER_ID });
+    const result = await request({ ...INPUT, profileId: "x1" });
+    expect(result.status).toBe(402);
+    expect(JSON.stringify(result.body)).not.toContain(ORDER_NO);
+  });
+
+  test("주문이 아닌 근거(월정석 requestId 등)나 주문번호 없는 옛 행은 번호가 없다", async () => {
+    bundleGrant({ orderId: "req-moonstone-1" }); orders.push(paidOrder());
+    expect((await request(INPUT)).body.receipt).toBeUndefined();
+    grants = []; bundleGrant({ orderId: "" });
+    expect((await request(INPUT)).body.receipt).toBeUndefined();
+  });
+
+  test("주문 조회 장애는 풀이를 막지 않고 번호만 뺀다", async () => {
+    bundleGrant();
+    paymentFindOne.mockImplementation(() => { throw new Error("db down"); });
+    const result = await request(INPUT);
+    expect(result.status).toBe(200);
+    expect(result.body.html).toEqual(expect.any(String));
+    expect(result.body.receipt).toBeUndefined();
+  });
+
+  test("번호 대상이 아닌 카드 응답에는 receipt 가 붙지 않는다", async () => {
+    grant({ orderId: ORDER_NO }, "rpt_energyCoordCard"); orders.push(paidOrder());
+    const result = await request({ ...INPUT, featureKey: "rpt_energyCoordCard" });
+    expect(result.body.receipt).toBeUndefined();
+    expect(paymentFindOne).not.toHaveBeenCalled();
+  });
+});
+
 describe("saju_lifetime_bundle natal reading", () => {
   const BUNDLE = "saju_lifetime_bundle";
   const BUNDLE_INPUT = { ...INPUT, featureKey: BUNDLE };

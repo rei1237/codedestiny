@@ -28,7 +28,7 @@ import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
-import { SUKUYO_COMPAT_GROUP_PLAN_VERSION, SUKUYO_V2_GROUP_MAX_ATTEMPTS, SUKUYO_V2_LENGTH_REPAIR_LIMIT, SUKUYO_V2_NO_QUESTION_LINE, SUKUYO_V2_QUESTION_OWNER_LINE, SUKUYO_V2_SECTION_GROUPS, SUKUYO_V2_SECTION_GUIDES, SUKUYO_V2_SUMMARY_MAX_ATTEMPTS, buildSukuyoFallbackSummary, detectSukuyoSoftIssues, isSukuyoCompatPlanV2, orderSukuyoV2Sections, salvageSukuyoGroup, scrubSukuyoSoftIssues, sukuyoCompatDeliveryV2Enabled, sukuyoLengthRepairHint, sukuyoSoftIssueHint, sukuyoV2LengthLine } from "../lib/sukuyo-compat-delivery-v2.js";
+import { SUKUYO_COMPAT_GROUP_PLAN_VERSION, SUKUYO_V2_GROUP_MAX_ATTEMPTS, SUKUYO_V2_LENGTH_REPAIR_LIMIT, SUKUYO_V2_NO_QUESTION_LINE, SUKUYO_V2_QUESTION_OWNER_LINE, SUKUYO_V2_ROLE_LINE, SUKUYO_V2_SECTION_GROUPS, SUKUYO_V2_SECTION_GUIDES, SUKUYO_V2_SUMMARY_MAX_ATTEMPTS, buildSukuyoFallbackSummary, detectSukuyoSoftIssues, isSukuyoCompatPlanV2, orderSukuyoV2Sections, salvageSukuyoGroup, scrubSukuyoSoftIssues, sukuyoCompatDeliveryV2Enabled, sukuyoLengthRepairHint, sukuyoSoftIssueHint, sukuyoV2LengthLine } from "../lib/sukuyo-compat-delivery-v2.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { extractReadableTextFromJsonLike } from "../../lib/llm-text.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1341,7 +1341,7 @@ function buildSectionGroupPrompt(input, calculation, group, options = {}) {
   return [
     `아래 숙요점 계산값만 근거로, 두 사람의 궁합 상담문 가운데 아래 ${specs.length}개 장을 작성하십시오.`,
     "본명숙 산출, 관계 거리, 양방향 관계 유형, 기질 속성, 점수는 이미 확정된 값입니다. 다시 계산하거나 바꾸지 마십시오.",
-    ...(v2 ? [group.questionOwner ? SUKUYO_V2_QUESTION_OWNER_LINE : SUKUYO_V2_NO_QUESTION_LINE] : []),
+    ...(v2 ? [group.questionOwner ? SUKUYO_V2_QUESTION_OWNER_LINE : SUKUYO_V2_NO_QUESTION_LINE, SUKUYO_V2_ROLE_LINE] : []),
     "",
     "[이번에 쓸 장]",
     ...specs.map((spec) => [

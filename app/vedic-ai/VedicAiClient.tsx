@@ -3720,10 +3720,10 @@ export default function VedicAiClient({paymentSurface="web", ProfilePicker, Toss
                   }
                   return message.role === "assistant" ? (
                     <div className={styles.sectionGrid} key={`${message.role}-${index}`}>
-                      {splitAssistantSections(message.content, copy).map((section, sectionIndex) => (
+                      {splitAssistantSections(message.content, copy).map((section, sectionIndex, allSections) => (
                         <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
                           <span>{section.title}</span>
-                          <ConsultationReading kind="vedic" value={section.body} index={sectionIndex} />
+                          <ConsultationReading kind="vedic" value={section.body} index={sectionIndex} say={{ index: sectionIndex, total: allSections.length }} />
                         </article>
                       ))}
                     </div>

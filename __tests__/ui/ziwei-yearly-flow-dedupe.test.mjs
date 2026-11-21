@@ -108,6 +108,29 @@ test("유년·유월 이론: 명궁=태세 지지궁, 12개월 연속 순행, �
   assert.equal(dj.months[0].gan, "庚");
 });
 
+test("사화 낙점: 차성(빌려 온 맞은편 주성) 복사본이 아니라 별이 실제 앉은 궁에 떨어진다", () => {
+  // 1997-02-14 17:21 여성 — 묘궁이 비어 유궁의 거문·천기를 차성으로 빌려 보여 준다(천기가 묘로 잘못 낙점되던 사례).
+  const extra = { b: { gender: "F", year: 1997, month: 2, day: 14, hour: 17, minute: 21 } };
+  extra.pd = harness.calcChart(extra.b);
+  let checked = 0;
+  for (const { pd } of [...charts, extra]) {
+    for (const y of YEARS) {
+      const th = global.zwYearFlowTheory(pd, y);
+      for (const t of ["화록", "화권", "화과", "화기"]) {
+        const m = th.marks[t];
+        if (m.idx < 0) continue;
+        const row = pd.palaceStarData.find((r) => global.ZW_DEEP_ZHI_LIST.indexOf(r.branch) === m.idx);
+        const hit = [...(row.stars || []), ...(row.auxStars || [])].find((x) => x.name === m.star);
+        assert.ok(hit && !hit.borrowed, `${y} ${t} ${m.star}: 차성 복사본에 낙점됨`);
+        checked += 1;
+      }
+    }
+  }
+  assert.ok(checked > 100);
+  assert.equal(global.zwYearFlowTheory(extra.pd, 2025).marks["화록"].star, "천기");
+  assert.equal(global.zwYearFlowTheory(extra.pd, 2025).marks["화록"].idx, 9);
+});
+
 test("월별 운기: 제우스·헤르메스 상징이 서사로 들어간다", () => {
   let zeus = false;
   let hermes = false;
