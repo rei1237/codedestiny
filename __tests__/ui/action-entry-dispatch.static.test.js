@@ -205,3 +205,9 @@ test("랜딩이 표시하는 가격 키가 셸 타일이 실제로 물리는 키
       `랜딩 PAID_SLUG_META 의 featureKey 는 셸 타일의 data-tile-lock-key 와 같아야 한다: ${mismatches.join(", ")}`,
   );
 });
+
+test("타로 랜딩 CTA 는 /ggulggul/?action= 으로 직행하고 다른 기능은 /index.html?action= 을 유지한다 (R4-1, 2026-11-21)", () => {
+  const src = read(LANDING_REL);
+  assert.match(src, /action && basePath\.startsWith\("\/tarot\/"\)\s*\?\s*`\/ggulggul\/\?action=\$\{encodeURIComponent\(action\)\}`/);
+  assert.match(src, /:\s*action\s*\?\s*`\/index\.html\?action=\$\{encodeURIComponent\(action\)\}`/);
+});
