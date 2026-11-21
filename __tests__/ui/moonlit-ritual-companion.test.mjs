@@ -100,7 +100,7 @@ test('scene fx: ≤40 fireflies (12 low), one rAF loop that stops when hidden, o
 test('wiring: fx loads via next/dynamic, observers + visibilitychange stop it, no layout reads in the loop, tokens only',()=>{
  const flow=read('app/moonlit-lotus/_ritual/RitualFlow.tsx'),fx=read('app/moonlit-lotus/_fx/SceneFx.tsx'),core=read('app/moonlit-lotus/_fx/scene-fx.ts');
  assert.match(flow,/dynamic\(\(\)=>import\('\.\.\/_fx\/SceneFx'\)/);assert.ok(!/from '\.\.\/_fx\/SceneFx'/.test(flow));
- assert.match(flow,/<CompanionStage /);assert.match(flow,/onPhase=\{onBreathPhase\}/);assert.match(flow,/key=\{state\.step\} className=\{styles\.panel\}/);
+ assert.match(flow,/<CompanionStage /);assert.match(flow,/onPhase=\{onBreathPhase\}/);assert.match(flow,/key=\{state\.step\} ref=\{panel\} tabIndex=\{-1\} className=\{styles\.panel\}/);
  assert.ok(fx.includes('IntersectionObserver')&&fx.includes("addEventListener('visibilitychange'")&&fx.includes('ResizeObserver'));
  assert.ok(!/getBoundingClientRect|offsetWidth|offsetHeight|getComputedStyle|clientWidth/.test(core),'scene-fx core never reads layout');
  assert.equal((core.match(/raf\(loop\)/g)||[]).length,2,'single loop entry points');
@@ -136,4 +136,20 @@ test('quality tier: dropped frames in the first 2s downgrade high → low (12 fi
  const ui=read('app/moonlit-lotus/_fx/SceneFx.tsx');
  assert.match(ui,/onTier:mark/);assert.match(ui,/stage\.dataset\.fxTier/);assert.match(ui,/tier==='high'&&<span className=\{styles\.moon\}/);
  assert.match(read('app/moonlit-lotus/_ritual/companion.module.css'),/\[data-fx-tier=low\] \.halo/);
+});
+test('reduced motion keeps fades and breath, drops parallax, particles and typing; keyboard and live region wiring',()=>{
+ const css=read('app/moonlit-lotus/_ritual/ritual.module.css'),comp=read('app/moonlit-lotus/_ritual/companion.module.css');
+ const block=source=>(source.replace(/\r\n/g,'\n').match(/@media \(prefers-reduced-motion:reduce\) \{([\s\S]*?)\n\}/)||[])[1]||'';
+ const reduce=block(css);
+ assert.ok(reduce,'ritual css has a reduced-motion block');
+ assert.ok(!/\*\s*\{[^}]*animation:none/.test(reduce),'no blanket animation kill (fades must stay)');
+ assert.match(reduce,/\.backdrop img \{ transform:none;/,'parallax camera off');
+ assert.match(reduce,/\.panel \{ animation-name:ritual-fade;/,'step dissolve becomes a plain fade');
+ assert.ok(!/breathLight[^}]*transition:none/.test(css),'breath light keeps its transition');
+ const compReduce=block(comp);assert.ok(!/\.breath/.test(compReduce),'companion breath keeps running');assert.match(compReduce,/\.halo,\.float,\.bounce \{ animation:none/);
+ const flow=read('app/moonlit-lotus/_ritual/RitualFlow.tsx'),bubble=read('app/moonlit-lotus/_ritual/SpeechBubble.tsx'),hold=read('app/moonlit-lotus/_ritual/HoldToLight.tsx');
+ assert.ok(!/<SpeechBubble key=/.test(flow),'bubble is not remounted, so its live region persists');assert.match(bubble,/aria-live="polite"/);assert.match(flow,/instant=\{reduced\}/);
+ assert.match(flow,/aria-disabled=\{bowing\|\|state\.bows>=BOW_TARGET\}/);assert.ok(!/ disabled=\{bowing/.test(flow),'bow button keeps focus while bowing');
+ assert.match(flow,/panel\.current\?\.focus\(\{preventScroll:true\}\)/);
+ assert.match(hold,/event\.key==='Enter'\|\|event\.key===' '/);assert.match(hold,/onKeyUp=/);
 });

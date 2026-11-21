@@ -32,7 +32,8 @@
 @keyframes companion-breathe { from { transform:scale(1); } to { transform:scale(1.015); } }
 @keyframes companion-hop { 0% { transform:translateY(0); } 40% { transform:translateY(-6%) scale(1.02,.98); } 100% { transform:translateY(0); } }
 @keyframes companion-nudge { 0% { transform:translateY(0); } 40% { transform:translateY(-2.5%); } 100% { transform:translateY(0); } }
+/* 움직임 줄이기: 떠오름·튀기·후광 맥동·기울기는 끄고 숨쉬기(1 → 1.015)만 남긴다. */
 @media (prefers-reduced-motion:reduce) {
-  .halo,.float,.breath,.bounce { animation:none !important; }
-  .look,.breath[data-breath] { transition:none; }
+  .halo,.float,.bounce { animation:none !important; }
+  .look { transition:none; transform:none !important; }
 }

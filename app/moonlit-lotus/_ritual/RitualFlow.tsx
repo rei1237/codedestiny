@@ -38,6 +38,7 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
  const [breath,setBreath]=useState<BreathBeat>({phase:'ready',at:0,ms:0});
  const onBreathPhase=useCallback((phase:BreathBeat['phase'],ms:number)=>setBreath({phase,at:performance.now(),ms}),[]);
  const [reduced,setReduced]=useState(false),[characterError,setCharacterError]=useState(false),[notice,setNotice]=useState('');
+ const panel=useRef<HTMLElement>(null),firstStep=useRef(true);
  const scale=timeScale(state.fast);
  const bow=useRitualBow(profile.scope,state.fast?1.6:1);
  const audio=useAmbientAudio(),{sfx}=audio,heardBows=useRef(0);
@@ -65,6 +66,13 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
   return()=>clearTimeout(timer);
  },[finished,state.step,scale]);
  useEffect(()=>{setNotice('');},[state.step]);
+ // 단계가 바뀌면 방금 누른 버튼이 사라져 초점이 body 로 떨어진다. 그때만 새 단계 패널로 옮긴다
+ // (입력칸에 바로 주지 않는다 — 휴대폰 자판이 저절로 열리지 않게).
+ useEffect(()=>{
+  if(firstStep.current){firstStep.current=false;return;}
+  const active=document.activeElement;
+  if(!active||active===document.body)panel.current?.focus({preventScroll:true});
+ },[state.step]);
  const sendWish=useCallback((text:string)=>{
   dispatch({type:'sendWish',text});
   const now=Date.now();
@@ -91,14 +99,14 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
     <source media="(min-width:701px)" srcSet="/assets/moonlit-lotus/space-v1/hall-1536.webp"/>
     <img src="/assets/moonlit-lotus/space-v1/hall-768.webp" alt="" decoding="async"/>
    </picture>
-   <SpeechBubble key={state.step+lineKey(state,bowing)} speaker={speaker} text={t('speech.'+voice+'.'+lineKey(state,bowing))} instant={reduced} fast={state.fast} t={t}/>
+   <SpeechBubble speaker={speaker} text={t('speech.'+voice+'.'+lineKey(state,bowing))} instant={reduced} fast={state.fast} t={t}/>
    <SceneFx smoke={state.lit} reduced={reduced}/>
    {!characterError&&<div className={styles.figure}>
     <CompanionStage kind={kind} look={profile.avatar} image={profile.image} portrait={profile.portrait} scene={{step:state.step,lit:state.lit,bowing,bows:state.bows,wishSent:state.wishSent}} elapsed={bow.session.elapsed} breath={breath} reduced={reduced} speaker={speaker} t={t} onFailure={()=>setCharacterError(true)}/>
    </div>}
    <MiniPlayer audio={audio} t={t}/>
   </section>
-  <section key={state.step} className={styles.panel} aria-live="off">
+  <section key={state.step} ref={panel} tabIndex={-1} className={styles.panel} aria-label={t('steps.'+state.step)} aria-live="off">
    {state.step==='enter'&&<>
     <button type="button" className={space.primary+' '+styles.action} onClick={()=>{audio.begin();sfx('windChime');dispatch({type:'enter'});}}>{t('enter.cta')}</button>
     <p className={styles.hint}>{t('enter.hint')}</p>
@@ -106,7 +114,8 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
    {state.step==='breathe'&&<BreathGuide breaths={state.breaths} scale={scale} onCycle={()=>dispatch({type:'breathDone'})} onPhase={onBreathPhase} t={t}/>}
    {state.step==='incense'&&<HoldToLight holdMs={HOLD_MS*scale} lit={state.lit} onLit={()=>dispatch({type:'light'})} t={t}/>}
    {state.step==='bow'&&<>
-    <button type="button" className={space.primary+' '+styles.action} disabled={bowing||state.bows>=BOW_TARGET} onClick={bow.tap}>
+    {/* 절하는 동안에는 disabled 대신 aria-disabled: 키보드 초점이 버튼에 남아 Enter 로 다음 절을 이어 간다. */}
+    <button type="button" className={space.primary+' '+styles.action} aria-disabled={bowing||state.bows>=BOW_TARGET} onClick={()=>{if(!bowing&&state.bows<BOW_TARGET)bow.tap();}}>
      {state.bows>=BOW_TARGET&&!bowing?t('bow.done'):bowing?t('bow.running'):t('bow.cta',{current:state.bows+1,total:BOW_TARGET})}
     </button>
     <p className={styles.srOnly} aria-live="polite">{t('bow.cta',{current:state.bows,total:BOW_TARGET})}</p>
