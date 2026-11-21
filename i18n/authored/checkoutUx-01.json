@@ -1,0 +1,30 @@
+{
+  "payment.passCard.startingPrice": {
+    "ko": "이용권 {price}부터 · 없으면 이용권 상점에서 골라요",
+    "en": "Passes from {price} · No pass yet? Pick one in the pass shop",
+    "ja": "利用券は{price}から · お持ちでなければ利用券ショップで選べます",
+    "zh-CN": "通行证{price}起 · 还没有的话可在通行证商店选购",
+    "zh-TW": "通行證{price}起 · 還沒有的話可在通行證商店選購",
+    "vi": "Passes from {price} · No pass yet? Pick one in the pass shop",
+    "hi": "Passes from {price} · No pass yet? Pick one in the pass shop",
+    "es": "Passes from {price} · No pass yet? Pick one in the pass shop",
+    "fr": "Passes from {price} · No pass yet? Pick one in the pass shop",
+    "de": "Passes from {price} · No pass yet? Pick one in the pass shop",
+    "nl": "Passes from {price} · No pass yet? Pick one in the pass shop",
+    "ms": "Passes from {price} · No pass yet? Pick one in the pass shop"
+  },
+  "payment.directModal.legal.refundConsentHint": {
+    "ko": "위 환불 안내에 동의하면 단건 결제를 고를 수 있어요",
+    "en": "Agree to the refund notice above to choose one-time payment",
+    "ja": "上の返金案内に同意すると都度決済を選べます",
+    "zh-CN": "同意上方的退款说明后即可选择单次付款",
+    "zh-TW": "同意上方的退款說明後即可選擇單次付款",
+    "vi": "Agree to the refund notice above to choose one-time payment",
+    "hi": "Agree to the refund notice above to choose one-time payment",
+    "es": "Agree to the refund notice above to choose one-time payment",
+    "fr": "Agree to the refund notice above to choose one-time payment",
+    "de": "Agree to the refund notice above to choose one-time payment",
+    "nl": "Agree to the refund notice above to choose one-time payment",
+    "ms": "Agree to the refund notice above to choose one-time payment"
+  }
+}

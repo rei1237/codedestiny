@@ -2684,7 +2684,8 @@
         "terms": "이용약관",
         "refund": "환불·청약철회",
         "privacy": "개인정보처리방침",
-        "support": "결제 문의"
+        "support": "결제 문의",
+        "refundConsentHint": "위 환불 안내에 동의하면 단건 결제를 고를 수 있어요"
       },
       "passUpgradeTitle": "이용권 등급 올리기",
       "recommendBadge": "꽃돼지 추천",
@@ -2755,7 +2756,7 @@
       },
       "clean": {
         "card": {
-          "title": "PG사 결제창을 로드하는 중입니다."
+          "title": "결제창을 여는 중입니다."
         },
         "cardMethod": {
           "title": "{method} 결제창을 여는 중입니다."
@@ -2839,6 +2840,9 @@
       "separatePurchaseRequired": "이 생년월일은 별도 구매가 필요합니다",
       "saveProfileFirst": "프로필을 저장한 뒤 구매해 주세요",
       "keepAfterUnlock": "잠금을 해제하면 이 생년월일로 언제든 다시 볼 수 있어요."
+    },
+    "passCard": {
+      "startingPrice": "이용권 {price}부터 · 없으면 이용권 상점에서 골라요"
     }
   },
   "auth": {
