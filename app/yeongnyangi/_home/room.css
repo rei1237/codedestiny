@@ -1,4 +1,4 @@
-.ynOriginal .yeongnyang-room { min-height: 100dvh; background: #191228; color: var(--ivory); }
+.ynOriginal .yeongnyang-room { min-height: 100dvh; background: #191228; color: var(--ivory); word-break: keep-all; overflow-wrap: anywhere; }
 .ynOriginal .room-header { height: 68px; padding: max(10px, env(safe-area-inset-top)) 20px 10px; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin: auto; border-bottom: 1px solid #af875d40; }
 .ynOriginal .room-header h1 { font-family: var(--serif); font-size: 23px; display: flex; align-items: center; gap: 10px; color: var(--gold); }
 .ynOriginal .room-round-button { width: 44px; height: 44px; border: 1px solid #ad895a; border-radius: 50%; display: grid; place-items: center; color: var(--gold); flex-shrink: 0; }
