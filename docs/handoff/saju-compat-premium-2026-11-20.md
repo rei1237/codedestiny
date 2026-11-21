@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: "C1: checkpoint-refund-guard 서술형 판정(includeResumable 게이트·종결) TDD — 아래 C·D 실측의 설계 메모부터"
+next: "C2: held 서술형 실행(reasonCode PAID_NARRATIVE_*) 정산 — 다시 시도 리셋(빠진·소진 장만, nextRetryAt 도 되돌림)·7일/요청 환불 어댑터(재호출 가능한 결제 증거)·cron 배선. 포인터는 아래 'C1 가드 판정 정정' 절과 C2 포인터"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -98,7 +98,7 @@ next: "C1: checkpoint-refund-guard 서술형 판정(includeResumable 게이트·
 - [x] A4 화면 검증: headed 브라우저로 `?preview=success|failed`와 사주 탭 무료 궁합(시간 모름 포함)을 확인하고, visual-checker로 판정한다.
 - [x] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>` (실측은 아래 "M 머지·push")
 - [x] C·D 실측: 아래 "C·D 실측 (2026-11-21)"
-- [ ] C1 가드 판정 정정(서술형 includeResumable 게이트·소진/창 경과 종결, 코인 복원 경로 확인 선행)
+- [x] C1 가드 판정 정정(서술형 includeResumable 게이트·소진/창 경과 종결, 코인 복원 경로 확인 선행) — ef3b6b83e (held 종결, 환불은 C2)
 - [ ] C2 서술형 엔진 다시 시도 우선(빠진·소진 장만 재개, 7일·요청 환불, cron 배선, 검증기 목록 정리)
 - [ ] C3 과금 후 레코드 전 4xx 실패(감사 5) — 범위 밖, 별도
 - [ ] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 범위 밖, 별도
@@ -270,3 +270,62 @@ Base `58ed3c39d` (= origin/main). Worktree `D:\Development\codedestiny-worktrees
 - C1 (guard): apply the `includeResumable` gate to the 14 keys in `:51`, the same way as `:48`. Make records with exhaustionClaimed or a closed retry window terminal (not `recoverable`). Keep R1 behavior (hold while inside the window).
 - C2 (engine): on exhaustion, whether 0 or some parts are saved, record `paidNarrative.retryable {since, refundAt=createdAt+7d, code}` and let a retry entry reset attempts **only for missing or exhausted parts** (saved parts stay as they are). After 7 days or on a customer request, refund through each product's existing refund adapter (route-bound refunds like feature-question's `refund(state.paymentProof, state.body)` are a constraint: for a settle from cron, the adapter needs to store a re-callable payment proof). Wire it to the cron chain, then remove from the verifier lists only the items that pass.
 - Pitfalls: toss native esbuild stubs, mongo index shape registration, CRLF, regenerating ai-locale-call-inventory, re-running sitemap:generate.
+
+### C1 가드 판정 정정 (2026-11-21, 서브에이전트, mock 만)
+커밋: ef3b6b83e (워크트리 브랜치, push·머지 안 함. C2와 한 묶음으로 push한다)
+
+**복원 경로 실측(편집 전, 코드 읽기).** 서술형 레코드(`paid-narrative-delivery.js` insert)에는 `sourceTransactionId`·`cost`·`paymentRef`가 없다. idempotencyKey는 body.requestId다.
+- 코인: `runCoinRefund`는 sourceTransactionId가 없으면 건너뛴다. 환불하면 아무것도 복원하지 못하고 refund_failed로 끝난다.
+- 이용권: `runPassQuotaRefund`가 `passUsageEvidenceId(userId, featureKey, idempotencyKey)`로 대체 조회한다. 아마 복원될 것이다(미검증).
+- 월정석: `runMonthlyCreditRefund` 토큰에 idempotencyKey가 들어 있다. V2 원장과 맞는지는 미검증이다.
+- 단건 카드: paymentRef가 비어 있어서 `runPaymentCancel`은 skipped다.
+- 결론: 지금은 서술형 실행이 스윕으로 자동 복원되는 경로가 사실상 없다(가드가 늘 recoverable을 돌려줬다). 자동 환불이 실제로 일어나는 곳은 feature-question의 라우트 결합 `onExhausted` 하나뿐이다. `consultation-recovery-registry.js:33` NARRATIVE_CARD_GAP의 "이용권·코인·월정석만 자동 복원" 문구는 코인 부분이 사실과 다르다. C2에서 고친다(C1에서는 손대지 않음).
+
+**결정: C1에서는 환불하지 않고 `held`로 보낸다.** 코인·카드 복원을 증명할 수 없어서 조용히 실패하는 환불을 막기 위해서다.
+- 바뀐 곳은 `worker/lib/checkpoint-refund-guard.js`(`paidNarrativeHoldCode`, `paidNarrativeHoldUntil`, `PAID_NARRATIVE_FEATURES` Set으로 하드코딩된 14개 키를 대체)와 `worker/lib/service-execution-task.js` `settleExecutionById`의 held 분기다.
+- held가 되면:
+  - status는 pending으로 유지하고(스키마 enum이 닫혀 있고, 서술형 재개가 pending에 의존한다) 저장된 장도 그대로 둔다.
+  - refundStatus는 none, 환불 클레임은 없다. 잠금은 해제한다.
+  - nextRetryAt은 createdAt+7d로 둔다. 이미 지났으면 now+24h로 둔다.
+  - reasonCode에는 아래 코드 중 하나를 쓴다.
+  - 명시적 닫기(includeResumable=false)면 `compensation.adminReviewRequired=true`도 붙인다(paid-gate-auditor 지적 1을 반영).
+- held 코드(우선순위 순서):
+  1. `PAID_NARRATIVE_EXHAUSTION_CLAIMED`
+  2. `PAID_NARRATIVE_REVIEW_REQUIRED`(복구 태스크의 reviewRequired)
+  3. `PAID_NARRATIVE_EXHAUSTED`(v1: 빠진 장 attempts≥2, v2: 모든 장이 저장됐거나 attempts≥4)
+  4. `PAID_NARRATIVE_RESUME_WINDOW_CLOSED`(생성 후 24h 초과, 복구 태스크의 MAX_AGE와 같다)
+  5. `PAID_NARRATIVE_CLOSE_REQUESTED`(명시적 닫기 + 저장된 장 0개)
+- includeResumable 게이트: 하드코딩된 14개 키와 재개 키 쌍을 같은 규칙으로 처리한다. 진행 가능한 레코드가 recoverable이 되는 조건은 includeResumable이거나 저장된 장이 1개 이상인 경우다. 진행 불가면 held다.
+  - 동작 변화: 재개 키 쌍(expertFollowUp, featureQuestion×4, fortune-chat)을 장 0개 상태에서 명시적으로 닫으면, 예전에는 환불 클레임으로 떨어져 refund_failed가 됐다. 이제는 held다.
+- R1 유지: 기한 안의 retryable 마커는 계속 hold다(기존 테스트 그대로 통과).
+- 무료 재개는 막히지 않는다. 복구 cron(`paid-narrative-recovery-task.js`)은 nextRetryAt이 아니라 timeoutAt·createdAt으로 대상을 고른다.
+
+**검증(실측)**
+- TDD: 적색 10 failed / 48 passed → 녹색 `node scripts/run-mock-tests.mjs jest --runInBand __tests__/worker/checkpoint-timeout-refund.test.js` 58/58 통과.
+- 관련 묶음(heukwol, paid-narrative-*, saju-compat-basic-delivery, service-execution-*, card-single-payment-auto-refund, feature-question-*, checkpoint): 19 suites, 355/355 통과(adminReviewRequired 보강 전에 실행).
+- `npm run verify:paid-llm-delivery` ok: 계약 37개, 변이 37/37, 60/60 탐지.
+  - 함정: 가드 주석에 `runPaidNarrativeDelivery` 토큰이 들어가면 PAY_RE에 걸려 "미분류 유료 LLM 파일"로 실패한다. 주석에는 파일명으로 적는다.
+- paid-gate-auditor: 금지 패턴 위반 없음, 돈 나가는 경로·이중 환불 경로 없음. verify:payment-freeze 통과, payment-p0-inventory PASS, payment-concurrency-guards OK, payment-service-boundary PASS.
+- `npm run check:fast` exit 0(critical 승격, 전체 jest 489 suites 통과·1 skipped, 8459 tests 통과). verify:paid-llm-delivery 재실행 ok.
+- CRLF: 편집한 파일 모두 CR 0.
+
+**남은 위험(C2 이후로 넘김)**
+- held는 7일 뒤에도 하루마다 다시 held될 뿐 환불되지 않는다. "7일 뒤·요청 시 환불"은 C2 전까지 서술형에서 미구현이다. 다만 예전에도 이 레코드들은 환불되지 않았으므로 새 손실은 아니다. C1만 단독으로 운영에 내보내지 않는다.
+- held(pending) 레코드는 같은 결제 근거의 다른 환불을 `FUNDING_ACTIVE_OR_COMPLETED`/`EXECUTION_DELIVERED`로 막는다(`refund-delivery-protection.js`, `coin-refund-eligibility.js:72-84`). recoverable 때도 같았다. C2 어댑터는 같은 executionId로 정산해야 한다.
+- 범위 밖(보고만):
+  - held·recoverable 분기의 갱신 필터 `"lock.token": execution.lock?.token`이 생성 중인 uuid 잠금과 일치하면 잠금을 비울 수 있다.
+  - `/executions/fail`에 사용자가 reasonCode `timeout_auto_refund`를 보내면 includeResumable이 켜진다.
+  - `compensation.adminReviewRequired`가 스키마에 선언되지 않아 strict 모드에서 버려질 수 있다(미검증, 기존 분기도 같다).
+  - 브라우저 재개에는 나이 제한이 없다.
+  - 두 파일이 `paid-flow-gates.yml` 트리거에 없다(change-risk가 `deepRequired=false`로 판정).
+  - payment-p0-inventory.json의 sha가 현재 파일과 다르다. 강제하는 검사는 없다. `node scripts/audit-payment-p0-inventory.mjs`로 재생성할지는 선택이다.
+  - 검증 안 함: toss 네이티브 서술형(`worker/toss/native-pet-paid.js`)의 sourceTransactionId, 그리고 deliveryStatus failed + status pending 레코드를 클라이언트가 어떻게 표시하는지.
+- feature-question의 exhaustionClaimed 건은 onExhausted가 이미 환불했는데 held(pending)로 남는다. C2가 failureResult를 근거로 종결해야 한다.
+
+**C2 포인터(이어받는 쪽 첫 행동)**
+1. held 조회: status pending, reasonCode가 `PAID_NARRATIVE_*`, nextRetryAt ≤ now. 스윕(`lockNextTimedOutExecution`)이 7일 시점에 다시 집어 `settleExecutionById` → 가드 → held로 돌아온다. C2는 이 held 분기 앞에서 "환불 시점 도달 + 복원 증명 가능"이면 어댑터 환불로 가게 한다. 판단 근거: `paidNarrativeHoldUntil`, createdAt+7d.
+2. 다시 시도 리셋: `paid-narrative-delivery.js:197-200`. 빠진 장과 소진된 장의 attempts만 0으로 되돌리고, `exhaustionClaimed`는 그대로 둔다. 저장된 장은 유지한다. reasonCode는 비우고 nextRetryAt은 now로 되돌린다. 그러지 않으면 7일 동안 스윕이 다시 보지 않는다.
+3. 환불 어댑터: feature-question의 `refund(state.paymentProof, state.body)`는 라우트에 묶여 있다. cron에서 다시 부를 수 있는 결제 증거(코인 sourceTransactionId 등)를 레코드 metadata에 저장해야 코인 복원이 성립한다. 이용권은 `passUsageEvidenceId` 대체 조회로 성립할 가능성이 높다(미검증). 월정석은 토큰 매칭을 실측해야 한다.
+4. 고객 요청 환불: 명시적 닫기(`/api/billing/executions/fail`)를 하면 held + `compensation.adminReviewRequired`로 표시된다. C2의 `/refund-request`가 이걸 즉시 환불로 바꿔야 한다.
+5. 정리: NARRATIVE_CARD_GAP 문구(`consultation-recovery-registry.js:33`)를 바로잡는다. KNOWN_RETRY_PENDING과 알려진 자동 환불 구멍 13개는 증거 4종이 실제로 통과하는 항목만 `scripts/verify-paid-llm-delivery-contract.mjs` 목록에서 뺀다.
+6. 회귀 테스트: `__tests__/worker/checkpoint-timeout-refund.test.js`의 'paid narrative terminal hold' 묶음을 C2 동작(7일 도달 → 환불)에 맞게 확장한다. held 기대값을 그대로 지우지 않는다.
