@@ -138,7 +138,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#b45309",
     btnGlow:"0 10px 24px -12px rgba(146,64,14,0.7)",
     btnSec:"rgba(252,211,77,0.08)", btnSecBorder:"rgba(252,211,77,0.28)",
-    badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.44)", divider:"rgba(252,211,77,0.14)",
+    badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.9)", divider:"rgba(252,211,77,0.14)",
   },
   ziwei: {
     bg: "linear-gradient(155deg,#08041c 0%,#120832 45%,#0a0520 100%)",
@@ -149,7 +149,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#6d28d9",
     btnGlow:"0 10px 24px -12px rgba(91,33,182,0.7)",
     btnSec:"rgba(196,181,253,0.09)", btnSecBorder:"rgba(196,181,253,0.3)",
-    badge:"rgba(196,181,253,0.88)", seo:"rgba(196,181,253,0.44)", divider:"rgba(196,181,253,0.14)",
+    badge:"rgba(196,181,253,0.88)", seo:"rgba(196,181,253,0.9)", divider:"rgba(196,181,253,0.14)",
   },
   astrology: {
     bg: "linear-gradient(155deg,#040812 0%,#060e2a 45%,#050a1c 100%)",
@@ -160,7 +160,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#0369a1",
     btnGlow:"0 10px 24px -12px rgba(3,105,161,0.7)",
     btnSec:"rgba(125,211,252,0.08)", btnSecBorder:"rgba(125,211,252,0.28)",
-    badge:"rgba(125,211,252,0.88)", seo:"rgba(125,211,252,0.44)", divider:"rgba(125,211,252,0.14)",
+    badge:"rgba(125,211,252,0.88)", seo:"rgba(125,211,252,0.9)", divider:"rgba(125,211,252,0.14)",
   },
   flower: {
     bg: "linear-gradient(155deg,#0f0a1e 0%,#1e0f34 45%,#0d1825 100%)",
@@ -171,7 +171,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#be185d",
     btnGlow:"0 10px 24px -12px rgba(190,24,93,0.7)",
     btnSec:"rgba(244,114,182,0.09)", btnSecBorder:"rgba(244,114,182,0.34)",
-    badge:"rgba(244,114,182,0.88)", seo:"rgba(249,168,212,0.46)", divider:"rgba(244,114,182,0.16)",
+    badge:"rgba(244,114,182,0.88)", seo:"rgba(249,168,212,0.9)", divider:"rgba(244,114,182,0.16)",
   },
   tarot: {
     bg: "linear-gradient(155deg,#0a0514 0%,#140832 45%,#0f0c22 100%)",
@@ -182,7 +182,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#7c3aed",
     btnGlow:"0 10px 24px -12px rgba(124,58,237,0.7)",
     btnSec:"rgba(167,139,250,0.09)", btnSecBorder:"rgba(167,139,250,0.3)",
-    badge:"rgba(196,181,253,0.88)", seo:"rgba(167,139,250,0.46)", divider:"rgba(167,139,250,0.14)",
+    badge:"rgba(196,181,253,0.88)", seo:"rgba(167,139,250,0.9)", divider:"rgba(167,139,250,0.14)",
   },
   oracle: {
     bg: "linear-gradient(155deg,#0c0a04 0%,#201606 45%,#120e05 100%)",
@@ -193,7 +193,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#b45309",
     btnGlow:"0 10px 24px -12px rgba(146,64,14,0.7)",
     btnSec:"rgba(251,191,36,0.08)", btnSecBorder:"rgba(251,191,36,0.3)",
-    badge:"rgba(251,191,36,0.88)", seo:"rgba(251,191,36,0.44)", divider:"rgba(220,185,80,0.14)",
+    badge:"rgba(251,191,36,0.88)", seo:"rgba(251,191,36,0.9)", divider:"rgba(220,185,80,0.14)",
   },
   animal: {
     bg: "linear-gradient(155deg,#060e04 0%,#0e1e0a 45%,#080f06 100%)",
@@ -204,7 +204,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#c2410c",
     btnGlow:"0 10px 24px -12px rgba(234,88,12,0.7)",
     btnSec:"rgba(251,146,60,0.08)", btnSecBorder:"rgba(251,146,60,0.3)",
-    badge:"rgba(251,146,60,0.88)", seo:"rgba(251,146,60,0.44)", divider:"rgba(251,146,60,0.14)",
+    badge:"rgba(251,146,60,0.88)", seo:"rgba(251,146,60,0.9)", divider:"rgba(251,146,60,0.14)",
   },
   dream: {
     bg: "linear-gradient(155deg,#06091c 0%,#0d1032 45%,#090c22 100%)",
@@ -215,7 +215,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#4338ca",
     btnGlow:"0 10px 24px -12px rgba(67,56,202,0.7)",
     btnSec:"rgba(165,180,252,0.08)", btnSecBorder:"rgba(165,180,252,0.28)",
-    badge:"rgba(165,180,252,0.88)", seo:"rgba(165,180,252,0.44)", divider:"rgba(165,180,252,0.14)",
+    badge:"rgba(165,180,252,0.88)", seo:"rgba(165,180,252,0.9)", divider:"rgba(165,180,252,0.14)",
   },
   vedic: {
     bg: "linear-gradient(155deg,#0d0904 0%,#201408 45%,#160f06 100%)",
@@ -226,7 +226,7 @@ const THEMES: Record<string, Theme> = {
     btnPrimary:"#b45309",
     btnGlow:"0 10px 24px -12px rgba(180,83,9,0.7)",
     btnSec:"rgba(252,211,77,0.08)", btnSecBorder:"rgba(252,211,77,0.28)",
-    badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.44)", divider:"rgba(252,211,77,0.14)",
+    badge:"rgba(252,211,77,0.88)", seo:"rgba(252,211,77,0.9)", divider:"rgba(252,211,77,0.14)",
   },
 };
 
