@@ -252,9 +252,13 @@
       //    🔴 고칠 지점이 호출부가 아니라 여기인 이유는 이 파일 위쪽 리타게팅 주석과 같다 —
       //    호출부는 웹과 공유하는 파일이고, 이 브릿지는 앱 HTML 에만 주입돼 웹 blast radius 가 0이다.
       //    이미 Authorization 을 단 호출(구독 조회·리프레시)은 그대로 존중한다.
-      if (!headers.has("Authorization")) {
-        var accessToken = readStoredToken("fortune_auth_token");
-        if (accessToken) headers.set("Authorization", "Bearer " + accessToken);
+      var accessToken = readStoredToken("fortune_auth_token");
+      var hasAuthorization = headers.has("Authorization");
+      // 레거시 셸이 같은 계정의 Bearer 를 먼저 붙인 Play 요청도 세션 폴백을 쓴다.
+      var isStoredPlaySession = url.pathname.indexOf("/api/app-store/") === 0
+        && headers.get("Authorization") === "Bearer " + accessToken;
+      if (!hasAuthorization || isStoredPlaySession) {
+        if (!hasAuthorization && accessToken) headers.set("Authorization", "Bearer " + accessToken);
         // access 만료 뒤에도 세션이 살아 있게 한다. 웹은 refresh **쿠키**로 워커의 리프레시 폴백
         // (worker/lib/auth.js verifyRefreshSessionToAuth)을 타는데 앱엔 그 쿠키가 없어 액세스 TTL
         // (기본 30분)마다 로그아웃됐다. 상시 싣지 않고 부재·만료 임박일 때만 싣는다.
@@ -656,7 +660,7 @@
     var opts = options || {};
     var init = {
       method: "POST",
-      headers: authHeaders(),
+      headers: opts.appSession ? { "Content-Type": "application/json" } : authHeaders(),
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify(body || {}),
@@ -671,7 +675,7 @@
     if (opts.timeoutMs > 0 && typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
       init.signal = AbortSignal.timeout(opts.timeoutMs);
     }
-    var response = await fetch(apiBase() + path, init);
+    var response = opts.appSession ? await fetch(path, init) : await fetch(apiBase() + path, init);
     var payload = await response.json().catch(function () { return {}; });
     return { ok: response.ok && payload && payload.ok !== false, status: response.status, payload: payload };
   }
@@ -987,7 +991,7 @@
   async function runPurchaseRecovery() {
     if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") return;
     if (recoveryRunning) return;
-    if (!readLocal("fortune_auth_token")) return;
+    if (!readLocal("fortune_auth_token") && !readLocal("fortune_auth_refresh_token")) return;
     var plugin = billingPlugin();
     if (!plugin || !plugin.restore) return;
     recoveryRunning = true;
@@ -1006,7 +1010,7 @@
       });
       if (!settled.length) return;
 
-      var result = await postJson("/api/app-store/google/restore", { purchases: settled });
+      var result = await postJson("/api/app-store/google/restore", { purchases: settled }, { appSession: true });
       if (!result.ok) return;
 
       var data = result.payload.data || {};

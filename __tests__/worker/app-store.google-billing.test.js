@@ -613,6 +613,41 @@ describe("rtdn — 환불 회수", () => {
     return postJson(`/google/rtdn${query}`, { message: { data } });
   }
 
+  test.each([
+    [200, 0, 200, true],
+    [200, 1, 200, false],
+    [404, null, 200, false],
+    [410, null, 200, false],
+    [401, null, 502, null],
+    [403, null, 502, null],
+    [429, null, 502, null],
+    [500, null, 502, null],
+  ])("Play 조회 HTTP %i 상태 %s: RTDN HTTP %i, 권한 활성 %s", async (googleStatus, purchaseState, expectedStatus, active) => {
+    googlePurchaseStatus = googleStatus;
+    googlePurchasePayload = { purchaseState };
+    mockPaymentFindOne.mockReturnValue(leanable({
+      _id: "pay-rtdn-lookup",
+      userId: USER_ID,
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      paymentType: "digital_content",
+    }));
+    const { status, payload } = await callRoute(rtdnRequest({
+      packageName: "com.codedestiny.app",
+      oneTimeProductNotification: { purchaseToken: "tok-rtdn-lookup", sku: unlock.tier.productId, notificationType: 2 },
+    }));
+    expect(status).toBe(expectedStatus);
+    if (active === null) {
+      expect(payload.code).toBe("GOOGLE_PLAY_RTDN_RETRY");
+      expect(mockPaymentFindOneAndUpdate).not.toHaveBeenCalled();
+      expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+      expect(mockRevokePaymentContentAccess).not.toHaveBeenCalled();
+    } else {
+      expect(payload.data.active).toBe(active);
+      expect(mockPaymentFindOneAndUpdate).toHaveBeenCalledTimes(active ? 0 : 1);
+    }
+  });
+
   test("voided(환불 확정)는 재조회 없이 즉시 회수한다 — 콘텐츠 결제", async () => {
     mockPaymentFindOne.mockReturnValue({
       lean: async () => ({

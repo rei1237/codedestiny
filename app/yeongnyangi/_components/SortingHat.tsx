@@ -2,7 +2,8 @@
 import Image from 'next/image';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,ChevronDown,Download,RotateCcw} from 'lucide-react';
-import {hatHouses,hatImage,hatSystems,type HatResult} from '@/lib/yeongnyangi/hat-houses';
+import {IS_APP_BUILD} from '@/lib/app-build-target';
+import {hatHouses,hatImage,hatImageSet,hatSystems,type HatResult} from '@/lib/yeongnyangi/hat-houses';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {fortuneApi,loginForCurrentPage} from '../_lib/api';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
@@ -43,18 +44,18 @@ export default function SortingHat(){
   <div className={styles.invitation}>
    <div className={styles.invitationArt}><Image src={hatImage('invitation')} width={1200} height={800} sizes="(max-width: 700px) 100vw, 50vw" alt="초승달 모자를 쓴 영냥이가 여섯 기숙사의 문 앞에서 배정을 기다리는 모습"/></div>
    <div className={styles.invitationCopy}><h2 id="hat-title">영냥이의 모자</h2><p className={styles.lead}>너의 자리는,<br/>어느 기숙사에 있을까?</p><p>“잠깐, 내 모자가 너한테 할 말이 있대.”<br/>타고난 기질과 마음의 결을 읽고,<br/>여섯 기숙사 중 너와 닮은 곳을 찾아줄게.</p>
-    <button type="button" className={styles.primary} aria-expanded={open} aria-controls="hat-chamber" onClick={()=>setOpen(v=>!v)}>{open?'배정실 접기':'내 기숙사 알아보기'}<ArrowRight size={18} aria-hidden="true"/></button><p className={styles.note}>로그인 후 무료 · 멸치 차감 없이 이용해요</p>
+    <button type="button" className={open?styles.secondary:styles.primary} aria-expanded={open} aria-controls="hat-chamber" onClick={()=>setOpen(v=>!v)}>{open?'배정실 접기':'내 기숙사 알아보기'}<ArrowRight size={18} aria-hidden="true"/></button><p className={styles.note}>로그인 후 무료 · 멸치 차감 없이 이용해요</p>
    </div>
   </div>
   {open&&<div id="hat-chamber" className={styles.chamber}>
    <div className={styles.intake}><h3>모자를 쓰기 전에</h3><p>내 출생 프로필을 골라주세요. 같은 정보와 계산 버전에는 같은 배정이 나와요. 시간을 모르면 가능한 근거로 참고 배정을 받을 수 있어요.</p><ProfilePicker state={profiles}/>
     {!profiles.guest&&<p className={styles.note}>정보를 보완하려면 프로필을 새로 만들어 선택해 주세요. 기존 상담 기록은 그대로 남아요.</p>}
-    <button className={styles.primary} type="button" disabled={busy||story||profiles.loading||(!profiles.guest&&!profiles.profileId)} onClick={profiles.guest?loginForCurrentPage:()=>void sort()}>{profiles.guest?'로그인하고 모자 써보기':story?'모자와 이야기하는 중':busy?'모자가 너의 결을 읽고 있어요':result?'같은 정보로 다시 배정하기':'모자 써보기'}{result?<RotateCcw size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>
+    <button className={result?styles.secondary:styles.primary} type="button" disabled={busy||story||profiles.loading||(!profiles.guest&&!profiles.profileId)} onClick={profiles.guest?loginForCurrentPage:()=>void sort()}>{profiles.guest?'로그인하고 모자 써보기':story?'모자와 이야기하는 중':busy?'모자가 너의 결을 읽고 있어요':result?'같은 정보로 다시 배정하기':'모자 써보기'}{result?<RotateCcw size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>
     {busy&&<p role="status" className={styles.loading}>사주부터 별의 지도까지, 계산 가능한 근거를 살피고 있어요. 잠시만 기다려 주세요.</p>}{error&&<p role="alert" className={styles.error}>{error}</p>}
    </div>
    {story&&<HatPrologue key={attempt} result={pending} error={error} onRetry={()=>void sort()} onFinish={()=>{if(pending){setResult(pending);setStory(false);}}}/>}
    {result&&house&&<article className={styles.result} aria-labelledby="hat-result-title">
-    <figure className={styles.resultArt}><Image src={hatImage(house.id)} width={1200} height={800} sizes="(max-width: 900px) 100vw, 900px" alt={`${house.scene}에서 원래의 초승달 모자를 쓴 영냥이. 기숙사 상징은 ${house.symbol}.`}/><figcaption><span>너의 기숙사에 도착했어</span><strong>{house.scene}</strong></figcaption></figure>
+    <figure className={styles.resultArt}><HatResultArt house={house}/><figcaption><span>너의 기숙사에 도착했어</span><strong>{house.scene}</strong></figcaption></figure>
     <header className={styles.resultTitle}><HatHouseEmblem id={house.id}/><p>모자가 너를 이곳으로 안내했어.</p><h3 id="hat-result-title" ref={heading} tabIndex={-1}>{house.name}</h3><p className={styles.motto}>{house.motto}</p><p className={styles.note}>{result.mode==='reference'?'확인할 수 있는 출생 정보로 읽은 참고 배정이에요.':'출생 정보의 상징을 모자의 성향 이야기로 풀었어요.'}</p></header>
     <HatPersonality result={result}/><div className={styles.letter}><h4>이런 순간, 혹시 익숙하니?</h4><ul className={styles.thoughts}>{house.points.map(p=><li key={p}>“{p}”</li>)}</ul></div>
     <dl className={styles.advice}><div><dt>네가 가져온 강점</dt><dd>{house.strength}</dd></div><div><dt>너무 몰입한 날에는</dt><dd>{house.shadow}</dd></div><div><dt>오늘 해볼 작은 선택</dt><dd>{house.action}</dd></div></dl>
@@ -64,4 +65,11 @@ export default function SortingHat(){
    <details className={styles.directory} open={Boolean(result)}><summary>여섯 기숙사 둘러보기<ChevronDown size={18} aria-hidden="true"/></summary><div>{hatHouses.map(h=><article key={h.id}><Image src={hatImage(h.id)} width={600} height={400} sizes="(max-width: 600px) 100vw, 33vw" alt={`${h.name}의 ${h.scene}`} loading="lazy"/><div className={styles.houseHeading}><HatHouseEmblem id={h.id}/><h4>{h.name}<span>{h.trait}</span></h4></div><p>{h.admission}</p></article>)}</div></details>
   </div>}
  </section>;
+}
+const RESULT_ART_SIZES='(max-width: 900px) 100vw, 900px';
+function HatResultArt({house}:{house:typeof hatHouses[number]}){
+ const set=hatImageSet(house.id),alt=set?.alt??`${house.scene}에서 원래의 초승달 모자를 쓴 영냥이. 기숙사 상징은 ${house.symbol}.`;
+ const img=<Image src={hatImage(house.id)} width={set?.width??1200} height={set?.height??800} sizes={RESULT_ART_SIZES} alt={alt}/>;
+ // 앱은 기숙사 목록·저장과 같은 기준 WebP를 번들에 싣는다.
+ return set&&!IS_APP_BUILD?<picture><source type="image/avif" srcSet={set.avif} sizes={RESULT_ART_SIZES}/><source type="image/webp" srcSet={set.webp} sizes={RESULT_ART_SIZES}/>{img}</picture>:img;
 }
