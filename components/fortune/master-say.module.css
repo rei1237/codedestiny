@@ -1,0 +1,35 @@
+.say {
+  display: flex;
+  align-items: flex-end;
+  gap: .75rem;
+  margin: 1.5rem 0;
+  min-width: 0;
+  break-inside: avoid;
+}
+.frame {
+  flex: 0 0 4.75rem;
+  width: 4.75rem;
+  overflow: hidden;
+  border-radius: var(--cd-r-control);
+}
+.say[data-fit="card"] .frame { border: 1px solid var(--reading-line, currentColor); background: var(--reading-wash, transparent); }
+.frame img { display: block; width: 100%; height: 100%; }
+.say[data-fit="cutout"] .frame img { object-fit: contain; object-position: bottom; }
+.say[data-fit="card"] .frame img { object-fit: cover; }
+.bubble {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0 0 .4rem;
+  padding: .7rem .9rem;
+  border: 1px solid var(--reading-line, currentColor);
+  border-radius: var(--cd-r-card) var(--cd-r-card) var(--cd-r-card) var(--cd-r-sm);
+  background: var(--reading-wash, transparent);
+  line-height: 1.7;
+  word-break: keep-all;
+}
+.bubble b { display: block; margin-bottom: .15rem; font-size: .8em; color: var(--reading-accent, currentColor); }
+@media (max-width: 480px) {
+  .say { gap: .55rem; margin-block: 1.1rem; }
+  .frame { flex-basis: 3.9rem; width: 3.9rem; }
+}

@@ -2165,41 +2165,10 @@ function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {
         var flowYear = _zwNowYear();
         var flowGanji = zwFlowGanji(flowYear);
         var flowYearGan = flowGanji.charAt(0) || pd.yearGan || '';
-        var flowYearZhi = flowGanji.charAt(1) || '';
-        var annualAnchorIdx = (typeof ZHI_LIST !== 'undefined' && ZHI_LIST.indexOf(flowYearZhi) >= 0) ? ZHI_LIST.indexOf(flowYearZhi) : -1;
-        if (annualAnchorIdx < 0 && pd.palacesByIndex) annualAnchorIdx = pd.palacesByIndex.indexOf('명궁');
-        if (annualAnchorIdx < 0) annualAnchorIdx = 0;
-        var monthlyFlowHtml = '';
-        var monthlyFlowSignals = [];
-        for (var mf = 0; mf < 12; mf += 1) {
-          var monthIdx = (annualAnchorIdx + mf) % 12;
-          var monthSignal = zwFlowPalaceSignal(monthIdx, flowYearGan);
-          monthlyFlowSignals.push({ label:(mf + 1)+'월', signal:monthSignal });
-          var primaryStar = monthSignal.main[0] || '공궁';
-          var monthOlympus = zwFlowOlympus(monthSignal);
-          var monthDeepHtml = zwFlowDeepReading(monthSignal, monthOlympus, (mf + 1)+'월');
-          var isCarefulMonth = monthSignal.counts['화기'] > 0 || monthSignal.bad.length >= 2;
-          var actionLine = isCarefulMonth
-            ? '계약, 지출, 감정 표현은 하루를 더 두고 확인하세요.'
-            : (monthSignal.score >= 78 ? '공개, 제안, 확장 행동을 한 가지는 반드시 실행하세요.' : '작은 루틴 하나를 매일 반복하면 운이 안정됩니다.');
-          monthlyFlowHtml += '<article style="background:rgba(15,23,42,0.58);border:1px solid rgba(196,181,253,0.22);border-radius:11px;padding:11px 12px;box-shadow:0 8px 20px rgba(0,0,0,0.2);">'
-            +'<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:7px;">'
-              +'<b style="color:#fde68a;font-size:0.92rem;">'+(mf + 1)+'月 · '+zwFlowEsc(monthSignal.palaceName)+'</b>'
-              +'<span style="color:#c4b5fd;font-size:0.72rem;font-weight:800;">'+monthSignal.score+' · '+monthSignal.grade+'</span>'
-            +'</div>'
-            +'<div style="font-size:0.8rem;color:#e9d5ff;line-height:1.62;margin-bottom:6px;">주성 <b>'+zwFlowEsc(primaryStar)+'</b>이 '+zwFlowEsc(monthSignal.theme.focus)+'을 비춥니다.</div>'
-            +'<div style="font-size:0.76rem;color:#cbd5e1;line-height:1.62;">'
-              +'<b style="color:#93c5fd;">재물·일:</b> '+zwFlowEsc(monthSignal.theme.money)+'<br>'
-              +'<b style="color:#f9a8d4;">관계:</b> '+zwFlowEsc(monthSignal.theme.relation)+'<br>'
-              +'<b style="color:#fcd34d;">주의:</b> '+(isCarefulMonth ? '화기와 흉성의 그림자가 있으니 과속을 피하세요.' : '기회는 있으나 흩어지면 복이 얕아집니다.')+'<br>'
-              +'<b style="color:#86efac;">실행:</b> '+actionLine
-            +'</div>'
-            +'<div style="margin-top:7px;">'+zwFlowSihuaTags(monthSignal.sihua)+'</div>'
-            +'<div style="margin-top:7px;font-size:0.74rem;color:#fde68a;line-height:1.55;"><b>보조 상징:</b> '+zwFlowEsc(monthOlympus.god)+' · '+zwFlowEsc(monthOlympus.seal)+'</div>'
-            +monthDeepHtml
-          +'</article>';
-        }
-        var monthlySummaryHtml = zwFlowAnnualSummary(monthlyFlowSignals, flowYear, flowGanji || String(flowYear));
+        // 월 배치는 두군(斗君) 유월 + 월간 사화 — js/saju-engine.js 의 buildZwMonthlyFlowHtml 하나가 만든다(셸과 같은 코드).
+        var flowMonthly = buildZwMonthlyFlowHtml(pd, flowYear);
+        var monthlyFlowHtml = flowMonthly.bodyHtml;
+        var monthlySummaryHtml = flowMonthly.summaryHtml;
         var birthYearForFlow = Number((window._ziweiBirth && window._ziweiBirth.year) || 0);
         var currentKoreanAge = birthYearForFlow > 0 ? (flowYear - birthYearForFlow + 1) : 0;
         var currentDahan = null;
@@ -2255,9 +2224,9 @@ function renderZiweiPaidBodies(idx, pName, stars, pd, opts) {
         }
         var sec_ziwei_flow = '<div data-cd-marker="'+ZW_FLOW_MARKER+'" style="background:linear-gradient(145deg,rgba(17,24,39,0.92),rgba(49,22,83,0.68));padding:18px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(216,180,254,0.28);box-shadow:0 12px 28px rgba(0,0,0,0.24);">'
           +'<h2 style="color:#fef3c7;font-size:1.18rem;margin:0 0 8px;border-bottom:1px solid rgba(250,204,21,0.24);padding-bottom:8px;">📅 자미두수 1년운 — '+flowYear+'년 월별 운기</h2>'
-          +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowGanji || String(flowYear))+'의 사화와 12궁 흐름을 월별로 펼친 운세입니다.</p>'
+          +'<p style="font-size:0.8rem;color:#c4b5fd;line-height:1.65;margin:0 0 12px;">유년 '+zwFlowEsc(flowMonthly.ganji || String(flowYear))+'의 사화를 두군(斗君) 기준 월 궁에 얹어, 무성이 올림포스의 눈으로 월별 흐름을 풀어 드립니다.</p>'
           +monthlySummaryHtml
-          +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:9px;margin-bottom:14px;">'+monthlyFlowHtml+'</div>'
+          +monthlyFlowHtml
           +'<div class="cd-section-gate zw-basic-paid-gate fr-report-gate" id="ziweiDecadeLuckGate" data-cd-marker="ziwei-basic-paid-gate-v20260617-daehan" data-unlock-key="ziwei_decade_luck" data-locked-title="' + _sajuEngineText("se_21090_attr_title") + '" data-locked-desc="현재 대한의 10년 흐름과 연도별 기회·주의 신호를 열람하려면 5,000원 결제가 필요합니다." style="border-radius:12px;margin-top:14px;">'
             +'<div class="cd-section-gate__overlay">'
               +'<div class="cd-section-gate__icon">🔐</div>'

@@ -271,6 +271,7 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
   - 경계 diff(`git diff origin/main...HEAD --stat`): 결제·이용권·월정석·auth·records·library·worker·api·라우트·리다이렉트·wrangler·.env·package-lock 변경 0.
   - SEO: 공개 page.tsx·metadata·H1·canonical·robots 무변경, 데모는 dev 전용·noindex·사이트맵 밖, 사이트맵 원장만 재생성. 그 외 항목 영향 없음.
   - main CI(push 전 1회): **빨강, 남의 커밋 때문** → W1 은 push 하지 않음. `b354e1e0c`(paid-retry 머지) Critical checks `verify:mongo-query-index-shapes` 실패(`worker/lib/fusion-fortune-recovery-task.js:85,156` 선두 키 불일치), `0531128af`(W4 문서) Static guards `verify:pig-sprite-crop` 실패(`app/components/master-motion/MasterMotion.module.css:76` `calc(100% / var(--mm-n))`). origin/main `96b4a4564` 에서도 로컬 재현. W1 은 두 파일을 건드리지 않음. 브랜치 `wt/guided-birth-w1-20261121-033459` 는 커밋 완료·origin/main 머지 완료 상태로 남김 — main 이 초록이 되면 그 브랜치를 main 에 ff 머지·push.
+  - 착지(2026-11-21): main 녹색(PR CI 44821709664, eb947a11f) 확인 뒤 origin/main 재머지·대상 테스트 47/47·check:pre-push 통과, `3b4a4500e` 로 main push. 워크트리 배수.
 - 롤백: `lib/guided-flow/flags.mjs` 의 해당 `GUIDED_BIRTH_*_ENABLED = false`(흐름별), 전체는 `git revert a9be008d1`(연결만) 또는 W1 커밋 전부.
 - 남은 위험·후속:
   1. 셸 sticky CTA 가 실제로는 붙지 않음(기존 결함): 호스트 래퍼(`SeoLandingTemplate.jsx` main, 동물·별빛 포옹 페이지 래퍼)의 `overflow-hidden` 이 sticky 기준을 바꿔, 시각·확인 단계처럼 긴 단계에서 360×844 첫 화면에 "다음/확인"이 하단 내비(cd-mnav) 뒤에 놓임(무료 사주 시각·확인, 별빛 포옹 시각). 스크롤하면 누를 수 있음. 셸 CSS(`bottom: var(--cd-mnav-offset)`)는 맞음. 고치려면 공용 래퍼를 `overflow-x-clip` 류로 바꿔야 해 범위 밖 — 셸 공통 후속.
@@ -307,6 +308,26 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - 원인: c038f3980 의 `MasterMotion.module.css` `.frames img { width: calc(100% / var(--mm-n)) }`. `--mm-n` 이 TSX 인라인 style 에서만 정해지고 같은 CSS 파일에 단위 없는 선언이 없어, 가드가 나눗셈 우변의 단위 없음을 증명하지 못해 실패(구형 엔진의 길이÷길이 무효화 사고 방지 가드 — 가드는 정상 대상, 수정하지 않음).
 - 수선: `.frames` 에 `--mm-n: 1;` 단위 없는 기본값 선언. 인라인 style 이 같은 요소에서 덮으므로 프레임·CSS 모션 동작 불변. `sitemap:generate` 로 원장 서명 9개 갱신(lastmod 날짜 변동 없음).
 - 검증: verify:pig-sprite-crop OK(스타일시트 299개), check:fast --base=origin/main, check:pre-push.
+
+## W2 비회원 무료 결과 (2026-11-21)
+
+승인 원문(2026-11-21, AskUserQuestion): "무료 결과만 비회원 (권장)" — 무료 결과는 로그인 없이, 개인정보 동의 유지, 보관함 저장·유료 풀이는 로그인. 요청 원문: "서비스 기능에 회귀는 없어야해".
+
+- 커밋: W2 코드·미러 커밋과 이 기록 커밋(아래 git log 의 `feat(saju): W2 …` 다음).
+- 사전 확인: 정적 무료 사주 결과는 클라이언트 계산(KASI 공개 데이터, 서버 인증·DB 쓰기 없음). React `/saju/free/`(FreeSajuGuided·computeFreeSaju)는 원래 비회원 사용 가능.
+- 구현: `js/saju-engine.js` `var FREE_RESULT_GUEST_ENABLED = true;` + `lib/guided-flow/flags.mjs` 같은 이름 상수(단위 테스트가 두 값 일치 강제). `ensureSajuResultSession` 은 세션 확인(`/api/auth/me`)을 그대로 하고, 켬이면 guest·unavailable 도 통과. 비회원 결과 뒤엔 `guestResult` 표시가 붙은 입력 초안(기존 `cd:saju-login-draft:v1`, 1시간)을 남기고, 결과가 보이는 동안 열리는 공용 로그인 모달(`__cdOpenLoginRequiredModal`)의 복귀 주소를 `?action=cdOneStepFreeSajuEntry` 로 바꿔 로그인 뒤 같은 결과를 다시 계산해 보여 준다(돌아온 비회원에게는 안내 문구 없이 입력만 복원). `free_saju_started.signed_in` 은 실제 세션 상태. 저장·상세·유료 잠금(`_dpGateLockFeature`, unlockPremiumFeature, 결제창)은 손대지 않음.
+- 문구: `FreeFortune.tsx`, `/yeongnyangi/1000-won-fortune/`, `/compare/fortune-apps/` 의 "로그인 후 결과" 문구를 플래그 조건으로 바꿈.
+- 검증(실측):
+  - 단위 `__tests__/ui/saju-result-login.test.mjs` 14/14(플래그 끔 기존 7건 그대로 + 켬 7건).
+  - E2E `npm run verify:saju-result-login`(CI 배선 유지): 끔 360/390/430/1280 로그인 벽·취소 복원·mock 로그인 재개 그대로, 켬 360/960 비회원 결과 표시·초안 `guestResult`·로그인 모달→`next` 에 action→복귀 뒤 같은 결과·초안 삭제.
+  - visual-checker(쿠키 배너 닫음, 360·960 전후 8장) 전부 PASS: 끔 로그인 모달 잘림 없음, 켬 비회원 결과 카드·탭·코스믹 영역이 끔(mock 로그인 재개) 결과와 같은 레이아웃, 모달·배너·가로 넘침 없음, 로그인 복귀 뒤 같은 결과. 첫 캡처는 로딩 오버레이(결과 표시 뒤 약 2초) 중에 찍혀 실패 → E2E 대기 조건을 상태 문구·오버레이 해제까지로 고쳐 재캡처.
+  - diff 경계: 결제·이용권·보관함·워커·인증·라우팅 파일 변경 없음.
+  - check:fast(critical 승격): paid-gate 78/0·lint·sitemap(원장 서명만 갱신, lastmod 불변) 통과. 처음 걸린 `saju-bundle-copy` 가드(주석의 "무료 사주" 표기)는 "무료 만세력"으로 고쳐 통과. test:node 남은 실패는 W2 무관: `sky-and-range`(fortune/data/daily-*.json 부재, build-data 로 생성 후 해소)·`yeongnyangi-v7-golden`·`v7-checkpoint-import`(60초 타임아웃 — 스크립트 단독 47초 성공, 병렬 세션 node 33개 부하). check:pre-push 통과.
+  - SEO: 결과는 비공개 상태 화면이라 noindex/robots 변경 없음. 공개 페이지 문구 2곳만 바뀜(title·description·H1·canonical 불변). `/compare/fortune-apps/` 의 `SEO_SERVICE_SCOPES_UPDATED` 날짜는 올리지 않음.
+- 롤백: 두 상수 `FREE_RESULT_GUEST_ENABLED=false` + `npm run sync:public`(끄면 초안 형식·이벤트·모달이 이전과 같음) 또는 W2 커밋 `git revert`.
+- 남은 위험: 회원가입 전환 감소; 무료 사주 `fortune_login_required` 가 거의 0(docs/analytics-kpi.md 에 기록); 코인·결제 401 내부 `_cdPromptLogin`·AI 상담 `redirectToLoginForFortune` 은 결과 복귀 주소로 바뀌지 않음(원래 주소로 복귀); mock 환경 결과 화면 하단 "일시적인 오류" 토스트는 플래그 끔에서도 동일(기존, W2 무관 — 미조사).
+- push 보류(2026-11-21): main PR CI(44815999399, 8e676e4be)가 Static guards "sprite crops" 가드로 red — `app/components/master-motion/MasterMotion.module.css:76` `calc(100% / var(--mm-n))`(W4 c038f3980). W2 무관. W4 수정으로 main 이 녹색이 된 뒤 이 브랜치를 main 에 머지·push 하고 워크트리를 배수한다.
+- 착지(2026-11-21): W4 수선 뒤 main 녹색 확인, W1(`3b4a4500e`)·W3 포함 origin/main 재머지(handoff·CONTEXT_AUDIT·flags.mjs 충돌은 양쪽 유지, sitemap 원장은 재생성), 대상 테스트·check:pre-push 통과 뒤 이 기록이 든 머지 커밋으로 main push. 워크트리 배수.
 
 ## W3 메인 인기 TOP5 결과 (2026-11-21)
 

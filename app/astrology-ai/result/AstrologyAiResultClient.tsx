@@ -841,7 +841,7 @@ export default function AstrologyAiResultClient({paymentSurface = "web"}: {payme
                     content: (
                       <div className={`${RESULT_PANEL_CLASS} p-5 sm:p-6`}>
                         <h3 className="break-keep text-lg font-black leading-7 text-[#f5d487]">{section.title}</h3>
-                        <ConsultationReading kind="astrology" value={section.body} index={index} className="mt-5 text-slate-100" />
+                        <ConsultationReading kind="astrology" value={section.body} index={index} say={{ index, total: sections.length }} className="mt-5 text-slate-100" />
                       </div>
                     ),
                   }))}

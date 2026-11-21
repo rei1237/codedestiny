@@ -107,7 +107,7 @@ next: "S00 기준선의 동일 KST 기간·동의/테스트 제외·승인일 �
 | `share_receive` | `js/core/analytics.js:294` | GA4 | `referral_channel` |
 | `retention_visit` | `js/core/analytics.js:315` | GA4 | `days_since_last_visit` |
 | `free_saju_started` / `free_saju_completed` | `js/saju-engine.js:4787` / `:5307` | GA4 | `signed_in` |
-| `free_saju_submitted` (2026-11-14) | `js/saju-engine.js:4775` — 로그인 확인 **앞** | GA4 | `signed_in`(불리언). 로그인하지 않은 제출까지 센다. `free_saju_started`(로그인 통과 뒤)는 그대로 둔다 |
+| `free_saju_submitted` (2026-11-14) | `js/saju-engine.js:4775` — 로그인 확인 **앞** | GA4 | `signed_in`(불리언). 로그인하지 않은 제출까지 센다. `free_saju_started`(로그인 통과 뒤)는 그대로 둔다. **2026-11-21 W2**(`FREE_RESULT_GUEST_ENABLED` 켬): 비회원도 결과까지 가므로 `free_saju_started`·`free_saju_completed` 에 `signed_in=false` 가 들어온다(전에는 started 가 늘 true 였다 — 이제 실제 세션 상태). 무료 사주에서 `fortune_login_required` 는 거의 발생하지 않는다(저장·유료 풀이 로그인 모달만). 비회원 비율은 `signed_in` 으로 나눠 본다. 플래그 끔이면 이전과 같다 |
 | `free_saju_chart_started` / `free_saju_chart_completed` (2026-11-14) | `app/saju/free/FreeSajuForm.tsx:20` / `:22`(원본) · `app/saju/free/FreeSajuGuided.tsx`(3c-A2 공통 스텝판, 계산 단계 진입 / 계산 성공 뒤). 두 판이 같은 이름·파라미터를 쏜다. 공통 스텝판의 새로고침 결과 복원은 재계산만 하고 다시 쏘지 않는다 | GA4 | `surface=saju_free` · `time_known` |
 | `free_ziwei_chart_started` / `free_ziwei_chart_completed` (2026-11-14) | `app/components/AdvancedZiweiSectionV2.tsx:508` / `:576` (캐시 복원에서는 쏘지 않음) | GA4 | `surface=ziwei_chart` · `time_known` |
 | `landing_form_submit` (2026-11-14) | `app/components/SeoLandingBirthForm.tsx:227` — 셸로 이동 직전 | GA4 | `from_service`(랜딩 경로) · `to_action`(공개 액션 이름, 없으면 도착 경로) |
