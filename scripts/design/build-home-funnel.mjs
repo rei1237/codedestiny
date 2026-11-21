@@ -18,8 +18,11 @@ import { renderHomeConsultationPicker } from '../../lib/marketing/home-consultat
 import { chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { renderFreePromoShellBanner } from '../../lib/marketing/free-promo-shell.mjs';
+import { popularTop5SkeletonHtml, POPULAR_TOP5_ENABLED } from '../../js/core/popular-top5.mjs';
 
 const original = readFileSync('index.html', 'utf8');
+// 인기 TOP5 자리·스켈레톤을 미리 그린다(2026-11-22 즉시 표시·CLS 방지). 채우기는 js/core/yehwa-home.mjs → popular-top5.mjs.
+const popularTop5ShellHtml = () => POPULAR_TOP5_ENABLED ? '<link rel="stylesheet" href="/styles/popular-top5.css?v=build-000000000000"><section class="cd-pop5" data-cd-pop5-shell data-cd-no-trans data-cd-korean-only aria-label="지금 많이 찾는 상담 TOP5">' + popularTop5SkeletonHtml() + '</section>' : '';
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
 vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
 
@@ -348,7 +351,7 @@ vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
   consultationHtml: '<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot"><span id="homeSignature"></span>' + vars.signature + '</div></div>',
   // 2026-11-16 상황형 카드 3장 — 히어로 바로 아래, 무료 홍보 배너 위.
   trustHtml: renderTrustBar(),
-  situationHtml: renderSituationCards(registryWindow.__cdServiceRegistry) + renderLightSajuAndMasters() + renderCompareSection(),
+  situationHtml: renderSituationCards(registryWindow.__cdServiceRegistry) + popularTop5ShellHtml() + renderLightSajuAndMasters() + renderCompareSection(),
   // 2026-11-12 무료 3개월 홍보 배너(표시 전용) — 무료 타일 바로 위.
   quickHtml: renderFreePromoShellBanner(),
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
