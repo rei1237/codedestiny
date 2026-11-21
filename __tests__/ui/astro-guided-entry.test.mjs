@@ -86,7 +86,8 @@ test('unchanged paths: saved profile, server profile, other services, non-shell 
   const server = setup({ session: true, server: { birth: { year: 1990, month: 1, day: 1 } } });
   server.ctx.window.cdHomeAstroEntry();
   assert.deepEqual(server.opened, ['astro']); assert.deepEqual(server.replaced, []);
-  for (const type of ['ziwei', 'sukuyo', 'vedic', 'saju']) {
+  // 숙요·베다는 같은 방식의 자기 랜딩으로 간다(sukuyo-vedic-guided-entry.test.mjs). 자미·사주는 그대로 폼.
+  for (const type of ['ziwei', 'saju']) {
     const other = setup(); other.ctx.window.cdHomeFortuneEntry(type);
     assert.deepEqual(other.replaced, [], type); assert.equal(other.creates(), 1, type);
   }
