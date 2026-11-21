@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import {useCallback,useEffect,useReducer,useState} from 'react';
+import {useCallback,useEffect,useReducer,useRef,useState} from 'react';
 import {FastForward,Map as MapIcon,X} from 'lucide-react';
 import Character,{type Activity} from '../_components/Character';
 import {useSpaceProfile} from '../_lib/use-space-profile';
@@ -17,6 +17,8 @@ import SpeechBubble from './SpeechBubble';
 import BreathGuide from './BreathGuide';
 import HoldToLight from './HoldToLight';
 import WishLantern from './WishLantern';
+import {useAmbientAudio} from '../_audio/use-ambient-audio';
+import MiniPlayer from '../_audio/MiniPlayer';
 type Voice='yeoni'|'cat'|'neutral';
 const ACTIVITY:Record<RitualState['step'],Activity>={enter:'greeting',breathe:'meditation',incense:'idle',bow:'bow',wish:'prayer',dedication:'greeting'};
 function lineKey(state:RitualState,bowing:boolean){
@@ -34,11 +36,20 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
  const [reduced,setReduced]=useState(false),[characterError,setCharacterError]=useState(false),[notice,setNotice]=useState('');
  const scale=timeScale(state.fast);
  const bow=useRitualBow(profile.scope,state.fast?1.6:1);
+ const audio=useAmbientAudio(),{sfx}=audio,heardBows=useRef(0);
  useEffect(()=>{
   const media=matchMedia('(prefers-reduced-motion: reduce)'),sync=()=>setReduced(media.matches);sync();
   media.addEventListener('change',sync);return()=>media.removeEventListener('change',sync);
  },[]);
  useEffect(()=>{dispatch({type:'bowDone',completed:bow.session.completed});},[bow.session.completed]);
+ // 한 번 절을 마치고 일어설 때마다 목탁 한 번. 향·범종은 에셋이 오기 전까지 무음 슬롯이다.
+ useEffect(()=>{
+  const completed=bow.session.completed;
+  if(completed>heardBows.current)sfx('mokugyo');
+  heardBows.current=completed;
+ },[bow.session.completed,sfx]);
+ useEffect(()=>{if(state.lit)sfx('fire');},[state.lit,sfx]);
+ useEffect(()=>{if(state.step==='dedication')sfx('bell');},[state.step,sfx]);
  useEffect(()=>{if(bow.save==='failed')setNotice(t('bow.saveFailed'));},[bow.save,t]);
  // 한 단계의 행동을 마치면 잠시 반응을 보여 준 뒤 다음 화면으로 넘어간다.
  const bowing=bow.session.status==='running';
@@ -80,10 +91,11 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
    {!characterError&&<div className={styles.figure}>
     <Character kind={kind} activity={ACTIVITY[state.step]} elapsed={bow.session.elapsed} reduced={reduced} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/>
    </div>}
+   <MiniPlayer audio={audio} t={t}/>
   </section>
   <section className={styles.panel} aria-live="off">
    {state.step==='enter'&&<>
-    <button type="button" className={space.primary+' '+styles.action} onClick={()=>dispatch({type:'enter'})}>{t('enter.cta')}</button>
+    <button type="button" className={space.primary+' '+styles.action} onClick={()=>{audio.begin();sfx('windChime');dispatch({type:'enter'});}}>{t('enter.cta')}</button>
     <p className={styles.hint}>{t('enter.hint')}</p>
    </>}
    {state.step==='breathe'&&<BreathGuide breaths={state.breaths} scale={scale} onCycle={()=>dispatch({type:'breathDone'})} t={t}/>}
