@@ -6,6 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
+import MasterSay from "@/components/fortune/MasterSay";
 import { Spark, Taegeuk, Yantra } from "../NakshatraSymbols";
 import LifeReading, { type LifeTopic } from '../_components/LifeReading';
 import library from '../library.module.css';
@@ -97,6 +99,27 @@ function viewTabs(copy: NakshatraCopy): { key: ViewMode; label: string }[] {
     { key: "india", label: copy.resultViewTabIndia },
     { key: "unified", label: copy.resultViewTabUnified },
   ];
+}
+
+/** 마스터 말풍선은 한국어 정적 문구라 ko 로케일에서만 그린다. 서버/첫 렌더는 비워 두어 하이드레이션 불일치가 없다. */
+function NakshatraSay({ sectionKey }: { sectionKey: "intro" | "unified" | "closing" }) {
+  const [isKo, setIsKo] = useState(false);
+  useEffect(() => {
+    const sync = () => setIsKo(getCurrentLoadingLocale() === "ko");
+    sync();
+    window.addEventListener("languagechange", sync);
+    window.addEventListener("cd:locale-ready", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      window.removeEventListener("cd:locale-ready", sync);
+    };
+  }, []);
+  if (!isKo) return null;
+  return (
+    <div className="mt-6" style={{ ["--reading-accent" as string]: "#fde68a", ["--reading-wash" as string]: "rgba(251,191,36,0.08)", ["--reading-line" as string]: "rgba(252,211,77,0.28)" }}>
+      <MasterSay say={{ domain: "nakshatra", sectionKey }} />
+    </div>
+  );
 }
 
 function Chip({ children }: { children: React.ReactNode }) {
@@ -210,6 +233,8 @@ export default function NakshatraResultClient() {
           </div>
         </div>
 
+        <NakshatraSay sectionKey="intro" />
+
         {/* 동양 / 인도 2열 */}
         <div className={`mt-6 grid gap-4 ${view === "both" ? "md:grid-cols-2" : ""}`}>
           {showEast && (
@@ -292,6 +317,7 @@ export default function NakshatraResultClient() {
         </div>
 
         {/* 통합 */}
+        {showUnified && <NakshatraSay sectionKey="unified" />}
         {showUnified && (
           <section className="mt-6 rounded-2xl border border-rose-300/25 bg-rose-500/[0.06] p-6 md:p-8" aria-labelledby="unified-h">
             <h2 id="unified-h" className="text-lg font-bold text-rose-100">{copy.resultUnifiedTitle}</h2>
@@ -320,6 +346,8 @@ export default function NakshatraResultClient() {
             )}
           </section>
         )}
+
+        <NakshatraSay sectionKey="closing" />
 
         {/* 오늘의 달 */}
         {!data.calculationVersion && <TodayMoonCard sukuyoIndex={dongyang.index} />}
