@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 흐름", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let release, settleDue, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume, accessQueue, passOrder, withdrawn;
+let release, settleDue, settleStuck, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const getPath = (doc, key) => key.split(".").reduce((row, part) => row?.[part], doc);
@@ -83,7 +83,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({ claimRequestBillingEvidence: async () => ({ ok: true }), evidenceClaimErrorBody: () => ({}), releaseRequestBillingEvidence: (...args) => release(...args) }));
-  ({ handleVedicAiRoutes: route, __vedicAiTestUtils: utils, settleDueVedicRetryRefunds: settleDue } = await import("../../worker/routes/vedic-ai.js"));
+  ({ handleVedicAiRoutes: route, __vedicAiTestUtils: utils, settleDueVedicRetryRefunds: settleDue, settleStuckDelivery: settleStuck } = await import("../../worker/routes/vedic-ai.js"));
 });
 beforeEach(() => {
   docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passReceipt = false; passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true })); accessQueue = []; passOrder = null; withdrawn = false; release = jest.fn(async () => ({ released: 1 }));
@@ -425,4 +425,35 @@ it("writes dignity in Korean and asks for nonzero scores without a placeholder n
   const basis = JSON.stringify(utils.buildVedicAnalysisBasis(r8Chart()));
   expect(basis).not.toMatch(/exalted|enemy sign|"Aries"/u);
   expect(basis).toContain("\"달의 라시\",\"value\":\"양자리\"");
+});
+
+// 2026-11-22 D: 복구 크론의 정체 확정. 창 안은 다시 시도 가능(장 보존·환불 없음), 창이 지나면 기존 보류 환불(settleVedicRetryRefund).
+describe("settleStuckDelivery", () => {
+  const stuckDoc = () => ({ id: docs[0].id, userId: docs[0].userId });
+  const quiet = async work => { const warn = jest.spyOn(console, "warn").mockImplementation(() => {}); try { return await work(); } finally { warn.mockRestore(); } };
+  async function stalled() { mode = "paid"; expect((await start()).status).toBe(202); docs[0].updatedAt = new Date(Date.now() - 300000); return clone(docs[0].llmMeta.groups); }
+  it("holds a stalled card payment for a free retry and keeps the saved groups", async () => {
+    const groups = await stalled();
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("retryable");
+    expect(docs[0]).toMatchObject({ status: "generation_failed", generationError: { code: "DELIVERY_STUCK" }, llmMeta: { groups, retryable: { access: { evidenceType: "direct_payment", paymentDocId: uid } } } });
+    expect(refund).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled();
+    expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(202);
+  });
+  it("refunds once through the held-refund path after the retry window", async () => {
+    await stalled(); refund.mockResolvedValue({ refunded: true });
+    expect(await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() + 8 * 86400000 }))).toEqual({ outcome: "generation_failed", refundStatus: "refunded" });
+    expect(refund).toHaveBeenCalledTimes(1); expect(refund.mock.calls[0][4]).toBe("vedic_ai_generation"); expect(release).toHaveBeenCalledTimes(1);
+    await settleDue({}, { model, now: Date.now() + 8 * 86400000 }); expect(refund).toHaveBeenCalledTimes(1);
+  });
+  it("leaves a live generation, a finished result and a Toss native session alone", async () => {
+    mode = "paid"; expect((await start()).status).toBe(202);
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
+    docs[0].updatedAt = new Date(Date.now() - 300000); docs[0].accessSource = "toss";
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("unsettled");
+    docs[0].accessSource = ""; mode = "none";
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("pending");
+    docs[0].status = "completed";
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("progressed");
+    expect(refund).not.toHaveBeenCalled();
+  });
 });

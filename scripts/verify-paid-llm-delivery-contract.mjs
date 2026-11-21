@@ -65,7 +65,7 @@ export const KNOWN_REFUND_GAPS = Object.freeze([
 // 정체 감시가 자동 확정하지 않고 경보(paid_delivery_stuck_unsettled)만 내는 복구 어댑터(정확히 일치해야 한다).
 // 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로 바깥에서 상태만 바꾸면 "차감됐는데 환불 없음"이 생긴다.
 export const KNOWN_STUCK_SETTLE_GAPS = Object.freeze([
-  "astrology-ai", "vedic-ai", "ziwei-ai", "sukuyo-compatibility-ai",
+  "astrology-ai", "ziwei-ai", "sukuyo-compatibility-ai",
   "nakshatra-ai", "human-design-report", "destiny-compass-ai", "relationship-boundary-test", "naming-prompt",
   "celestial-harmony", "fortune", "karma-destiny-ai",
 ]);
