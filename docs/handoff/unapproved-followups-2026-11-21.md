@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
+next: 5. R5 자미 (조건부, 결제 감사 먼저)
 ---
 
 # 미승인 후속 항목 — 권장안으로 진행 (2026-11-21)
@@ -73,7 +73,12 @@ next: 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
   - 롤백: `FREE_READING_GUEST_ENABLED = false` 또는 `git revert 0b1e65215`.
   - 위험: 가입 전환 감소 가능(W2 와 같은 정책 위험).
   - 후속(보고만): `lib/seo/free-saju-landing.mjs`(/saju/free/) 가 4체계 오늘의 운세를 아직 "로그인 후 무료" 로 안내(보수적 낡은 문구), 세션 확인 중 "로그인 확인 중" 라벨 잠깐 보임, 360 쿠키 배너가 내용 가림, 360 만세 결과 탭 줄 "억부" 잘림(스크롤 탭, 기존). /today/ 는 별도 동의 모달이 없고 시작 버튼이 유지되는 단계.
-- [ ] 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
+- [x] 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
+  - 커밋 9298bd0f1(기능), 머지 c40de0ffb(origin/main 머지·sync:public·sitemap:generate 재생성) → main push. check:pre-push exit 0.
+  - 플래그 `FREE_LIST_PAGE_ENABLED`(lib/guided-flow/flags.mjs) 켬: /free/ 색인·사이트맵 등재, /ggulggul/ 무료 배너 끝에 "무료 운세 한 페이지로 모아 보기" 링크(한국어 전용). 기존 "무료 운세 전체 보기"와 문구를 구분.
+  - 롤백: `FREE_LIST_PAGE_ENABLED=false` → `npm run sync:public` → `npm run sitemap:generate`.
+  - 배너 빈 공간(360): 새로 생긴 것이 아님. 배너 1211px 중 새 링크 몫은 58px이고, 빈 공간처럼 보인 것은 고정 내비 때문에 생긴 캡처 착시(visual-checker 실측). 대비 9.04:1, 360·960 통과.
+  - 후속(미처리): 2027-02-12 무료 프로모션 종료 때 /free/·배너 링크 처리 / 360 상담 캐러셀 모달 닫기 버튼 잘림(이번 범위 밖).
 - [ ] 5. R5 자미 (조건부, 결제 감사 먼저)
 - [ ] 마무리: `docs/context/free-tarot-ux-qa.md` 플래그 표·미승인 목록 갱신, 워크트리·임시 파일 정리, main CI 1회 확인, 한국어 최종 보고
 
