@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 6단계 리다이렉트·로그인 승인 대기(R1~R5·L1, 아래 "6단계 계획" 표) → 5단계 타로 통합 계획 보고 → 7단계 삭제 목록 승인(D1 포함). 6단계 비리다이렉트 부분 완료 2026-11-21
+next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1~R3·L1. 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -63,7 +63,7 @@ next: 6단계 리다이렉트·로그인 승인 대기(R1~R5·L1, 아래 "6단�
   - [x] 3c-A4. 별빛 포옹(`/yeon-star-hug/`) 입력만 공통 셸 이전(`GUIDED_STAR_HUG_ENABLED`). 심리 테스트·프롬프트 허브·크리스탈·FPTI·오라클(룬)은 게이트·DB·공유 러너 때문에 건너뜀, 시코젠은 A5로 미룸. 기능 `0042e6025`, main 머지 `fae848a18`(2026-11-21). 결과는 아래 "3c-A4 결과".
   - [x] 3c-A5. 영냥이 방 출석 운세 16종(`/yeongnyangi/room/`)을 공통 셸로 이전(`GUIDED_YN_FREE_FORTUNE_ENABLED`, 출석 게이트 현행). 시코젠 포바일루는 전체 화면 포털·크롬 라우트 설정 때문에 건너뜀. 기능 `2b2025761`(2026-11-21). 결과는 아래 "3c-A5 결과".
 - [x] 4. 캐릭터 웹툰 결과 렌더러 — 2026-11-21 완료(플래그 `GUIDED_WEBTOON_RESULT_ENABLED`, `/today/` 오늘의 세 장 결과). 아래 "4단계 결과".
-- [ ] 5. 타로 UX 통합 — **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식).
+- [ ] 5. 타로 UX 통합 — **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식). 계획 작성 2026-11-21 — 아래 "5단계·R4·R5 계획", 승인 대기.
 - [ ] 6. 무료 운세 섹션 재구성 — **계획 보고 후 승인 대기**(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검).
   - [x] 6a. 홈·SEO 랜딩 무료 배너 "전체 보기"를 카드 목록으로(`GUIDED_FREE_LIST_ENABLED`), 2026-11-21. 아래 "6단계 결과".
   - [ ] 6b. R1~R5·L1 승인 대기(실행 안 함).
@@ -440,3 +440,134 @@ next: 6단계 리다이렉트·로그인 승인 대기(R1~R5·L1, 아래 "6단�
 - 커밋: `d9d60b8cf` 기능, `7fe6c541f` 미러(셸 사전에 키 2개 추가·빌드 해시), `148344a80` 원장.
 - 위험: "약 N분"은 표시용 추정(실측 아님), details 열 때 썸네일 최대 23장 지연 로드, 정적 셸 목록과 모양 불일치(R1 까지), 960 카드 행 높이 127/149 혼재(설명 3줄).
 - 다음: 위 승인 표 R1~R5·L1 사용자 결정 → 7단계 삭제 목록(D1).
+
+## 5단계·R4·R5 계획 (2026-11-21) — 계획만, 코드 미변경
+
+표기: **[실측]** = 코드 읽기, git grep, 워커 vm 프로브로 확인. **[추정]** = 미확인. 워커 프로브는 `public/_worker.js` 를 vm 에 올리고 ASSETS 를 목으로 둔 로컬 실행이다(목에서 슬래시 없는 경로는 Pages 308 을 돌려준다). 스테이징·운영에서 잰 것이 아니다.
+
+### (a) 5단계 타로 UX 통합
+
+남은 것 [실측]: A1 에서 셸로 옮긴 것은 ③ `/today/` 오늘의 세 장과 ⑧ 치유 타로뿐이다. spec §3-4 의 1번(`lib/tarot/` 설정 객체·순수 상태기계), 4번(셸 무료 3장), 5번(영냥이 일일 타로)이 남았다.
+
+기능별 매핑표 (번호는 감사 문서 B1):
+
+| # | 기능 | 현재 | 어댑터 | 판정 |
+|---|---|---|---|---|
+| ① | 셸 무료 3장 의식 (`openTarotModal`, `js/saju-engine-tarot-sukuyo-quantum.js:3118-3530`) | 78장, master-reading 로컬 계산, 저장 없음 [실측] | `master-reading`, full78, 3장, 주제 6개 이하 | **5단계 본 대상.** 새 플래그 `GUIDED_MINGRI_TAROT_ENABLED`, 호스트 `/tarot/mingri/`(치유 선례처럼 랜딩과 흐름을 같은 URL 에 둔다) |
+| ⑥ | 자존감 타로 | 완전 로컬. 진입 불가: `index.html:31650` 셀프 게이트 목록에 `openTarotSelfEsteemModal` 이 없다 [실측, 감사] | 로컬 결정론 | 후보. 진입 결함 수정은 별개 결함이라 보고만 한다. 이전 여부는 사용자가 정한다 |
+| ⑤⑦⑨⑩ | 재회·한 해·크리스탈 소울·수비학 | 해석을 서버 `/api/tarot/*` LLM 이 만든다 [실측, 감사] | spec §3-3 은 결정론 어댑터만 허용 | **제외.** 셸로 옮기면 LLM 경로를 어댑터로 들여야 하는데, 과금·스키마 변경이라 별도 RED 다 |
+| ④ | 연애 타로 | 유료 5,000원 | 없음 | 제외(D10) |
+| ⑫ | 영냥이 일일 타로 `DailyTarotCard.tsx` | 출석 게이트 | `yeongnyangi-daily` | D11(게이트 현행 유지) 아래에서 이전 가능. ① 다음 |
+| ⑬⑭⑮ | 영냥이 상담 의식, CardPick/SpreadReveal, 마인드스캔 | 상담·유료 추첨 | 없음 | 제외 |
+| ② | 셸 레거시 3장(유료 이어보기) | 유료 이어보기 | 없음 | 제외 |
+
+① 에서 셸 설정으로 옮겨지지 않는 고유 동작 [추정 — 구현 전에 코드로 다시 확인]:
+- 십성 겹쳐 읽기 문구(master-reading 고유 섹션)
+- 셸 모달 백스택과 닫기
+- 셸 공유 버튼
+- 결과 아래 유료 안내 링크. 가격은 카탈로그에서 읽고 하드코딩하지 않는다.
+- 저장하지 않음. 셸에서도 storageKey 를 두지 않는다. 보관함에 기록하지 않는 것이 현행 동작이다.
+
+전환 방식: 기능마다 `lib/guided-flow/flags.mjs` 에 플래그를 하나 둔다. 플래그를 끄면 현재 랜딩과 바이트 단위로 같아야 한다(A1·6a 와 같은 검증). 설정은 `lib/tarot/flow-configs.mjs`(가칭)에 `TarotFlowConfig` 로 모은다. 저장된 결과는 읽을 때만 변환한다. ① 은 저장이 없어 해당 없고, ⑫ 는 기존 키를 그대로 읽는다.
+
+- 위험도: ① 화면 이전 자체는 플래그 뒤의 일반 변경이다. 다만 `openTarotModal`·`cdHomeTarotEntry` 진입을 새 URL 로 보내는 순간 **RED(라우팅)** 이 되므로 R4 와 한 묶음으로 다룬다.
+- 승인 필요: (1) ① 을 `/tarot/mingri/` 인라인으로 옮길지, (2) ⑥ 을 포함할지, (3) ⑫ 를 같은 단계에 넣을지.
+- 검증:
+  - 플래그 켬과 끔 각각 390px 녹화(원문 요구)
+  - 플래그 끔 상태의 랜딩 outerHTML 바이트 비교
+  - `/today/`·치유 타로 회귀
+  - master-reading 결정론 비교: 같은 시드면 같은 3장, 같은 문구
+  - check:fast
+  - perf 로 셸 청크가 같이 실리는지 확인(3c-perf 회귀 재발 방지)
+- 롤백: 플래그를 false 로 두거나 기능 커밋을 revert.
+
+### (b) R4 `/tarot/<slug>` 이중 리다이렉트·명리 canonical 정리
+
+현재 체인 [실측, 워커 vm 프로브와 코드 읽기]:
+
+| 요청 | 결과 |
+|---|---|
+| `/tarot/mingri` (슬래시 없음) | 301 → `/tarot/mingri/` 200. 워커 canonicalRedirect 가 Pages 308 을 301 한 번으로 바꾼다 |
+| `/tarot/love` 등 다른 slug | 같은 방식으로 301 한 번 → 200 |
+| `/index.html?action=openTarotModal`, `/?action=openTarotModal`, `/?action=cdHomeTarotEntry` | 302 한 번(`X-Robots-Tag: noindex, follow`, no-store) → `/ggulggul/?action=…` 200 (brandHomeRedirect) |
+| `/ggulggul/?action=cdHomeTarotEntry` | 바로 200 |
+| `/tarot/mingri/play/` | 200 HTML(noindex, nofollow) → 클라이언트 `NEXT_REDIRECT;replace;/tarot/mingri;307` (`app/tarot/mingri/play/page.tsx`, 2026-11-15 빌드 산출물로 확인) → `/tarot/mingri` 301 → `/tarot/mingri/` |
+
+결론 [실측]: 감사 문서가 말하는 "301→302 이중 리다이렉트"는 **한 요청 안에서 이어지는 연쇄가 아니다.** 실제 이중 홉은 두 곳이다.
+1. 슬래시 없는 랜딩 URL. 301 → 랜딩 200 → CTA 클릭(`runHref=/index.html?action=openTarotModal`, `app/components/FeatureLandingPage.tsx:631-645`) → 302 → `/ggulggul/?action=openTarotModal`.
+2. `/tarot/mingri/play/`. 클라이언트 리다이렉트 뒤에 301 이 한 번 더 붙는다.
+
+운영에서는 아직 재지 않았다(감사 :80-82 와 같은 상태).
+
+제안 최종 체인:
+1. **R4-1** (5단계와 무관하게 할 수 있음): FeatureLandingPage CTA 가 `/ggulggul/?action=<action>` 으로 바로 가게 해 302 홉을 없앤다. 범위는 타로 slug 만(권장)이거나 ACTION_MAP 전체.
+   - 바뀌는 파일: `app/components/FeatureLandingPage.tsx`
+   - 기대값을 고칠 곳: `__tests__/ui/action-entry-dispatch.static.test.js`, `scripts/verify-mobile-entry-actions.mjs:223`(지금은 `/index.html?action=` 을 기대한다)
+   - `apps/toss` 는 매핑이 따로라 영향이 없다고 본다 [추정].
+2. **R4-2** (5단계 ① 뒤): 워커 `CONSOLIDATED_PAGE_REDIRECTS`(`public/_worker.js:11`)에 `/tarot/mingri/play` → `/tarot/mingri/` 301 한 줄을 넣는다. Pages `_redirects` 는 규칙 102개 예산 때문에 쓰지 않고 워커 맵을 쓴다(`verify-redirects-budget.mjs`).
+   - play 페이지 삭제는 7단계 삭제 목록으로 넘긴다. 소스에서 이 페이지로 가는 링크는 0개다 [실측].
+   - 남은 참조는 문서와 인벤토리뿐이다: `docs/payments/payment-p0-inventory.json:12098`, `docs/mobile-platform/inventory.json`, `docs/purchase-journey/inventory.json`, `docs/seo/PAGE_INVENTORY.md:725`, `docs/ROUTE_MAP.md`, `docs/FEATURE_MAP.md`.
+3. **R4-3** (5단계 ① 뒤, 플래그 뒤): 셸 런타임이 `?action=openTarotModal`·`cdHomeTarotEntry` 를 클라이언트에서 `/tarot/mingri/` 로 보낸다.
+   - 고칠 곳: `js/core/index-inline-runtime.js:3381-3413` 의 `__cdStaticCanonicalPathActions` 근처, `js/destiny-profile.js` `_runFortuneType` 의 tarot 분기.
+   - `scripts/static-canonical-route-map.mjs:39-45` 의 `/tarot/mingri` action 값은 sitemap 생성과 dist 준비가 읽으므로 그대로 둔다.
+   - 최종 경로: 홈 카드 → `/ggulggul/?action=cdHomeTarotEntry` 200 → (플래그 켬) `/tarot/mingri/` 흐름. 랜딩에서는 같은 페이지 안에서 셸 흐름을 바로 시작하므로 리다이렉트가 0번이다.
+
+SEO 영향 [실측에 근거한 판단]:
+- canonical `https://code-destiny.com/tarot/mingri/` 은 바뀌지 않는다.
+- sitemap URL 집합도 그대로다. `scripts/generate-sitemap.mjs:158` priority 0.93 을 유지하고, `config/sitemap-lastmod.json` 원장만 다시 서명한다.
+- hreflang 은 해당 없다. ko 전용이고 `public/sitemap.xml:8248` 에 alternates 가 없다. 워커 `localizedEntryPath` 는 `/tarot` 허브만 로케일로 바꾼다.
+- play 는 이미 noindex 라 301 로 바꿔도 색인이 옮겨 가지 않는다.
+- action URL 은 noindex, follow 302 라 색인 대상이 아니다.
+- 랜딩 본문에 흐름이 붙으면 H1·title·description 은 그대로 두고, 늘어나는 본문 텍스트를 6a 와 같은 방식으로 점검한다.
+
+- 위험도: **RED**(라우팅, 워커). R4-1 을 모든 랜딩 CTA 에 적용하면 영향 범위를 다 알 수 없으므로 타로 slug 한정을 권장한다.
+- 승인 필요: R4-1 범위(타로만 / 전체), R4-2 워커 301 추가, R4-3 클라이언트 매핑.
+- 검증:
+  - `__tests__/ui/home-entry-redirect.test.mjs`
+  - `home-direct-feature-links.static.test.js:103`
+  - `home-situation-cards.test.mjs:34`
+  - action-entry-dispatch, verify-redirects-budget
+  - 워커 vm 프로브 재실행 후 위 표와 비교
+  - 라우팅 변경이므로 push 뒤 `npm run verify:staging -- --sha=<SHA>` 1회(CLAUDE.md 의 라우팅 변경 조건)
+- 롤백: 세 변경을 각각 독립 커밋으로 두고 해당 커밋만 revert 한다(워커 맵 한 줄, CTA 함수 하나, 매핑 표 한 줄).
+
+### (c) R5 `cdHome{Ziwei,Sukuyo,Vedic,Astro}Entry` → 새 가이드 흐름
+
+현재 진입 [실측, `js/destiny-profile.js` `cdHomeFortuneEntry` 11197-11226, `_runFortuneType` 10906-10995]:
+- 공통: 타로를 뺀 나머지는 준비된 프로필이 있어야 한다(`_dpHomeEntryProfile` → `DPStorage.current()`).
+  - 세션 힌트가 있으면 `/api/profile` 을 읽는다(`_dpLoadFromServer`, 서버 DB 읽기).
+  - 없으면 프로필 생성·저장 흐름(`dpSaveProfile`, 기존 동의/로그인 경로 재사용)을 거친 뒤 `cd:home-fortune-intent:v1` 로 `/ggulggul/?action=cdHome*Entry` 에 돌아온다.
+- 진입 잠금: `_DP_FEATURE_LOCKS` 에는 olympus·flower 만 있다. 네 기능 모두 진입할 때 결제 잠금이 없다.
+- 모달 오프너(`js/core/index-inline-runtime.js:9331/9659/9700`)에는 인증·API 호출이 없다. 확인한 것은 오프너까지이고, 결과 렌더러 안쪽은 보지 않았다.
+
+| 엔트리 | 현재 대상 | 로그인 | 결제 | DB | 새 흐름 판정 |
+|---|---|---|---|---|---|
+| Astro | `openAstroModal` 셸 모달 | 프로필 저장 경로에서만 | 없음 [실측, 진입 기준] | 로그인 시 프로필 읽기 | **1순위.** 출생 입력(W1 `GuidedBirthSteps` 재사용) + 결정론 차트. 유료 패널 연결은 없다고 본다 [추정 — 결과 렌더러 확인 필요] |
+| Sukuyo | `openSukuyoModal` | 위와 같음 | 없음 | 위와 같음 | 2순위. 본명숙 결과는 선형으로 만들 수 있다. 다만 달력은 월 탐색기라(A2 에서 건너뛴 이유) 결과 뒤 셸 링크로 남긴다 |
+| Vedic | 독립 정적 페이지 `/vedic-astrology.html?vp=…` + session/localStorage 페이로드 | 위와 같음 | 없음 | 위와 같음 | 3순위. 별도 페이지라 흐름을 옮기면 페이지를 교체하게 된다(라우팅 RED 추가) |
+| Ziwei | `openZiweiModal` | 위와 같음 | **유료 인접.** 명반 `AdvancedZiweiSectionV2.tsx` 가 `docs/payments/payment-p0-inventory.json` 에 있고 유료 ZiweiDeepPdfPanel 을 마운트한다(A2 기록) | 위와 같음 | 마지막. paid-gate-auditor 감사와 payment-freeze 확인 뒤 |
+
+- 먼저 만들 흐름: **서양 점성술(Astro).** 진입 게이트가 프로필뿐이고, 결제에 걸린 요소가 가장 적고, W1 출생 입력을 그대로 쓸 수 있다.
+- 위험도:
+  - 흐름 신설은 플래그 뒤의 일반 변경이다. 새 URL 을 만들면 SEO 점검이 따라온다.
+  - 엔트리를 새 흐름으로 **매핑하는 것은 RED**(라우팅)다.
+  - 비로그인 결과를 허용하는 것이 W2 `FREE_RESULT_GUEST_ENABLED` 정책 범위 안인지 확인해야 한다. 로그인 경계라 RED 다.
+- 승인 필요:
+  1. 흐름 호스트 URL. 기존 SEO 랜딩(`/astrology/` 등) 재사용을 권장한다. 그러면 새 색인 URL 이 생기지 않는다.
+  2. 엔트리 매핑.
+  3. 프로필이 없는 비회원에게 저장 없이 결과를 보여 줄지. 지금은 프로필 저장 경로를 거친다.
+- 검증:
+  - `__tests__/ui/home-profile-fortune-entry.test.mjs`(복귀 경로)
+  - `home-direct-feature-links.static.test.js:104-107`
+  - `apps/toss/test/review-scope.test.mjs:39`. 토스 앱은 `cdHomeAstroEntry`·`cdHomeVedicEntry` 를 자체 매핑하므로 바꾸지 않는다.
+  - 플래그 끔 상태의 바이트 비교
+  - 결정론 결과 비교: 같은 출생 정보면 같은 차트
+- 롤백: 플래그를 false 로 두거나 매핑 한 줄을 revert.
+
+### 사용자에게 물을 것 (추천 먼저)
+1. 5단계 ① 셸 무료 3장을 `/tarot/mingri/` 에 인라인으로 옮길까(플래그 `GUIDED_MINGRI_TAROT_ENABLED`)? **추천: 예.** 치유 타로와 같은 구조라 회귀 범위가 작다.
+2. 서버 LLM 타로(⑤⑦⑨⑩)를 셸 이전에서 뺄까? **추천: 계속 뺀다.** 어댑터는 결정론만 허용하는 계약이고, 과금 경로가 걸려 있다.
+3. 자존감 타로(⑥)는? **추천: 진입 결함만 먼저 따로 고치고, 이전은 ① 이 안정된 뒤에.**
+4. R4-1 랜딩 CTA 를 `/ggulggul/?action=` 으로 바로 보낼까? **추천: 타로 slug 에만 먼저.** 전체 적용은 별도로.
+5. R4-2 `/tarot/mingri/play` 워커 301 을 넣고 7단계에서 삭제할까? **추천: 예.** noindex 이고 소스 링크가 0개다.
+6. R5 첫 흐름은? **추천: 서양 점성술, 기존 랜딩 URL 재사용.** 자미는 결제 감사 뒤 마지막.
