@@ -1408,7 +1408,7 @@ function mapPaymentErrorMessage(rawMessage: string) {
   if (text.includes("한도") || text.includes("limit"))
     return "결제 한도 초과로 진행되지 않았습니다. 다른 카드나 결제수단을 이용해 주세요.";
   if (text.includes("점검") || text.includes("maintenance") || text.includes("unavailable"))
-    return "카드사/PG 점검 시간으로 결제가 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
+    return "카드사·결제 서비스 점검 시간이라 결제가 잠시 늦어지고 있어요. 잠시 후 다시 시도해 주세요.";
   return "결제를 완료하지 못했습니다. 네트워크 상태와 결제 정보를 확인 후 다시 시도해 주세요.";
 }
 

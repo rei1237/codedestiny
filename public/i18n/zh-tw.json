@@ -3045,7 +3045,8 @@
         "terms": "服務條款",
         "refund": "退款政策",
         "privacy": "隱私權政策",
-        "support": "付款諮詢"
+        "support": "付款諮詢",
+        "refundConsentHint": "同意上方的退款說明後即可選擇單次付款"
       },
       "passUpgradeTitle": "升級通行證",
       "recommendBadge": "推薦",
@@ -3135,8 +3136,8 @@
         },
         "card": {
           "eyebrow": "單次安全結帳",
-          "title": "正在載入支付閘道視窗。",
-          "message": "正在确认订单信息与认证流程。",
+          "title": "正在開啟付款視窗。",
+          "message": "正在確認訂單資訊與驗證流程。",
           "meta": "付款視窗開啟後請繼續驗證。"
         },
         "checkout": {
@@ -3206,7 +3207,7 @@
         },
         "card": {
           "eyebrow": "單次安全結帳",
-          "title": "正在載入支付閘道視窗。",
+          "title": "正在開啟付款視窗。",
           "message": "正在确认订单信息与认证流程。",
           "meta": "付款視窗開啟後請繼續驗證。"
         },
@@ -3323,6 +3324,9 @@
       "separatePurchaseRequired": "此出生日期需要另外購買",
       "saveProfileFirst": "請先儲存個人檔案後再購買",
       "keepAfterUnlock": "解鎖後，可隨時用此出生日期再次查看。"
+    },
+    "passCard": {
+      "startingPrice": "通行證{price}起 · 還沒有的話可在通行證商店選購"
     }
   },
   "auth": {

@@ -3045,7 +3045,8 @@
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",
-        "support": "Payment help"
+        "support": "Payment help",
+        "refundConsentHint": "Agree to the refund notice above to choose one-time payment"
       },
       "passUpgradeTitle": "Je pas upgraden",
       "recommendBadge": "Aanbevolen",
@@ -3323,6 +3324,9 @@
       "separatePurchaseRequired": "Voor deze geboortedatum is een aparte aankoop nodig",
       "saveProfileFirst": "Sla het profiel op voordat je koopt",
       "keepAfterUnlock": "Na het ontgrendelen kun je het met deze geboortedatum altijd opnieuw bekijken."
+    },
+    "passCard": {
+      "startingPrice": "Passes from {price} · No pass yet? Pick one in the pass shop"
     }
   },
   "auth": {

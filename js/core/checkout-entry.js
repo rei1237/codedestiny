@@ -161,12 +161,21 @@
       '.cd-direct-payment-consent{display:flex;align-items:flex-start;gap:8px;margin:0 0 9px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--pay-gold) 35%,transparent);border-radius:14px;background:color-mix(in srgb,var(--pay-gold) 10%,transparent);color:var(--pay-ink);font-size:12px;font-weight:700;line-height:1.5;cursor:pointer;word-break:keep-all}',
       '.cd-direct-payment-consent input{flex:0 0 auto;width:16px;height:16px;margin:2px 0 0;accent-color:var(--pay-ink);cursor:pointer}',
       '.cd-direct-payment-consent input:focus-visible{outline:2px solid var(--pay-gold);outline-offset:2px}',
+      '.cd-direct-payment-consent-hint{display:block;margin-top:6px;font-size:12px;font-weight:700;line-height:1.45;color:var(--pay-ink);word-break:keep-all}',
+      '.cd-direct-payment-consent-hint::before{content:"↑ "}',
+      '.cd-direct-payment-consent-hint[hidden]{display:none}',
+      '.cd-direct-payment-pass-from{display:block;margin-top:8px;font-size:12.5px;font-weight:800;line-height:1.45;color:var(--pay-ink);word-break:keep-all}',
+      '.cd-direct-payment-method-prompt[hidden]{display:none}',
       '.cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}',
       '.cd-direct-payment-cancel{border:1px solid color-mix(in srgb,var(--pay-gold) 20%,transparent);border-radius:999px;background:transparent;color:color-mix(in srgb,var(--pay-ink) 82%,transparent);padding:10px 18px;min-height:44px;cursor:pointer;font-size:13px;font-weight:700;transition:border-color 170ms ease,color 170ms ease}',
       '.cd-direct-payment-cancel:hover{border-color:color-mix(in srgb,var(--pay-gold) 40%,transparent);color:var(--pay-ink)}',
       '.cd-direct-payment-cancel:focus-visible{outline:2px solid var(--pay-gold);outline-offset:2px}',
       '@keyframes cdCheckoutOptionProgress{from{transform:translateX(-100%)}to{transform:translateX(100%)}}',
       '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid,.cd-direct-payment-method-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-reward{gap:8px;margin-top:9px;padding:9px 10px}.cd-direct-payment-reward__title{font-size:12px!important}.cd-direct-payment-reward__detail{font-size:12px!important}.cd-direct-payment-legal{font-size:12px}}',
+      // 모바일 결제창은 아래에서 올라오는 시트다. [취소] 줄은 스크롤해도 바닥에 붙어 있어 첫 화면에서 늘 보인다
+      // (세 렌더러 모두 .cd-direct-payment-actions 가 다이얼로그의 마지막 직계 자식이라 sticky 가 다이얼로그 스크롤에 붙는다).
+      // padding-bottom 0 의 !important 는 styles/mobile-lite.css 의 시트 규칙(padding-bottom:20px+safe-area !important)을 이기기 위함 — sticky 는 스크롤 컨테이너 패딩 안쪽에 붙어 그만큼 바닥이 뜬다.
+      '@media(max-width:760px){.cd-direct-payment-modal{align-items:flex-end;padding:max(12px,env(safe-area-inset-top,0px)) 0 0}.cd-direct-payment-dialog{width:100%;max-height:calc(100dvh - 12px - env(safe-area-inset-top,0px));border-radius:20px 20px 0 0;border-bottom:0;padding-bottom:0!important}.cd-direct-payment-actions{position:sticky;bottom:0;z-index:3;margin:12px -14px 0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--pay-paper);border-top:1px solid color-mix(in srgb,var(--pay-gold) 18%,transparent)}.cd-direct-payment-cancel{flex:1 1 auto}}',
   ];
   var RETURN_KEY = "cd_checkout_return_v1";
   // 이용권을 사고 돌아오기까지의 현실적 상한. 이 시간을 넘긴 복귀 지점은 사용자가 이미 다른 일을
@@ -607,6 +616,20 @@
     setRefundConsentAgreed(false);
     if (!box) return false;
     box.checked = false;
+    // 잠긴 단건 카드가 "왜 안 눌리는지" 카드 안에서 바로 말한다(동의 상자는 카드 그리드 위에 있다).
+    var hint = null;
+    if (card && card.ownerDocument && typeof card.ownerDocument.createElement === "function") {
+      hint = card.querySelector("[data-refund-consent-hint]");
+      if (!hint) {
+        hint = card.ownerDocument.createElement("span");
+        hint.className = "cd-direct-payment-consent-hint";
+        hint.setAttribute("data-refund-consent-hint", "");
+        hint.textContent = checkoutText("payment.directModal.legal.refundConsentHint", "위 환불 안내에 동의하면 단건 결제를 고를 수 있어요");
+        var go = card.querySelector(".cd-direct-payment-go");
+        if (go) card.insertBefore(hint, go);
+        else card.appendChild(hint);
+      }
+    }
     var apply = function () {
       var agreed = box.checked === true;
       setRefundConsentAgreed(agreed);
@@ -614,6 +637,7 @@
       card.disabled = !agreed;
       if (agreed) card.classList.remove("is-disabled");
       else card.classList.add("is-disabled");
+      if (hint) hint.hidden = agreed;
     };
     apply();
     box.addEventListener("change", apply);
@@ -670,8 +694,13 @@
    * 회귀 면적이 작다. 실제로 순서가 달라지는 것은 '등급은 있는데 이 가격을 못 덮고 + 월정석이 충분한'
    * 경우뿐이고, 그때 월정석을 올리는 이유는 그 사용자에게 추가 지출이 0 이기 때문이다.
    */
+  // 마지막 추천 계산이 '보유 이용권 없음'이었는지. 이용권 카드의 "○○원부터 · 상점 안내" 줄은 이 경우에만
+  // 붙인다(보유자에게 판매가를 보여 주면 이미 산 상품을 다시 사라는 뜻으로 읽힌다). 표시 전용이다.
+  var lastRecommendationPassStore = false;
+
   function resolveCheckoutRecommendation(input) {
     var opts = input || {};
+    lastRecommendationPassStore = opts.allowPass !== false && opts.hasActivePassTier !== true;
     var allowPass = opts.allowPass !== false;
     var allowDirect = opts.allowDirect !== false;
     var allowMonthly = opts.allowMonthly !== false;
@@ -732,6 +761,7 @@
       ? '<span class="cd-direct-payment-go">' + escape(ctx.goLabel) + "</span>"
       : "";
     var ariaAttr = spec.ariaLabel ? ' aria-label="' + escape(spec.ariaLabel) + '"' : "";
+    var passFromHtml = option === "pass" && isRecommended ? buildPassStartingPriceHtml(escape) : "";
     var glyphHtml = option === "monthly" ? buildMoonstoneIconHtml() : escape(spec.glyph);
     var rewardHtml = spec.rewardHtml
       ? '<span class="cd-direct-payment-reward" data-monthly-reward-info><span class="cd-direct-payment-reward__mark" aria-hidden="true">'
@@ -744,10 +774,26 @@
       + glyphHtml + "</span>" + escape(spec.badgeLabel) + "</span>" + recommendHtml + "</span>"
       + "<strong>" + spec.titleHtml + "</strong>"
       + '<span class="cd-direct-payment-desc"' + (spec.descAttr || "") + ">" + spec.descHtml + "</span>"
+      + passFromHtml
       + rewardHtml
       + goHtml
       + "</button>"
     );
+  }
+
+  /**
+   * 추천 이용권 카드의 "이용권 ○○원부터 · 없으면 상점에서 골라요" 한 줄. 가격은 pass-verdict.js 의 현행
+   * 정책 표(가드: verify-pass-tier-policy)에서 읽는다 — 여기 숫자를 적지 않는다. 이용권은 기간 상품이
+   * 아니라 "월" 을 붙이지 않는다. 표가 없거나(구 캐시) 해외 PayPal 지역(USD 결제)이거나 앱(스토어 가격이 따로 있다)이면 그리지 않는다.
+   */
+  function buildPassStartingPriceHtml(escape) {
+    if (!lastRecommendationPassStore || paypalOnlyRegion() || shouldUseAppStoreEntry()) return "";
+    var api = passVerdictApi();
+    var won = api && typeof api.startingPassWonPrice === "function" ? Number(api.startingPassWonPrice()) : 0;
+    if (!Number.isFinite(won) || won <= 0) return "";
+    return '<span class="cd-direct-payment-pass-from" data-pass-starting-price>'
+      + escape(checkoutText("payment.passCard.startingPrice", "이용권 {price}부터 · 없으면 이용권 상점에서 골라요", { price: formatKrwAmount(won) }))
+      + "</span>";
   }
 
   /**
@@ -910,6 +956,11 @@
       });
     }
     // PayPal starts closed until the server explicitly publishes its live configuration.
+    if (win.document && (paypalOnlyRegion() || directPayMethodOpen("PAYPAL", DIRECT_PAY_METHODS.PAYPAL))) {
+      Array.prototype.forEach.call(win.document.querySelectorAll("[data-paypal-guide][hidden]"), function (guide) {
+        guide.removeAttribute("hidden");
+      });
+    }
     if (map.PAYPAL === true && win.document) {
       var paypalTiles = win.document.querySelectorAll('[data-pay-method="PAYPAL"].is-disabled');
       Array.prototype.forEach.call(paypalTiles, function (tile) {
@@ -1212,7 +1263,10 @@
       + escape(checkoutText("payment.directModal.method.back", "뒤로")) + "</button>"
       + '<p class="cd-direct-payment-method-prompt" id="cdDirectPaymentMethodPrompt">'
       + escape(checkoutText("payment.directModal.method.prompt", "어떤 방법으로 결제할까요?")) + "</p>"
-      + '<p class="cd-direct-payment-method-prompt">'
+      // PayPal 안내는 PayPal 이 실제로 열리는 경우(해외 접속 또는 서버가 PayPal 을 연 경우)에만 보인다.
+      // 렌더 뒤 서버 config 로 열리면 setDirectPayMethodAvailability 가 hidden 을 푼다.
+      + '<p class="cd-direct-payment-method-prompt" data-paypal-guide'
+      + (paypalOnlyRegion() || directPayMethodOpen("PAYPAL", DIRECT_PAY_METHODS.PAYPAL) ? "" : " hidden") + ">"
       + escape(checkoutText("payment.paypal.internationalGuide", "해외 접속에서는 PayPal로 단건 상담과 이용권을 구매할 수 있어요. 승인 전에 USD 금액을 확인해 주세요. 보유 이용권·월정석은 기존 조건대로 사용할 수 있어요.")) + "</p>"
       + '<div class="cd-direct-payment-method-grid" role="group" aria-labelledby="cdDirectPaymentMethodPrompt">'
       + cards + "</div>"

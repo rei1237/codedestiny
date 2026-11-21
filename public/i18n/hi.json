@@ -3045,7 +3045,8 @@
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",
-        "support": "Payment help"
+        "support": "Payment help",
+        "refundConsentHint": "Agree to the refund notice above to choose one-time payment"
       },
       "passUpgradeTitle": "अपना पास अपग्रेड करें",
       "recommendBadge": "अनुशंसित",
@@ -3323,6 +3324,9 @@
       "separatePurchaseRequired": "इस जन्मतिथि के लिए अलग से खरीदना होगा",
       "saveProfileFirst": "कृपया खरीदने से पहले प्रोफ़ाइल सहेजें",
       "keepAfterUnlock": "अनलॉक करने के बाद, इस जन्मतिथि से इसे कभी भी फिर से देख सकते हैं।"
+    },
+    "passCard": {
+      "startingPrice": "Passes from {price} · No pass yet? Pick one in the pass shop"
     }
   },
   "auth": {

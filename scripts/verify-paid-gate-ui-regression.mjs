@@ -351,6 +351,7 @@ const freeReadingGuardSource = readFileSync(resolve(root, "app/_lib/use-free-rea
 const freeReadingSessionSource = readFileSync(resolve(root, "app/_lib/free-reading-access.ts"), "utf8");
 assertContains(freeReadingSessionSource, "'/api/auth/me'", "free reading verifies server session");
 assertContains(freeReadingSessionSource, "data?.authenticated === true && Boolean(data?.user?.id)", "free reading fails closed without authenticated user");
+assertContains(freeReadingSessionSource, 'return FREE_READING_GUEST_ENABLED === true;', 'free reading guest pass follows the L1 flag only');
 for (const event of ['cd:auth-changed', 'AUTH_SESSION_INVALIDATED_EVENT', 'cd:profile-changed', 'popstate', 'storage']) {
   assertContains(freeReadingGuardSource, event, 'free reading invalidates late work: ' + event);
 }
@@ -390,6 +391,12 @@ for (const [key, file] of [
   assertContains(source, 'await hasFreeReadingSession()', key + ' requires fresh login');
   assertContains(source, 'if (!request.valid()) return;', key + ' rejects stale session');
   assertContains(source, 'useReadingIdentityReset(', key + ' clears private results');
+  // L1(2026-11-21): only /today/ may open its free basic result to guests, behind FREE_READING_GUEST_ENABLED (app/_lib/free-reading-access.ts).
+  if (key === 'daily-fortune-reading') {
+    assertContains(source, 'if (signedIn || freeReadingGuestAllowed()) setAccessGranted(true); else setAccessError(', key + ' guest pass is flag-gated');
+  } else {
+    assertNotContains(source, 'freeReadingGuestAllowed(', key + ' keeps login-only free result');
+  }
 }
 const compassResumeSource = readFileSync(resolve(root, 'app/destiny-compass/_components/CompassApp.tsx'), 'utf8');
 for (const key of ['crossroads', 'life-voyage', 'future-sim', 'deep-report']) assertContains(compassResumeSource, 'usePaidResume("destiny-compass-' + key + '"', key + ' historical resume remains');
