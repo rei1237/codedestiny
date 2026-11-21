@@ -215,3 +215,7 @@ test.each(['monthly','single','pass'])('%s payment without calculated facts is r
  const payload=await response.json();expect(payload.code).toBe('MISSING_CALCULATED_FACTS');expect(payload.refunded).toBe(true);expect(payload.retryable).toBe(false);
  expect(refund).toHaveBeenCalledTimes(1);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
 });
+test('a failed refund before any record keeps the payment and tells the client to retry the same request',async()=>{
+ mode='monthly';refund.mockRejectedValueOnce(Error('refund down'));const payload=await (await post({...original(),astrologyResult:{}})).json();
+ expect(payload.refunded).toBe(false);expect(payload.retryable).toBe(true);expect(payload.paymentRetainedForRetry).toBe(true);expect(docs).toHaveLength(0);
+});

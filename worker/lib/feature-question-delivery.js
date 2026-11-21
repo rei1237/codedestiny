@@ -86,7 +86,8 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
     const storage = error?.code === 'RESULT_STORAGE_UNAVAILABLE' || !error?.status;
     return json({ ok: false, code: storage ? 'RESULT_STORAGE_UNAVAILABLE' : error.code || 'INVALID_QUESTION',
       message: storage ? '저장된 상담을 확인하고 있어요. 같은 상담으로 다시 시도해 주세요.' : error.message,
-      resultId: error.resultId, retryable: storage, paymentRetainedForRetry: storage,
+      // 환불이 실패했으면 결제가 남아 있고 같은 요청이 환불을 다시 시도한다.
+      resultId: error.resultId, retryable: storage || error.refunded === false, paymentRetainedForRetry: storage || error.refunded === false,
       ...(error.refunded === undefined ? {} : { refunded: error.refunded }) }, { status: storage ? 503 : error.status });
   }
 }
