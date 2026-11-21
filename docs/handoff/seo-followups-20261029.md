@@ -33,7 +33,9 @@ next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상
   - T2는 해결됐다. `/fortune/tomorrow/pig`가 301 + 절대 Location이고, `?v=1`이 붙어도 1단으로 끝난다.
   - C2는 소스·JSON·public 사본에서 사라졌다(`git grep`). 추적 중인 `.md` 12개에만 남았다: 상품 원고 2, 마케팅 원문 1, 스펙 1, handoff 8. 링크는 claude.ai의 `artifact/`·`code/artifact/` 두 경로 형태다. 이 12개 중 사이트에 노출되는 것이 있는지는 확인하지 않았다.
   - T6: 사이트맵 1,087 URL 중 hreflang 대안이 있는 627개는 모두 x-default를 가진다. 대안이 없는 460개 중 `/fortune/` 14개(2027 허브·12띠·`prompt-hub`)는 HTML에도 hreflang이 없다. 나머지 `/fortune/` 101개는 HTML에 hreflang 링크가 있다(6쪽 표본 모두 9개). 14개가 의도된 단일 언어인지는 확인하지 않았다.
-  - T1: 최근 14회(11/07~11/20) 중 5회 실패했고 11/17부터 4회 연속 성공이다. 5회 모두 "Publish and verify" 스텝에서 2회 시도 후 실패했다. 11/11은 릴리스가 "Install Playwright Chromium"에서, 11/13은 "Deploy Pages and Worker at the exact SHA"에서 두 번 다 실패했다(릴리스 자체의 실패). 11/09·11/10·11/16은 두 시도 모두 릴리스 런의 conclusion이 공백인 채 실패로 판정됐다(소요 33·53·52분). RED라 패치하지 않았다.
+  - T1: 최근 14회(11/07~11/20) 중 5회 실패했고 11/17부터 4회 연속 성공이다. 5회 모두 "Publish and verify" 스텝에서 2회 시도 후 실패했다. 11/11은 릴리스가 "Install Playwright Chromium"에서, 11/13은 "Deploy Pages and Worker at the exact SHA"에서 두 번 다 실패했다(릴리스 자체의 실패). 11/09·11/10·11/16은 두 시도 모두 릴리스 런의 conclusion이 공백인 채 실패로 판정됐다(소요 33·53·52분). 이후 워크플로를 패치했다(`6ae096824`, 아래 A절 T1).
+    - 범위를 최근 40회로 넓히면 야간 실패는 13회(10/19·23·27·28·29·30, 11/03·06·09·10·11·13·16)이고, 그중 11회는 두 시도 중 한 번 이상 릴리스 런이 success였다(거짓 실패 + 이중 배포). 두 시도 모두 릴리스가 실패한 밤은 11/11(Playwright Chromium 설치의 apt DNS 일시 오류)과 11/13(`wrangler pages deploy`의 "Unknown internal error occurred", 두 번 다 같은 실패) 2회뿐이다.
+    - 정상 릴리스는 17~31분이고 성공한 런의 최대 소요는 대기를 포함해 48.5분이다. 25분 한도(`timeout 25m gh run watch`)가 이를 넘겼다. 11/09 시도 1은 `gh run watch`가 HTTP 500으로 5분 만에 죽었는데 릴리스 런 42642814791은 success였다.
 
 ## 남은 작업
 
@@ -47,9 +49,15 @@ next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상
 - [ ] **T1 자정 날짜 지연** (`.github/workflows/fortune-daily-publish.yml`)
   - 현상: 00:10 KST cron이 7~26분 늦게 돌고, 릴리스는 31~53분 걸린다. 그 사이 오늘/내일 페이지가 전날 날짜로 나간다. 2026-10-30 00:10 KST에도 오늘=10/29, 내일=10/30으로 서빙 중인 것을 확인했다.
   - 10월에 6일이 "실패"로 찍혔지만 릴리스 런 자체는 성공했다(gh run 로그).
-    - 194행 `timeout 25m gh run watch`가 릴리스 소요(19~53분)보다 짧다. 그래서 거짓 실패로 판정하고 두 번째 릴리스를 중복 디스패치한다. 그 뒤의 verify·IndexNow·체크포인트 스텝은 건너뛴다.
-    - 206행 신선도 검사의 `--wait-minutes=8`도 짧다.
-    - 대기 시간을 실측 소요에 맞추고 중복 디스패치를 막는다.
+    - 🔴 고침(`6ae096824`): `timeout 25m gh run watch`가 릴리스 소요(17~31분, 성공 최대 48.5분)보다 짧아 거짓 실패로 판정하고 두 번째 릴리스를 중복 디스패치했다. 그 뒤의 verify·IndexNow·체크포인트 스텝도 건너뛰었다. 이제 한도는 60분(`RELEASE_WATCH_SECONDS=3600`)이다. watch가 성공으로 끝나지 않으면 같은 런을 다시 조회해 판정한다.
+      - completed+success → verify로 진행한다.
+      - completed+그 외 → 기존대로 한 번 더 시도한다.
+      - 한도까지 미완료 → 재디스패치 없이 단계 `release-timeout`으로 멈추고 이슈로 알린다.
+      - 잡 `timeout-minutes`는 70 → 160이다(최악 경로 ≈ 148분. 잡이 먼저 취소되면 이슈 스텝이 돌지 못한다).
+    - 검증: 스텁 `gh`로 `bash -e` 아래에서 10개 시나리오를 돌려 디스패치 횟수·종료 코드·마지막 단계를 대조했다(성공, watch 비정상 종료 뒤 success, 진짜 실패 뒤 재시도, 미완료, 조회 API 오류, 반영 확인 1회·2회 실패, 대기열에서 시작 못 함 등). watch는 죽었지만 릴리스는 success인 입력에서 옛 스크립트는 디스패치 2회·exit 1, 새 스크립트는 디스패치 1회·exit 0이다. `verify-worker-single-deploy-guard`도 통과한다.
+    - **실제 야간 런은 아직 돌지 않았다(미검증).** 푸시 뒤 첫 야간 런(15:10 UTC = 00:10 KST)이 검증이다. 스케줄 워크플로는 main의 파일을 쓰므로 푸시만으로 적용된다(`on:`은 schedule·workflow_dispatch뿐이라 푸시가 런을 만들지는 않는다).
+    - 고치지 않은 것: 신선도 검사의 `--wait-minutes=8`(그대로), 자정 날짜 지연 자체(아래 근본 대책 후보), 진짜 릴리스 실패 2건(11/11·11/13, 일시 오류).
+    - 같은 25분 결함이 `.github/workflows/yeongnyangi-weekly-publish.yml:103`(`timeout 25m gh run watch`)에 남아 있다. 요청 밖이라 고치지 않았다.
   - 근본 대책 후보: 자정 전에 다음 날짜 산출물을 미리 빌드해 두고 00:00에 전환한다.
   - 실패 판정: 3일 연속 00:05·00:30·01:00 KST에 Yeti로 본 title이 그날 날짜가 아니면 실패다.
   - 감사 부록 B(00:50 재측정)는 감사 에이전트가 채우지 못했으면 다음 자정에 `raw\`의 `midnight_probe.py`로 다시 잰다.
@@ -76,14 +84,17 @@ next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상
   - "게자리 자리": `zodiacNameKoFromEn()`이 이미 '자리'를 붙여 돌려주는데 템플릿이 '자리'를 또 붙인다. 위치는 `lib/fortune/build-view.ts:123`, `lib/fortune/day-relation.ts:260`, `i18n/authored/fortuneTpl-01.json:144,228`이다.
   - "Waning gibbous / 하현 — 기운이 차오름": `i18n/authored/shellRuntime-22.json:74,256,270`. 뜻이 거꾸로다.
   - 🔴 i18n 역인덱스 키가 한국어 원문이다. 한국어를 바꾸면 번역 키도 같이 바꾼다.
-- [ ] **띠 출생연도 목록에 오지 않은 해가 들어 있다** (`lib/fortune/sign-profiles.ts` `rangeLabel`)
-  - 모든 띠가 1948+i부터 12년씩 7개를 찍는다. 그래서 양띠는 2027년생, 원숭이·닭·개·돼지띠는 2028~2031년생까지 들어 있다. 돼지띠는 1947년생이 빠졌다.
+- [x] **띠 출생연도 목록에 오지 않은 해가 들어 있다** (`lib/fortune/sign-profiles.ts` `rangeLabel`) — 2026-11-21 `908d831c7`로 고쳤다.
+  - 모든 띠가 1948+i부터 12년씩 7개를 찍어서 양띠는 2027년생, 원숭이·닭·개·돼지띠는 2028~2031년생까지 들어 있었고 돼지띠는 1947년생이 빠져 있었다. 이 5개를 12년씩 앞으로 당겼다(7개 유지): 양 1943…2015, 원숭이 1944…2016, 닭 1945…2017, 개 1946…2018, 돼지 1947…2019. 쥐~말띠는 이미 맞아서 그대로다.
   - 이 목록은 96개 띠·별자리 운세 페이지와 허브에 보인다.
-  - 🔴 같이 바꿔야 하는 곳:
-    - `scripts/i18n-gen-sign-meta.mjs` → `i18n/authored/shellRuntime-24.json` → 12개 로케일의 `public/i18n/*/shellRuntime.json`
-    - `content/fortune/translations/{en,ja,zh-CN,zh-TW}.json`의 rangeLabel
-    - `scripts/build-fortune-hub-shell.mjs`의 정적 허브
-    - `scripts/verify-fortune-locale-completeness.mjs`
+  - 바꾼 곳:
+    - `lib/fortune/sign-profiles.ts`
+    - `content/fortune/translations/{en,ja,zh-CN,zh-TW}.json`의 rangeLabel 5개씩(연도만)
+    - `i18n/authored/shellRuntime-24.json`(`scripts/i18n-gen-sign-meta.mjs`가 sign-profiles.ts에서 읽어 만든 결과와 바이트 동일) → 12개 로케일의 `public/i18n/*/shellRuntime.json`
+    - 정적 허브 `fortune/index.html`(`npm run build:fortune-hub-shell`)과 `public/` 미러
+    - sitemap lastmod 원장·xml: 공유 코드를 건드려 23개 URL의 lastmod가 11/21로 갱신됐다.
+  - 스크립트(`i18n-gen-sign-meta.mjs`·`build-fortune-hub-shell.mjs`)는 고치지 않았다. 산출물만 다시 만들었다.
+  - 🔴 남은 것(요청 밖): 번역 JSON 4개의 `sourceHash`는 11/19(`c869b02ee`)부터 낡은 채다. 이번에도 연도 문자열만 고치고 `sourceHash`는 건드리지 않았다. 이를 검사하는 `scripts/verify-fortune-locale-completeness.mjs`는 추적 파일 전체에서 문서만 언급하고 호출처(`package.json`·워크플로·스크립트)가 없다(`git grep`).
 
 ### C. 신규·재색인 랜딩 (1개월 안)
 
