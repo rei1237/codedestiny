@@ -344,3 +344,43 @@ test('S15 luck judgement: natal once, month chapters get scoped month verdicts, 
   });
   expect(money.luckJudgement.year).toBeDefined();
 });
+
+describe('Trait-First (TRAIT_FIRST_SAJU)', () => {
+  const temperament = HEUKWOL_CHAPTERS.find(c => c.key === 'temperament');
+  const traitOn = { traitFirst: 'v1', traitSeed: 'owner|heukwol' };
+  test('off is byte-identical for every chapter, with and without a repair hint', () => {
+    for (const chapter of HEUKWOL_CHAPTERS) {
+      const base = heukwolPrompt(analysis, chapter, '질문', []);
+      expect(heukwolPrompt(analysis, chapter, '질문', [], '', {})).toBe(base);
+      expect(heukwolPrompt(analysis, chapter, '질문', [], '', { traitFirst: null })).toBe(base);
+      expect(heukwolPrompt(analysis, chapter, '질문', [], '힌트', {})).toBe(heukwolPrompt(analysis, chapter, '질문', [], '힌트'));
+      if (chapter.key !== 'temperament') expect(heukwolPrompt(analysis, chapter, '질문', [], '', traitOn)).toBe(base);
+    }
+  });
+  test('on adds the fact block to the temperament suffix only; removing it restores the off prompt', () => {
+    const off = heukwolPrompt(analysis, temperament, '질문', []);
+    const on = heukwolPrompt(analysis, temperament, '질문', [], '', traitOn);
+    expect(on.startsWith(`${HEUKWOL_PROMPT_PREFIX}\n`)).toBe(true);
+    const start = on.indexOf('\n[타고난 성향 핵심 근거]');
+    expect(start).toBe(off.length);
+    expect(on.slice(0, start)).toBe(off);
+    expect(on.slice(start)).toContain('신금 일간');
+    expect(on.slice(start).split('\n').at(-1).startsWith('사용 규칙: 성향 장은')).toBe(true);
+    const hinted = heukwolPrompt(analysis, temperament, '질문', [], '힌트', traitOn);
+    expect(hinted).toBe(`${on}\n보완 요청: 힌트`);
+  });
+  test('the generator forwards the pinned value and the shadow check never blocks delivery', async () => {
+    const prompts = [];
+    const text = '흑월이 짚는 조건이 있습니다. '.repeat(40);
+    const reply = { warning: text, interpretation: text, strategy: '먼저 확인해. '.repeat(60), checkpoints: ['하나', '둘', '셋'], evidenceIds: ['natal-saju'] };
+    const capture = async (_env, prompt) => { prompts.push(prompt); return { ok: true, text: JSON.stringify(reply) }; };
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const info = jest.spyOn(console, 'info').mockImplementation(() => {});
+    try {
+      const chapter = await generateHeukwolChapter({}, analysis, temperament, '질문', [], capture, { deliveryPlanVersion: 2, finalAttempt: true, ...traitOn });
+      expect(chapter.key).toBe('temperament');
+      expect(prompts[0]).toBe(heukwolPrompt(analysis, temperament, '질문', [], '', traitOn));
+      expect([...warn.mock.calls, ...info.mock.calls].some(c => c[0] === '[Heukwol] Trait First Shadow')).toBe(true);
+    } finally { warn.mockRestore(); info.mockRestore(); }
+  });
+});
