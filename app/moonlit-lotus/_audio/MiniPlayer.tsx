@@ -23,7 +23,10 @@ export default function MiniPlayer({audio,t}:{audio:AmbientAudio;t:RitualT}){
  useEffect(()=>{
   if(!open)return;
   closeButton.current?.focus();
-  list.current?.querySelector('[aria-current=true]')?.scrollIntoView({block:'nearest'});
+  // 지금 곡은 목록 자체의 스크롤 안에서만 보이게 한다. scrollIntoView 는 낮은 화면에서 시트 전체를 내려 버린다.
+  const box=list.current,item=box?.querySelector<HTMLElement>('[aria-current=true]');
+  if(box&&item&&box.scrollHeight>box.clientHeight)box.scrollTop=Math.max(0,item.offsetTop-box.offsetTop-(box.clientHeight-item.offsetHeight)/2);
+  if(sheet.current)sheet.current.scrollTop=0;
   const key=(event:KeyboardEvent)=>{if(event.key==='Escape')setOpen(false);};
   const outside=(event:PointerEvent)=>{const target=event.target as Node;if(!root.current?.contains(target)&&!sheet.current?.contains(target))setOpen(false);};
   document.addEventListener('keydown',key);document.addEventListener('pointerdown',outside);
