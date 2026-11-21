@@ -94,7 +94,7 @@ Claude 훅은 Codex 훅이 아니다. 도구별 규칙 적용을 구분한다.
 
 룰셋 `main-protection`은 `deletion`·`non_fast_forward`를 유지한다. main이 유일한 복구 지점이므로 브랜치 삭제와 force-push 차단이 더 중요하다. 롤백은 `git revert`로 하며 force-push가 필요 없다.
 
-스테이징은 main push마다 비동기로 배포된다. 스테이징 검증(`npm run verify:staging -- --sha=<40자리 SHA>`)은 사용자 요청, 배포 인프라 변경, 운영 릴리스 전(`npm run verify:release`), 대형 결제·로그인 변경 후, 라우팅 변경 후, 스테이징 전용 버그 조사 때만 한다. 운영 승격은 별도 1회 승인 때만 수행한다.
+스테이징은 자동 배포되지 않는다(2026-11-21) — 필요할 때만 `mode=staging` 으로 수동 dispatch 한다. 사용자가 "운영 배포"를 요청하면 스테이징을 거치지 않고 바로 `gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production` 을 dispatch 한다. 스테이징 검증(`npm run verify:staging -- --sha=<40자리 SHA>`)은 사용자 요청, 배포 인프라 변경, 운영 릴리스 전(`npm run verify:release`), 대형 결제·로그인 변경 후, 라우팅 변경 후, 스테이징 전용 버그 조사 때만 한다. 운영 승격은 별도 1회 승인 때만 수행한다.
 
 Do not wait for or manually verify staging deployment after every push. Do not wait for CI either: after a push, continue to the next task and check the main CI result once, right before the next push or the final report. Never loop on `sleep` + `gh run list`. If main is already red from someone else's commit, report that commit instead of pushing on top of it. Verify staging only when explicitly requested, when deployment infrastructure changed, or during a final release verification.
 Do not poll staging URLs, deployment status, commit SHA, or freshness markers after routine pushes.
