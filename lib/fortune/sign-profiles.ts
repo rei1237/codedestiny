@@ -546,10 +546,11 @@ const ANIMAL_PROFILES: SignProfile[] = [
     id: "tiger",
     kind: "animal",
     nameKo: "범띠",
-    aliasKo: "호랑이띠",
     nameEn: "Tiger",
     symbol: "🐯",
     rangeLabel: "1950 · 1962 · 1974 · 1986 · 1998 · 2010 · 2022년생",
+    // build-fortune-hub-shell.mjs 추출기가 nameKo→nameEn→symbol→rangeLabel 연속 순서를 읽는다. 그 사이에 끼우지 않는다.
+    aliasKo: "호랑이띠",
     element: "목(木)",
     ruler: "인오술 화국(火局)",
     keywords: ["기개", "돌파", "정의"],
