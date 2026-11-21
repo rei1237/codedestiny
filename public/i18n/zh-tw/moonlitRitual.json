@@ -1,135 +1,135 @@
 {
   "moonlitRitual": {
-    "title": "Moonlit Lotus Visit",
-    "progress": "Visit step {current} of {total}",
+    "title": "月光蓮花堂參拜",
+    "progress": "參拜 {current} / {total}",
     "steps": {
-      "enter": "Enter",
-      "breathe": "Breathe",
-      "incense": "Incense",
-      "bow": "Three bows",
-      "wish": "Wish lantern",
-      "dedication": "Dedication"
+      "enter": "入堂",
+      "breathe": "呼吸",
+      "incense": "上香",
+      "bow": "三拜",
+      "wish": "許願燈",
+      "dedication": "迴向"
     },
-    "exit": "Leave",
-    "browse": "Explore the temple",
-    "home": "Go home",
-    "fast": "Faster pace",
-    "skip": "Skip",
-    "showLine": "Show the whole line",
+    "exit": "離開",
+    "browse": "逛逛蓮花堂",
+    "home": "返回首頁",
+    "fast": "加快進度",
+    "skip": "跳過",
+    "showLine": "顯示完整台詞",
     "enter": {
-      "cta": "Begin the visit",
-      "hint": "One step per screen, at your own pace."
+      "cta": "開始參拜",
+      "hint": "一個畫面只做一件事，慢慢為您引導。"
     },
     "breathe": {
-      "inhale": "Breathe in",
-      "hold": "Hold",
-      "exhale": "Breathe out",
-      "count": "Breath {current} of {total}"
+      "inhale": "吸氣",
+      "hold": "屏息",
+      "exhale": "吐氣",
+      "count": "第 {current} / {total} 次呼吸"
     },
     "incense": {
-      "hold": "Press and hold to light the incense",
-      "tap": "Light it with one tap",
-      "lit": "The incense is burning"
+      "hold": "長按點香",
+      "tap": "點一下點香",
+      "lit": "香煙裊裊升起"
     },
     "bow": {
-      "cta": "Bow ({current}/{total})",
-      "running": "Bowing…",
-      "done": "Three bows complete",
-      "saveFailed": "The record could not be saved, but your bows are complete."
+      "cta": "禮拜（{current}/{total}）",
+      "running": "正在禮拜…",
+      "done": "三拜已完成",
+      "saveFailed": "紀錄未能儲存，但禮拜已完成。"
     },
     "wish": {
-      "label": "One wish",
-      "placeholder": "Write your wish in a single line",
-      "send": "Release the lantern",
-      "swipe": "You can also swipe the lantern upward.",
-      "lantern": "Wish lantern",
-      "saveFailed": "Your wish could not be saved, but the lantern was released."
+      "label": "一個心願",
+      "placeholder": "請用一句話寫下心中的願望",
+      "send": "放飛許願燈",
+      "swipe": "把燈向上滑也能放飛。",
+      "lantern": "許願燈",
+      "saveFailed": "心願未能儲存，但許願燈已經放飛。"
     },
     "dedication": {
-      "title": "Today’s visit is complete"
+      "title": "今天的參拜結束了"
     },
     "speaker": {
-      "yeoni": "Yeoni",
-      "cat": "Yeongnyangi",
-      "friend": "Your companion"
+      "yeoni": "妍伊",
+      "cat": "英喵",
+      "friend": "同行的朋友"
     },
     "speech": {
       "yeoni": {
-        "enter": "Welcome. I will guide you slowly, right by your side.",
-        "breathe": "Follow the light: breathe in for four, hold for four, out for six.",
-        "incense": "Press and hold the incense to light your heart.",
-        "incenseLit": "The incense is rising. Shall we offer our bows?",
-        "bow": "Each tap is one bow together. Three is enough.",
-        "bowDone": "Those were heartfelt bows.",
-        "wish": "Place one wish from your heart in the lantern.",
-        "wishSent": "The lantern is rising along the moonlight.",
-        "dedication": "May today’s offering reach you and everyone you hold dear."
+        "enter": "歡迎光臨。今天由我陪在您身邊，慢慢為您引導。",
+        "breathe": "請跟著光，數四下吸氣，屏息四下，再數六下吐氣。",
+        "incense": "請長按香，為心裡點亮一盞燈。",
+        "incenseLit": "香已經點好了。我們來禮拜吧？",
+        "bow": "每按一次，就和我一起拜一次。三次就足夠了。",
+        "bowDone": "這是誠心誠意的三拜。",
+        "wish": "請把心中的一個願望放進許願燈裡。",
+        "wishSent": "許願燈正順著月光緩緩升起。",
+        "dedication": "願今天獻上的心意，平安地傳到您和您珍視的人身邊。"
       },
       "cat": {
-        "enter": "You came! I’ll stay right beside you.",
-        "breathe": "Breathe with the light. In for four, hold four, out for six.",
-        "incense": "Press and hold the incense to light it.",
-        "incenseLit": "It’s lit, meow!",
-        "bow": "Every tap, we bow once together. Three times.",
-        "bowDone": "Nicely done, meow!",
-        "wish": "Write just one wish on the lantern.",
-        "wishSent": "There goes the lantern, meow.",
-        "dedication": "Today’s wish will reach you and the people you love."
+        "enter": "你來啦！今天我陪著你。",
+        "breathe": "跟著光呼吸。吸四下，停四下，吐六下。",
+        "incense": "按住香，把它點著吧。",
+        "incenseLit": "點著了喵！",
+        "bow": "每按一下，我們就一起拜一次。一共三次。",
+        "bowDone": "做得好喵！",
+        "wish": "在許願燈上寫一個願望就好。",
+        "wishSent": "許願燈飛走了喵。",
+        "dedication": "今天的心意，一定會傳到你和你珍惜的人那裡。"
       },
       "neutral": {
-        "enter": "Welcome. I’ll walk through this slowly with you.",
-        "breathe": "Follow the light: in for four, hold for four, out for six.",
-        "incense": "Press and hold the incense to light it.",
-        "incenseLit": "The incense is rising. Now let’s bow.",
-        "bow": "Each tap is one bow together. Three in all.",
-        "bowDone": "You offered three heartfelt bows.",
-        "wish": "Place one wish in the lantern.",
-        "wishSent": "The lantern drifts toward the moonlight.",
-        "dedication": "May today’s wish reach you and those you care about."
+        "enter": "歡迎。今天我會在旁邊，慢慢陪你一起。",
+        "breathe": "跟著光，數四下吸氣，屏息四下，數六下吐氣。",
+        "incense": "請長按香，把它點亮。",
+        "incenseLit": "香煙升起來了。現在來禮拜吧。",
+        "bow": "每按一次，就一起拜一次。一共三次。",
+        "bowDone": "你誠心完成了三拜。",
+        "wish": "把一個願望放進許願燈裡吧。",
+        "wishSent": "許願燈朝著月光飄了上去。",
+        "dedication": "願今天的心意，傳到你和你在乎的人身邊。"
       }
     },
     "audio": {
-      "open": "Open music",
-      "title": "Meditation music",
-      "close": "Close",
-      "prev": "Previous track",
-      "next": "Next track",
-      "play": "Play music",
-      "pause": "Pause music",
-      "volume": "Music volume",
-      "volumeFixed": "On this device, use the volume buttons.",
-      "sfx": "Sound effects",
-      "on": "On",
-      "off": "Off",
-      "list": "Track list",
-      "soundOn": "Turn sound on",
+      "open": "開啟音樂",
+      "title": "冥想音樂",
+      "close": "關閉",
+      "prev": "上一首",
+      "next": "下一首",
+      "play": "播放音樂",
+      "pause": "暫停音樂",
+      "volume": "音樂音量",
+      "volumeFixed": "在此裝置上，請用機身按鍵調整音量。",
+      "sfx": "音效",
+      "on": "開",
+      "off": "關",
+      "list": "曲目列表",
+      "soundOn": "開啟聲音",
       "status": {
-        "playing": "Now playing",
-        "loading": "Getting the music ready",
-        "paused": "Selected track",
-        "error": "This track could not play. Please pick another one."
+        "playing": "正在播放",
+        "loading": "正在準備音樂",
+        "paused": "已選曲目",
+        "error": "這首曲子無法播放，請換一首。"
       },
       "mood": {
-        "calm": "Calm",
-        "dawn": "Dawn",
-        "warm": "Warm",
-        "focus": "Focus",
-        "night": "Moonlit night",
-        "water": "Water",
-        "stars": "Starlight",
-        "renew": "Renewal"
+        "calm": "寧靜",
+        "dawn": "黎明",
+        "warm": "溫暖",
+        "focus": "專注",
+        "night": "月夜",
+        "water": "水波",
+        "stars": "星光",
+        "renew": "新氣象"
       }
     },
     "companion": {
-      "idle": "Resting beside you",
-      "greet": "Greeting you",
-      "guide": "Showing you the next step",
-      "breathe": "Breathing with you",
-      "bow": "Bowing with you",
-      "pray": "Praying with joined hands",
-      "bless": "Offering a blessing",
-      "react": "Reacting with delight",
-      "rest": "Dozing off"
+      "idle": "在一旁休息",
+      "greet": "正在開心地打招呼",
+      "guide": "正在提示下一步",
+      "breathe": "正在一起調整呼吸",
+      "bow": "正在一起禮拜",
+      "pray": "正在雙手合十祈禱",
+      "bless": "正在送上祝福",
+      "react": "正在開心地回應",
+      "rest": "正在打瞌睡"
     }
   }
 }
