@@ -47,7 +47,7 @@ import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 
 import {nativeTossContext} from '../toss/native-context.js';
-import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations, settleStuckRetryFirst } from "../lib/paid-delivery-stuck.js";
 const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "astrology-ai";
@@ -2168,6 +2168,25 @@ export async function settleDueAstrologyRetryRefunds(env, { now = Date.now(), mo
     catch { outcomes.push({ service: "astrology-ai", refundStatus: "pending" }); }
   }
   return outcomes;
+}
+
+// 2026-11-22 D 복구 크론의 정체 확정. 창 안은 다시 시도 가능(저장된 장 유지·환불 없음), 창이 지나면 위 보류 환불로 정산한다.
+// 크론 문서에는 접근 증빙이 없으므로 저장된 resumeBody 로 기존 접근 재확인(resolveStartAccess)을 다시 돌려 같은 스냅샷을 만든다.
+// 선결제인데 증빙을 못 찾으면 "환불 불필요"로 굳히지 않고 확정을 미룬다(fail-closed, pending). 토스 네이티브는 기존 이어쓰기.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  await connectDb(env);
+  const target = model || AstrologyAiConsultation;
+  return settleStuckRetryFirst({ service: "astrology-ai", model: target, doc, now, failedFields: { generationLease: "" },
+    isLive: (fresh, at) => at - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS,
+    hold: fresh => fresh.accessSource !== "toss",
+    snapshot: async fresh => {
+      const body = { ...(fresh.llmMeta?.resumeBody || {}), accessToken: undefined };
+      const request = new Request("https://internal.invalid/api/astrology-ai/stuck", { method: "POST" });
+      const access = await resolveStartAccess({ request, env, auth: { userId: String(fresh.userId) }, body, normalized: normalizeInput(body), pricing: getPricing(), idempotencyKey: clean(fresh.idempotencyKey, 180) });
+      if (!access?.ok && fresh.accessType !== "pass") throw new Error("billing evidence not found");
+      return astrologyRefundAccessSnapshot(access?.ok ? access : {});
+    },
+    settleRefund: owner => settleAstrologyRetryRefund(env, owner, target, now) });
 }
 
 export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
