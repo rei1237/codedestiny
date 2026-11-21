@@ -51,15 +51,22 @@ type Props = {
 export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, brand = 'ggulggul', className, ctaLabels }: Props) {
   const { state, step, controller } = flow;
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   const counted = progressSteps(controller.steps) as GuidedStep[];
 
   // 단계가 바뀌면 제목으로 포커스(명세 §6 접근성). 새로고침 복원 첫 화면은 포커스를 뺏지 않는다.
   useEffect(() => {
     if (!step || state.source === 'restore' || state.source === 'init') return;
-    titleRef.current?.focus({ preventScroll: false });
+    const title = titleRef.current;
+    if (!title) return;
+    // 가운데로 스크롤하는 기본 포커스는 360 에서 첫 입력을 화면 아래로 밀어낸다. 제목이 헤더에 가렸거나
+    // 화면 위쪽 35% 아래에 있으면 셸 머리를 헤더 바로 아래(scroll-margin-top)로 올린 뒤 스크롤 없이 포커스한다.
+    const rect = title.getBoundingClientRect();
+    if (rect.top < 64 || rect.top > window.innerHeight * 0.35) { const root = rootRef.current; if (root && typeof root.scrollIntoView === 'function') root.scrollIntoView({ block: 'start', behavior: 'auto' }); }
+    title.focus({ preventScroll: true });
   }, [step, state.source]);
 
-  if (!step) return <div {...rootProps(brand, className)}>{landing}</div>;
+  if (!step) return <div ref={rootRef} {...rootProps(brand, className)}>{landing}</div>;
 
   const title = titles[step.id] || '';
   const countedIndex = counted.findIndex((item) => item.id === step.id);
@@ -69,7 +76,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, bra
   const showNext = step.kind === 'input' || (step.kind === 'choice' && (reduced || answered));
 
   return (
-    <div {...rootProps(brand, className)} data-reduced={reduced ? 'true' : 'false'}>
+    <div ref={rootRef} {...rootProps(brand, className)} data-reduced={reduced ? 'true' : 'false'}>
       <div className={styles.topBar}>
         <button type="button" className={`cd-btn cd-btn--tertiary ${styles.back}`} onClick={flow.goBack}>
           <span aria-hidden="true">‹</span> {labels.back}

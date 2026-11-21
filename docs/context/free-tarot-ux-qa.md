@@ -58,16 +58,16 @@ JS 예외(pageerror)는 0. 상호작용(진입→결과)은 이번에 다시 돌
 - 원문 8단계 e2e(무료·타로 기능별 1개, 브랜드별 결과 1개) 신규 작성.
 
 ## 알려진 후속 과제·결함 (보고만, 범위 밖)
-1. 360px 하단 고정 CTA 와 셸 하단 내비 겹침(기존 셸).
-2. 12운성 동물 랜딩 안내 "3단계" 와 진행 표시 "1/6" 불일치.
-3. 낮은 대비: 셸 사주 입력 상단 안내 박스 약 1.89:1, 셸 점성 폼 "달빛 초대 링크"(달빛 명칭 잔존) 약 2.03:1, FLP 면책 문구 2.26:1. 점선 슬롯·테두리 버튼 3.1~3.2:1(경계).
+1. ~~360px 하단 고정 CTA 와 셸 하단 내비 겹침(기존 셸).~~ 해결(F1 43bf15f95: 셸 루트 main `overflow: clip`, 쿠키 배너 동안 CTA 흐름 배치).
+2. ~~12운성 동물 랜딩 안내 "3단계" 와 진행 표시 "1/6" 불일치.~~ 해결(F1 b9498d422: 실제 7단계 순서로 문구 갱신).
+3. ~~낮은 대비: 셸 사주 입력 상단 안내 박스 약 1.89:1, 셸 점성 폼 "달빛 초대 링크"(달빛 명칭 잔존) 약 2.03:1, FLP 면책 문구 2.26:1.~~ 해결(F1 8a7fb1198 안내 박스 15:1·"초대 링크로"·#74475a, fd1cc05c5 FLP 알파 0.9). 점선 슬롯·테두리 버튼 3.1~3.2:1 은 UI 경계 기준 3:1 통과로 유지. 남은 대비(범위 밖): 푸터 사업자 정보 2.24:1, 동물 페이지 머리 부제 2.22:1·"Saju Animal Oracle" 3.37:1, 궁합 "/" 구분자 1.24:1, 장식 ✦ 1.8:1.
 4. ✅ (F2 수정 20928b5f3) `/astrology/` 히어로 CTA 가 `/ggulggul/` 로 가서 프로필 없는 사용자는 되돌아오는 두 홉.
 5. ✅ (F2 수정 002793a11) 자존감 랜딩 `TarotSelfEsteemLandingContent.tsx` 의 `href="/?action=openTarotSelfEsteemModal"` — 운영에서 302 한 번 더.
 6. ✅ (F2: 홈 카드 직행 4eba58cb4, 셸 액션은 설계상 비회원 confirm) `/ggulggul/?action=startMindScanTarot` 는 쿼리만 지우고 아무것도 안 연다(base 와 동일).
 7. `__tests__/fortune/daily-scroll-copy.test.mjs`(옆 세션 f115ff409, node:test 파일을 jest 가 집어 "at least one test") — 그 세션 소유.
 8. 없는 표정 그림: 연이 greet·worry, 영냥이 explain·worry·cheer·serious(`MISSING_EXPRESSION_ART`, 가까운 표정으로 대체).
 9. ✅ (F2 수정 ce873aace·d55643af8, sales 는 보고만) W3 위험: API 실패 시 예약 484px 접힘, DB 장애 동안 503 no-store 재시도, `verify-public-api-edge-cache` 목록에 새 라우트 미포함, `source:"sales"` 공개 범위 확인 필요.
-10. 기타: 단계 제목 포커스 outline 노란 상자, 360 다크 카드 직각·무테(셸 풀블리드 설계), 6a "약 N분" 은 표시용 추정, `CutReader.tsx` 말풍선 key(✅ 29ca06503 에서 이미 수정), `index.html` 가격 하드코딩.
+10. 기타: ~~단계 제목 포커스 outline 노란 상자~~(F1 43bf15f95 금빛 밑줄로 해결), 360 다크 카드 직각·무테는 셸 풀블리드 설계(48rem 이상에서만 테두리·둥근 모서리, 의도 — 유지), 6a "약 N분" 은 표시용 추정, `CutReader.tsx` 말풍선 key(✅ 29ca06503 에서 이미 수정), `index.html` 가격 하드코딩.
 11. ✅ (F2: 생성기 있는 두 파일 재생성 ae7d01834, PAGE_INVENTORY·mobile-platform 은 생성기 없음) `docs/purchase-journey/inventory.json`·`docs/mobile-platform/inventory.*`·`docs/payments/payment-p0-inventory.json`·`docs/seo/PAGE_INVENTORY.md` 생성 스냅샷에 삭제된 `/tarot/mingri/play` 행이 남아 있다(배선된 검사 없음, 다음 재생성 때 빠짐).
 12. 7단계 중 R5(81cc9e199)가 남긴 낡은 캐시 핀(`destiny-profile.js?v=` 독립 페이지 22곳)으로 verify:payment-choice-parity 가 main 에서 실패하던 것을 이번에 고쳤다(`fix(cache)` 커밋).
 

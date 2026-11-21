@@ -11315,18 +11315,37 @@
     _dpHomeSection='';try{sessionStorage.removeItem(_dpHomeSectionKey);}catch(_){}
     if(_dpHomeSectionObserver){_dpHomeSectionObserver.disconnect();_dpHomeSectionObserver=null;}
   }
+  // 결과는 요약 이벤트 뒤에도 카드가 이어 붙고(높이 증가) 요약 이벤트가 한 번 더 와서 맨 위로 돌아간다.
+  // 첫 도착 뒤 잠시(_DP_HOME_SECTION_SETTLE_MS) 카드를 붙잡아 두고, 사용자가 직접 스크롤·조작하면 바로 놓는다.
+  var _DP_HOME_SECTION_SETTLE_MS = 8000;
+  var _dpHomeSectionSettleTimer = 0;
+  var _dpHomeSectionHeld = false;
+  function _dpReleaseHomeSection(){
+    if(_dpHomeSectionSettleTimer){clearTimeout(_dpHomeSectionSettleTimer);_dpHomeSectionSettleTimer=0;}
+    if(_dpHomeSectionHeld){_dpHomeSectionHeld=false;['wheel','touchstart','keydown','pointerdown'].forEach(function(t){window.removeEventListener(t,_dpReleaseHomeSection,true);});}
+    _dpClearHomeSection();
+  }
   function _dpRevealHomeSection() {
     _dpHomeIntent('');
     if(!_dpHomeSection||!document.getElementById)return;
     function reveal(){
+      if(!_dpHomeSection)return true;
       var node=document.getElementById(_dpHomeSection);
       if(!node||!node.getClientRects().length)return false;
-      var heading=node.querySelector('h2,h3,h4')||node;
-      heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});
-      node.scrollIntoView({block:'start',behavior:'instant'});_dpClearHomeSection();return true;
+      var top=node.getBoundingClientRect().top;
+      if(!_dpHomeSectionHeld){
+        var heading=node.querySelector('h2,h3,h4')||node;
+        heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});
+        _dpHomeSectionHeld=true;
+        ['wheel','touchstart','keydown','pointerdown'].forEach(function(t){window.addEventListener(t,_dpReleaseHomeSection,true);});
+        _dpHomeSectionSettleTimer=setTimeout(_dpReleaseHomeSection,_DP_HOME_SECTION_SETTLE_MS);
+      }
+      if(Math.abs(top)>2)node.scrollIntoView({block:'start',behavior:'instant'});
+      return true;
     }
     window.requestAnimationFrame(function(){
-      if(reveal())return;
+      reveal();
+      if(!_dpHomeSection)return;
       if(_dpHomeSectionObserver)_dpHomeSectionObserver.disconnect();
       _dpHomeSectionObserver=new MutationObserver(reveal);
       _dpHomeSectionObserver.observe(document.getElementById('resultPage')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden']});

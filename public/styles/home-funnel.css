@@ -1706,7 +1706,7 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 .cdh-widget-entry img { object-fit:contain; }
 .cdh-widget-entry small { display:block; margin-top:4px; }
 
-.dp-home-entry-context {padding:14px 16px;border:1px solid #b3935b;border-radius:12px;background:#fffdf8;color:#242139;font:500 16px/1.6 var(--font-body,sans-serif);}
+.dp-home-entry-context, .logo-area p.dp-home-entry-context {padding:14px 16px;border:1px solid #b3935b;border-radius:12px;background:#fffdf8;color:#242139;font:500 16px/1.6 var(--font-body,sans-serif);}
 /* Moonlit free campaign; aligned with FreePromoBanner CSS module. */
 #cdHomeFunnel .cdh-promo {
  --fp-paper:#fffdf8; --fp-bg:#faf7f1; --fp-ink:#242139; --fp-muted:#635b70; --fp-gold:#b3935b; --fp-accent:#72324f; --fp-soft:#ede7f5;
