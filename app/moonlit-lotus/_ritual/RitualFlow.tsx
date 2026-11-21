@@ -38,7 +38,7 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
  const [breath,setBreath]=useState<BreathBeat>({phase:'ready',at:0,ms:0});
  const onBreathPhase=useCallback((phase:BreathBeat['phase'],ms:number)=>setBreath({phase,at:performance.now(),ms}),[]);
  const [reduced,setReduced]=useState(false),[characterError,setCharacterError]=useState(false),[notice,setNotice]=useState('');
- const panel=useRef<HTMLElement>(null),firstStep=useRef(true);
+ const panel=useRef<HTMLElement>(null),shownStep=useRef(state.step);
  const scale=timeScale(state.fast);
  const bow=useRitualBow(profile.scope,state.fast?1.6:1);
  const audio=useAmbientAudio(),{sfx}=audio,heardBows=useRef(0);
@@ -69,7 +69,9 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
  // 단계가 바뀌면 방금 누른 버튼이 사라져 초점이 body 로 떨어진다. 그때만 새 단계 패널로 옮긴다
  // (입력칸에 바로 주지 않는다 — 휴대폰 자판이 저절로 열리지 않게).
  useEffect(()=>{
-  if(firstStep.current){firstStep.current=false;return;}
+  // 처음 그릴 때(개발 모드의 effect 두 번 실행 포함)는 옮기지 않는다: 직전 단계와 같으면 그대로 둔다.
+  if(shownStep.current===state.step)return;
+  shownStep.current=state.step;
   const active=document.activeElement;
   if(!active||active===document.body)panel.current?.focus({preventScroll:true});
  },[state.step]);
