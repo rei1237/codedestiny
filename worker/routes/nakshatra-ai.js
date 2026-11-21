@@ -1159,6 +1159,10 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model } 
   if (fresh.accessSource === "toss") { logStuckUnsettled(SERVICE_KEY, fresh); return { outcome: "unsettled" }; }
   const idempotencyKey = clean(fresh.idempotencyKey, 160);
   if (!idempotencyKey) return { outcome: "unsupported" };
+  // 결제가 이미 회수된 건(환불·취소 증빙)은 쓰지 않고 경보만 — 생성 실패로 바꾸면 실행 가드가 한 번 더 환불할 수 있다.
+  let revoked;
+  try { revoked = await isStoredPaidResultRevoked(String(fresh.userId), FEATURE_KEY, fresh); } catch { return { outcome: "pending" }; }
+  if (revoked) { logStuckUnsettled(SERVICE_KEY, fresh); return { outcome: "unsettled" }; }
   const stalls = Number(fresh.deliveryWatch?.stalls || 0);
   const at = new Date(now);
   const result = await target.updateOne({ ...owner, status: fresh.status, updatedAt: fresh.updatedAt }, { $set: {
@@ -1181,6 +1185,7 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model } 
       if (pass?.refunded) refundStatus = "refunded";
     }
   } catch { refundStatus = "pending"; } // 실행 기록이 pending 으로 남으면 타임아웃 스위프가 생성 실패 문서를 보고 환불한다.
+  if (refundStatus === "pending") logStuckUnsettled(SERVICE_KEY, fresh); // 실행 기록이 없는 건은 재시도 경로가 없다 — 경보로 남긴다.
   logStuckSettled({ service: SERVICE_KEY, sessionId: String(fresh.id), outcome: "generation_failed", refundStatus, stalls });
   return { outcome: "generation_failed", refundStatus };
 }

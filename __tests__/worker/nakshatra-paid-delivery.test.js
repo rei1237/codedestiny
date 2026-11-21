@@ -250,6 +250,12 @@ describe("settleStuckDelivery", () => {
   const stuckDoc = () => ({ id: docs[0].id, userId: docs[0].userId });
   const quiet = async work => { const warn = jest.spyOn(console, "warn").mockImplementation(() => {}); try { return await work(); } finally { warn.mockRestore(); } };
   async function stalled() { await start(); expect(docs[0].status).toBe("generating"); docs[0].updatedAt = new Date(Date.now() - 300000); return clone(docs[0].sections); }
+  it("revoked payment is only alerted and never refunded again", async () => {
+    await stalled(); blocked = 0;
+    expect(await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).toEqual({ outcome: "unsettled" });
+    expect(docs[0].status).toBe("generating");
+    expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  });
   it("fails a stalled report and refunds it once through the existing execution refund", async () => {
     refund.mockResolvedValue({ ok: true, execution: { refundStatus: "refunded" } });
     const sections = await stalled();
