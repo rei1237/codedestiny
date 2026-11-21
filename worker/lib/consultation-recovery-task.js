@@ -87,7 +87,9 @@ export async function runConsultationRecovery(env, options = {}) {
               : await settleStuckConsultation(env, { service: route, model, doc, now, refund: options.settleRefund,
                 isComplete: typeof adapter.isStuckDeliveryComplete === 'function' ? adapter.isStuckDeliveryComplete : undefined });
             outcomes.push({ service: route, stuck: settled.outcome, ...(settled.refundStatus ? { refundStatus: settled.refundStatus } : {}) });
-            if (settled.outcome !== 'leased') continue;
+            // unsettled: 설정자가 확정하지 않은 건(토스 네이티브 등) — 기존처럼 이어쓴다.
+            // pending: 증빙 조회 실패 — 이어쓰기·회전을 건너뛰면 가장 오래된 한 건이 서비스 크론을 막는다(2026-11-22 감사 B2).
+            if (!['leased', 'unsettled', 'pending'].includes(settled.outcome)) continue;
           } else logStuckUnsettled(route, doc);
         }
         try {

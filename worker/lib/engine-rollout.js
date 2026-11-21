@@ -14,6 +14,9 @@ export const ENGINE_ROLLOUT_FLAGS = Object.freeze({
   // PRECISION_UNAVAILABLE 503 으로 막힌다. 범위 밖을 기존 계산으로 넘기도록 provider 를 고친 뒤에만 다시 켠다.
   // 질문 직답·마스터 조언 렌즈(worker/lib/consultation-answer-contract.js). 생성 시작 때 고정되어 재개 중에는 바뀌지 않는다.
   CONSULTATION_ANSWER_VOICE_V1: 'true',
+  // Trait-First 1차 6종 성향 장 근거 주입(worker/lib/trait-profile/). 새 세션만 시작 때 고정, 진행 중·옛 세션은 OFF 로 끝난다.
+  // 골든셋: docs/handoff/trait-first-phase5-verification.md (2026-11-22 게이트 C 승인).
+  TRAIT_FIRST_SAJU: 'true',
 });
 
 const rolledOut = new WeakMap();

@@ -419,3 +419,17 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **해소**: 사용자 요청이 우선이다. 예외는 `app/components/PopularTop5.tsx`(HomeCardDeck 바로 아래) 한 구역, 다섯 줄로 한정한다. 순위는 `/api/popular-services`(ops_revenue_facts 읽기 전용 집계, 순위만 공개)에서 오고, 표본 3건 미만 자리는 운영진 추천으로 채우고 "추천" 꼬리표를 붙여 판매 순위와 구분한다(2026-11-22 사용자 결정: 모든 줄 1~5위 숫자 + 추천 꼬리표). API 가 실패하거나 3초 안에 답하지 않으면 전부 추천 꼬리표인 목록으로 자리를 지킨다. 그 밖의 상담 목록·제휴 광고 금지는 그대로다. `/ggulggul/` 에는 상황별 고르기 뒤에 같은 구역을 넣는다.
 - **남은 위험**: (11-22 갱신) 자리와 스켈레톤은 `/` SSR·`/ggulggul/` 생성기가 미리 그리고 정적 CSS(styles/popular-top5.css)를 쓰므로 늦은 삽입은 없다. 모듈을 아예 못 그리면 `/` 에서만 자리가 접힌다. 스테이징 DB 에 구매 사실이 없으면 다섯 자리가 모두 "추천"이다.
 - **롤백**: `js/core/popular-top5.mjs` 의 `POPULAR_TOP5_ENABLED` 를 false(구역·요청 모두 사라짐) 또는 W3 커밋 `git revert`.
+
+## 2026-11-22 달빛 연화당 참배 개편 요청 "안 쓰게 된 코드는 _graveyard/ 로 격리" ↔ reference-basics.md:38 "죽은 코드는 격리하지 말고 지운다"
+
+- **충돌**: 참배 개편 요청문은 안 쓰게 된 코드를 `_graveyard/` 로 옮겨 보관하라고 했다. 저장소 규칙(docs/context/reference-basics.md:38, CLAUDE.md 코딩 원칙 9)은 격리 대신 소스·테스트·verify 3면 grep 뒤 별도 커밋으로 삭제하게 한다.
+- **해소**: 저장소 규칙을 따랐다(승인 계획 2026-11-22 §4). Phase 4 에 deletion-auditor 로 3면 감사를 했고 결과는 "삭제 대상 없음"이다. 기존 `Space.tsx` 는 `_ritual/MoonlitEntry.tsx:3` 이 쓰고 테스트 4곳이 단언하며, 새 export 약 80개·i18n 99키·CSS 클래스 76개 모두 소비처가 있다. `_graveyard/` 는 만들지 않았다.
+- **남은 위험**: 없음. 나중에 Space 기능을 걷어낼 때도 같은 3면 감사 뒤 별도 커밋으로 지운다.
+- **롤백**: 해당 없음(삭제·격리 변경 없음).
+
+## 2026-11-22 달빛 연화당 참배 개편 요청 "기능 브랜치·PR 로 진행" ↔ CLAUDE.md 2026-09-12 "main 직접 커밋, 브랜치·PR 없음"
+
+- **충돌**: 요청문은 기능 브랜치를 만들고 PR 로 머지하는 흐름을 전제했다. 저장소 계약은 브랜치·PR 을 폐지하고 main 에 작은 커밋을 올리게 한다(동시 세션이 있으면 `scripts/create-safe-worktree.ps1` 워크트리에서 작업하고 PR 없이 main 에 직접 머지).
+- **해소**: 저장소 계약을 따랐다. 공유 체크아웃에 다른 세션 미커밋이 있어 워크트리 `wt/moonlit-ritual-20261122-030358` 에서 Phase 별 작은 Conventional Commit 으로 작업했고, PR 은 만들지 않는다. main 머지·push·워크트리 배수는 메인 세션이 한다.
+- **남은 위험**: 워크트리 머지 직후 미러가 다시 낡을 수 있다(머지 뒤 `npm run sync:public` 재실행).
+- **롤백**: Phase 별 커밋 `git revert`. 참배만 끄려면 `_ritual/MoonlitEntry.tsx` 분기를 Space 고정으로, 전체는 `MOONLIT_LOTUS_ENABLED`.

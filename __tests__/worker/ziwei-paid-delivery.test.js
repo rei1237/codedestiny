@@ -3,7 +3,7 @@ import { jest } from "@jest/globals";
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 명반 해석", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let release, card, settleDue, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consumeResult, accessQueue, passOrder, withdrawn;
+let settleStuck, release, card, settleDue, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consumeResult, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const getPath = (doc, key) => key.split(".").reduce((row, part) => row?.[part], doc);
@@ -82,7 +82,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({ calculateZiweiAiChart: (...args) => chart(...args), formatStarWithBrightness: value => value, FOUR_TRANSFORMATIONS: {}, TRANSFORMATION_LABELS: {} }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
-  ({ handleZiweiAiRoutes: route, __ziweiAiTestUtils: utils, settleDueZiweiRetryRefunds: settleDue } = await import("../../worker/routes/ziwei-ai.js"));
+  ({ handleZiweiAiRoutes: route, __ziweiAiTestUtils: utils, settleDueZiweiRetryRefunds: settleDue, settleStuckDelivery: settleStuck } = await import("../../worker/routes/ziwei-ai.js"));
 });
 beforeEach(() => {
   docs = []; fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consumeResult = { covered: true }; accessQueue = []; passOrder = null; withdrawn = false; release = jest.fn(async () => ({ released: 1 })); card = jest.fn();
@@ -489,4 +489,45 @@ it("V2: register drift gets one hinted repair and never reaches the delivered te
   const [, repair] = groupCalls("nature");
   expect(String(repair[1])).toContain("무성의 말투에서 벗어났습니다");
   expect(JSON.stringify(docs[0].messages)).not.toContain("자기야");
+});
+
+// 2026-11-22 D: 복구 크론의 정체 확정. 창 안은 다시 시도 가능(묶음 보존·환불 없음), 창이 지나면 기존 보류 환불(settleZiweiRetryRefund).
+describe("settleStuckDelivery", () => {
+  const stuckDoc = () => ({ id: docs[0].id, userId: docs[0].userId });
+  const quiet = async work => { const warn = jest.spyOn(console, "warn").mockImplementation(() => {}); try { return await work(); } finally { warn.mockRestore(); } };
+  async function stalled() { mode = "paid"; expect((await start()).status).toBe(202); docs[0].updatedAt = new Date(Date.now() - 300000); return clone(docs[0].llmMeta.rawResponses); }
+  it("holds a stalled card payment for a free retry and keeps the saved groups", async () => {
+    const groups = await stalled();
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("retryable");
+    expect(docs[0]).toMatchObject({ status: "generation_failed", generationError: { code: "DELIVERY_STUCK" }, llmMeta: { rawResponses: groups, retryable: { access: { accessType: "paid", paymentId: "payment", prepaid: true } } } });
+    expect(card).not.toHaveBeenCalled(); expect(release).not.toHaveBeenCalled();
+    expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(202);
+  });
+  it("refunds once through the held-refund path after the retry window", async () => {
+    await stalled(); refund.mockResolvedValue({ refunded: true });
+    expect(await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() + 8 * 86400000 }))).toEqual({ outcome: "generation_failed", refundStatus: "refunded" });
+    expect(card).toHaveBeenCalledTimes(1); expect(card.mock.calls[0][4]).toBe("ziwei_ai_generation"); expect(release).toHaveBeenCalledTimes(1);
+    await settleDue({}, { model, now: Date.now() + 8 * 86400000 }); expect(card).toHaveBeenCalledTimes(1);
+  });
+  // 2026-11-22 감사 B1: 재판정이 거절된 이용권 건(결제창이 이미 차감)도 창이 지나면 요청 키로 이용권을 되돌린다.
+  it("keeps a pass refund possible when the pass recheck is denied for a stalled report", async () => {
+    expect((await start()).status).toBe(202); docs[0].updatedAt = new Date(Date.now() - 300000); mode = "none";
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("retryable");
+    expect(docs[0].llmMeta.retryable.access).toMatchObject({ accessType: "pass", prepaid: true, evidenceType: "pass" });
+    expect(passRefund).not.toHaveBeenCalled();
+    docs[0].updatedAt = new Date(Date.now() - 300000);
+    expect(await settleDue({}, { model, now: Date.now() + 8 * 86400000 })).toEqual([{ service: "ziwei-ai", refundStatus: "refunded" }]);
+    expect(passRefund).toHaveBeenCalledTimes(1); expect(passRefund.mock.calls[0][0]).toMatchObject({ requestId: "original-paid-request" });
+  });
+  it("leaves a live generation, a Toss native session, missing paid evidence and a finished result alone", async () => {
+    mode = "paid"; expect((await start()).status).toBe(202);
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
+    docs[0].updatedAt = new Date(Date.now() - 300000); docs[0].accessSource = "toss";
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("unsettled");
+    docs[0].accessSource = ""; mode = "none";
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("pending");
+    docs[0].status = "completed";
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("progressed");
+    expect(card).not.toHaveBeenCalled();
+  });
 });

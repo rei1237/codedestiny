@@ -1,0 +1,135 @@
+{
+  "moonlitRitual": {
+    "title": "Moonlit Lotus Visit",
+    "progress": "Visit step {current} of {total}",
+    "steps": {
+      "enter": "Enter",
+      "breathe": "Breathe",
+      "incense": "Incense",
+      "bow": "Three bows",
+      "wish": "Wish lantern",
+      "dedication": "Dedication"
+    },
+    "exit": "Leave",
+    "browse": "Explore the temple",
+    "home": "Go home",
+    "fast": "Faster pace",
+    "skip": "Skip",
+    "showLine": "Show the whole line",
+    "enter": {
+      "cta": "Begin the visit",
+      "hint": "One step per screen, at your own pace."
+    },
+    "breathe": {
+      "inhale": "Breathe in",
+      "hold": "Hold",
+      "exhale": "Breathe out",
+      "count": "Breath {current} of {total}"
+    },
+    "incense": {
+      "hold": "Press and hold to light the incense",
+      "tap": "Light it with one tap",
+      "lit": "The incense is burning"
+    },
+    "bow": {
+      "cta": "Bow ({current}/{total})",
+      "running": "Bowing…",
+      "done": "Three bows complete",
+      "saveFailed": "The record could not be saved, but your bows are complete."
+    },
+    "wish": {
+      "label": "One wish",
+      "placeholder": "Write your wish in a single line",
+      "send": "Release the lantern",
+      "swipe": "You can also swipe the lantern upward.",
+      "lantern": "Wish lantern",
+      "saveFailed": "Your wish could not be saved, but the lantern was released."
+    },
+    "dedication": {
+      "title": "Today’s visit is complete"
+    },
+    "speaker": {
+      "yeoni": "Yeoni",
+      "cat": "Yeongnyangi",
+      "friend": "Your companion"
+    },
+    "speech": {
+      "yeoni": {
+        "enter": "Welcome. I will guide you slowly, right by your side.",
+        "breathe": "Follow the light: breathe in for four, hold for four, out for six.",
+        "incense": "Press and hold the incense to light your heart.",
+        "incenseLit": "The incense is rising. Shall we offer our bows?",
+        "bow": "Each tap is one bow together. Three is enough.",
+        "bowDone": "Those were heartfelt bows.",
+        "wish": "Place one wish from your heart in the lantern.",
+        "wishSent": "The lantern is rising along the moonlight.",
+        "dedication": "May today’s offering reach you and everyone you hold dear."
+      },
+      "cat": {
+        "enter": "You came! I’ll stay right beside you.",
+        "breathe": "Breathe with the light. In for four, hold four, out for six.",
+        "incense": "Press and hold the incense to light it.",
+        "incenseLit": "It’s lit, meow!",
+        "bow": "Every tap, we bow once together. Three times.",
+        "bowDone": "Nicely done, meow!",
+        "wish": "Write just one wish on the lantern.",
+        "wishSent": "There goes the lantern, meow.",
+        "dedication": "Today’s wish will reach you and the people you love."
+      },
+      "neutral": {
+        "enter": "Welcome. I’ll walk through this slowly with you.",
+        "breathe": "Follow the light: in for four, hold for four, out for six.",
+        "incense": "Press and hold the incense to light it.",
+        "incenseLit": "The incense is rising. Now let’s bow.",
+        "bow": "Each tap is one bow together. Three in all.",
+        "bowDone": "You offered three heartfelt bows.",
+        "wish": "Place one wish in the lantern.",
+        "wishSent": "The lantern drifts toward the moonlight.",
+        "dedication": "May today’s wish reach you and those you care about."
+      }
+    },
+    "audio": {
+      "open": "Open music",
+      "title": "Meditation music",
+      "close": "Close",
+      "prev": "Previous track",
+      "next": "Next track",
+      "play": "Play music",
+      "pause": "Pause music",
+      "volume": "Music volume",
+      "volumeFixed": "On this device, use the volume buttons.",
+      "sfx": "Sound effects",
+      "on": "On",
+      "off": "Off",
+      "list": "Track list",
+      "soundOn": "Turn sound on",
+      "status": {
+        "playing": "Now playing",
+        "loading": "Getting the music ready",
+        "paused": "Selected track",
+        "error": "This track could not play. Please pick another one."
+      },
+      "mood": {
+        "calm": "Calm",
+        "dawn": "Dawn",
+        "warm": "Warm",
+        "focus": "Focus",
+        "night": "Moonlit night",
+        "water": "Water",
+        "stars": "Starlight",
+        "renew": "Renewal"
+      }
+    },
+    "companion": {
+      "idle": "Resting beside you",
+      "greet": "Greeting you",
+      "guide": "Showing you the next step",
+      "breathe": "Breathing with you",
+      "bow": "Bowing with you",
+      "pray": "Praying with joined hands",
+      "bless": "Offering a blessing",
+      "react": "Reacting with delight",
+      "rest": "Dozing off"
+    }
+  }
+}
