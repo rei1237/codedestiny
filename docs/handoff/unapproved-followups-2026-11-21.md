@@ -76,3 +76,19 @@ next: 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
 - [ ] 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
 - [ ] 5. R5 자미 (조건부, 결제 감사 먼저)
 - [ ] 마무리: `docs/context/free-tarot-ux-qa.md` 플래그 표·미승인 목록 갱신, 워크트리·임시 파일 정리, main CI 1회 확인, 한국어 최종 보고
+
+## F1 후속 결함 수정 (2026-11-21, 사용자: "나중에 고칠것 중 이/용에서 줄이 바뀌는것은 바꿔야겠고 전부 이번 세션에서 고치도록해")
+- 워크트리 wt/f1-ui-defects-20261121-142039 → main 직접 머지. 결제 실행 파일·L1 파일(/today/·/manse/·free-reading-access.ts) 무접촉.
+- [x] 1. 동의 모달 제목 "이/용" 단어 중간 줄바꿈 — `#privacyConsentTitle` keep-all·balance (8a7fb1198). 360 두 줄("수집" 뒤), 960 한 줄.
+- [x] 2. 360 하단 고정 CTA·셸 하단 내비 겹침 — guided-flow.module.css `main:has(.flow){overflow:clip}`(@supports) (43bf15f95). CTA 584–653, 내비 660~.
+- [x] 3. 동물 랜딩 "3단계" vs "1/6" — guidedFlow.json 7단계 문구 (b9498d422).
+- [x] 4. 낮은 대비·달빛 명칭 — 홈 진입 맥락 #242139, 초대 안내 #74475a·"초대 링크로"(index.html 2곳 + i18n 12개) (8a7fb1198), FLP seo 알파 0.9 (fd1cc05c5). 점선 슬롯·테두리 버튼은 3:1 통과라 유지.
+- [x] 5. 단계 제목 포커스 노란 상자 → 금빛 밑줄 `.title:focus-visible` (43bf15f95).
+- [x] 6. 360 숙요·베다·점성술 시작 뒤 입력칸 접힘 아래 — 단계 전환 시 루트가 화면 밖이면 scrollIntoView(start), `.flow` scroll-margin-top (43bf15f95, jsdom 가드 580307c67). 배너 열림에서도 입력 280–329 < 배너 332.
+- [x] 7. 쿠키 배너가 스텝·/compatibility 폼 가림 — AnalyticsConsent 가 열린 동안 `--cd-consent-offset`·body padding-bottom·`html.cd-consent-open`, CTA 는 그동안 흐름 배치 (43bf15f95). /compatibility 제출 버튼 bottom 318 < 배너 332(스크롤 뒤).
+- [x] 8. 960 탭바 손잡이 ↔ 업셀 제목 — 정원 블록에 `html:has(#cdMobileBottomNav){scroll-padding-bottom:calc(28px + nav-h)}`(실측 110px), 네비 숨김이면 0 (f557d64d0). 임의 수동 스크롤로 고정 바 밑에 오는 것은 고정 바 고유 동작.
+- [x] 9. compatCard 진입 결과 뒤 궁합 카드 자동 스크롤 — `_dpRevealHomeSection` 결과 도착 뒤 8초 동안 카드 top 유지, 휠·터치·키·포인터 시 해제 (f557d64d0). 카드 top 360=14, 960=0 (전 4349/5179). 같은 장치를 쓰는 다른 section 칩도 동일 적용.
+- [x] 10. 360 다크 카드 직각·무테 — 건너뜀: guided-flow.module.css 가 48rem 이상에서만 테두리·둥근 모서리를 주는 풀블리드 설계(의도).
+- 검증: 대상 node 테스트 22/22, verify-guided-flow-contrast OK, check:fast exit 0(test:node 5688/0, jest 8447 통과·1 skip), check:pre-push exit 0(머지 7f0da2017 뒤). dev 360·960 실측 + visual-checker(재촬영본) 차단 결함 0.
+- 롤백: 항목별 `git revert <SHA>`(f557d64d0 은 revert 뒤 sync:public → restamp → payment-freeze --update).
+- 후속(보고만): 동물 페이지는 제목과 입력 사이 내용 때문에 360 배너 열림 시 입력이 배너 아래(452) — 6번 대상 밖. 남은 대비 실패는 free-tarot-ux-qa.md 3번.
