@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-21
-next: 사용자 결정 대기 — R5 나머지(자미·숙요·베다, 미승인), 5단계 질문 1~6, 6단계 R1·R3·L1, 7단계 삭제 목록(D1). R5 점성술은 완료(아래 "R5 점성술 결과").
+next: 없음(완료). 남은 것은 전부 미승인 후속 — docs/context/free-tarot-ux-qa.md "아직 승인되지 않은 것"(R1·R3·L1·R5 자미/숙요/베다·D1·D8·D10·유료 비회원 결제·운영 승격·과금 LLM). 새로 시작하려면 그 항목마다 별도 승인.
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -55,7 +55,7 @@ next: 사용자 결정 대기 — R5 나머지(자미·숙요·베다, 미승인
 - [x] 3. 공통 스텝 플로우 엔진 — 위치 제안(재사용 유틸 먼저: `src/features/fortune-tea-house/lib/usePrefersReducedMotion.ts` 등) → 구현 → 개발 전용 데모(390·960px) → 단위 테스트(자동 진행 타이머·뒤로가기·reduced-motion·새로고침 복원) → perf:home 전후. 기존 기능에 연결하지 않음.
   - 3단계 남은 일(계획 §0): 미커밋 데모 `app/dev/guided-flow/{page.tsx,GuidedFlowDemo.tsx}` 커밋, 분석 이벤트 실제 발화 재측정(앞선 탐침 0건 — `cdTrack` 가로채기 경로부터 확인), check:fast → check:pre-push → main CI 1회 → push. 정리: 이전 dev 서버 PID 17632(PID 로만, 명령줄 확인 후), 워크트리 `D:\Development\codedestiny-worktrees\perf-guided-flow-20261120-033158` 를 main 체크아웃에서 `npm run worktree:remove -- <경로>`, `.tmp/` 내 이 작업 파일 삭제. perf:home 전 측정값: 성능 49, LCP 12127ms, TBT 185ms, CLS 0.145.
 - [x] 3b. 스텝 셸 달빛 예화 재스타일 + 대비(계획 §1·§2, GREEN 바로 진행). 대비 원인: `.flow` 에 표면 없이 분홍 `--cd-*` 글자 토큰 → `#0a0818` 위 제목 1.29:1. 브랜드 `data-brand` 꿀꿀/영냥이 사설 `--gf-*` 팔레트, 주아체 제목, 이중 테두리·꽃가지 마스크 재사용, `.cd-yehwa-button--primary`, 진행 막대 금빛. 검증: 새 `scripts/design/verify-guided-flow-contrast.cjs`(verify-home-funnel 패턴, 두 브랜드 × 360/390/430/960), 정적 테스트, measure:touch-targets, visual-checker.
-- [ ] 3c. 서비스 전반 웨이브 계획 보고(계획 §3: A React 무료, B 정적 셸 무료, C 유료 입력 표현만; 결제·인증·DB 제외) → **사용자 승인 대기**. 5·6단계와 합쳐 진행.
+- [x] 3c. 서비스 전반 웨이브 계획 보고(계획 §3: A React 무료, B 정적 셸 무료, C 유료 입력 표현만; 결제·인증·DB 제외) → **사용자 승인 대기**. 5·6단계와 합쳐 진행.
   - [x] 3c-A1. 웨이브 A 1차: `/today/` 오늘의 세 장 + `/tarot/healing/` 공통 셸 이전(플래그 2개), push `bb4a65b7d`(2026-11-20). 결과는 아래 "3c-A1 결과".
   - [x] 3c-A2. `/saju/free/` 무료 사주 간편 폼 공통 셸 이전(`GUIDED_FREE_SAJU_ENABLED`) + `/today/` "어제 카드 마저 보기" 복구. 직업 스타일·휴먼 디자인·숙요 달력·자미 명반은 사유와 함께 건너뜀. 머지 `36543dc2a` push(2026-11-20). 결과는 아래 "3c-A2 결과".
   - [x] 3c-perf. 가이드 셸이 소개 카드 CSS 를 import 해 `/saju/free/` 에 83KB 렌더 차단 공용 청크가 실리던 회귀 수정. 수정 `ebfd32bfd`, 머지 `7eb4991b7`·원장 `bde984e7c`(2026-11-20). 결과는 아래 "3c-perf 결과".
@@ -64,11 +64,11 @@ next: 사용자 결정 대기 — R5 나머지(자미·숙요·베다, 미승인
   - [x] 3c-A5. 영냥이 방 출석 운세 16종(`/yeongnyangi/room/`)을 공통 셸로 이전(`GUIDED_YN_FREE_FORTUNE_ENABLED`, 출석 게이트 현행). 시코젠 포바일루는 전체 화면 포털·크롬 라우트 설정 때문에 건너뜀. 기능 `2b2025761`(2026-11-21). 결과는 아래 "3c-A5 결과".
 - [x] 4. 캐릭터 웹툰 결과 렌더러 — 2026-11-21 완료(플래그 `GUIDED_WEBTOON_RESULT_ENABLED`, `/today/` 오늘의 세 장 결과). 아래 "4단계 결과".
 - [x] 5. 타로 UX 통합 — 5단계 ①(셸 무료 3장 → /tarot/mingri/)·R4-3 완료 2026-11-21, 아래 "5단계 ①·R4-3 결과". AI 타로 4종·연애 타로(D10)·영냥이 상담 타로·마인드스캔은 제외(승인 범위). 이전 메모: **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식). 계획 작성 2026-11-21 — 아래 "5단계·R4·R5 계획", 승인 대기.
-- [ ] 6. 무료 운세 섹션 재구성 — **계획 보고 후 승인 대기**(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검).
+- [x] 6. 무료 운세 섹션 재구성 — **계획 보고 후 승인 대기**(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검).
   - [x] 6a. 홈·SEO 랜딩 무료 배너 "전체 보기"를 카드 목록으로(`GUIDED_FREE_LIST_ENABLED`), 2026-11-21. 아래 "6단계 결과".
-  - [ ] 6b. R1~R5·L1 승인 대기(실행 안 함).
-- [ ] 7. 레거시 정리(삭제) — **삭제 대상·제외 목록 보고 후 승인 대기**. `docs/context/legacy-tarot-free-ui.md` 기록 + CLAUDE.md 한 줄.
-- [ ] 8. QA·성능·접근성 — `docs/context/free-tarot-ux-qa.md`.
+  - [x] 6b. 결정 완료(2026-11-21): R2·R4-1·R4-2·R4-3·R5 점성술 실행. R1·R3·L1·R5 자미/숙요/베다는 미승인 후속.
+- [x] 7. 레거시 정리(삭제) — 승인 "/tarot/mingri/play 페이지 (추천)" 만(2026-11-21). 삭제 `d63a7df65`, 기록 `docs/context/legacy-tarot-free-ui.md`. D1 칩은 롤백 경로로 유지. CLAUDE.md 한 줄 링크는 넣지 않음(작업별 필독에 넣을 만한 상시 규칙 아님 — 원문 대비 차이).
+- [x] 8. QA·성능·접근성(가벼운 판, 사용자 "너무 꼼꼼하지 않아도돼") — `docs/context/free-tarot-ux-qa.md`. 아래 "7·8단계 결과".
 
 ## 결과 기록
 (각 단계 에이전트가 커밋 SHA·검증 명령·출력 요약·남은 위험을 여기에 덧붙인다.)
@@ -620,3 +620,10 @@ SEO 영향 [실측에 근거한 판단]:
 - 검증(실측): 360·960 브라우저 플래그 켬 전 단계 통과(콘솔 오류 0, 액션 48px+, 가로 넘침 0, ?step=result, 다시 펼치기), 플래그 끔 = 주 CTA `/index.html?action=openTarotModal`·인라인 없음. SEO title/H1/canonical/index,follow 유지. 홈: 딥링크·카드 탭 → /tarot/mingri/, 뒤로 가기 → 홈, openTarotModal → 모달 열림. visual-checker 막는 문제 없음(동의 배너 걷고 재촬영). check:fast(test:node 5653/0, typecheck·lint·결제 게이트 78) — 단 test:jest 1건 실패는 실행 중 머지로 들어온 남의 __tests__/fortune/daily-scroll-copy.test.mjs(f115ff409, "at least one test"). check:pre-push 통과.
 - 롤백: 진입만 끄려면 MINGRI_TAROT_ROUTE_ENABLED=false + GUIDED 플래그 false + sync:public(테스트가 둘을 묶음) 또는 revert e178bee44 → revert 4ff37b8d4.
 - 남은 것(보고만): 단계 제목 포커스 outline 노란 상자, 결과 아래 랜딩 면책 문구 대비 2.26:1(기존 FLP), 점선 슬롯·테두리 버튼 3.1~3.2:1(경계), 360 sticky CTA·하단 내비 겹침(기존 셸).
+
+## 7·8단계 결과 (2026-11-21)
+
+- 7단계: `app/tarot/mingri/play/page.tsx` 삭제(`d63a7df65`). 3면 grep: 소스 링크 0, __tests__ 는 consolidated-pages 의 `PENDING_PAGE_DELETION` 예외만(제거), verify-* 0, sitemap 재생성 diff 0. 워커 301 유지. ROUTE_MAP·FEATURE_MAP 목록 갱신. 생성 스냅샷 문서(inventory·PAGE_INVENTORY)는 손대지 않음(배선된 검사 없음).
+- 함께 고침: R5(81cc9e199)가 `js/destiny-profile.js` 를 바꾼 뒤 독립 정적 페이지 22곳 `?v=build-aebbd2e06a68` 핀이 낡아 verify:payment-choice-parity 가 merge-base 에서도 실패 → `build-2f122d343e41` 로 갱신(별도 `fix(cache)` 커밋).
+- 8단계: mock dev 스모크 8 URL(390px, 비로그인) — 200 7개(`/tarot/mingri/play/` 는 dev 404, 운영은 워커 301), pageerror 0, 콘솔 오류는 mock 401/501 뿐. `/today/` 는 새 워크트리에서 fortune:build-data 전 500(데이터 부재). 상세·미검증·후속 목록은 QA 문서.
+- 롤백: 삭제는 `git revert d63a7df65`, 핀은 그 커밋 revert(되돌리면 parity 가 다시 실패하니 권장 안 함).
