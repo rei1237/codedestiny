@@ -150,6 +150,48 @@
     return !!el && !el.querySelector('[data-cd-summary-fallback="1"]') && String(el.textContent || '').trim().length > 0;
   }
 
+  // 결제번호(주문번호): 서버가 이 계정의 결제 완료 주문으로 연 권한일 때만 receipt 를 준다. 없으면 아무것도 그리지 않는다.
+  var RECEIPT_TEXT = {
+    ko: ['결제번호', '복사', '복사 완료', '복사하지 못했어요'],
+    en: ['Payment no.', 'Copy', 'Copied', 'Copy failed'],
+    ja: ['決済番号', 'コピー', 'コピーしました', 'コピーできませんでした'],
+    'zh-CN': ['支付编号', '复制', '已复制', '复制失败'],
+    'zh-TW': ['付款編號', '複製', '已複製', '複製失敗']
+  };
+  function receiptNode(data) {
+    var number = data && data.receipt && typeof data.receipt.orderNumber === 'string' ? data.receipt.orderNumber.trim() : '';
+    if (!number || number.length > 160) return null;
+    var text = RECEIPT_TEXT[lang()] || RECEIPT_TEXT.en;
+    var line = document.createElement('p');
+    line.className = 'cd-saju-receipt';
+    line.setAttribute('data-cd-saju-receipt', '1');
+    line.style.cssText = 'margin:16px 0 0;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;color:#475569;font-size:12px;line-height:1.6;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;word-break:break-all;';
+    var label = document.createElement('span');
+    label.textContent = text[0];
+    var code = document.createElement('code');
+    code.textContent = number;
+    code.style.cssText = 'font-size:12px;color:#0f172a;user-select:all;';
+    var button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = text[1];
+    button.style.cssText = 'border:1px solid #cbd5e1;border-radius:999px;background:#fff;color:#334155;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;';
+    button.addEventListener('click', function () {
+      function flash(message) {
+        button.textContent = message;
+        setTimeout(function () { button.textContent = text[1]; }, 1300);
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(number).then(function () { flash(text[2]); }, function () { flash(text[3]); });
+          return;
+        }
+      } catch (_) {}
+      flash(text[3]);
+    });
+    line.appendChild(label); line.appendChild(code); line.appendChild(button);
+    return line;
+  }
+
   function loadSummary(options) {
     var opts = options || {};
     var el = byId('summaryArea');
@@ -196,6 +238,8 @@
           });
           el.appendChild(next);
         }
+        var receipt = receiptNode(data);
+        if (receipt) el.appendChild(receipt);
         notify('section_summary');
         return;
       }

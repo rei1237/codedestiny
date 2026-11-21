@@ -11,6 +11,7 @@ import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/bill
 import { SAJU_SECTION_FEATURE_KEYS, SUKUYO_COMPAT_FEATURE_KEYS, ZIWEI_COMPAT_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
+import { SAJU_RECEIPT_FEATURE_KEYS, readBundleReceipt } from "../lib/saju-bundle-receipt.js";
 
 const degraded = () => json({
   ok: false, reason: "TEMPORARY_UNAVAILABLE", retryable: true,
@@ -306,7 +307,10 @@ export async function handleSajuSection(request, env = {}) {
       place: body?.place, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo, house: body?.house,
       authorityEnabled: sajuAuthorityOn(env),
     });
-    return json({ ok: true, unlocked: true, featureKey, ...result });
+    // 결제번호(주문번호): 이 계정의 결제 완료 주문이 연 권한일 때만 — 조회 키에 userId 가 들어 있고, 환불·타 계정·주문 아닌 근거는 null 이다.
+    const receipt = profileId && SAJU_RECEIPT_FEATURE_KEYS.includes(featureKey)
+      ? await readBundleReceipt(auth.userId, access.purchaseEvidence) : null;
+    return json({ ok: true, unlocked: true, featureKey, ...result, ...(receipt ? { receipt } : {}) });
   } catch (error) {
     if (error instanceof SajuSectionInputError) return json({ ok: false, code: error.code, message: error.message }, { status: 400 });
     if (error instanceof HttpError) return json({ ok: false, code: error.payload?.code || "BAD_REQUEST", message: error.message }, { status: error.status });
