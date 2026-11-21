@@ -27,7 +27,7 @@ const WATCH_STATUSES = [...STUCK_STATUSES, 'pending'];
 // 상태 기반 공용 환불(settleFailedConsultationRefund)로 확정하는 서비스. 이 밖의 STUCK_SETTLERS 는 복구 어댑터
 // (라우트 모듈)가 settleStuckDelivery(env, { doc, now, model }) 를 내보내 자기 실패·환불 경로로 확정한다(S16).
 export const GENERIC_STUCK_SETTLERS = Object.freeze(['new-year-ai', 'life-book-ai', 'saju-compat-premium']);
-export const STUCK_SETTLERS = Object.freeze([...GENERIC_STUCK_SETTLERS, 'love-secret-ai', 'neo-operation-room', 'heukwol', 'fortune-tea-house', 'vedic-ai', 'astrology-ai', 'ziwei-ai', 'sukuyo-compatibility-ai', 'karma-destiny-ai', 'naming-prompt', 'nakshatra-ai', 'human-design-report']);
+export const STUCK_SETTLERS = Object.freeze([...GENERIC_STUCK_SETTLERS, 'love-secret-ai', 'neo-operation-room', 'heukwol', 'fortune-tea-house', 'vedic-ai', 'astrology-ai', 'ziwei-ai', 'sukuyo-compatibility-ai', 'karma-destiny-ai', 'naming-prompt', 'nakshatra-ai', 'human-design-report', 'destiny-compass-ai']);
 export const STUCK_LIVE_LEASE_MS = LIVE_LEASE_MS;
 
 // 진전 크기에서 빼는 필드: 시도마다 바뀌지만 본문이 아닌 것.

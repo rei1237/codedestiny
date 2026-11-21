@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs,access,complete,realContract,passRefund;
+let settleStuck,docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs,access,complete,realContract,passRefund;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
@@ -58,7 +58,7 @@ const model = {
     let doc=docs.find(row=>matches(row,filter));
     if(!doc && update.$setOnInsert) { doc=clone(update.$setOnInsert); docs.push(doc); return{upsertedCount:1}; }
     if(doc && update.$set) assign(doc,update.$set);
-    return{matchedCount:doc?1:0};
+    return{matchedCount:doc?1:0,modifiedCount:doc&&update.$set?1:0};
   },
 };
 
@@ -78,7 +78,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/llm-cache-store.js',()=>({createLlmCacheStore:()=>null}));
  jest.unstable_mockModule('../../worker/lib/cms-prompts.js',()=>({cmsPromptText:(_env,_key,value)=>value}));
  jest.unstable_mockModule('../../worker/lib/destiny-compass-report-contract.js',()=>({...contract,buildCompassSectionPrompt:({spec})=>spec.key,validateCompassSection:()=>[],buildAllowedLabels:()=>[],buildCompassBasisPayload:()=>({}),computeSystemStars:()=>[],resolveGrounds:()=>[],splitGroundsLine:text=>({body:text,evidenceIds:[]})}));
- ({handleDestinyCompassAiRoutes:route}=await import('../../worker/routes/destiny-compass-ai.js'));
+ ({handleDestinyCompassAiRoutes:route,settleStuckDelivery:settleStuck}=await import('../../worker/routes/destiny-compass-ai.js'));
 });
 const requestInput=()=>({idempotencyKey:'original-request',requestId:'original-request',transactionId:'original-receipt',question:'생활의 선택',emotion:'calm',field:{seed:'sensitive-seed',primary:{key:'career',score:60,band:'steady'},directions:[]},evidencePack:{systems:[{system:'saju',items:[{id:'saju.dayMaster',term:'일간',detail:'갑'}]},
   // 체계 섹션(사주·자미·숙요·타로)의 근거는 다 있어야 한다 — 하나라도 비면 라우트가 생성 전에 끊는다.
@@ -225,4 +225,64 @@ it('reopens native chapters with the same native authority and no web payment or
   const forged=await route(new Request('https://mock.test/api/destiny-compass-ai/report/continue',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({reportId:saved.reportId})}),{});
   expect(forged.status).toBe(402);
   await expect(deliverNativeCompassReport({}, {...auth,assertTossReport:async()=>{throw Error('ORDER_REFUNDED');}}, raw,'toss-order',false)).rejects.toThrow('ORDER_REFUNDED');
+});
+
+describe('settleStuckDelivery', () => {
+  const now = Date.parse('2026-11-22T00:00:00Z');
+  const stale = () => new Date(now - 60 * 60 * 1000);
+  const settle = () => settleStuck({}, { doc: { id: 'saved-compass', userId: uid }, now, model });
+  for (const status of ['generating', 'partial']) it(`${status} stalled report fails first and refunds exactly once`, async () => {
+    Object.assign(docs[0], { status, updatedAt: stale(), lock: { at: stale(), token: 'old' } });
+    refund.mockImplementationOnce(async () => { expect(docs[0].status).toBe('generation_failed'); return { ok: true, execution: { status: 'refunded' }, settlement: { status: 'refunded' } }; });
+    expect(await settle()).toMatchObject({ outcome: 'generation_failed', refundStatus: 'refunded' });
+    expect(docs[0].status).toBe('generation_failed');
+    expect(docs[0].generationError).toMatchObject({ code: 'DELIVERY_STUCK', refunded: true });
+    expect(docs[0].lock).toBe(null);
+    expect(refund).toHaveBeenCalledTimes(1);
+    expect(refund.mock.calls[0][2]).toMatchObject({ executionKey: 'destiny-compass-deep-report:original-request', forceRefundOnClose: true });
+    expect(passRefund).toHaveBeenCalledTimes(1);
+    expect(await settle()).toMatchObject({ outcome: 'progressed' });
+    expect(refund).toHaveBeenCalledTimes(1);
+    expect(provider).not.toHaveBeenCalled();
+  });
+  it('pass restored by evidence counts as refunded and guard failure stays pending', async () => {
+    Object.assign(docs[0], { updatedAt: stale() });
+    refund.mockRejectedValueOnce(new Error('guard down'));
+    passRefund.mockResolvedValueOnce({ refunded: true });
+    expect(await settle()).toMatchObject({ outcome: 'generation_failed', refundStatus: 'refunded' });
+    docs[0] = { ...docs[0], status: 'generating', updatedAt: stale(), generationError: null };
+    refund.mockRejectedValueOnce(new Error('guard down'));
+    expect(await settle()).toMatchObject({ outcome: 'generation_failed', refundStatus: 'pending' });
+    expect(docs[0].generationError.refunded).not.toBe(true);
+  });
+  it('delivery_pending with intact payment is rescued as completed without a refund', async () => {
+    Object.assign(docs[0], { status: 'delivery_pending', updatedAt: stale() });
+    expect(await settle()).toMatchObject({ outcome: 'rescued' });
+    expect(docs[0].status).toBe('completed');
+    expect(docs[0].usageAppliedAt).toBeTruthy();
+    expect(complete).toHaveBeenCalledTimes(1);
+    expect(refund).not.toHaveBeenCalled();
+  });
+  for (const status of ['generating', 'delivery_pending']) it(`${status} with revoked payment is only alerted and never refunded again`, async () => {
+    revokedSource = 1;
+    Object.assign(docs[0], { status, updatedAt: stale() });
+    expect(await settle()).toMatchObject({ outcome: 'unsettled' });
+    expect(docs[0].status).toBe(status);
+    expect(refund).not.toHaveBeenCalled();
+    expect(passRefund).not.toHaveBeenCalled();
+    expect(complete).not.toHaveBeenCalled();
+  });
+  it('leased, toss, settled and incomplete inputs are left alone', async () => {
+    Object.assign(docs[0], { updatedAt: new Date(now - 1000) });
+    expect(await settle()).toMatchObject({ outcome: 'leased' });
+    Object.assign(docs[0], { updatedAt: stale(), lock: { at: new Date(now - 1000), token: 'live' } });
+    expect(await settle()).toMatchObject({ outcome: 'leased' });
+    Object.assign(docs[0], { lock: null, accessType: 'toss' });
+    expect(await settle()).toMatchObject({ outcome: 'unsettled' });
+    Object.assign(docs[0], { accessType: 'pass', status: 'completed' });
+    expect(await settle()).toMatchObject({ outcome: 'progressed' });
+    expect(await settleStuck({}, {})).toMatchObject({ outcome: 'unsupported' });
+    expect(refund).not.toHaveBeenCalled();
+    expect(docs[0].status).toBe('completed');
+  });
 });
