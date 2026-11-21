@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: "C2-UI 항목1(10종 다시 시도·환불 요청 UI)과 항목4(보관함 표식). 서버 위험 2·3은 fe089da75로 끝남. 설계는 실측 절 C2-UI 진행"
+next: "C3 과금 후 레코드 전 4xx 실패(감사 5) — 감사표 5행부터 현재 코드로 재확인. C2-UI는 main b28bd771e로 끝남, 항목4(보관함 표식)는 갭으로 남김(실측 절 C2-UI 완료)"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -100,7 +100,7 @@ next: "C2-UI 항목1(10종 다시 시도·환불 요청 UI)과 항목4(보관함
 - [x] C·D 실측: 아래 "C·D 실측 (2026-11-21)"
 - [x] C1 가드 판정 정정(서술형 includeResumable 게이트·소진/창 경과 종결, 코인 복원 경로 확인 선행) — ef3b6b83e (held 종결, 환불은 C2)
 - [x] C2 서술형 엔진 다시 시도 우선 — 서버(빠진 장만 재개·7일·요청 환불·cron 배선·검증기 10종 이동). 실측은 아래 C2 절
-- [ ] C2-UI 제품 10종 결과 화면에 다시 시도·환불 요청 버튼(아래 C2-UI 갭 목록)
+- [x] C2-UI 제품 10종 보류 화면에 다시 시도·환불 요청 버튼 — fe089da75·7bb121d14·0fe7a4f78·01812dbe3, main b28bd771e (아래 "C2-UI 완료"). 항목4 보관함 표식은 갭으로 남김
 - [ ] C3 과금 후 레코드 전 4xx 실패(감사 5) — 범위 밖, 별도
 - [ ] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 범위 밖, 별도
 - [ ] D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — 범위 밖, 별도
@@ -408,3 +408,48 @@ Base `58ed3c39d` (= origin/main). Worktree `D:\Development\codedestiny-worktrees
   - HTML 정적 셸을 건드리면 sync:public 을 돌리고 미러도 커밋한다.
 - 항목 4(보관함 `/records/` 다시 시도 표식)는 미착수다.
 - 함정: PowerShell `[IO.File]` 의 상대 경로는 프로세스 cwd(루트 `D:\Development\code-destiny`)로 풀린다. 워크트리가 아닌 루트 파일을 고친 사고가 있었다(`git apply -R` 로 복구했다). 반드시 절대 경로를 쓴다. `>` 리디렉션은 UTF-16 이 되므로 패치는 `git diff --output=` 로 만든다.
+
+**C2-UI 완료 (2026-11-22, main b28bd771e, PR CI run 44929631159 success)**
+- 커밋
+  - 7bb121d14: App 4종에 형제 컴포넌트 `app/components/PaidNarrativeRetryPanel.tsx` 를 붙였다. tarot-oracle(TarotPromptMaker), love-tarot, mindscan, guardian(FortuneChatClient)이다. 공용 판정은 `app/_lib/oracle-delivery.ts` 에 있다. ExpertRetryPanel 은 건드리지 않았다.
+  - 0fe7a4f78: 레거시 6종에 UMD 헬퍼 `js/core/paid-narrative-retry.js`(+.d.ts, `mount(host, opts)`)를 붙였다. yoga-guru.html, geomancy-oracle-v4.html, dream(`js/psycho-dream-analyzer-freuds-study.js`), animal-totem(`js/animal-totem-experience.js`), pet-saju.html, saju-compat-basic(`js/saju-engine.js`)이다. sync:public 미러도 함께 넣었다.
+  - 01812dbe3: next.config 의 HMR 제외 목록을 고치고, 한글 줄바꿈을 keep-all 로 바꿨다.
+- 동작
+  - 202 보류(`retryable:false`·`reviewRequired`)가 오면 미완성 결과 대신 패널만 보인다.
+  - 패널 버튼은 두 개다.
+    - "무료로 다시 시도 · 추가 결제·차감 없음": `/api/paid-narrative/retry` 를 부르고, 응답의 resumeBody 로 각 제품 라우트를 다시 부른다.
+    - "다시 시도 대신 환불 요청": `/api/paid-narrative/refund-request` 를 부른다.
+  - 응답 코드별 처리는 다음과 같다.
+
+    | 응답 | 처리 |
+    |---|---|
+    | 409 RESULT_READY | 결과를 연다 |
+    | RETRY_WINDOW_CLOSED | 다시 시도 버튼만 숨기고 환불 버튼은 남긴다 |
+    | 환불 요청 접수 | 두 버튼을 모두 숨기고 상태 문구를 남긴다 |
+- 검증
+  - `__tests__/ui/paid-narrative-retry.test.mjs` 8 tests. jsdom mount 테스트와 레거시 6종 배선 테스트가 들어 있다.
+  - fortune-chat.static 과 함께 node --test 로 돌려 24 pass 였다.
+  - `npm run verify:paid-llm-delivery` ok(37, 37/37·100/100). check:fast EXIT 0(jest 8487 pass, 1 skip). check:pre-push EXIT 0.
+  - headed Chrome 화면 검증을 했다. 대상은 레거시 3종(yoga·geomancy·pet) held/retry-closed 와 /fortune-chat/ 실제 흐름 held→환불 요청이고, 둘 다 mock API 를 썼다. visual-checker 는 10장을 모두 PASS 로 판정했다. 버튼 높이는 48 CSS px 이상이었고 대비는 5.8:1 이상이었다. 미완성 본문은 노출되지 않았다.
+- SEO: 결제 뒤 보류 상태는 비공개 화면이라 영향 없음. 공개 URL 의 title·description·H1·canonical·robots·sitemap 은 바꾸지 않았다. 원장은 App 파일 서명 3건(/fortune-tea-house/·/tarot/mindscan/·/tarot/prompt-maker/)만 갱신했다.
+- 항목 4 보관함 `/records/` 표식은 갭으로 남겼다. 싸지 않다.
+  - 보류 서술형 실행은 `status:'pending'` 에 reasonCode·`paidNarrativeRecovery.reviewRequired` 가 붙은 상태다. 그런데 `worker/lib/record-library.js` 의 `retryHeld` 에는 이 분기가 없어서 'partial/generating' 으로 보인다.
+  - executions 원천에는 resultPath 가 없어서 recoveryHref 가 `/points/history/` 다.
+  - 레거시 페이지는 URL 이 아니라 localStorage 로만 재개한다.
+  - 서버 복구 태스크는 생성 후 24시간 안, SERVER_RESUME 기능만 재개한다.
+  - 그래서 보관함에서 retry 를 불러도 생성까지 끝나지 않는다.
+  - 하려면 세 가지가 필요하다. (1) record-library 에 held 분기, (2) 제품별 재개 URL(`?resume=<resultId>`) 수신, (3) 패널 재사용.
+  - 관찰(보고만): `/records/view` 가 executions 의 저장된 부분 장을 보여 준다. 기존 동작이다.
+- 함정
+  - App 이 import 하는 `js/core/*.js` UMD 는 `next.config.mjs` 의 `LEGACY_SHARED_BROWSER_MODULE` 정규식에 넣어야 한다. 빠지면 dev React Refresh 가 `import.meta` 를 주입해 dev 500 이 난다(빌드·테스트는 통과해서 놓치기 쉽다).
+  - App 파일을 고치면 sitemap 원장 서명이 바뀐다. `sitemap:generate` 는 KST 날짜 드리프트로 수백 항목을 바꾼다. 서명이 바뀐 항목만 원장에 반영하고 xml 은 되돌린다. 그다음 `generate-sitemap.mjs --check` OK 를 확인한다.
+  - jest 는 `node scripts/run-mock-tests.mjs jest <이름 패턴>` 으로 돌린다. 윈도우 경로 패턴은 0건이 된다. `__tests__/ui/*.test.mjs` 일부는 node --test 다.
+  - Playwright 번들 chromium 이 없다. `channel:'chrome'` 을 쓴다.
+  - yoga-guru.html 픽스처는 인증 mock 이 없으면 /login 으로 간다. `**/api/**` 를 `{ok:true,user:{...}}` 로 mock 한다. pet-saju 는 자체 오류 모달·blur 를 걷어 낸다.
+  - check:fast 의 esbuild "The service was stopped" 는 환경 플레이크다. 다시 돌린다.
+- 남은 것(보고만)
+  - `verify:paid-llm-delivery` 는 KNOWN_REFUND_GAPS 13개(서술형 10종 포함)를 그대로 나열한다. 검증기 인벤토리 정리는 별도 작업이다.
+  - 레거시 `js/tarot-love-experience.js` 에는 붙이지 않았다. App love-tarot 이 대체한다.
+  - impeccable gradient-text 는 기존 코드다(MindScanTarot L383, TarotPromptMaker L3172/3179).
+  - geomancy 버튼은 픽스처에서 회색 기본 버튼으로 보였다. 실제 페이지 테마 클래스를 확인하지 않았다(미검증).
+  - auditor 후속 (a)(b)(c)는 위와 같다.
