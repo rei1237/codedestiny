@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 유지, 승인 대기 없이, 게이트·결제·로그인·DB·라우팅 경계 불변, 회귀 확인 후에만 push) — A4 에서 미룬 시코젠 포바일루 검토 포함 (W1 공용 출생 입력 완료 2026-11-21)
+next: 6단계 무료 운세 섹션 재구성 — 계획 보고 후 승인 대기(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검). 3c-A5 완료 2026-11-21
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -61,7 +61,7 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
   - [x] 3c-perf. 가이드 셸이 소개 카드 CSS 를 import 해 `/saju/free/` 에 83KB 렌더 차단 공용 청크가 실리던 회귀 수정. 수정 `ebfd32bfd`, 머지 `7eb4991b7`·원장 `bde984e7c`(2026-11-20). 결과는 아래 "3c-perf 결과".
   - [x] 3c-A3. 12운성 동물(`/saju/animal-destiny/`) 입력 단계만 공통 셸 이전(`GUIDED_ANIMAL_DESTINY_ENABLED`). 운명 편향·연애 시뮬레이션·인연 장소·운명 나침반은 로그인/결제 게이트 때문에 건너뜀. 기능 `f6b5f2d86`(2026-11-21). 결과는 아래 "3c-A3 결과".
   - [x] 3c-A4. 별빛 포옹(`/yeon-star-hug/`) 입력만 공통 셸 이전(`GUIDED_STAR_HUG_ENABLED`). 심리 테스트·프롬프트 허브·크리스탈·FPTI·오라클(룬)은 게이트·DB·공유 러너 때문에 건너뜀, 시코젠은 A5로 미룸. 기능 `0042e6025`, main 머지 `fae848a18`(2026-11-21). 결과는 아래 "3c-A4 결과".
-  - [ ] 3c-A5. 웨이브 A 마무리(플래그 정리 계획·건너뛴 흐름 재검토) 보고 → **사용자 승인 대기**.
+  - [x] 3c-A5. 영냥이 방 출석 운세 16종(`/yeongnyangi/room/`)을 공통 셸로 이전(`GUIDED_YN_FREE_FORTUNE_ENABLED`, 출석 게이트 현행). 시코젠 포바일루는 전체 화면 포털·크롬 라우트 설정 때문에 건너뜀. 기능 `2b2025761`(2026-11-21). 결과는 아래 "3c-A5 결과".
 - [x] 4. 캐릭터 웹툰 결과 렌더러 — 2026-11-21 완료(플래그 `GUIDED_WEBTOON_RESULT_ENABLED`, `/today/` 오늘의 세 장 결과). 아래 "4단계 결과".
 - [ ] 5. 타로 UX 통합 — **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식).
 - [ ] 6. 무료 운세 섹션 재구성 — **계획 보고 후 승인 대기**(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검).
@@ -251,6 +251,41 @@ next: 5단계 3c-A5 영냥이 출석 운세 셸 이전(출석 게이트 현행 �
 - 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_STAR_HUG_ENABLED = false` 또는 `git revert 0042e6025`.
 - A3 후속 "3단계 vs 1/6": 기록만. progressSteps 가 wait 단계를 세므로 고치면 모든 흐름의 셸 동작이 바뀜 → 셸 공통 후속 과제.
 - 남은 위험: (1) 생년월일·이름이 탭 범위 sessionStorage 스냅숏에 남음(원본은 메모리). (2) 결과에서 뒤로 가면 별자리 단계로 감(replace history, A2·A3 와 같은 패턴). (3) 가이드에서는 기본 감정(calm)을 미리 고르지 않아 사용자가 직접 골라야 함. (4) 시각 입력은 원본 BirthTimeInput 이 아니라 네이티브 time input. (5) 감정·별자리·예시 문장 라벨은 원본 데이터 그대로 한국어만. (6) check:fast 부하 타임아웃 반복 가능.
+
+### 3c-A5 결과 (2026-11-21) — 영냥이 출석 운세 16종 이전, 시코젠 건너뜀
+
+요청 원문(2026-11-21): "서비스 기능에 회귀는 없어야해" + "영냥이 출석 게이트 현행" → 새 플래그, 끔·게스트·잠김은 원본 그대로. 출석·멸치·열기·읽기 호출·결과 본문은 원본이 맡는다.
+
+| 흐름 | 경로·정본 | 판정 | 사유 |
+|---|---|---|---|
+| 영냥이 출석 운세 16종 | `/yeongnyangi/room/` `app/yeongnyangi/_components/FreeFortune.tsx` | **이전** (`GUIDED_YN_FREE_FORTUNE_ENABLED`) | 16종이 열린 로그인 사용자에게만: 랜딩 → 분야(16종, 2열/넓으면 4열) → 질문(선택, 분야 단서 `details`, 출생 분야는 위 프로필 필요) → 읽는 중(원본 `read` 1회) → 결과(원본 상자 안 원본 `Reading`/시간 질문 상담 + 아래 "다른 분야 고르기"). 오늘 이미 읽은 분야·시간 질문(horary)은 원본처럼 질문 폼 없이 결과로 |
+| 오라클: 시코젠 포바일루 | — | 건너뜀 | 전체 화면 createPortal(z 2147483000)과 AppChrome CHROMELESS 라우트 목록(크롬·라우트 설정 변경) 필요, 단계별 CTA·모달이 셸 sticky CTA 와 충돌, 연이 핑크 의식 UI |
+
+- 출석 게이트 불변: 출석 막대·멸치 잔고·"멸치 N마리 건네기"·열기·`/api/yeongnyangi/*` 호출은 원본 그대로. 플로우판(`FreeFortuneGuided.tsx`)은 fetch·authFetch·`/api` 0(정적 테스트로 고정). 401 이면 원본 `fail` 이 게스트로 바꿔 플로우판이 내려가고 원본 게스트 화면.
+- 파일: 새 `app/yeongnyangi/_components/FreeFortuneGuided.tsx`(ssr:false 동적 로드)·`FreeFortuneGuided.module.css`(새 hex 0, `--gf-*`/`--yn-*` 만), `FreeFortune.tsx`(CRLF 유지; 플래그 3항, `read` 가 boolean 반환, guided 일 때 칩·폼 대신 결과 단계에서만 원본 결과, 섹션 `width:100%` — guided 일 때만), `lib/guided-flow/flags.mjs`, i18n `ynFreeFortune` 12개(ko/en/ja/zh-CN/zh-TW 저작, 나머지 영어), `docs/analytics-kpi.md`(flow_id `yn-free-fortune`, feature_id `yn_free_fortune`, surface `yeongnyangi_free`).
+- 함정(코드에 없는 것):
+  - `.ynOriginal button{border:0;background:none;color:inherit}`(0,1,1)가 셸 선택지·주 버튼 모듈 클래스(0,1,0)를 이긴다 → 슬롯 범위 덮어쓰기(`.slot button[aria-pressed]`, `.slot :global(.cd-yehwa-button--primary)`).
+  - `.ynOriginal .free-fortune` 스타일(모바일 margin 14 등)이 그 클래스 붙은 모든 요소에 번진다 → 슬롯은 그 클래스를 쓰지 않는다.
+  - 원본 상자는 폭 지정 없이 내용 폭(max-width 940, margin auto)이라 칩 줄이 빠지면 960 에서 619px 로 줄었다(visual-checker FAIL) → guided 일 때만 `width:100%;box-sizing:border-box`. 셸 기본 `--gf-max` 40rem 도 슬롯에서 `max-width:none`.
+  - JSDOM 테스트는 동작 줄이기(matchMedia true)라 선택 자동 넘김이 없다 → 고른 뒤 "다음".
+- 커밋: 기능 `2b2025761`, origin/main 머지, 원장 `4924038de`·`131107013`·`dba901959` + 이 문서 커밋. `git push origin HEAD:main` 로 착지(이 문서 커밋 포함). push 후 CI 는 다음 push 전 1회 확인
+- 검증(실측):
+  - 테스트 node --test: yn-free-fortune-guided 4/4(정상 흐름·실패 시 질문 복귀·이미 읽은 분야/시간 질문 바로 결과·프로필 없으면 막힘), guided-tarot-flags.static 11/11(A5 추가), 기존 yeongnyangi-free-fortune 3/3. tsc 0 오류.
+  - `npm run check:fast -- --base=origin/main`: 첫 실행은 sitemap 원장 드리프트만 차단(app 편집 → 서명 5개), `sitemap:generate` 후 재실행 exit 0(critical 승격, jest 489 스위트/8435 통과·1 skipped). 유료 게이트 묶음 78/0.
+  - `npm run check:pre-push`: origin/main(1dbb5450e) 재머지 후 커밋 트리에서 통과(exit 0). 머지로 들어온 W2 `FREE_RESULT_GUEST_ENABLED` 게스트 문구 줄과 자동 병합, 머지 후 A5 테스트 15/15·기존 3/3 재통과
+  - 실제 페이지(dev, `/api/yeongnyangi/*` mock, 쿠키 배너 닫음, headed) 360/960 × 열림·잠김·게스트 × 켬/끔: 켬+열림만 플로우판(랜딩 1, 원본 칩 0), 잠김·게스트는 켬/끔 모두 원본 칩. 켬 걷기 분야 → 타로 → 질문 → 읽기 → `?step=result`, 원본 Reading 본문 표시.
+  - visual-checker: 잠김·게스트 켬/끔 픽셀 차이 0(4쌍). 원본 상자 폭 켬=끔(960 24–920, 360 0–344), 플로우 카드·결과 행동 카드도 같은 폭(수정 후 재판정 PASS). 대비 최저 9.04:1(placeholder), 선택지 테두리 4.04:1, CTA 11.29:1 이상. 선택 상태(굵은 금 테두리+체크) 확인. 핑크 없음.
+  - 렌더 차단 CSS(dev 첫 HTML stylesheet 합): 켬/끔 동일 3개 1,648,846B. 플로우 CSS 는 동적 import 로 뒤에 로드.
+  - 경계 diff: worker·api·결제·이용권·월정석·auth·records·`/yeongnyangi/library/`·라우트·리다이렉트·wrangler·.env·package-lock 변경 0.
+  - SEO: `/yeongnyangi/room/` 는 noindex. page·metadata·H1·canonical·robots 무변경, 랜딩 제목 h2·ssr:false, sitemap 원장 서명만 재생성. 그 외 항목 영향 없음.
+  - main CI(push 전 1회): push 전 1회 확인: PR CI `a7157025e` success, 재머지 직전 main 머리 `1dbb5450e` PR CI success(gh run watch 44841172563 exit 0)
+- 롤백: `lib/guided-flow/flags.mjs` 의 `GUIDED_YN_FREE_FORTUNE_ENABLED = false` 또는 `git revert 2b2025761`.
+- 남은 위험·후속:
+  1. 360 에서 아래쪽 줄 분야를 고르면 450ms 자동 넘김 전까지 sticky "다음" 이 그 칩 아래 절반을 가린다(셸 공통 동작).
+  2. 분야를 바꾸면 원본이 그날 읽기를 비동기로 불러오므로, 이미 읽은 분야는 질문 화면이 잠깐 보였다가 결과로 넘어갈 수 있다.
+  3. 새로고침하면 고른 분야·단계는 스냅숏으로 복원되지만 질문 글은 빈다(정본은 원본 draft 메모리, 원본도 새로고침하면 빈다). 질문 글은 sessionStorage 에 남지 않는다.
+  4. 360 칩 라벨 길이 차이로 1~2줄 높이가 섞인다("기본 운세"·"사주/명리학").
+  5. 동작 확인은 mock 기준. 스테이징 실응답(출석·읽기)은 미검증.
 
 ### W1 공용 출생 입력 결과 (2026-11-21)
 
