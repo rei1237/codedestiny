@@ -1,0 +1,53 @@
+{
+  "id": "yeoni",
+  "base": "public/images/master-profiles/yeoni-love-portrait.webp",
+  "sourceDir": "D:/CodeDestiny-Build/master-motion/yeoni",
+  "reportDir": "D:/CodeDestiny-Build/master-motion/yeoni/report",
+  "out": "public/images/master-motion/yeoni",
+  "input": { "paddedSize": 720, "padLeft": 60, "padTop": 0, "note": "정본 600x720 을 좌우 60px 거울 확장해 720x720, 다시 1024x1024(lanczos3)로 키워 input-1024.png 로 첨부했다" },
+  "registration": { "box": { "left": 115, "top": 45, "width": 280, "height": 280 }, "maxShift": 12, "scales": [0.98, 0.99, 1, 1.01, 1.02] },
+  "qa": { "maxGuardDiff": 5, "minRegionDiff": 8, "note": "8px 블록 평균 밝기 차이. 생성물 4장의 영역 밖 재생성 흔들림이 2.9~4.3 이라 그 바로 위로 잡았다" },
+  "frames": {
+    "half": {
+      "file": "raw-half.png",
+      "prompt": "eyes half-closed mid-blink (upper eyelids lowered about halfway over the irises); eyebrows, mouth and smile unchanged",
+      "region": [
+        { "cx": 306, "cy": 116, "rx": 30, "ry": 22, "feather": 10 },
+        { "cx": 246, "cy": 151, "rx": 28, "ry": 20, "feather": 10 }
+      ]
+    },
+    "closed": {
+      "file": "raw-closed.png",
+      "prompt": "eyes fully closed in a gentle natural blink (upper eyelids fully lowered, lashes resting down); eyebrows, mouth and smile unchanged",
+      "region": [
+        { "cx": 306, "cy": 116, "rx": 30, "ry": 22, "feather": 10 },
+        { "cx": 246, "cy": 151, "rx": 28, "ry": 20, "feather": 10 }
+      ]
+    },
+    "mouth": {
+      "file": "raw-mouth.png",
+      "prompt": "lips parted very slightly as if softly beginning to speak; eyes, eyebrows and everything else unchanged",
+      "region": { "cx": 326, "cy": 188, "rx": 18, "ry": 11, "feather": 8 }
+    },
+    "breeze": {
+      "file": "raw-breeze.png",
+      "prompt": "a light breeze lifts a few loose strands of hair and the tip of the sleeve very slightly to the right; face unchanged",
+      "region": { "cx": 186, "cy": 102, "rx": 20, "ry": 26, "feather": 10 }
+    }
+  },
+  "sequence": ["half", "closed", "half"],
+  "variants": {
+    "portrait": { "kind": "portrait" },
+    "avatar": { "kind": "avatar", "crop": { "left": 115, "top": 45, "size": 280 } }
+  },
+  "webp": {
+    "default": { "sheet": 80, "poster": 76 },
+    "avatar": { "sheet": 84, "poster": 84 }
+  },
+  "provenance": {
+    "purpose": "연애 비책 소개장 초상·마스터 띠 아바타의 대기 모션(눈 깜빡임) 스프라이트 시트",
+    "generationTool": "Codex CLI 0.156.1 (ChatGPT OAuth) built-in image_gen = gpt-image-2, 이미지 편집 입력",
+    "references": ["public/images/master-profiles/yeoni-love-portrait.webp"],
+    "promptRules": "정본과 같은 인물·얼굴·머리·한복·구도·조명·배경을 유지하고 지정 부위만 바꾼다. 텍스트·글자·숫자·워터마크·로고·서명·테두리·꽃잎 금지. 물체 추가·이동·삭제 금지."
+  }
+}
