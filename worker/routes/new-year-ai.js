@@ -35,6 +35,7 @@ import { consultationRefundResponse } from "../lib/consultation-refund-state.js"
 import { markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
+import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1785,7 +1786,10 @@ function newYearFactLines(fortuneData) {
 // section을 넘기면 그 섹션이 맡은 아웃라인 항목만 남기고 분량 지시도 섹션 기준으로 바뀐다.
 // 섹션별 문장을 계산 데이터 뒤에 두어 Gemini 자동 캐시가 공통 앞부분을 재사용하게 한다.
 // 2인자로 부르면 출력이 기존과 완전히 동일하다(verify-new-year-ai-flow가 이 프롬프트를 단언).
-function buildFirstPrompt(input, fortuneData, section = null) {
+// 성향 장(nature, 구성 V2)의 사주 차트 — 기존 기질 근거(buildCanonicalNewYearFacts)와 같은 입력.
+const newYearTraitChart = fortuneData => ({...fortuneData.saju,natalAnalysis:fortuneData.natalAnalysis,calculationMeta:fortuneData.calculationMeta});
+
+function buildFirstPrompt(input, fortuneData, section = null, traitOptions = {}) {
   const outline = buildConsultationOutline(input);
   const questionLines = [
     // "질문에 대한 답변" 소제목은 총운 섹션 하나만 쓴다. 섹션 전부에 이 지시가 들어가면
@@ -1810,6 +1814,8 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     ...(section ? [] : questionLines),
     ...newYearFactLines(fortuneData),
     ...(section ? questionLines : []),
+    // Trait-First: 생성 시작 때 고정한 llmMeta.traitFirst 가 있는 세션의 성향 장에만. OFF·옛 세션은 빈 배열이라 바이트 단위로 같다.
+    ...(traitOptions.traitFirst && section?.key === "nature" ? sajuTraitFirstLines(newYearTraitChart(fortuneData), traitOptions) : []),
     ...(section ? [
       ...sectionScopeLines(section),
       `이번에는 완성 상담문 중 "${section.label}" 부분만 씁니다. 아래 항목만 쓰고 다른 항목은 쓰지 마세요.`,
@@ -1967,14 +1973,14 @@ function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
 }
 
 // 재생성은 "처음부터 다시"가 아니라 "직전 결과를 살리며 보강"이다 — 살릴 내용을 잃지 않는다.
-function buildSectionPrompt(input, fortuneData, section, repairLines = [], previousText = "", priorSections = []) {
+function buildSectionPrompt(input, fortuneData, section, repairLines = [], previousText = "", priorSections = [], traitOptions = {}) {
   const opening = priorSections.find(row => ownsQuestion(row.section || { key: row.key }) && clean(row.text));
   const answerEnd = opening?.section?.questionOwner ? `**${opening.section.heading}` : "**타고난 성향";
   const decision = !ownsQuestion(section) && opening
     ? ["", "[앞 장의 질문 답변 — 판단의 연속성]", clean(opening.text).split(answerEnd)[0].slice(0, 2000),
       "위 답변은 앞 장에서 이미 제시한 판단입니다. 이번 장의 권고 방향·우선순위·시기를 그 판단과 연결하세요. 병행·준비 단계와 최종 선택을 구분하고, 다른 선택지가 더 낫다고 결론을 뒤집지 마세요. 달라지는 조건이 있다면 그 조건을 명시하세요. 앞 장 문장을 반복하지 마세요."]
     : [];
-  const base = [buildFirstPrompt(input, fortuneData, section), ...decision].join("\n");
+  const base = [buildFirstPrompt(input, fortuneData, section, traitOptions), ...decision].join("\n");
   if (!repairLines.length) return base;
   // 첫 시도에는 직전 본문이 없다 — 빈 "다시 쓰세요" 블록을 붙이지 않는다.
   return [
@@ -2156,7 +2162,7 @@ async function generateConsultationSection(env, options) {
   // 예산이 바닥났으면 호출 자체를 건너뛴다(직전 텍스트가 있으면 그대로 살린다).
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
-    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections), {
+    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections, { traitFirst: options.traitFirst ?? null, seed: options.traitSeed || "" }), {
       systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(null, { planVersion: section.planVersion }), { answerVoice: options.answerVoice ?? null }),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
@@ -2177,6 +2183,11 @@ async function generateConsultationSection(env, options) {
     if (!ai?.ok || isMock || (options.allowShortDraft ? typeof ai?.text !== "string" || !countPaidReportBodyChars(text) : text.length < NEW_YEAR_AI_SECTION_MIN_LENGTH)) {
       const failure = !ai?.ok ? { code: /^[A-Z][A-Z0-9_]{0,79}$/.test(ai?.error || "") ? ai.error : "LLM_PROVIDER_UNAVAILABLE", ...safeGeminiFailure(ai) } : null;
       return { ...base, text: previousText, ok: false, isMock, reason: failure?.code || (isMock ? "MOCK_PROVIDER_BLOCKED" : "SECTION_CONTENT_EMPTY"), failure };
+    }
+    // Trait-First shadow 검증: 기록만 한다. ok·재시도·전달 판정에 쓰지 않는다(게이트 B 설계 제약 4).
+    if (section.key === "nature" && options.traitFirst) {
+      const shadow = traitFirstShadowCheck(newYearTraitChart(fortuneData), text, { traitFirst: options.traitFirst, seed: options.traitSeed || "" });
+      if (shadow) logNewYearAi("Trait First Shadow", { ok: shadow.ok, issues: shadow.issues, headline: shadow.headline }, shadow.ok ? "info" : "warn");
     }
     // ai.truncated(finishReason === "MAX_TOKENS")를 여기서 처음으로 실제로 읽는다.
     return { ...base, text, ok: true, truncated: ai?.truncated === true, provider, model: clean(ai?.model), reason: "", failure: null };
@@ -2253,6 +2264,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     input,
     fortuneData,
     answerVoice: options.answerVoice ?? null,
+    traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "",
     section,
     cache: newYearLlmCache,
     timeoutMs: wave1TimeoutMs,
@@ -2270,6 +2282,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
         input,
         fortuneData,
         answerVoice: options.answerVoice ?? null,
+        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "",
         section: row.section,
         cache: newYearLlmCache,
         timeoutMs: wave2TimeoutMs,
@@ -2725,6 +2738,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
         answerVoice: options.answerVoice ?? null,
+        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "",
         supportRecovery: recovery,
         priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
@@ -2961,6 +2975,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
         messages: [], idempotencyKey, inputHash: normalized.inputHash, status: 'partial', generationError: null,
         llmMeta: { fortuneData, resumeBody: { ...body, paymentId: clean(access.paymentId, 160) || body.paymentId, accessToken: undefined },
           savedSections: [], attempts: {}, lockedAt: null, lockToken: '', answerVoice: selectAnswerVoice(env),
+          // Trait-First: 새 세션만 생성 시작 때 고정. 키 없는 기존 세션은 끝까지 OFF.
+          ...(selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
           sectionPlanVersion: NEW_YEAR_AI_SECTION_PLAN_VERSION } });
     } catch (error) {
       if (error?.code !== 11000) throw resultStorageUnavailable(sessionId);
@@ -3000,6 +3016,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       sections: newYearSectionsForPlan(claimed.llmMeta?.sectionPlanVersion),
       // 섹션마다 문체가 섞이지 않게 생성 시작 시점 값을 쓴다(consultation-answer-contract.js).
       answerVoice: pinAnswerVoice(claimed.llmMeta, env),
+      traitFirst: pinTraitFirst(claimed.llmMeta ?? {}, env), traitSeed: `${clean(auth.userId)}|new-year-ai`,
       supportRecovery: claimed.llmMeta?.supportRecovery,
       onReserve: async (key, lengthRepair) => {
         await reserveSupportRecoveryAttempt({ Model: NewYearAiConsultation, id: sessionId, userId: auth.userId, lockToken });

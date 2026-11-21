@@ -756,3 +756,41 @@ describe("마지막 시도 결정적 교정(L1)", () => {
     expect(isLifeBookComplete(report)).toBe(false);
   });
 });
+
+// Trait-First(게이트 B): 인생의 책 1장(타고난 사주의 원형)에만. 인생 총운·승인 명식 경로·나머지 장은 바이트 그대로.
+describe("Trait-First (TRAIT_FIRST_SAJU)", () => {
+  const block = "[타고난 성향 핵심 근거]";
+  const ON = { traitFirst: "v1", traitSeed: "u1|life-book-ai" };
+  const all = (input, version) => buildSectionPlan(input, version ? { version } : undefined);
+
+  test("OFF·비대상은 모든 판의 모든 섹션 프롬프트가 그대로다", () => {
+    const saju = calculateLifeBookAiSaju(birthInfo);
+    for (const [input, versions] of [[lifeFortuneInput, [1, 2, 3]], [lifeBookInput, [1, 2]]]) for (const version of versions) {
+      for (const section of all(input, version)) {
+        const slice = pickSajuSlice(saju, section.evidenceRefs);
+        const off = buildSectionPrompt(input, slice, section, "");
+        expect(off).not.toContain(block);
+        expect(buildSectionPrompt(input, slice, section, "", { traitFirst: null })).toBe(off);
+        const on = buildSectionPrompt(input, slice, section, "", ON);
+        const target = input === lifeBookInput && section.kind === "chapter" && section.index === 0;
+        if (!target) expect({ id: section.id, same: on === off }).toEqual({ id: section.id, same: true });
+      }
+    }
+  });
+
+  test("고정된 v1 은 인생의 책 1장에만 근거 블록을 넣고, 블록을 빼면 OFF 프롬프트와 같다", () => {
+    const saju = calculateLifeBookAiSaju(birthInfo);
+    const section = all(lifeBookInput).find((s) => s.kind === "chapter" && s.index === 0);
+    const slice = pickSajuSlice(saju, section.evidenceRefs);
+    const off = buildSectionPrompt(lifeBookInput, slice, section, "");
+    const on = buildSectionPrompt(lifeBookInput, slice, section, "", ON);
+    expect(on).toContain(block);
+    expect(on).toMatch(/가장 먼저 짚을 성향: .+ 일간/);
+    const lines = on.split("\n"), start = lines.indexOf(block);
+    const end = lines.findIndex((line, i) => i > start && line.startsWith("사용 규칙: 성향 장은"));
+    expect(end).toBeGreaterThan(start);
+    expect([...lines.slice(0, start), ...lines.slice(end + 1)].join("\n")).toBe(off);
+    // 승인 명식(sajuAuthority) 경로는 제외한다.
+    expect(buildSectionPrompt(lifeBookInput, { ...slice, sajuAuthority: { ok: true } }, section, "", ON)).not.toContain(block);
+  });
+});
