@@ -87,6 +87,38 @@
         "wishSent": "The lantern drifts toward the moonlight.",
         "dedication": "May today’s wish reach you and those you care about."
       }
+    },
+    "audio": {
+      "open": "Open music",
+      "title": "Meditation music",
+      "close": "Close",
+      "prev": "Previous track",
+      "next": "Next track",
+      "play": "Play music",
+      "pause": "Pause music",
+      "volume": "Music volume",
+      "volumeFixed": "On this device, use the volume buttons.",
+      "sfx": "Sound effects",
+      "on": "On",
+      "off": "Off",
+      "list": "Track list",
+      "soundOn": "Turn sound on",
+      "status": {
+        "playing": "Now playing",
+        "loading": "Getting the music ready",
+        "paused": "Selected track",
+        "error": "This track could not play. Please pick another one."
+      },
+      "mood": {
+        "calm": "Calm",
+        "dawn": "Dawn",
+        "warm": "Warm",
+        "focus": "Focus",
+        "night": "Moonlit night",
+        "water": "Water",
+        "stars": "Starlight",
+        "renew": "Renewal"
+      }
     }
   }
 }
