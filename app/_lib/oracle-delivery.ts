@@ -1,5 +1,5 @@
 export type OracleDeliveryResponse = {
-  ok?: boolean; status?: string; saved?: boolean; retryable?: boolean; busy?: boolean;
+  ok?: boolean; status?: string; saved?: boolean; retryable?: boolean; reviewRequired?: boolean; busy?: boolean;
   resultId?: string; code?: string; reason?: string; completedParts?: string[]; totalParts?: number;
   sections?: { key: string; title: string; body: string }[];
   resumeInputs?: Record<string, unknown>; consultation?: unknown;

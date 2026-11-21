@@ -21,6 +21,7 @@ import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
 import type { PaidResumeDescriptor } from "@/js/core/checkout-entry.js";
 import styles from "./fortune-chat.module.css";
+import PaidNarrativeRetryPanel, { paidNarrativeHoldOf, type PaidNarrativeHold } from "@/app/components/PaidNarrativeRetryPanel";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
@@ -307,6 +308,8 @@ export default function FortuneChatClient() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  // 생성 한도에 걸려 보류된 유료 상담: 미완성 답 대신 무료 다시 시도·환불 요청 패널만 보인다.
+  const [guardianHold, setGuardianHold] = useState<PaidNarrativeHold | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [birth, setBirth] = useState<Birth>({ birthDate: "", birthTime: "", calendarType: "solar", gender: "unknown" });
   const [birthOpen, setBirthOpen] = useState(false);
@@ -495,7 +498,10 @@ export default function FortuneChatClient() {
       setError(friendlyError(attempt.payload?.message, "지금 상담을 준비하지 못했어요. 잠시 후 다시 시도해 주세요. 같은 상담의 결제 내역과 저장 상태를 다시 확인해 주세요."));
       return false;
     }
+    const hold = paidNarrativeHoldOf(attempt.payload);
+    if (hold) { setError(""); setGuardianHold(hold); return false; }
     if (!attempt.ok || !attempt.payload?.ok) throw new Error(friendlyError(attempt.payload?.message));
+    setGuardianHold(null);
 
     const result = attempt.payload.result || {};
     // 서버는 고민(topic)별 상품을 premiumCta 로 이미 지목해서 내려보낸다
@@ -595,6 +601,17 @@ export default function FortuneChatClient() {
       setBusy(false);
     }
   });
+
+  /* 다시 시도가 열리면 같은 requestId 로 코어만 다시 부른다 — 서버가 실행 키로 저장된 장을 찾아 빠진 장만 잇는다.
+     🔴 게이트(결제)를 다시 타지 않는다. */
+  const resumeHeldGuardian = async () => {
+    const pending = readPendingTurn(sessionId, true);
+    if (!pending || busy) return;
+    setGuardianHold(null); setBusy(true); setError("");
+    try { presentAttempt(await requestReading(String(pending.body.requestId), String(pending.body.concern || ""), pending.body as unknown as ReadingContext)); }
+    catch (reason) { setError(friendlyError(reason, "저장된 상담을 다시 확인해 주세요.")); }
+    finally { setBusy(false); }
+  };
 
   const send = async () => {
     if (busy || isPaying) return;
@@ -781,6 +798,7 @@ export default function FortuneChatClient() {
         <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "정리 중" : "보내기"}</button>
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
+      {guardianHold && !busy && <PaidNarrativeRetryPanel hold={guardianHold} onResume={() => void resumeHeldGuardian()} className={styles.retryPanel} />}
     </section>
   </main>;
 }

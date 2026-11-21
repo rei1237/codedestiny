@@ -17,6 +17,7 @@ import { detectLocale } from "@/lib/i18n/dictionary";
 import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { continueOracleDelivery, needsTarotRedraw, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import PaidNarrativeRetryPanel, { paidNarrativeHoldOf } from "@/app/components/PaidNarrativeRetryPanel";
 import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-tarot-copy";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
@@ -1632,6 +1633,16 @@ export default function MindScanTarot() {
     void performReading(entry.body.pairs, entry.body.question, entry.body.requestId)
       .catch(error => { if (mindscanOwner() === owner) setReadingError(friendlyErrorMessage(error, copy.genericErrorFallback)); });
   }, [owner, delivery?.retryable, performReading, copy]);
+  // 생성 한도에 걸려 보류된 건: 미완성 본문 대신 무료 다시 시도·환불 요청 패널만 보인다.
+  const mindscanHold = paidNarrativeHoldOf(delivery);
+  const resumeHeldMindscan = (resumeBody: { resumeResultId: string }) => {
+    const entry = recoveryRef.current;
+    if (!entry || busyRef.current || mindscanOwner() !== owner) return;
+    entry.resultId = resumeBody.resumeResultId;
+    setReadingError(''); setDelivery(previous => previous ? { ...previous, retryable: true, reviewRequired: false } : previous);
+    void performReading(entry.body.pairs, entry.body.question, entry.body.requestId)
+      .catch(error => { if (mindscanOwner() === owner) setReadingError(friendlyErrorMessage(error, copy.genericErrorFallback)); });
+  };
   useEffect(() => {
     const resume = () => { if (!document.hidden && !delivery?.saved) resumeSaved(); };
     window.addEventListener('online', resume); document.addEventListener('visibilitychange', resume);
@@ -1834,6 +1845,10 @@ export default function MindScanTarot() {
         {stage === 'delivery' && <div key="delivery" className="fixed inset-0 z-20 overflow-y-auto px-4 py-20 text-stone-100">
           <div className="mx-auto max-w-2xl space-y-5 [overflow-wrap:anywhere]">
             <h2 className="text-xl font-bold">{locale === 'ko' ? '마인드스캔 상담' : 'Mindscan reading'}</h2>
+            {mindscanHold && !readingLoading ? <PaidNarrativeRetryPanel hold={mindscanHold} onResume={resumeHeldMindscan}
+              className="grid gap-3 rounded-xl border border-violet-200/30 bg-slate-950/80 p-5 text-[15px] leading-7 [&_h3]:font-bold"
+              primaryClassName="min-h-12 w-full rounded-xl border border-violet-200/50 bg-violet-900 px-5 py-3 font-semibold disabled:opacity-60"
+              secondaryClassName="min-h-12 w-full rounded-xl border border-violet-200/30 px-5 py-3 text-stone-200 disabled:opacity-60" /> : <>
             <p role="status">{locale === 'ko' ? '본문 저장' : 'Saved sections'} {delivery?.completedParts?.length || 0} / {delivery?.totalParts || 19}{readingLoading ? ' · …' : ''}</p>
             {readingError && <p role="alert">{readingError}</p>}
             {!readingLoading && delivery?.retryable !== false && <button type="button" onClick={resumeSaved} className="rounded-xl border border-violet-200/50 bg-violet-900 px-5 py-3 font-semibold">{locale === 'ko' ? '이어서 생성하기' : 'Continue reading'}</button>}
@@ -1842,6 +1857,7 @@ export default function MindScanTarot() {
             {delivery?.deliverySections?.map(section => <section id={`mindscan-${section.key}`} key={section.key} className="scroll-mt-20 rounded-xl border border-violet-200/20 bg-slate-950/80 p-5">
               <h3 className="mb-4 font-bold">{section.title}</h3><div className="whitespace-pre-wrap text-[15px] leading-8">{section.body}</div>
             </section>)}
+            </>}
           </div>
         </div>}
         {stage === "result" && reading && (

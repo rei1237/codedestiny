@@ -12,6 +12,7 @@ import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { continueOracleDelivery, needsTarotRedraw, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import PaidNarrativeRetryPanel, { paidNarrativeHoldOf } from "@/app/components/PaidNarrativeRetryPanel";
 
 type DrawnCard = {
   cardId: string;
@@ -513,6 +514,16 @@ export default function LoveRelationshipTarot() {
     void performReading(entry.body.cards, entry.body.locale, entry.body.requestId)
       .catch(error => { if (owner === loveOwner()) setError(String(error?.message || copy.readingError)); });
   }
+  // 생성 한도에 걸려 보류된 건: 미완성 본문 대신 무료 다시 시도·환불 요청 패널만 보인다.
+  const loveHold = paidNarrativeHoldOf(delivery);
+  function resumeHeldLove(resumeBody: { resumeResultId: string }) {
+    const entry = recoveryRef.current;
+    if (!entry || busyRef.current || owner !== loveOwner()) return;
+    entry.resultId = resumeBody.resumeResultId;
+    setError(''); setDelivery(previous => previous ? { ...previous, retryable: true, reviewRequired: false } : previous);
+    void performReading(entry.body.cards, entry.body.locale, entry.body.requestId)
+      .catch(error => { if (owner === loveOwner()) setError(String(error?.message || copy.readingError)); });
+  }
   useEffect(() => {
     const resume = () => { if (!document.hidden && !delivery?.saved) resumeSaved(); };
     window.addEventListener('online', resume); document.addEventListener('visibilitychange', resume);
@@ -771,11 +782,16 @@ export default function LoveRelationshipTarot() {
           </section>
         ) : null}
 
-        {error ? (
+        {error && !loveHold ? (
           <section className="rounded-xl border border-rose-600/40 bg-rose-950/30 p-4 text-sm text-rose-200">{error}</section>
         ) : null}
 
-        {(delivery || recoveryRef.current) && <section className="rounded-xl border border-violet-200/30 bg-slate-950 p-5 text-slate-100 [overflow-wrap:anywhere]">
+        {loveHold && !loading && <PaidNarrativeRetryPanel hold={loveHold} onResume={resumeHeldLove}
+          className="grid gap-3 rounded-xl border border-violet-200/30 bg-slate-950 p-5 text-[15px] leading-7 text-slate-100 [&_h3]:font-bold"
+          primaryClassName="min-h-12 w-full rounded-xl border border-violet-200/50 bg-violet-900 px-5 py-3 font-semibold disabled:opacity-60"
+          secondaryClassName="min-h-12 w-full rounded-xl border border-violet-200/30 px-5 py-3 text-slate-200 disabled:opacity-60" />}
+
+        {!loveHold && (delivery || recoveryRef.current) && <section className="rounded-xl border border-violet-200/30 bg-slate-950 p-5 text-slate-100 [overflow-wrap:anywhere]">
           {!delivery?.saved && <><p role="status">{locale === 'ko' ? '본문 저장' : 'Saved sections'} {delivery?.completedParts?.length || 0} / {delivery?.totalParts || 21}{loading ? ' · …' : ''}</p>
             {!loading && delivery?.retryable !== false && <button type="button" onClick={resumeSaved} className="my-4 rounded-xl border border-violet-200/50 bg-violet-900 px-5 py-3">{locale === 'ko' ? '이어서 생성하기' : 'Continue reading'}</button>}
             {delivery?.retryable === false && <p>{locale === 'ko' ? '생성 한도에 도달했습니다. 저장된 내용을 보존했으며 결제 내역으로 문의해 주세요.' : 'Generation limit reached. Saved sections are retained; contact support with your payment record.'}</p>}
