@@ -63,7 +63,7 @@ next: 사용자 결정 대기 — R5 나머지(자미·숙요·베다, 미승인
   - [x] 3c-A4. 별빛 포옹(`/yeon-star-hug/`) 입력만 공통 셸 이전(`GUIDED_STAR_HUG_ENABLED`). 심리 테스트·프롬프트 허브·크리스탈·FPTI·오라클(룬)은 게이트·DB·공유 러너 때문에 건너뜀, 시코젠은 A5로 미룸. 기능 `0042e6025`, main 머지 `fae848a18`(2026-11-21). 결과는 아래 "3c-A4 결과".
   - [x] 3c-A5. 영냥이 방 출석 운세 16종(`/yeongnyangi/room/`)을 공통 셸로 이전(`GUIDED_YN_FREE_FORTUNE_ENABLED`, 출석 게이트 현행). 시코젠 포바일루는 전체 화면 포털·크롬 라우트 설정 때문에 건너뜀. 기능 `2b2025761`(2026-11-21). 결과는 아래 "3c-A5 결과".
 - [x] 4. 캐릭터 웹툰 결과 렌더러 — 2026-11-21 완료(플래그 `GUIDED_WEBTOON_RESULT_ENABLED`, `/today/` 오늘의 세 장 결과). 아래 "4단계 결과".
-- [ ] 5. 타로 UX 통합 — **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식). 계획 작성 2026-11-21 — 아래 "5단계·R4·R5 계획", 승인 대기.
+- [x] 5. 타로 UX 통합 — 5단계 ①(셸 무료 3장 → /tarot/mingri/)·R4-3 완료 2026-11-21, 아래 "5단계 ①·R4-3 결과". AI 타로 4종·연애 타로(D10)·영냥이 상담 타로·마인드스캔은 제외(승인 범위). 이전 메모: **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식). 계획 작성 2026-11-21 — 아래 "5단계·R4·R5 계획", 승인 대기.
 - [ ] 6. 무료 운세 섹션 재구성 — **계획 보고 후 승인 대기**(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검).
   - [x] 6a. 홈·SEO 랜딩 무료 배너 "전체 보기"를 카드 목록으로(`GUIDED_FREE_LIST_ENABLED`), 2026-11-21. 아래 "6단계 결과".
   - [ ] 6b. R1~R5·L1 승인 대기(실행 안 함).
@@ -610,3 +610,13 @@ SEO 영향 [실측에 근거한 판단]:
 - 미검증: 스테이징(1회 확인 시 워커 2cebe9f6b 미배포), 앱 런타임 실기기, 실제 지오코딩(mock 차단 → 서울 대체).
 - 알려진 비용: `/astrology/` 히어로 CTA 는 여전히 `/ggulggul/` 로 가서, 프로필 없는 사용자는 되돌아오는 두 홉. 장소는 같은 시간대의 가장 가까운 셸 도시로 대응. 범위 밖 기존 결함(보고만): 셸 폼 "달빛 초대 링크" 문구 대비 약 2.03:1(달빛 명칭 잔존), 라벨 "출생 국가/장소" 한 글자 줄바꿈(360).
 - 롤백: `lib/guided-flow/flags.mjs` GUIDED_ASTRO_ENABLED=false + `js/destiny-profile.js` var GUIDED_ASTRO_ENABLED=false + `npm run sync:public`(+ 캐시 핀 restamp), 또는 `git revert 81cc9e199 1172b1c71`.
+
+## 5단계 ①·R4-3 결과 (2026-11-21)
+
+- 승인 원문(2026-11-21): "옮김, AI 타로 4종은 제외 (추천)", R4 중 "R4-3 타로 진입 이동 (추천)".
+- 5단계 ① 커밋 4ff37b8d4: /tarot/mingri/ 랜딩 안 인라인 무료 세 장(주제 → 셔플 → 78장 중 3장 → 펼치기 → 풀이). 플래그 `GUIDED_MINGRI_TAROT_ENABLED`(lib/guided-flow/flags.mjs). 결정형 엔진 master-reading.mjs만, 서버 LLM 없음. 주 CTA는 `#feature-inline-flow`(R4-1 runHref 는 플래그 끔 때 그대로). 이벤트 feature_id=mingri_tarot, surface=tarot_mingri, flow_id=mingri-free-three (docs/analytics-kpi.md).
+- R4-3 커밋 e178bee44: `cdHomeTarotEntry`(홈 타로 카드·`?action=cdHomeTarotEntry`·로그인 복귀) → /tarot/mingri/. 딥링크는 location.replace, 탭은 assign. 플래그 `MINGRI_TAROT_ROUTE_ENABLED`(js/destiny-profile.js), 테스트가 위 플래그와 값 일치를 강제.
+- 의도적 차이: `?action=openTarotModal` 은 옮기지 않았다(셸 모달 유지). 한 장 리딩·결제 후 리딩·보관함 재열람·인라인 흐름의 "기존 타로 화면 열기" 링크가 여기에 기대고, 옮기면 그 링크가 순환한다. index.html 달 미리보기 링크(data-action openTarotModal)도 그대로.
+- 검증(실측): 360·960 브라우저 플래그 켬 전 단계 통과(콘솔 오류 0, 액션 48px+, 가로 넘침 0, ?step=result, 다시 펼치기), 플래그 끔 = 주 CTA `/index.html?action=openTarotModal`·인라인 없음. SEO title/H1/canonical/index,follow 유지. 홈: 딥링크·카드 탭 → /tarot/mingri/, 뒤로 가기 → 홈, openTarotModal → 모달 열림. visual-checker 막는 문제 없음(동의 배너 걷고 재촬영). check:fast(test:node 5653/0, typecheck·lint·결제 게이트 78) — 단 test:jest 1건 실패는 실행 중 머지로 들어온 남의 __tests__/fortune/daily-scroll-copy.test.mjs(f115ff409, "at least one test"). check:pre-push 통과.
+- 롤백: 진입만 끄려면 MINGRI_TAROT_ROUTE_ENABLED=false + GUIDED 플래그 false + sync:public(테스트가 둘을 묶음) 또는 revert e178bee44 → revert 4ff37b8d4.
+- 남은 것(보고만): 단계 제목 포커스 outline 노란 상자, 결과 아래 랜딩 면책 문구 대비 2.26:1(기존 FLP), 점선 슬롯·테두리 버튼 3.1~3.2:1(경계), 360 sticky CTA·하단 내비 겹침(기존 셸).
