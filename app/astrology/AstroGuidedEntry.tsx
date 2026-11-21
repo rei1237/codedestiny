@@ -17,7 +17,7 @@ import { BIRTH_CONFIRM, birthSteps, isBirthField, readBirthAnswers } from "@/app
 import { BIRTH_DRAFT_TARGETS, astroDraftProfile, writeBirthDraft } from "@/lib/guided-flow/astro-draft.mjs";
 
 type GuidedBirthKind = "astro" | "sukuyo" | "vedic" | "ziwei";
-// 셸 프로필 폼은 이름과 성별(여·남)을 받아야 저장된다 — 이름 필수, '밝히지 않을래요' 없음.
+// 이름은 선택이다(2026-11-21 사용자 "이름은 선택 입력으로") — 비우면 셸 프로필 폼이 저장 전에 받는다. 성별은 셸 폼이 여·남만 받으므로 '밝히지 않을래요' 없음.
 // 숙요점은 생년월일(달의 자리)만 쓰므로 장소를 묻지 않는다. 시각은 프로필용 선택 단계로 남긴다.
 const KINDS: Record<GuidedBirthKind, { flowId: string; featureId: string; surface: string; fields: GuidedBirthOptions["fields"] }> = {
   astro: { flowId: "astro-birth-chart", featureId: "astrology", surface: "astrology_landing", fields: ["name", "gender", "date", "calendar", "time", "place"] },
@@ -27,7 +27,7 @@ const KINDS: Record<GuidedBirthKind, { flowId: string; featureId: string; surfac
   ziwei: { flowId: "ziwei-birth-entry", featureId: "ziwei", surface: "ziwei_landing", fields: ["name", "gender", "date", "calendar", "time"] },
 };
 function kindSetup(kind: GuidedBirthKind) {
-  const options: GuidedBirthOptions = { idPrefix: kind, fields: KINDS[kind].fields, required: { name: true }, genderUnknown: false, profile: false };
+  const options: GuidedBirthOptions = { idPrefix: kind, fields: KINDS[kind].fields, genderUnknown: false, profile: false };
   const steps: GuidedStep[] = [...birthSteps(options), { id: "open", kind: "result", history: "replace" }];
   return { options, steps };
 }

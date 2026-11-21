@@ -43,7 +43,7 @@ test('W1 answers map to the shell profile form shape', () => {
   const placed = astroDraftProfile({ ...base, gender: 'female', calendar: 'solar', time: '07:05', place: { text: '부산', lat: 35.1, lng: 129.0, timezone: 'Asia/Seoul', name: '부산' } });
   assert.deepEqual(placed.birth, { year: 1995, month: 3, day: 4, hour: 7, minute: 5, timeUnknown: false, calType: 'solar' });
   assert.deepEqual(placed.location, { tz: 'Asia/Seoul', lat: 35.1, lng: 129.0 });
-  assert.equal(astroDraftProfile({ ...base, name: '' }), null);
+  assert.equal(astroDraftProfile({ ...base, name: '' }).name, '', 'name is optional (2026-11-21): empty name still hands off');
   assert.equal(astroDraftProfile({ ...base, gender: 'unknown' }), null);
   assert.equal(writeAstroDraft({ setItem() { throw Error('blocked'); }, getItem: () => null }, draft), false);
 });
@@ -72,6 +72,11 @@ test('a fresh draft fills the existing profile form; save/consent stays the shel
     assert.equal(h.state.get('cd:home-fortune-intent:v1'), 'astro');
     assert.deepEqual(h.opened, []);
   }
+  const nameless = setup();
+  nameless.state.set(ASTRO_DRAFT_KEY, JSON.stringify({ at: Date.now(), profile: { ...draft, name: '' } }));
+  nameless.ctx.window.cdHomeAstroEntry();
+  assert.equal(nameless.applied.length, 1, 'empty-name draft still fills the form (name is asked there)');
+  assert.equal(nameless.applied[0].name, '');
   const stale = setup({ profile: { birth: { year: 1990, month: 1, day: 1 } } });
   putDraft(stale, Date.now() - 31 * 60 * 1000);
   stale.ctx.window.cdHomeAstroEntry();
@@ -110,4 +115,5 @@ test('/astrology/ landing renders the guided input only when the flag is on', ()
   const entry = readFileSync('app/astrology/AstroGuidedEntry.tsx', 'utf8');
   assert.match(entry, /state\.source !== "user" && state\.source !== "auto"/, 'restore/back must not auto-redirect');
   assert.doesNotMatch(entry, /SavedBirthProfilePicker|authFetch|\/api\//, 'no profile/API calls from the guided input');
+  assert.doesNotMatch(entry, /required:\s*\{[^}]*name:\s*true/, 'name step stays optional (2026-11-21 user decision)');
 });
