@@ -4423,6 +4423,11 @@ function redirectToLoginForFortune(){
 var SAJU_LOGIN_DRAFT_KEY = 'cd:saju-login-draft:v1';
 var SAJU_LOGIN_FIELDS = ['nameInput', 'birthDate', 'birthHour', 'birthMinute', 'birthTimeText', 'birthCountry', 'birthCountryInput'];
 var sajuResultSessionPending = null;
+/* W2 비회원 무료 결과(2026-11-21 사용자 승인 "무료 결과만 비회원"): true 면 결과 직전 로그인 벽(D12)을 건너뛴다.
+   false 면 원본 그대로 비회원은 로그인 모달로 막힌다. 개인정보 동의, 상세 풀이·보관함·유료 결제의 로그인은 그대로다.
+   lib/guided-flow/flags.mjs 의 같은 이름 상수와 값이 같아야 한다(__tests__/ui/saju-result-login.test.mjs 가 묶는다). */
+var FREE_RESULT_GUEST_ENABLED = true;
+var sajuResultSessionStatus = '';
 function sajuLoginDraftScope(path) {
   return ['/', '/index.html', '/ggulggul', '/ggulggul/'].indexOf(path) >= 0 ? '/ggulggul/' : path;
 }
@@ -4432,7 +4437,7 @@ function getSajuLoginReturnPath() {
   url.searchParams.set('action', 'cdOneStepFreeSajuEntry');
   return url.pathname + url.search + url.hash;
 }
-function saveSajuLoginDraft() {
+function saveSajuLoginDraft(guestResult) {
   var fields = {};
   SAJU_LOGIN_FIELDS.forEach(function(id) {
     var el = document.getElementById(id);
@@ -4441,6 +4446,8 @@ function saveSajuLoginDraft() {
   var calendar = document.querySelector('input[name="calType"]:checked');
   var draft = { savedAt: Date.now(), path: sajuLoginDraftScope(location.pathname),
     fields: fields, gender: GENDER || window._gender, timeUnknown: window.__cdBirthTimeUnknown === true, calendar: calendar ? calendar.value : 'solar' };
+  // 비회원이 본 무료 결과: 상세 풀이·저장에서 로그인하고 돌아오면 같은 결과를 다시 그린다.
+  if (guestResult === true) draft.guestResult = true;
   sessionStorage.setItem(SAJU_LOGIN_DRAFT_KEY, JSON.stringify(draft));
 }
 async function ensureSajuResultSession(run) {
@@ -4451,7 +4458,10 @@ async function ensureSajuResultSession(run) {
       if (typeof window.__dpVerifyResultSession === 'function') status = await _sajuCalculationWait(window.__dpVerifyResultSession(), run);
     } catch (_) {}
     if (run && run.signal.aborted) return false;
+    sajuResultSessionStatus = status;
     if (status === 'authenticated') return true;
+    // 무료 결과는 브라우저 안에서 계산한다. 비회원·세션 확인 실패 모두 결과를 연다.
+    if (FREE_RESULT_GUEST_ENABLED) return true;
     if (status !== 'guest') {
       setSajuFormStatus('로그인 상태를 확인하지 못했어요. 입력은 그대로 두고 잠시 후 다시 눌러 주세요.', 'error');
       return false;
@@ -4467,6 +4477,26 @@ async function ensureSajuResultSession(run) {
     return false;
   })();
   try { return await sajuResultSessionPending; } finally { sajuResultSessionPending = null; }
+}
+/* 비회원 무료 결과가 화면에 있는 동안 공용 로그인 모달(상세 풀이·저장 등)이 열리면, 로그인 뒤 돌아올 주소를
+   무료 만세력 진입 주소로 바꾼다. 그래야 복귀한 페이지가 입력 화면을 열고 위 임시 입력으로 같은 결과를 다시 그린다.
+   결과가 없거나 임시 입력이 비회원 결과용이 아니면 호출자가 넘긴 주소를 그대로 쓴다. */
+function _sajuBindGuestResultLoginReturn() {
+  if (window.__cdSajuGuestLoginReturnBound || typeof window.__cdOpenLoginRequiredModal !== 'function') return;
+  window.__cdSajuGuestLoginReturnBound = true;
+  var openLoginModal = window.__cdOpenLoginRequiredModal;
+  window.__cdOpenLoginRequiredModal = function(options) {
+    var opts = options && typeof options === 'object' ? options : {};
+    try {
+      var draft = JSON.parse(sessionStorage.getItem(SAJU_LOGIN_DRAFT_KEY) || 'null');
+      var resultPage = document.getElementById('resultPage');
+      if (draft && draft.guestResult === true && draft.path === sajuLoginDraftScope(location.pathname)
+        && resultPage && resultPage.style.display !== 'none') {
+        opts = Object.assign({}, opts, { nextPath: getSajuLoginReturnPath() });
+      }
+    } catch (_) {}
+    return openLoginModal.call(this, opts);
+  };
 }
 async function restoreSajuLoginDraft() {
   var draft;
@@ -4484,7 +4514,7 @@ async function restoreSajuLoginDraft() {
     if (draft.gender === 'M' || draft.gender === 'F') setGender(draft.gender);
     window.__cdBirthTimeUnknown = draft.timeUnknown === true;
     document.querySelectorAll('input[name="calType"]').forEach(function(el) { el.checked = el.value === draft.calendar; });
-    setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 만세력을 이어서 볼 수 있어요.', 'info');
+    if (draft.guestResult !== true) setSajuFormStatus('입력 정보를 불러왔어요. 로그인 후 무료 만세력을 이어서 볼 수 있어요.', 'info');
     // Do not redirect again when the user cancels login or uses browser Back.
     var status = typeof window.__dpVerifyResultSession === 'function' ? await window.__dpVerifyResultSession() : 'unavailable';
     if (status !== 'authenticated') return;
@@ -4785,7 +4815,7 @@ async function startSajuCalculationFlow() {
       }
     } catch (_) {}
     if (!await _sajuCalculationWait(checkFortunePointEligibility(), run)) return;
-    if (typeof window.cdTrack === 'function') window.cdTrack('free_saju_started', { signed_in: true });
+    if (typeof window.cdTrack === 'function') window.cdTrack('free_saju_started', { signed_in: sajuResultSessionStatus === 'authenticated' });
     _sajuSetCalculationLoading(true, 'calculating');
     await _sajuCalculationWait(_sajuWaitForPaint(), run);
     setSajuFormStatus('사주 원국을 살펴보고 있어요.', 'info');
@@ -4795,7 +4825,10 @@ async function startSajuCalculationFlow() {
     var style = resultPage && window.getComputedStyle(resultPage);
     if (!style || style.display === 'none' || style.visibility === 'hidden' || resultPage.getAttribute('aria-busy') === 'true') return;
     _sajuSetCalculationLoading(false, 'completed');
-    try { sessionStorage.removeItem(SAJU_LOGIN_DRAFT_KEY); } catch (_) {}
+    try {
+      if (FREE_RESULT_GUEST_ENABLED && sajuResultSessionStatus === 'guest') { saveSajuLoginDraft(true); _sajuBindGuestResultLoginReturn(); }
+      else sessionStorage.removeItem(SAJU_LOGIN_DRAFT_KEY);
+    } catch (_) {}
     clearSajuFormStatus();
     await _sajuCalculationWait(consumeFortunePointAfterCalculation(), run);
   } catch (error) {

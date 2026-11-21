@@ -213,7 +213,7 @@ export type WebtoonCut = {
 - 엔진의 "주의 카드" 플래그가 `master-reading.mjs`에 있는지: 이번에 확인하지 않았다. 없으면 카드 ID 목록을 고정한다.
 - 기존 `daily-webtoon.ts` 대사가 §7-1 규칙(60자 등)을 지키는지: 검사하지 않았다.
 
-## 부록 A. 무성 × 기본 자미두수 무료 결과 (2026-11-21)
+## 11. 무성 × 기본 자미두수 무료 결과 (2026-11-21)
 
 - 적용 범위: 기본 자미두수 모달의 "연간 흐름 정밀 — 3개년 유년 리딩"과 "1년운 월별 운기"(`js/saju-engine.js`의 `zwMusungSay`). 서버 번들(`worker/lib/saju-section/runtime.generated.mjs`)이 같은 함수를 쓴다.
 - 결정적 템플릿이다. LLM을 부르지 않는다. 표정(`composed·gentle·smile·thinking·verdict·sorry`)은 엔진 판정(유년 tone, 월 점수)에서 정해진다.
@@ -222,3 +222,18 @@ export type WebtoonCut = {
 - 올림포스 상징(제우스=자미·화권, 헤르메스=천기·화기 서판, 데메테르=화록, 아폴론=화과)은 무성이 들려주는 서사다. 별도 화자를 두지 않는다.
 - CSS: `styles/basic-fortune-library.css`의 `#ziweiModalOverlay .zw-musung-say*`. 모바일 17px·행간 1.8, 얼굴 이미지는 기존 `public/images/expert-characters/musung/` 재사용.
 - 심화(`/ziwei/chart`)는 이번 범위 밖이다.
+
+## 10. 마스터 말풍선 (숙요·점성술·베다 유료 AI 상담, 2026-11-21)
+
+웹툰 컷(§2)과 별개로, 유료 AI 상담 결과 장 사이에 마스터가 말하듯 끼는 한 줄 말풍선이다. 정본 코드는 `lib/master-say/master-say.mjs`(대사)와 `components/fortune/MasterSay.tsx`(표시)다.
+
+| 규칙 | 내용 |
+|---|---|
+| 화자 | 숙요=서한비(hanbi), 점성술·베다=윤달(yun). 무성은 자미두수 담당이라 이 절 범위 밖이다 |
+| 대사 | 정적 문구만 쓴다(LLM 호출 0). §7 규칙 승계: 60자·2문장 이하, 단정어·이모지 금지, 상대 심리 단정 금지 |
+| 어조 구분 | 점성술=열두 집·각도 중심의 논리형, 베다=나크샤트라·다샤·업(業) 중심의 카르마형. 같은 윤달이라도 문구 풀이 다르다 |
+| 배치 | `ConsultationReading`의 `say` prop → `AiResultProse` 삽화 슬롯. 같은 마스터의 정적 초상 자리를 대신하고 장면 삽화는 유지한다 |
+| 적용 화면 | 점성술 결과, 베다 결과(본 풀이 장만, `reading_guide`·`calculation_basis` 제외), 숙요 궁합(페이지 뷰어만, PDF 캡처 경로 제외) |
+| 금지 | 윤달 `void`·`pain` 표정, 서한비 이름 "박지은"과 `public/images/novel/hanbi/*`(호랑이) 사용 금지 |
+| 원문 불변 | LLM 본문은 바꾸지 않는다. 캐릭터가 꺼져 있으면 말풍선은 렌더되지 않고 기존 화면이 그대로 남는다 |
+| 중복 제거 | 달 풀이 정본은 베다. 점성술 프롬프트에 "나크샤트라·본명숙 풀이 반복 금지" 한 줄을 두었다. 숙요 프롬프트는 진행 중 상담 바이트 고정 가드(`sukuyo-compat-v1-prompt-bytes`) 때문에 아직 같은 줄이 없다(판 분기 필요, 후속) |
