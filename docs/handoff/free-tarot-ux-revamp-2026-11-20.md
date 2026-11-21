@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1·R3·L1(R2·R4-1·R4-2 는 완료). 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
+next: 사용자 결정 대기 — R5 나머지(자미·숙요·베다, 미승인), 5단계 질문 1~6, 6단계 R1·R3·L1, 7단계 삭제 목록(D1). R5 점성술은 완료(아래 "R5 점성술 결과").
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -426,7 +426,7 @@ next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, �
 | R2 | `/?action=cdOneStepFreeSajuEntry`(section 없음)·`/ggulggul/?action=cdOneStepFreeSajuEntry` | React 가이드 흐름 `/saju/free/` 로 클라이언트 매핑 **(승인·완료 2026-11-21, "6단계 R2 결과")** | 무료 사주 진입 형식 셋(감사 A2) | 셸 결과의 섹션(재미 카드·궁합)과 결과 범위가 다름 → 같은 결과가 아님, 외부 링크 동작 변화 | 매핑 표 한 줄 제거 |
 | R3 | `/compatibility` → `/index.html?action=runCompat`·`?section=compatCard`·`/saju/compatibility/` | 내부 링크를 한 곳으로 모으고 나머지 301/클라이언트 매핑 | 궁합 링크 3분산(감사 A2) | `/compatibility` 는 지금 SEO 랜딩(색인, hreflang) — 301 시 색인 이동 | `_redirects`/매핑 한 줄 revert |
 | R4 | `/tarot/<slug>` 운영 301→302 이중 리다이렉트, `/tarot/mingri`·`?action=openTarotModal`·`cdHomeTarotEntry`·`/tarot/mingri/play` | canonical 하나로 수렴 | 감사 A2 | 5단계 타로 통합 결정에 의존, 워커 `public/_worker.js` 라우팅 | 워커·`_redirects` revert |
-| R5 | `/ggulggul/?action=cdHome{Ziwei,Sukuyo,Vedic,Astro}Entry` | 새 플로우로 매핑 | 원문 6-3 | 대상 React 가이드 흐름이 아직 없음 → 흐름을 먼저 만든 뒤에만 의미 | — |
+| R5 | `/ggulggul/?action=cdHome{Ziwei,Sukuyo,Vedic,Astro}Entry` | 새 플로우로 매핑 | 원문 6-3 | 대상 React 가이드 흐름이 아직 없음 → 흐름을 먼저 만든 뒤에만 의미 | 점성술만 완료(2026-11-21 "서양 점성술만 먼저 (추천)", 아래 R5 점성술 결과). 자미·숙요·베다 미승인 |
 | L1 | `/today/`·`/manse/` 비로그인 결과 | 로그인 없이 무료 기본 결과 | 원문 6-4, 감사 결함 #3 | 인증 경계(`app/_lib/free-reading-access.ts`), D12/W2 와 같은 RED | 플래그 false |
 | D1 | `FreePromoBanner` 칩 마크업·`.chips` CSS | 삭제 | 플래그 안정 뒤 죽은 코드 | 7단계 삭제 목록에 넣고 3면 확인 | `git revert` |
 
@@ -599,3 +599,14 @@ SEO 영향 [실측에 근거한 판단]:
 - R4-1(e85ff159a): FeatureLandingPage `/tarot/*` 의 실행 CTA → `/ggulggul/?action=`. 해당 랜딩은 love·mingri·year 셋뿐(다른 타로는 자체 랜딩). 남은 것: app/tarot/self-esteem/TarotSelfEsteemLandingContent.tsx:942 `href="/?action=openTarotSelfEsteemModal"`(302 한 번 더, 범위 밖이라 그대로).
 - R4-2(5afe216aa): 워커 CONSOLIDATED_PAGE_REDIRECTS `/tarot/mingri/play` → `/tarot/mingri/` 301(슬래시 두 꼴, 쿼리·utm 보존 실측). app/tarot/mingri/play 페이지는 7단계 삭제 대상 — consolidated-pages 테스트 `PENDING_PAGE_DELETION` 예외를 7단계에서 함께 지운다.
 - 관찰(미수정): `/ggulggul/?action=startMindScanTarot` 는 쿼리만 지우고 아무것도 안 연다 — base 와 동일(회귀 아님).
+
+## R5 점성술 결과 (2026-11-21, main 7f04324b9)
+
+- 승인 원문(2026-11-21): R5 → "서양 점성술만 먼저 (추천)". 자미·숙요·베다는 미승인(손대지 않음).
+- 기능(1172b1c71): `/astrology/` 랜딩(ko, `app/astrology/page.js`)에 `AstroGuidedEntry` — W1 출생 입력(이름·성별·생년월일·양음력·시간·장소·확인). 확인하면 sessionStorage 초안 `cd:guided-astro-draft:v1`(30분, `lib/guided-flow/astro-draft.mjs`)을 쓰고 `/ggulggul/?action=cdHomeAstroEntry` 로 보낸다. 로케일 `/[locale]/astrology/` 는 그대로. 메타·H1·canonical 불변.
+- 셸(81cc9e199, `js/destiny-profile.js`): 초안이 있으면 기존 프로필 생성 폼에 채워 기존 저장·동의·로그인 흐름으로(결과는 기존 점성술 모달, 유료 패널 무변경). 프로필 없는 비회원의 셸 진입은 `/astrology/?step=name` 으로 1회(2분 되돌이 방지 키 `cd:guided-astro-bounce:v1`). 저장·서버 프로필, 다른 유형, 로케일 셸, 앱 런타임은 그대로. destiny-profile.js 내용 해시 캐시 핀 restamp + payment-freeze 매니페스트(billing-client.ts 상수만).
+- 실측: 새 단위 6/6 + 관련 node 11/11, verify:payment-choice-parity·paid-gate-ui·payment-freeze PASS, check:pre-push PASS, 실브라우저(dev:mock) 360·960 — 비회원 켬: 입력→셸 폼 채움(이름·날짜·시간·양력·여성), 셸 직접 진입→`?step=name`, 두 번째는 폼에 머묾; 끔: 지금처럼 셸 폼; 로그인+서버 프로필: 바로 모달; 저장 클릭은 켬·끔 모두 기존 `/login/?next=…`(동일). React 플래그 끔: 가이드 랜딩 0, title·canonical 동일.
+- check:fast: jest 의 `__tests__/fortune/daily-scroll-copy.test.mjs`("must contain at least one test", 옆 세션 f115ff409 node:test 파일) 1건만 실패 — 이 변경과 무관, 보고만. sky-and-range 실패는 fortune:build-data 뒤 통과(데이터 부재).
+- 미검증: 스테이징(1회 확인 시 워커 2cebe9f6b 미배포), 앱 런타임 실기기, 실제 지오코딩(mock 차단 → 서울 대체).
+- 알려진 비용: `/astrology/` 히어로 CTA 는 여전히 `/ggulggul/` 로 가서, 프로필 없는 사용자는 되돌아오는 두 홉. 장소는 같은 시간대의 가장 가까운 셸 도시로 대응. 범위 밖 기존 결함(보고만): 셸 폼 "달빛 초대 링크" 문구 대비 약 2.03:1(달빛 명칭 잔존), 라벨 "출생 국가/장소" 한 글자 줄바꿈(360).
+- 롤백: `lib/guided-flow/flags.mjs` GUIDED_ASTRO_ENABLED=false + `js/destiny-profile.js` var GUIDED_ASTRO_ENABLED=false + `npm run sync:public`(+ 캐시 핀 restamp), 또는 `git revert 81cc9e199 1172b1c71`.
