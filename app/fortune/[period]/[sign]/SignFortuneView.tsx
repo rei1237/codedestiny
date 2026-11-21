@@ -168,7 +168,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
               {`${profile.nameKo} ${locale === "ko" ? PERIOD_TITLE[period] : currentPeriodLabel} ${copy.fortune}`}
             </h1>
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
-              {`${profile.rangeLabel} · ${profile.element} · ${profile.ruler}`}
+              {`${locale === "ko" && profile.aliasKo ? `${profile.nameKo}(${profile.aliasKo}) · ` : ""}${profile.rangeLabel} · ${profile.element} · ${profile.ruler}`}
             </p>
             {locale === "ko" ? (
               <p className={`mt-2 break-keep text-xs leading-6 ${MUTED}`}>
