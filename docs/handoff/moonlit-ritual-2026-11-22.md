@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: Phase 4 다듬기(품질 단계·reduced-motion·키보드/aria-live·나머지 로케일·안 쓰는 코드 삭제·문서·check:pre-push·머지)
+next: "main 머지·push·워크트리 배수(메인 세션)"
 ---
 
 # 달빛 연화당 참배 흐름(명상 게임형) 인수인계
@@ -38,7 +38,7 @@ next: Phase 4 다듬기(품질 단계·reduced-motion·키보드/aria-live·나�
 - [x] Phase 1 셸·흐름: `ritual-machine.ts`+테스트, RitualFlow, LotusProgress, SpeechBubble, BreathGuide, HoldToLight, use-ritual-bow(+테스트), WishLantern, 회향, page.tsx 분기(+딥링크 테스트), i18n ko/en. 캐릭터는 기존 `_components/Character.tsx` 정적 사용.
 - [x] Phase 2 오디오: `_audio/audio-engine.ts`(BGM 2채널 1.5s 크로스페이드, SFX 풀, ducking), use-ambient-audio(선호 `cd:moonlit-music:v1` + trackId·sfx, try/catch), MiniPlayer(44px 오브 → 시트: 목록+분위기 태그, 이전/다음, 재생/정지, 볼륨, 효과음), visibilitychange, BroadcastChannel `cd:moonlit-audio`, 테스트. `music.code-destiny.com` CORS 는 `curl -sI -H 'Origin: https://code-destiny.com'` 로 확인만(없으면 볼륨 램프 경로).
 - [x] Phase 3 캐릭터·연출: companion-machine(idle·greet·guide·breathe·bow·pray·bless·react·rest), CompanionStage(연이 포즈는 `model-review/sprite-clips.ts` POSES/PREVIEW_CLIPS, 기타 캐릭터 transform 1단계), `_fx/scene-fx.ts`(입자 ≤40/저사양 12, 탭 물결, 정지 조건), 연기·연등·디졸브 400~800ms.
-- [ ] Phase 4 다듬기: 품질 단계, reduced-motion, 키보드·aria-live, 나머지 로케일, 안 쓰게 된 코드 삭제(deletion-auditor, 별도 커밋), `docs/design/moonlit-lotus-ritual.md`, CONTEXT_AUDIT 충돌 2건(`_graveyard`→삭제, 브랜치/PR→main 직접), 화면 시나리오 검증, `npm run check:pre-push`, main 머지·push·워크트리 배수(메인 세션이 수행해도 됨), 이 문서 status: done.
+- [x] Phase 4 다듬기(머지·push·워크트리 배수·status: done 은 메인 세션 몫으로 남김): 품질 단계, reduced-motion, 키보드·aria-live, 나머지 로케일, 안 쓰게 된 코드 삭제(deletion-auditor, 별도 커밋), `docs/design/moonlit-lotus-ritual.md`, CONTEXT_AUDIT 충돌 2건(`_graveyard`→삭제, 브랜치/PR→main 직접), 화면 시나리오 검증, `npm run check:pre-push`, main 머지·push·워크트리 배수(메인 세션이 수행해도 됨), 이 문서 status: done.
 
 ## 결과 기록
 (단계별로 커밋 SHA·명령·출력 요지·남은 위험을 여기에 추가)
@@ -66,3 +66,12 @@ next: Phase 4 다듬기(품질 단계·reduced-motion·키보드/aria-live·나�
 - 검증: `node --test __tests__/ui/moonlit-*.test.mjs __tests__/ui/home-moonlit-entry-card.test.mjs` 70/70. `npm run check:fast` exit 0(critical 승격, jest 490 suites/8487 pass). Playwright 360/390/844x390/1440 걸음: 단계별 상태 전부 도달, 콘솔 오류 0, 가로 넘침 0, 숨김 탭 1s 동안 rAF 0·running=false, 복귀 시 true. visual-checker 1차 BLOCKER(합장 단계 사각) → 수정 후 재판정 PASS.
 - 함정: (1) 캐릭터 뒤 밝은 사각의 원인은 두 가지. 배경 그림의 밝은 제단(→ .pool 그라데이션)과 `yeoni/2d-v2/bow-down.webp` 시트 자체의 옅은 사각 매트(알파≤60, 셀 384 중 x67~311·y3~353, 셀 가장자리 검사로는 안 잡힘). 정지 합장은 rest 3 프레임으로 바꿨고, 절 동작은 여전히 bow-down 을 쓰지만 어두운 배경이라 안 보임. 에셋 재가공은 승인 범위 밖. (2) 퍼센트 margin 은 무대 너비 기준이라 가로 화면에서 절 포즈가 잘렸다 → `--figure-size` 기준. (3) ritual-flow 테스트의 한글 마크업 정규식 `>[^<{]*[가-힣]` 은 화살표 `=>` 뒤 한글 주석도 잡는다 → 주석을 중괄호 안으로. (4) Bash 에서 백틱이 든 문서를 인라인으로 쓰면 명령 치환이 실행된다 → 스크립트 파일로.
 - 남은 위험: 360/390 세로에서 캐릭터 하단이 무대 아래로 7px 겹침(스프라이트 여백 안, 의도). 844x390 합장 하단 여유 약 10px. 1단계 Character 의 aria 라벨은 기존 코드의 한국어 고정. 올려다보기는 transform 근사. 향 연기·등불은 정지 화면에서 약하게만 보임(애니메이션 육안 미확인). 기존 Character.tsx 의 prayer(bow-down 2)도 같은 매트가 있음(범위 밖, 보고만). reduced-motion 전면·품질 단계는 Phase 4. 실기기 미검증.
+
+### Phase 4 (2026-11-22, 같은 브랜치, 미머지·미push)
+- 커밋: d7f3adff3(품질 단계) · a3dd6f718(reduced-motion·키보드·aria-live) · ec484afac(ja·zh-CN·zh-TW 저작) · cf7dd6953(reduce 에서 space.page 전역 정지·단계별 카메라 규칙을 이기도록 !important 복원) · 7e40121d7(첫 화면 패널 초점·테두리 제거, 개발 모드 effect 이중 실행 대응) · 96bc5a6b4(설계 메모 docs/design/moonlit-lotus-ritual.md, CONTEXT_AUDIT 2건).
+- 삭제 감사(deletion-auditor): **삭제 대상 없음**. Space.tsx 는 _ritual/MoonlitEntry.tsx:3 이 쓰고 테스트 4곳(moonlit-bow-facing-control:45, meditation-guide:29, private-space:39, ritual-flow:65)이 단언. 새 export 약 80개 모두 소비처, 외부 참조 0인 19개는 파일 안에서 사용(GAIN_ORIGINS·SPACE_PARAMS·sceneState 등). i18n 99키·CSS 클래스 76개 전부 사용. 삭제 커밋 없음.
+- 시나리오(Playwright, mock dev 27592, .tmp/ritual-p4.mjs): 첫 방문 키보드 한 바퀴 통과(단계 전환 초점→패널, Enter 짧게 누르면 향 안 켜짐·길게 누르면 켜짐, 삼배 동안 절 버튼 초점 유지, aria-live 2개, records 삼배 3/3+기도 1, sessions 0, 가로 넘침 0, 콘솔 오류 0) · 재방문 선호 유지 · 자동재생 차단 시 blocked+"소리 켜기" · 숨김 탭에서 캔버스 정지→복귀 재개 · reduce(배경 transform none, 패널 ritual-fade, 숨쉬기 빛 4s 전환, 길동무 숨쉬기 호흡 동기, 캔버스 정지, 말풍선 즉시 전체) · CPU 4배(개발 서버): 1회 60fps·high, 1회 enter 40fps→low(오른쪽 등 제거) — 판정 경로 양쪽 확인, 롱태스크 최대 0.9~2.4s 는 개발 모드 컴파일 · 108배 진행 세션(41/108, revision 7) 참배 뒤 바이트 동일 · 기존 기록 기도 수첩 표시 · ?activity=bow 가 Space 로 41/108 복원 · 360×740·844×390·1440×900 넘침 0.
+- 터치 대상: measure:touch-targets 첫 화면 미달 0, 전 단계+음악 시트 390×844·844×390 미달 0.
+- 화면 판정(visual-checker 16장+재캡처): 레이아웃 깨짐 없음. 발견 2건 고침(첫 화면 패널 초점 테두리가 가로·데스크톱에서 화면 밖으로 잘림 → 7e40121d7). 남은 것: 연등은 CSS 자리표시(그림 에셋 없음, 위시리스트), 삼배 중 길동무 뒤 사각 매트(기존 Character 그림, 범위 밖).
+- 검사: node --test moonlit-* 70/70. check:fast(전체 승격) 5759개 중 3개 실패 = yeongnyangi-reading-invariance(이 브랜치 변경 48파일 전부 moonlit·docs, 단독 재실행 통과 194s → 동시 부하 헛실패). check:pre-push exit 0. build:cf 미실행(미검증).
+- 남은 위험: 품질 판정은 첫 2초 한 번뿐. 효과음 3종 무음 슬롯. 쿠키 동의 배너가 가로 첫 화면 버튼을 덮을 수 있음(기존). 실기기·스크린리더 실청취 미검증.
