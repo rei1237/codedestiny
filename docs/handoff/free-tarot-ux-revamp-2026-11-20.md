@@ -440,3 +440,16 @@ next: 6단계 리다이렉트·로그인 승인 대기(R1~R5·L1, 아래 "6단�
 - 커밋: `d9d60b8cf` 기능, `7fe6c541f` 미러(셸 사전에 키 2개 추가·빌드 해시), `148344a80` 원장.
 - 위험: "약 N분"은 표시용 추정(실측 아님), details 열 때 썸네일 최대 23장 지연 로드, 정적 셸 목록과 모양 불일치(R1 까지), 960 카드 행 높이 127/149 혼재(설명 3줄).
 - 다음: 위 승인 표 R1~R5·L1 사용자 결정 → 7단계 삭제 목록(D1).
+
+## 6단계 R2 무료 사주 연결 (2026-11-21)
+
+승인 원문(2026-11-21, 질문 대화): "R2 무료 사주 연결 (추천)" — section 없는 `?action=cdOneStepFreeSajuEntry` 진입을 `/saju/free/` 가이드 흐름으로. **R2 만** 승인. R1·R3·R4·R5·L1·삭제는 미승인. 요청 원문: "서비스 기능에 회귀는 없어야해".
+
+### 구현 전 RED 보고 (위험·검증·롤백)
+- 위치: 정적 셸 head 인라인 `<script id="cd-free-saju-entry-route">`(index.html, `auth-hint.js` 바로 뒤, 파싱 시점 `location.replace`). 워커·`public/_worker.js`·`wrangler.toml`·`_redirects`·React `LegacyHomeEntry` 는 건드리지 않는다(운영 `/?action=` 은 워커 302 → `/ggulggul/?action=`, dev 는 LegacyHomeEntry → 같은 셸이라 셸 한 곳이면 전부 덮는다).
+- 보내는 조건(전부 참일 때만, 하나라도 모르면 셸 그대로 = fail-closed): 플래그 켬, http(s), 앱 런타임 아님, 경로 `/`·`/index.html`·`/ggulggul/`(로케일 셸 제외), `action` 이 정확히 하나·값 `cdOneStepFreeSajuEntry`, 해시 없음, 나머지 쿼리는 추적 키(utm_*·gclid·gbraid·wbraid·fbclid·msclkid·ref)와 `v` 뿐(`section`·`entry`·`lang`·`question`·결제/OAuth 키 등이 있으면 셸), 로그인 힌트 없음(`__cdAuthHint`), 이어지는 셸 흐름 표식 없음(sessionStorage `cd:saju-login-draft:v1`(W2 비회원 복귀·로그인 벽 초안)·`cd:seo-landing-entry:v1`(SEO 랜딩 입력)·`cd:home-fortune-intent:v1`·`cd:home-fortune-section:v1`), 저장 프로필 없음(destiny-profile 의 목록·현재·활성 캐시·게스트 키), 리퍼러가 `/saju/free/` 아님(왕복 방지).
+- 유지: 추적 키는 그대로 `/saju/free/?…` 에 옮긴다. `v` 만 버린다. 생산처 링크·클릭 이벤트는 그대로(원본 페이지에서 발화).
+- 판단(가정): 로그인·저장 프로필이 있는 사용자는 지금 셸에서 한 번에 결과(저장·섹션·유료 잠금 포함)를 받는다 — `/saju/free/` 는 입력부터 다시 받으므로 그들을 보내면 기능 회귀다. 그래서 "셸 입력 폼을 보게 될 첫 방문 비회원"만 보낸다.
+- 위험: 셸 결과(재미 카드·궁합·저장)와 `/saju/free/` 결과 범위가 다름(외부 링크 동작 변화, 승인된 변화); 보내진 방문은 셸 `free_saju_*` 대신 가이드 흐름 이벤트로 잡힘; httpOnly 세션만 있고 힌트가 없는 로그인 사용자는 비회원으로 보고 보냄(`/saju/free/` 는 로그인 사용자도 쓸 수 있음).
+- 검증 계획: 단위(판정 표·플래그 일치·끔이면 이동 0), 임포터/기존 테스트, dev 서버 실브라우저(섹션 없음 → `/saju/free/`, 섹션 있음 그대로, W2 비회원 복귀, 로그인 경로), visual-checker, check:fast·check:pre-push.
+- 롤백: `lib/guided-flow/flags.mjs` 와 index.html 인라인의 `FREE_SAJU_ENTRY_GUIDED_ENABLED=false` + `npm run sync:public`(끄면 스크립트가 첫 줄에서 끝나 오늘과 같음), 또는 기능 커밋 `git revert`.
