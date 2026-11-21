@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-22
-next: Phase 5 골든셋 — 과금 LLM 실호출 1회 승인 대기. 운영 DB 고아 집계(audit-paid-orphans.mjs)도 1회 승인 대기
+next: 이 문서는 종료. 이어지는 결정(게이트 C)은 trait-first-upgrade.md
 ---
 
 # Trait-First Phase 1 — 결제→생성→전달 무결성 감사
@@ -109,6 +109,22 @@ next: Phase 5 골든셋 — 과금 LLM 실호출 1회 승인 대기. 운영 DB �
 | audit-yeongnyangi-paid-without-result | 24시간 초과 | 1건(가장 오래된 것 2026-09-23T23:01:54Z) |
 | audit-paid-orphans(신규) | 365일 | 단건 결제 17건 중 전달 확인 3, 근거 못 찾음 14(궁합 숙요 5·찻집 4·영냥이 3·인연의 서 2) · PaidExecutionRecord paid_pending_generation 2(vedic_prashna_prompt, 2026-09-07) · 거래 대기 0 · 토스 0 · 손금 0 |
 
+### 운영 DB 읽기 전용 집계 (2026-11-22, 네오 "승인할께" 1회 승인)
+
+쓰기 0, HTTP 차단, 해시 참조만. `node scripts/audit-paid-orphans.mjs --db code_destiny --days 365`, `node scripts/audit-yeongnyangi-paid-without-result.mjs --db code_destiny --json`.
+
+| 항목 | 결과 |
+|---|---|
+| 스캔 | payments 143 · executions 49 · transactions 22 · 결과 93 · 토스 0 |
+| 미전달(결과 문서 partial 등) — 수동 확인 대상 | fusion-fortune-consultation 2(756a1430e24c·291a1da67f47, 10-14) · destiny-compass-future-sim 1(7c986fced41e, 거래 generating, 10-14) · human-design-report 2(42c29352eafd 10-17, 15d7a355b006 10-29) · new-year-ai-consultation 1(70ddbcfa109e partial, 11-05) |
+| 근거 못 찾음(영냥이 제외) | 궁합 2 · 찻집 사주 1 · 찻집 joint 1 · 운세 채팅 1 · 타로 연애 1 |
+| 영냥이 근거 못 찾음 99 | 이 스크립트 조인 범위 밖(`yeongnyangi_requests`). 전용 스크립트: 결제 114 · 완료 101 · 정체 후보 0 · 지금 검토 필요 0 · review_required 8(SYSTEM_RECOVERY_EXHAUSTED 등, 최신 11-18) |
+| 정체 실행 원장 | paid_pending_generation 1(vedic_prashna_prompt, 09-06) |
+| 정체 거래 | 3 — human-design-report generating 2(10-17·10-29), vedic_ai_prompt_generator generating 1(11-10) |
+| 토스·손금 | 0 · 0 |
+
+판단: partial 은 "미완성 본문 보존 + 다시 시도 가능" 상태라 결과가 사라진 것은 아니지만, 고객이 완성본을 못 받은 단서다. 처리(재생성·환불)는 운영 DB 쓰기라 별도 RED 승인 대상이다. 후속: audit-paid-orphans 에 영냥이 요청 조인 추가, 찻집·궁합·운세 채팅·타로 연결 키 확인.
+
 "근거 못 찾음"은 미제공의 증거가 아니다. 숙요 궁합·찻집·영냥이는 결과 연결 키가 달라 이 스크립트의 조인 범위 밖일 수 있다(영냥이는 전용 스크립트가 맡는다). 운영 실행 시 이 14건 유형부터 서비스별 연결 키를 확인한다.
 
 ## 미확인 서비스 확정 (Phase 0 보완)
@@ -160,5 +176,5 @@ next: Phase 5 골든셋 — 과금 LLM 실호출 1회 승인 대기. 운영 DB �
 - [x] F1(카르마 현금·월정석 다시 시도 환불) · C1(paid-flow-gates 트리거) · 스테이징 DB 읽기 전용 5종
 - [x] Phase 3: 6종 주입(카르마·신년운세·인생의 책·연애 비책·흑월·마스터 인연의 서), 플래그 TRAIT_FIRST_SAJU 기본 off
 - [x] Phase 4: `scripts/audit-paid-orphans.mjs` + `__tests__/ui/paid-orphans-audit.test.mjs`, 스테이징 실행
-- [ ] Phase 5: 골든셋 — 과금 실호출 1회 승인 필요
-- [ ] 운영 DB 고아 집계 — 1회 승인 필요
+- [x] Phase 5: 골든셋 — 2026-11-22 네오 "승인할께"(1회, 12호출), 결과 `docs/handoff/trait-first-phase5-verification.md`
+- [x] 운영 DB 고아 집계 — 2026-11-22 네오 "승인할께"(1회), 결과는 항목 8 표
