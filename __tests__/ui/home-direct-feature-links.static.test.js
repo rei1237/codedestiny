@@ -88,6 +88,40 @@ assert.deepEqual(
 );
 assert.deepEqual([...signatureSection.matchAll(/data-cd-signature-id="([^"]+)"/g)].map(match => match[1]), ['fortune-chat', 'yeongnyangi-question']);
 assert.doesNotMatch(signatureSection,/data-sig-next|data-sig-pause/,'comparison does not move automatically');
+// 2026-11-22: every signature product rotates in one banner under the heading; the comparison grid and letter popup stay as they were.
+const banner=homeDocument.querySelector('#cdSignatureConsult [data-sig-banner]');
+assert.ok(banner,'signature banner exists');
+assert.ok(homeDocument.querySelector('#cdSignatureConsult .cd-sig__head').compareDocumentPosition(banner)&4,'banner sits under the section heading');
+assert.equal(banner.closest('#cdSigGrid,[data-signature-letter]'),null,'banner is outside the comparison grid and the popup');
+assert.equal(banner.querySelectorAll('[data-cd-service-id],[data-picker-card]').length,0,'banner never duplicates picker service ids');
+const bannerSlides=[...banner.querySelectorAll('[data-sig-banner-slide]')];
+const letterSlides=[...signatureLetter.querySelectorAll('[data-signature-letter-slide]')];
+assert.deepEqual(bannerSlides.map(slide=>slide.dataset.sigBannerId),['heukwol',...letterSlides.map(slide=>slide.dataset.cdService)],'banner shows every signature product including heukwol');
+assert.equal(bannerSlides.filter(slide=>slide.hasAttribute('data-active')&&!slide.hasAttribute('inert')).length,1,'one slide is active before script');
+assert.ok(bannerSlides.slice(1).every(slide=>slide.hasAttribute('inert')&&!slide.hasAttribute('data-active')),'inactive slides are inert');
+for(const slide of bannerSlides){
+ const link=slide.querySelector('a.cd-sig-banner__link');assert.ok(link);
+ assert.equal(link.dataset.cdPriceKey,link.dataset.featureKey);
+ assert.ok(slide.querySelector('img[width][height]')&&slide.querySelector('.cd-sig-banner__title')&&slide.querySelector('.cd-sig-banner__line')&&slide.querySelector('.cd-sig-banner__cta'),'poster, title, line and CTA');
+ const id=slide.dataset.sigBannerId;
+ if(id==='heukwol'){
+  const pinned=homeDocument.querySelector('[data-picker-featured] [data-cd-service-id="heukwol"]');
+  assert.equal(link.getAttribute('href'),pinned.getAttribute('href'));
+  assert.equal(link.hasAttribute('data-pvw-paid'),false,'heukwol keeps the picker rule');
+  assert.equal(slide.querySelector('.cd-sig-banner__price').textContent,pinned.querySelector('.cd-sig-card__price').textContent);
+  continue;
+ }
+ const letterLink=signatureLetter.querySelector(`[data-cd-service="${id}"] .cd-consult-letter__action a`);
+ assert.equal(link.getAttribute('href'),letterLink.getAttribute('href'),id+' href');
+ assert.equal(link.dataset.featureKey,letterLink.dataset.featureKey,id+' feature key');
+ assert.equal(link.dataset.pvwPaid,'true',id+' paid preview gate');
+ assert.equal(slide.querySelector('.cd-sig-banner__price').textContent,signatureLetter.querySelector(`[data-cd-service="${id}"] .cd-consult-letter__price`).textContent,id+' price');
+}
+const bannerControls=banner.querySelector('[data-sig-banner-controls]');
+assert.ok(bannerControls.hidden,'controls appear only with the script');
+assert.ok(bannerControls.querySelector('[data-sig-banner-prev]')&&bannerControls.querySelector('[data-sig-banner-next]')&&bannerControls.querySelector('[data-sig-banner-pause][aria-pressed="false"]'));
+assert.equal(bannerControls.querySelectorAll('[data-sig-banner-dot]').length,bannerSlides.length);
+assert.equal(bannerControls.querySelector('[data-sig-banner-position]').textContent,`1 / ${bannerSlides.length}`);
 const curated=[...homeDocument.querySelectorAll('#cdSigGrid [data-cd-service-id],#cdSigGrid [data-cd-signature-id]')];
 assert.equal(curated.length,8);
 assert.ok(curated.every(card=>card.querySelector('img')&&card.querySelector('.cd-picker-action')),'all eight established entries retain art and CTA');

@@ -27,6 +27,7 @@ import {
 } from "../../../lib/tarot/numerology-tarot.mjs";
 import { normalizeDuplicatedSubjectParticles } from "../../../lib/tarot/myeongri-tarot-text-utils.mjs";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import YeoniSay from "@/components/fortune/YeoniSay";
 
 type NumerologyTarotCopy = {
   stepRailAria: string;
@@ -1686,6 +1687,7 @@ export default function NumerologyTarotClient() {
                 <div className={styles.freeProfileHero}>
                   <p className={styles.promptToolKicker}>기초 리딩 · 무료</p>
                   <h3>{freeProfile.headline}</h3>
+                  <YeoniSay domain="numerology" sectionKey="profile" />
                   <p className={styles.freeProfileLead}>
                     {freeProfile.summary}
                   </p>

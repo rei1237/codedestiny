@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "4831d7b67be33bb3",
+      "signature": "f271b4b0949e6556",
       "lastmod": "2026-11-21"
     },
     "/about/": {
@@ -87,7 +87,7 @@
       "lastmod": "2026-11-08"
     },
     "/en/": {
-      "signature": "b8efdc1cfebbe342",
+      "signature": "1cb4879f58effce6",
       "lastmod": "2026-11-21"
     },
     "/en/about/": {
@@ -1071,7 +1071,7 @@
       "lastmod": "2026-11-21"
     },
     "/ggulggul/": {
-      "signature": "0600a53ae8bc4420",
+      "signature": "9c98028983aa71a8",
       "lastmod": "2026-11-21"
     },
     "/guides/": {
@@ -1147,7 +1147,7 @@
       "lastmod": "2026-11-19"
     },
     "/ja/": {
-      "signature": "b8efdc1cfebbe342",
+      "signature": "1cb4879f58effce6",
       "lastmod": "2026-11-21"
     },
     "/ja/about/": {
@@ -2031,7 +2031,7 @@
       "lastmod": "2026-11-21"
     },
     "/saju/free/": {
-      "signature": "00b5bc66ab72a405",
+      "signature": "de808041aa5286d1",
       "lastmod": "2026-11-21"
     },
     "/saju/guide/": {
@@ -2411,7 +2411,7 @@
       "lastmod": "2026-11-18"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "a8734f072b874c03",
+      "signature": "09a6ad1d177618bf",
       "lastmod": "2026-11-21"
     },
     "/sukuyo/": {
@@ -2439,7 +2439,7 @@
       "lastmod": "2026-11-20"
     },
     "/tarot/healing/": {
-      "signature": "9c46598fda646b05",
+      "signature": "41aa1256032c621f",
       "lastmod": "2026-11-21"
     },
     "/tarot/love/": {
@@ -2451,11 +2451,11 @@
       "lastmod": "2026-11-21"
     },
     "/tarot/mingri/": {
-      "signature": "ca570da9ef5aaf8f",
+      "signature": "8052686f3698a246",
       "lastmod": "2026-11-21"
     },
     "/tarot/numerology/": {
-      "signature": "de690c7d3bfa76ac",
+      "signature": "605db8f6d1699ce1",
       "lastmod": "2026-11-21"
     },
     "/tarot/prompt-maker/": {
@@ -2483,7 +2483,7 @@
       "lastmod": "2026-11-22"
     },
     "/vedic-ai/": {
-      "signature": "5571c788a2dac66b",
+      "signature": "abcb9b91342ff8c0",
       "lastmod": "2026-11-21"
     },
     "/vedic/": {
@@ -2523,7 +2523,7 @@
       "lastmod": "2026-11-13"
     },
     "/zh-tw/": {
-      "signature": "b8efdc1cfebbe342",
+      "signature": "1cb4879f58effce6",
       "lastmod": "2026-11-21"
     },
     "/zh-tw/astrology/": {
@@ -2999,7 +2999,7 @@
       "lastmod": "2026-11-19"
     },
     "/zh/": {
-      "signature": "b8efdc1cfebbe342",
+      "signature": "1cb4879f58effce6",
       "lastmod": "2026-11-21"
     },
     "/zh/about/": {
@@ -3507,7 +3507,7 @@
       "lastmod": "2026-11-19"
     },
     "/ziwei-ai/": {
-      "signature": "d9f7a74afd574993",
+      "signature": "0a2a70d4e864a2be",
       "lastmod": "2026-11-21"
     },
     "/ziwei/": {
