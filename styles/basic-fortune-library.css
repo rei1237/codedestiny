@@ -851,3 +851,22 @@ body:has(#astroModalOverlay[aria-hidden="false"]) #cdMobileBottomNav { display:n
 }
 
 #sukuyoModalOverlay .sy-free-compat [data-honey-use] { display:block; margin-top:12px; background:transparent; color:var(--fr-text); border:1px solid var(--fr-rule); }
+
+/* 무성 화자 말풍선 — 자미두수 3개년 유년 리딩·월별 운기. 카드(남색 면)와 같은 어두운 면 위에서 읽히도록 면·글자 색을 함께 둔다. */
+#ziweiModalOverlay .zw-musung-say { display:flex; gap:12px; align-items:flex-start; margin:10px 0 12px; }
+#ziweiModalOverlay .zw-musung-say__face { flex:none; width:56px; height:56px; border-radius:50%; object-fit:cover; background:#1e293b; border:2px solid #fde68a55; }
+#ziweiModalOverlay .zw-musung-say__bubble { position:relative; min-width:0; flex:1; padding:11px 14px; background:#1b2638; border:1px solid #fde68a40; border-radius:4px 14px 14px 14px; color:#edf1f5; }
+#ziweiModalOverlay .zw-musung-say__name { display:inline-block; margin-bottom:3px; padding:0 8px; border-radius:999px; background:#fde68a22; color:#fde68a; font-size:12px; font-weight:800; letter-spacing:.04em; }
+#ziweiModalOverlay .zw-musung-say__text { margin:0; font-size:16px; line-height:1.8; color:#edf1f5; overflow-wrap:anywhere; }
+#ziweiModalOverlay .zw-musung-say__text strong { color:#fde68a; font-weight:800; }
+#ziweiModalOverlay .zw-musung-say--sorry .zw-musung-say__bubble,
+#ziweiModalOverlay .zw-musung-say--verdict .zw-musung-say__bubble { border-color:#c4b5fd66; }
+@media (prefers-reduced-motion: no-preference) {
+  #ziweiModalOverlay .zw-musung-say { animation:zw-musung-in .32s ease-out both; }
+  @keyframes zw-musung-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+}
+@media (max-width: 480px) {
+  #ziweiModalOverlay .zw-musung-say { gap:10px; }
+  #ziweiModalOverlay .zw-musung-say__face { width:48px; height:48px; }
+  #ziweiModalOverlay .zw-musung-say__text { font-size:17px; }
+}
