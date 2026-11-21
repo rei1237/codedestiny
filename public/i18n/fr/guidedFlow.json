@@ -427,6 +427,27 @@
       "shareText": "Mingri Tarot three cards: {cards}",
       "again": "Lay out another concern",
       "oneCardLink": "One-card reading · open the classic tarot screen"
+    },
+    "astro": {
+      "eyebrow": "Western astrology · Birth chart",
+      "title": "Let's unfold the sky of the moment you were born",
+      "subtitle": "Tell us your name, birth date, time and place step by step, and we'll open your birth chart.",
+      "cta": "Start entering birth details",
+      "freeHint": "The basic birth chart is free.",
+      "aboutTitle": "What is this?",
+      "aboutBody": "From your birth date, time and place we calculate the Sun, Moon, Ascendant and planets to read your tendencies and flow.",
+      "guideTitle": "How it works",
+      "guide1Title": "Name and gender",
+      "guide1Body": "Choose the name and gender for your chart.",
+      "guide2Title": "Birth date and time",
+      "guide2Body": "Knowing the time makes the Ascendant accurate. You can continue without it.",
+      "guide3Title": "Birthplace (optional)",
+      "guide3Body": "With a place, we adjust for longitude and time zone.",
+      "openTitle": "Opening your birth chart",
+      "openBody": "We'll fill your details into the profile screen. Save it and your astrology chart opens right away.",
+      "openCta": "Open astrology chart",
+      "storageBlocked": "This browser can't pass your details along. Please enter them once more on the profile screen.",
+      "openFallback": "Go to profile screen"
     }
   }
 }
