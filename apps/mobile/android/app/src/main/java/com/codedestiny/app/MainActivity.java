@@ -49,9 +49,16 @@ public class MainActivity extends BridgeActivity {
 
     private static final int SPLASH_BG_YEON = 0xFFFFFAF7;
     private static final int SPLASH_BG_NEO = 0xFF0A0818;
+    private static boolean stagingWebViewConfigured;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        boolean stagingTest = getResources().getBoolean(R.bool.cd_mobile_staging_test);
+        if (stagingTest && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && !stagingWebViewConfigured) {
+            // 같은 Play 패키지에 설치해도 운영 WebView의 로그인과 저장 데이터를 읽지 않는다.
+            WebView.setDataDirectorySuffix("cd_play_staging");
+            stagingWebViewConfigured = true;
+        }
         // 마지막으로 쓰던 테마. 셸 applyTheme 이 매 부팅 StatusBar.setStyle 을 부르며 기록한다.
         boolean isNeo = false;
         try {
@@ -94,7 +101,7 @@ public class MainActivity extends BridgeActivity {
         // 잠금화면(네이티브 오버레이) 브리지 — 웹 /lock-screen-fortune 설정·첫 실행 동의 모달이 사용.
         registerPlugin(CodeDestinyLockScreenPlugin.class);
         // Zero-Tap Sign-In(Restore Credentials) 브리지 — 뼈대만. 서버 검증·호출부는 후속 PR.
-        registerPlugin(CodeDestinyCredentialsPlugin.class);
+        if (!stagingTest) registerPlugin(CodeDestinyCredentialsPlugin.class);
         registerPlugin(CodeDestinyWallpaperPlugin.class);
         // 홈 화면 부적·확언 위젯. 호출될 때만 SharedPreferences 를 읽는다(시작 시 작업 없음).
         registerPlugin(CodeDestinyHomeWidgetPlugin.class);

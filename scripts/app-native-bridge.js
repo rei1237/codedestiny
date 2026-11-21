@@ -42,7 +42,10 @@
   } catch (e) { /* noop */ }
 
   // Set the app API origin before any page or payment script runs.
-  window.CODE_DESTINY_API_BASE_URL = window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
+  var stagingMeta = typeof document.querySelector === "function"
+    ? document.querySelector('meta[name="cd-mobile-staging-api"]') : null;
+  var stagingApiBase = stagingMeta ? stagingMeta.getAttribute("content") : "";
+  window.CODE_DESTINY_API_BASE_URL = stagingApiBase || window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
 
   // Capture the pre-hydration choice; page initialization may write a route default.
   var previousAppLanguage = "";
@@ -221,16 +224,23 @@
     }
 
     window.fetch = function (input, init) {
-      var base = retargetBase();
-      // Request 객체는 본문이 스트림이라 URL 만 바꿔 옮길 수 없다 — 손대지 않고 통과시킨다.
-      if (!base || (typeof Request !== "undefined" && input instanceof Request)) {
+      var base = stagingApiBase || retargetBase();
+      var isRequest = typeof Request !== "undefined" && input instanceof Request;
+      if (!base || (isRequest && !stagingApiBase)) {
         return passthroughFetch(input, init);
       }
       var url;
       try {
-        url = new URL(String(input == null ? "" : input), window.location.href);
+        url = new URL(isRequest ? input.url : String(input == null ? "" : input), window.location.href);
       } catch (e) { return passthroughFetch(input, init); }
-      if (url.origin !== window.location.origin || url.pathname.indexOf("/api/") !== 0) {
+      var sameSiteApi = url.origin === window.location.origin;
+      var stagingFirstPartyApi = stagingApiBase && (url.hostname === "code-destiny.com" || url.hostname.endsWith(".code-destiny.com"));
+      if ((!sameSiteApi && !stagingFirstPartyApi) || url.pathname.indexOf("/api/") !== 0) {
+        return passthroughFetch(input, init);
+      }
+      // Request 본문은 스트림이다. 내부 테스트에서는 다른 환경으로 보내지 않는다.
+      if (isRequest) {
+        if (url.origin !== base) return Promise.reject(new TypeError("Internal test API requires the staging origin."));
         return passthroughFetch(input, init);
       }
       var nextInit = (init && typeof init === "object") ? Object.assign({}, init) : {};
@@ -516,7 +526,7 @@
   }
 
   function apiBase() {
-    return String(window.CODE_DESTINY_API_BASE_URL || "").replace(/\/+$/, "");
+    return stagingApiBase || String(window.CODE_DESTINY_API_BASE_URL || "").replace(/\/+$/, "");
   }
 
   // 플러그인은 호출 시점에 읽는다 — Capacitor 런타임 주입이 이 스크립트보다 늦을 수 있다.
