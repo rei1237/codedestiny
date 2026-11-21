@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: Phase 1 셸·흐름 구현(ritual-machine → RitualFlow → page.tsx 분기)
+next: Phase 2 오디오(_audio/audio-engine.ts → use-ambient-audio → MiniPlayer)
 ---
 
 # 달빛 연화당 참배 흐름(명상 게임형) 인수인계
@@ -35,10 +35,18 @@ next: Phase 1 셸·흐름 구현(ritual-machine → RitualFlow → page.tsx 분�
 - 단계: enter(탭=오디오 해제, play() 동기 호출) → breathe(4-4-6 ×3, 건너뛰기) → incense(1.5s 길게 누르기+버튼 대안) → bow(탭마다 1배 ×3, mokugyo SFX) → wish(입력 1개, 위로 밀기/버튼 → 연등) → dedication(범종 슬롯·축원 말풍선, "연화당 둘러보기"/"홈으로"). 항상 나가기·빠르게 진행. 연꽃 꽃잎 6장 진행 표시.
 
 ## 단계
-- [ ] Phase 1 셸·흐름: `ritual-machine.ts`+테스트, RitualFlow, LotusProgress, SpeechBubble, BreathGuide, HoldToLight, use-ritual-bow(+테스트), WishLantern, 회향, page.tsx 분기(+딥링크 테스트), i18n ko/en. 캐릭터는 기존 `_components/Character.tsx` 정적 사용.
+- [x] Phase 1 셸·흐름: `ritual-machine.ts`+테스트, RitualFlow, LotusProgress, SpeechBubble, BreathGuide, HoldToLight, use-ritual-bow(+테스트), WishLantern, 회향, page.tsx 분기(+딥링크 테스트), i18n ko/en. 캐릭터는 기존 `_components/Character.tsx` 정적 사용.
 - [ ] Phase 2 오디오: `_audio/audio-engine.ts`(BGM 2채널 1.5s 크로스페이드, SFX 풀, ducking), use-ambient-audio(선호 `cd:moonlit-music:v1` + trackId·sfx, try/catch), MiniPlayer(44px 오브 → 시트: 목록+분위기 태그, 이전/다음, 재생/정지, 볼륨, 효과음), visibilitychange, BroadcastChannel `cd:moonlit-audio`, 테스트. `music.code-destiny.com` CORS 는 `curl -sI -H 'Origin: https://code-destiny.com'` 로 확인만(없으면 볼륨 램프 경로).
 - [ ] Phase 3 캐릭터·연출: companion-machine(idle·greet·guide·breathe·bow·pray·bless·react·rest), CompanionStage(연이 포즈는 `model-review/sprite-clips.ts` POSES/PREVIEW_CLIPS, 기타 캐릭터 transform 1단계), `_fx/scene-fx.ts`(입자 ≤40/저사양 12, 탭 물결, 정지 조건), 연기·연등·디졸브 400~800ms.
 - [ ] Phase 4 다듬기: 품질 단계, reduced-motion, 키보드·aria-live, 나머지 로케일, 안 쓰게 된 코드 삭제(deletion-auditor, 별도 커밋), `docs/design/moonlit-lotus-ritual.md`, CONTEXT_AUDIT 충돌 2건(`_graveyard`→삭제, 브랜치/PR→main 직접), 화면 시나리오 검증, `npm run check:pre-push`, main 머지·push·워크트리 배수(메인 세션이 수행해도 됨), 이 문서 status: done.
 
 ## 결과 기록
 (단계별로 커밋 SHA·명령·출력 요지·남은 위험을 여기에 추가)
+
+### Phase 1 (2026-11-22, 브랜치 wt/moonlit-ritual-20261122-030358, 미머지·미push)
+- 커밋: 81343fed6 i18n(`i18n/authored/moonlitRitual-01.json` → `node scripts/i18n-merge-authored.mjs --namespace moonlitRitual`), 534254a6c 순수 모듈(ritual-machine·ritual-bow·mode), c0390a9c2 UI(`app/moonlit-lotus/_ritual/*`), 6bf9120e6 page.tsx 분기+MoonlitEntry+테스트.
+- 설계 결정: 정적 export 라 모드는 마운트 뒤 `MoonlitEntry` 가 `location.search` 로 고른다(scene·activity·view 또는 stay=1 → 기존 Space, 그 외 → 참배). 둘러보기는 `history.pushState(?stay=1)`, 뒤로 가기는 popstate 로 참배 복귀(처음 단계부터). 참배 절은 bow-session 의 advance 를 쓰되 target 3 세션을 직접 만들고(newSession 은 9/27/108 로 고정), `sessions` 스토어는 쓰지 않고 완료 시 `records` 에 bow 1행, 소원은 prayer 1행. 빠르게 진행 = 시간 0.5배. ko 사전은 정적 import(useT 가 ko 를 비움).
+- 검증: `node --test __tests__/ui/moonlit-*.test.mjs __tests__/ui/home-moonlit-entry-card.test.mjs` → 50/50 pass(신규 6). `npm run check:fast` → critical 승격, paid-gate-suite 78/0, lint·typecheck·sitemap-drift 통과, test:node 5736 pass / 1 fail = `__tests__/fortune/sky-and-range.test.mjs` 의 일일 패키지 ENOENT(워크트리에 `fortune/data` 미생성, 환경) → `npm run fortune:build-data` 뒤 재실행 7/7 pass. 체크 뒤 바꾼 것은 ritual.module.css 의 가로 배치·꽃잎 transform 뿐(재실행 생략, CSS 전용).
+- 화면: Playwright 워크스루 360×740·390×844(빠르게)·1440×900(en)·844×390(빠르게)·딥링크 `?scene=hall&activity=bow`. 전 뷰포트 가로 넘침 0, 콘솔 오류 0, records = bow 3/3 1행 + prayer 1행, sessions 0, 둘러보기 URL `?stay=1`(lang 유지), 뒤로 가기 → 참배, 딥링크 → 기존 공간. visual-checker 1차 차단 2(가로 화면 행동 밀림·동의 배너) + 경미(연꽃 윗잎 잘림 = `transform-box:fill-box`, 360 상단 바 12px 넘침 = grid 열 min-content) → 가로 2열 배치·transform-box 제거·`grid-template-columns:minmax(0,1fr)` 로 고친 뒤 재판정 통과(가로 소원 건너뛰기 하단 387/390px 로 여유 3px).
+- 함정: 첫 방문 쿠키 동의 배너(`app/components/AnalyticsConsent.tsx`, 전역)가 하단 행동 영역 위에 뜬다 — 세로 360 은 2px 차로 안 가리지만 가로 844×390 에서는 '참배 시작하기' 대부분을 가린다. 전역 컴포넌트라 이번 범위 밖, 후속 과제. Playwright 로 걸을 때는 `cd_cookie_consent=essential` 쿠키를 미리 넣는다. CSS 모듈이라 `primary` 는 `space.primary` 로 붙여야 하고, `.page button` 을 이기려면 `.flow .x` 로 쓴다.
+- 남은 위험: ja·zh 등 10개 로케일은 영어 복사(Phase 4). 오디오·캐릭터 상태기계 없음(Phase 2·3, 캐릭터는 정적 Character, 일부 포즈 뒤 밝은 사각 박스 보임). 모드 결정 전 빈 화면 1프레임. 둘러보기 후 복귀 시 처음부터. 절 단계 건너뛰기는 기록 없음. reduced-motion 일부만. 가로 화면 절하는 포즈 하단 잘림(경미). 실기기 미검증.
