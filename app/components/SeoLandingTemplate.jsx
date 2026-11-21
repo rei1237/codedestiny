@@ -228,7 +228,7 @@ export default function SeoLandingTemplate({ page, hero = null, services = null,
           {breadcrumb.map((item, index) => (
             <Fragment key={item.path}>
               {index > 0 ? (
-                <span aria-hidden="true" className="text-[var(--cd-border)]">
+                <span aria-hidden="true" className="text-[var(--cd-text-muted)]">
                   /
                 </span>
               ) : null}

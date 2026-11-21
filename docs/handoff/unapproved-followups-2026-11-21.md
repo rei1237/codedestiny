@@ -109,3 +109,23 @@ next: 5. R5 자미 (조건부, 결제 감사 먼저)
 - 검증: 대상 node 테스트 22/22, verify-guided-flow-contrast OK, check:fast exit 0(test:node 5688/0, jest 8447 통과·1 skip), check:pre-push exit 0(머지 7f0da2017 뒤). dev 360·960 실측 + visual-checker(재촬영본) 차단 결함 0.
 - 롤백: 항목별 `git revert <SHA>`(f557d64d0 은 revert 뒤 sync:public → restamp → payment-freeze --update).
 - 후속(보고만): 동물 페이지는 제목과 입력 사이 내용 때문에 360 배너 열림 시 입력이 배너 아래(452) — 6번 대상 밖. 남은 대비 실패는 free-tarot-ux-qa.md 3번.
+
+## F3 후속 그림·대비·동물 배너 (2026-11-21)
+
+사용자 원문 F1 절과 같음("…전부 이번 세션에서 고치도록해", "회귀는 없도록 너무 꼼꼼하지 않아도돼").
+
+- [x] A. 없는 표정 그림 — 6장 중 1장 해결
+  - 연이 greet: remaster `public/images/novel/remaster/v2/yeoni/wave.webp` 를 소설 모바일 파이프라인과 같은 설정(400×600 inside, WebP q84·alphaQuality 100·effort 6)·이름 규칙(`yeon-` + sha256("pig pigV2|/images/novel/remaster/v2/yeoni/wave.webp") 앞 10자)으로 뽑은 `public/images/novel/mobile/yeon-20ac944e7a.webp`(400×472, 28,728B). `lib/webtoon-result/narrator.mjs` greet 등록, `MISSING_EXPRESSION_ART.yeoni = ['worry']`. 대체 장치 유지. visual-checker PASS(같은 캐릭터·캔버스, 다만 talk 와 자세가 비슷함). `content/novel/mobile-assets.json` 에는 넣지 않았다(소설 파이프라인이 다시 쓰는 파일). 커밋 b6ea399f4.
+  - 미생성 5장(연이 worry, 영냥이 explain·worry·cheer·serious): Codex CLI 0.156.1 은 ChatGPT OAuth 로그인(API 키 과금 아님)이지만 설정 기본 모델 gpt-6.1-terra 는 ChatGPT 계정 미지원, gpt-6-astra 는 사용 한도 초과(21:06 리셋, 추가는 크레딧 구매), gpt-6.1-sol·gpt-5.5 미지원 → 외부 차단. 대체 표정 그대로.
+  - 재시도: 한도 리셋 뒤 `codex exec … -m gpt-6-astra -s workspace-write --skip-git-repo-check -i <참조 PNG…>` 로 흰 배경 1장씩 생성(참조: 연이는 remaster v2 yeoni 표정들, 영냥이는 `public/assets/yeongnyangi/moods/*`). 후처리 — 연이: 흰색→알파 키잉 후 위 400×600 inside q84 설정·이름 규칙으로 `public/images/novel/mobile/`. 영냥이: 흰색 평탄화 → trim → 336×280 contain + 여백 → 360×300 흰 배경 WebP q80, `public/assets/yeongnyangi/moods/` README 출처 기록. 그다음 narrator.mjs 등록·`MISSING_EXPRESSION_ART` 에서 제거. 기존 그림은 덮어쓰지 않는다. visual-checker 2회 실패면 대체 유지.
+- [x] B. 낮은 대비 — 커밋 40d310b9c
+  - 푸터 사업자 정보 2.24:1: 원인은 본문 div 인라인 `color:#aaa`. index.html 라이트 `#70445c`, neo `rgba(214,196,255,.9)` → 픽셀 6.8~15.1:1(visual-checker PASS). sync:public 미러 7개.
+  - 비교 "/" 구분자 1.24:1: `SeoLandingTemplate.jsx`·`FreeFeatureDetail.tsx` 브레드크럼 구분자 `--cd-border` → `--cd-text-muted`, 5.1~5.5:1(PASS).
+  - 동물 페이지 머리 부제 2.22:1·"Saju Animal Oracle" 3.37:1: F1 측정기 오탐(어두운 body 위에 합성하고 main 배경 그라디언트를 무시). 픽셀 실측 7.85:1·5.12:1 → 수정 없음.
+  - ✦ 1.8:1: aria-hidden 장식이라 유지(기록만).
+- [x] C. 360 동물 페이지 쿠키 배너가 1단계 입력을 가림(입력 y=452, 배너 top 392) — 커밋 b04f757ea
+  - `GuidedFlowShell.tsx` 단계 전환 effect: F1 scrollIntoView 뒤 `html.cd-consent-open` 이고 첫 입력칸 아래 끝이 `innerHeight - --cd-consent-offset` 보다 아래면 그만큼 `scrollBy`. 결과 360: 입력 323~372(배너 392 위), 960: 변화 없음(입력 370~421, 배너 441).
+  - 절충: 360 에서 배너가 열린 동안 단계 제목·1/7 진행이 sticky 헤더 밑으로 가고 힌트 "비워 두고…" 가 배너 경계에 반쯤 걸림. 배너를 닫으면 사라짐.
+- 검증: 대상 node 테스트 64/64, dev 서버 360/960 visual-checker, `npm run check:fast` 통과(jest 489 스위트·8447 통과), sitemap:generate(1087 URL). SEO: 공개 URL title/description/H1/canonical/robots 변화 없음 — 영향 없음.
+- 롤백: `git revert <SHA>`(b6ea399f4 그림, 40d310b9c 대비 — 되돌린 뒤 `npm run sync:public`, b04f757ea 배너 스크롤).
+- 후속(보고만): 960 에서 배너가 "다음" 버튼 오른쪽 절반을 가림(기존), 360 배너 열린 동안 제목 가림(위 절충), 연이 greet 가 talk 와 비슷해 보임.

@@ -63,6 +63,16 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, bra
     // 화면 위쪽 35% 아래에 있으면 셸 머리를 헤더 바로 아래(scroll-margin-top)로 올린 뒤 스크롤 없이 포커스한다.
     const rect = title.getBoundingClientRect();
     if (rect.top < 64 || rect.top > window.innerHeight * 0.35) { const root = rootRef.current; if (root && typeof root.scrollIntoView === 'function') root.scrollIntoView({ block: 'start', behavior: 'auto' }); }
+    // 쿠키 안내 배너가 떠 있는 동안(AnalyticsConsent 가 html.cd-consent-open·--cd-consent-offset 을 단다) 첫 입력칸이
+    // 배너 밑이면 입력칸 아래 끝이 배너 위에 오도록 더 내린다(360 동물 페이지처럼 제목과 입력 사이가 긴 단계).
+    const html = document.documentElement;
+    if (html.classList.contains('cd-consent-open') && typeof window.scrollBy === 'function') {
+      const field = rootRef.current?.querySelector<HTMLElement>('input:not([type="hidden"]), select, textarea');
+      const offset = Number.parseFloat(getComputedStyle(html).getPropertyValue('--cd-consent-offset')) || 0;
+      const bottom = field ? field.getBoundingClientRect().bottom : 0;
+      const limit = window.innerHeight - offset;
+      if (offset > 0 && bottom > limit) window.scrollBy(0, bottom - limit + 8);
+    }
     title.focus({ preventScroll: true });
   }, [step, state.source]);
 
