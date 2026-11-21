@@ -2183,8 +2183,10 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model } 
       const body = { ...(fresh.llmMeta?.resumeBody || {}), accessToken: undefined };
       const request = new Request("https://internal.invalid/api/astrology-ai/stuck", { method: "POST" });
       const access = await resolveStartAccess({ request, env, auth: { userId: String(fresh.userId) }, body, normalized: normalizeInput(body), pricing: getPricing(), idempotencyKey: clean(fresh.idempotencyKey, 180) });
-      if (!access?.ok && fresh.accessType !== "pass") throw new Error("billing evidence not found");
-      return astrologyRefundAccessSnapshot(access?.ok ? access : {});
+      if (access?.ok) return astrologyRefundAccessSnapshot(access);
+      if (fresh.accessType !== "pass") throw new Error("billing evidence not found");
+      // 감사 B1: 재판정이 거절돼도 결제창이 이미 차감한 이용권은 요청 키로 되돌릴 수 있게 남긴다(refundId 멱등).
+      return astrologyRefundAccessSnapshot({ accessType: "pass", source: "pass-receipt" });
     },
     settleRefund: owner => settleAstrologyRetryRefund(env, owner, target, now) });
 }

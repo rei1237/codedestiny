@@ -459,6 +459,16 @@ describe("settleStuckDelivery", () => {
     expect(card).toHaveBeenCalledTimes(1); expect(card.mock.calls[0][4]).toBe("astrology_ai_generation"); expect(release).toHaveBeenCalledTimes(1);
     await settleDue({}, { model, now: Date.now() + 8 * 86400000 }); expect(card).toHaveBeenCalledTimes(1);
   });
+  // 2026-11-22 감사 B1: 재판정이 거절된 이용권 건(결제창이 이미 차감)도 창이 지나면 요청 키로 이용권을 되돌린다.
+  it("keeps a pass refund possible when the pass recheck is denied for a stalled report", async () => {
+    expect((await start()).status).toBe(202); docs[0].updatedAt = new Date(Date.now() - 300000); mode = "none";
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("retryable");
+    expect(docs[0].llmMeta.retryable.access).toMatchObject({ accessType: "pass", source: "pass-receipt" });
+    expect(passRefund).not.toHaveBeenCalled();
+    docs[0].updatedAt = new Date(Date.now() - 300000);
+    expect(await quiet(() => settleDue({}, { model, now: Date.now() + 8 * 86400000 }))).toEqual([{ service: "astrology-ai", refundStatus: "refunded" }]);
+    expect(passRefund).toHaveBeenCalledTimes(1); expect(passRefund.mock.calls[0][0]).toMatchObject({ requestId: "original-paid-request" });
+  });
   it("leaves a live generation, a Toss native session, missing paid evidence and a finished result alone", async () => {
     mode = "paid"; expect((await start()).status).toBe(202);
     expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
