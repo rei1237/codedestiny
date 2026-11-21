@@ -67,7 +67,7 @@ const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
   "/tarot/prompt-maker": "/tarot/prompt-maker",
   "/tarot/year": "/tarot/year",
   "/tarot/crystal-soul/": "/index.html?action=startCrystalSoulTarot",
-  "/tarot/mindscan/": "/index.html?action=startMindScanTarot",
+  "/tarot/mindscan/": "/tarot/mindscan/",
   "/celestial-harmony.html": "/index.html?action=openCelestialHarmony",
   "/tarot-ijik.html": "/index.html?action=startIjikTarot",
   "/oracle/hwatu": "/oracle/hwatu",
