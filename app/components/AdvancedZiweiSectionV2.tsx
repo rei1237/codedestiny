@@ -12,6 +12,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import "../../styles/fonts-serif.css";
 import styles from "./ziwei/ziwei-consultation.module.css";
 import { ZiweiConsultationHero, ZiweiFoundationReading, ZiweiQuestionSections } from "./ziwei/ZiweiConsultation";
+import { ZiweiMusungSay, ZiweiYearFlowSection } from './ziwei/ZiweiMusungSay';
+import { MUSUNG_TODAY_SAY } from '../_lib/ziwei-musung-say';
 import { buildQuestionReading } from "../_lib/ziwei-consultation-narrative";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
 import ZiweiDeepPdfPanel, { type ZiweiDeepBirthInput } from "./ziwei/ZiweiDeepPdfPanel";
@@ -995,6 +997,7 @@ export default function AdvancedZiweiSectionV2({
         {selectedReading ? <ZiweiConsultationHero key={activeTrackId} chart={chart} reading={selectedReading} locale={locale} /> : null}
         {foundationReading ? <ZiweiFoundationReading reading={foundationReading} locale={locale} /> : null}
         <ZiweiQuestionSections readings={readings} selected={activeTrackId} onSelect={selectCounselingTrack} locale={locale} onPalace={id => { loadSection(id); if(deepRef.current) deepRef.current.open = true; requestAnimationFrame(() => document.getElementById('ziwei-result-palace')?.scrollIntoView({ block:'start' })); }} />
+        <ZiweiYearFlowSection chart={chart} locale={locale} />
         <details ref={deepRef} id="ziwei-result-deep" className={styles.deep}>
           <summary>{ui.deep}<small>{ui.deepHint}</small></summary>
           <div className={styles.deepBody}>
@@ -1564,7 +1567,7 @@ export default function AdvancedZiweiSectionV2({
             </details>
           </div>
         </details>
-        <section id="ziwei-result-today" className={styles.today}><h2>{ui.todayTitle}</h2><p>{selectedReading?.today}</p></section>
+        <section id="ziwei-result-today" className={styles.today}><h2>{ui.todayTitle}</h2><ZiweiMusungSay locale={locale} line={MUSUNG_TODAY_SAY} /><p>{selectedReading?.today}</p></section>
         <div id="ziwei-result-pdf" className={styles.pdf}><ZiweiDeepPdfPanel key={JSON.stringify(chart.user)} birth={deepPdfBirth} disabled={!chart} /></div>
       </div>
     </section>

@@ -7,6 +7,8 @@ import type { ZiweiQuestionReading, ConsultationTopic } from '../../_lib/ziwei-c
 import type { ZiweiFoundationReading as ZiweiFoundationReadingModel } from './_lib/advanced-ziwei-reading';
 import type { LoadingLocale } from '@/constants/loadingMessages';
 import { getAdvancedZiweiCopy, getPremiumZiweiCopy } from './_lib/advanced-ziwei-copy';
+import { ZiweiMusungSay } from './ZiweiMusungSay';
+import { MUSUNG_FOUNDATION_SAY, musungHeroSay, musungQuestionSay } from '../../_lib/ziwei-musung-say';
 import styles from './ziwei-consultation.module.css';
 
 export function consultationShareText(reading: ZiweiQuestionReading) {
@@ -41,6 +43,7 @@ export function ZiweiConsultationHero({ chart, reading, locale }: { chart: Ziwei
         <p className={styles.profile}>{chart.user.name || copy.resultTitleDefaultName} · {ui.report}</p>
         <p className={styles.selectedQuestion}>{reading.question}</p>
         <p className={styles.lead}>{reading.heroNote}</p>
+        <ZiweiMusungSay locale={locale} line={musungHeroSay({ id: reading.id, keywords: reading.keywords })} />
         <ul className={styles.keywords}>{reading.keywords.map(word => <li key={word}>{word}</li>)}</ul>
         <div className={styles.actions}>
           <a className={styles.primary} onClick={() => { const entry = document.getElementById(`ziwei-question-${reading.id}`) as HTMLDetailsElement | null; if (entry && !entry.open) entry.querySelector<HTMLElement>('summary')?.click(); }} href={`#ziwei-question-${reading.id}`}>{ui.read}<ArrowDown size={16} aria-hidden="true" /></a>
@@ -69,6 +72,7 @@ export function ZiweiFoundationReading({ reading, locale }: { reading: ZiweiFoun
       <h2>{ui.foundationTitle}</h2>
       <p className={styles.foundationHeadline}>{reading.headline}</p>
       <p>{reading.introduction}</p>
+      <ZiweiMusungSay locale={locale} line={MUSUNG_FOUNDATION_SAY} />
     </header>
     <div className={styles.foundationGrid}>
       {reading.sections.map(section => <article key={section.key} className={styles.foundationSection}>
@@ -101,6 +105,7 @@ export function ZiweiQuestionSections({ readings, selected, onSelect, onPalace, 
       </summary>
       <div className={styles.answer}>
         <p className={styles.answerLead}>{reading.scenes[0]}</p>
+        <ZiweiMusungSay locale={locale} line={musungQuestionSay({ id: reading.id, keywords: reading.keywords, palaceName: reading.evidence[0]?.palaceName })} />
         {reading.scenes.slice(1).map((scene, index) => <p key={index}>{scene}</p>)}
         <div className={styles.prescription}><h4>{ui.action}</h4><ul>{reading.actions.map(action => <li key={action}>{action}</li>)}</ul></div>
         <details className={styles.evidence}><summary>{ui.evidence}</summary>

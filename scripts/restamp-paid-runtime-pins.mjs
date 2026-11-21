@@ -10,7 +10,8 @@ const files = execFileSync("git", ["grep", "-l", "-F", `${asset}?v=build-`, "--"
 let changed = 0;
 for (const file of files) {
   // The shell loader graph uses per-asset hashes owned by sync:public.
-  if (/(^|\/)index\.html$/.test(file)
+  // vedic-astrology.html is restamped by sync:public (sync-legacy-static-to-public.mjs), so skip it here too.
+  if (/(^|\/)index\.html$/.test(file) || /(^|\/)vedic-astrology\.html$/.test(file)
     || /^(?:public\/)?js\/(?:app\.js|core\/(?:index-inline-runtime|uiBindings|init)\.js|mobile-interaction-patch\.js)$/.test(file)) continue;
   const before = readFileSync(file, "utf8"), after = before.replace(/js\/destiny-profile\.js\?v=build-[A-Za-z0-9_-]+/g, `${asset}?v=${pin}`);
   if (before !== after) { writeFileSync(file, after); changed++; }

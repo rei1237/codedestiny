@@ -1,5 +1,7 @@
 import { introductionRoutes } from "../../lib/i18n/feature-introductions.mjs";
 import SeoLandingTemplate from "../components/SeoLandingTemplate";
+import { GUIDED_VEDIC_ENABLED } from "../../lib/guided-flow/flags.mjs";
+import AstroGuidedEntry from "../astrology/AstroGuidedEntry";
 import { buildSeoMetadata } from "../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 import { NAKSHATRA_CROSSWALK } from "../../constants/nakshatra-crosswalk";
@@ -33,5 +35,7 @@ export const metadata = buildSeoMetadata({
 });
 
 export default function VedicLandingPage() {
-  return <SeoLandingTemplate page={page} />;
+  // R5 베다: 공통 스텝 출생 입력. 플래그를 끄면 지금과 같은 랜딩만 남는다(lib/guided-flow/flags.mjs).
+  if (!GUIDED_VEDIC_ENABLED) return <SeoLandingTemplate page={page} />;
+  return <SeoLandingTemplate page={page}><AstroGuidedEntry kind="vedic" /></SeoLandingTemplate>;
 }

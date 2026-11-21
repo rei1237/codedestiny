@@ -11124,13 +11124,24 @@
   var _dpAstroDraftTtl = 30 * 60 * 1000;
   var _dpAstroBounceKey = 'cd:guided-astro-bounce:v1';
   var _dpAstroBounceTtl = 2 * 60 * 1000;
-  function _dpTakeAstroDraft() {
-    if (!GUIDED_ASTRO_ENABLED) return null;
+  /* R5 숙요·베다(2026-11-21 사용자 "승인 받지 않은 부분에 대해서는 권장안으로 진행해줘"): 점성술과 같은 방식으로 /sukuyo/·/vedic/ 공통 스텝 입력을 쓴다.
+     결과(숙요점 모달, 베다는 /vedic-astrology.html 로 넘기는 기존 페이로드)는 그대로다. false 면 지금처럼 프로필 폼으로 간다.
+     lib/guided-flow/flags.mjs 와 값을, lib/guided-flow/astro-draft.mjs BIRTH_DRAFT_TARGETS 와 키·주소를 함께 바꾼다(테스트가 묶는다). */
+  var GUIDED_SUKUYO_ENABLED = true;
+  var GUIDED_VEDIC_ENABLED = true;
+  var _dpGuidedBirth = {
+    astro: { on: GUIDED_ASTRO_ENABLED, key: _dpAstroDraftKey, bounce: _dpAstroBounceKey, landing: '/astrology/?step=name' },
+    sukuyo: { on: GUIDED_SUKUYO_ENABLED, key: 'cd:guided-sukuyo-draft:v1', bounce: 'cd:guided-sukuyo-bounce:v1', landing: '/sukuyo/?step=name' },
+    vedic: { on: GUIDED_VEDIC_ENABLED, key: 'cd:guided-vedic-draft:v1', bounce: 'cd:guided-vedic-bounce:v1', landing: '/vedic/?step=name' }
+  };
+  function _dpTakeAstroDraft(type) {
+    var g = _dpGuidedBirth[type || 'astro'];
+    if (!g || !g.on) return null;
     try {
-      var raw = sessionStorage.getItem(_dpAstroDraftKey);
+      var raw = sessionStorage.getItem(g.key);
       if (!raw) return null;
-      sessionStorage.removeItem(_dpAstroDraftKey);
-      sessionStorage.removeItem(_dpAstroBounceKey);
+      sessionStorage.removeItem(g.key);
+      sessionStorage.removeItem(g.bounce);
       var draft = JSON.parse(raw);
       var age = Date.now() - Number(draft && draft.at);
       var p = draft && draft.profile;
@@ -11139,19 +11150,20 @@
     } catch (_) { return null; }
   }
   // 정적 셸 한국어 웹에서만 보낸다. 앱 런타임·다른 로케일·저장 불가·방금 보냈는데 초안 없이 돌아온 경우는 지금처럼 폼으로 간다(되돌이 방지).
-  function _dpAstroGuidedRedirect() {
-    if (!GUIDED_ASTRO_ENABLED) return false;
+  function _dpAstroGuidedRedirect(type) {
+    var g = _dpGuidedBirth[type || 'astro'];
+    if (!g || !g.on) return false;
     var loc = window.location;
     if (!loc || typeof loc.replace !== 'function' || !/^\/ggulggul\/?(index\.html)?$/.test(String(loc.pathname || ''))) return false;
     try { if (typeof _dpIsMobileAppRuntime === 'function' && _dpIsMobileAppRuntime()) return false; } catch (_) {}
     try {
-      var last = Number(sessionStorage.getItem(_dpAstroBounceKey));
+      var last = Number(sessionStorage.getItem(g.bounce));
       if (last && Date.now() - last >= 0 && Date.now() - last < _dpAstroBounceTtl) return false;
-      sessionStorage.setItem(_dpAstroBounceKey, String(Date.now()));
-      if (!sessionStorage.getItem(_dpAstroBounceKey)) return false;
+      sessionStorage.setItem(g.bounce, String(Date.now()));
+      if (!sessionStorage.getItem(g.bounce)) return false;
     } catch (_) { return false; }
     _dpHomeIntent('');
-    loc.replace('/astrology/?step=name');
+    loc.replace(g.landing);
     return true;
   }
   // 출생지 목록은 늦게 채워진다(populateBirthCountrySelector). 채워진 뒤 한 번 더 고른다.
@@ -11225,11 +11237,11 @@
     return !!(profile && profile.birth && _dpHasValidProfileDate(profile.birth.year,profile.birth.month,profile.birth.day));
   }
   function _dpPromptHomeEntryProfile(type, draft) {
-    if(type==='astro'&&!draft&&_dpAstroGuidedRedirect()) return;
+    if(_dpGuidedBirth[type]&&!draft&&_dpAstroGuidedRedirect(type)) return;
     _dpHomeIntent(type);
     var entryName=_dpHomeEntryNames[type];
     var entryParticle=(type==='saju'||type==='ziwei')?'를':'을';
-    if(draft) _toast('입력한 출생 정보를 채웠어요.','profile-guide','프로필을 저장하면 바로 '+entryName+' 차트를 열어드릴게요.');
+    if(draft) _toast('입력한 출생 정보를 채웠어요.','profile-guide','프로필을 저장하면 바로 '+entryName+(type==='sukuyo'?' 풀이를':' 차트를')+' 열어드릴게요.');
     else _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
     if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
     if(draft) _dpApplyAstroDraft(draft);
@@ -11253,8 +11265,8 @@
     if(!_dpHomeEntryNames[type]) return;
     _dpHomeIntent('');
     if(type==='tarot') { window._dpOpenFortuneType(type); return; }
-    // /astrology/ 공통 스텝에서 방금 입력하고 온 경우: 그 입력으로 새 프로필 폼을 채운다(저장 프로필이 있어도 방금 입력이 우선).
-    var astroDraft=type==='astro'?_dpTakeAstroDraft():null;
+    // /astrology/·/sukuyo/·/vedic/ 공통 스텝에서 방금 입력하고 온 경우: 그 입력으로 새 프로필 폼을 채운다(저장 프로필이 있어도 방금 입력이 우선).
+    var astroDraft=_dpGuidedBirth[type]?_dpTakeAstroDraft(type):null;
     if(astroDraft) { _dpPromptHomeEntryProfile(type, astroDraft); return; }
     var profile=_dpHomeEntryProfile(type);
     if(_dpHomeEntryProfileReady(profile)) {

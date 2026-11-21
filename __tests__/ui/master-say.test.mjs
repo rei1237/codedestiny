@@ -33,7 +33,11 @@ test('숙요 문구는 궁합 AI 의 장 키 전부를 덮는다(장이 늘면 �
 });
 
 test('마스터 매핑은 숙요=서한비, 점성술·베다=윤달이고 지원 밖 분야는 null', () => {
-  assert.deepEqual(MASTER_BY_DOMAIN, { sukuyo: 'hanbi', astrology: 'yun', vedic: 'yun' });
+  assert.deepEqual(MASTER_BY_DOMAIN, { sukuyo: 'hanbi', astrology: 'yun', vedic: 'yun', nakshatra: 'yun' });
+  for (const sectionKey of ['intro', 'unified', 'closing']) {
+    assert.equal(masterSayFor({ domain: 'nakshatra', sectionKey }).character, 'yun', `나크샤트라 ${sectionKey}`);
+  }
+  assert.equal(masterSayFor({ domain: 'nakshatra', sectionKey: 'unknown' }), null);
   assert.equal(masterSayFor({ domain: 'sukuyo', sectionKey: 'overview' }).character, 'hanbi');
   assert.equal(masterSayFor({ domain: 'astrology', index: 0, total: 4 }).character, 'yun');
   assert.equal(masterSayFor({ domain: 'ziwei', index: 0 }), null);

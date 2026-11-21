@@ -221,7 +221,16 @@ export type WebtoonCut = {
 - 중복 규칙: 같은 (궁, 사화)·쌍록/쌍기·올림포스 신탁은 한 번만 풀고 이후엔 앞 해를 가리킨다. 같은 문장·카드 간 6-gram 겹침은 같은 테스트가 막는다.
 - 올림포스 상징(제우스=자미·화권, 헤르메스=천기·화기 서판, 데메테르=화록, 아폴론=화과)은 무성이 들려주는 서사다. 별도 화자를 두지 않는다.
 - CSS: `styles/basic-fortune-library.css`의 `#ziweiModalOverlay .zw-musung-say*`. 모바일 17px·행간 1.8, 얼굴 이미지는 기존 `public/images/expert-characters/musung/` 재사용.
-- 심화(`/ziwei/chart`)는 이번 범위 밖이다.
+- 심화(`/ziwei/chart`)는 §11-1.
+
+### 11-1. 심화 자미두수 `/ziwei/chart` (2026-11-21)
+
+- 대사·이론 정본: `app/_lib/ziwei-musung-say.ts`(무성 대사·3개년 리딩 조립), `app/_lib/ziwei-year-flow.ts`(유년 이론), `app/_lib/ziwei-flow-data.ts`(표·올림포스). 표시: `app/components/ziwei/ZiweiMusungSay.tsx`, 스타일은 `ziwei-consultation.module.css`의 `.musungSay*`·`.flow*`.
+- 배치: 상담 히어로·바탕·질문별 답(`ZiweiConsultation`), 오늘 한마디, 그리고 `ziwei-result-flow` 섹션(3개년 유년 리딩: 오프닝 → 해마다 카드 → 해 사이 브리지 → 마무리). 상단 내비 칩은 로케일 사전 비용 때문에 추가하지 않았다.
+- 이론(셸 `zwYearFlowTheory`의 TS 이식, 120명×4년 대조 일치): 유년 명궁=태세 지지궁, 유년 역할=명궁 기준 역순, 오호둔으로 대한궁 천간, 대한×유년 관계(같은 궁·대궁·삼합·기타), 쌍록·쌍기, 록기 동궁, 화기 충, 톤(확장·수비·혼재·평온). 명반 계산 엔진은 건드리지 않는다.
+- 상담 문장: 8개 주제 질문별 렌즈(`LENS`)로 같은 별 풀이를 주제에 맞게 바꾸고, 주제 사이 같은 문장은 0건(128명반 실측)이다.
+- ko 전용이고 캐릭터 노출 플래그(`isExpertCharacterEnabled('musung')`)가 꺼지면 말풍선만 사라진다. 결제·잠금·noindex 정책은 그대로다.
+- 가드: `__tests__/ui/ziwei-deep-year-flow.test.mjs`(셸↔TS 표·이론 드리프트, 금기어, 문장 중복, 올림포스 신 연속 방지).
 
 ## 10. 마스터 말풍선 (숙요·점성술·베다 유료 AI 상담, 2026-11-21)
 
@@ -237,3 +246,7 @@ export type WebtoonCut = {
 | 금지 | 윤달 `void`·`pain` 표정, 서한비 이름 "박지은"과 `public/images/novel/hanbi/*`(호랑이) 사용 금지 |
 | 원문 불변 | LLM 본문은 바꾸지 않는다. 캐릭터가 꺼져 있으면 말풍선은 렌더되지 않고 기존 화면이 그대로 남는다 |
 | 중복 제거 | 달 풀이 정본은 베다. 점성술 프롬프트에 "나크샤트라·본명숙 풀이 반복 금지" 한 줄을 두었다. 숙요 프롬프트는 진행 중 상담 바이트 고정 가드(`sukuyo-compat-v1-prompt-bytes`) 때문에 아직 같은 줄이 없다(판 분기 필요, 후속) |
+
+### 10.1 나크샤트라 무료 결정판 (2026-11-21)
+
+`/nakshatra/result/`(`NakshatraResultClient`)에도 윤달 말풍선을 둔다. 도메인 `nakshatra`, 장 키 `intro`(동양·인도 2열 앞)·`unified`(통합 풀이 앞)·`closing`(오늘의 달·유료 안내 앞). 한국어 정적 문구라 ko 로케일에서만 그리고(첫 렌더는 비움), 화면 자체가 동양↔인도 교차 대조라 교차 링크는 두지 않는다. 호박색 `--reading-*` 변수를 래퍼가 직접 준다. 계산·결과 데이터는 건드리지 않는다.
