@@ -3045,7 +3045,8 @@
         "terms": "服务条款",
         "refund": "退款政策",
         "privacy": "隐私政策",
-        "support": "支付咨询"
+        "support": "支付咨询",
+        "refundConsentHint": "同意上方的退款说明后即可选择单次付款"
       },
       "passUpgradeTitle": "升级通行证",
       "recommendBadge": "推荐",
@@ -3135,7 +3136,7 @@
         },
         "card": {
           "eyebrow": "单次安全结账",
-          "title": "正在加载支付网关窗口。",
+          "title": "正在打开支付窗口。",
           "message": "正在确认订单信息与认证流程。",
           "meta": "支付窗口打开后请继续认证。"
         },
@@ -3206,7 +3207,7 @@
         },
         "card": {
           "eyebrow": "单次安全结账",
-          "title": "正在加载支付网关窗口。",
+          "title": "正在打开支付窗口。",
           "message": "正在确认订单信息与认证流程。",
           "meta": "支付窗口打开后请继续认证。"
         },
@@ -3323,6 +3324,9 @@
       "separatePurchaseRequired": "此出生日期需要单独购买",
       "saveProfileFirst": "请先保存档案后再购买",
       "keepAfterUnlock": "解锁后，可随时用此出生日期再次查看。"
+    },
+    "passCard": {
+      "startingPrice": "通行证{price}起 · 还没有的话可在通行证商店选购"
     }
   },
   "auth": {

@@ -73,13 +73,13 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
   paymentProgressSteps: readonly [string, string, string];
 }> = {
   ko: {
-    secureLabel: "secure check",
+    secureLabel: "안전 확인",
     complete: "잠시 후 콘텐츠로 이어집니다.",
     passChecking: "이용권 적용 여부를 확인하고 있습니다.",
     passApplied: "콘텐츠 문을 여는 중입니다.",
-    pgLoading: "PG사 결제창을 로드하는 중입니다.",
+    pgLoading: "결제창을 여는 중입니다.",
     delayed8s: "결제 확인이 조금 지연되고 있습니다. 곧 자동으로 이어집니다.",
-    delayed20s: "확인이 길어지고 있습니다. 같은 창에서 계속 안전하게 재확인 중입니다.",
+    delayed20s: "확인이 조금 길어지고 있어요. 이 창을 닫지 말고 잠시만 기다려 주세요.",
     progressLabel: "이용권 확인 진행 상태",
     passProgressSteps: ["이용권 확인", "혜택 적용", "결과 준비"],
     paymentProgressSteps: ["이용 확인","결제 확인","결과 준비"],
@@ -89,7 +89,7 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     complete: "Your content will open shortly",
     passChecking: "Checking whether your pass can be applied.",
     passApplied: "Opening the content for you.",
-    pgLoading: "Loading the payment gateway window",
+    pgLoading: "Opening the payment window",
     delayed8s: "Payment confirmation is taking a little longer. It will continue automatically.",
     delayed20s: "Confirmation is still in progress. Please stay in this window while we keep checking safely.",
     progressLabel: "Pass check progress",
@@ -101,7 +101,7 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     complete: "まもなくコンテンツへ進みます",
     passChecking: "利用券を適用できるか確認しています。",
     passApplied: "コンテンツの扉を開いています。",
-    pgLoading: "決済代行会社の決済画面を読み込んでいます。",
+    pgLoading: "決済画面を開いています。",
     delayed8s: "お支払い確認に少し時間がかかっています。まもなく自動で続きます。",
     delayed20s: "確認が長引いています。この画面のまま安全に確認を続けています。",
     progressLabel: "利用券確認の進行状況",
@@ -113,7 +113,7 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     complete: "即将进入内容",
     passChecking: "正在确认通行券是否可用。",
     passApplied: "正在为您打开内容。",
-    pgLoading: "正在加载支付网关窗口。",
+    pgLoading: "正在打开支付窗口。",
     delayed8s: "支付确认稍有延迟，系统会自动继续。",
     delayed20s: "确认仍在进行中。请停留在此窗口，我们会继续安全检查。",
     progressLabel: "通行券确认进度",
@@ -125,7 +125,7 @@ const PAYMENT_STATUS_COPY: Record<LoadingLocale, {
     complete: "即將進入內容",
     passChecking: "正在確認通行券是否可用。",
     passApplied: "正在為您開啟內容。",
-    pgLoading: "正在載入支付閘道視窗。",
+    pgLoading: "正在開啟付款視窗。",
     delayed8s: "付款確認稍有延遲，系統會自動繼續。",
     delayed20s: "確認仍在進行中。請停留在此視窗，我們會繼續安全檢查。",
     progressLabel: "通行券確認進度",
@@ -303,7 +303,7 @@ export default function PaymentLoading({
     : [];
   // 🔴 variant 'checkout' = 단건 확정 → PG 결제창이 실제로 뜨기까지의 구간(셸 mode 'card').
   // stage 매핑상 pg_processing.single("결제를 처리하고 있어요")로 떨어지는데, 이 구간은 결제가
-  // 시작되지도 않았고 PG창도 아직 없다. 셸 mode 'card' 정본 카피와 같은 문구를 쓴다.
+  // 시작되지도 않았고 PG창도 아직 없다. 셸 mode 'card' 정본 카피와 같은 문구를 쓴다("PG사" 같은 업계 용어는 쓰지 않는다).
   const pgLoadingTitle = variant === "checkout" ? uiCopy.pgLoading : "";
   const resolvedTitle = title || pgLoadingTitle || (passLines.length > 1 ? passLines[0] : "") || copy.title || fallbackCopy.title || DEFAULT_TITLE;
   const resolvedDescription = description

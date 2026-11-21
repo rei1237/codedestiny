@@ -569,6 +569,15 @@ for (const [version, plans] of POLICY_TABLES) {
     check(`pass-verdict MONTHLY_PASS_LIMIT_BY_POLICY["${version}"].${tier}`, got === Number(plan.monthlyLimitCoin), `실제=${got} 정본=${plan.monthlyLimitCoin}`);
   }
 }
+// 결제창 이용권 카드 "○○원부터"(표시 전용)도 현행 정책 판매가와 같아야 한다(2026-11-21).
+check("pass-verdict CURRENT_PASS_POLICY_VERSION 이 정본과 같다", verdict.includes(`var CURRENT_PASS_POLICY_VERSION = "${CURRENT_PASS_POLICY_VERSION}";`));
+const priceBlock = verdict.match(/PASS_WON_PRICE_BY_POLICY\s*=\s*\{([\s\S]*?)\n\s*\};/);
+const priceRow = priceBlock && priceBlock[1].match(new RegExp(`"${CURRENT_PASS_POLICY_VERSION}"\\s*:\\s*\\{([^}]*)\\}`));
+check(`pass-verdict PASS_WON_PRICE_BY_POLICY["${CURRENT_PASS_POLICY_VERSION}"] 행`, Boolean(priceRow));
+for (const [tier, plan] of Object.entries(CURRENT_PASS_PLANS)) {
+  const got = Number(((priceRow && priceRow[1]) || "").match(new RegExp(`\\b${tier}\\s*:\\s*(\\d+)`))?.[1]);
+  check(`pass-verdict PASS_WON_PRICE_BY_POLICY.${tier}`, got === Number(plan.wonPrice), `실제=${got} 정본=${plan.wonPrice}`);
+}
 const homeBanner = (shell.match(/<section class="cdh-pass"[\s\S]*?<\/section>/) || [""])[0];
 check("index.html 홈 이용권 배너(.cdh-pass)가 있다", Boolean(homeBanner));
 for (const plan of Object.values(CURRENT_PASS_PLANS)) {

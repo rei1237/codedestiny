@@ -256,6 +256,24 @@
     "flower-cost-20260921": { standard: 400, premium: 1000, vvip: 2000, family: 5000 },
     "flower-20260921": { standard: 200, premium: 500, vvip: 900 }
   };
+  // 현행 정책의 등급별 판매가(원). 서버 정본은 lib/payment/pass-policy.js 의 CURRENT_PASS_PLANS.wonPrice,
+  // 대조 가드는 scripts/verify-pass-tier-policy.mjs. 🔴 **표시 전용**(결제창 이용권 카드 "○○원부터")이다 —
+  // 실제 가격은 /points 상점과 서버 prepare 가 정한다. 이용권은 기간 상품이 아니므로 "월" 을 붙이지 않는다.
+  var CURRENT_PASS_POLICY_VERSION = "flower-20261104";
+  var PASS_WON_PRICE_BY_POLICY = {
+    "flower-20261104": { standard: 14900, premium: 34900, vvip: 64900, family: 154000 }
+  };
+
+  function startingPassWonPrice() {
+    var table = PASS_WON_PRICE_BY_POLICY[CURRENT_PASS_POLICY_VERSION] || {};
+    var min = 0;
+    Object.keys(table).forEach(function (tier) {
+      var n = Number(table[tier]);
+      if (Number.isFinite(n) && n > 0 && (!min || n < min)) min = n;
+    });
+    return min;
+  }
+
   // 남은 한도가 이 값보다 적으면 상담 한도를 다 쓴 것으로 본다(가장 싼 상담 5,000원). 서버 정본은
   // worker/lib/profile-limits.js isPassBudgetExhausted. 이용권은 그대로이고 가벼운 운세는 계속 열린다.
   var PASS_EXHAUSTED_REMAINING_COIN = 50;
@@ -864,6 +882,8 @@
     monthlyLimitForTier: monthlyLimitForTier,
     monthlyLimitForPolicy: monthlyLimitForPolicy,
     displayMonthlyLimit: displayMonthlyLimit,
+    CURRENT_PASS_POLICY_VERSION: CURRENT_PASS_POLICY_VERSION,
+    startingPassWonPrice: startingPassWonPrice,
     passShortfallReason: passShortfallReason,
     PASS_EXHAUSTED_REMAINING_COIN: PASS_EXHAUSTED_REMAINING_COIN,
     normalizeUserId: normalizeUserId,

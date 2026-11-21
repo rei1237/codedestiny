@@ -3045,7 +3045,8 @@
         "terms": "Terms of Service",
         "refund": "Refund Policy",
         "privacy": "Privacy Policy",
-        "support": "Payment help"
+        "support": "Payment help",
+        "refundConsentHint": "Agree to the refund notice above to choose one-time payment"
       },
       "passUpgradeTitle": "Passer à un pass supérieur",
       "recommendBadge": "Recommandé",
@@ -3323,6 +3324,9 @@
       "separatePurchaseRequired": "Cette date de naissance nécessite un achat séparé",
       "saveProfileFirst": "Veuillez enregistrer le profil avant l'achat",
       "keepAfterUnlock": "Une fois débloqué, vous pouvez le revoir à tout moment avec cette date de naissance."
+    },
+    "passCard": {
+      "startingPrice": "Passes from {price} · No pass yet? Pick one in the pass shop"
     }
   },
   "auth": {

@@ -343,6 +343,8 @@ console.log("\n[3] 이용권 카드 클릭 → 미커버면 /points 로 인계�
   window.__cdOpenChargeModal = () => { chargeModalCalls += 1; };
   window.__cdApplyMembershipPassBeforePayment = async () => ({ status: "payment_required" });
   const choicePromise = openChoice(window);
+  // 웹 추천 이용권 카드에는 현행 판매가 시작가 줄이 붙는다(표시 전용, 2026-11-21).
+  check("웹: 추천 이용권 카드에 시작가 줄", () => assert.match(String(findCard(window, "pass-store").querySelector("[data-pass-starting-price]")?.textContent || ""), /14,900/));
   findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   await choicePromise;
   await flush();
@@ -376,6 +378,8 @@ console.log("\n[4] 앱 런타임에서 /points 로 이동하지 않고 인앱 �
   window.__cdOpenChargeModal = () => { chargeModalCalls += 1; };
   window.__cdApplyMembershipPassBeforePayment = async () => ({ status: "payment_required" });
   const choicePromise = openChoice(window);
+  // 🔴 앱은 스토어 가격이 따로 있어 웹 원화 판매가 줄을 그리지 않는다.
+  check("앱: 이용권 카드에 웹 시작가 줄이 없다", () => assert.equal(findCard(window, "pass-store").querySelector("[data-pass-starting-price]"), null));
   findCard(window, "pass-store").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   await choicePromise;
   await flush();
