@@ -240,3 +240,8 @@ test('the engine ignores a pinned v2 seed for an adapter that did not opt in',as
  await call({requestId:'not-opted-in-request'});let response;for(let n=0;n<4;n++)response=await call({resumeResultId:docs[0].executionKey});
  expect(await response.json()).toMatchObject({reviewRequired:true,retryable:false});expect(docs[0].metadata.paidNarrative.attempts.a).toBe(2);expect(produce.mock.calls.filter(([task])=>task.id==='a')).toHaveLength(2);
 });
+test.each(['report','compat'])('%s invalid input is refused before the payment check so a paid order never ends in a seed 400',async type=>{
+ kind=type;mode='denied';const body=original();if(type==='report')body.pet={...pet,birthDate:'2020-13-40'};else body.petB={...pet,birthDate:'bad'};
+ const response=await post(body);expect(response.status).toBe(400);expect((await response.json()).error).toBe('INVALID_INPUT');expect(docs).toHaveLength(0);expect(provider).not.toHaveBeenCalled();
+ mode='denied';const bad=await post({...original(),date:'2026-02-31'});expect(bad.status).toBe(400);expect(docs).toHaveLength(0);
+});
