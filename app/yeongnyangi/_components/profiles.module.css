@@ -58,3 +58,15 @@
 
 /* An unfinished profile owns the next action; the purchase summary returns after save/cancel. */
 :global([data-yn-checkout]):has(.guided) :global(aside[aria-label="상담과 결제 요약"]) { display:none; }
+
+.premium .heading { padding-bottom:12px; border-bottom:1px solid var(--yn-line); }
+.premium .heading img { background:var(--yn-surface); border:1px solid var(--yn-line); }
+.premium .heading :is(h3,p),.premium .identity small { color:var(--yn-ivory); }
+.premium .heading p,.premium .identity small { color:var(--yn-muted); }
+.premium.picker .choice { min-height:64px; padding:8px 12px; background:var(--yn-surface); color:var(--yn-ivory); border-color:var(--yn-line); }
+.premium.picker .choice[aria-pressed="true"] { background:var(--yn-raised); border-color:var(--yn-gold); }
+.premium .initial { position:relative; width:44px; height:44px; background:var(--yn-night); color:var(--yn-gold); border:1px solid var(--yn-line); }
+.portrait { position:absolute; inset:0; overflow:hidden; border-radius:inherit; }
+.portrait img:not([hidden]) { display:block; width:400%; height:300%; max-width:none; background:var(--yn-night); } .portrait img[hidden] { display:none; }
+.premium.picker .add { width:100%; color:var(--yn-ivory); background:var(--yn-surface); border-color:var(--yn-line); border-style:dashed; }
+.premium.picker .add:hover { border-color:var(--yn-gold); }

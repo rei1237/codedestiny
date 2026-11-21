@@ -60,7 +60,14 @@ test('question CTA enters the expanded mackerel question flow and sample precede
  const product=products.find(p=>p.domain===params.get('domain')&&p.fishId===params.get('fish')&&p.readingKind==='single');
  assert.equal(product.priceKRW,10000);assert.equal(params.get('flow'),'question');assert.equal(params.has('consultationKind'),false);
  assert.match(page,/contentId="mackerel-question-v1"/);
- assert.match(readFileSync('app/yeongnyangi/_components/YeongnyangiGuide.tsx','utf8'),/contentId="tarot-salmon-question-v1"/);
+ const componentDir='app/yeongnyangi/_components/';
+ const guide=readFileSync(componentDir+'YeongnyangiGuide.tsx','utf8');
+ assert.match(guide,/<YeongnyangiSampleMenu samples=\{readingSamples\} tarotFeature=\{single\('tarot','salmon'\)\.cdFeatureKey\}/);
+ const samples=readFileSync(componentDir+'yeongnyangi-examples.ts','utf8');
+ assert.match(samples,/\['tarot',/);
+ const menu=readFileSync(componentDir+'YeongnyangiSampleMenu.tsx','utf8');
+ assert.match(menu,/sample\.key==='tarot'&&sample\.kind==='result'\?<YeongnyangiExampleToon \{\.\.\.sample\}/);
+ assert.match(menu,/<SampleExposure targetId=\{id\('panel',0\)\} itemId=\{tarotFeature\} contentId="tarot-salmon-question-v1"/);
  assert.ok(page.indexOf('id="example"')<page.indexOf('id="systems"'));
  assert.match(page,/실제 고객 데이터나 AI가 생성한 상담 원문이 아니/);
 });

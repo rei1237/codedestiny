@@ -63,8 +63,13 @@ test('영냥이 상담 names the yeongnyangi service; 운세보는 영냥이 sta
   assert.ok(page.includes('buildServiceJsonLd({name:YEONGNYANGI.serviceName,alternateName:'), 'Service name');
   assert.ok(page.includes("buildBreadcrumbJsonLd([{name:BRAND_FACTS.service.name,path:'/'}"), 'breadcrumb home is /');
   const hero = read('app/yeongnyangi/_components/NightHero.tsx');
-  const heading = hero.indexOf("brandCopy('yeongnyangiHeading')");
-  assert.ok(heading >= 0 && heading < hero.indexOf("brandCopy('yeongnyangiServiceName')"), 'H1 keeps 사주보는 고양이 and names 영냥이 상담');
+  const mascotCopy = read('app/yeongnyangi/_lib/mascot-name.mjs');
+  const heading = hero.indexOf('{mascotPrefix}');
+  assert.ok(heading >= 0 && heading < hero.indexOf('{mascotName}'), 'H1 uses the approved mascot name, not the paid service title');
+  assert.match(mascotCopy, /mascotPrefix = '운세보는 고양이'/);
+  assert.match(mascotCopy, /mascotName = '영냥이'/);
+  assert.ok(page.includes("YEONGNYANGI.serviceName+' | '+BRAND_FACTS.service.name+'의 '+mascotDisplayName"), 'page title keeps the service name first');
+  assert.ok(page.includes('keywords:[mascotDisplayName,'));
 });
 
 test('former names are detected exactly and never inside protected feature names', () => {

@@ -5,13 +5,14 @@ import QuestionJourney from "@/app/components/QuestionJourney";
 import NightHero, {NightPriceDetails} from "../_components/NightHero";
 import homeStyle from "../_components/night-hero.module.css";
 import SessionControls from "./SessionControls";
+import YeongnyangiBottomDock from "./YeongnyangiBottomDock";
 import type {ProductOffers} from '../_components/ProductGuide';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import dynamic from 'next/dynamic';
 import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { ArrowRight, Bookmark, ChevronRight, House, KeyRound, PawPrint, X } from "lucide-react";
+import { ArrowRight, ChevronRight, KeyRound, PawPrint, X } from "lucide-react";
 import { ggulggulFortuneHref, loginHref, socialLoginHref, type SocialProvider } from "./service-links";
 
 const FirstVisitGuide = dynamic(() => import('../_components/FirstVisitGuide'));
@@ -66,7 +67,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
     return () => wide.removeEventListener('change', update);
   }, []);
   const [firstVisitOpen, setFirstVisitOpen] = useState(false);
-  const [activeNav, setActiveNav] = useState("home");
+  const [activeNav, setActiveNav] = useState<"home" | "questions">("home");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
   const returnTo = typeof window === "undefined" ? "/yeongnyangi/fortune/" : window.location.pathname + window.location.search;
@@ -104,8 +105,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
   function closePanel() {
     setPanel(null);
   }
-  function navigate(id: string) {
-    if (id === "library") { window.location.assign("/yeongnyangi/library/"); return; }
+  function navigate(id: "home" | "questions") {
     closePanel();
     setActiveNav(id);
     document.getElementById(id)?.scrollIntoView({
@@ -185,29 +185,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
         </main>
       </div>
 
-      <nav className="bottom-nav" aria-label="하단 메뉴">
-        {[
-          { id: "home", label: "홈", icon: House },
-          { id: "questions", label: "상담하기", icon: PawPrint },
-          { id: "library", label: "내 상담", icon: Bookmark },
-        ].map((item) => (
-          <button
-            key={item.id}
-            className={`${item.id === "questions" ? "center-nav" : ""} ${activeNav === item.id ? "active" : ""}`}
-            aria-current={activeNav === item.id ? "page" : undefined}
-            onClick={() => navigate(item.id)}
-          >
-            {item.id === "questions" ? (
-              <span className="nav-avatar">
-                <img src={imagePath("avatar")} width="45" height="38" alt="" />
-              </span>
-            ) : (
-              <item.icon size={22} />
-            )}
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
+      <YeongnyangiBottomDock active={activeNav} onSection={navigate} />
 
       <dialog
         ref={dialogRef}

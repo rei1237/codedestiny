@@ -1,37 +1,41 @@
 'use client';
-import {Fragment,useEffect,useRef,useState} from 'react';
-import {ArrowRight,Check,ChevronDown,Fish,PawPrint} from 'lucide-react';
+import {Fragment,useEffect,useId,useRef,useState} from 'react';
+import {ArrowRight,Check,ChevronDown,Fish,Moon,PawPrint} from 'lucide-react';
 import {trackEvent} from '@/lib/analytics';
-import {getQuestionGuide,questionGuides,concernGuides,concernGroups,filterConcerns,anythingConsultationHref,questionScopeEntry,questionCheckoutHref,questionGuideHref,QUESTION_VERSION,freeQuestionMap,type QuestionGuide} from '@/lib/fortune/question-journey';
+import {getQuestionGuide,homeRecommendedQuestions,concernGuides,concernGroups,filterConcerns,anythingConsultationHref,questionScopeEntry,questionCheckoutHref,questionGuideHref,QUESTION_VERSION,freeQuestionMap,type QuestionGuide} from '@/lib/fortune/question-journey';
 import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
-import {saveQuestionEntry,QUESTION_ENTRY_HREF,QUESTION_ENTRY_LIMIT} from '@/lib/fortune/question-entry';
+import {saveQuestionEntry,questionEntryHref,QUESTION_ENTRY_LIMIT} from '@/lib/fortune/question-entry';
+import {domainEntries,type DomainId} from '@/app/yeongnyangi/_home/domain-registry';
 import styles from './QuestionJourney.module.css';
+import QuestionSpecialConsultations from './QuestionSpecialConsultations';
 
-function record(event:string,source:string,q?:QuestionGuide){trackEvent(event,{surface:source,topic_id:q?.topic||'general',question_id:q?.id||'all',item_id:q?questionScopeEntry(q).product.cdFeatureKey:undefined,content_type:'editorial',content_version:QUESTION_VERSION});}
-function Exposure({event,source,q}:{event:string;source:string;q?:QuestionGuide}){
+function record(event:string,source:string,q?:QuestionGuide,domain?:DomainId){trackEvent(event,{surface:source,topic_id:q?.topic||'general',question_id:q?.id||'all',item_id:q?questionScopeEntry(q,domain).product.cdFeatureKey:undefined,content_type:'editorial',content_version:QUESTION_VERSION});}
+function Exposure({event,source,q,domain}:{event:string;source:string;q?:QuestionGuide;domain?:DomainId}){
  const ref=useRef<HTMLSpanElement>(null);
- useEffect(()=>{const el=ref.current;if(!el||typeof IntersectionObserver==='undefined')return;const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){record(event,source,q);observer.disconnect();}},{threshold:0.5});observer.observe(el);return()=>observer.disconnect();},[event,source,q]);
+ useEffect(()=>{const el=ref.current;if(!el||typeof IntersectionObserver==='undefined')return;const observer=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){record(event,source,q,domain);observer.disconnect();}},{threshold:0.5});observer.observe(el);return()=>observer.disconnect();},[event,source,q,domain]);
  return <span ref={ref} aria-hidden="true" style={{display:'block',height:1}}/>;
 }
-export function QuestionOffer({q,source}:{q:QuestionGuide;source:string}){
- const {product,plan}=questionScopeEntry(q);
+export function QuestionOffer({q,source,domain}:{q:QuestionGuide;source:string;domain?:DomainId}){
+ const {product,plan}=questionScopeEntry(q,domain);
  // 상담 예시(#yn-example)는 한국어 영냥이 홈 가이드에만 있다. 그 페이지에서만 예시 링크를 보인다.
  const [hasExample,setHasExample]=useState(false);
  useEffect(()=>{setHasExample(document.getElementById('yn-example')!==null);},[]);
  return <section className={styles.offer} aria-label="선택한 질문의 상담 안내">
-  <h3>{q.question}</h3><Exposure key={q.id} event="question_offer_view" source={source} q={q}/>
+  <h3>{q.question}</h3><Exposure key={q.id} event="question_offer_view" source={source} q={q} domain={domain}/>
   <p className={styles.offerLead}>{q.next} 입력한 상황과 계산 근거를 바탕으로 질문의 답과 다음 행동을 정리해요.</p>
   <h4>이 질문에서 살펴볼 범위</h4><p>{plan.reason}</p>
   <p className={styles.price}><strong>{product.priceKRW.toLocaleString('ko-KR')}원</strong><span>{product.name} · 기본 상담 + 추가 질문 {FOLLOWUP_LIMITS[plan.fish]}회</span></p>
   <p className={styles.note}>질문의 대상과 살펴볼 기간을 바꾸면 범위와 가격도 달라질 수 있어요. 다음 화면에서 확인해 주세요.</p>
   <p className={styles.note}>로그인 후 이용권·월정석 적용 여부와 단건 결제 총액을 확인해요. 생성 중인 상담과 저장된 결과는 내 상담 기록에서 다시 확인할 수 있어요.</p>
-  <a className={styles.primary} href={questionCheckoutHref(q)} onClick={()=>record('question_offer_click',source,q)}>이 질문으로 상담 준비하기</a>
+  <a className={styles.primary} href={questionCheckoutHref(q,domain)} onClick={()=>record('question_offer_click',source,q,domain)}>이 질문으로 상담 준비하기</a>
   {hasExample&&<a className={styles.example} href="#yn-example">예시 먼저 보기</a>}
   <a className={styles.library} href="/yeongnyangi/library/">이미 구매했다면 내 상담 기록 보기</a>
  </section>;
 }
 export default function QuestionJourney({source='home'}:{source?:string}){
  const [selected,setSelected]=useState<QuestionGuide>();
+ const [domain,setDomain]=useState<DomainId>();
+ const domainGroup=useId();
  const [selectedInRecommendations,setSelectedInRecommendations]=useState(true);
  const [linkedQuestion,setLinkedQuestion]=useState<QuestionGuide>();
  const focusLinkedQuestion=useRef(false);
@@ -58,20 +62,41 @@ export default function QuestionJourney({source='home'}:{source?:string}){
   });
   return ()=>cancelAnimationFrame(frame);
  },[selected]);
- const recommended=questionGuides.slice(0,4);
+ const recommended=[...homeRecommendedQuestions];
  if(linkedQuestion && !recommended.some(row=>row.id===linkedQuestion.id)) recommended.unshift(linkedQuestion);
- function choose(q:QuestionGuide,recommended:boolean){setSelected(q);setSelectedInRecommendations(recommended);record('question_select',source,q);}
- const buttons=(rows:QuestionGuide[],illustrated=false)=>rows.map((q,index)=><Fragment key={q.id}><button type="button" aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q,illustrated)}>{illustrated&&(index%2===0?<PawPrint className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>:<Fish className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>)}<span className={styles.questionText}><small>{q.group}</small><span>{q.question}</span></span>{selected?.id===q.id?<Check size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>{selected?.id===q.id&&selectedInRecommendations===illustrated&&<div id="question-reading" tabIndex={-1} className={styles.inlineReading} aria-live="polite"><QuestionOffer q={q} source={source}/></div>}</Fragment>);
+ function choose(q:QuestionGuide,recommended:boolean){setSelected(q);setSelectedInRecommendations(recommended);record('question_select',source,q,domain);}
+ const buttons=(rows:QuestionGuide[],illustrated=false)=>rows.map((q,index)=><Fragment key={q.id}><button type="button" aria-pressed={selected?.id===q.id} aria-controls="question-reading" onClick={()=>choose(q,illustrated)}>{illustrated&&(index%2===0?<PawPrint className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>:<Fish className={styles.concernIcon} size={24} strokeWidth={1.5} aria-hidden="true"/>)}<span className={styles.questionText}><small>{q.group}</small><span>{q.question}</span></span>{selected?.id===q.id?<Check size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>{selected?.id===q.id&&selectedInRecommendations===illustrated&&<div id="question-reading" tabIndex={-1} className={styles.inlineReading} aria-live="polite"><QuestionOffer q={q} source={source} domain={domain}/></div>}</Fragment>);
  return <section id="questions" className={`${styles.journey} ${styles.entry}`} aria-label="고민으로 시작하기">
   <div className={styles.intro}><div><h2>지금 마음에 걸리는 질문은?</h2><p>직접 적거나 아래 질문을 골라보세요.</p></div><div className={styles.mascotScene}><img className={styles.mascot} src="/assets/yeongnyangi/original/hero-480.webp" srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes="(max-width: 560px) 80px, 144px" width="800" height="800" alt="달빛 모자를 쓰고 상담을 기다리는 흰 고양이 영냥이" loading="lazy" decoding="async"/><span className={styles.pawTrail} aria-hidden="true"><PawPrint size={19} strokeWidth={1.5}/><PawPrint size={23} strokeWidth={1.5}/></span></div></div>
   <Exposure event="question_topics_view" source={source}/>
-  <form className={styles.write} aria-label="내 고민 직접 적기" onSubmit={event=>{event.preventDefault();if(!question.trim())return;if(!saveQuestionEntry(question)){setEntryError('입력한 고민을 이어가지 못했어요. 내용을 복사해 두고 다시 시도해 주세요.');return;}window.location.assign(QUESTION_ENTRY_HREF);}}>
+  <form className={styles.write} aria-label="내 고민 직접 적기" onSubmit={event=>{event.preventDefault();if(!question.trim())return;if(!saveQuestionEntry(question,domain)){setEntryError('입력한 고민을 이어가지 못했어요. 내용을 복사해 두고 다시 시도해 주세요.');return;}window.location.assign(questionEntryHref(domain));}}>
    <label htmlFor="home-question"><Fish size={25} strokeWidth={1.5} aria-hidden="true"/>내 고민 직접 적기</label>
    <p id="home-question-help">상황과 알고 싶은 점을 적어주세요. 선택한 체계의 풀이 자료를 바탕으로 영냥이가 풀이해요. 상담 범위와 가격은 시작 전에 확인해요.</p>
+   <fieldset className={styles.systems} aria-describedby="home-question-system-help">
+    <legend><Moon size={17} aria-hidden="true"/> 어떤 운세로 볼까요?</legend>
+    <p id="home-question-system-help">직접 쓴 고민과 아래 예시 질문에 모두 적용돼요.</p>
+    <a className={styles.specialJump} href="#home-special-consultations">영냥 신점·교차 분석 보기 <ChevronDown size={15} aria-hidden="true"/></a>
+    <div className={styles.systemOptions}>
+     <label className={styles.recommendation}>
+      <input type="radio" name={domainGroup} value="" checked={!domain} onChange={()=>setDomain(undefined)} aria-label="영냥이 추천" aria-describedby="home-question-recommendation-help"/>
+      <img src="/assets/yeongnyangi/original/avatar.webp" width={112} height={86} alt="" loading="lazy" decoding="async"/>
+      <span className={styles.recommendationText}><strong>영냥이 추천</strong><small id="home-question-recommendation-help">운세가 아직 낯설다면 여기서 시작해요.</small></span>
+      <span className={styles.systemCheck} aria-hidden="true"><Check size={13}/></span>
+     </label>
+     {domainEntries.map(({domain:id,label})=><label key={id} className={styles.systemCard}>
+      <input type="radio" name={domainGroup} value={id} checked={domain===id} onChange={()=>setDomain(id)}/>
+      {/* Same compact originals as the previous Yeongnyangi domain cards. */}
+      <img src={'/assets/yeongnyangi/original/'+id+'.webp'} width={id==='ziwei'?475:460} height={id==='ziwei'?450:300} alt="" loading="lazy" decoding="async"/>
+      <strong>{id==='astrology'?'점성술':label}</strong>
+      <span className={styles.systemCheck} aria-hidden="true"><Check size={13}/></span>
+     </label>)}
+    </div>
+   </fieldset>
    <textarea id="home-question" value={question} onChange={event=>{setQuestion(event.target.value);setEntryError('');}} maxLength={QUESTION_ENTRY_LIMIT} rows={4} placeholder="지금 마음에 남은 고민을 적어주세요." aria-describedby="home-question-help home-question-count" required/>
    <div className={styles.writeFooter}><span id="home-question-count">{question.length.toLocaleString('ko-KR')} / {QUESTION_ENTRY_LIMIT.toLocaleString('ko-KR')}</span><button type="submit" disabled={!question.trim()}>이 고민으로 상담 준비하기<ArrowRight size={18} aria-hidden="true"/></button></div>
    {entryError&&<p className={styles.entryError} role="alert">{entryError}</p>}
   </form>
+  <QuestionSpecialConsultations/>
   <div className={styles.choiceHeading}><h3>이런 고민이 있나요?</h3><span>질문을 고르면 상담 내용을 볼 수 있어요</span></div>
   <div className={styles.choices}>{buttons(recommended,true)}</div>
   <details className={styles.discovery}><summary><span>다른 고민 찾기 <small>{concernGuides.length}가지 질문</small></span><ChevronDown size={18} aria-hidden="true"/></summary>

@@ -2096,7 +2096,7 @@
         var data = res && res.data ? res.data : null;
         if (res && res.status === 403 && data && data.code === 'PROFILE_SINGLE_LOCKED') {
           _dpClearPendingCurrentProfile(nextId);
-          alert(data.message || '확정된 프로필 카드만 사용할 수 있습니다.');
+          alert(data.message || '프로필을 다시 확인해 주세요.');
           _dpLoadFromServer(function(loaded) {
             if (!loaded) return;
             renderMasterCard(DPStorage.current());
@@ -2224,7 +2224,7 @@
         }
         _dpApplyProfileAccess(data.profileAccess);
         if (data.profileAccess && data.profileAccess.selectionRequired) {
-          _toast('이용권 혜택이 종료되어 사용할 프로필 카드 1개를 선택해야 합니다.', 'warn');
+          _toast('사용할 프로필을 골라 주세요.', 'warn');
         }
         if (data.profilePolicySnapshot && typeof data.profilePolicySnapshot === 'object') {
           _dpApplyProfilePolicySnapshot(data.profilePolicySnapshot, 'profile_get');
@@ -9532,7 +9532,7 @@
         var selectionRequired = !!access.selectionRequired;
         var lockedProfileId = String(access.lockedProfileId || '').trim();
         var lockedNotice = selectionRequired
-          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">이용권 혜택이 종료되었습니다. 계속 사용할 프로필 카드 1개를 선택하면 다음 이용권 결제 전까지 해당 카드만 사용할 수 있습니다.</div>'
+          ? '<div style="margin-top:10px;padding:8px 12px;background:rgba(251,191,36,0.12);border:1px solid rgba(251,191,36,0.4);border-radius:8px;text-align:center;font-size:0.72rem;color:#fbbf24;">계속 진행하려면 사용할 프로필을 골라 주세요.</div>'
           : '';
 
         /* 카드를 이미 가진 사용자에게도 추가 진입점이 보여야 한다. 빈 상태 CTA는 list.length === 0 에서만
@@ -10345,13 +10345,13 @@
     }
 
     if (isServerLocked && lockedId && profileId !== lockedId) {
-      alert('이용권 혜택 종료 후 확정한 프로필 카드만 사용할 수 있습니다.\n/points 페이지에서 이용권을 결제하면 다시 여러 프로필을 이용할 수 있습니다.');
+      alert('지금은 이 프로필을 선택할 수 없어요. 프로필 목록을 다시 확인해 주세요.');
       return;
     }
 
     if (access.selectionRequired === true) {
       var profileName = selectedProfile && selectedProfile.name ? selectedProfile.name : '선택한 프로필';
-      if (!confirm(profileName + ' 프로필 카드로 확정할까요?\n확정 후 추가 이용권 결제 전까지 이 카드만 사용할 수 있습니다.')) return;
+      if (!confirm(profileName + ' 프로필을 사용할까요?')) return;
       _dpCommitSingleProfileSelection(profileId, function(ok) {
         if (!ok) {
           _dpClearPendingCurrentProfile(profileId);

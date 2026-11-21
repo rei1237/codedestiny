@@ -4,6 +4,7 @@ import type {Metadata} from 'next';
 import {siteSeo} from '@/lib/seo/siteSeo';
 import {BRAND_FACTS} from '@/lib/brand/brand-facts.mjs';
 import {yeongnyangiOgImage} from './_lib/share-image';
+import {mascotDisplayName} from './_lib/mascot-name.mjs';
 import {buildBreadcrumbJsonLd,buildServiceJsonLd,buildWebPageJsonLd} from '@/lib/structured-data';
 import {buildKrwOffer} from '@/lib/seo/paid-offer';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
@@ -20,12 +21,12 @@ import {alternatesFor,toNextLanguages} from '@/lib/seo/hreflang.mjs';
 const PATH='/yeongnyangi/';
 if(FOLLOWUP_LIMITS.mackerel!==0)throw new Error('영냥이 Offer 설명: 고등어 추가 질문이 0회가 아니다.');
 const mackerelOffer=buildKrwOffer("yeongnyangi-saju-mackerel",PATH);
-const TITLE=brandCopy('yeongnyangiTitle');
 const DESCRIPTION=brandCopy('yeongnyangiDescription');
 const URL_=`https://code-destiny.com${PATH}`;
 const YEONGNYANGI=BRAND_FACTS.characters.find(character=>character.key==='yeongnyangi')!;
+const TITLE=YEONGNYANGI.serviceName+' | '+BRAND_FACTS.service.name+'의 '+mascotDisplayName;
 export const metadata:Metadata={title:{absolute:TITLE},description:DESCRIPTION,
- keywords:['운세보는 영냥이','운세 보는 영냥이','사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀 운세','꿀꿀운세','코드데스티니'],
+ keywords:[mascotDisplayName,'운세보는 영냥이','운세 보는 영냥이','사주 보는 고양이','사주보는고양이','사주보는 고양이','영냥이','꿀꿀 운세','꿀꿀운세','코드데스티니'],
  alternates:{canonical:URL_,languages:toNextLanguages(alternatesFor(getAlternatesByRouteKey('yeongnyangi')))},robots:{index:true,follow:true},
  openGraph:{type:'website',locale:'ko_KR',url:URL_,siteName:siteSeo.brandName,title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage]},
  twitter:{card:'summary_large_image',title:TITLE,description:DESCRIPTION,images:[yeongnyangiOgImage.url]}};

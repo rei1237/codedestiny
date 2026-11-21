@@ -3277,8 +3277,6 @@
       "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Cơ sở tín dụng hàng tháng {credits} · {price}",
-      "profileUnlimited": "Hồ sơ không giới hạn",
-      "profileLimit": "{count} hồ sơ",
       "allFeatures": "Toàn bộ nội dung áp dụng gói",
       "upTo": "Có sẵn tới {amount}",
       "benefits": "Sơ lược về lợi ích",

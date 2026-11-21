@@ -3277,8 +3277,6 @@
       "chargeNotice": "パス商品 {price} · 自動決済ではないパスです。パスはウォン建ての単発決済でのみ購入できます。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月精石基準 {credits} · {price}",
-      "profileUnlimited": "プロフィール無制限",
-      "profileLimit": "プロフィール{count}件",
       "allFeatures": "利用券対象すべて",
       "upTo": "{amount}以下利用可能",
       "benefits": "特典を一覧で見る",

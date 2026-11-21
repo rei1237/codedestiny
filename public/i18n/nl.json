@@ -3277,8 +3277,6 @@
       "chargeNotice": "Pas-product {price} · Dit is een pas, geen automatische verlenging. Passen koop je alleen met een eenmalige betaling in KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Maandelijkse kredietbasis {credits} · {price}",
-      "profileUnlimited": "Onbeperkt aantal profielen",
-      "profileLimit": "{count} profielen",
       "allFeatures": "Alle content die de pass dekt",
       "upTo": "Beschikbaar tot {amount}",
       "benefits": "Voordelen in één oogopslag",

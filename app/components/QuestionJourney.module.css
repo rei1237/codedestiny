@@ -37,9 +37,12 @@
   --qj-accent: var(--yn-gold);
   --qj-rule: color-mix(in srgb, var(--yn-line) 65%, transparent);
   border-color: var(--qj-rule);
-  border-radius: var(--cd-r-section);
+  border-radius: var(--cd-r-section,22px);
   padding: clamp(20px, 4vw, 32px);
-  background-image:repeating-linear-gradient(105deg,transparent 0 3px,color-mix(in srgb,var(--qj-accent) 2%,transparent) 3px 4px);
+  background-image:
+    repeating-linear-gradient(119deg,transparent 0 3px,color-mix(in srgb,var(--yn-muted) 2.6%,transparent) 3px 4px),
+    radial-gradient(ellipse at 100% 0%,color-mix(in srgb,var(--yn-violet) 25%,var(--yn-night)),transparent 46%),
+    linear-gradient(155deg,var(--yn-raised),var(--yn-night) 48%,var(--yn-deep));
   box-shadow: inset 0 1px color-mix(in srgb,var(--qj-accent) 18%,transparent);
 }
 .entry p { font-size: var(--yn-t-body); line-height: 1.7; }
@@ -117,3 +120,49 @@
 }
 
 .entry .moreQuestions{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;min-height:48px;padding:12px 16px;margin:0 0 16px;border:1px solid var(--yn-line);border-radius:var(--cd-r-control);background:transparent;color:var(--qj-accent);font:inherit;cursor:pointer}.moreQuestions[aria-expanded=true] svg{transform:rotate(180deg)}
+
+/* Illustrated radios use real historic art. Only the consultation CTA submits. */
+.entry .intro { padding-bottom:clamp(12px,3vw,20px); border-bottom:1px solid var(--qj-rule); }
+.entry .intro h2 { word-break:keep-all; overflow-wrap:normal; }
+.entry .systems { min-width:0; margin:16px 0 14px; padding:0; border:0; }
+.entry .systems legend { display:flex; align-items:center; gap:7px; padding:0; color:var(--qj-text); font-weight:700; line-height:1.45; }
+.systems legend svg { color:var(--qj-accent); flex-shrink:0; }
+.entry .systems p { margin:5px 0 10px; color:var(--qj-muted); font-size:var(--yn-t-caption,.82rem); }
+.systemOptions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.entry .systemOptions label { position:relative; box-sizing:border-box; min-width:0; min-height:44px; margin:0; border:1px solid var(--yn-line); border-radius:13px; background:var(--yn-night); color:var(--qj-text); font-size:1rem; text-align:center; line-height:1.25; cursor:pointer; word-break:keep-all; }
+.systemOptions input { position:absolute; z-index:1; inset:0; width:100%; height:100%; margin:0; opacity:0; cursor:pointer; }
+.entry .systemOptions label:has(input:checked) { color:var(--qj-accent); border-color:var(--qj-accent); background:var(--yn-raised); box-shadow:inset 0 0 0 1px var(--qj-accent); }
+.entry .systemOptions label:hover { border-color:var(--qj-accent); }
+.entry .systemOptions label:has(input:focus-visible) { outline:2px solid var(--qj-accent); outline-offset:3px; }
+.entry .systemOptions .systemCard { display:grid; grid-template-columns:minmax(0,1fr); gap:0; }
+.systemCard img { display:block; width:100%; height:auto; aspect-ratio:16 / 9; object-fit:cover; object-position:center; border-radius:12px 12px 0 0; background-color:var(--yn-surface); }
+.systemCard strong { display:grid; place-items:center; min-height:39px; padding:6px 5px; font-weight:700; }
+.entry .systemOptions .recommendation { display:grid; grid-column:1 / -1; grid-template-columns:clamp(70px,12vw,94px) minmax(0,1fr) 21px; min-height:86px; align-items:center; gap:10px; padding:7px 11px; text-align:left; background:linear-gradient(106deg,var(--yn-raised),var(--yn-surface) 66%,var(--yn-night)); }
+.recommendation img { display:block; width:100%; height:auto; border-radius:9px; }
+.recommendationText { display:grid; gap:3px; min-width:0; }
+.recommendationText strong { color:var(--qj-accent); font-size:clamp(1.05rem,2.5vw,1.2rem); }
+.recommendationText small { color:var(--qj-muted); font-size:.875rem; line-height:1.48; overflow-wrap:anywhere; }
+.systemCheck { display:grid; place-items:center; width:21px; height:21px; border:1px solid var(--yn-line); border-radius:50%; background:var(--yn-deep); }
+.systemCard .systemCheck { position:absolute; inset:5px 5px auto auto; }
+.entry .systemCheck svg { opacity:0; transform:none; }
+.systemOptions input:checked ~ .systemCheck { background:var(--qj-accent); border-color:var(--qj-accent); }
+.entry .systemOptions input:checked ~ .systemCheck svg { opacity:1; color:var(--yn-deep); }
+.entry .write textarea { padding:12px 14px; border-radius:12px; background:var(--yn-deep); }
+.entry .write textarea:hover { border-color:var(--qj-muted); }
+.entry .write textarea:focus-visible { outline-offset:2px; }
+.entry :is(.writeFooter button,a.primary) { border-radius:12px; font-weight:700; }
+.entry .choices { gap:8px; }
+.entry .choices button { min-height:72px; padding:10px 12px; border:1px solid var(--yn-line); border-radius:12px; background:var(--yn-surface); }
+.entry .choices button[aria-pressed=true] { border-color:var(--qj-accent); background:var(--yn-raised); }
+/* Keep the original landscape framing; give the illustration, not extra bars, more room. */
+.entry .intro h2 { font-size:clamp(1.42rem,4.1vw,2.45rem); line-height:1.36; }
+.entry .write > label,.entry .systems legend,.entry .choiceHeading h3 { font-size:1.06rem; }
+.entry .write > p,.entry .systems p,.entry .offer > p { word-break:keep-all; overflow-wrap:anywhere; }
+.entry .write > p,.entry .systems p,.entry .choiceHeading > span { font-size:.94rem; line-height:1.6; }
+.entry .write textarea,.entry .writeFooter button { font-size:1rem; }
+@media (min-width:600px) { .systemOptions { grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; } }
+@media (max-width:370px) { .entry .systemOptions .recommendation { gap:7px; } .recommendationText small { font-size:.8125rem; } }
+@media (forced-colors:active) { .entry .systemOptions label:has(input:checked) { border:2px solid Highlight; } }
+
+.entry .specialJump { display:inline-flex; align-items:center; gap:5px; min-height:44px; padding:0 2px; margin:-2px 0 5px; font-size:.875rem; }
+.entry .systemCard:is(:hover,:has(input:focus-visible)) img { box-shadow:inset 0 0 0 1px var(--qj-accent); filter:brightness(1.04); }

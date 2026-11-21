@@ -3277,8 +3277,6 @@
       "chargeNotice": "Pass-Produkt {price} · Dies ist ein Pass ohne automatische Verlängerung. Pässe sind nur per Einmalzahlung in KRW erhältlich.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Monatliche Kreditbasis {credits} · {price}",
-      "profileUnlimited": "Unbegrenzte Profile",
-      "profileLimit": "{count} Profile",
       "allFeatures": "Alle im Pass enthaltenen Inhalte",
       "upTo": "Verfügbar bis {amount}",
       "benefits": "Vorteile auf einen Blick",

@@ -105,7 +105,7 @@ export default function CareerStyleClient(){
   <h2 id="start-title">내 프로필에서 시작하기</h2>
   <p>개인 리포트 여덟 장과 계산 근거를 무료로 읽을 수 있어요. 로그인 후 저장한 프로필을 선택해 주세요.</p>
   <p>내 계정의 프로필만 사용할 수 있어요. 예전에 저장한 결과가 있으면 원문을 그대로 다시 읽습니다.</p>
-  <div className={styles.picker}><ProfilePicker state={state} locale="ko" showPolicyNote={false} onLogin={login}/></div>
+  <div className={styles.picker}><ProfilePicker state={state} locale="ko" onLogin={login}/></div>
   <div className={styles.paymentActions} aria-busy={busy}>
    <button data-cd-reading-action="primary" className={styles.primary} type="button" disabled={busy||state.loading||(!state.guest&&!ready)} onClick={()=>void open()}>
     {busy?'결과 확인 중':state.loading?'프로필 확인 중':state.guest?'로그인하고 리포트 확인하기':owns?'결과 확인하기':'일 스타일 무료로 읽기'}

@@ -1,0 +1,53 @@
+.button { position:relative; touch-action:manipulation; }
+.button:focus-visible { outline:2px solid var(--yn-gold-hover); outline-offset:3px; }
+.canvas { position:relative; display:block; width:100%; height:100%; aspect-ratio:1; }
+.canvas img { display:block; width:100%; height:100%; object-fit:contain; }
+.inactive { visibility:hidden; }
+.spriteWindow {
+ /* Register the atlas against the original 480/800px pose's silhouette and foot baseline. */
+ position:absolute; inset:-8.6% auto auto -4%; width:104.3%; height:114.6%;
+ pointer-events:none; overflow:hidden;
+ filter:drop-shadow(0 10px 12px color-mix(in srgb,var(--yn-deep) 35%,transparent));
+}
+.spriteWindow[data-pet-sprite="idle"] { visibility:hidden; }
+.button .canvas .atlas {
+ position:absolute; inset:0 auto auto 0; width:400%; height:400%; max-width:none;
+ object-fit:fill; filter:none; transform:translate(0,var(--pet-row));
+}
+.atlas[data-motion] { animation:petEven 900ms steps(1,end) both; }
+.atlas[data-motion="odd"] { animation-name:petOdd; }
+@keyframes petEven {
+ 25% { transform:translate(-25%,var(--pet-row)); }
+ 50% { transform:translate(-50%,var(--pet-row)); }
+ 75%,100% { transform:translate(-75%,var(--pet-row)); }
+}
+@keyframes petOdd {
+ 25% { transform:translate(-25%,var(--pet-row)); }
+ 50% { transform:translate(-50%,var(--pet-row)); }
+ 75%,100% { transform:translate(-75%,var(--pet-row)); }
+}
+.invitation {
+ position:absolute; inset-inline-start:50%; inset-block-end:10px;
+ transform:translateX(-50%); white-space:nowrap; pointer-events:none;
+ padding:5px 10px; border:1px solid color-mix(in srgb,var(--yn-gold) 55%,var(--yn-night)); border-radius:999px;
+ background:color-mix(in srgb,var(--yn-violet) 43%,var(--yn-night)); color:var(--yn-ivory); font:600 .75rem/1.2 var(--font-body,system-ui);
+ box-shadow:0 3px 9px color-mix(in srgb,var(--yn-deep) 43%,transparent);
+}
+.button[data-pet-placement="landing"] .invitation { inset-block:8px auto; }
+:global(.ynOriginal) .button[data-pet-placement="room"]:active { transform:none; }
+.fallbackReaction {
+ position:absolute; top:22%; right:23%; color:var(--yn-gold-hover); pointer-events:none;
+ font-size:1.55rem; text-shadow:0 1px 5px color-mix(in srgb,var(--yn-violet) 43%,var(--yn-night));
+ animation:reactionGlint 620ms ease-out both;
+}
+@keyframes reactionGlint { from { opacity:.8; transform:scale(.7); } 50% { opacity:1; } to { opacity:0; transform:translateY(-10px) scale(1.23); } }
+.status { position:absolute; width:1px; height:1px; overflow:hidden; margin:-1px; clip-path:inset(50%); white-space:nowrap; }
+@media(prefers-reduced-motion:reduce) {
+ .button,.atlas,.fallbackReaction { animation:none!important; transition:none!important; }
+ .button,.fallbackReaction { transform:none!important; }
+ .button .canvas .atlas { transform:translate(-50%,var(--pet-row)); }
+}
+@media(forced-colors:active) {
+ .button:focus-visible,.invitation { border-color:ButtonText; outline-color:Highlight; }
+ .invitation { background:ButtonFace; color:ButtonText; }
+}

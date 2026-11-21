@@ -1,27 +1,34 @@
 'use client';
-import {useEffect,useRef,type ReactNode} from 'react';
+import {useEffect,useRef,useState,type ReactNode} from 'react';
 import {questionCandidate,questionTopics,questionNeedsDecisionDetails,recommendQuestion,type QuestionDecision} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import {systemNames,type Product} from '@/worker/yeongnyangi/payments/catalog';
-import type {IntakeValue} from '../_lib/intake-chat';
+import {typedScopeSuggestion,type IntakeValue} from '../_lib/intake-chat';
 import QuestionFishPicker from './QuestionFishPicker';
 import styles from './question-checkout.module.css';
 import FirstVisitProgress from './FirstVisitProgress';
 import QuestionEntry from './QuestionEntry';
 
 export type PreparationStep={id:string;prompt:string;answer:string;content:ReactNode;valid:boolean;pending?:boolean};
-type Props={formatProductPrice?:(item:Product)=>string;value:IntakeValue;open:boolean;busy:boolean;guidanceReady:boolean;onChange:(value:IntakeValue)=>void;onOpen:()=>void;preparation:PreparationStep[];checkout:(children:ReactNode)=>ReactNode};
-export default function QuestionCheckout({formatProductPrice,value,open,busy,guidanceReady,onChange,onOpen,preparation,checkout}:Props){
+type Props={formatProductPrice?:(item:Product)=>string;value:IntakeValue;open:boolean;busy:boolean;guidanceReady:boolean;allowTypedScope?:boolean;onChange:(value:IntakeValue)=>void;onOpen:()=>void;preparation:PreparationStep[];checkout:(children:ReactNode)=>ReactNode};
+export default function QuestionCheckout({formatProductPrice,value,open,busy,guidanceReady,allowTypedScope=false,onChange,onOpen,preparation,checkout}:Props){
  const heading=useRef<HTMLDivElement>(null);
+ const scopeSummary=useRef<HTMLElement>(null);
+ const [direct,setDirect]=useState(false);
+ useEffect(()=>{setDirect(allowTypedScope&&!new URLSearchParams(window.location.search).has('questionId'));},[allowTypedScope]);
  useEffect(()=>{if(open){heading.current?.focus();heading.current?.scrollIntoView({block:'start'});}},[open]);
  const update=(patch:Partial<QuestionDecision>)=>onChange({...value,decision:{...value.decision,...patch}});
  if(!open)return <QuestionEntry question={value.question} onQuestion={question=>onChange({...value,question})} onOpen={onOpen} busy={busy}/>;
  const candidate=questionCandidate(value.question),details=questionNeedsDecisionDetails(value.decision);
- return <div ref={heading} tabIndex={-1} className={styles.content}><FirstVisitProgress ready={guidanceReady&&Boolean(value.question.trim())&&preparation.every(item=>item.valid&&!item.pending)}/>{checkout(<>
+ const suggestion=direct&&value.decision.category==='self'&&value.decision.target==='self'?typedScopeSuggestion(value.question):undefined;
+ return <div ref={heading} tabIndex={-1} className={styles.content}><FirstVisitProgress ready={guidanceReady&&Boolean(value.question.trim())&&preparation.every(item=>item.valid&&!item.pending)}/>{suggestion&&<div className={styles.typedSuggestion}>
+   <p>질문에 맞는 상담 범위로 바꿀 수 있어요. 아래에서 범위와 가격을 다시 확인해 주세요.</p>
+   <button type="button" disabled={busy} onClick={()=>{update({category:suggestion.category,target:suggestion.target});const summary=scopeSummary.current;const details=summary?.parentElement;if(details instanceof HTMLDetailsElement)details.open=true;summary?.focus();}}>{suggestion.label}</button>
+  </div>}{checkout(<>
   <details className={styles.section}><summary>질문 수정하기</summary><label>상담 질문<textarea rows={4} maxLength={1000} value={value.question} onChange={event=>onChange({...value,question:event.target.value})}/></label></details>
   <details className={styles.section}><summary>상담 방식·깊이 변경하기</summary><label>상담 방식<select value={value.domain} onChange={event=>onChange({...value,domain:event.target.value as IntakeValue['domain']})}>{Object.entries(systemNames).map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
    <QuestionFishPicker formatProductPrice={formatProductPrice} domain={value.domain} selected={value.fish||recommendQuestion(value.domain,value.decision,value.question).fish} recommended={recommendQuestion(value.domain,value.decision,value.question).fish} onSelect={fish=>onChange({...value,fish})}/>
   </details>
-  <details className={styles.section}><summary>질문의 주제와 범위 확인</summary>
+  <details className={styles.section}><summary ref={scopeSummary}>질문의 주제와 범위 확인</summary>
    {candidate&&candidate!==value.decision.category&&<button type="button" onClick={()=>update({category:candidate})}>질문에 맞는 주제 적용하기</button>}
    <label>주제<select value={value.decision.category} onChange={event=>update({category:event.target.value as QuestionDecision['category']})}>{questionTopics.map(topic=><option key={topic.id} value={topic.id}>{topic.label}</option>)}</select></label>
    <label>상담 대상<select value={value.decision.target} onChange={event=>update({target:event.target.value as QuestionDecision['target']})}><option value="self">나의 생각·행동·선택</option><option value="pair">두 사람의 궁합과 관계</option></select></label>

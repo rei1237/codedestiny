@@ -1,5 +1,5 @@
 import {EVIDENCE_ONCE,expandConsultationManifest,sectionShare} from '../consultation-expansion';
-import {questionEditorial,foundationGuide,natureOverview} from './question-editorial';
+import {questionEditorial,foundationGuide,natureOverview,focusedQuestionAnswer} from './question-editorial';
 import {consultationBudget,layoutTargets,layoutMinimum,CONSULTATION_CHAPTERS} from '../consultation-budget';
 import {questionOutlines,bonusAreas,lifeRows,tunaRoadmapRow,timingUnits,currentFlowGuide,timingSelectors,BONUS_TITLE,type LayoutStep,type LayoutTopic} from '../consultation-layout';
 import {questionFoundationEvidence} from '../reading-v6';
@@ -110,7 +110,9 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
   sukuyo:['personA','personB','relation','forwardDistance','reverseDistance','distanceLabel'],
   tarot:['spreadId','cards','reading','tarotConsultation'],
  };
- const editorial=questionEditorial[d.category];
+ const baseEditorial=questionEditorial[d.category];
+ const intent=focusedQuestionAnswer({category:d.category,target:d.target,domain,question});
+ const editorial=intent?.title?{...baseEditorial,answer:intent.title}:baseEditorial;
  const basics=foundationGuide[domain];
  const subject=questionTopics.find(topic=>topic.id===d.category)?.label||'질문';
  const title=question.trim().replace(/\s+/g,' ').slice(0,120)||[d.period,subject].filter(Boolean).join(' · ');
@@ -123,12 +125,14 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  type Section={id:string;title:string;role:'interpretation'|'example'|'action';instruction:string};
  const section=(id:string,heading:string,instruction:string):Section=>({id,title:heading,role:'interpretation',instruction});
  const meaning:Section={id:'meaning',title:editorial.answer,role:'interpretation',instruction:'질문에 먼저 직접 답하고 관련 성향 또는 상황 패턴·강점·주의 조건을 설명한다. 기본 장의 기질 설명은 한 줄로만 참조한다.'};
- if(d.target==='pair')meaning.instruction+=' 두 사람 각각의 성향, 잘 맞는 점과 어긋나는 점, 표현·갈등·생활·돈·책임의 합의를 다룬다.';
+ if(intent)meaning.instruction+=' '+intent.direct;
+ if(d.target==='pair'&&!intent?.symbolicPair)meaning.instruction+=' 두 사람 각각의 성향, 잘 맞는 점과 어긋나는 점, 표현·갈등·생활·돈·책임의 합의를 다룬다.';
  if(composite)meaning.instruction+=` 질문 원문에서 서로 독립된 고민을 최대 ${fish==='flounder'||fish==='tuna'?4:3}개로 나누고 합칠 수 있는 것은 합친다. 먼저 어떤 순서로 다룰지 우선순위와 이유를 밝히고 고민마다 한 줄로 먼저 답한다. 자세한 해석은 뒤 장에 맡기고 여기서 근거를 길게 풀지 않는다.`+noRepeat;
  const actions:Section[]=[
   {id:'example-1',title:'생활 속에서 적용해 보기',role:'example',instruction:'입력으로 확인된 사실과 가상 생활 장면을 구분한다. 앞 장의 장면을 재사용하지 않는다.'},
   {id:'action',title:'선택과 다음 행동',role:'action',instruction:'앞 장들의 결론을 바꾸지 않고 선택의 이점·부담·판단이 바뀌는 조건과 먼저 할 행동을 순서대로 정리한다.'},
  ];
+ if(intent)actions[1].instruction+=' '+intent.action;
  if(composite)actions[1].instruction+=' 고민별 결론을 우선순위 번호순으로 한 줄씩 모은 뒤 가장 먼저 할 일 1개, 그다음 순서, 보류해도 되는 것으로 정리한다.'+noRepeat;
  if(d.relationshipType==='romantic_adults')actions.push({id:'intimacy',title:'가까워지는 속도와 편안함',role:'interpretation',instruction:'속궁합은 성인 두 사람의 편안함·속도·대화·경계로 설명한다. 조후의 한난조습은 기존 종격·억부·조후 우선순위 안에서 보완과 충돌을 함께 읽고 성적 특성·만족도를 지어내지 않는다.'});
  if(tarot)actions.splice(1,0,section('card-synthesis','카드들이 함께 들려주는 흐름','저장된 카드 사이의 공통 상징·대조·이어지는 흐름을 최소 두 쌍 이상 연결한다. 질문에 대한 종합 답과 흐름이 달라지는 조건을 설명한다. 질문의 기간을 존중하고 월별·날짜별 사건을 만들어 내지 않는다.'));

@@ -3,7 +3,7 @@ import {BUSINESS_IDENTITY} from '@/lib/site-policy-config.js';
 import SessionControls from './SessionControls';
 import { useEffect, useState } from "react";
 import { Mail, MapPin, PawPrint, ShieldCheck, Sparkles } from "lucide-react";
-import { ggulggulFortuneHref, legalLinks, loginHref, mainServiceLinks } from "./service-links";
+import { legalLinks, loginHref, mainServiceLinks } from "./service-links";
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {accountLocaleCopy} from '../_lib/account-locale-copy';
 import {chromeCopy} from '../_lib/chrome-copy';
@@ -14,10 +14,8 @@ export default function ServiceNavigation() {
   const {siteLocale}=useReadingLanguage();
   const local=accountLocaleCopy[siteLocale],chrome=chromeCopy(siteLocale),ui=consultationLocaleCopy(siteLocale),legal=resolveCheckoutPolicyHrefs(siteLocale);
   const [login, setLogin] = useState(loginHref("/yeongnyangi/fortune/"));
-  const [ggulggul, setGgulggul] = useState(ggulggulFortuneHref("/yeongnyangi/fortune/"));
   useEffect(() => {
     setLogin(loginHref(window.location.pathname + window.location.search));
-    setGgulggul(ggulggulFortuneHref("/yeongnyangi/fortune/"));
   }, []);
   if(siteLocale!=='ko')return <footer className="service-navigation" lang={siteLocale}><SessionControls/><div className="service-navigation__brand"><span className="service-navigation__avatar" aria-hidden="true"><img src="/assets/yeongnyangi/original/avatar.webp" width="54" height="44" alt="" loading="lazy" decoding="async"/></span><div><strong>Yeongnyangi · 꿀꿀운세</strong><p>{ui.about}</p></div></div>
     <div className="service-navigation__links"><nav aria-label={local.serviceInfo}><a href={`/today/?lang=${siteLocale}`}>{local.today}</a><a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{chrome.library}</a><a href={`/yeongnyangi/?lang=${siteLocale}`}>{chrome.home}</a><a href={`/yeongnyangi/fortune/?lang=${siteLocale}`}>{ui.start}</a><a href={`/ggulggul/?lang=${siteLocale}`}>{local.otherService}</a></nav><nav aria-label={chrome.terms}><a href={legal.terms}>{chrome.terms}</a><a href={`/privacy-policy/?lang=${siteLocale}`}>{chrome.privacy}</a><a href={legal.refund}>{chrome.refund}</a><a href={legal.support}>{chrome.contact}</a></nav></div>
@@ -31,7 +29,7 @@ export default function ServiceNavigation() {
         <img src="/assets/yeongnyangi/original/avatar.webp" width="54" height="44" alt="" loading="lazy" decoding="async" />
       </span>
       <div>
-        <strong>사주보는 고양이 영냥이</strong>
+        <strong>운세보는 고양이 영냥이</strong>
         <p>달빛 점술방의 안내와 권리 정보를 한곳에 정리했어요.</p>
       </div>
     </div>
@@ -40,7 +38,6 @@ export default function ServiceNavigation() {
       <nav aria-label="영냥이 서비스 연결">
         {mainServiceLinks.map(link => <a key={link.label} href={link.href}>{link.label}</a>)}
         <a href={login}>Code Destiny 로그인</a>
-        <a href={ggulggul}>꿀꿀운세 바로가기</a>
       </nav>
       <nav aria-label="법적 안내">
         {legalLinks.map(link => <a key={link.label} href={link.href}>{link.label}</a>)}

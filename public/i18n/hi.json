@@ -3277,8 +3277,6 @@
       "chargeNotice": "पास उत्पाद {price} · यह पास है, ऑटो-नवीनीकरण भुगतान नहीं। पास केवल KRW में एकमुश्त भुगतान से खरीदा जा सकता है।",
       "best": "BEST",
       "monthlyBasisWithPrice": "मासिक क्रेडिट आधार {credits} · {price}",
-      "profileUnlimited": "असीमित प्रोफ़ाइल",
-      "profileLimit": "{count} प्रोफाइल",
       "allFeatures": "पास में शामिल सभी सामग्री",
       "upTo": "{amount} तक उपलब्ध है",
       "benefits": "लाभ एक नज़र में",

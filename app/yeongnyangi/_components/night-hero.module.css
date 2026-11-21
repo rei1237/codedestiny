@@ -41,12 +41,16 @@
  .copy .price{margin:8px 0 4px}
 }
 
-.copy h1 .brandName{font:inherit;color:inherit}
-.copy .mobileTitle{display:none}
+.copy h1 .brandPrefix,.copy h1 .brandName{position:static;display:block;width:auto;height:auto;overflow:visible;clip-path:none;font-family:"CodeDestinyRounded",var(--font-display);font-weight:400;letter-spacing:-.025em}
+.copy h1 .brandPrefix{color:var(--yn-ivory);font-size:.72em}
+.copy h1 .brandName{color:var(--yn-gold);font-size:1.1em;line-height:1.1}
+.actions .roomLink{min-height:44px;padding:7px 12px;color:var(--yn-ivory);border:1px solid var(--yn-line);border-radius:999px;background:var(--yn-night);font-size:.875rem}
+.actions .roomLink:hover{border-color:var(--yn-gold);background:var(--yn-raised)}
 @media(max-width:699px){
  .desktopIntro{display:none}
- .copy .mobileTitle{display:block}
- .copy .mobileTitle{color:var(--yn-ivory)}
+ .copy h1 .brandPrefix{font-size:clamp(1.05rem,5vw,1.5rem)}
+ .copy h1 .brandName{font-size:clamp(1.75rem,7vw,2.3rem)}
+ .actions .roomLink{width:auto;margin-inline:auto}
 }
 
 .homeFold>summary{display:flex;align-items:center;justify-content:space-between;min-height:52px;padding-inline:16px;cursor:pointer;color:var(--yn-ivory);font-weight:700}

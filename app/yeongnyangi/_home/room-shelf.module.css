@@ -1,0 +1,29 @@
+.shelf{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;max-width:760px;margin-inline:auto;padding:12px 16px}
+.tile{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;padding:8px 5px;border-radius:16px;border:1px solid color-mix(in srgb,var(--yn-gold) 50%,transparent);background:linear-gradient(150deg,color-mix(in srgb,var(--yn-violet) 45%,var(--yn-night)),color-mix(in srgb,var(--yn-violet) 24%,var(--yn-night)));color:var(--yn-gold-hover);font:inherit;font-size:.85rem;font-weight:700;line-height:1.2;text-decoration:none;text-align:center;cursor:pointer}
+.tile[data-tone=lilac]{color:var(--yn-ivory);border-color:color-mix(in srgb,var(--yn-violet) 58%,var(--yn-ivory));background:linear-gradient(150deg,color-mix(in srgb,var(--yn-violet) 52%,var(--yn-night)),color-mix(in srgb,var(--yn-violet) 34%,var(--yn-night)))}
+.tile svg{flex:none}
+.tile:focus-visible{outline:2px solid var(--yn-gold-hover);outline-offset:2px}
+@media (hover:hover){.tile:hover{border-color:currentColor;background:color-mix(in srgb,var(--yn-violet) 65%,var(--yn-night))}}
+@media(max-width:550px){.shelf{gap:5px;padding:10px 10px 12px}.tile{flex-direction:column;gap:4px;padding:6px 2px;font-size:clamp(10px,2.9vw,13px);border-radius:13px}}
+
+.content :global(.room-companion){scroll-margin-top:20px}
+.content :global(.room-objects button){background:linear-gradient(150deg,color-mix(in srgb,var(--yn-violet) 45%,var(--yn-night)),color-mix(in srgb,var(--yn-violet) 28%,var(--yn-night)));border-color:color-mix(in srgb,var(--yn-violet) 58%,var(--yn-ivory));border-radius:16px}
+.content :global(.room-objects button[aria-pressed=true]){background:color-mix(in srgb,var(--yn-violet) 62%,var(--yn-night));border-color:var(--yn-gold)}
+.content :global(.room-objects button svg){color:var(--yn-gold-hover);flex:none}
+.content :global(.room-note-drawer summary){display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;color:var(--yn-gold-hover);font-weight:700}
+.content :global(.room-note-drawer summary::after){content:"+";margin-left:auto}
+.content :global(.room-note-drawer[open] summary::after){content:"−"}
+.content :global(.room-cat-speech){max-width:min(57%,15rem);padding:10px 14px;pointer-events:none}
+.content :global(.room-presence-caption){pointer-events:none}
+@media(max-width:380px){.content :global(.room-welcome){left:14px;top:16px;font-size:10px}.content :global(.room-cat-speech){right:10px;top:42px;font-size:13px}}
+.reward{margin:0;padding:0 16px 10px;color:var(--yn-muted);font-size:.76rem;line-height:1.55;text-align:center}
+.shelf{width:100%;grid-template-columns:repeat(6,minmax(0,1fr))}
+.tile{grid-column:span 2}
+.tile:nth-child(n+4){grid-column:span 3}
+@media(min-width:900px){
+ :global(.ynOriginal .room-layout).content{grid-template-columns:minmax(0,54%) minmax(0,46%);grid-template-rows:auto auto 1fr;align-items:start}
+ .content>:global(.room-presence){grid-column:1;grid-row:1 / 4;min-height:600px}
+ .shelf,.reward,.content>:global(.room-companion){grid-column:2}
+ .shelf{grid-row:1}.reward{grid-row:2}.content>:global(.room-companion){grid-row:3}
+ .content>:global(#sorting-hat),.content>:global(#daily),.content>:global(#daily-tarot){grid-column:1/-1}
+}

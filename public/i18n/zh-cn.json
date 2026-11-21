@@ -3277,8 +3277,6 @@
       "chargeNotice": "通行证商品 {price} · 这是通行证，并非自动续费。通行证仅可通过韩元单次支付购买。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月精石基准 {credits} · {price}",
-      "profileUnlimited": "不限资料",
-      "profileLimit": "{count}个资料",
       "allFeatures": "使用权涵盖的全部内容",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",

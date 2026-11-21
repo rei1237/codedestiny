@@ -789,3 +789,26 @@
 @media(prefers-reduced-motion:reduce){.ritualStars span,.breathRing,.shuffleDeck picture,.ritualReading img{animation:none}.flipCard,.cardFan button,.ritualSpread>button{transition:none}.ritualSpread button[data-open=true] .flipCard{transform:none}.ritualSpread button[data-open=true] .flipBack{display:none}.ritualSpread button[data-open=true] .flipFront{transform:none}}
 
 .libraryReport{display:inline-flex;align-items:center;min-height:44px;margin-top:8px;padding:0 14px;border:1px solid #d9c8ad;border-radius:999px;font-size:.92rem;text-decoration:none}
+
+/* The full web picker reads like a moonlit menu, not the payment tier grid. */
+.pickerRoom .consultationHeader { padding-block:22px; border-bottom-color:var(--yn-line); }
+.pickerSeal { display:grid; place-items:center; align-content:center; gap:1px; flex:0 0 62px; aspect-ratio:1; margin-inline-end:4px; border:1px solid var(--yn-line); border-radius:50%; color:var(--yn-gold); background:var(--yn-surface); }
+.pickerSeal svg:first-child { margin-inline-start:13px; }
+.pickerHeading { margin:26px 0 10px; color:var(--yn-ivory); font-family:var(--font-display); font-size:var(--cd-t-card,1.1rem); }
+.pickerRoom .spiritEntry { min-height:76px; background:var(--yn-surface); color:var(--yn-ivory); border-color:var(--yn-line); }
+.pickerRoom .spiritEntry:hover { background:var(--yn-raised); border-color:var(--yn-gold); }
+.pickerRoom .spiritEntry > svg { margin-inline-start:auto; flex-shrink:0; color:var(--yn-gold); }
+.pickerRoom .tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; padding:0; margin:0; }
+.pickerRoom .tabs :is(button,a) { appearance:none; border:1px solid var(--yn-line); border-radius:10px; background:var(--yn-surface); font:inherit; font-size:.9rem; font-weight:650; display:flex; align-items:center; justify-content:center; min-width:0; min-height:46px; gap:5px; padding:8px 9px; text-align:center; white-space:normal; overflow-wrap:anywhere; color:var(--yn-ivory); }
+.pickerRoom :is(.tabs,.kindChoices) button[aria-pressed="true"] { color:var(--yn-ivory); border-color:var(--yn-gold); background:var(--yn-raised); }
+.pickerRoom .tabs svg,.pickerRoom .pickerKindIcon svg,.pickerRoom :is(.tabs,.kindChoices) button[aria-pressed="true"] svg { color:var(--yn-gold); flex-shrink:0; }
+.pickerRoom .kindChoices { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr)); gap:8px; margin:0 0 22px; }
+.pickerRoom .kindChoices button { min-height:76px; min-width:0; background:var(--yn-surface); color:var(--yn-ivory); }
+.pickerRoom .kindChoices strong { display:flex; align-items:center; gap:7px; }
+.pickerRoom .pickerKindIcon { display:inline-flex; flex-shrink:0; } .pickerRoom .kindChoices strong > svg { margin-inline-start:auto; }
+.pickerRoom .kindChoices button span { color:var(--yn-muted); }
+.pickerRoom :is(.tabs button,.tabs a,.kindChoices button,.spiritEntry):focus-visible,.pickerRoom .birthTimeOption:focus-within { outline:2px solid var(--yn-gold); outline-offset:3px; }
+.pickerRoom .birthDetails .birthTimeOption { display:flex; align-items:center; min-height:48px; gap:10px; padding:8px 10px; border:1px solid var(--yn-line); border-radius:10px; background:var(--yn-surface); color:var(--yn-ivory); cursor:pointer; }
+.pickerRoom .birthTimeOption input[type="checkbox"] { width:20px; height:20px; flex:0 0 auto; margin:0; accent-color:var(--yn-gold); }
+@media(max-width:560px) { .pickerRoom .tabs { grid-template-columns:repeat(2,minmax(0,1fr)); } .pickerSeal { flex-basis:46px; } .pickerRoom .consultationHeader h1 { font-size:clamp(1.55rem,6.1vw,1.8rem); word-break:keep-all; } .pickerRoom .consultationHeader p,.pickerRoom .spiritEntry span { word-break:keep-all; overflow-wrap:anywhere; } .pickerRoom .consultationHeader { gap:12px; } .pickerRoom .spiritEntry { gap:10px; padding:10px; } .pickerRoom .spiritEntry img { width:48px; height:51px; } }
+@media(prefers-reduced-motion:reduce) { .pickerRoom :is(.tabs button,.tabs a,.kindChoices button,.spiritEntry) { transition:none; } }

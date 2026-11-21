@@ -23,6 +23,36 @@ export const questionEditorial:Record<AskCategory,{theme:Theme;answer:string;foc
  other:{theme:'self',answer:'이번 고민에서 먼저 풀어볼 선택',focus:'질문에 담긴 독립 고민을 구분하고 우선순위를 먼저 밝히며 고민마다 중복 없이 직접 답한다. 질문하지 않은 연애·재물·직업 총론으로 확장하지 않고 주어진 사실과 선택지를 연결한다.'},
 };
 
+type FocusContext={category:AskCategory;target:'self'|'pair';domain:DomainId;question:string};
+
+export function focusedQuestionAnswer({category,target,domain,question}:FocusContext){
+ const text=question.replace(/\s+/g,' ').trim();
+ const income=category==='money'&&/(?:수입|소득|연봉|월급|급여).{0,17}(?:더\s*(?:벌|늘|받)|늘리|늘릴|높이|높일|올리|올릴|인상)|돈.{0,8}(?:(?:더|잘|많이)\s*){0,2}벌|더\s*(?:(?:잘|많이)\s*)?벌|수입원|부업/.test(text);
+ if(income)return {
+  title:'수입을 늘릴 수 있는 현실적인 선택',
+  direct:'지출 관리가 아니라 수입을 늘리는 방법부터 답한다. 입력과 실제 근거가 뒷받침하는 경우에만 본업에서 보상·역할 조정, 이직에 따른 보상 비교, 부업·사업 수요 확인 중 관련 경로를 좁힌다. 직업·현재 급여·시장 보수를 추정하거나 수익·투자 성과를 보장하지 않는다.',
+  action:'다음 행동은 보상 기준 확인, 채용 공고의 보상 범위 비교, 작은 유료 수요 확인처럼 비용이 낮고 되돌릴 수 있는 검증 하나를 고른다. 이미 직업이나 제약을 입력했다면 그 조건을 반영한다.',
+ };
+ if(target==='pair'&&['compatibility','marriage'].includes(category)&&/결혼|함께\s*살|같이\s*살|동거|가정을/.test(text))return {
+  title:'두 사람이 결혼을 생각할 때 맞는 점과 조율할 조건',
+  symbolicPair:domain==='tarot',
+  direct:domain==='tarot'
+    ? '질문에 대한 조건부 답부터 제시한다. 저장된 카드의 상징은 질문자의 고민과 대화에 대한 참고일 뿐, 두 사람의 출생 궁합·상대의 속마음·결혼 여부를 확인하지 못한다고 분명히 밝힌다.'
+    : '조건부 답부터 제시한다. 동일 기준에서 두 사람의 저장된 관계 근거와 실제로 제공한 상황을 비교해 맞는 점 하나와 부딪힐 조건 하나를 구분한다. 상대의 자료가 없거나 이 체계의 범위를 벗어나는 부분은 비교할 수 없다고 밝히며 결혼 여부나 숨은 속마음을 단정하지 않는다.',
+  action:'돈·가사·갈등 후 회복·양가와의 거리 중 질문과 입력에 가장 관련 깊은 한 가지를 정해, 결혼 전에 함께 확인하거나 합의할 구체적 질문을 제시한다. 결혼 또는 이별을 결정해 주지 않는다.',
+ };
+ if(category==='reunion'||category==='love'&&/재회|(?:다시|먼저)\s*연락|헤어진/.test(text))return {
+  title:'다시 연락하기 전 확인할 신호와 선택',
+  direct:'상대가 반드시 연락한다거나 연락할 날짜·확률·속마음을 지어내지 않는다. 질문자가 실제로 확인한 마지막 행동과 대화, 계산·카드로 해석할 수 있는 범위를 분리한다. 먼저 연락할 때와 기다릴 때의 조건을 제시한다.',
+  action:'연락을 원치 않는다는 표현, 차단, 반복된 무응답이 확인되면 접촉을 권하지 않는다. 그런 사실이 없고 사용자가 연락을 고려한다면 부담 없는 한 문장과 답이 없을 때 멈추는 기준을 제시한다.',
+ };
+ if(category==='career'||category==='job_change')return {
+  direct:'취업·현재 역할·다른 직장 중 실제 질문의 대상을 먼저 답한다. 본인의 강점과 소진 조건을 저장된 근거로 설명하고, 업무 내용·보상·성장·생활 제약은 입력으로 확인된 항목만 비교한다. 합격·이직 성공이나 근거 없는 날짜를 예측하지 않는다.',
+  action:'지원 공고 비교, 역할 조건 질문, 작은 직무 실험 등 퇴사나 계약 전에 해 볼 수 있는 검증 하나와 판단이 바뀌는 조건을 제시한다.',
+ };
+ return undefined;
+}
+
 export const foundationGuide:Record<DomainId,{title:string;instruction:string}>={
  saju:{title:'내 사주의 바탕 · 기질과 오행의 균형',instruction:'일간을 나의 기본 기질로, 오행의 많고 적음을 힘을 쓰는 방식으로, 십성을 표현·책임·관계·돈을 다루는 패턴으로 풀어쓴다. 강점과 과하거나 위축될 때의 부담을 함께 설명한다. 실제 원국 근거를 사용하고 과한 기운도 부족할 때와 비슷한 어려움으로 드러날 수 있음을 해당 근거가 있을 때 설명한다. 생시 미상의 시주는 만들지 않는다.'},
  ziwei:{title:'내 자미두수의 바탕 · 명궁과 별의 성향',instruction:'명궁·신궁과 실제 별의 배치에서 성향과 행동의 바탕을 읽는다. 별 이름에는 쉬운 뜻을 붙이고 생년·대한·유년의 근거를 혼동하지 않는다.'},

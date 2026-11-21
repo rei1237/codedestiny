@@ -83,7 +83,7 @@ export default function FirstVisitGuide({manualOnly=false}:{manualOnly?:boolean}
    <ol className={styles.steps} aria-label={t('stepsLabel')}><li aria-current={state.step===1?'step':undefined}>1. {t('profileLabel')}</li><li aria-current={state.step>=2?'step':undefined}>2. {t('concernLabel')}</li><li>3. {t('priceLabel')}</li></ol>
    <h2>{t(selected?'profileReady':'profileQuestion')}</h2>
    <p>{t('profileHelp')}</p>
-   <ProfilePicker state={profiles} locale={locale} showPolicyNote={false} onLogin={()=>{firstVisitLogin('yeongnyangi');loginForCurrentPage();}}/>
+   <ProfilePicker state={profiles} locale={locale} onLogin={()=>{firstVisitLogin('yeongnyangi');loginForCurrentPage();}}/>
    <p className={styles.note}>{t('profileFree')}</p>
    <a className={styles.primary} href="#questions" onClick={()=>{writeFirstVisit('yeongnyangi','active',2);firstVisitEvent('yeongnyangi','step',2);close();}}>{t('chooseConcern')} <ArrowRight size={18}/></a>
    <p className={styles.note}>{t('priceHelp')}</p>

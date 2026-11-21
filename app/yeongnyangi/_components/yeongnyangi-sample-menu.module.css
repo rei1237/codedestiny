@@ -1,0 +1,37 @@
+/* Engraved fish tags select reading systems, not pricing tiers. */
+.market { min-width:0; padding:clamp(10px,2.4vw,22px); border:1px solid var(--yn-line); border-radius:22px;
+ color:var(--yn-ivory); background:radial-gradient(ellipse at top,color-mix(in srgb,var(--yn-violet) 17%,var(--yn-night)),var(--yn-deep) 72%); }
+.counter { padding:2px 4px 11px; border-block-end:1px solid var(--yn-line); }
+.counter p { margin:0; color:var(--yn-muted); line-height:1.55; font-size:.85rem; word-break:keep-all; }
+.counter p:first-child { display:flex; align-items:center; gap:8px; color:var(--yn-gold); font-size:1.05rem; font-weight:750; margin-bottom:4px; }
+.counter svg { flex:none; }
+.tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:12px 0; }
+.tabs [role="tab"] { position:relative; display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:6px;
+ min-width:0; min-height:57px; padding:7px 8px; border:1px solid var(--yn-line); border-radius:12px;
+ background:var(--yn-surface); color:var(--yn-ivory); font:inherit; text-align:start; cursor:pointer; touch-action:manipulation; }
+.tabs [aria-selected="true"] { border-color:var(--yn-gold); background:color-mix(in srgb,var(--yn-surface) 84%,var(--yn-gold)); box-shadow:inset 0 0 0 2px var(--yn-deep); }
+.tabs svg,.index { color:var(--yn-gold); }
+.tabs svg { width:21px; }
+.tabs strong,.tabs small { display:block; overflow-wrap:anywhere; word-break:keep-all; line-height:1.3; }
+.tabs strong { font-size:.95rem; }
+.tabs small { color:var(--yn-muted); font-size:.6875rem; margin-top:3px; }
+.index { font-size:.625rem; font-variant-numeric:tabular-nums; }
+.tabs [role="tab"]:focus-visible,.panel:focus-visible,.foot a:focus-visible { outline:2px solid var(--yn-gold); outline-offset:2px; }
+.panel { min-width:0; border-radius:12px; }
+.edition { padding:10px 0 3px; }
+.edition>span { display:inline-block; border:1px solid var(--yn-line); border-radius:999px; padding:3px 8px; color:var(--yn-gold); font-size:.75rem; }
+.edition h3 { margin:6px 0 2px; color:var(--yn-ivory); font-size:clamp(1.13rem,3vw,1.45rem); }
+.edition p,.receives { margin:0; color:var(--yn-muted); font-size:.83rem; line-height:1.55; word-break:keep-all; overflow-wrap:anywhere; }
+.reading { display:grid; gap:10px; margin-top:12px; }
+.ask,.facts li,.editorial { margin:0; padding:11px 12px; border:1px solid var(--yn-line); background:var(--yn-surface); border-radius:13px; line-height:1.65; word-break:keep-all; overflow-wrap:anywhere; }
+.ask { border-inline-start:2px solid var(--yn-gold); }
+.ask small { display:block; color:var(--yn-gold); }
+.reading>img { display:block; width:min(100%,480px); height:auto; margin-inline:auto; border:1px solid var(--yn-line); border-radius:14px; }
+.facts { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
+.facts h4,.editorial h4 { margin:0 0 2px; color:var(--yn-gold); font-size:.86rem; }
+.facts p,.editorial p { margin:0; }
+.editorial { border-style:dashed; }
+.foot { display:flex; align-items:center; flex-wrap:wrap; gap:4px 17px; margin-top:8px; }
+.foot a { display:inline-flex; align-items:center; gap:6px; min-height:44px; color:var(--yn-gold); text-underline-offset:4px; word-break:keep-all; }
+@media(min-width:660px){.tabs{grid-template-columns:repeat(3,minmax(0,1fr));}.facts{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(forced-colors:active){.tabs [aria-selected="true"]{border-color:Highlight;outline:1px solid Highlight;}}

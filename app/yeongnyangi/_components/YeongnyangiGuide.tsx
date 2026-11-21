@@ -2,17 +2,16 @@ import PublicRecordLink from '@/app/components/PublicRecordLink';
 import {products,systemNames,packages,type Product} from '@/worker/yeongnyangi/payments/catalog';
 import {questionManifest,questionScopes,FOLLOWUP_LIMITS,QUESTION_POLICY_VERSION} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
-import SampleExposure from './SampleExposure';
 import styles from './yeongnyangi-guide.module.css';
 import CraftedProductDetail from '@/app/components/CraftedProductDetail';
 import craftedOverview from '@/content/product-details/yeongnyangi-overview/manifest.json';
-import resultSamples from '@/lib/marketing/result-samples.json';
 import {FUSION_BOOK_CHAPTERS,FUSION_BOOK_TARGETS} from '@/worker/yeongnyangi/fortune/fusion-book';
 import {consultationBudget} from '@/worker/yeongnyangi/fortune/consultation-budget';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import ReviewProof from '@/app/components/ReviewProof';
 import YeongnyangiFaqToon from './YeongnyangiFaqToon';
-import YeongnyangiExampleToon from './YeongnyangiExampleToon';
+import YeongnyangiSampleMenu from './YeongnyangiSampleMenu';
+import {readingSamples} from './yeongnyangi-examples';
 
 // Server-rendered guide for the indexed /yeongnyangi/ landing ("사주 보는 고양이" brand query).
 // 🔴 Prices come from the payment catalog; scope and followups from the question policy — never type them here.
@@ -28,11 +27,6 @@ const SYSTEMS=DOMAINS.map(domain=>systemNames[domain]).join(', ');
 const EXAMPLE_QUESTION='헤어진 뒤 연락이 없어요. 제가 먼저 연락해도 될까요?';
 const mackerelChapters=questionManifest('saju','mackerel',{version:QUESTION_POLICY_VERSION,category:'love',target:'self',horizon:'current',period:'',situation:'헤어진 뒤 연락이 끊겼어요',options:'',constraints:'',confirmed:true},undefined,EXAMPLE_QUESTION);
 if(mackerelChapters.length!==EXPANDED_CHAPTERS.mackerel)throw new Error(`영냥이 고등어 장 구성이 ${mackerelChapters.length}개다.`);
-const tarotSample=(()=>{
- const sample=resultSamples.find(item=>item.id==='yn-tarot');
- if(!sample?.excerpts||sample.excerpts.length<4||!sample.visual||!sample.visualAlt||!sample.question)throw new Error('Yeongnyangi tarot sample requires four source excerpts, a visual and a question.');
- return {excerpts:sample.excerpts,visual:sample.visual,visualAlt:sample.visualAlt,question:sample.question};
-})();
 
 export const YEONGNYANGI_FAQS=[
  {question:'사주 보는 고양이 영냥이는 어떤 서비스인가요?',answer:`영냥이는 꿀꿀운세(CODE DESTINY)가 운영하는 유료 운세 상담 캐릭터예요. ${SYSTEMS} 중 하나를 골라 고민의 답과 근거, 생활 속 선택과 실천을 챕터로 나눠 살펴봐요. "사주보는고양이"처럼 붙여 써서 찾아도 같은 서비스예요.`},
@@ -64,11 +58,8 @@ export default function YeongnyangiGuide(){
   </section>
 
   <section id="yn-example" aria-labelledby="yn-example-title">
-   <h2 id="yn-example-title" data-sample-exposure="">이런 상담을 받아요 · 미리 보기</h2>
-   <p className={styles.note}>가상 프로필로 생성한 영냥이 타로·연어 샘플에서 발췌했어요. 전체 샘플은 약 3.5만 자이며 아래는 그 일부예요. 실제 고객 후기가 아니며 현재 상품의 보장 분량을 뜻하지 않아요.</p>
-   <YeongnyangiExampleToon {...tarotSample}/>
-   <p><a href="/yeongnyangi/fortune/?domain=tarot">타로 상담 구성 보기</a> · <a href="/consultation-samples/">다른 상담 결과 예시 보기</a></p>
-   <SampleExposure targetId="yn-example" itemId={single('tarot','salmon').cdFeatureKey} contentId="tarot-salmon-question-v1"/>
+   <h2 id="yn-example-title">이런 상담을 받아요 · 미리 보기</h2>
+   <YeongnyangiSampleMenu samples={readingSamples} tarotFeature={single('tarot','salmon').cdFeatureKey}/>
   </section>
 
   <section id="yn-faq-teaser" className={styles.teaser} aria-labelledby="yn-faq-teaser-title">

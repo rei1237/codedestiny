@@ -3277,8 +3277,6 @@
       "chargeNotice": "通行證商品 {price} · 這是通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月精石基准 {credits} · {price}",
-      "profileUnlimited": "不限资料",
-      "profileLimit": "{count}个资料",
       "allFeatures": "使用權涵蓋的全部內容",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",

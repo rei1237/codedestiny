@@ -3277,8 +3277,6 @@
       "chargeNotice": "Produk Pass {price} · Ini Pass, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Asas kredit bulanan {credits} · {price}",
-      "profileUnlimited": "Profil tanpa had",
-      "profileLimit": "{count} profil",
       "allFeatures": "Semua kandungan yang dilindungi pas",
       "upTo": "Tersedia sehingga {amount}",
       "benefits": "Manfaat sepintas lalu",

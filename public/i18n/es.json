@@ -3277,8 +3277,6 @@
       "chargeNotice": "Producto de pase {price} · Es un pase, no un pago con renovación automática. Los pases solo se compran con un pago único en KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Base de crédito mensual {credits} · {price}",
-      "profileUnlimited": "Perfiles ilimitados",
-      "profileLimit": "{count} perfiles",
       "allFeatures": "Todo el contenido incluido en el pase",
       "upTo": "Disponible hasta {amount}",
       "benefits": "Beneficios de un vistazo",

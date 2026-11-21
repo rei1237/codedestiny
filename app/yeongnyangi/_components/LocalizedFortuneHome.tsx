@@ -2,6 +2,7 @@
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import type {ProductOffers} from './ProductGuide';
+import DirectReadingLinks from './DirectReadingLinks';
 import LocalizedProductGuide from './LocalizedProductGuide';
 import {consultationLocaleCopy,localizedSystem} from '../_lib/consultation-locale-copy';
 import styles from '../yeongnyangi.module.css';
@@ -21,6 +22,7 @@ export default function LocalizedFortuneHome({locale,offers}:{locale:ReadingLoca
    <div className={heroStyles.copy}><h1 id="localized-home-title">{copy.title}</h1><p>{copy.pitch}</p><p>{copy.about}</p><div className={heroStyles.actions}><a className={heroStyles.primary} href={`/yeongnyangi/fortune/?lang=${locale}`}>{copy.start}</a><a className={heroStyles.secondary} href="#readings">{copy.depth}</a></div></div>
    <div className={heroStyles.character}><img src="/assets/yeongnyangi/original/hero-480.webp" width={480} height={480} alt="Yeongnyangi" fetchPriority="high"/></div>
   </section>
+  <DirectReadingLinks locale={locale} title={copy.methodTitle} localizedLabel={(id)=>localizedSystem(id,locale)}/>
   <section className={styles.consultation}><h2>{relationship.entry}</h2><p>{relationship.description}</p><a href={`/yeongnyangi/fortune/?flow=relationship&lang=${locale}`}>{relationship.start}</a></section>
   <QuestionSkyEntry locale={locale}/>
   <section className={styles.consultation} id="readings"><h2>{copy.summary}</h2>{(Object.keys(offers) as DomainId[]).map(domain=><details key={domain}><summary>{localizedSystem(domain,locale)}</summary><LocalizedProductGuide domain={domain} offers={offers[domain]} locale={locale} surface="home_catalog"/></details>)}<a href={`/yeongnyangi/fortune/?domain=fusion&lang=${locale}`}>{localizedSystem('fusion',locale)}</a></section>
