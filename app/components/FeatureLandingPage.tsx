@@ -581,7 +581,9 @@ function resolveFeatureTag(
 /* ═══════════════════════════════════════════
    Component
 ═══════════════════════════════════════════ */
-export default function FeatureLandingPage({ service }: { service?: ServiceLike }) {
+// inlineFlow: 이 랜딩 안에서 바로 실행하는 무료 플로우(/tarot/mingri/ 5단계 ①). 있으면 주 CTA 가 그 자리로 내려간다. 없으면 기존과 같다.
+export const FEATURE_INLINE_FLOW_ID = "feature-inline-flow";
+export default function FeatureLandingPage({ service, inlineFlow }: { service?: ServiceLike; inlineFlow?: React.ReactNode }) {
   useMobileFortuneRenderTrace("FeatureLandingPage");
   const pathname = usePathname() || "/";
   const basePath = resolveFeatureBasePath(pathname);
@@ -639,6 +641,10 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     ? "/ifa-oracle"
     : basePath === "/ziwei/chart"
     ? "/ziwei/chart"
+    // 타로 랜딩은 워커의 /index.html?action → /ggulggul/ 302 를 거치지 않고 바로 꿀꿀 메인으로
+    // 보낸다(R4-1, 2026-11-21 승인). 다른 기능은 기존 경로를 유지한다.
+    : action && basePath.startsWith("/tarot/")
+    ? `/ggulggul/?action=${encodeURIComponent(action)}`
     : action
     ? `/index.html?action=${encodeURIComponent(action)}`
     : SHELL_HOME_PATH;
@@ -888,6 +894,8 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           }}>{description}</p>
         </div>
 
+        {inlineFlow ? <section id={FEATURE_INLINE_FLOW_ID} style={{ marginBottom:"20px", scrollMarginTop:"72px" }}>{inlineFlow}</section> : null}
+
         {/* Feature points */}
         {points.length > 0 && (
           <div className="flp-in flp-d3" style={{ marginBottom:"28px" }}>
@@ -969,7 +977,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
 
         {/* CTA Buttons */}
         <div className="flp-in flp-d4" style={{ display:"flex", flexDirection:"column", gap:"10px" }}>
-          <a href={runHref} className="flp-btn-p" style={{
+          <a href={inlineFlow ? `#${FEATURE_INLINE_FLOW_ID}` : runHref} className="flp-btn-p" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
             gap:"10px", minHeight:"var(--cd-btn-h-lg, 56px)", padding:"14px 24px", background:t.btnPrimary,
             color:"#fff", borderRadius:"var(--cd-r-control, 12px)", fontWeight:800, fontSize:"1rem",

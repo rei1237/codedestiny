@@ -3,12 +3,12 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 const source=readFileSync('js/destiny-profile.js','utf8');
-function setup({session=false,server=null}={}){
- const events={},state=new Map(),opened=[],synced=[];
+function setup({session=false,server=null,src=source,search='',routeAction}={}){
+ const events={},state=new Map(),opened=[],synced=[],nav=[];
  let profile=null,creates=0,loads=0;
- const ctx={DPStorage:{current:()=>profile},_dpProfileSaveInFlight:false,sessionStorage:{setItem:(k,v)=>state.set(k,v),removeItem:k=>state.delete(k),getItem:k=>state.get(k)},document:{addEventListener:(n,fn)=>events[n]=fn},window:{addEventListener:(n,fn)=>events[n]=fn,_dpOpenFortuneType:t=>opened.push(t),dpStartProfileCreate:()=>creates++},_dpResolveCurrentProfileForSaju:()=>profile,_dpHasValidProfileDate:(y,m,d)=>!!(y&&m&&d),_dpSyncProfileFormToCurrent:p=>synced.push(p),_toast(){},_dpHasSessionHint:()=>session,_dpLoadFromServer:cb=>{loads++;if(server)profile=server;cb(!!server);}};
- vm.runInNewContext(source.slice(source.indexOf("  var _dpHomeEntryKey ="),source.indexOf("  window.cdOneStepFreeSajuEntry =")),ctx);
- return {ctx,events,state,opened,synced,setProfile:p=>profile=p,creates:()=>creates,loads:()=>loads};
+ const ctx={DPStorage:{current:()=>profile},_dpProfileSaveInFlight:false,sessionStorage:{setItem:(k,v)=>state.set(k,v),removeItem:k=>state.delete(k),getItem:k=>state.get(k)},document:{addEventListener:(n,fn)=>events[n]=fn},window:{addEventListener:(n,fn)=>events[n]=fn,_dpOpenFortuneType:t=>opened.push(t),dpStartProfileCreate:()=>creates++,__cdRouteActionHandled:routeAction,location:{search,assign:u=>nav.push(['assign',u]),replace:u=>nav.push(['replace',u])}},_dpResolveCurrentProfileForSaju:()=>profile,_dpHasValidProfileDate:(y,m,d)=>!!(y&&m&&d),_dpSyncProfileFormToCurrent:p=>synced.push(p),_toast(){},_dpHasSessionHint:()=>session,_dpLoadFromServer:cb=>{loads++;if(server)profile=server;cb(!!server);}};
+ vm.runInNewContext(src.slice(src.indexOf("  var _dpHomeEntryKey ="),src.indexOf("  window.cdOneStepFreeSajuEntry =")),ctx);
+ return {ctx,events,state,opened,synced,nav,setProfile:p=>profile=p,creates:()=>creates,loads:()=>loads};
 }
 test('five birth services directly use the selected profile, without landing detours',()=>{
  for(const type of ['saju','ziwei','sukuyo','vedic','astro']){
@@ -43,9 +43,23 @@ test('tarot needs no birth card; home navigation cancels an unfinished entry',()
  h.ctx.window.cdHomeFortuneEntry('astro');h.events.click({target:{closest:()=>true}});h.setProfile({birth:{year:1990,month:1,day:1}});h.events.destinyProfileChanged();assert.deepEqual(h.opened,['tarot']);
 });
 
-test('home tarot opens the existing draw on the first tap without a profile',()=>{
+test('home tarot goes to the /tarot/mingri/ free three-card flow on the first tap without a profile',()=>{
  const h=setup();h.ctx.window.cdHomeTarotEntry();
- assert.deepEqual(h.opened,['tarot']);assert.equal(h.creates(),0);
+ assert.deepEqual(h.nav,[['assign','/tarot/mingri/']]);assert.deepEqual(h.opened,[]);assert.equal(h.creates(),0);
+ // ?action=cdHomeTarotEntry 딥링크는 기록을 바꿔 뒤로 가기가 다시 보내지 않는다.
+ const r=setup({search:'?action=cdHomeTarotEntry',routeAction:'cdHomeTarotEntry'});r.ctx.window.cdHomeTarotEntry();
+ assert.deepEqual(r.nav,[['replace','/tarot/mingri/']]);
+});
+test('home tarot with the route flag off opens the existing draw (rollback path)',()=>{
+ const off=source.replace('var MINGRI_TAROT_ROUTE_ENABLED = true;','var MINGRI_TAROT_ROUTE_ENABLED = false;');
+ assert.notEqual(off,source);
+ const h=setup({src:off});h.ctx.window.cdHomeTarotEntry();
+ assert.deepEqual(h.opened,['tarot']);assert.deepEqual(h.nav,[]);assert.equal(h.creates(),0);
+});
+test('home tarot route flag stays in step with the guided /tarot/mingri/ flag',()=>{
+ const shell=/var MINGRI_TAROT_ROUTE_ENABLED = (true|false);/.exec(source);
+ const guided=/export const GUIDED_MINGRI_TAROT_ENABLED = (true|false);/.exec(readFileSync('lib/guided-flow/flags.mjs','utf8'));
+ assert.ok(shell&&guided);assert.equal(shell[1],guided[1]);
 });
 
 test('returning from profile entry cancels the pending service before a later save',()=>{

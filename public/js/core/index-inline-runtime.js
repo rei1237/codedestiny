@@ -2325,7 +2325,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-260fb93d372e')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-eaec8dd2ca69')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -3424,7 +3424,24 @@ function __cdFindRouteActionElement(action) {
     var rect = node.getBoundingClientRect ? node.getBoundingClientRect() : null;
     if (rect && rect.width > 0 && rect.height > 0) return node;
   }
-  return fallback;
+  if (fallback) return fallback;
+  // 모바일 컬렉션 가상화(index.html mobile-collection-limit-v20260701 의 unmountCollectionCards)가
+  // 닫힌 컬렉션의 카드를 문서에서 떼어 collection.__cdLazyCards 에만 들고 있다. 이 러너가 그 뒤에 돌면
+  // 타일을 못 찾고, 런처 폴백은 지연 로더를 부르지 않아 자존감·재회 타로 같은 지연 로드 액션이
+  // 통째로 열리지 않았다(2026-11-21 실측, 390px 모바일 딥링크 경합). 떼어 둔 카드도 같은 타일로 쓴다.
+  var collections = document.querySelectorAll('.feat-collection, .tarot-collection');
+  for (var c = 0; c < collections.length; c += 1) {
+    var lazyCards = collections[c].__cdLazyCards;
+    if (!Array.isArray(lazyCards)) continue;
+    for (var k = 0; k < lazyCards.length; k += 1) {
+      var card = lazyCards[k];
+      if (!card || !card.getAttribute) continue;
+      if (String(card.getAttribute('data-action') || '').trim() === action) return card;
+      var inner = card.querySelector ? card.querySelector('[data-action="' + action.replace(/["\\]/g, '') + '"]') : null;
+      if (inner) return inner;
+    }
+  }
+  return null;
 }
 
 function __cdApplySeoLandingEntryHandoff(action) {

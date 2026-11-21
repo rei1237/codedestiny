@@ -42,7 +42,8 @@ const CONSOLIDATED_PAGE_REDIRECTS = {
   "/neo-war-room/asset-demo": "/neo-operation-room/",
   "/fortune-tea-house/tarot-debug": "/fortune-tea-house/",
   "/fortune-tea-house/tea-cup-debug": "/fortune-tea-house/",
-  "/fortune-tea-house/ten-god-debug": "/fortune-tea-house/"
+  "/fortune-tea-house/ten-god-debug": "/fortune-tea-house/",
+  "/tarot/mingri/play": "/tarot/mingri/"
 };
 
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";

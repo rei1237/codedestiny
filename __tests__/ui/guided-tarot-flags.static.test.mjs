@@ -115,3 +115,18 @@ test('/yeongnyangi/room/ 출석 운세 16종은 플래그로 고르기·질문�
   const guided = read('app/yeongnyangi/_components/FreeFortuneGuided.tsx');
   assert.equal(/authFetch|fetch\(|\/api\//.test(guided), false, '플로우판은 서버를 직접 부르지 않는다(출석·멸치·읽기는 원본 read 안)');
 });
+
+test('/tarot/mingri/ 는 플래그가 켜질 때만 랜딩 안에 무료 세 장 흐름을 붙인다(5단계 ①)', async () => {
+  const flags = await import('../../lib/guided-flow/flags.mjs');
+  assert.equal(typeof flags.GUIDED_MINGRI_TAROT_ENABLED, 'boolean');
+  const page = read('app/tarot/mingri/page.tsx');
+  assert.match(page, /inlineFlow=\{GUIDED_MINGRI_TAROT_ENABLED \? <MingriTarotEntry \/> : undefined\}/);
+  const landing = read('app/components/FeatureLandingPage.tsx');
+  // 끄면 inlineFlow 가 없어 주 CTA 는 기존 runHref 그대로다.
+  assert.match(landing, /href=\{inlineFlow \? `#\$\{FEATURE_INLINE_FLOW_ID\}` : runHref\}/);
+  assert.match(landing, /\{inlineFlow \? <section id=\{FEATURE_INLINE_FLOW_ID\}/);
+  const flow = read('app/tarot/mingri/MingriTarotGuided.tsx');
+  // 결정적 엔진만 쓴다: 서버 호출·저장 없이 master-reading 을 브라우저에서 부른다.
+  assert.match(flow, /import\('@\/js\/core\/tarot\/master-reading\.mjs'\)/);
+  assert.doesNotMatch(flow, /fetch\(|\/api\//);
+});

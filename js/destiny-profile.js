@@ -11115,6 +11115,58 @@
 
   // Entry intent contains only a service name, never a birth record or a free result.
   var _dpHomeEntryKey = 'cd:home-fortune-intent:v1';
+  /* R5 서양 점성술(2026-11-21 승인 "서양 점성술만 먼저"): 프로필이 없는 점성술 진입은 /astrology/ 공통 스텝 출생 입력으로 보낸다.
+     그 화면이 확인을 마치면 입력 초안(sessionStorage, 30분)을 남기고 이 진입으로 돌아온다 — 초안은 기존 프로필 폼에 채우기만 하고,
+     저장·동의·로그인은 기존 dpSaveProfile 그대로다. 결과(점성술 모달·유료 패널)는 바뀌지 않는다.
+     false 면 지금처럼 프로필 폼으로 간다. lib/guided-flow/flags.mjs 와 값을, lib/guided-flow/astro-draft.mjs 와 키·만료를 함께 바꾼다(테스트가 묶는다). */
+  var GUIDED_ASTRO_ENABLED = true;
+  var _dpAstroDraftKey = 'cd:guided-astro-draft:v1';
+  var _dpAstroDraftTtl = 30 * 60 * 1000;
+  var _dpAstroBounceKey = 'cd:guided-astro-bounce:v1';
+  var _dpAstroBounceTtl = 2 * 60 * 1000;
+  function _dpTakeAstroDraft() {
+    if (!GUIDED_ASTRO_ENABLED) return null;
+    try {
+      var raw = sessionStorage.getItem(_dpAstroDraftKey);
+      if (!raw) return null;
+      sessionStorage.removeItem(_dpAstroDraftKey);
+      sessionStorage.removeItem(_dpAstroBounceKey);
+      var draft = JSON.parse(raw);
+      var age = Date.now() - Number(draft && draft.at);
+      var p = draft && draft.profile;
+      if (!(age >= 0 && age < _dpAstroDraftTtl) || !p || !p.birth || !p.name) return null;
+      return p;
+    } catch (_) { return null; }
+  }
+  // 정적 셸 한국어 웹에서만 보낸다. 앱 런타임·다른 로케일·저장 불가·방금 보냈는데 초안 없이 돌아온 경우는 지금처럼 폼으로 간다(되돌이 방지).
+  function _dpAstroGuidedRedirect() {
+    if (!GUIDED_ASTRO_ENABLED) return false;
+    var loc = window.location;
+    if (!loc || typeof loc.replace !== 'function' || !/^\/ggulggul\/?(index\.html)?$/.test(String(loc.pathname || ''))) return false;
+    try { if (typeof _dpIsMobileAppRuntime === 'function' && _dpIsMobileAppRuntime()) return false; } catch (_) {}
+    try {
+      var last = Number(sessionStorage.getItem(_dpAstroBounceKey));
+      if (last && Date.now() - last >= 0 && Date.now() - last < _dpAstroBounceTtl) return false;
+      sessionStorage.setItem(_dpAstroBounceKey, String(Date.now()));
+      if (!sessionStorage.getItem(_dpAstroBounceKey)) return false;
+    } catch (_) { return false; }
+    _dpHomeIntent('');
+    loc.replace('/astrology/?step=name');
+    return true;
+  }
+  // 출생지 목록은 늦게 채워진다(populateBirthCountrySelector). 채워진 뒤 한 번 더 고른다.
+  function _dpApplyAstroDraft(draft) {
+    if (typeof _dpApplyProfileToForm !== 'function') return;
+    _dpApplyProfileToForm(draft);
+    var l = draft.location;
+    if (!l || !l.tz || typeof document === 'undefined' || !document.getElementById) return;
+    var tries = 0;
+    (function retry() {
+      var sel = document.getElementById('birthCountry');
+      if (sel && sel.options && sel.options.length > 1) { _dpSelectBirthPlaceOption(sel, l.tz, l.lng, l.lat); if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview(); return; }
+      if (++tries < 40) setTimeout(retry, 250);
+    })();
+  }
   var _dpHomeEntryNames = {saju:'사주',ziwei:'자미두수',sukuyo:'숙요점',vedic:'베다점',astro:'점성술',tarot:'타로'};
   var _dpHomeEntryMemory = '';
   var _dpHomeFormOriginal = null;
@@ -11172,12 +11224,15 @@
   function _dpHomeEntryProfileReady(profile) {
     return !!(profile && profile.birth && _dpHasValidProfileDate(profile.birth.year,profile.birth.month,profile.birth.day));
   }
-  function _dpPromptHomeEntryProfile(type) {
+  function _dpPromptHomeEntryProfile(type, draft) {
+    if(type==='astro'&&!draft&&_dpAstroGuidedRedirect()) return;
     _dpHomeIntent(type);
     var entryName=_dpHomeEntryNames[type];
     var entryParticle=(type==='saju'||type==='ziwei')?'를':'을';
-    _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
+    if(draft) _toast('입력한 출생 정보를 채웠어요.','profile-guide','프로필을 저장하면 바로 '+entryName+' 차트를 열어드릴게요.');
+    else _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
     if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
+    if(draft) _dpApplyAstroDraft(draft);
     _dpHomeInputLabel(type);
   }
   function _dpHomeEntryProfile(type) {
@@ -11198,6 +11253,9 @@
     if(!_dpHomeEntryNames[type]) return;
     _dpHomeIntent('');
     if(type==='tarot') { window._dpOpenFortuneType(type); return; }
+    // /astrology/ 공통 스텝에서 방금 입력하고 온 경우: 그 입력으로 새 프로필 폼을 채운다(저장 프로필이 있어도 방금 입력이 우선).
+    var astroDraft=type==='astro'?_dpTakeAstroDraft():null;
+    if(astroDraft) { _dpPromptHomeEntryProfile(type, astroDraft); return; }
     var profile=_dpHomeEntryProfile(type);
     if(_dpHomeEntryProfileReady(profile)) {
       _dpSyncProfileFormToCurrent(profile);
@@ -11223,7 +11281,22 @@
   window.cdHomeSukuyoEntry=function(){window.cdHomeFortuneEntry('sukuyo');};
   window.cdHomeVedicEntry=function(){window.cdHomeFortuneEntry('vedic');};
   window.cdHomeAstroEntry=function(){window.cdHomeFortuneEntry('astro');};
-  window.cdHomeTarotEntry=function(){window.cdHomeFortuneEntry('tarot');};
+  // R4-3(2026-11-21 승인): 홈 타로 진입은 /tarot/mingri/ 랜딩 안 무료 세 장으로 간다. 셸 모달은 ?action=openTarotModal
+  // (한 장 리딩·결제 후 리딩·기존 딥링크)로 그대로 열린다. 롤백은 false — lib/guided-flow/flags.mjs
+  // GUIDED_MINGRI_TAROT_ENABLED 와 함께 바꾼다(__tests__/ui/home-profile-fortune-entry.test.mjs 가 묶는다).
+  var MINGRI_TAROT_ROUTE_ENABLED = true;
+  var MINGRI_TAROT_ROUTE = '/tarot/mingri/';
+  window.cdHomeTarotEntry=function(){
+    if(MINGRI_TAROT_ROUTE_ENABLED){
+      _dpHomeIntent('');
+      var loc=window.location;
+      // 주소의 ?action= 으로 들어온 경우 뒤로 가기가 이 주소로 돌아와 다시 보내지 않도록 기록을 바꾼다.
+      var fromRoute=window.__cdRouteActionHandled==='cdHomeTarotEntry'||/[?&]action=cdHomeTarotEntry(?:&|$)/.test(String(loc.search||''));
+      if(fromRoute) loc.replace(MINGRI_TAROT_ROUTE); else loc.assign(MINGRI_TAROT_ROUTE);
+      return;
+    }
+    window.cdHomeFortuneEntry('tarot');
+  };
   document.addEventListener('destinyProfileChanged',_dpResumeHomeEntry);
   window.addEventListener('cd:destiny-profile-server-ready',_dpResumeHomeEntry);
   function _dpClearHomeSection() {
