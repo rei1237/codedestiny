@@ -24,3 +24,40 @@
 @media(min-width:700px){.resultArt{width:150px;height:150px}.tabs{gap:12px}.tab{flex-direction:row;justify-content:center;padding:12px}.reading{font-size:18px}}
 @media(max-width:380px){.resultArt{width:88px;height:88px;margin:18px 18px 10px 12px}.resultBody{padding:20px}.tab img{width:42px;height:42px}.tab>span{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.tab{transition:none}}
+
+/* 두루마리(FortuneScroll) 안 하이라이트 칩: 색은 두루마리가 내려주는 --fscroll-* 를 읽는다. */
+.scrollHighlight {
+  padding: 4px 12px;
+  border: 1px solid var(--fscroll-gold-soft);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--fscroll-ink);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  word-break: keep-all;
+}
+.scrollInvite {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--fscroll-accent);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+.paperBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--fscroll-gold);
+  border-radius: 999px;
+  background: var(--fscroll-bubble);
+  color: var(--fscroll-accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+.paperBadgeScore {
+  color: var(--fscroll-muted);
+  font-weight: 700;
+}

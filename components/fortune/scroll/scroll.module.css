@@ -1,0 +1,482 @@
+/*
+ * 오늘·내일 운세 두루마리 결과.
+ * 🔴 색: 두루마리는 어느 테마(연이·네오)·어느 배경에서도, 이미지로 저장했을 때도 같은 양피지여야 한다.
+ *    그래서 테마 토큰(--cd-*)을 재선언하지 않고 이 모듈 전용 `--fscroll-*` 한 벌만 쓴다(diary.module.css 와 같은 방식).
+ * 🔴 html2canvas 로 이미지 저장하므로 mask·backdrop-filter·clip-path 는 쓰지 않는다. 그라데이션·그림자·테두리만.
+ * 🔴 모션은 transform·opacity 만. reduced-motion 과 캡처 중([data-capturing])에는 멈춘다.
+ */
+.scroll,
+.actions {
+  --fscroll-paper: #fbf3df;
+  --fscroll-paper-deep: #f3e5c3;
+  --fscroll-ink: #3f2536;
+  --fscroll-muted: #6e5260;
+  --fscroll-accent: #8a2f55;
+  --fscroll-gold: #b8924a;
+  --fscroll-gold-soft: #e8d3a0;
+  --fscroll-rod: #8d6a2f;
+  --fscroll-seal: #b3262e;
+  --fscroll-seal-ink: #fff3e6;
+  --fscroll-bubble: #fffaf0;
+}
+
+.scroll {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+  padding-block: 4px;
+  color: var(--fscroll-ink);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  animation: fscroll-in 380ms ease-out both;
+}
+
+.rod {
+  position: relative;
+  z-index: 1;
+  display: block;
+  height: 16px;
+  margin-inline: -6px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #d9b872 0%, var(--fscroll-gold) 38%, var(--fscroll-rod) 100%);
+  box-shadow: 0 2px 6px rgba(63, 37, 54, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.rod::before,
+.rod::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 12px;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #e3c685 0%, var(--fscroll-rod) 100%);
+  box-shadow: 0 1px 3px rgba(63, 37, 54, 0.3);
+}
+
+.rod::before {
+  left: -4px;
+}
+
+.rod::after {
+  right: -4px;
+}
+
+.sheet {
+  position: relative;
+  margin-inline: 4px;
+  padding: 28px 20px 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 24%),
+    linear-gradient(180deg, var(--fscroll-paper) 0%, var(--fscroll-paper-deep) 100%);
+  box-shadow: inset 0 0 0 1px var(--fscroll-gold-soft), 0 8px 18px rgba(30, 14, 26, 0.32);
+}
+
+/* 금빛 이중 테두리: 바깥선은 box-shadow, 안쪽선은 ::before */
+.sheet::before {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border: 1px solid var(--fscroll-gold);
+  border-radius: 4px;
+  pointer-events: none;
+}
+
+.petals {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.eyebrow {
+  position: relative;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--fscroll-accent);
+}
+
+.title {
+  position: relative;
+  margin: 8px 0 0;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.4;
+  color: var(--fscroll-ink);
+}
+
+.badgeRow {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border: 1px solid var(--fscroll-gold);
+  border-radius: 999px;
+  background: var(--fscroll-bubble);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--fscroll-accent);
+}
+
+.summary {
+  position: relative;
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.85;
+  color: var(--fscroll-ink);
+}
+
+.extra {
+  position: relative;
+  margin-top: 12px;
+}
+
+.divider {
+  position: relative;
+  height: 1px;
+  margin: 18px 0;
+  border: 0;
+  background: linear-gradient(90deg, transparent 0%, var(--fscroll-gold) 50%, transparent 100%);
+}
+
+.lucky {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0;
+}
+
+.luckyCell {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px;
+  border: 1px solid var(--fscroll-gold-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.luckyLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fscroll-muted);
+}
+
+.luckyValue {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--fscroll-ink);
+}
+
+.swatch {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--fscroll-bubble);
+  box-shadow: 0 0 0 1px var(--fscroll-gold), 0 1px 3px rgba(63, 37, 54, 0.3);
+}
+
+.numberRing {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--fscroll-gold);
+  border-radius: 50%;
+  background: var(--fscroll-bubble);
+  font-size: 18px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--fscroll-accent);
+}
+
+.practice {
+  position: relative;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--fscroll-gold);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 0 0 3px var(--fscroll-paper), inset 0 0 0 4px var(--fscroll-gold-soft);
+}
+
+.practiceLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--fscroll-accent);
+}
+
+.practiceText {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.7;
+  color: var(--fscroll-ink);
+}
+
+.say {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+  padding-right: 64px;
+}
+
+.sayBubble {
+  position: relative;
+  min-width: 0;
+  flex: 1;
+  margin: 0 0 6px;
+  padding: 10px 14px;
+  border: 1px solid var(--fscroll-gold-soft);
+  border-radius: 14px;
+  background: var(--fscroll-bubble);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--fscroll-ink);
+}
+
+/* 말풍선 꼬리(왼쪽 연이 쪽) */
+.sayBubble::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  bottom: 12px;
+  width: 12px;
+  height: 12px;
+  transform: rotate(45deg);
+  border-left: 1px solid var(--fscroll-gold-soft);
+  border-bottom: 1px solid var(--fscroll-gold-soft);
+  background: var(--fscroll-bubble);
+}
+
+.sayName {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--fscroll-accent);
+}
+
+.sayPortrait {
+  flex: none;
+}
+
+/* 인장: 오른쪽 아래에 비스듬히 찍힌다. 글자는 HTML 이라 캡처에서도 같은 폰트로 나온다. */
+.seal {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  width: 56px;
+  height: 56px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--fscroll-seal);
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 2px var(--fscroll-paper), inset 0 0 0 3px var(--fscroll-seal);
+  color: var(--fscroll-seal);
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  opacity: 0.9;
+  transform: rotate(-8deg);
+  transform-origin: center;
+  animation: fscroll-stamp 380ms cubic-bezier(0.16, 1, 0.3, 1) 420ms both;
+  pointer-events: none;
+}
+
+.sealLine {
+  display: block;
+}
+
+.footerNote {
+  position: relative;
+  margin: 14px 0 0;
+  font-size: 11px;
+  color: var(--fscroll-muted);
+}
+
+@keyframes fscroll-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fscroll-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-8deg) scale(1.7);
+  }
+  to {
+    opacity: 0.9;
+    transform: rotate(-8deg) scale(1);
+  }
+}
+
+@media (max-width: 380px) {
+  .sheet {
+    padding: 24px 14px 22px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .say {
+    padding-right: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll,
+  .seal {
+    animation: none;
+  }
+}
+
+/* 이미지로 저장하는 동안에는 모션을 멈춰 도장이 찍히기 전·중간 상태가 캡처되지 않게 한다. */
+.scroll[data-capturing="true"],
+.scroll[data-capturing="true"] .seal {
+  animation: none;
+  opacity: 1;
+}
+
+.scroll[data-capturing="true"] .seal {
+  opacity: 0.9;
+}
+
+/* html2canvas 는 inset box-shadow 를 못 그리므로 캡처 중에만 테두리로 바꾼다(글자 쏠림은 useCaptureShare 의 기준선 보정이 맡는다). */
+.scroll[data-capturing="true"] .sheet {
+  box-shadow: none;
+  border: 1px solid var(--fscroll-gold-soft);
+  background: var(--fscroll-paper);
+}
+.scroll[data-capturing="true"] .rod {
+  background: var(--fscroll-gold);
+  box-shadow: none;
+}
+.scroll[data-capturing="true"] .rod::before,
+.scroll[data-capturing="true"] .rod::after {
+  background: var(--fscroll-rod);
+  box-shadow: none;
+}
+.scroll[data-capturing="true"] .practice {
+  box-shadow: none;
+  background: var(--fscroll-bubble);
+}
+.scroll[data-capturing="true"] .seal {
+  box-shadow: none;
+}
+.scroll[data-capturing="true"] .swatch {
+  box-shadow: none;
+}
+
+/* ─ 액션 줄 ─ */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 560px;
+  margin: 14px auto 0;
+}
+
+.actionBtn {
+  display: inline-flex;
+  min-height: 48px;
+  flex: 1 1 140px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 18px;
+  border: 1px solid var(--fscroll-gold);
+  border-radius: 999px;
+  background: var(--fscroll-paper);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--fscroll-ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 120ms ease-out, background-color 120ms ease-out;
+}
+
+.actionBtn:hover {
+  background: var(--fscroll-paper-deep);
+}
+
+.actionBtn:active {
+  transform: scale(0.98);
+}
+
+.actionBtn:focus-visible {
+  outline: 3px solid var(--fscroll-accent);
+  outline-offset: 2px;
+}
+
+.actionBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 한 화면의 주 CTA 는 공유하기 하나 */
+.actionPrimary {
+  border-color: var(--fscroll-accent);
+  background: var(--fscroll-accent);
+  color: var(--fscroll-seal-ink);
+}
+
+.actionPrimary:hover {
+  background: var(--fscroll-ink);
+}
+
+.actionNote {
+  width: 100%;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actionBtn {
+    transition: none;
+  }
+}

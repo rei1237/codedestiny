@@ -23,7 +23,11 @@ import {FreeQuestionNext} from "@/app/components/QuestionJourney";
 import Link from "next/link";
 import Image from "next/image";
 import styles from "./today-hub.module.css";
-import TypewriterReading from "./TypewriterReading";
+import FortuneScroll from "@/components/fortune/scroll/FortuneScroll";
+import ScrollActions from "@/components/fortune/scroll/ScrollActions";
+import { moodForScore } from "@/app/fortune/[period]/YeoniPortrait";
+import { luckyFor, practiceFor } from "@/lib/fortune/scroll-lucky.mjs";
+import { yeoniScrollSay } from "@/lib/fortune/yeoni-scroll-say.mjs";
 import type {DailyTarotCard} from "./DailyTarot";
 import dynamic from "next/dynamic";
 import { GUIDED_DAILY_TAROT_ENABLED } from "@/lib/guided-flow/flags.mjs";
@@ -740,6 +744,11 @@ function formatKstDate(now: Date): string {
   return `${kst.getUTCFullYear()}년 ${kst.getUTCMonth() + 1}월 ${kst.getUTCDate()}일 ${days[kst.getUTCDay()]}요일`;
 }
 
+function kstDateKey(now: Date, offsetDays: number): string {
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000 + offsetDays * 86400000);
+  return kst.toISOString().slice(0, 10);
+}
+
 function TopNav({ copy }: { copy: TodayHubCopy }) {
   const goBack = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -808,7 +817,19 @@ function TodayLoadingPanel({ locale }: { locale: LoadingLocale }) {
   );
 }
 
-function VerdictBadge({ card, copy }: { card: SystemCard; copy: TodayHubCopy }) {
+function VerdictBadge({ card, copy, paper = false }: { card: SystemCard; copy: TodayHubCopy; paper?: boolean }) {
+  if (paper) {
+    // 양피지 위에서는 다크 테마용 색(text-*-100)이 안 보이므로 두루마리 색을 쓴다.
+    const tone = TIER_TONE[card.tier || ""] || "pivot";
+    const withVerdict = Boolean(card.tierLabel) && card.score != null;
+    return (
+      <span className={styles.paperBadge}>
+        <span aria-hidden="true">{withVerdict ? TONE_MARK[tone] : "◇"}</span>
+        {withVerdict ? card.tierLabel : copy.noVerdictLabel}
+        {withVerdict && card.score != null && <span className={styles.paperBadgeScore}>{copy.scoreSuffix(card.score)}</span>}
+      </span>
+    );
+  }
   if (!card.tierLabel || card.score == null) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs font-bold text-slate-200">
@@ -866,6 +887,9 @@ function CardPanel({
   detailState,
   onDetailsOpen,
   tomorrow = false,
+  dateKey = "",
+  birthKey = "",
+  dateLabel = "",
 }: {
   card: SystemCard | null | undefined;
   tabLabel: string;
@@ -874,7 +898,11 @@ function CardPanel({
   detailState: DetailLoadState;
   onDetailsOpen?: (system: TodaySystem) => void;
   tomorrow?: boolean;
+  dateKey?: string;
+  birthKey?: string;
+  dateLabel?: string;
 }) {
+  const detailsRef = useRef<HTMLDetailsElement | null>(null);
   if (!card) {
     return (
       <p className="break-keep rounded-2xl border border-white/10 bg-white/[0.03] px-5 py-6 text-sm leading-7 text-slate-300">
@@ -886,18 +914,16 @@ function CardPanel({
   const hasSections = Boolean(card.sections?.length);
   return (
     <div className="space-y-4">
-      <div className={locale === "ko" ? styles.result : "rounded-3xl border border-white/12 bg-white/[0.05] p-5 sm:p-6"}>
-        {locale === "ko" && <Image className={styles.resultArt} src={SYSTEM_ART[card.system].src} alt={SYSTEM_ART[card.system].alt} width={640} height={427} sizes="(max-width:768px) 100vw, 720px"/>}
-        <div className={locale === "ko" ? styles.resultBody : undefined}>
+      {locale !== "ko" ? (
+      <div className="rounded-3xl border border-white/12 bg-white/[0.05] p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-xs font-bold tracking-tight text-rose-200">{card.anchor}</p>
           <span className="ml-auto">
             <VerdictBadge card={card} copy={copy} />
           </span>
         </div>
-        <h2 className={locale === "ko" ? styles.resultTitle : "mt-3 break-keep text-lg font-black leading-8 text-white sm:text-xl"}>{card.headline}</h2>
-        {locale === "ko" && <p className="mt-4 text-sm leading-7 text-rose-200">{tomorrow ? SYSTEM_ART[card.system].invitation.replaceAll("오늘", "내일") : SYSTEM_ART[card.system].invitation}</p>}
-        {locale==="ko"?<TypewriterReading key={card.system+String(tomorrow)+card.body} text={card.body}/>:<p className="mt-2 max-w-[64ch] break-keep text-sm leading-7 text-slate-200">{card.body}</p>}
+        <h2 className="mt-3 break-keep text-lg font-black leading-8 text-white sm:text-xl">{card.headline}</h2>
+        <p className="mt-2 max-w-[64ch] break-keep text-sm leading-7 text-slate-200">{card.body}</p>
         {card.detail && <p className="mt-3 break-keep text-xs leading-6 text-slate-400">{card.detail}</p>}
         {card.highlights.length > 0 && (
           <ul className="mt-4 flex flex-wrap gap-2">
@@ -911,9 +937,50 @@ function CardPanel({
             ))}
           </ul>
         )}
-        </div>
       </div>
+      ) : (
+      <>
+        <FortuneScroll
+          id={`today-scroll-${card.system}`}
+          when={tomorrow ? "내일" : "오늘"}
+          eyebrow={[dateLabel, card.anchor].filter(Boolean).join(" · ")}
+          title={card.headline}
+          badge={<VerdictBadge card={card} copy={copy} paper />}
+          summary={<>
+            <span className={styles.scrollInvite}>{tomorrow ? SYSTEM_ART[card.system].invitation.replaceAll("오늘", "내일") : SYSTEM_ART[card.system].invitation}</span>
+            {card.body}
+          </>}
+          lucky={dateKey ? luckyFor({ dateKey, key: card.system, birthKey }) : undefined}
+          practice={dateKey ? practiceFor({ dateKey, key: card.system, system: card.system }) : undefined}
+          say={dateKey ? { ...yeoniScrollSay({ dateKey, key: card.system, tomorrow, score: card.score == null ? undefined : card.score / 10 }), mood: moodForScore(card.score == null ? 6 : card.score / 10) } : undefined}
+          footnote={card.detail || undefined}
+        >
+          {card.highlights.length > 0 && (
+            <ul className="flex flex-wrap gap-2">
+              {card.highlights.map((highlight) => (
+                <li key={highlight} className={styles.scrollHighlight}>
+                  {highlight}
+                </li>
+              ))}
+            </ul>
+          )}
+        </FortuneScroll>
+        <ScrollActions
+          targetId={`today-scroll-${card.system}`}
+          fileName={`today-${card.system}-${dateKey || "fortune"}`}
+          shareTitle={copy.shareSheetTitle}
+          shareText={copy.shareSheetText}
+          onDetail={() => {
+            const node = detailsRef.current;
+            if (!node) return;
+            node.open = true;
+            node.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
+      </>
+      )}
       <details
+        ref={detailsRef}
         className="rounded-2xl border border-white/15 bg-white/[0.025] p-4"
         onToggle={(event) => {
           if (event.currentTarget.open && !hasSections) onDetailsOpen?.(card.system);
@@ -1291,6 +1358,9 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           ) : data ? (
             <CardPanel
               tomorrow={period === "tomorrow"}
+              dateKey={now ? kstDateKey(now, period === "tomorrow" ? 1 : 0) : ""}
+              dateLabel={now ? formatKstDate(new Date(now.getTime() + (period === "tomorrow" ? 86400000 : 0))) : ""}
+              birthKey={seed?.birthDate || ""}
               card={panelCard}
               tabLabel={activeTab.label}
               copy={copy}
@@ -1315,7 +1385,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           </p>
         )}
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        {locale !== "ko" && <div className="mt-6 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={share}
@@ -1325,7 +1395,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           >
             {sharing ? copy.shareButtonBusy : copy.shareButtonIdle(activeTab.label)}
           </button>
-        </div>
+        </div>}
 
         {locale === "ko" && period === "today" && dailyTarotCards && <DailyTarotPanel cards={dailyTarotCards}/>}
         </>}

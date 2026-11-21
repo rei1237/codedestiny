@@ -25,6 +25,10 @@ import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { markerAttrs } from "@/lib/fortune/i18n-marker";
 import { fortuneLocaleSegment, FORTUNE_COPY, getLocalizedPeriodReading, langBoxText, getLocalizedProfile, periodLabel as localizedPeriodLabel, sajuInsightText, type FortuneLocale } from "@/lib/fortune/localization";
 import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
+import FortuneScroll from "@/components/fortune/scroll/FortuneScroll";
+import ScrollActions from "@/components/fortune/scroll/ScrollActions";
+import { practiceFor, swatchFor } from "@/lib/fortune/scroll-lucky.mjs";
+import { yeoniScrollSay } from "@/lib/fortune/yeoni-scroll-say.mjs";
 import { tomorrowReadingCopy } from "@/lib/i18n/fortune-hub-copy.mjs";
 import { TOMORROW_PREPARATION_DETAILS } from "@/lib/i18n/search-reading-paths.mjs";
 import tomorrowStyles from "../tomorrow.module.css";
@@ -194,6 +198,30 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
 
         {period === "tomorrow" && (
         <p className={`mt-5 break-keep text-sm leading-7 ${MUTED}`}>{koTomorrow ? TOMORROW_DISCLOSURE_KO : FORTUNE_EDITORIAL_DISCLOSURE[locale]}</p>
+        )}
+
+        {/* 두루마리 결과 카드 — 이미지 저장·공유용(한국어 오늘·내일만). 아래 본문 섹션은 그대로 둔다. */}
+        {locale === "ko" && (period === "today" || period === "tomorrow") && (
+          <section aria-label="공유용 운세 두루마리" className="mt-8">
+            <FortuneScroll
+              id="fortune-scroll"
+              when={period === "tomorrow" ? "내일" : "오늘"}
+              eyebrow={`${vm.rangeLabel} · ${profile.nameKo}`}
+              title={`${period === "tomorrow" ? "내일" : "오늘"}의 키워드 · ${entry.keyword.kr}`}
+              scoreLabel={`총운 ${score.overall}/10`}
+              summary={dailyText(entry.sections.overall.kr)}
+              lucky={{ colorKr: entry.lucky.color_kr, swatch: swatchFor(entry.lucky.color_kr), number: entry.lucky.number }}
+              practice={practiceFor({ dateKey: vm.dateKey, key: profile.id, system: "zodiac" })}
+              say={{ ...yeoniScrollSay({ dateKey: vm.dateKey, key: profile.id, tomorrow: period === "tomorrow", score: score.overall }), mood: moodForScore(score.overall) }}
+            />
+            <ScrollActions
+              targetId="fortune-scroll"
+              fileName={`${profile.id}-${period}-fortune`}
+              shareTitle={`${profile.nameKo} ${PERIOD_TITLE[period]}`}
+              shareText={`꿀꿀 운세에서 본 ${profile.nameKo} ${PERIOD_TITLE[period]}예요.`}
+              detailHref="#score-heading"
+            />
+          </section>
         )}
 
         {/* 오늘·내일 운세 웹툰 — 그날 계산값으로 말풍선을 채운 7컷(한국어 화면만) */}
