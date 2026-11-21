@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 단계 C — gate·bell 장면(세로·가로)과 투명 소품 3종을 codex-image 로 생성 → sharp 로 ritual-v1/ 변환·manifest(설계 절 규격·스타일 문단 사용)
+next: 단계 D — ritual-v1 장면(gate·bell, AVIF source)·소품(향로·연등 dim/lit)과 audio-v3 SFX 를 RitualFlow 에 연결(설계 절 전환·프리로드·low tier/reduced-motion), i18n 소품 alt, 테스트, check:fast, 커밋
 ---
 
 # 달빛 연화당 참배 흐름 — 다각도 사찰 그림·효과음 에셋
@@ -110,10 +110,18 @@ next: 단계 C — gate·bell 장면(세로·가로)과 투명 소품 3종을 co
 - codex-cli 0.156.1 있음. `codex exec -i <FILE>` 로 참조 이미지 첨부 가능 → views-v1 처럼 space-v1 원본을 reference 로 붙여 화풍 고정. 로그인 상태는 미확인(첫 생성 때 확인).
 - codex-image 스킬 SKILL.md 는 "생성 이미지를 Read 로 표시"라고 하지만 이 저장소 규칙(이미지는 visual-checker)이 우선한다.
 
+## 단계 C 결과 (2026-11-22)
+- 산출: `public/assets/moonlit-lotus/ritual-v1/` — gate·bell × 768(768×1152)/1536(1536×1024) × webp/avif 8장 + 투명 소품 512×512 3장 + `manifest.json`(generator·reference·brief 전문·sha256·bytes·크기). 변환 `scripts/sprites/prepare-moonlit-ritual.mjs`(재실행 가능, 원본 `D:/CodeDestiny-Build/moonlit-lotus/ritual-v1/<name>-source.png` + `prompts/<name>.txt`).
+- 용량(실측): gate-768 webp 108KB/avif 64KB, gate-1536 209/119KB, bell-768 134/82KB, bell-1536 233/141KB, prop-incense-burner 62KB, prop-lantern-lit 38KB, prop-lantern-dim 26KB.
+- visual-checker: 장면 4장 통과(평균 휘도 156–164, 참조 164–168 ±5%; 사람·동물·글자 없음; 하단 중앙 빈 바닥). 소품 3장 통과(녹색 잔여 0–2px, 바닥 여백 2%, 가로 중앙, dim/lit 알파 픽셀 동일).
+- 생성 방식(실측): `codex exec -m gpt-6-sol -s read-only -i space-v1/courtyard-source.png` 후 `~/.codex/generated_images/<session>/` 에서 직접 복사. 함정: ① config 기본 모델(gpt-6.2-*)은 ChatGPT 계정에서 400 → `-m gpt-6-sol` 필수. ② codex 샌드박스가 저장소 밖 경로 복사를 막음 → 세션 폴더에서 복사. ③ 6개 동시 실행 시 3개가 `memory allocation failed` 로 죽음 → 동시 3개 이하. ④ 투명 배경은 시도하지 않고 #00FF00 크로마키로 바로 생성(설계의 대체 경로).
+- dim 연등: 단순 밝기 감산은 노란 불빛이 올리브로 탁해져 실패 → 등갓(y<290)만 노랑→모브 전환+#7c6fa8 multiply, 금 받침은 금빛 유지로 파생(재판정 통과).
+- 남은 불완전: ① gate-768 과 gate-1536 은 같은 계열이지만 세부가 다름(등 매단 위치 안/밖, 기둥 연꽃 그림 유무, 용마루 연꽃 장식 유무) — 세로·가로가 동시에 보이지 않아 허용. 엄격히 맞추려면 gate-1536 을 참조로 gate-768 재생성. ② bell 두 장은 참조보다 채도가 약간 높고 바닥이 연어·분홍 쪽(B·G 차), bell-1536 달은 왼쪽 위(x≈32%). ③ bell-1536 정자 계단이 x56–76% 하단에 있어 캐릭터는 중앙~왼쪽 중앙에 둘 것. ④ 가드: views-v1 만 `__tests__/ui/moonlit-scene-views.test.mjs` 가 인벤토리 — ritual-v1 은 등록 의무 없음(D 에서 예산 테스트 추가 권장). 모바일 앱 빌드(`scripts/build-mobile-app.mjs`)에 moonlit 전용 포함/제외 규칙 없음 — avif 도 앱 사본만 재인코딩, 빌드 영향 없음.
+
 ## 단계
 - [x] A. 조사: 화풍·기존 시점·에셋 이력·도구(ffmpeg, codex-image) 확인, 설계 확정, 이 문서 갱신·커밋
 - [x] B. 효과음 합성: 범종·풍경·향 불붙기·연등 떠오름 → `public/assets/moonlit-lotus/audio-v3/` + manifest, 합성 스크립트, 커밋 (42b187b60)
-- [ ] C. 그림 생성: 새로 필요한 장면·소품 생성 → 리사이즈·포맷 변환 → `public/assets/moonlit-lotus/ritual-v1/` + manifest(프롬프트 기록), visual-checker 로 화풍 일치 판정, 커밋
+- [x] C. 그림 생성: 새로 필요한 장면·소품 생성 → 리사이즈·포맷 변환 → `public/assets/moonlit-lotus/ritual-v1/` + manifest(프롬프트 기록), visual-checker 로 화풍 일치 판정, 커밋
 - [ ] D. 연결: 단계별 시점·전환·소품·SFX 를 RitualFlow 에 연결, i18n alt 키, preload, low tier/reduced-motion, 테스트 추가/갱신, check:fast, 커밋
 - [ ] E. 화면 검증: dev(mock) 360·390·844×390·1440 전 흐름 캡처 → visual-checker, 수정, 커밋
 - [ ] F. 마무리: docs/design/moonlit-lotus-ritual.md 갱신, check:pre-push, origin/main 머지 → `git push origin HEAD:main`(메인 세션이 수행), 이 문서 status: done
