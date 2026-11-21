@@ -51,7 +51,7 @@ export default function PaidNarrativeRetryPanel({ hold, onResume, className, pri
   }
 
   return (
-    <div className={className} data-paid-narrative-retry role="group" aria-label={copy.title}>
+    <div className={className} style={{ wordBreak: "keep-all", overflowWrap: "anywhere" }} data-paid-narrative-retry role="group" aria-label={copy.title}>
       <h3>{copy.title}</h3>
       {!closed && <p role="alert">{copy.offer}</p>}
       {message && <p role="status">{message}</p>}

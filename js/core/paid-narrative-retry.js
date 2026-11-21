@@ -214,7 +214,7 @@
     panel.setAttribute("role", "group");
     panel.setAttribute("aria-label", copy.title);
     if (opts.className) panel.className = opts.className;
-    panel.style.cssText = "display:grid;gap:12px;margin:16px 0;padding:16px;border:1px solid currentColor;border-radius:16px;text-align:left;";
+    panel.style.cssText = "display:grid;gap:12px;margin:16px 0;padding:16px;border:1px solid currentColor;border-radius:16px;text-align:left;word-break:keep-all;overflow-wrap:anywhere;";
     var title = document.createElement("h3"); title.textContent = copy.title; title.style.margin = "0";
     var offer = document.createElement("p"); offer.setAttribute("role", "alert"); offer.textContent = copy.offer; offer.style.margin = "0";
     var status = document.createElement("p"); status.setAttribute("role", "status"); status.style.margin = "0";
