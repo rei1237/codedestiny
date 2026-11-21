@@ -427,6 +427,8 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 #resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a{flex:1 0 64px;min-height:44px;padding:8px 12px;border:1px solid transparent!important;border-radius:var(--cd-r-sm);background:transparent!important;color:var(--cd-text)!important;font:600 .9rem/1.5 var(--font-body);text-decoration:none;white-space:nowrap;box-shadow:none;scroll-margin-inline:12px}
 #resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a[aria-current="location"]{border-color:var(--cd-accent)!important;background:var(--cd-surface-2)!important;color:var(--cd-accent)!important;box-shadow:inset 0 -2px var(--cd-accent)}
 #resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a:focus-visible{outline:3px solid var(--cd-gold);outline-offset:1px}
+/* 360: 다섯 칸(64px 기준)이 312px 안에 안 들어가 마지막 "억부" 가 잘렸다. 좁은 화면만 기준 폭을 줄인다. 긴 로케일은 기존 가로 스크롤로 남는다. */
+@media(max-width:400px){#resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a{flex-basis:52px;padding-inline:6px}}
 
 /* Classic saju starts with the open natal chart. Introductions follow it. */
 html body #resultPage > .top-hero {padding:12px 16px;margin:0 0 12px;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;text-align:left;align-items:center;}
