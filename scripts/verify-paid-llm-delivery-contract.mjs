@@ -66,7 +66,7 @@ export const KNOWN_REFUND_GAPS = Object.freeze([
 // 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로 바깥에서 상태만 바꾸면 "차감됐는데 환불 없음"이 생긴다.
 export const KNOWN_STUCK_SETTLE_GAPS = Object.freeze([
   "nakshatra-ai", "human-design-report", "destiny-compass-ai", "relationship-boundary-test", "naming-prompt",
-  "celestial-harmony", "fortune", "karma-destiny-ai",
+  "celestial-harmony", "fortune",
 ]);
 // R8 (2026-11-20) 다시 시도 우선 정책: 실패 → 무료 다시 시도(추가 결제·차감 없음) → 생성 + 7일 또는 고객 요청 때 환불.
 // 서비스마다 (1) 실패 표지를 paid-delivery-stuck.js 의 생성+7일 계산(marker)으로 만들고 (2) POST /retry (3) POST /refund-request

@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 운명의 업", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let settleDue, recordCancel, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume, accessQueue, passOrder, withdrawn, sharedRefund;
+let settleStuck, settleDue, recordCancel, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume, accessQueue, passOrder, withdrawn, sharedRefund;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -90,7 +90,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   jest.unstable_mockModule("../../worker/lib/consultation-delivery-refund.js", () => ({ ...deliveryRefund, settleFailedConsultationRefund: (...args) => sharedRefund(...args) }));
-  ({ handleKarmaDestinyAiRoutes: route, __karmaDestinyAiTestUtils: utils, settleDueKarmaRetryRefunds: settleDue } = await import("../../worker/routes/karma-destiny-ai.js"));
+  ({ handleKarmaDestinyAiRoutes: route, __karmaDestinyAiTestUtils: utils, settleDueKarmaRetryRefunds: settleDue, settleStuckDelivery: settleStuck } = await import("../../worker/routes/karma-destiny-ai.js"));
 });
 beforeEach(() => {
   accessQueue = []; passOrder = null; withdrawn = false; docs = []; recordCancel = jest.fn(); fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); sharedRefund = jest.fn(async () => ({ ok: true, refundStatus: "refunded" })); consume = jest.fn(async () => ({ covered: true }));
@@ -349,5 +349,38 @@ describe("R10 retry-first hold", () => {
     chart.mockImplementation(async () => { throw Object.assign(new Error("calc"), { code: "CALCULATION_ERROR" }); });
     expect((await start()).status).toBe(422);
     expect(docs[0].llmMeta.retryable).toBeUndefined(); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
+});
+
+// 2026-11-22 D: 복구 크론의 정체 확정. 창 안은 다시 시도 가능(장 보존·환불 없음), 창이 지나면 기존 보류 환불(settleKarmaRetryRefund).
+describe("settleStuckDelivery", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const stuckDoc = () => ({ id: docs[0].id, userId: docs[0].userId });
+  const post = (path, sessionId) => route(new Request(`https://mock.test/api/karma-destiny-ai${path}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId }) }), {});
+  const quiet = async work => { const warn = jest.spyOn(console, "warn").mockImplementation(() => {}); try { return await work(); } finally { warn.mockRestore(); } };
+  async function stalled() { await start(); expect((await batch()).status).toBe(202); docs[0].updatedAt = new Date(Date.now() - 300000); return clone(docs[0].chapters); }
+  it("holds a stalled pass report for a free retry and keeps the saved chapters", async () => {
+    const chapters = await stalled(); expect(chapters.length).toBeGreaterThan(0);
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("retryable");
+    expect(docs[0]).toMatchObject({ status: "generation_failed", generationError: { code: "DELIVERY_STUCK" }, chapters, llmMeta: { retryable: { code: "DELIVERY_STUCK" } } });
+    expect(passRefund).not.toHaveBeenCalled(); expect(refund).not.toHaveBeenCalled();
+    expect((await post("/retry", docs[0].id)).status).toBe(202);
+  });
+  it("refunds once through the held-refund path after the retry window", async () => {
+    await stalled();
+    expect(await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() + 8 * DAY }))).toEqual({ outcome: "generation_failed", refundStatus: "refunded" });
+    expect(passRefund).toHaveBeenCalledTimes(1);
+    await settleDue({}, { now: Date.now() + 8 * DAY }); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
+  it("leaves a live generation, a Toss native session and a finished result alone", async () => {
+    await start(); expect((await batch()).status).toBe(202);
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
+    docs[0].updatedAt = new Date(Date.now() - 300000); docs[0].generationProgress.lockedAt = new Date();
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
+    docs[0].generationProgress.lockedAt = null; docs[0].accessSource = "toss";
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("unsettled");
+    docs[0].accessSource = ""; docs[0].status = "completed";
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("progressed");
+    expect(passRefund).not.toHaveBeenCalled();
   });
 });
