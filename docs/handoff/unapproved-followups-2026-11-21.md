@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 2. R3 궁합 링크 통합(301 없음) — 실제 작동하는 무료 궁합 흐름을 실측해 정본 경로로 고르고 내부 링크·매핑만 바꾼다
+next: 3. L1 `/today/`·`/manse/` 비로그인 무료 결과 (`FREE_READING_GUEST_ENABLED`) — W2 정책대로 무료 결과는 로그인 없이, 동의 단계 유지, 저장·유료·이어보기는 로그인
 ---
 
 # 미승인 후속 항목 — 권장안으로 진행 (2026-11-21)
@@ -52,7 +52,16 @@ next: 2. R3 궁합 링크 통합(301 없음) — 실제 작동하는 무료 궁�
   - 롤백: 두 곳 플래그 false → `npm run sync:public` → `node scripts/restamp-paid-runtime-pins.mjs` → `node scripts/verify-payment-freeze.mjs --update`. 또는 `git revert a988b810e fc2deb290`(0a6c5beea 는 유지해도 무해).
   - 미검증: 숙요·베다 저장→로그인→결과 실브라우저 경로(vm 테스트로만), 스테이징, 앱 런타임, 실제 지오코딩.
   - 후속(보고만): 360 에서 1단계 입력이 클릭 뒤 접힘 아래, 동의 배너가 스텝 일부를 가림(기존).
-- [ ] 2. R3 궁합 링크 통합 (301 없음)
+- [x] 2. R3 궁합 링크 통합 (301 없음)
+  - 커밋: 765b3607b(링크·매핑 3곳 + sitemap 원장 재생성). 결과 push 는 이 문서 갱신 커밋과 함께.
+  - 정본: `/ggulggul/?action=cdOneStepFreeSajuEntry&section=compatCard`(무료 칩 `freePromo.item.compat` 이 이미 쓰던 경로).
+  - 근거(dev 서버 실측, 처음 온 방문자): `?action=runCompat` 은 G_PILLARS 가 없으면 `runCompat()` 이 조용히 return(js/saju-engine.js `async function runCompat`) → 폼·결과·안내 모두 안 보이는 빈 셸. 랜딩 폼 제출도 같은 막다른 곳. 정본 경로는 랜딩 인계로 셸 폼이 채워짐 → 분석 → 개인정보 동의 → 사주 결과 → 궁합 카드(`#compatRunBtn`) → 상대 입력 → 무료 궁합 결과(카드 본문 207→5,995자, 결제창·대화상자 0). 셸 head 의 `cd-free-saju-entry-route` 는 `section=` 이 있으면 셸에 남는다(`/saju/free/` 로 보내지 않음, 기존 테스트).
+  - 바꾼 곳: `lib/seo-landing-pages.js` `/compatibility`·`/saju/compatibility` 의 `ctaHref`(랜딩 폼 submitHref 겸 CTA), `app/components/HomeServiceSections.tsx` `MAIN_ACTION_ROUTE_MAP["/compatibility"]`(이전 `/index.html?action=runCompat` 은 301→302 두 번 거쳐 같은 막다른 곳).
+  - 유지(바꾸지 않음): `/saju/compatibility/` 로 가는 내부 링크 전부 — 색인 랜딩(사이트맵 0.96)으로 가는 콘텐츠 링크이고, 이제 그 랜딩의 CTA 가 정본으로 보낸다. 링크를 셸로 돌리면 색인 랜딩의 내부 링크만 줄어든다. `runCompat` 액션·디스패치·`#compatRunBtn data-action`·레거시 구매 잇기는 손대지 않음(옛 딥링크·셸 내부 버튼은 그대로 동작, 결과 없는 진입은 기존과 같음). 리다이렉트·라우팅·결제·로그인·DB 접촉 없음 → 건너뛴 부분 없음.
+  - SEO: `/compatibility/`·`/saju/compatibility/` title·H1·canonical(자기 자신)·robots(index) 실측 불변, 가로 넘침 0. URL 추가·삭제 없음 → sitemap URL 집합 불변(원장 서명 갱신, lastmod 는 /nakshatra/·/tarot/mindscan/ 2건만 앞선 main 커밋 몫으로 갱신). hreflang·noindex·이미지 영향 없음. 정본 셸 URL 은 기존과 같이 비색인 셸 액션.
+  - 실측: 대상+임포터 node 테스트 83/83, verify-mobile-entry-actions 통과, check:fast exit 0(test:node 5681/0, jest 8447 통과·1 skip). 브라우저 360·960, visual-checker: 차단 결함 0(960 결과의 「내 절기 리듬」 "불러오지 못했어요" 는 로컬 dev 에 /api 워커가 없어서 — 진입 경로와 무관, 미검증).
+  - 롤백: `git revert 765b3607b`.
+  - 후속(보고만): 정본 경로가 결과까지 간 뒤 궁합 카드로 자동 스크롤되지 않는다(360 scrollY 6279·카드 top 4349, 960 4316·5179 — 무료 칩도 같은 기존 동작). 동의 모달 제목 "이/용" 줄바꿈(keep-all 없음), 360 쿠키 배너가 랜딩 폼을 가림, 960 탭바 손잡이가 업셀 제목에 겹침 — 모두 기존.
 - [ ] 3. L1 `/today/`·`/manse/` 비로그인 무료 결과 (`FREE_READING_GUEST_ENABLED`)
 - [ ] 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
 - [ ] 5. R5 자미 (조건부, 결제 감사 먼저)
