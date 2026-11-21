@@ -2023,8 +2023,10 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model } 
     // 선결제(paid·subscription)인데 증빙을 다시 못 찾으면 "환불 불필요"로 굳히지 않고 확정을 미룬다(fail-closed, pending).
     snapshot: async fresh => {
       const access = await resolveBillingEvidence({ env, userId: fresh.userId, body: { paymentId: fresh.paymentId }, idempotencyKey: clean(fresh.idempotencyKey, 180), pricing: getPricing() });
-      if (!access && fresh.accessType !== "pass") throw new Error("billing evidence not found");
-      return vedicRefundAccessSnapshot(access || {});
+      if (access) return vedicRefundAccessSnapshot(access);
+      if (fresh.accessType !== "pass") throw new Error("billing evidence not found");
+      // 감사 B1: 재판정이 거절돼도 결제창이 이미 차감한 이용권은 요청 키로 되돌릴 수 있게 남긴다(refundId 멱등).
+      return vedicRefundAccessSnapshot({ accessType: "pass", source: "pass-receipt", prepaid: true, evidenceType: "pass" });
     },
     settleRefund: owner => settleVedicRetryRefund(env, owner, target, now) });
 }
