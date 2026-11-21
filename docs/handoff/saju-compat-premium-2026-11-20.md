@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: "C2: held 서술형 실행(reasonCode PAID_NARRATIVE_*) 정산 — 다시 시도 리셋(빠진·소진 장만, nextRetryAt 도 되돌림)·7일/요청 환불 어댑터(재호출 가능한 결제 증거)·cron 배선. 포인터는 아래 'C1 가드 판정 정정' 절과 C2 포인터"
+next: "C2-UI: 서술형 10종 결과 화면에 무료 다시 시도(POST /api/paid-narrative/retry → resumeBody 재호출)·환불 요청 버튼. 목록은 C2 절의 C2-UI 갭"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -99,7 +99,8 @@ next: "C2: held 서술형 실행(reasonCode PAID_NARRATIVE_*) 정산 — 다시 
 - [x] M 머지와 push: main으로 머지 → check:pre-push → push → CI 1회 확인 → `verify:staging -- --sha=<SHA>` (실측은 아래 "M 머지·push")
 - [x] C·D 실측: 아래 "C·D 실측 (2026-11-21)"
 - [x] C1 가드 판정 정정(서술형 includeResumable 게이트·소진/창 경과 종결, 코인 복원 경로 확인 선행) — ef3b6b83e (held 종결, 환불은 C2)
-- [ ] C2 서술형 엔진 다시 시도 우선(빠진·소진 장만 재개, 7일·요청 환불, cron 배선, 검증기 목록 정리)
+- [x] C2 서술형 엔진 다시 시도 우선 — 서버(빠진 장만 재개·7일·요청 환불·cron 배선·검증기 10종 이동). 실측은 아래 C2 절
+- [ ] C2-UI 제품 10종 결과 화면에 다시 시도·환불 요청 버튼(아래 C2-UI 갭 목록)
 - [ ] C3 과금 후 레코드 전 4xx 실패(감사 5) — 범위 밖, 별도
 - [ ] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 범위 밖, 별도
 - [ ] D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — 범위 밖, 별도
@@ -329,3 +330,55 @@ Base `58ed3c39d` (= origin/main). Worktree `D:\Development\codedestiny-worktrees
 4. 고객 요청 환불: 명시적 닫기(`/api/billing/executions/fail`)를 하면 held + `compensation.adminReviewRequired`로 표시된다. C2의 `/refund-request`가 이걸 즉시 환불로 바꿔야 한다.
 5. 정리: NARRATIVE_CARD_GAP 문구(`consultation-recovery-registry.js:33`)를 바로잡는다. KNOWN_RETRY_PENDING과 알려진 자동 환불 구멍 13개는 증거 4종이 실제로 통과하는 항목만 `scripts/verify-paid-llm-delivery-contract.mjs` 목록에서 뺀다.
 6. 회귀 테스트: `__tests__/worker/checkpoint-timeout-refund.test.js`의 'paid narrative terminal hold' 묶음을 C2 동작(7일 도달 → 환불)에 맞게 확장한다. held 기대값을 그대로 지우지 않는다.
+
+### C2 서술형 엔진 다시 시도 우선 — 서버 (2026-11-21, 서브에이전트, mock 만)
+커밋: 2cab7d658(결제 근거 저장), eaa4eebd9(다시 시도·환불 라우트·보호·크론·검증기·테스트), 이 문서 커밋
+
+**구현 (서버)**
+- 결제 시점 근거 저장: 10종 라우트 verify 콜백이 `{transactionId, passRefund}` 를 돌려주고 `paid-narrative-intent.js`·`paid-narrative-delivery.js` 가 `metadata.paidNarrative.refundEvidence` 로 저장한다(tarot 3종·dream·animal-totem·oracle·saju-compat-basic·yoga-guru·guardian·geomancy).
+- 새 라우트 `worker/routes/paid-narrative-retry.js` (`worker/index.js` 의 `/api/paid-narrative/` 디스패치)
+  - `POST /api/paid-narrative/retry {resultId}`: 무료 다시 시도. **빠진 장만** attempts 를 0 으로 되돌리고 저장된 parts 는 건드리지 않는다(요청 5). reasonCode 를 비우고 nextRetryAt=now, `paidNarrativeRetry.reopenedAt` 을 남겨 24시간 재개 창을 새로 연다. 응답에 `resumeBody {resumeResultId}` 가 있다. 범위 밖 featureKey → 404.
+  - `POST /api/paid-narrative/refund-request {resultId}`: 즉시 정산. 모든 장이 저장돼 있으면 `409 RESULT_READY` 와 resumeBody 를 돌려준다(환불하지 않음).
+  - `settleDuePaidNarrativeRetryRefunds`: 생성 + 7일 경과 또는 `PAID_NARRATIVE_CLOSE_REQUESTED` 건을 정산한다. `consultation-delivery-refund.js` 크론 체인에 배선했다.
+  - 정산 순서: 근거 증명(prove) → `paidNarrativeRetry.refundApprovedAt` → 같은 executionId 로 `settleExecutionById`. 근거가 없으면 held 로 두고(`heldAt`·`holdCode`, PAID_NARRATIVE_REFUND_EVIDENCE_MISSING) `compensation.adminReviewRequired` 를 세운다. settle 이 failed 이면 `refund_failed` + 운영 검토 플래그를 세운다. feature-question 의 exhaustionClaimed 건은 failureResult 로 종결하고 이중 환불하지 않는다.
+- 보호 해제: `findProtectedFundingExecution` 에 `releasedExecutionId` 를 추가했다. refundApprovedAt 이 있는 실행 **자신의** parts 만 보호에서 뺀다. 다른 실행의 parts 는 계속 보호한다.
+- 가드: `checkpoint-refund-guard.js` 에서 heldAt 이면 holdCode 를 유지한다. 창의 기준은 max(createdAt, reopenedAt) 이다. 명시적 정산 + refundApprovedAt 이면 unmanaged(환불)다.
+- 검증기: RETRY_FIRST_POLICY 에 10종을 넣었다(marker retryRefundAt, settle 심볼 + REFUND_CRON). KNOWN_RETRY_PENDING 은 12개 남았다. NARRATIVE_CARD_GAP 문구와 ai-and-db.md 계약을 고쳤다.
+
+**실측 (명령·출력)**
+- `node scripts/run-mock-tests.mjs jest --runInBand __tests__/worker/service-execution- __tests__/worker/pig-coin-refund __tests__/worker/paid-narrative __tests__/worker/checkpoint-timeout-refund.test.js` → 스위트 14/14, 테스트 223/223 통과
+- `node --test __tests__/ui/consultation-delivery-refund.test.mjs` → 56/56 통과
+- `npm run verify:paid-llm-delivery` → ok, 다시 시도 우선 25개·대기 12개, 변이 37/37 + 100/100 탐지
+- `verify:mongo-query-index-shapes` OK, `verify:cron-mongo-op-coverage` 통과, `verify-payment-freeze` 통과(동결 파일 무변경)
+- `npm run check:fast` → EXIT 0, 테스트 8485 통과·1 건너뜀(첫 실행은 paid-llm-delivery-contract ②④ 가 5초 타임아웃: 테스트 deps 에 새 크론 정산 스텁이 없어 실제 라우트 import 가 DB 를 열었다 → `paidNarrativeRetryRefunds: async () => []` 주입으로 해결)
+- paid-gate-auditor 를 커밋 전에 돌렸다. 차단 1건(보호 자기 제외가 monthly-credit 회귀를 일으킴)은 releasedExecutionId 게이트로 고쳤다. should-fix 2·3·4·5 를 반영했다.
+
+**함정 (이번에 실제로 밟음)**
+- Bash 가 `node -e`·heredoc 안의 백슬래시를 한 겹 벗긴다. 정규식 치환은 Edit 도구나 JSON 사양 스크립트로 한다.
+- 검증기는 `git ls-files worker lib` 만 읽는다. 새 파일은 `git add -N` 을 해야 보인다.
+- 보호 쿼리에서 정산 중인 실행 자신을 무조건 빼면 다른 환불 경로(월정석 테스트 18-20)가 깨진다. 승인된 서술형 실행만 빼도록 게이트로 막는다.
+- 테스트 이름에 작은따옴표(`run's`)를 넣으면 babel 파싱 실패로 스위트 전체가 죽는다.
+- runPendingConsultationRefunds 에 정산기를 새로 넣으면 그 함수를 부르는 테스트의 deps 에도 스텁을 넣어야 한다(expertRetrySettlers 와 같은 방식). 빠뜨리면 실제 import 가 DB 를 열어 타임아웃이 난다.
+
+**남은 위험**
+- 24시간이 지난 레코드를 다시 열어도 클라이언트가 resume 을 호출해야 재생성된다. 지금은 그 버튼이 없다 → C2-UI.
+- oracle·yoga-guru·saju-compat-basic 의 `requirePremiumReportAccess` 에는 최근 결제 120분 창이 있다. 며칠 뒤 다시 시도하면 402 가 날 수 있다(미검증, C2-UI 화면 검증 때 확인).
+- pet-saju-ai 근거 캡처(.access 언래핑)는 미검증이다.
+- 근거 없는 옛 기록·원장만 있는 월정석·꿀단지·지오맨시 이용권(openGeomancyOracle 키)은 자동 환불하지 않고 운영 검토로 간다. 건수 조회: `ServiceExecutionTransaction.countDocuments({status:"pending", reasonCode:{$in:["PAID_NARRATIVE_REFUND_EVIDENCE_MISSING","PAID_NARRATIVE_EXHAUSTION_REFUND_UNCONFIRMED"]}})`
+- 실제 settleExecutionById 를 통과하는 통합 테스트는 없다(auditor should-fix 6). 단위 테스트는 settle 주입으로 본다.
+- 카드 환불 전제조건(paymentRef)은 정산 전에 미리 확인하지 않는다. 실패하면 refund_failed + 운영 검토로 남는다.
+- change-risk 가 이 파일들을 deepRequired=false 로 분류한다(이번 변경 이전부터 있던 공백).
+
+**C2-UI 갭 (제품별, 다음 단계)**
+10종 모두 결과 화면에 아래 두 버튼이 없다. 미완성 결과는 노출하지 않는다.
+1. "무료로 다시 시도": `POST /api/paid-narrative/retry {resultId}` → 응답의 `resumeBody` 로 각 제품 라우트를 다시 호출한다(`{resumeResultId}`).
+2. "환불 요청": `POST /api/paid-narrative/refund-request {resultId}`. 409 RESULT_READY 이면 결과를 연다.
+대상과 서버 라우트(클라이언트 파일은 C2-UI 에서 찾는다):
+- tarot-oracle / love-tarot / mindscan → `worker/routes/tarot.js`
+- dream → `worker/routes/dream.js`
+- yoga-guru → `worker/routes/yoga-guru.js`
+- saju-compat-basic → `worker/routes/saju-compat-basic.js`
+- pet-saju-ai(펫 사주·펫 궁합)
+- geomancy-oracle → `worker/routes/oracle.js`
+- animal-totem → `worker/routes/animal-totem.js`
+- guardian-fortune → `worker/lib/guardian-paid-delivery.js`
