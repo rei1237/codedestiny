@@ -75,7 +75,8 @@ beforeAll(async () => {
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null), updateOne: (...args) => refund(...args) },
   }));
   jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: mode === "pass", accessType: "pass" }) }));
-  jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
+  const moonstone = await import("../../worker/lib/moonstone-spend-proof.js");
+  jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ ...moonstone, findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: (...args) => provider(...args) }));
   const calc = await import("../../worker/lib/karma-destiny-ai-calculations.js");
   jest.unstable_mockModule("../../worker/lib/karma-destiny-ai-calculations.js", () => ({ ...calc, buildKarmaDestinyIntegratedResult: (...args) => chart(...args) }));

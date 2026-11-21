@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { name: "검사", gender: "female", birthDate: "1993-07-21", birthTime: "09:00", birthPlace: { city: "서울", country: "KR", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" }, topic: "전체 운명의 업", calendarType: "solar", focusArea: "overall", accessType: "pass" };
-let settleDue, recordCancel, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume, accessQueue, passOrder, withdrawn;
+let settleDue, recordCancel, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passRefund, consume, accessQueue, passOrder, withdrawn, sharedRefund;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -62,6 +62,7 @@ function prose(seed, length) {
   return value;
 }
 beforeAll(async () => {
+  const deliveryRefund = await import("../../worker/lib/consultation-delivery-refund.js");
   const pass = await import("../../worker/lib/pass-consumption.js");
   jest.unstable_mockModule("../../worker/lib/pass-consumption.js", () => ({ ...pass,
     consumePassForFeature: (...args) => consume(...args), refundPassUseEvidence: async (...args) => passRefund(...args) }));
@@ -88,10 +89,11 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/routes/billing.js", () => ({ BILLING_SNAPSHOT_USER_PROJECTION: "id", handleBillingRoutes: async request => { const payload = await request.json(); if (request.url.endsWith("/cancel")) refund(payload); else usage(payload); return new Response(JSON.stringify({ ok: true })); } }));
   jest.unstable_mockModule("../../worker/lib/cms-prompts.js", () => ({ cmsPromptText: async (_env, _key, text) => text, cmsPromptModelConfig: async () => ({}) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
+  jest.unstable_mockModule("../../worker/lib/consultation-delivery-refund.js", () => ({ ...deliveryRefund, settleFailedConsultationRefund: (...args) => sharedRefund(...args) }));
   ({ handleKarmaDestinyAiRoutes: route, __karmaDestinyAiTestUtils: utils, settleDueKarmaRetryRefunds: settleDue } = await import("../../worker/routes/karma-destiny-ai.js"));
 });
 beforeEach(() => {
-  accessQueue = []; passOrder = null; withdrawn = false; docs = []; recordCancel = jest.fn(); fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); consume = jest.fn(async () => ({ covered: true }));
+  accessQueue = []; passOrder = null; withdrawn = false; docs = []; recordCancel = jest.fn(); fault = null; lostConfirmation = false; blocked = -1; mode = "pass"; userId = uid; usage = jest.fn(); refund = jest.fn(async () => ({})); passRefund = jest.fn(async () => ({ refunded: true })); sharedRefund = jest.fn(async () => ({ ok: true, refundStatus: "refunded" })); consume = jest.fn(async () => ({ covered: true }));
   provider = jest.fn(async (_env, prompt, options) => {
     expect(options.timeoutMs).toBe(45000); expect(options.fallbackToWorkersAI).toBe(false);
     const id = options.cache.keyExtra.match(/chapter-(chapter-\d+)/)[1];
@@ -295,6 +297,39 @@ describe("R10 retry-first hold", () => {
     expect(recordCancel).toHaveBeenCalledTimes(1);
     expect(recordCancel.mock.calls[0][1]).toMatchObject({ $set: { status: "generation_failed" } });
     expect(usage).not.toHaveBeenCalled();
+  });
+  // 2026-11-22 F1: 카드·월정석 결제 보류 건은 이용권 복원만 하고 "not_required" 로 닫아 돈이 돌아가지 않았다.
+  // 이제 공용 환불(settleFailedConsultationRefund: PG 취소·월정석 복원)을 한 번 거친다. 이용권 건은 그대로 기존 경로다.
+  for (const paid of ["paid", "monthly"]) it(`${paid}: a refund request settles the card or moonstone through the shared refund`, async () => {
+    mode = paid; passRefund.mockImplementation(async () => ({ refunded: false }));
+    await hold(); const id = docs[0].id;
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ ok: true, refunded: true, refundStatus: "refunded" });
+    expect(sharedRefund).toHaveBeenCalledTimes(1);
+    expect(sharedRefund).toHaveBeenCalledWith({}, { service: "karma-destiny-ai", id, userId: uid });
+    expect(docs[0].llmMeta.retryable.refundStatus).toBe("refunded");
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ refundStatus: "refunded" });
+    expect(sharedRefund).toHaveBeenCalledTimes(1);
+  });
+  it("paid: an uncertain card refund stays unsettled so the cron retries it", async () => {
+    mode = "paid"; passRefund.mockImplementation(async () => ({ refunded: false }));
+    sharedRefund.mockResolvedValueOnce({ ok: false, refundStatus: "pending", retryable: true });
+    await hold(); const id = docs[0].id;
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ ok: true, refunded: false, refundStatus: "pending" });
+    expect(docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined();
+    expect(await settleDue({}, {})).toEqual([{ service: "karma-destiny-ai", refundStatus: "refunded" }]);
+    expect(sharedRefund).toHaveBeenCalledTimes(2);
+  });
+  it("paid: a refund needing operator review is closed as manual_review, never not_required", async () => {
+    mode = "paid"; passRefund.mockImplementation(async () => ({ refunded: false }));
+    sharedRefund.mockResolvedValueOnce({ ok: false, refundStatus: "manual_review", retryable: false, reason: "REFUND_PROOF_REVIEW" });
+    await hold(); const id = docs[0].id;
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ refundStatus: "manual_review" });
+    expect(docs[0].llmMeta.retryable.refundStatus).toBe("manual_review");
+  });
+  it("pass: the shared card refund is not used", async () => {
+    await hold(); const id = docs[0].id;
+    expect(await (await post("/refund-request", id)).json()).toMatchObject({ refundStatus: "refunded" });
+    expect(sharedRefund).not.toHaveBeenCalled();
   });
   it("a pass restore failure leaves the refund unsettled for the cron", async () => {
     await hold(); const id = docs[0].id; passRefund.mockRejectedValueOnce(new Error("pass db down"));

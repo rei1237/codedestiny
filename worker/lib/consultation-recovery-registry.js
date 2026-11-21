@@ -50,7 +50,7 @@ export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'heukwol', files: ['worker/routes/heukwol.js'], featureKeys: ['heukwol-warning-consultation'], refunds: ['failServiceExecution'] },
   { service: 'celestial-harmony', files: ['worker/routes/celestial-harmony.js', 'worker/lib/celestial-delivery-store.js', 'worker/lib/celestial-report-delivery.js'], featureKeys: ['tarot-celestial-harmony'], refunds: ['failServiceExecution'] },
   { service: 'fortune', files: ['worker/routes/fortune.js'], featureKeys: ['saju_ai_question_prompt'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence', 'refundPassCoverage'] },
-  { service: 'karma-destiny-ai', files: ['worker/routes/karma-destiny-ai.js'], featureKeys: ['karma-destiny-ai-consultation'], refunds: ['refundPassUseEvidence'] },
+  { service: 'karma-destiny-ai', files: ['worker/routes/karma-destiny-ai.js'], featureKeys: ['karma-destiny-ai-consultation'], refunds: ['refundPassUseEvidence', 'settleFailedConsultationRefund'] },
   { service: 'fortune-tea-house', files: ['worker/routes/fortune-tea-house.js'], featureKeys: ['fortune-tea-house-*'], refunds: ['refundPassCoverage'] },
   { service: 'feature-question', files: ['worker/lib/feature-question-delivery.js', 'worker/routes/fortune.js'], featureKeys: ['ziwei_ai_prompt_generator', 'astrology_ai_prompt_generator', 'vedic_ai_prompt_generator', 'sukuyo_ai_prompt_generator'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'master-love-codex', files: ['worker/routes/master-love-codex.js'], featureKeys: ['master-love-codex', 'master-love-codex-compat'], refunds: ['runPaymentCancel', 'runCoinRefund', 'runMonthlyCreditRefund', 'refundPassUseEvidence', 'refundPassCoverage'] },

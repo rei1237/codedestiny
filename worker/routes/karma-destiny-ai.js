@@ -55,6 +55,7 @@ import {
 } from "../lib/karma-destiny-ai-calculations.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
+import { settleFailedConsultationRefund } from "../lib/consultation-delivery-refund.js";
 import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "karma-destiny-ai";
@@ -3317,6 +3318,20 @@ async function settleKarmaRetryRefund(env, { id, userId }, model = KarmaDestinyA
   if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
   const requestId = clean(fresh.idempotencyKey, 180);
   const reason = clean(meta.retryable.refundReason || "RETRY_REFUND", 80);
+  // 2026-11-22 F1: 이미 청구된 현금·월정석 건은 공용 환불(PG 취소·월정석 복원·실행 기록 refunded)로 돌려준다.
+  // 보류 차감(deferredUsage)은 아직 청구 전이라 아래 기존 취소 경로를 그대로 탄다. pending 은 표시하지 않아 크론이 다시 부른다.
+  const billed = asObject(fresh.billingState);
+  if (["paid", "monthly_credit"].includes(clean(fresh.accessType)) && !(billed.deferredUsage && !fresh.usageAppliedAt)) {
+    const shared = await settleFailedConsultationRefund(env, { service: "karma-destiny-ai", id: owner.id, userId: owner.userId });
+    const sharedStatus = clean(shared?.refundStatus);
+    if (sharedStatus !== "refunded" && sharedStatus !== "manual_review") return { refundStatus: "pending" };
+    await releaseRequestBillingEvidence(env, { userId: owner.userId, requestId, evidenceIds: startEvidenceIds(fresh) })
+      .catch(releaseError => logKarmaAi("Retry evidence release failed", { message: clean(releaseError?.message || releaseError, 300) }, "warn"));
+    await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+      "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": sharedStatus } });
+    logStuckSettled({ service: "karma-destiny-ai", sessionId: owner.id, outcome: "retry_refund", refundStatus: sharedStatus });
+    return { refundStatus: sharedStatus };
+  }
   const pass = requestId ? await refundPassUseEvidence({ userId: owner.userId, featureKey: FEATURE_KEY, requestId, refundId: `karma-destiny-ai:${requestId}` }) : null;
   let usageCancelled = false;
   const billingState = asObject(fresh.billingState);
