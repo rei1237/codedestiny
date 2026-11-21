@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,ChevronDown,Download,RotateCcw} from 'lucide-react';
-import {hatHouses,hatImage,hatSystems,type HatResult} from '@/lib/yeongnyangi/hat-houses';
+import {hatHouses,hatImage,hatImageSet,hatSystems,type HatResult} from '@/lib/yeongnyangi/hat-houses';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {fortuneApi,loginForCurrentPage} from '../_lib/api';
 import {profileKey,useProfiles} from '../_lib/use-profiles';
@@ -54,7 +54,7 @@ export default function SortingHat(){
    </div>
    {story&&<HatPrologue key={attempt} result={pending} error={error} onRetry={()=>void sort()} onFinish={()=>{if(pending){setResult(pending);setStory(false);}}}/>}
    {result&&house&&<article className={styles.result} aria-labelledby="hat-result-title">
-    <figure className={styles.resultArt}><Image src={hatImage(house.id)} width={1200} height={800} sizes="(max-width: 900px) 100vw, 900px" alt={`${house.scene}에서 원래의 초승달 모자를 쓴 영냥이. 기숙사 상징은 ${house.symbol}.`}/><figcaption><span>너의 기숙사에 도착했어</span><strong>{house.scene}</strong></figcaption></figure>
+    <figure className={styles.resultArt}><HatResultArt house={house}/><figcaption><span>너의 기숙사에 도착했어</span><strong>{house.scene}</strong></figcaption></figure>
     <header className={styles.resultTitle}><HatHouseEmblem id={house.id}/><p>모자가 너를 이곳으로 안내했어.</p><h3 id="hat-result-title" ref={heading} tabIndex={-1}>{house.name}</h3><p className={styles.motto}>{house.motto}</p><p className={styles.note}>{result.mode==='reference'?'확인할 수 있는 출생 정보로 읽은 참고 배정이에요.':'출생 정보의 상징을 모자의 성향 이야기로 풀었어요.'}</p></header>
     <HatPersonality result={result}/><div className={styles.letter}><h4>이런 순간, 혹시 익숙하니?</h4><ul className={styles.thoughts}>{house.points.map(p=><li key={p}>“{p}”</li>)}</ul></div>
     <dl className={styles.advice}><div><dt>네가 가져온 강점</dt><dd>{house.strength}</dd></div><div><dt>너무 몰입한 날에는</dt><dd>{house.shadow}</dd></div><div><dt>오늘 해볼 작은 선택</dt><dd>{house.action}</dd></div></dl>
@@ -64,4 +64,10 @@ export default function SortingHat(){
    <details className={styles.directory} open={Boolean(result)}><summary>여섯 기숙사 둘러보기<ChevronDown size={18} aria-hidden="true"/></summary><div>{hatHouses.map(h=><article key={h.id}><Image src={hatImage(h.id)} width={600} height={400} sizes="(max-width: 600px) 100vw, 33vw" alt={`${h.name}의 ${h.scene}`} loading="lazy"/><div className={styles.houseHeading}><HatHouseEmblem id={h.id}/><h4>{h.name}<span>{h.trait}</span></h4></div><p>{h.admission}</p></article>)}</div></details>
   </div>}
  </section>;
+}
+const RESULT_ART_SIZES='(max-width: 900px) 100vw, 900px';
+function HatResultArt({house}:{house:typeof hatHouses[number]}){
+ const set=hatImageSet(house.id),alt=set?.alt??`${house.scene}에서 원래의 초승달 모자를 쓴 영냥이. 기숙사 상징은 ${house.symbol}.`;
+ const img=<Image src={hatImage(house.id)} width={set?.width??1200} height={set?.height??800} sizes={RESULT_ART_SIZES} alt={alt}/>;
+ return set?<picture><source type="image/avif" srcSet={set.avif} sizes={RESULT_ART_SIZES}/><source type="image/webp" srcSet={set.webp} sizes={RESULT_ART_SIZES}/>{img}</picture>:img;
 }

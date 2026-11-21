@@ -31,4 +31,10 @@ export const hatSystems:Record<HatSystem,string>={saju:'사주',ziwei:'자미두
 export interface HatEvidence {source:HatSystem;label:string;meaning:string;houseId:HatHouseId;weight:number}
 export interface HatSystemResult {id:HatSystem;status:'used'|'omitted';reason?:string;engineVersion?:string;evidence:HatEvidence[]}
 export interface HatResult {version:string;houseId:HatHouseId;mode:'complete'|'reference';usedCount:number;systems:HatSystemResult[];reasons:HatEvidence[]}
-export const hatImage=(id:HatHouseId|'invitation')=>`/assets/yeongnyangi/hat/${id}-v1.webp`;
+/** Houses redrawn as responsive v2 sets (AVIF+WebP). Others keep the single v1 file. */
+const hatArtV2:Partial<Record<HatHouseId,{alt:string}>>={'star-greenhouse':{alt:'별숲 온실에서 두 앞발로 턱을 괴고 앉아 작은 새싹 화분을 내려다보는 영냥이'}};
+const HAT_V2_WIDTHS=[640,960,1280,1536] as const;
+/** Single canonical URL (save-card canvas, thumbnails). */
+export const hatImage=(id:HatHouseId|'invitation')=>id!=='invitation'&&hatArtV2[id]?`/assets/yeongnyangi/hat/${id}-v2-1280.webp`:`/assets/yeongnyangi/hat/${id}-v1.webp`;
+/** Responsive sources for houses with a v2 set; null keeps the single-file path. */
+export const hatImageSet=(id:HatHouseId)=>{const art=hatArtV2[id];if(!art)return null;const set=(ext:'avif'|'webp')=>HAT_V2_WIDTHS.map(w=>`/assets/yeongnyangi/hat/${id}-v2-${w}.${ext} ${w}w`).join(', ');return {avif:set('avif'),webp:set('webp'),width:1536,height:1024,alt:art.alt};};

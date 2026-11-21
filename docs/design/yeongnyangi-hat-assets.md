@@ -7,3 +7,4 @@
 - 프로젝트 자산: `public/assets/yeongnyangi/hat/{invitation,moon-library,star-forge,dawn-tower,gold-vault,wind-gallery,star-greenhouse}-v1.webp`.
 - 최적화: 긴 가로 1200px, WebP 품질 85. 한글 텍스트는 UI·저장 카드에서 조판한다. 런타임 이미지 생성 없음.
 - 생성 원본 식별자: invitation=47a4c19a-c272-40c1-a20e-4bf94f49b5b6, moon-library=f9cbff5d-6628-4804-b130-5d26f97be3dc, star-forge=ba0e6ace-1b23-4ab2-b2ad-056986e0ed7c, dawn-tower=7159df86-4f12-4b7c-b56a-2b2eb2a7877a, gold-vault=2838c5c3-538c-4fb6-bd92-43df6f585199, wind-gallery=46285616-20bc-407a-b82b-68d05cc169ff, star-greenhouse=9873e846-150b-41d3-86cc-1ab3ff3628d0.
+- 2026-11-22 별숲온실 재생성(사용자 요청): v1 장면과 기준 캐릭터(hero-800)를 참조로 gpt-image-2(Codex image_gen, 1536x1024)에서 새로 그림. 좌하단을 캡션용으로 어둡게 비움. 산출 `star-greenhouse-v2-{640,960,1280,1536}.{avif,webp}`(AVIF q50·WebP q85). 결과 히어로는 `<picture>`(`hatImageSet`), 저장 카드·썸네일은 단일 URL `v2-1280.webp`(`hatImage`). 생성 원본 PNG는 저장소에 두지 않는다.
