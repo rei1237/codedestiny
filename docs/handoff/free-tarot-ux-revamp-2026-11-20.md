@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1~R3·L1. 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
+next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1·R3·L1(R2 는 완료). 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -423,7 +423,7 @@ next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, �
 | # | 대상 URL / 화면 | 변경 | 이유 | 위험 | 롤백 |
 |---|---|---|---|---|---|
 | R1 | 새 공개 URL `/free/`(가칭) + 홈 `/` 배너·`/ggulggul/` "지금 무료로 시작"·"엔진별 기본 풀이"·#cdQuickServices | 목록 단독 페이지 신설, 기존 세 영역을 그 페이지로 가는 요약 카드 1장으로 축소 | 원문 6-1 "한 화면 한 경로", 감사 A1(같은 무료 기능이 5군데 노출) | 새 색인 URL·sitemap·원장·hreflang 12로케일, 홈 첫 화면 구성 변경(전환·perf:home), 정적 셸 미러 7개 | 페이지·요약 카드 플래그 false 또는 커밋 revert, sitemap 재생성 |
-| R2 | `/?action=cdOneStepFreeSajuEntry`(section 없음)·`/ggulggul/?action=cdOneStepFreeSajuEntry` | React 가이드 흐름 `/saju/free/` 로 클라이언트 매핑 | 무료 사주 진입 형식 셋(감사 A2) | 셸 결과의 섹션(재미 카드·궁합)과 결과 범위가 다름 → 같은 결과가 아님, 외부 링크 동작 변화 | 매핑 표 한 줄 제거 |
+| R2 | `/?action=cdOneStepFreeSajuEntry`(section 없음)·`/ggulggul/?action=cdOneStepFreeSajuEntry` | React 가이드 흐름 `/saju/free/` 로 클라이언트 매핑 **(승인·완료 2026-11-21, "6단계 R2 결과")** | 무료 사주 진입 형식 셋(감사 A2) | 셸 결과의 섹션(재미 카드·궁합)과 결과 범위가 다름 → 같은 결과가 아님, 외부 링크 동작 변화 | 매핑 표 한 줄 제거 |
 | R3 | `/compatibility` → `/index.html?action=runCompat`·`?section=compatCard`·`/saju/compatibility/` | 내부 링크를 한 곳으로 모으고 나머지 301/클라이언트 매핑 | 궁합 링크 3분산(감사 A2) | `/compatibility` 는 지금 SEO 랜딩(색인, hreflang) — 301 시 색인 이동 | `_redirects`/매핑 한 줄 revert |
 | R4 | `/tarot/<slug>` 운영 301→302 이중 리다이렉트, `/tarot/mingri`·`?action=openTarotModal`·`cdHomeTarotEntry`·`/tarot/mingri/play` | canonical 하나로 수렴 | 감사 A2 | 5단계 타로 통합 결정에 의존, 워커 `public/_worker.js` 라우팅 | 워커·`_redirects` revert |
 | R5 | `/ggulggul/?action=cdHome{Ziwei,Sukuyo,Vedic,Astro}Entry` | 새 플로우로 매핑 | 원문 6-3 | 대상 React 가이드 흐름이 아직 없음 → 흐름을 먼저 만든 뒤에만 의미 | — |
@@ -584,3 +584,11 @@ SEO 영향 [실측에 근거한 판단]:
 - 위험: 셸 결과(재미 카드·궁합·저장)와 `/saju/free/` 결과 범위가 다름(외부 링크 동작 변화, 승인된 변화); 보내진 방문은 셸 `free_saju_*` 대신 가이드 흐름 이벤트로 잡힘; httpOnly 세션만 있고 힌트가 없는 로그인 사용자는 비회원으로 보고 보냄(`/saju/free/` 는 로그인 사용자도 쓸 수 있음).
 - 검증 계획: 단위(판정 표·플래그 일치·끔이면 이동 0), 임포터/기존 테스트, dev 서버 실브라우저(섹션 없음 → `/saju/free/`, 섹션 있음 그대로, W2 비회원 복귀, 로그인 경로), visual-checker, check:fast·check:pre-push.
 - 롤백: `lib/guided-flow/flags.mjs` 와 index.html 인라인의 `FREE_SAJU_ENTRY_GUIDED_ENABLED=false` + `npm run sync:public`(끄면 스크립트가 첫 줄에서 끝나 오늘과 같음), 또는 기능 커밋 `git revert`.
+
+### 6단계 R2 결과 (2026-11-21, 완료)
+- 기능 커밋 `d10e048d9`(index.html 인라인 판정 + 플래그 `FREE_SAJU_ENTRY_GUIDED_ENABLED` + 셸 미러 7개 + `__tests__/ui/free-saju-entry-route.test.mjs` + `verify-crafted-astro-unlocks` mock 로그인 힌트). 워커·wrangler.toml·`public/_worker.js` 무수정.
+- 실측: 새 단위 5/5(머문다 24경우·보낸다·저장소 예외·플래그 끔), 관련 기존 71/71, `verify:saju-result-login`(W2 비회원 결과·로그인 복귀, 플래그 on/off 6폭) 통과. mock dev 실브라우저 7/7: `/?action=…&utm_source=naver` → `/saju/free/?utm_source=naver`, `/ggulggul/?action=…` → `/saju/free/`, section 있음·W2 초안·로그인 힌트·플래그 끔(HTML 리터럴 교체) 은 `/ggulggul/` 셸 입력 그대로, 뒤로 가기는 원래 페이지(셸 재진입 루프 없음). visual-checker: 6장 모두 기대 화면·정상 렌더.
+- 미검증: `verify-crafted-astro-unlocks.cjs` 실행(수동 스크립트, node --check 만), 스테이징·운영 실주소(워커 302 뒤 한 홉 더), 앱 런타임 실기기.
+- 범위 밖 기존 결함(보고만): 셸 입력 화면 상단 안내 박스 글자 대비 약 1.89:1(visual-checker 픽셀 추정).
+- 남은 위험: 보내진 비회원은 셸 결과(재미 카드·궁합·저장) 대신 `/saju/free/` 결과를 본다(승인된 변화); httpOnly 세션만 있고 힌트 쿠키가 없는 로그인 사용자는 보내질 수 있음; 크롤러는 저장소가 비어 있어 액션 URL 에서 JS 이동을 본다(canonical `/`·사이트맵 미포함이라 영향 낮음); 셸 `free_saju_*` 이벤트 대신 `/saju/free/` 의 guided 이벤트로 잡힌다.
+- 롤백: 플래그 두 곳 false + `npm run sync:public`, 또는 `git revert d10e048d9`.
