@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-21
-next: "C2-UI: 서술형 10종 결과 화면에 무료 다시 시도(POST /api/paid-narrative/retry → resumeBody 재호출)·환불 요청 버튼. 목록은 C2 절의 C2-UI 갭"
+updated: 2026-11-22
+next: "C2-UI 항목1(10종 다시 시도·환불 요청 UI)과 항목4(보관함 표식). 서버 위험 2·3은 fe089da75로 끝남. 설계는 실측 절 C2-UI 진행"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -382,3 +382,29 @@ Base `58ed3c39d` (= origin/main). Worktree `D:\Development\codedestiny-worktrees
 - geomancy-oracle → `worker/routes/oracle.js`
 - animal-totem → `worker/routes/animal-totem.js`
 - guardian-fortune → `worker/lib/guardian-paid-delivery.js`
+
+**C2-UI 진행 (2026-11-22, 워크트리 커밋 fe089da75, push 안 함)**
+- 항목 2. 120분 창 402 위험은 실측으로 확인했고 수정했다. resume 때 paidNarrativeProof 가 없으면 verify(requirePremiumReportAccess)를 다시 불렀다. 그래서 토큰(30분)이나 최근 결제 창(120분)이 지나면 402 가 나고, 이용권 settle 이 다시 돌 수 있었다. 고친 내용: `metadata.paidNarrativeRetry.reopenedAt` 이 있는 resume 은 verify 를 건너뛴다(`worker/lib/paid-narrative-delivery.js` 약 141행). revoked 검사는 그대로 둔다. 테스트는 `__tests__/worker/paid-narrative-intent.test.js` 'a run reopened by the free retry resumes without a second payment check' 이다. 먼저 402 로 빨간불을 확인한 뒤 녹색이 됐다.
+  - 검증: paid-gate-auditor ok(blocking 0), verify-payment-freeze 통과, verify-paid-llm-delivery-contract exit 0(37/37·100/100), cron-mongo-op-coverage 통과, jest 서술형 5스위트 205 pass.
+- 항목 3. pet-saju-ai 환불 근거 캡처는 실측으로 정상이다(코드 변경 없음). 회귀 테스트 'pet report and pet compatibility keep the coin proof the route verifier returned' 를 `__tests__/worker/pet-paid-delivery.test.js` 에 추가했다(67 pass).
+- auditor 후속(보고만, 미수정):
+  - (a) `paid-narrative-delivery.js` 가 `.github/workflows/paid-flow-gates.yml` 의 paths 에 없다. change-risk 도 deepRequired=false 다.
+  - (b) resume 진입 때 refundApprovedAt·heldAt 이 있어도 막지 않는다(기존 경쟁). 409 로 막는 후속을 권한다.
+  - (c) 새 테스트의 변이 검사는 하지 않았다.
+- 항목 1(UI)은 미착수다. 설계와 지도:
+  - App 공용: `app/components/ExpertRetryPanel.tsx` 를 재사용한다. CRLF 파일이고, `__tests__/ui/expert-retry-panel.test.mjs` 가 `postSession(`/retry`, hold.sessionId)`·`JSON.stringify({ sessionId })`·ko 라벨·숫자 없음·5개 로케일을 글자 그대로 단언한다. 그래서 형제 컴포넌트를 만들거나 선택 props(endpoint·idKey resultId·onRetried·onResultReady·서술형 문구)로 하위호환을 지키며 확장한다.
+  - 레거시 공용: UMD 헬퍼(예: `js/core/paid-narrative-retry.js`)를 만든다. `CDPaidNarrativeReader.run` 이 202 retryable===false 에서 persist 뒤 throw 하므로, 저장된 resultId 로 패널을 붙인다. 다시 시도가 성공하면 resumeBody 로 reader 를 다시 돌린다.
+  - 클라이언트 지도:
+    - tarot-oracle: `app/tarot/prompt-maker/TarotPromptMakerClient.tsx` ~2805(continueOracleDelivery)
+    - love-tarot: `app/components/LoveRelationshipTarot.tsx` ~465, 레거시 `js/tarot-love-experience.js` ~1442
+    - mindscan: `app/components/MindScanTarot.tsx` ~1582
+    - guardian: `app/saju-guardian/SajuGuardianClient.tsx`
+    - dream: `js/psycho-dream-analyzer-freuds-study.js` ~745-778
+    - yoga: `yoga-guru.html` ~2083-2090(runSavedYoga, yogaSaved.resultId)
+    - geomancy: `geomancy-oracle-v4.html` ~770-800(geomancySaved.resultId)
+    - pet: `pet-saju.html`
+    - animal-totem: `js/animal-totem-experience.js` ~1047-1091
+    - saju-compat-basic: `js/saju-compat-flow.mjs`:126, `js/core/index-inline-runtime.js`:2449-2462. 레거시 LLM 파일은 템플릿으로 쓰거나 지우지 않는다. 버튼 추가만 한다.
+  - HTML 정적 셸을 건드리면 sync:public 을 돌리고 미러도 커밋한다.
+- 항목 4(보관함 `/records/` 다시 시도 표식)는 미착수다.
+- 함정: PowerShell `[IO.File]` 의 상대 경로는 프로세스 cwd(루트 `D:\Development\code-destiny`)로 풀린다. 워크트리가 아닌 루트 파일을 고친 사고가 있었다(`git apply -R` 로 복구했다). 반드시 절대 경로를 쓴다. `>` 리디렉션은 UTF-16 이 되므로 패치는 `git diff --output=` 로 만든다.
