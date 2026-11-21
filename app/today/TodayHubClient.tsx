@@ -12,7 +12,8 @@ import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 // 몰입형이다 — AppChrome 의 CHROMELESS_ROUTES·FEATURE_NAV_SELF_MANAGED_ROUTES 에 /today 가
 // 있어 전역 헤더·푸터·공용 나브가 붙지 않는다. 상단바는 이 화면이 직접 그린다.
 //
-// 티저 설명은 공개하고, 네 체계 계산은 로그인 확인 뒤 무료로 요청한다.
+// 티저 설명은 공개하고, 네 체계 계산은 시작 버튼 뒤 무료로 요청한다. 세션 확인은 늘 하고, L1 플래그(FREE_READING_GUEST_ENABLED)가
+// 켜져 있으면 비회원·세션 확인 불가도 결과를 연다(계산 API 는 원래 쿠키 없는 공개 호출). 끄면 로그인 사용자만 연다.
 //
 // output:"export" 정적 빌드라 날짜가 굳지 않도록 계산은 반드시 마운트 후에 한다.
 // 배포 게이트(광고 불가·색인 가능 라우트 최소 1800자)를 지탱하는 것은 children 으로 들어오는
@@ -33,7 +34,7 @@ import dynamic from "next/dynamic";
 import { GUIDED_DAILY_TAROT_ENABLED } from "@/lib/guided-flow/flags.mjs";
 import { FusionCrossSell } from "../components/FusionCrossSell";
 import { ArrowLeft, Home } from "lucide-react";
-import { hasFreeReadingSession } from '@/app/_lib/free-reading-access';
+import { freeReadingGuestAllowed, hasFreeReadingSession } from '@/app/_lib/free-reading-access';
 import { useFreeReadingGuard } from '@/app/_lib/use-free-reading-guard';
 import { useReadingIdentityReset } from '@/app/_lib/use-reading-identity-reset';
 import { freeReadingCopy } from '@/app/_lib/free-reading-copy';
@@ -629,6 +630,26 @@ function getTodayHubCopy(locale: LoadingLocale): TodayHubCopy {
   return TODAY_HUB_COPY[locale] || TODAY_HUB_COPY_EN;
 }
 
+// L1: 비회원 무료 결과가 켜지면 히어로 안내의 마지막 "로그인 후 무료" 문장만 바꾼다(로케일별 정확 일치, 없으면 원문 그대로).
+const TODAY_GUEST_HERO_LEAD_TAIL: Record<string, readonly [string, string]> = {
+  en: ["Free after sign-in.", "Free, no sign-in needed."],
+  ko: ["로그인 후 무료로 볼 수 있어요.", "로그인 없이 무료로 볼 수 있어요."],
+  ja: ["ログイン後、無料でご覧いただけます。", "ログインなしで無料でご覧いただけます。"],
+  "zh-CN": ["登录后免费查看。", "无需登录，免费查看。"],
+  "zh-TW": ["登入後免費查看。", "無需登入，免費查看。"],
+  vi: ["Đọc miễn phí sau khi đăng nhập.", "Đọc miễn phí, không cần đăng nhập."],
+  hi: ["लॉगिन के बाद निःशुल्क देखें।", "बिना लॉगिन के निःशुल्क देखें।"],
+  es: ["Gratis después de iniciar sesión.", "Gratis, sin iniciar sesión."],
+  fr: ["Lecture gratuite après connexion.", "Lecture gratuite, sans connexion."],
+  de: ["Nach der Anmeldung kostenlos lesen.", "Kostenlos lesen, ohne Anmeldung."],
+  nl: ["Gratis lezen na het inloggen.", "Gratis lezen, zonder inloggen."],
+  ms: ["Baca percuma selepas log masuk.", "Baca percuma tanpa log masuk."],
+};
+function guestHeroLead(lead: string, locale: string): string {
+  const tail = TODAY_GUEST_HERO_LEAD_TAIL[locale];
+  return freeReadingGuestAllowed() && tail && lead.endsWith(tail[0]) ? lead.slice(0, lead.length - tail[0].length) + tail[1] : lead;
+}
+
 function useTodayHubCopy(): { copy: TodayHubCopy; locale: LoadingLocale } {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
@@ -640,7 +661,8 @@ function useTodayHubCopy(): { copy: TodayHubCopy; locale: LoadingLocale } {
       window.removeEventListener("cd:locale-ready", sync);
     };
   }, []);
-  return { copy: getTodayHubCopy(locale), locale };
+  const copy = useMemo(() => { const base = getTodayHubCopy(locale); return { ...base, heroLead: guestHeroLead(base.heroLead, locale) }; }, [locale]);
+  return { copy, locale };
 }
 
 type TodayLoadingCopy = {
@@ -1039,8 +1061,8 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
     try {
       const signedIn = await hasFreeReadingSession();
       if (!request.valid()) return;
-      if (signedIn) setAccessGranted(true); else setAccessError(freeCopy.description);
-    } catch { if (request.valid()) setAccessError(freeCopy.description); }
+      if (signedIn || freeReadingGuestAllowed()) setAccessGranted(true); else setAccessError(freeCopy.description);
+    } catch { if (request.valid()) { if (freeReadingGuestAllowed()) setAccessGranted(true); else setAccessError(freeCopy.description); } }
     finally { request.finish(); setIsPaying(false); }
   }, [beginFreeReading, freeCopy.description]);
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
