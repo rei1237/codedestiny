@@ -91,7 +91,7 @@ const stubMap={
  'worker/toss/grant.js':"export const grantVerifiedOrder=(...args)=>globalThis.__tossRouteMocks.genericGrant(...args);",
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
- 'worker/lib/rate-limit.js':"export const incrementRateLimit=async args=>{const s=globalThis.__tossRouteMocks;(s.limits||=[]).push(args);return {count:args.endpoint==='toss:human-design-chart'&&s.humanDesignLimited?21:1};};",
+ 'worker/lib/rate-limit.js':"export const incrementRateLimit=async args=>{const s=globalThis.__tossRouteMocks;(s.limits||=[]).push(args);if(s.tarotDeliverCounts&&args.endpoint==='toss:tarot-library-deliver'){const k=args.subjectHash;s.tarotDeliverCounts[k]=(s.tarotDeliverCounts[k]||0)+1;return {count:s.tarotDeliverCounts[k]};}return {count:args.endpoint==='toss:human-design-chart'&&s.humanDesignLimited?21:1};};",
  'worker/yeongnyangi/service.ts':"export const submitQuestionSkyFollowup=(...args)=>globalThis.__tossRouteMocks.skyFollowup(...args);export const experienceCheckFortune=async()=>({check:null});export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
  'worker/yeongnyangi/repository.js':"export const readRequest=(...args)=>globalThis.__tossRouteMocks.read(...args);export const resumeRequest=()=>{};",
  'worker/yeongnyangi/queue.js':"export const enqueueConsultation=()=>{};",
@@ -482,6 +482,26 @@ test('tarot resume rejects an unpaid or cancelled partner order before attaching
  }
  assert.equal(mocks.deliveries,0);
  }finally{mocks.purchase=previous;}
+});
+
+test('tarot result POST is rate limited per identity before partner lookup or generation',async()=>{
+ const previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder,auth:mocks.auth},orderId='01900000-1111-7111-8111-000000000077';
+ let owner=auth,lookups=0;
+ mocks.purchase=filter=>({lean:async()=>filter._id===orderId&&filter.identityId===owner._id?{_id:orderId,sku:'owned-sku',tarotFlowId:'tarot-mindscan'}:null});
+ mocks.lookupOrder=async()=>{lookups++;return {orderId,sku:'owned-sku',status:'PAYMENT_PENDING'};};
+ mocks.tarotDeliverCounts={};mocks.deliveries=0;
+ try{
+  for(let i=0;i<6;i++)assert.equal((await request({},'/tarot-library/results/'+orderId)).status,409);
+  assert.equal(lookups,6);
+  const limited=await request({},'/tarot-library/results/'+orderId);
+  assert.equal(limited.status,429);assert.equal((await limited.json()).error,'TOO_MANY_REQUESTS');
+  assert.equal(lookups,6);assert.equal(mocks.deliveries,0);
+  const foreign=await request({},'/tarot-library/results/01900000-1111-7111-8111-000000000078');
+  assert.equal(foreign.status,404);
+  owner={...auth,_id:'other-identity'};mocks.auth=async()=>owner;
+  assert.equal((await request({},'/tarot-library/results/'+orderId)).status,409);assert.equal(lookups,7);
+  assert.equal(Object.values(mocks.tarotDeliverCounts).reduce((a,b)=>a+b,0),8);
+ }finally{Object.assign(mocks,previous);delete mocks.tarotDeliverCounts;}
 });
 
 test('guest manse works independently of release readiness and never creates a profile or purchase',async()=>{

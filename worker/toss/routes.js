@@ -887,6 +887,8 @@ export async function handleTossRoutes(request,env) {
     if(tarotResultMatch&&request.method==='POST') {
       const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
+      // 생성 재시도는 사용자 버튼으로만 오지만 실패한 주문의 반복 POST 가 유료 LLM 을 무한히 다시 부르지 않게 묶는다.
+      await limit(env,auth._id,'tarot-library-deliver',6,600000);
       const order=await lookupOrder(env,auth.userKey,orderId);
       if(order.sku!==purchase.sku||order.orderId!==orderId)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
