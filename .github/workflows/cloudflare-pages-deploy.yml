@@ -2,8 +2,13 @@ name: Release Cloudflare Pages and Worker
 
 # 🔴 프로덕션에 도달하는 유일한 경로다.
 #
-# main 직접 커밋 → main push → main CI(pr-ci.yml) 통과 → **스테이징 배포 예약**.
-# 프로덕션은 사람이 Run workflow(mode=production)를 눌렀을 때만 나간다.
+# main 직접 커밋 → main push → main CI(pr-ci.yml). push 는 아무것도 배포하지 않는다.
+# 프로덕션은 사람이 Run workflow(mode=production)를 눌렀을 때만 나가고, 스테이징을 거치거나
+# CI 를 기다리지 않는다. 스테이징도 Run workflow(mode=staging)로만 나간다.
+#
+# 🔴 2026-11-21 사용자 요청: "스테이징 배포가 자동으로 돌지 않도록" — push·schedule 트리거와
+# 그것들이 쓰던 스테이징 예약(dispatch_staging 잡·드리프트 워치독)을 제거했다.
+# verify-worker-single-deploy-guard.mjs 가 push·schedule 트리거의 재등장을 실패시킨다.
 #
 # 2026-08-20 컷오버로 push 의 의미가 뒤집혔다. 그 전에는 머지가 곧 프로덕션이라,
 # 수정 하나마다 라이브가 갈리고 재방문자가 매번 "새 버전이 배포되었습니다" 배너를 봤다
@@ -14,19 +19,7 @@ name: Release Cloudflare Pages and Worker
 # 배포 기준은 머지된 main 커밋의 정확한 SHA(`github.sha`) 하나이고, Pages 와 Worker 는 그 하나의
 # 체크아웃에서 함께 나간다. 두 시스템이 서로 다른 코드를 가리키는 상태가 결제·인증 사고의
 # 실제 원인이었기 때문에, 배포 후 양쪽 런타임에서 SHA 를 다시 읽어 대조한다.
-#
-# 🔴 push·schedule 은 무거운 스테이징 배포를 직접 기다리지 않고, 최신 main을 대상으로 한
-# workflow_dispatch(mode=staging)만 예약한 뒤 끝난다. 실제 Pages/Worker 배포는 별도 실행이
-# 같은 스테이징 concurrency 그룹에서 직렬화한다. 따라서 머지·다음 PR·다음 작업은 Cloudflare
-# 배포 시간에 묶이지 않는다.
-#
-# 스테이징 실행은 그룹당 실행 1 + 대기 1 만 유지한다. 빠른 연속 머지에서는 오래된 대기 실행이
-# 최신 예약으로 대체될 수 있지만, 이미 진행 중인 배포는 취소하지 않는다.
 on:
-  push:
-    branches: [main]
-  schedule:
-    - cron: "*/20 * * * *"
   workflow_dispatch:
     inputs:
       mode:
@@ -91,7 +84,8 @@ on:
 #   🔴 mode 선택지를 늘리면 여기에 **명시적으로 분류**해야 한다. 분류를 빠뜨리면 새 mode 가 조용히
 #   스테이징 그룹으로 떨어지므로, verify-worker-single-deploy-guard.mjs 가 inputs.mode.options 를
 #   전수로 읽어 이 식에 없는 선택지를 실패시킨다(손으로 쓴 목록이 아니라 소스에서 발견한다).
-#   마지막 fallback 은 inputs.mode 자체가 없는 push·schedule 용이며, 그 둘은 스테이징이다.
+#   마지막 fallback 은 inputs.mode 가 없는 이벤트용이다. 트리거가 workflow_dispatch 뿐이라 쓰이지 않지만
+#   프로덕션 그룹으로 떨어지지 않도록 스테이징 쪽 이름으로 둔다(가드가 단언).
 concurrency:
   # 🔴 이어지는 줄을 더 들여쓰지 말 것 — 접힘 블록은 더 깊은 들여쓰기를 만나면 개행을 보존한다.
   group: >-
@@ -105,20 +99,11 @@ concurrency:
 
 permissions:
   contents: read
-  # gate 잡이 "이 SHA 를 배포하는 릴리스 런이 지금 도는가" 를 읽는다. 이 권한이 없으면
-  # 조회가 실패하고, 판정은 옛 시간 유예로 폴백한다(동작은 하되 자가 수렴이 다시 느려진다).
   actions: read
 
 jobs:
-  # 릴리스가 정말 필요한지 먼저 싼 값에 판정한다.
-  #
-  # 20분 주기가 매번 npm ci + build:cf 를 돌면 하루 72회의 낭비가 된다. 이 잡은 curl 2회와
-  # git 만 쓰므로, 드리프트가 없으면 30초 안에 릴리스 전체를 건너뛴다.
-  #
-  # 🔴 판정 실패 시 방향이 이벤트마다 다르다.
-  #   push·수동 실행 — 사람이 의도한 배포다. 판정하지 않고 통과시킨다(fail open).
-  #                    여기서 막으면 정상 머지가 배포되지 않는, 고치려던 바로 그 문제가 된다.
-  #   schedule       — 판정하지 못하면 배포하지 않는다(fail closed). 20분 뒤 다시 온다.
+  # 수동 실행의 mode 를 프로덕션·스테이징 두 출력으로 가른다. 체크아웃도 Node 도 쓰지 않아
+  # 몇 초 안에 끝난다 — 프로덕션 dispatch 는 여기서 기다리는 것이 없다(스테이징·CI 선행 불요).
   gate:
     name: Resolve release necessity
     if: github.event_name != 'workflow_dispatch' || inputs.mode != 'rollback'
@@ -131,26 +116,11 @@ jobs:
       #       를 매칭하므로 그 이름과 의미를 건드리면 릴리스와 PR CI 가 동시에 멈춘다.
       #   (2) 한 출력이 두 타깃을 뜻하면 표현식 오타 하나가 곧 프로덕션 배포다.
       proceed_staging: ${{ steps.decide.outputs.proceed_staging }}
-      dispatch_staging: ${{ steps.decide.outputs.dispatch_staging }}
-      workshop_pending: ${{ steps.decide.outputs.workshop_pending }}
     steps:
-      - name: Checkout release SHA
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-
       - name: Decide whether production needs this commit
         id: decide
         env:
-          CD_STAGING_ORIGIN: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
           DISPATCH_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
-          # 드리프트 판정이 릴리스 런 상태를 읽는 데 쓴다. 없으면 옛 시간 유예로 폴백한다.
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           # 🔴 두 판정을 변수에 모으고 **끝에서 한 번만** 쓴다. 갈래마다 echo 하면 갈래를
@@ -158,11 +128,9 @@ jobs:
           #    "그 잡은 그냥 안 돈다"로 조용히 끝난다.
           PROCEED=false
           PROCEED_STAGING=false
-          DISPATCH_STAGING=false
           emit() {
             echo "proceed=${PROCEED}" >> "$GITHUB_OUTPUT"
             echo "proceed_staging=${PROCEED_STAGING}" >> "$GITHUB_OUTPUT"
-            echo "dispatch_staging=${DISPATCH_STAGING}" >> "$GITHUB_OUTPUT"
           }
           # 🔴 프로덕션에 도달하는 갈래는 **workflow_dispatch 하나뿐**이다. 두 값이 동시에
           #    true 가 되는 갈래는 없어야 한다 — 있으면 스테이징을 골랐는데 프로덕션이 나간다.
@@ -178,78 +146,10 @@ jobs:
             echo "::notice::수동 실행(mode=${DISPATCH_MODE}) — 프로덕션 경로로 갑니다."
             exit 0
           fi
-          # 여기부터는 push·schedule 이고, 둘 다 **스테이징 예약**이다.
-          # 연속 머지에서는 아직 예약하지 않은 오래된 SHA를 최신 main에 양보한다.
-          LATEST_MAIN=$(git ls-remote --exit-code origin refs/heads/main | cut -f1) || exit 1
-          if [ -z "${LATEST_MAIN}" ]; then exit 1; fi
-          if [ "${LATEST_MAIN}" != "${GITHUB_SHA}" ]; then
-            emit
-            echo "::notice::더 최신 main이 있습니다. 이 스테이징 실행은 배포 전에 양보합니다."
-            exit 0
-          fi
-          # 머지는 더 이상 프로덕션에 나가지 않는다 — 프로덕션은 사람이 dispatch 할 때만 갱신된다.
-          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
-            DISPATCH_STAGING=true
-            emit
-            echo "::notice::main 머지 — 스테이징 배포를 비동기로 예약합니다. 프로덕션은 수동 실행 전까지 그대로입니다."
-            exit 0
-          fi
-          # schedule — 스테이징이 main HEAD 와 어긋났는지만 본다.
-          #
-          # 🔴 이 판정이 오랫동안 죽어 있었다. 드리프트 유예가 **main HEAD 의 커밋 시각**
-          # 기준(20분)이고 이 cron 도 20분이라, 머지가 20분보다 잦은 구간에서는 모든 주기가
-          # 누군가의 유예 안에서 깨어나 "배포 중" 으로 읽고 그냥 끝났다. 즉 **자가 수렴이 가장
-          # 필요한 구간에서만 꺼졌다**(2026-08-22 16:30 런 32584921998: 스테이징이 두 머지
-          # 뒤처진 상태에서 "main HEAD 와 같습니다" 로 판정하고 스킵).
-          # 지금은 시각이 아니라 **그 SHA 의 릴리스 런이 실제로 도는가** 를 묻는다
-          # (verify-merge-landed.mjs 의 releaseInFlight). 그걸 못 읽으면 예전 유예로 폴백한다.
-          # 🔴 여기서 프로덕션을 보면 안 된다. 새 체계에서 프로덕션은 **정상적으로** main 보다
-          #    뒤처져 있으므로, 프로덕션 기준으로 판정하면 20분마다 영원히 프로덕션을 자동 배포한다.
-          # 얕은 체크아웃이라 origin/main 이 없다. HEAD 가 곧 main tip 이다.
-          #
-          # 🔴 --soft 를 빼지 말 것. 이 스크립트는 드리프트를 critical 로 보고 exit 1 로 끝낸다.
-          # 그러면 아래 `if !` 가 "드리프트 있음"을 "판정 실패"로 읽어 배포를 건너뛴다 —
-          # 자가 수렴이 필요한 바로 그 순간에만 꺼지는, 방향이 뒤집힌 게이트가 된다.
-          # (2026-08-19 20:47 릴리스 실패 뒤 스케줄 7주기 연속 skip, 프로덕션이 9시간 옛 SHA 에 머물렀다.
-          #  컷오버 뒤에는 같은 함정이 스테이징에서 재현된다 — 대상만 바뀌고 원인은 그대로다.)
-          # --soft 는 종료 코드만 낮춘다. 판정 결과는 그대로 아래 .drifted 로 읽는다.
-          if ! OUT=$(node scripts/verify-merge-landed.mjs --check=drift --json --soft --base=HEAD --origin="${CD_STAGING_ORIGIN}"); then
-            emit
-            echo "::warning::스테이징 드리프트를 판정하지 못했습니다. 이번 주기는 건너뜁니다."
-            exit 0
-          fi
-          DRIFTED=$(printf '%s' "$OUT" | jq -r '.drifted // "error"')
-          WORKSHOP=$(node local/edition-workshop/staging-queue.mjs) || WORKSHOP=unavailable
-          if [ "$WORKSHOP" = "pending" ]; then
-            echo "workshop_pending=true" >> "$GITHUB_OUTPUT"
-            DISPATCH_STAGING=true
-            emit
-          elif [ "${DRIFTED}" = "true" ]; then
-            DISPATCH_STAGING=true
-            emit
-            echo "::warning::스테이징이 main HEAD 와 다릅니다. 최신 스테이징 배포를 비동기로 예약합니다."
-          else
-            emit
-            echo "스테이징이 main HEAD 와 같습니다. 배포할 것이 없습니다."
-          fi
-
-  dispatch_staging:
-    name: Queue asynchronous staging release
-    needs: gate
-    if: needs.gate.outputs.dispatch_staging == 'true'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-      contents: read
-    steps:
-      - name: Queue latest main for staging
-        env:
-          GH_TOKEN: ${{ github.token }}
-          WORKSHOP_PENDING: ${{ needs.gate.outputs.workshop_pending }}
-        run: |
-          flags=()
-          if [ "$WORKSHOP_PENDING" = "true" ]; then flags+=(-f allow_redeploy=true); fi
-          gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=staging "${flags[@]}" -R ${{ github.repository }}
+          # fail-closed: 트리거는 workflow_dispatch 하나뿐이다. 다른 이벤트가 오면 아무것도 배포하지 않는다.
+          emit
+          echo "::error::예상하지 못한 이벤트(${GITHUB_EVENT_NAME}) — 배포하지 않습니다."
+          exit 1
 
   release:
     needs: gate
@@ -283,7 +183,7 @@ jobs:
       CD_ALLOW_EMPTY_CHANGESET: "true"
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
       CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
-      # 🔴 이 잡에는 workflow_dispatch 만 도달한다(gate 가 push·schedule 을 스테이징으로 보낸다).
+      # 🔴 이 잡에는 workflow_dispatch 만 도달한다(트리거가 workflow_dispatch 하나뿐이다).
       # 그래서 모드는 사람이 고른 값 하나뿐이고, 다른 이벤트에서 값이 새어 들어올 자리가 없다.
       RELEASE_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
       NEXT_PUBLIC_EDITION_WORKSHOP: production-test
