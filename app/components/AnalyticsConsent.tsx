@@ -53,6 +53,37 @@ export default function AnalyticsConsent() {
     panel.current?.focus();
   }, [open]);
 
+  // Fixed banner covers the bottom of the page until a choice is made. Publish how much it covers so
+  // sticky CTAs (guided flow) and the page bottom padding can sit clear of it instead of underneath.
+  const floating = ready && open && !inPage;
+  useEffect(() => {
+    if (!floating) return;
+    const root = document.documentElement;
+    const node = panel.current;
+    if (!node) return;
+    // Inline so it outranks the bottom-nav padding; the banner always reaches higher than the nav.
+    const body = document.body;
+    const previousPadding = body.style.paddingBottom;
+    const update = () => {
+      const top = node.getBoundingClientRect().top;
+      const cover = Math.max(0, Math.round(window.innerHeight - top + 12));
+      root.style.setProperty("--cd-consent-offset", `${cover}px`);
+      body.style.paddingBottom = `${cover}px`;
+    };
+    update();
+    root.classList.add("cd-consent-open");
+    const observer = typeof ResizeObserver === "function" ? new ResizeObserver(update) : null;
+    observer?.observe(node);
+    window.addEventListener("resize", update);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", update);
+      root.classList.remove("cd-consent-open");
+      root.style.removeProperty("--cd-consent-offset");
+      body.style.paddingBottom = previousPadding;
+    };
+  }, [floating]);
+
   function choose(value: Choice) {
     try {
       document.cookie = `cd_cookie_consent=${value}; path=/; max-age=15552000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;
