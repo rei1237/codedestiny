@@ -44,15 +44,30 @@ try {
   page = await context.newPage();
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto(origin + '/saju/animal-destiny/', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  await page.waitForFunction(() => {
-    const input = document.querySelector('[data-cd-birth-date]');
-    return input && Object.keys(input).some(key => key.startsWith('__reactProps$'));
-  });
-  await page.getByPlaceholder('YYYY-MM-DD').fill('1995-06-15');
-  await page.getByPlaceholder('YYYY-MM-DD').press('Tab');
-  await page.locator('button').filter({ hasText: '내 동물 찾기' }).last().click();
+  // W1 공용 출생 입력(GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED): 시작 → 이름(건너뜀) → 성별 → 생년월일 → 달력 → 시각 → 확인.
+  const nextIfShown = async () => {
+    const next = page.getByRole('button', { name: '다음', exact: true });
+    if (await next.isVisible().catch(() => false)) await next.click();
+  };
+  await page.getByRole('button', { name: '동물 찾기 시작' }).first().click();
+  await page.getByPlaceholder('예: 연이').waitFor();
+  await nextIfShown();
+  await page.getByRole('button', { name: '여성', exact: true }).click();
+  await page.waitForTimeout(300);
+  await nextIfShown();
+  await page.getByPlaceholder('YYYY').fill('1995');
+  await page.getByPlaceholder('MM').fill('06');
+  await page.getByPlaceholder('DD').fill('15');
+  await nextIfShown();
+  await page.getByRole('button', { name: '양력', exact: true }).click();
+  await page.waitForTimeout(300);
+  await nextIfShown();
+  await page.getByRole('button', { name: '시간을 몰라요' }).click();
+  await page.waitForTimeout(300);
+  await nextIfShown();
+  await page.getByRole('button', { name: '확인', exact: true }).click();
   await page.waitForTimeout(3500);
-  const animalCard = page.getByText('운명의 동물 도감 · 결과 요약 카드', { exact: true }).locator('..');
+  const animalCard = page.locator('section, article, div').filter({ hasText: '운명 도감 대표 카드' }).filter({ has: page.getByRole('heading', { name: '보물 햄스터', exact: true }) }).last();
   await animalCard.waitFor();
   assert.equal(await animalCard.getByRole('heading', { name: '보물 햄스터', exact: true }).count(), 1);
   await animalCard.screenshot({ path: path.join(output, 'animal-summary.png') });
