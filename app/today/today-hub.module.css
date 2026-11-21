@@ -45,3 +45,19 @@
   font-weight: 700;
   line-height: 1.7;
 }
+.paperBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border: 1px solid var(--fscroll-gold);
+  border-radius: 999px;
+  background: var(--fscroll-bubble);
+  color: var(--fscroll-accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+.paperBadgeScore {
+  color: var(--fscroll-muted);
+  font-weight: 700;
+}

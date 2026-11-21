@@ -5,7 +5,8 @@
  * 🔴 html2canvas 로 이미지 저장하므로 mask·backdrop-filter·clip-path 는 쓰지 않는다. 그라데이션·그림자·테두리만.
  * 🔴 모션은 transform·opacity 만. reduced-motion 과 캡처 중([data-capturing])에는 멈춘다.
  */
-.scroll {
+.scroll,
+.actions {
   --fscroll-paper: #fbf3df;
   --fscroll-paper-deep: #f3e5c3;
   --fscroll-ink: #3f2536;
@@ -17,6 +18,9 @@
   --fscroll-seal: #b3262e;
   --fscroll-seal-ink: #fff3e6;
   --fscroll-bubble: #fffaf0;
+}
+
+.scroll {
   position: relative;
   width: 100%;
   max-width: 560px;
@@ -357,7 +361,7 @@
   }
 
   .say {
-    padding-right: 56px;
+    padding-right: 72px;
   }
 }
 
@@ -377,6 +381,32 @@
 
 .scroll[data-capturing="true"] .seal {
   opacity: 0.9;
+}
+
+/* html2canvas 는 inset box-shadow 를 못 그리므로 캡처 중에만 테두리로 바꾼다(글자 쏠림은 useCaptureShare 의 기준선 보정이 맡는다). */
+.scroll[data-capturing="true"] .sheet {
+  box-shadow: none;
+  border: 1px solid var(--fscroll-gold-soft);
+  background: var(--fscroll-paper);
+}
+.scroll[data-capturing="true"] .rod {
+  background: var(--fscroll-gold);
+  box-shadow: none;
+}
+.scroll[data-capturing="true"] .rod::before,
+.scroll[data-capturing="true"] .rod::after {
+  background: var(--fscroll-rod);
+  box-shadow: none;
+}
+.scroll[data-capturing="true"] .practice {
+  box-shadow: none;
+  background: var(--fscroll-bubble);
+}
+.scroll[data-capturing="true"] .seal {
+  box-shadow: none;
+}
+.scroll[data-capturing="true"] .swatch {
+  box-shadow: none;
 }
 
 /* ─ 액션 줄 ─ */

@@ -59,7 +59,7 @@
 .stage {
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 36px var(--cd-sp-md) 20px;
+  padding: 56px var(--cd-sp-md) 20px;
   scroll-snap-type: x proximity;
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
@@ -77,7 +77,7 @@
   flex: none;
   width: 62px;
   aspect-ratio: 2 / 3;
-  margin-left: -18px;
+  margin-left: -14px;
   padding: 0;
   border: 1px solid var(--gf-line);
   border-radius: var(--cd-r-sm);

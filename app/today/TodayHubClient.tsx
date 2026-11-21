@@ -817,7 +817,19 @@ function TodayLoadingPanel({ locale }: { locale: LoadingLocale }) {
   );
 }
 
-function VerdictBadge({ card, copy }: { card: SystemCard; copy: TodayHubCopy }) {
+function VerdictBadge({ card, copy, paper = false }: { card: SystemCard; copy: TodayHubCopy; paper?: boolean }) {
+  if (paper) {
+    // 양피지 위에서는 다크 테마용 색(text-*-100)이 안 보이므로 두루마리 색을 쓴다.
+    const tone = TIER_TONE[card.tier || ""] || "pivot";
+    const withVerdict = Boolean(card.tierLabel) && card.score != null;
+    return (
+      <span className={styles.paperBadge}>
+        <span aria-hidden="true">{withVerdict ? TONE_MARK[tone] : "◇"}</span>
+        {withVerdict ? card.tierLabel : copy.noVerdictLabel}
+        {withVerdict && card.score != null && <span className={styles.paperBadgeScore}>{copy.scoreSuffix(card.score)}</span>}
+      </span>
+    );
+  }
   if (!card.tierLabel || card.score == null) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full border border-white/16 bg-white/[0.06] px-3 py-1 text-xs font-bold text-slate-200">
@@ -933,7 +945,7 @@ function CardPanel({
           when={tomorrow ? "내일" : "오늘"}
           eyebrow={[dateLabel, card.anchor].filter(Boolean).join(" · ")}
           title={card.headline}
-          badge={<VerdictBadge card={card} copy={copy} />}
+          badge={<VerdictBadge card={card} copy={copy} paper />}
           summary={<>
             <span className={styles.scrollInvite}>{tomorrow ? SYSTEM_ART[card.system].invitation.replaceAll("오늘", "내일") : SYSTEM_ART[card.system].invitation}</span>
             {card.body}

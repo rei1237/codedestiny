@@ -16,6 +16,10 @@ type Busy = "save" | "share" | null;
 // 캡처 바탕(두루마리 주변 여백). 기존 /today 공유 이미지와 같은 값이다.
 const CAPTURE_BACKDROP = "#070A11";
 
+// html2canvas 1.4.1 은 글자 기준선을 1px GIF <img> 로 재는데, 전역 CSS `img{display:block}`(Tailwind preflight)이
+// 그 측정을 깨뜨려 모든 글자가 7px 안팎 아래로 그려진다. 캡처하는 동안만 그 측정용 이미지를 인라인으로 되돌린다.
+const BASELINE_PROBE_CSS = 'img[src^="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP"]{display:inline !important}';
+
 /**
  * 요소를 PNG 로 만들어 저장하거나 공유한다(html2canvas, 서버·계정·LLM 호출 없음).
  * 캡처 중에는 요소에 data-capturing 을 달아 CSS 애니메이션(도장 등)을 멈춘다.
@@ -28,6 +32,9 @@ export function useCaptureShare({ targetId, fileName, shareTitle, shareText }: C
     const node = document.getElementById(targetId);
     if (!node) throw new Error("capture target missing");
     node.setAttribute("data-capturing", "true");
+    const probeFix = document.createElement("style");
+    probeFix.textContent = BASELINE_PROBE_CSS;
+    document.head.appendChild(probeFix);
     try {
       const { default: html2canvas } = await import("html2canvas");
       const canvas = await html2canvas(node, { backgroundColor: CAPTURE_BACKDROP, scale: 2, useCORS: true });
@@ -35,6 +42,7 @@ export function useCaptureShare({ targetId, fileName, shareTitle, shareText }: C
       if (!blob) throw new Error("capture failed");
       return blob;
     } finally {
+      probeFix.remove();
       node.removeAttribute("data-capturing");
     }
   }, [targetId]);
