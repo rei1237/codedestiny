@@ -4,7 +4,7 @@
 .tile svg{flex:none}
 .tile:focus-visible{outline:2px solid var(--yn-gold-hover);outline-offset:2px}
 @media (hover:hover){.tile:hover{border-color:currentColor;background:color-mix(in srgb,var(--yn-violet) 65%,var(--yn-night))}}
-@media(max-width:550px){.shelf{gap:5px;padding:10px 10px 12px}.tile{flex-direction:column;gap:4px;padding:6px 2px;font-size:clamp(10px,2.9vw,13px);border-radius:13px}}
+@media(max-width:550px){.shelf{gap:5px;padding:10px 10px 12px}.tile{flex-direction:column;gap:4px;padding:6px 2px;font-size:clamp(12px,3.3vw,13px);border-radius:13px}}
 
 .content :global(.room-companion){scroll-margin-top:20px}
 .content :global(.room-objects button){background:linear-gradient(150deg,color-mix(in srgb,var(--yn-violet) 45%,var(--yn-night)),color-mix(in srgb,var(--yn-violet) 28%,var(--yn-night)));border-color:color-mix(in srgb,var(--yn-violet) 58%,var(--yn-ivory));border-radius:16px}
@@ -15,7 +15,7 @@
 .content :global(.room-note-drawer[open] summary::after){content:"−"}
 .content :global(.room-cat-speech){max-width:min(57%,15rem);padding:10px 14px;pointer-events:none}
 .content :global(.room-presence-caption){pointer-events:none}
-@media(max-width:380px){.content :global(.room-welcome){left:14px;top:16px;font-size:10px}.content :global(.room-cat-speech){right:10px;top:42px;font-size:13px}}
+@media(max-width:380px){.content :global(.room-welcome){left:10px;top:12px}.content :global(.room-cat-speech){right:10px;top:42px;font-size:13px}}
 .reward{margin:0;padding:0 16px 10px;color:var(--yn-muted);font-size:.76rem;line-height:1.55;text-align:center}
 .shelf{width:100%;grid-template-columns:repeat(6,minmax(0,1fr))}
 .tile{grid-column:span 2}
