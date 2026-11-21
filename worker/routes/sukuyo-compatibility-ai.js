@@ -36,7 +36,7 @@ import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
 import { claimRequestBillingEvidence, evidenceAlreadyUsedResult, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
-import { STUCK_LIVE_LEASE_MS, expireRetryableConsultations, logStuckSettled, markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, settleStuckRetryFirst, expireRetryableConsultations, logStuckSettled, markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const TITLE = "숙요점 전문가 상담";
@@ -2692,6 +2692,32 @@ async function handleResult(request, env) {
     return json({ ok: false, reason: "PAYMENT_REVOKED", retryable: false }, { status: 403 });
   }
   return json({ ok: true, consultation: await serializeConsultation(consultation) });
+}
+
+// 2026-11-22 D: 복구 크론의 정체 확정(다시 시도 우선). 창 안은 다시 시도 가능 상태로 두고(묶음 보존), 창이 지나면 기존 보류 환불로 1회 정산.
+// 크론 문서에는 접근 증빙이 없어 읽기 전용 증빙 조회로 실패 당시와 같은 모양(sukuyoRetryMeta)을 다시 만든다. 이용권 정산(차감) 경로는 타지 않는다.
+// 선결제(코인·월정석·카드) 증빙을 못 찾으면 확정하지 않는다(pending).
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  await connectDb(env);
+  const target = model || SukuyoCompatibilityAiConsultation;
+  return settleStuckRetryFirst({ service: FEATURE_KEY, model: target, doc, now, idKey: "_id", failedFields: { generationLease: "" },
+    isLive: (fresh, at) => at - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS,
+    hold: fresh => fresh.accessSource !== "toss",
+    snapshot: async fresh => {
+      const idempotencyKey = clean(fresh.idempotencyKey, 180);
+      const resumeBody = fresh.llmMeta?.resumeBody && typeof fresh.llmMeta.resumeBody === "object" ? fresh.llmMeta.resumeBody : {};
+      const pick = access => ({ accessType: clean(access?.accessType, 40), paymentId: clean(access?.paymentId, 180), claimEvidenceId: clean(access?.claimEvidenceId, 180) });
+      const evidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, { userId: fresh.userId }, { ...resumeBody, idempotencyKey }));
+      if (evidence?.ok) return pick(evidence);
+      const accessType = clean(fresh.accessType, 40).toLowerCase();
+      if (accessType === "paid") {
+        const payment = await findSukuyoCardPayment(fresh.userId, { paymentId: fresh.paymentId }, idempotencyKey, resumeBody);
+        if (payment) return pick({ accessType, paymentId: fresh.paymentId, claimEvidenceId: String(payment._id || "") });
+      }
+      if (["paid", "subscription", ""].includes(accessType)) throw new Error("billing evidence not found");
+      return pick({ accessType, paymentId: fresh.paymentId });
+    },
+    settleRefund: owner => settleSukuyoRetryRefund(env, { id: String(owner._id), userId: owner.userId }, target, now) });
 }
 
 export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
