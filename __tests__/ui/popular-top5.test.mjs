@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import { mountPopularTop5, mountPopularTop5InShell, toPopularRows } from '../../js/core/popular-top5.mjs';
 
-// 2026-11-21 메인 인기 TOP5: 판매 순위는 숫자, 표본 부족 자리는 "추천", 응답이 이상하면 구역째 숨긴다.
+// 2026-11-21 메인 인기 TOP5: 판매 순위는 숫자, 표본 부족 자리는 "추천", API 가 실패하면 추천 목록으로 자리를 지킨다(F2).
 const items = (sources) => [
   'new-year-ai-consultation', 'love-secret-ai-consultation', 'life-book-ai-consultation', 'master-love-codex', 'fortune-tea-house-tarot-consultation',
 ].map((featureKey, index) => ({ featureKey, rank: index + 1, source: sources[index] }));
@@ -31,7 +31,7 @@ test('판매 순위는 숫자 배지, 추천 자리는 "추천" 배지와 기간
   assert.deepEqual(tracked, [['popular_top5_click', { rank: 3, source: 'curated', service_id: 'life-book-ai', surface: 'home' }]]);
 });
 
-test('API 실패·모르는 키·뒤섞인 순서면 정적 셸 구역을 지운다(fail-closed)', async () => {
+test('API 실패면 숫자 순위 없이 추천 목록으로 자리를 지킨다(CLS 방지), 이상한 응답은 행으로 쓰지 않는다', async () => {
   for (const fetchImpl of [reply({ ok: false, items: [] }, false), async () => { throw new Error('offline'); }]) {
     const window = dom();
     window.fetch = fetchImpl;
@@ -39,7 +39,12 @@ test('API 실패·모르는 키·뒤섞인 순서면 정적 셸 구역을 지운
     const section = window.document.querySelector('[data-cd-pop5-shell]');
     assert.ok(section && section.previousElementSibling.classList.contains('yh-situations'));
     await new Promise((resolve) => setTimeout(resolve, 0));
-    assert.equal(window.document.querySelector('[data-cd-pop5-shell]'), null);
+    const kept = window.document.querySelector('[data-cd-pop5-shell]');
+    assert.ok(kept, '실패해도 예약한 자리를 지운다면 아래 내용이 밀려 올라온다');
+    assert.equal(kept.dataset.cdPop5State, 'ready');
+    assert.ok('cdPop5Fallback' in kept.dataset);
+    assert.deepEqual([...kept.querySelectorAll('.cd-pop5__badge')].map((node) => node.textContent), ['추천', '추천', '추천', '추천', '추천']);
+    assert.match(kept.querySelector('.cd-pop5__period').textContent, /운영진이 고른 추천 상담/);
   }
   assert.equal(toPopularRows({ ok: true, items: [{ featureKey: 'unknown', rank: 1, source: 'sales' }, ...items(['sales', 'sales', 'sales', 'sales']).slice(1)] }), null);
   assert.equal(toPopularRows({ ok: true, items: items(['curated', 'sales', 'curated', 'curated', 'curated']) }), null);

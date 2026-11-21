@@ -1,14 +1,15 @@
 // 메인 "지금 많이 찾는 상담 TOP5" 화면 조각(2026-11-21 사용자 요청: 도화서원처럼 실제 인기 순위).
 //
 // - 데이터: GET /api/popular-services (최근 30일 실제 구매 순위, 건수 없음). 표본이 적은 자리는 "추천".
-// - 🔴 fail-closed: 응답이 없거나 이상하면 섹션을 통째로 지운다. 가짜 순위를 그리지 않는다.
+// - 🔴 가짜 순위를 그리지 않는다: 응답이 없거나 이상하면 숫자 순위 없이 운영진 추천(curated) 목록만 그린다.
+//   예약한 484px 를 지켜 아래 내용이 밀려 올라오지 않게 한다(CLS 방지, 2026-11-21 F2).
 // - 렌더 차단 CSS(yehwa-home.css·app CSS)는 건드리지 않으려고 스타일을 여기서 늦게 넣는다(W4 마스터 모션과 같은 방식).
 // - 분석은 popular_top5_click 하나만 쏜다 — data-cd-service-id·data-cd-funnel-section 을 달지 않아
 //   홈 select_item·home_section_click 수치에 섞이지 않는다.
 // - 한국어 전용 구역(data-cd-korean-only, 문서 lang 이 ko 가 아니면 CSS 로 숨김). 쓰는 곳: app/components/PopularTop5.tsx(`/`), js/core/yehwa-home.mjs(`/ggulggul/`).
 // 롤백: POPULAR_TOP5_ENABLED=false — 섹션도, 요청도 생기지 않는다.
 
-import { findPopularService, POPULAR_TOP_N, POPULAR_WINDOW_DAYS } from './popular-services.mjs';
+import { findPopularService, POPULAR_TOP_N, POPULAR_WINDOW_DAYS, rankPopularServices } from './popular-services.mjs';
 
 export const POPULAR_TOP5_ENABLED = true;
 export const POPULAR_TOP5_ENDPOINT = '/api/popular-services';
@@ -72,7 +73,7 @@ function el(doc, tag, className, text) {
   return node;
 }
 
-export function renderPopularTop5(section, payload, { surface = 'home' } = {}) {
+export function renderPopularTop5(section, payload, { surface = 'home', fallback = false } = {}) {
   const doc = section.ownerDocument;
   const rows = toPopularRows(payload);
   if (!rows) return false;
@@ -84,7 +85,9 @@ export function renderPopularTop5(section, payload, { surface = 'home' } = {}) {
   title.id = `cdPop5Title-${surface}`;
   section.setAttribute('aria-labelledby', title.id);
   const asOf = formatAsOf(payload.asOf);
-  const period = hasSales
+  const period = fallback
+    ? '지금은 운영진이 고른 추천 상담을 먼저 보여 드려요'
+    : hasSales
     ? `최근 ${POPULAR_WINDOW_DAYS}일 구매 기준${asOf ? ` · ${asOf}` : ''}`
     : `최근 ${POPULAR_WINDOW_DAYS}일 구매가 아직 적어 추천 상담을 먼저 보여 드려요`;
   head.append(title, el(doc, 'p', 'cd-pop5__period', period));
@@ -118,11 +121,17 @@ export function renderPopularTop5(section, payload, { surface = 'home' } = {}) {
   section.replaceChildren(head, list);
   if (hasSales && hasCurated) section.append(el(doc, 'p', 'cd-pop5__note', '‘추천’은 구매 표본이 적은 자리를 채운 운영진 추천이에요.'));
   section.dataset.cdPop5State = 'ready';
+  if (fallback) section.dataset.cdPop5Fallback = ''; else delete section.dataset.cdPop5Fallback;
   return true;
 }
 
+/** API 가 없거나 이상할 때 쓰는 추천 목록(전부 curated, 숫자 순위 없음). */
+export function popularFallbackPayload() {
+  return { ok: true, asOf: '', windowDays: POPULAR_WINDOW_DAYS, items: rankPopularServices([]) };
+}
+
 /**
- * section 에 TOP5 를 채운다. 실패하면 section 을 지우고 false.
+ * section 에 TOP5 를 채운다. API 가 실패하면 추천 목록으로 자리를 지킨다. 그것도 못 그리면 section 을 지우고 false.
  * @param {HTMLElement} section 비어 있는 자리(높이는 호출부나 여기 CSS 가 잡는다)
  * @param {{surface?: string, fetchImpl?: Function, removeOnFail?: boolean}} [options]
  */
@@ -145,7 +154,10 @@ export async function mountPopularTop5(section, { surface = 'home', fetchImpl, r
     payload = null;
   }
 
-  if (!section.isConnected || !renderPopularTop5(section, payload, { surface })) {
+  const rendered = section.isConnected
+    && (renderPopularTop5(section, payload, { surface })
+      || renderPopularTop5(section, popularFallbackPayload(), { surface, fallback: true }));
+  if (!rendered) {
     // React 가 가진 노드는 React 가 치운다(removeOnFail:false). 정적 셸에서는 여기서 지운다.
     if (removeOnFail) section.remove(); else section.replaceChildren();
     section.dataset.cdPop5State = 'failed';
