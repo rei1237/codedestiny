@@ -104,6 +104,9 @@ export default function serviceCompat(){
     if(!code.includes(widths))throw new Error('Sample responsive artwork contract changed');
     code=code.replace(widths,'?[320,480,640,960]:[960]');
    }
+   // Toss sells only through its in-app purchase. The shared pass preview names the
+   // web PG on its card path; no Toss code reads that label, so the bundle omits it.
+   if(id.replaceAll('\\','/').split('?')[0].endsWith('/app/_lib/billing-client.ts')){const label=/(["'`])PORTONE_V2_KG_INICIS\1/g;if((code.match(label)||[]).length!==4)throw new Error('Billing provider label contract changed');code=code.replace(label,'""');}
    if(id.replaceAll('\\','/').endsWith('/app/neo-consultation/NeoConsultationClient.tsx'))code=code.replace(/["'](\/(?:assets|images)\/[^"']+\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/app/palm-reading/PalmDestinyMain.tsx'))code=code.replace(/["'](\/images\/(?:service-introductions\/palm-reading-960|expert-characters\/yeoni\/shooting-guide)\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/lib/palm/palm-ui-state.js'))return code.replace('module.exports = {','export default {');
@@ -138,6 +141,8 @@ export default function serviceCompat(){
    if(normalized.endsWith('/app/hooks/usePayment'))return fileURLToPath(new URL('./payment-state.jsx',import.meta.url));
    if(/\/app\/_lib\/auth-client(?:\.[jt]s)?$/.test(normalized)&&!importer?.split('?')[0].replaceAll('\\','/').endsWith('/apps/toss/service/auth-client.jsx'))return fileURLToPath(new URL('./auth-client.jsx',import.meta.url));
    if(normalized.endsWith('/app/_lib/billing-client'))return fileURLToPath(new URL('./billing.jsx',import.meta.url));
+   // The web direct-payment runtime is excluded from the review bundle; see web-checkout-entry.js.
+   if(/\/js\/core\/checkout-entry(?:\.js)?$/.test(normalized))return fileURLToPath(new URL('./web-checkout-entry.js',import.meta.url));
    if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));
    if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;
   },
