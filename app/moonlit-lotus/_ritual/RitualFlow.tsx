@@ -1,8 +1,8 @@
 "use client";
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import {useCallback,useEffect,useReducer,useRef,useState} from 'react';
 import {FastForward,Map as MapIcon,X} from 'lucide-react';
-import Character,{type Activity} from '../_components/Character';
 import {useSpaceProfile} from '../_lib/use-space-profile';
 import {speciesOf} from '../_lib/companions';
 import {writeRecord} from '../_lib/private-store';
@@ -19,8 +19,10 @@ import HoldToLight from './HoldToLight';
 import WishLantern from './WishLantern';
 import {useAmbientAudio} from '../_audio/use-ambient-audio';
 import MiniPlayer from '../_audio/MiniPlayer';
+import CompanionStage,{type BreathBeat} from './CompanionStage';
+// 연출(canvas·CSS 등불)은 따로 나눠 불러 첫 화면을 막지 않는다.
+const SceneFx=dynamic(()=>import('../_fx/SceneFx'),{ssr:false});
 type Voice='yeoni'|'cat'|'neutral';
-const ACTIVITY:Record<RitualState['step'],Activity>={enter:'greeting',breathe:'meditation',incense:'idle',bow:'bow',wish:'prayer',dedication:'greeting'};
 function lineKey(state:RitualState,bowing:boolean){
  switch(state.step){
   case 'incense':return state.lit?'incenseLit':'incense';
@@ -33,6 +35,8 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
  const profile=useSpaceProfile();
  const {t,locale}=useRitualT();
  const [state,dispatch]=useReducer(ritualReducer,undefined,()=>initialRitual());
+ const [breath,setBreath]=useState<BreathBeat>({phase:'ready',at:0,ms:0});
+ const onBreathPhase=useCallback((phase:BreathBeat['phase'],ms:number)=>setBreath({phase,at:performance.now(),ms}),[]);
  const [reduced,setReduced]=useState(false),[characterError,setCharacterError]=useState(false),[notice,setNotice]=useState('');
  const scale=timeScale(state.fast);
  const bow=useRitualBow(profile.scope,state.fast?1.6:1);
@@ -88,17 +92,18 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
     <img src="/assets/moonlit-lotus/space-v1/hall-768.webp" alt="" decoding="async"/>
    </picture>
    <SpeechBubble key={state.step+lineKey(state,bowing)} speaker={speaker} text={t('speech.'+voice+'.'+lineKey(state,bowing))} instant={reduced} fast={state.fast} t={t}/>
+   <SceneFx smoke={state.lit} reduced={reduced}/>
    {!characterError&&<div className={styles.figure}>
-    <Character kind={kind} activity={ACTIVITY[state.step]} elapsed={bow.session.elapsed} reduced={reduced} look={profile.avatar} image={profile.image} portrait={profile.portrait} onFailure={()=>setCharacterError(true)}/>
+    <CompanionStage kind={kind} look={profile.avatar} image={profile.image} portrait={profile.portrait} scene={{step:state.step,lit:state.lit,bowing,bows:state.bows,wishSent:state.wishSent}} elapsed={bow.session.elapsed} breath={breath} reduced={reduced} speaker={speaker} t={t} onFailure={()=>setCharacterError(true)}/>
    </div>}
    <MiniPlayer audio={audio} t={t}/>
   </section>
-  <section className={styles.panel} aria-live="off">
+  <section key={state.step} className={styles.panel} aria-live="off">
    {state.step==='enter'&&<>
     <button type="button" className={space.primary+' '+styles.action} onClick={()=>{audio.begin();sfx('windChime');dispatch({type:'enter'});}}>{t('enter.cta')}</button>
     <p className={styles.hint}>{t('enter.hint')}</p>
    </>}
-   {state.step==='breathe'&&<BreathGuide breaths={state.breaths} scale={scale} onCycle={()=>dispatch({type:'breathDone'})} t={t}/>}
+   {state.step==='breathe'&&<BreathGuide breaths={state.breaths} scale={scale} onCycle={()=>dispatch({type:'breathDone'})} onPhase={onBreathPhase} t={t}/>}
    {state.step==='incense'&&<HoldToLight holdMs={HOLD_MS*scale} lit={state.lit} onLit={()=>dispatch({type:'light'})} t={t}/>}
    {state.step==='bow'&&<>
     <button type="button" className={space.primary+' '+styles.action} disabled={bowing||state.bows>=BOW_TARGET} onClick={bow.tap}>

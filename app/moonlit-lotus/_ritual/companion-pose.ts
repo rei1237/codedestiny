@@ -31,7 +31,8 @@ export function yeoniPose(state:CompanionState,c:PoseContext):YeoniPose{
   case 'guide':return pose('tilt');
   case 'breathe':return {sheet:'rest',frame:breathFrame(c.breath,c.breathProgress)};
   case 'bow':return frontBowPoseAt(c.elapsed) as YeoniPose;
-  case 'pray':return {sheet:'bow-down',frame:2};
+  // bow-down 시트는 옅은 사각 매트(알파≤60)가 있어 밝은 배경 위에서 상자가 비친다. 정지 합장은 명상 프레임으로.
+  case 'pray':return {sheet:'rest',frame:3};
   case 'bless':return pose(Math.floor(c.since/BLESS_SWAP_MS)%2?'cheer':'hug');
   case 'react':return pose(c.since<500?'surprise':'shy');
   case 'rest':return pose('sleep');

@@ -6,9 +6,10 @@ import styles from './ritual.module.css';
 type Phase=keyof typeof BREATH_PATTERN;
 const ORDER:Phase[]=['inhale','hold','exhale'];
 /** 4-4-6 호흡 빛. 한 번 내쉴 때마다 onCycle. 시간은 CSS 변수로 넘긴다. */
-export default function BreathGuide({breaths,scale,onCycle,t}:{breaths:number;scale:number;onCycle:()=>void;t:RitualT}){
+export default function BreathGuide({breaths,scale,onCycle,onPhase,t}:{breaths:number;scale:number;onCycle:()=>void;onPhase?:(phase:Phase|'ready',ms:number)=>void;t:RitualT}){
  const [phase,setPhase]=useState<Phase|'ready'>('ready');
  const cycle=useRef(onCycle);cycle.current=onCycle;
+ const beat=useRef(onPhase);beat.current=onPhase;
  useEffect(()=>{
   // 첫 칠에서 바로 커지면 전이가 보이지 않으므로 한 틱 쉬었다가 들이쉰다.
   const timer=setTimeout(()=>setPhase('inhale'),120);
@@ -24,6 +25,10 @@ export default function BreathGuide({breaths,scale,onCycle,t}:{breaths:number;sc
   return()=>clearTimeout(timer);
  },[phase,scale]);
  const ms=phase==='ready'?0:BREATH_PATTERN[phase]*scale;
+ useEffect(()=>{
+  // 길동무가 같은 박자로 숨 쉬도록 단계가 바뀔 때마다 알린다.
+  beat.current?.(phase,ms);
+ },[phase,ms]);
  return <div className={styles.breath}>
   <div className={styles.breathLight} data-phase={phase} style={{'--ml-breath-ms':ms+'ms'} as React.CSSProperties} aria-hidden="true"/>
   <p className={styles.breathLabel} aria-live="polite">{phase==='ready'?' ':t('breathe.'+phase)}</p>

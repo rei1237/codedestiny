@@ -1,0 +1,17 @@
+/* 장면 연출. transform·opacity 만 움직이고 색은 --ml-* 만 쓴다. */
+.canvas { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.moon { position:absolute; top:6%; right:8%; width:min(22vw,120px); aspect-ratio:1; border-radius:50%; pointer-events:none; background:radial-gradient(closest-side,var(--ml-ink) 18%,var(--ml-gold) 34%,transparent); opacity:.22; animation:fx-moon 9000ms ease-in-out infinite alternate; }
+.lamp { position:absolute; bottom:22%; width:min(16vw,84px); aspect-ratio:1; border-radius:50%; pointer-events:none; background:radial-gradient(closest-side,var(--ml-gold),transparent); opacity:.3; animation:fx-flicker 2600ms ease-in-out infinite; }
+.lamp[data-side=left] { left:4%; }
+.lamp[data-side=right] { right:4%; animation-duration:3100ms; animation-delay:-900ms; }
+.smoke { position:absolute; left:50%; bottom:6%; width:28px; height:40%; translate:-50% 0; pointer-events:none; }
+.smoke i { position:absolute; left:50%; bottom:0; width:14px; height:14px; margin-left:-7px; border-radius:50%; background:radial-gradient(closest-side,var(--ml-muted),transparent); opacity:0; animation:fx-smoke 4200ms ease-out infinite; }
+.smoke i:nth-child(2) { animation-delay:1400ms; }
+.smoke i:nth-child(3) { animation-delay:2800ms; }
+@keyframes fx-moon { from { opacity:.16; transform:scale(.97); } to { opacity:.3; transform:scale(1.03); } }
+@keyframes fx-flicker { 0%,100% { opacity:.26; transform:scale(1); } 30% { opacity:.36; transform:scale(1.04); } 55% { opacity:.22; transform:scale(.98); } 80% { opacity:.33; transform:scale(1.02); } }
+@keyframes fx-smoke { 0% { opacity:0; transform:translate(0,0) scale(.6); } 20% { opacity:.4; } 100% { opacity:0; transform:translate(10px,-900%) scale(2.4); } }
+@media (prefers-reduced-motion:reduce) {
+  .moon,.lamp,.smoke i { animation:none !important; }
+  .smoke { display:none; }
+}

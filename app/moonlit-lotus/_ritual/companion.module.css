@@ -1,0 +1,36 @@
+/* 참배 길동무. transform·opacity 만 움직인다. 색은 space.module.css 의 --ml-* 만 쓴다. */
+.companion { position:relative; width:100%; height:100%; touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+/* 장면 그림의 밝은 단(壇)이 캐릭터 뒤에서 사각형으로 보이지 않게, 발밑을 밤빛으로 가라앉힌다. */
+.pool { position:absolute; inset:-14% -22% -6%; border-radius:50%; background:radial-gradient(closest-side,var(--ml-paper) 42%,transparent); opacity:.78; pointer-events:none; }
+.halo { position:absolute; inset:6% 10% 18%; border-radius:50%; background:radial-gradient(closest-side,var(--ml-gold),transparent); opacity:.18; pointer-events:none; animation:companion-halo 4800ms ease-in-out infinite alternate; }
+.look,.float,.bounce,.breath { position:relative; width:100%; height:100%; transform-origin:50% 94%; }
+.breath>* { width:100%; height:100%; }
+.look { transition:transform 700ms ease-out; }
+.float { animation:companion-float 6400ms ease-in-out infinite alternate; }
+.breath { animation:companion-breathe 4800ms ease-in-out infinite alternate; }
+/* 연이(2단계)는 발을 딛고 서 있어 떠오르지 않는다. 절·쉼에서는 아무도 떠오르지 않는다. */
+.companion[data-tier="2"] .float,
+.companion:is([data-state=bow],[data-state=rest],[data-state=pray]) .float { animation:none; }
+.companion[data-state=bow] .breath { animation:none; }
+/* 호흡 단계: 4-4-6 박자에 맞춰 1 → 1.015. 시간은 단계마다 JS 가 넘긴다. */
+.breath[data-breath] { animation:none; transition:transform var(--companion-breath-ms,0ms) ease-in-out; }
+.breath[data-breath=inhale],.breath[data-breath=hold] { transform:scale(1.015); }
+.breath[data-breath=exhale] { transform:scale(1); }
+.companion[data-state=breathe] .halo { animation-duration:7000ms; opacity:.26; }
+.companion[data-state=bless] .halo { opacity:.34; animation-duration:2400ms; }
+.companion[data-state=react] .bounce { animation:companion-hop 520ms ease-out; }
+.companion[data-tier="2"][data-state=react] .bounce { animation-name:companion-nudge; }
+/* 연등이 떠오르면 위를 올려다본다(시선 그림이 없어 기울기로 근사). */
+.companion[data-look=up] .look { transform:translateY(-2%) rotate(-3deg); }
+.companion[data-state=rest] .look { transform:translateY(1%) rotate(3deg); }
+.companion[data-state=rest] .breath { animation-duration:7200ms; }
+.companion[data-state=rest] .halo { opacity:.1; }
+@keyframes companion-halo { from { opacity:.12; transform:scale(.96); } to { opacity:.26; transform:scale(1.04); } }
+@keyframes companion-float { from { transform:translateY(0); } to { transform:translateY(-2.5%); } }
+@keyframes companion-breathe { from { transform:scale(1); } to { transform:scale(1.015); } }
+@keyframes companion-hop { 0% { transform:translateY(0); } 40% { transform:translateY(-6%) scale(1.02,.98); } 100% { transform:translateY(0); } }
+@keyframes companion-nudge { 0% { transform:translateY(0); } 40% { transform:translateY(-2.5%); } 100% { transform:translateY(0); } }
+@media (prefers-reduced-motion:reduce) {
+  .halo,.float,.breath,.bounce { animation:none !important; }
+  .look,.breath[data-breath] { transition:none; }
+}

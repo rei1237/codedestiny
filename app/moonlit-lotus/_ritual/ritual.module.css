@@ -16,12 +16,20 @@
 
 .stage { position:relative; min-height:0; overflow:hidden; display:grid; grid-template-rows:auto 1fr; justify-items:center; padding:12px 16px 0; isolation:isolate; }
 .backdrop { position:absolute; inset:0; z-index:-1; }
-.backdrop img { width:100%; height:100%; object-fit:cover; object-position:50% 60%; opacity:.62; }
+.backdrop img { width:100%; height:100%; object-fit:cover; object-position:50% 60%; opacity:.62; transform-origin:50% 70%; transition:transform 800ms ease-in-out,opacity 800ms ease-in-out; }
+/* 단계마다 카메라가 조금씩 다가간다(transform 만). 회향에서는 장면이 밝아진다. */
+.flow[data-step=breathe] .backdrop img { transform:scale(1.03); }
+.flow[data-step=incense] .backdrop img { transform:scale(1.06) translateY(1%); }
+.flow[data-step=bow] .backdrop img { transform:scale(1.08) translateY(1.5%); }
+.flow[data-step=wish] .backdrop img { transform:scale(1.04) translateY(-1%); }
+.flow[data-step=dedication] .backdrop img { transform:scale(1.02); opacity:.8; }
+.figure { position:relative; }
 .backdrop::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom,transparent 45%,var(--ml-paper)); }
-.figure { align-self:end; width:min(62vw,300px,42dvh); aspect-ratio:1; margin-bottom:-4%; }
+/* 겹침은 그림 크기 기준(퍼센트 margin 은 무대 너비 기준이라 넓은 화면에서 발·절 포즈가 잘렸다). 그림 아래 여백은 3.4% 이상. */
+.figure { --figure-size:min(62vw,300px,42dvh); align-self:end; width:var(--figure-size); aspect-ratio:1; margin-bottom:calc(var(--figure-size) * -.03); }
 .figure>div { width:100%; height:100%; }
 
-.bubble { position:relative; width:min(100%,32rem); padding:12px 16px 14px; border:1px solid var(--ml-gold-line); border-radius:18px; background:var(--ml-surface); box-shadow:var(--ml-control-shadow); }
+.bubble { position:relative; z-index:1; width:min(100%,32rem); padding:12px 16px 14px; border:1px solid var(--ml-gold-line); border-radius:18px; background:var(--ml-surface); box-shadow:var(--ml-control-shadow); }
 .bubble::after { content:''; position:absolute; left:50%; bottom:-8px; width:14px; height:14px; translate:-50% 0; rotate:45deg; background:var(--ml-surface); border-right:1px solid var(--ml-gold-line); border-bottom:1px solid var(--ml-gold-line); }
 .speaker { margin:0 0 2px; font:400 .9rem/1.3 var(--ml-display); color:var(--ml-gold); }
 .flow .line { margin:0; font-size:1rem; line-height:1.65; word-break:keep-all; overflow-wrap:break-word; }
@@ -30,7 +38,7 @@
 .flow .bubbleSkip::before { display:none; }
 .flow .bubbleSkip:hover { background:transparent; }
 
-.panel { display:grid; justify-items:center; gap:10px; width:min(100%,36rem); margin:0 auto; padding:14px 16px max(16px,env(safe-area-inset-bottom)); }
+.panel { animation:ritual-dissolve 560ms ease-out both; display:grid; justify-items:center; gap:10px; width:min(100%,36rem); margin:0 auto; padding:14px 16px max(16px,env(safe-area-inset-bottom)); }
 .flow .action { width:min(100%,22rem); min-height:56px; font-size:1.05rem; }
 .flow .quiet { min-height:44px; padding:8px 16px; border-color:transparent; background:transparent; box-shadow:none; color:var(--ml-muted); font-weight:500; text-decoration:underline; text-underline-offset:4px; }
 .flow .quiet::before { display:none; }
@@ -69,13 +77,14 @@
 .homeLink { display:inline-grid; place-items:center; min-height:48px; width:min(100%,22rem); border-radius:999px; border:1px solid var(--ml-gold-line); font-weight:600; }
 .flow .homeLink { color:var(--ml-ink); text-decoration:none; }
 
+@keyframes ritual-dissolve { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
 @media (max-width:380px) {
   .top { gap:6px; }
   .stepName { font-size:.95rem; }
   .flow .chip,.exit { padding:8px 10px; }
 }
 @media (min-width:700px) {
-  .figure { width:min(36vw,340px,44dvh); }
+  .figure { --figure-size:min(36vw,340px,44dvh); }
 }
 /* 가로 휴대폰: 장면과 행동을 나란히 둬 한 화면에 한 행동이 다 보이게 한다. */
 @media (orientation:landscape) and (max-height:560px) {
@@ -83,7 +92,8 @@
   .top { grid-column:1 / -1; min-height:48px; }
   .stage { grid-row:2; grid-column:1; padding-top:8px; }
   .panel { grid-row:2; grid-column:2; align-self:center; max-height:100%; overflow-y:auto; padding-top:8px; padding-bottom:max(8px,env(safe-area-inset-bottom)); gap:6px; }
-  .figure { width:min(40vw,62dvh); }
+  /* 절하는 포즈가 아래로 잘리지 않게 높이에 맞추고 바닥 겹침을 없앤다. */
+  .figure { --figure-size:min(40vw,50dvh); }
   .flow .action { min-height:48px; }
   .lantern { width:44px; height:52px; }
   .flow .wishInput { min-height:52px; }
