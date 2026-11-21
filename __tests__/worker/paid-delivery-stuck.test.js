@@ -439,3 +439,17 @@ test('설정자가 unsettled 로 돌려주면 크론은 기존처럼 이어쓴�
   } finally { log.mockRestore(); }
   expect(resume).toHaveBeenCalledTimes(1);
 });
+
+// 2026-11-22 감사 B2: 증빙 조회 실패(pending)도 이어쓰기·회전을 거친다. 건너뛰면 가장 오래된 한 건이 서비스 크론을 7일간 막는다.
+test('설정자가 pending 으로 돌려주면 크론은 이어쓰고 updatedAt 을 회전한다', async () => {
+  const model = memoryModel(baseDoc('partial', { deliveryWatch: { baseline: 1, stalls: 6 } }));
+  const before = model.doc.updatedAt.getTime();
+  const resume = jest.fn(async () => new Response('{}', { status: 202 }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await runConsultationRecovery({}, { now: START + 3600000, connectDb: async () => {}, adapters: [[stuck.STUCK_SETTLERS[0], 'M', {}]], models: { M: model },
+      loadAdapter: async () => ({ resumeConsultationOnServer: resume, settleStuckDelivery: async () => ({ outcome: 'pending' }) }) });
+  } finally { log.mockRestore(); }
+  expect(resume).toHaveBeenCalledTimes(1);
+  expect(model.doc.updatedAt.getTime()).toBeGreaterThan(before);
+});
