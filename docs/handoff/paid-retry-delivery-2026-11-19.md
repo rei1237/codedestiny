@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-21
-next: "R11 운영 Release 보류 — 5b63b4ecd 이후 다른 세션의 결제 런타임 커밋(03b2743fb·9090d7271) 포함 여부를 사용자에게 재확인한 뒤 1회 dispatch"
+next: "없음 — 2026-11-21 운영 반영 완료"
 ---
 
 # 유료 LLM "다시 시도로 반드시 결과 받기" 인수인계
@@ -18,6 +18,9 @@ next: "R11 운영 Release 보류 — 5b63b4ecd 이후 다른 세션의 결제 �
 2. 이 문서의 단계 체크박스를 보고 `next` 부터 진행한다.
 
 ## 지금 상태
+- 2026-11-21 운영 Release 완료: run 44861991164, SHA e85f70c6926b7a7bbd10cbf8c9629b89b6c9b1f9 (사용자 원문 "운영 배포를 하라고 하면 바로 운영 배포가 되도록해줘"). release success, 운영 /api/health ok.
+- 배포 ID: pages 32075ba4-be27-4d13-b0ea-acd950dedef3 / worker d5e8287f-796f-4e7e-bb75-28f33a075d2e. 롤백 대상: pages f71927be-75c0-439b-bee2-9b99081d11d9 / worker 1bf2085f-a25a-4db5-9709-fa39fa1ead43 (Release mode=rollback).
+- 워크트리 B 배수 완료. 이 문서는 닫힘.
 - main = `b3b77221c` 시점에 작성. 운영 = `25d9bc034`(2026-11-19 Release run 44501694109 성공, S13·S15·S16 반영).
 - 워크트리 `D:\Development\codedestiny-worktrees\paid-retry-20261119-195316`, 브랜치 `wt/paid-retry-20261119-195316`, 기점 `bcce826eb`.
 - 커밋(push·main 머지 안 함): `e11840bf4` R1 · `e62ce85fd` R2 수정 라운드 · `89c05a3bc` sitemap 원장(네오 결과 화면 서명) · `3915323c7` 7일=생성 시각 · `9f725b7a3`+`39fcbd4a0` R3 · `14a12f0d1`+`d7eea47b5` R4 · `7ed35229a` 보안 버킷(R3·R4 공통) · `0a3f1942d` Toss 하네스 · `b402a1ef7` 문서 · R2b `e86b0c779`·`d113288d1`·`e89217af9`·`4e5eae70d`·`d7be2c558` · R5 `4c81511e5`(워커)·`3926da828`(클라이언트)·`1968b0488`(sitemap 원장) · R6 `4d13f4692`(워커)·`35caa1280`(클라이언트)·`8e0f4eb51`(sitemap 원장) · R7 찻집 `1cec195b8`(워커)·`dd51e5355`(클라이언트)·`6759ad789`(sitemap 원장) · R7 코덱스 `d16920bf3`(워커)·`5ed4f9258`(클라이언트+원장) · R7b `384d3b8f6`(보관함+원장) · 이 문서 갱신 커밋.

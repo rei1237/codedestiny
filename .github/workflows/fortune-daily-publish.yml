@@ -51,6 +51,13 @@
 #   뒤처진 만큼(결제·인증 코드 변경 포함)을 실제로 프로덕션에 실어 보내는 것은 이 워크플로가
 #   대신하지 않는다 — 사람이 mode=production 을 target_sha 없이 수동 실행해야 하는 별도 결정이다.
 #
+# 🔴 2026-11-21 — 릴리스 대기 한도(25분)가 멀쩡한 배포를 실패로 판정하고 이중 배포를 일으켰다.
+#   야간 40회 중 13회가 실패로 끝났는데 그중 11회는 릴리스 런이 실제로는 success 였다. 정상 릴리스가
+#   17~31분(대기 포함 최대 48.5분)이라 25분을 넘기면 진행 중인 런을 실패로 보고 재디스패치했고, 새 런이
+#   동시성 그룹에서 앞 런 뒤에 줄을 서 같은 날 두 번 배포됐다(`gh run watch` 가 API 오류로 죽는 경우도 같다).
+#   지금은 watch 가 성공으로 끝나지 않으면 **같은 런을 다시 조회해** 판정하고, 한도(60분)까지 끝나지 않은
+#   런은 재디스패치 없이 `release-timeout` 으로 멈춰 이슈로 알린다.
+#
 # 🔴 과금 없음 — scripts/gen-daily.mjs 는 한국 음양력 코어의 역법 조회와 날짜 해시 선택만 쓴다.
 #    LLM·외부 API 호출이 0이므로 매일 돌아도 비용이 발생하지 않는다.
 
@@ -87,7 +94,9 @@ jobs:
   publish:
     name: Publish and verify today's fortune
     runs-on: ubuntu-latest
-    timeout-minutes: 70
+    # 최악 경로 ≈ 2 × (런 ID 확보 2 + 릴리스 대기 ≤ 62 + 반영 확인 9) + 재시도 대기 1 ≈ 148분. 그 안에서
+    # 스크립트가 스스로 끝나야 아래 `if: failure()` 이슈 스텝이 돈다(잡 타임아웃으로 취소되면 돌지 않는다).
+    timeout-minutes: 160
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -125,6 +134,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
           RUN_DATE_KST: ${{ steps.date.outputs.run_date }}
+          # 릴리스 런을 기다리는 한도(초). 아래 "2. 배포 완료" 주석 참고.
+          RELEASE_WATCH_SECONDS: "3600"
         run: |
           set -uo pipefail
           MAX_ATTEMPTS=2
@@ -188,15 +199,45 @@ jobs:
             echo "릴리스 런: ${RUN_URL}"
 
             # 2. 배포 완료 -------------------------------------------------
-            # 25분 상한을 두는 이유: 이 런이 다른 릴리스 뒤에 줄을 서면 대기가 길어질 수 있고,
-            # 그 상태로 무한정 붙잡혀 있으면 잡 타임아웃에 걸려 재시도 기회를 잃는다.
+            # 릴리스 런이 끝날 때까지 최대 ${RELEASE_WATCH_SECONDS}초 지켜본다. 상한을 두는 이유: 이 런이 다른 릴리스 뒤에
+            # 줄을 서면 대기가 길어질 수 있고, 무한정 붙잡혀 있으면 잡 타임아웃에 걸려 이슈 스텝이 못 돈다. 정상 릴리스가
+            # 17~31분(대기 포함 최대 48.5분)이라 상한은 그 위로 둔다.
+            #
+            # watch 가 0 으로 끝나지 않았다고 런이 실패한 것은 아니다 — 한도 초과(124)나 API 일시 오류(HTTP 500)로도
+            # 죽고, 그때 런은 계속 돈다. 그래서 같은 런을 다시 조회해 판정한다.
+            #   completed + success → 반영 확인(verify)으로 진행
+            #   completed + 그 외   → 진짜 실패. 기존대로 한 번 더 시도
+            #   한도까지 미완료     → 재디스패치하지 않는다. 새 런은 동시성 그룹에서 앞 런 뒤에 줄을 서 이중 배포가 된다.
+            #                         `release-timeout` 으로 멈추고 이슈로 알린다.
+            # GitHub 의 기본 셸이 `bash -e` 라 여기서 실패 한 번이 스텝을 끝낸다 — 실패할 수 있는 명령은 전부 `if`/`||`/`while`
+            # 조건 안에 둔다.
             LAST_STAGE="release"
-            if ! timeout 25m gh run watch "${RELEASE_RUN_ID}" --exit-status --interval 20; then
-              CONCLUSION="$(gh run view "${RELEASE_RUN_ID}" -R "${{ github.repository }}" --json conclusion --jq '.conclusion // "timed_out"' || echo unknown)"
-              echo "::warning::릴리스 런이 성공으로 끝나지 않았습니다: ${CONCLUSION} (${RUN_URL})"
-              echo "::endgroup::"
-              sleep 60
-              continue
+            RELEASE_DEADLINE=$(( $(date +%s) + RELEASE_WATCH_SECONDS ))
+            if ! timeout "${RELEASE_WATCH_SECONDS}s" gh run watch "${RELEASE_RUN_ID}" --exit-status --interval 20; then
+              while :; do
+                RELEASE_STATE="$(timeout 60s gh run view "${RELEASE_RUN_ID}" -R "${{ github.repository }}" --json status,conclusion --jq '.status + "/" + (.conclusion // "")' 2>/dev/null)" || RELEASE_STATE=""
+                case "${RELEASE_STATE}" in completed/*) break ;; esac
+                if [ "$(date +%s)" -ge "${RELEASE_DEADLINE}" ]; then break; fi
+                sleep 30
+              done
+              case "${RELEASE_STATE}" in
+                completed/success)
+                  echo "::notice::gh run watch 는 비정상 종료했지만 릴리스 런은 success 로 끝났습니다(${RUN_URL})."
+                  ;;
+                completed/*)
+                  echo "::warning::릴리스 런이 성공으로 끝나지 않았습니다: ${RELEASE_STATE#completed/} (${RUN_URL})"
+                  echo "::endgroup::"
+                  sleep 60
+                  continue
+                  ;;
+                *)
+                  RELEASE_STATE="${RELEASE_STATE%/}"
+                  echo "::error::릴리스 런이 ${RELEASE_WATCH_SECONDS}초가 지나도 끝나지 않았습니다(상태: ${RELEASE_STATE:-조회 실패}, ${RUN_URL}). 재디스패치하면 앞 런 뒤에 줄을 서 이중 배포가 되므로 여기서 멈춥니다."
+                  LAST_STAGE="release-timeout"
+                  echo "::endgroup::"
+                  break
+                  ;;
+              esac
             fi
 
             # 3. 실제 반영 -------------------------------------------------
@@ -241,7 +282,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
           if [ "${FINAL_STATUS}" != "ok" ]; then
-            echo "::error::KST ${RUN_DATE_KST} 운세 발행이 ${MAX_ATTEMPTS}회 시도 후에도 실패했습니다(마지막 단계: ${LAST_STAGE})."
+            echo "::error::KST ${RUN_DATE_KST} 운세 발행이 실패했습니다(시도 ${ATTEMPT}/${MAX_ATTEMPTS}, 마지막 단계: ${LAST_STAGE})."
             exit 1
           fi
           echo "KST ${RUN_DATE_KST} 운세가 프로덕션에 반영됐습니다."
@@ -291,6 +332,9 @@ jobs:
           \`verify\` 단계 실패는 배포는 됐지만 엣지에 아직 안 퍼진 경우입니다 —
           \`npm run verify:fortune-freshness\` 로 지금 상태를 먼저 다시 재 보세요.
           \`dispatch\`/\`resolve-run\` 은 릴리스 워크플로를 깨우지 못한 경우입니다.
+          \`release-timeout\` 은 릴리스 런이 60분 안에 끝나지 않은 경우입니다. 이 워크플로는 그 런을 다시 디스패치하지
+          않습니다 — 새 런이 동시성 그룹에서 앞 런 뒤에 줄을 서 같은 날 두 번 배포되기 때문입니다. 마지막 릴리스 런 링크로
+          상태를 먼저 확인하세요. 아직 진행 중이면 끝나거나 취소된 뒤에 이 워크플로를 수동 실행하세요(그 전에는 금지).
           EOF
 
           NUM="$(gh issue list --state open --limit 50 --json number,body --jq "[.[] | select(.body | contains(\"${MARKER}\"))] | .[0].number // empty" || true)"

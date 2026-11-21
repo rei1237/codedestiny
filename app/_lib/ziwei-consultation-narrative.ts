@@ -37,6 +37,66 @@ const HERO_NOTES: Record<string, string> = {
   "칠살": "결정한 뒤에도 함께 갈 사람을 돌아볼 시간이 필요합니다. 속도를 조금 나누면 혼자 앞서가던 힘이 협력으로 이어집니다.",
   "파군": "익숙한 틀에 맞추느라 답답했던 순간이 있었을 수 있습니다. 다시 시작할 용기에, 잘해온 것을 남기는 감각을 더해보세요."
 };
+// 같은 해석 문장이 8개 주제에서 되풀이되지 않게, 주제마다 "어디에서 그렇게 나타나는지"를 앞에 붙이고 꼬리 문장을 갈라 쓴다.
+// 명반 사실(별·궁·사화)은 그대로이고 문장 틀만 주제별로 다르다.
+const LENS: Record<ConsultationTopic, string> = {
+  life: '삶 전체로 보면 ', career: '일에서는 ', wealth: '돈을 다룰 때는 ', love: '가까운 사이에서는 ',
+  relationships: '사람들 사이에서는 ', family: '가족 안에서는 ', health: '몸의 리듬에서는 ', timing: '시기를 고를 때는 ',
+};
+const GI_TAIL: Record<ConsultationTopic, string> = {
+  life: '당장 풀 수 있는 부분과 기다려야 하는 부분을 나누면 마음이 가벼워집니다.',
+  career: '오늘 처리할 수 있는 일과 결과를 기다려야 하는 일을 나눠 두면 부담이 줄어듭니다.',
+  wealth: '지금 정리할 수 있는 지출과 시간이 필요한 문제를 나누면 마음이 덜 흔들립니다.',
+  love: '지금 말할 수 있는 마음과 시간이 필요한 마음을 나누면 대화가 덜 무거워집니다.',
+  relationships: '내가 바꿀 수 있는 부분과 상대의 몫을 나누면 사람 사이의 피로가 줄어듭니다.',
+  family: '내가 맡을 수 있는 몫과 가족이 함께 정해야 할 몫을 나누면 부담을 덜 수 있습니다.',
+  health: '오늘 쉬게 할 수 있는 부분과 지켜봐야 하는 부분을 나누면 몸이 한결 편해집니다.',
+  timing: '지금 움직일 수 있는 일과 기다려야 하는 일을 나누면 시기를 훨씬 차분히 고를 수 있습니다.',
+};
+const CONSTRAINED_TAIL: Record<ConsultationTopic, string> = {
+  life: '더 세게 버티기 전에 속도와 역할이 맞는지 살펴보세요.',
+  career: '더 세게 버티기 전에 맡은 역할과 마감의 속도가 맞는지 살펴보세요.',
+  wealth: '무리해서 버티기 전에 지출의 속도와 수입의 시기가 맞는지 살펴보세요.',
+  love: '더 애쓰기 전에 서로의 속도와 기대가 맞는지 살펴보세요.',
+  relationships: '참고 맞추기 전에 이 자리의 속도와 내 역할이 맞는지 살펴보세요.',
+  family: '혼자 버티기 전에 가족 안에서 나눈 역할의 크기가 맞는지 살펴보세요.',
+  health: '몸을 더 몰아붙이기 전에 하루의 속도와 쉬는 시간이 맞는지 살펴보세요.',
+  timing: '더 서두르기 전에 지금의 속도가 내 힘과 맞는지 살펴보세요.',
+};
+const TOPIC_NOUN: Record<ConsultationTopic, string> = {
+  life: '삶', career: '일', wealth: '돈', love: '연애', relationships: '사람 관계', family: '가족', health: '건강', timing: '시기',
+};
+const ASSIST_WRITE: Record<ConsultationTopic, string> = {
+  life: '생각을 글이나 대화로 정리하는 습관이 이 힘을 받쳐줍니다.',
+  career: '아이디어를 문서나 발표로 정리해 내놓을 때 이 힘이 더 잘 전달됩니다.',
+  wealth: '돈의 흐름을 글로 적어 두면 이 감각이 더 선명해집니다.',
+  love: '마음을 메시지로 한 번 정리해 보면 이 힘이 부드럽게 전해집니다.',
+  relationships: '말하기 전에 한 줄로 정리해 보는 습관이 사람 사이에서 이 힘을 받쳐줍니다.',
+  family: '가족에게 하고 싶은 말을 글로 먼저 적어 보면 이 힘이 덜 부딪힙니다.',
+  health: '몸의 신호를 기록으로 남기는 습관이 이 힘을 받쳐줍니다.',
+  timing: '결정한 이유를 글로 남겨 두면 이 힘이 시기를 고를 때 기준이 됩니다.',
+};
+const ASSIST_HELP: Record<ConsultationTopic, string> = {
+  life: '혼자 마무리하려 하기보다, 중간에 의견을 나눌 사람이 있을 때 부담을 덜기 쉽습니다.',
+  career: '일의 중간 단계에서 의견을 구할 선배나 동료가 있으면 부담이 줄어듭니다.',
+  wealth: '큰돈이 오갈 때 한 번 더 확인해 줄 사람이 곁에 있으면 판단이 안정됩니다.',
+  love: '마음이 복잡할 때 털어놓을 수 있는 믿을 만한 사람이 이 관계의 부담을 덜어줍니다.',
+  relationships: '사람 사이의 일을 혼자 판단하기보다 같이 살펴볼 사람이 있으면 편해집니다.',
+  family: '가족 일은 혼자 감당하기보다 의견을 나눌 사람이 곁에 있을 때 가벼워집니다.',
+  health: '몸이 지칠 때 쉬어 가라고 말해 줄 사람이 곁에 있으면 회복이 빨라집니다.',
+  timing: '큰 변화를 앞두고는 중간에 점검해 줄 사람이 있으면 방향을 바꾸기 쉽습니다.',
+};
+// 오늘의 조언 — 첫 문장은 그날의 숙제를 한마디로 못 박는 판결(합니다체)이고, 나머지는 주제의 장면으로 이어진다.
+const TODAY_FRAME: Record<ConsultationTopic, (burden: string) => string> = {
+  life: b => `오늘의 숙제는 나를 알아차리는 일 하나입니다. ${b}이 나타나는 순간을 하나만 짚고, 그때 필요했던 것을 한 줄 남겨도 좋아요.`,
+  career: b => `오늘은 일터의 장면 하나만 봅니다. ${b}이 나타나는 순간을 알아차리고, 그 자리에서 바꿀 수 있었던 선택을 적어 두세요.`,
+  wealth: b => `오늘은 돈이 오가는 순간 하나만 봅니다. ${b}이 나타난 장면이 있었는지 떠올리고, 결제 전에 하루 두고 볼 항목을 골라 보세요.`,
+  love: b => `오늘은 가까운 사람과의 대화 하나만 되짚습니다. ${b}이 나타난 순간이 있었는지 보고, 다음에 건넬 말 한 문장을 적어 보세요.`,
+  relationships: b => `오늘은 사람 사이의 장면 하나만 살핍니다. ${b}이 나타난 순간에 내가 맞춘 것과 참은 것을 나눠 적어 보세요.`,
+  family: b => `오늘은 집안의 역할 하나만 짚습니다. ${b}이 나타난 순간이 있었는지 보고, 내가 맡을 몫의 경계를 한 줄로 적어 두세요.`,
+  health: b => `오늘은 몸의 신호 하나만 챙깁니다. ${b}이 나타난 순간에 몸이 어땠는지 기억해 두고, 쉬는 시간을 먼저 달력에 넣어 보세요.`,
+  timing: b => `오늘은 서두르지 않는 것이 숙제입니다. ${b}이 나타나는 순간을 알아차리고, 그때 미룬 결정과 밀어붙인 결정을 나눠 적어 보세요.`,
+};
 const FALLBACK: Voice = { kind: 'think', headline: '당신은 만나는 사람과 환경 속에서 자기 방식을 찾아갑니다.', scene: '같은 일도 누구와 어디에서 하느냐에 따라 반응이 달라질 수 있습니다. 이것은 중심이 없다는 뜻보다, 잘 맞는 환경을 찾는 일이 중요하다는 뜻에 가깝습니다.', gift: '상황을 관찰하며 내게 맞는 방식을 찾아가는 힘', burden: '주변의 기대를 내 선택으로 받아들이는 습관', action: '편안했던 자리와 유독 지쳤던 자리를 하나씩 적고, 사람·역할·속도의 차이를 비교해보세요.' };
 
 export function palaceVoice(palace: ZiweiPalace): Voice {
@@ -93,23 +153,27 @@ export function buildQuestionReading(chart: Pick<ZiweiDeepChart, 'palaces' | 'ma
   const secondVoice = stars[1] ? VOICES[stars[1].name] : undefined;
   const constrained = stars.some(s => ['X', '함', '陷', '불', '不'].includes(s.strengthSymbol || s.symbol || s.strength || ''));
   const transforms = [...(first?.fourTransformations || []), ...(first?.incomingFourTransformations || [])];
+  const lens = LENS[id];
   const burden = transforms.some(t => t.type === '기')
-    ? '마음에 걸린 일을 되짚는 시간이 길어질 수 있습니다. 당장 해결할 수 있는 부분과 기다려야 하는 부분을 나누면 부담을 덜 수 있습니다.'
+    ? `${lens}마음에 걸린 일을 되짚는 시간이 길어질 수 있습니다. ${GI_TAIL[id]}`
     : transforms.some(t => t.type === '권')
-      ? '주도권을 잡을수록 일이 빨라지지만, 모두의 선택을 대신하는 자리에서는 부담도 커질 수 있습니다.'
-      : constrained ? '같은 능력도 재촉받는 자리에서는 쓰기 어려울 수 있습니다. 더 세게 버티기 전에 속도와 역할이 맞는지 살펴보세요.'
-        : `${voice.gift}이 장점입니다. 다만 ${voice.burden}이 반복되면 그 장점도 피로로 바뀔 수 있습니다.`;
+      ? `${lens}주도권을 잡을수록 일이 빨라지지만, 모두의 선택을 대신하는 자리에서는 부담도 커질 수 있습니다.`
+      : constrained ? `${lens}같은 능력도 재촉받는 자리에서는 쓰기 어려울 수 있습니다. ${CONSTRAINED_TAIL[id]}`
+        : `${lens}${voice.gift}이 장점입니다. 다만 ${TOPIC_NOUN[id]}에서 ${voice.burden}이 반복되면 그 장점도 피로로 바뀔 수 있습니다.`;
   const linked = rows[1] ? palaceVoice(rows[1]) : undefined;
-  const scenes = [voice.scene, secondVoice && secondVoice !== voice ? `한편 ${secondVoice.gift}도 함께 있습니다. ${burden}` : burden];
+  const scenes = [voice.scene, secondVoice && secondVoice !== voice ? `한편 ${lens}${secondVoice.gift}도 함께 있습니다. ${burden}` : burden];
   const assistantNames = first?.auxiliaryStars.map(star => star.name) || [];
-  if (assistantNames.some(name => ['문창', '문곡'].includes(name))) scenes[1] += ' 생각을 글이나 대화로 정리하는 습관이 이 힘을 받쳐줍니다.';
-  else if (assistantNames.some(name => ['좌보', '우필', '천괴', '천월'].includes(name))) scenes[1] += ' 혼자 마무리하려 하기보다, 중간에 의견을 나눌 사람이 있을 때 부담을 덜기 쉽습니다.';
+  if (assistantNames.some(name => ['문창', '문곡'].includes(name))) scenes[1] += ` ${ASSIST_WRITE[id]}`;
+  else if (assistantNames.some(name => ['좌보', '우필', '천괴', '천월'].includes(name))) scenes[1] += ` ${ASSIST_HELP[id]}`;
+  // 빈 궁은 맞은편 별의 결을 빌려 읽는다. 같은 별을 빌려 읽는 다른 주제와 첫 문장이 겹치지 않도록 그 사실을 먼저 밝힌다.
+  if (first && !first.mainStars.length && stars.length) scenes[0] = `${first.name}은 비어 있어 맞은편 ${first.oppositePalace?.name || '궁'}의 결을 빌려 읽습니다. ${lens}${voice.gift}이 이 자리에서 빌려 쓰는 힘이고, ${voice.burden}은 그 힘이 지칠 때 먼저 나타납니다.`;
+  if (id === 'timing') scenes[0] = `지금의 선택은 ${voice.gift}을 어디에 쓰느냐에 달려 있습니다. 같은 힘도 쓰는 곳에 따라 남기도 하고 닳기도 해요.`;
   if (id === 'timing') scenes[1] = '지금 방향을 바꾸고 싶다면, 지쳐서 벗어나려는 마음과 실제로 해보고 싶은 일을 나눠보세요. 첫 시도를 작게 잡으면 결과를 보며 다음 걸음을 조정할 수 있습니다. 구체적인 나이 구간은 아래 대한의 근거에서 확인할 수 있습니다.';
   if (id === 'health') scenes[1] += ' 몸의 불편이 이어진다면 이 생활 조언과 별개로 진료를 받아보세요.';
   return {
     id, question: CONSULTATION_QUESTIONS[id],
     conclusion: id === 'life' ? voice.headline : id === 'timing' ? `${voice.gift}을 살리되, 변화는 작은 시도부터 시작해보세요.` : ANSWERS[id][voice.kind],
-    heroNote: HERO_NOTES[stars[0]?.name] || '같은 일도 잘 맞는 자리에서는 다른 경험이 됩니다. 편안했던 환경의 공통점을 찾는 일부터 시작해보세요.',
+    heroNote: first && !first.mainStars.length && stars.length ? `${first.name}이 비어 있다는 것은 ${id === 'timing' ? '때가 없다는' : '부족하다는'} 뜻이 아닙니다. 맞은편의 힘을 ${TOPIC_NOUN[id]}에 빌려 쓰는 구조라서, 그 힘을 어디에 쓸지 정하는 일이 먼저예요.` : id === 'timing' ? `시기를 맞히려 하기보다 ${voice.burden}이 반복되는 때를 알아차리는 것이 첫걸음입니다. 그 뒤의 선택은 훨씬 가벼워집니다.` : HERO_NOTES[stars[0]?.name] || '같은 일도 잘 맞는 자리에서는 다른 경험이 됩니다. 편안했던 환경의 공통점을 찾는 일부터 시작해보세요.',
     scenes, actions: [id === 'life' ? voice.action : constrained || transforms.some(t => t.type === '기') ? GENTLER_ACTIONS[id] : ACTIONS[id]],
     keywords: Array.from(new Set([...(first?.keywords || []), ...(rows[1]?.keywords || [])])).slice(0, 4),
     evidence: rows.map(p => ({ palaceId: p.id, palaceName: p.name, lines: [
@@ -118,6 +182,6 @@ export function buildQuestionReading(chart: Pick<ZiweiDeepChart, 'palaces' | 'ma
       ...[...p.fourTransformations, ...p.incomingFourTransformations].map(t => `${t.starName} 화${t.type} · ${t.type === '기' ? '마음이 오래 머무는 과제' : t.type === '권' ? '책임과 주도권' : t.type === '록' ? '키워갈 자원과 인연' : '신뢰를 쌓는 표현'}`),
       ...(id === 'timing' ? [`대한 · ${p.dahan || '구간 정보 없음'} (${p.name}). 명반에 표시된 나이 구간이며 실제 올해의 사건 예측은 아닙니다.`] : []),
     ] })),
-    today: linked ? `오늘은 ${linked.burden}이 나타나는 순간을 하나만 알아차려보세요. 바로 고치려 애쓰기보다, 그때 필요했던 것이 무엇인지 한 줄 남겨도 좋습니다.` : '오늘 편안했던 순간을 하나 적어보세요. 그때의 사람과 장소, 속도가 다음 선택의 힌트가 됩니다.',
+    today: linked ? TODAY_FRAME[id](linked.burden) : '오늘은 편안했던 순간 하나가 숙제입니다. 그때의 사람과 장소, 속도를 적어 두면 다음 선택의 힌트가 됩니다.',
   };
 }
