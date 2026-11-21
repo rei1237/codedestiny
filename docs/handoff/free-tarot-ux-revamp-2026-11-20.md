@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1~R3·L1. 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
+next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1·R3·L1(R2·R4-1·R4-2 는 완료). 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -423,7 +423,7 @@ next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, �
 | # | 대상 URL / 화면 | 변경 | 이유 | 위험 | 롤백 |
 |---|---|---|---|---|---|
 | R1 | 새 공개 URL `/free/`(가칭) + 홈 `/` 배너·`/ggulggul/` "지금 무료로 시작"·"엔진별 기본 풀이"·#cdQuickServices | 목록 단독 페이지 신설, 기존 세 영역을 그 페이지로 가는 요약 카드 1장으로 축소 | 원문 6-1 "한 화면 한 경로", 감사 A1(같은 무료 기능이 5군데 노출) | 새 색인 URL·sitemap·원장·hreflang 12로케일, 홈 첫 화면 구성 변경(전환·perf:home), 정적 셸 미러 7개 | 페이지·요약 카드 플래그 false 또는 커밋 revert, sitemap 재생성 |
-| R2 | `/?action=cdOneStepFreeSajuEntry`(section 없음)·`/ggulggul/?action=cdOneStepFreeSajuEntry` | React 가이드 흐름 `/saju/free/` 로 클라이언트 매핑 | 무료 사주 진입 형식 셋(감사 A2) | 셸 결과의 섹션(재미 카드·궁합)과 결과 범위가 다름 → 같은 결과가 아님, 외부 링크 동작 변화 | 매핑 표 한 줄 제거 |
+| R2 | `/?action=cdOneStepFreeSajuEntry`(section 없음)·`/ggulggul/?action=cdOneStepFreeSajuEntry` | React 가이드 흐름 `/saju/free/` 로 클라이언트 매핑 **(승인·완료 2026-11-21, "6단계 R2 결과")** | 무료 사주 진입 형식 셋(감사 A2) | 셸 결과의 섹션(재미 카드·궁합)과 결과 범위가 다름 → 같은 결과가 아님, 외부 링크 동작 변화 | 매핑 표 한 줄 제거 |
 | R3 | `/compatibility` → `/index.html?action=runCompat`·`?section=compatCard`·`/saju/compatibility/` | 내부 링크를 한 곳으로 모으고 나머지 301/클라이언트 매핑 | 궁합 링크 3분산(감사 A2) | `/compatibility` 는 지금 SEO 랜딩(색인, hreflang) — 301 시 색인 이동 | `_redirects`/매핑 한 줄 revert |
 | R4 | `/tarot/<slug>` 운영 301→302 이중 리다이렉트, `/tarot/mingri`·`?action=openTarotModal`·`cdHomeTarotEntry`·`/tarot/mingri/play` | canonical 하나로 수렴 | 감사 A2 | 5단계 타로 통합 결정에 의존, 워커 `public/_worker.js` 라우팅 | 워커·`_redirects` revert |
 | R5 | `/ggulggul/?action=cdHome{Ziwei,Sukuyo,Vedic,Astro}Entry` | 새 플로우로 매핑 | 원문 6-3 | 대상 React 가이드 흐름이 아직 없음 → 흐름을 먼저 만든 뒤에만 의미 | — |
@@ -571,3 +571,31 @@ SEO 영향 [실측에 근거한 판단]:
 4. R4-1 랜딩 CTA 를 `/ggulggul/?action=` 으로 바로 보낼까? **추천: 타로 slug 에만 먼저.** 전체 적용은 별도로.
 5. R4-2 `/tarot/mingri/play` 워커 301 을 넣고 7단계에서 삭제할까? **추천: 예.** noindex 이고 소스 링크가 0개다.
 6. R5 첫 흐름은? **추천: 서양 점성술, 기존 랜딩 URL 재사용.** 자미는 결제 감사 뒤 마지막.
+
+## 6단계 R2 무료 사주 연결 (2026-11-21)
+
+승인 원문(2026-11-21, 질문 대화): "R2 무료 사주 연결 (추천)" — section 없는 `?action=cdOneStepFreeSajuEntry` 진입을 `/saju/free/` 가이드 흐름으로. **R2 만** 승인. R1·R3·R4·R5·L1·삭제는 미승인. 요청 원문: "서비스 기능에 회귀는 없어야해".
+
+### 구현 전 RED 보고 (위험·검증·롤백)
+- 위치: 정적 셸 head 인라인 `<script id="cd-free-saju-entry-route">`(index.html, `auth-hint.js` 바로 뒤, 파싱 시점 `location.replace`). 워커·`public/_worker.js`·`wrangler.toml`·`_redirects`·React `LegacyHomeEntry` 는 건드리지 않는다(운영 `/?action=` 은 워커 302 → `/ggulggul/?action=`, dev 는 LegacyHomeEntry → 같은 셸이라 셸 한 곳이면 전부 덮는다).
+- 보내는 조건(전부 참일 때만, 하나라도 모르면 셸 그대로 = fail-closed): 플래그 켬, http(s), 앱 런타임 아님, 경로 `/`·`/index.html`·`/ggulggul/`(로케일 셸 제외), `action` 이 정확히 하나·값 `cdOneStepFreeSajuEntry`, 해시 없음, 나머지 쿼리는 추적 키(utm_*·gclid·gbraid·wbraid·fbclid·msclkid·ref)와 `v` 뿐(`section`·`entry`·`lang`·`question`·결제/OAuth 키 등이 있으면 셸), 로그인 힌트 없음(`__cdAuthHint`), 이어지는 셸 흐름 표식 없음(sessionStorage `cd:saju-login-draft:v1`(W2 비회원 복귀·로그인 벽 초안)·`cd:seo-landing-entry:v1`(SEO 랜딩 입력)·`cd:home-fortune-intent:v1`·`cd:home-fortune-section:v1`), 저장 프로필 없음(destiny-profile 의 목록·현재·활성 캐시·게스트 키), 리퍼러가 `/saju/free/` 아님(왕복 방지).
+- 유지: 추적 키는 그대로 `/saju/free/?…` 에 옮긴다. `v` 만 버린다. 생산처 링크·클릭 이벤트는 그대로(원본 페이지에서 발화).
+- 판단(가정): 로그인·저장 프로필이 있는 사용자는 지금 셸에서 한 번에 결과(저장·섹션·유료 잠금 포함)를 받는다 — `/saju/free/` 는 입력부터 다시 받으므로 그들을 보내면 기능 회귀다. 그래서 "셸 입력 폼을 보게 될 첫 방문 비회원"만 보낸다.
+- 위험: 셸 결과(재미 카드·궁합·저장)와 `/saju/free/` 결과 범위가 다름(외부 링크 동작 변화, 승인된 변화); 보내진 방문은 셸 `free_saju_*` 대신 가이드 흐름 이벤트로 잡힘; httpOnly 세션만 있고 힌트가 없는 로그인 사용자는 비회원으로 보고 보냄(`/saju/free/` 는 로그인 사용자도 쓸 수 있음).
+- 검증 계획: 단위(판정 표·플래그 일치·끔이면 이동 0), 임포터/기존 테스트, dev 서버 실브라우저(섹션 없음 → `/saju/free/`, 섹션 있음 그대로, W2 비회원 복귀, 로그인 경로), visual-checker, check:fast·check:pre-push.
+- 롤백: `lib/guided-flow/flags.mjs` 와 index.html 인라인의 `FREE_SAJU_ENTRY_GUIDED_ENABLED=false` + `npm run sync:public`(끄면 스크립트가 첫 줄에서 끝나 오늘과 같음), 또는 기능 커밋 `git revert`.
+
+### 6단계 R2 결과 (2026-11-21, 완료)
+- 기능 커밋 `d10e048d9`(index.html 인라인 판정 + 플래그 `FREE_SAJU_ENTRY_GUIDED_ENABLED` + 셸 미러 7개 + `__tests__/ui/free-saju-entry-route.test.mjs` + `verify-crafted-astro-unlocks` mock 로그인 힌트). 워커·wrangler.toml·`public/_worker.js` 무수정.
+- 실측: 새 단위 5/5(머문다 24경우·보낸다·저장소 예외·플래그 끔), 관련 기존 71/71, `verify:saju-result-login`(W2 비회원 결과·로그인 복귀, 플래그 on/off 6폭) 통과. mock dev 실브라우저 7/7: `/?action=…&utm_source=naver` → `/saju/free/?utm_source=naver`, `/ggulggul/?action=…` → `/saju/free/`, section 있음·W2 초안·로그인 힌트·플래그 끔(HTML 리터럴 교체) 은 `/ggulggul/` 셸 입력 그대로, 뒤로 가기는 원래 페이지(셸 재진입 루프 없음). visual-checker: 6장 모두 기대 화면·정상 렌더.
+- 미검증: `verify-crafted-astro-unlocks.cjs` 실행(수동 스크립트, node --check 만), 스테이징·운영 실주소(워커 302 뒤 한 홉 더), 앱 런타임 실기기.
+- 범위 밖 기존 결함(보고만): 셸 입력 화면 상단 안내 박스 글자 대비 약 1.89:1(visual-checker 픽셀 추정).
+- 남은 위험: 보내진 비회원은 셸 결과(재미 카드·궁합·저장) 대신 `/saju/free/` 결과를 본다(승인된 변화); httpOnly 세션만 있고 힌트 쿠키가 없는 로그인 사용자는 보내질 수 있음; 크롤러는 저장소가 비어 있어 액션 URL 에서 JS 이동을 본다(canonical `/`·사이트맵 미포함이라 영향 낮음); 셸 `free_saju_*` 이벤트 대신 `/saju/free/` 의 guided 이벤트로 잡힌다.
+- 롤백: 플래그 두 곳 false + `npm run sync:public`, 또는 `git revert d10e048d9`.
+
+## R4-1·R4-2·자존감 결과 (2026-11-21, main 30fcc87f9)
+
+- 자존감 타로 진입(3fceb1b01): 가설(index.html allowlist)은 기각 — 그 목록은 coin-cost>0 때만 쓰이고 타일은 0. 실제 원인은 모바일 컬렉션 가상화(unmountCollectionCards)가 타일을 떼어 `__cdRunRouteActionOnce` 가 못 찾고, 폴백 런처는 지연 로더를 안 돌림. `__cdFindRouteActionElement` 가 `collection.__cdLazyCards` 도 본다. 390px 실측 전 2/4 → 후 6/6, 재회 타로도 1/3 → 3/3(같은 원인). 데스크톱 원래 정상. 롤백 `git revert 3fceb1b01` + sync:public.
+- R4-1(e85ff159a): FeatureLandingPage `/tarot/*` 의 실행 CTA → `/ggulggul/?action=`. 해당 랜딩은 love·mingri·year 셋뿐(다른 타로는 자체 랜딩). 남은 것: app/tarot/self-esteem/TarotSelfEsteemLandingContent.tsx:942 `href="/?action=openTarotSelfEsteemModal"`(302 한 번 더, 범위 밖이라 그대로).
+- R4-2(5afe216aa): 워커 CONSOLIDATED_PAGE_REDIRECTS `/tarot/mingri/play` → `/tarot/mingri/` 301(슬래시 두 꼴, 쿼리·utm 보존 실측). app/tarot/mingri/play 페이지는 7단계 삭제 대상 — consolidated-pages 테스트 `PENDING_PAGE_DELETION` 예외를 7단계에서 함께 지운다.
+- 관찰(미수정): `/ggulggul/?action=startMindScanTarot` 는 쿼리만 지우고 아무것도 안 연다 — base 와 동일(회귀 아님).
