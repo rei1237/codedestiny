@@ -200,6 +200,7 @@ function TimeStep({ flow, options, t }: { flow: GuidedFlow; options: GuidedBirth
         </button>
       ))}
     </div>
+    <p className={styles.hint}>{t('birth.sijinLateHint')}</p>
     <label className={styles.label} htmlFor={inputId}>{t('birth.timeLabel')}</label>
     <input id={inputId} name="time" className={styles.field} type="text" inputMode="numeric" autoComplete="off" enterKeyHint="next"
       maxLength={5} placeholder={t('birth.timePlaceholder')} value={text}

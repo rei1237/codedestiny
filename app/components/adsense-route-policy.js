@@ -16,6 +16,8 @@ const BLOCKED_EXACT_PATHS = new Set([
   "/privacy-policy",
   // 법률 고지 페이지에는 광고를 싣지 않는다 — /terms·/privacy 와 같은 취급이다.
   "/refund-policy",
+  // 무료 목록(/free/)은 기능으로 가는 카드 링크 모음이라 광고를 싣지 않는다.
+  "/free",
   "/fortune/prompt-hub",
   "/saju/animal-destiny",
   "/saju/career-style",

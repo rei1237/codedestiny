@@ -66,8 +66,18 @@ describe("GET /api/popular-services", () => {
       now: at(10),
     });
     expect(res.status).toBe(503);
-    expect(res.headers.get("Cache-Control")).toContain("no-store");
+    expect(res.headers.get("Cache-Control")).toBe("public, max-age=60");
+    expect(res.headers.get("Cache-Control")).not.toContain("no-store");
     expect(await res.json()).toEqual({ ok: false, items: [] });
+  });
+
+  test("DB 장애 중에는 쉼(backoff) 동안 집계를 다시 부르지 않는다", async () => {
+    const loadCounts = jest.fn(async () => { throw new Error("mongo down"); });
+    const first = await route.handlePopularServicesRoutes(get(), {}, { loadCounts, now: at(11) });
+    const second = await route.handlePopularServicesRoutes(get(), {}, { loadCounts, now: at(11) });
+    expect(first.status).toBe(503);
+    expect(second.status).toBe(503);
+    expect(loadCounts).toHaveBeenCalledTimes(1);
   });
 
   test("날짜가 바뀐 직후 DB 가 실패하면 어제 순위를 stale 로 내보낸다", async () => {

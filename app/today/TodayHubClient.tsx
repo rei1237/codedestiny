@@ -1434,7 +1434,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
           <h2 className="text-xl font-black text-rose-50">{period==='tomorrow'?'내일':'오늘'}, 어떤 흐름이 궁금하세요?</h2>
           <p className="mt-3 break-keep text-sm leading-7 text-slate-200">사주 일진·숙요 27수·베다 판창가·수비학에서 오늘의 핵심 신호를 한 번에 확인합니다.</p>
           <button type="button" onClick={() => void unlockToday()} data-cd-reading-action="primary" disabled={isPaying} className="mt-5 min-h-12 rounded-full bg-rose-200 px-6 font-black text-rose-950 hover:bg-rose-100 disabled:opacity-60">
-            {isPaying ? freeCopy.checking : freeCopy.start}
+            {isPaying && !freeReadingGuestAllowed() ? freeCopy.checking : freeCopy.start}
           </button>
         </section>}
 

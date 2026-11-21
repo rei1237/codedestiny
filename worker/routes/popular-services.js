@@ -23,6 +23,9 @@ const CACHE_TTL_SECONDS = 24 * 60 * 60;
 const CACHE_STALE_TTL_SECONDS = 3 * 24 * 60 * 60;
 const CACHE_CONTROL = "public, max-age=3600, s-maxage=86400, stale-while-revalidate=86400";
 const CACHE_VERSION = "v1";
+// DB 장애 중 매 요청이 다시 집계를 때리지 않게 하는 짧은 쉼(같은 엣지 캐시 장치). 실패 응답도 잠깐 캐시한다.
+const BACKOFF_TTL_SECONDS = 5 * 60;
+const FAILURE_CACHE_CONTROL = "public, max-age=60";
 
 export function buildPopularMatch(now = new Date()) {
   return {
@@ -46,6 +49,29 @@ function cacheKey(dateKey) {
   return `popular-services:${CACHE_VERSION}:${dateKey}`;
 }
 
+function backoffKey(dateKey) {
+  return `popular-services:${CACHE_VERSION}:backoff:${dateKey}`;
+}
+
+const NO_BACKOFF = Symbol("no-backoff");
+
+async function inBackoff(readThroughCache, key) {
+  try {
+    await readThroughCache({ key, ttlSeconds: BACKOFF_TTL_SECONDS, staleTtlSeconds: BACKOFF_TTL_SECONDS, load: async () => { throw NO_BACKOFF; } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function markBackoff(readThroughCache, key) {
+  try {
+    await readThroughCache({ key, ttlSeconds: 0, staleTtlSeconds: BACKOFF_TTL_SECONDS, load: async () => ({ at: Date.now() }) });
+  } catch {
+    // 표시를 못 남겨도 응답은 그대로 503 이다.
+  }
+}
+
 /**
  * @param {Request} request
  * @param {object} env
@@ -61,8 +87,15 @@ export async function handlePopularServicesRoutes(request, env, deps = {}) {
 
   let loaded = false;
   const load = async () => {
+    if (await inBackoff(readThroughCache, backoffKey(today))) throw new Error("popular-services backoff");
     loaded = true;
-    const rows = await loadCounts(env, now);
+    let rows;
+    try {
+      rows = await loadCounts(env, now);
+    } catch (error) {
+      await markBackoff(readThroughCache, backoffKey(today));
+      throw error;
+    }
     return { asOf: today, windowDays: POPULAR_WINDOW_DAYS, items: rankPopularServices(rows) };
   };
 
@@ -70,7 +103,7 @@ export async function handlePopularServicesRoutes(request, env, deps = {}) {
   try {
     result = await readThroughCache({ key: cacheKey(today), ttlSeconds: CACHE_TTL_SECONDS, staleTtlSeconds: CACHE_STALE_TTL_SECONDS, load });
   } catch (error) {
-    // 날짜가 막 바뀐 직후 DB 가 실패하면 어제 키라도 꺼낸다. 그것도 없으면 503 — 화면은 섹션을 숨긴다.
+    // 날짜가 막 바뀐 직후 DB 가 실패하면 어제 키라도 꺼낸다. 그것도 없으면 503 — 화면은 추천 목록으로 자리를 지킨다.
     try {
       result = await readThroughCache({
         key: cacheKey(addDaysKey(today, -1)),
@@ -82,7 +115,7 @@ export async function handlePopularServicesRoutes(request, env, deps = {}) {
       loaded = false;
     } catch {
       console.warn("[popular-services] load failed", String(error?.message || error).slice(0, 200));
-      return json({ ok: false, items: [] }, { status: 503, headers: { "Cache-Control": "no-store" } });
+      return json({ ok: false, items: [] }, { status: 503, headers: { "Cache-Control": FAILURE_CACHE_CONTROL, "X-CD-Cache": "error" } });
     }
   }
 

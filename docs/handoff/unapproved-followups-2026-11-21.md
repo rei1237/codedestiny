@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
+next: 5. R5 자미 (조건부, 결제 감사 먼저)
 ---
 
 # 미승인 후속 항목 — 권장안으로 진행 (2026-11-21)
@@ -73,9 +73,26 @@ next: 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
   - 롤백: `FREE_READING_GUEST_ENABLED = false` 또는 `git revert 0b1e65215`.
   - 위험: 가입 전환 감소 가능(W2 와 같은 정책 위험).
   - 후속(보고만): `lib/seo/free-saju-landing.mjs`(/saju/free/) 가 4체계 오늘의 운세를 아직 "로그인 후 무료" 로 안내(보수적 낡은 문구), 세션 확인 중 "로그인 확인 중" 라벨 잠깐 보임, 360 쿠키 배너가 내용 가림, 360 만세 결과 탭 줄 "억부" 잘림(스크롤 탭, 기존). /today/ 는 별도 동의 모달이 없고 시작 버튼이 유지되는 단계.
-- [ ] 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
+- [x] 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
+  - 커밋 9298bd0f1(기능), 머지 c40de0ffb(origin/main 머지·sync:public·sitemap:generate 재생성) → main push. check:pre-push exit 0.
+  - 플래그 `FREE_LIST_PAGE_ENABLED`(lib/guided-flow/flags.mjs) 켬: /free/ 색인·사이트맵 등재, /ggulggul/ 무료 배너 끝에 "무료 운세 한 페이지로 모아 보기" 링크(한국어 전용). 기존 "무료 운세 전체 보기"와 문구를 구분.
+  - 롤백: `FREE_LIST_PAGE_ENABLED=false` → `npm run sync:public` → `npm run sitemap:generate`.
+  - 배너 빈 공간(360): 새로 생긴 것이 아님. 배너 1211px 중 새 링크 몫은 58px이고, 빈 공간처럼 보인 것은 고정 내비 때문에 생긴 캡처 착시(visual-checker 실측). 대비 9.04:1, 360·960 통과.
+  - 후속(미처리): 2027-02-12 무료 프로모션 종료 때 /free/·배너 링크 처리 / 360 상담 캐러셀 모달 닫기 버튼 잘림(이번 범위 밖).
 - [ ] 5. R5 자미 (조건부, 결제 감사 먼저)
 - [ ] 마무리: `docs/context/free-tarot-ux-qa.md` 플래그 표·미승인 목록 갱신, 워크트리·임시 파일 정리, main CI 1회 확인, 한국어 최종 보고
+## F2 후속 결함 수정 (2026-11-21, 사용자 "나중에 고칠것 … 전부 이번 세션에서 고치도록해")
+- 워크트리 `wt/f2-followups-20261121-145951`(기준 ffcc1e263). 항목별 커밋, 롤백은 해당 커밋만 `git revert`.
+- [x] `/astrology/` 히어로 CTA → 같은 페이지 스텝 입력(`#astro-guided-entry`), 리다이렉트 없음: 1116f5b0c + 20928b5f3. 🔴 1116f5b0c 는 화면 무변이었다 — 히어로는 SeoLandingTemplate heroForm 이 아니라 `FortuneLandingHero` 가 그린다. `startHref` 선택 prop(미지정 시 기존 href) 으로 보정. 플래그 끔 줄 무변, vedic 등 다른 랜딩 href 무변(렌더 실측).
+- [x] 자존감 랜딩 href `/ggulggul/?action=openTarotSelfEsteemModal`: 002793a11.
+- [x] 마음 스캔: 홈 카드가 `/tarot/mindscan/` 직행(4eba58cb4). 셸 `startMindScanTarot` 은 무변 — 비회원에게 confirm→로그인을 띄우는 설계이고 헤드리스 QA 가 confirm 을 자동 닫아 "아무것도 안 연다" 로 보였다. `/tarot/crystal-soul/` 도 같은 패턴(보고만).
+- [x] W3 TOP5: 실패 시 운영진 추천 목록으로 484px 유지(ce873aace, 셸·/ 둘 다 실측 484px), DB 장애 5분 backoff + 503 `public, max-age=60`(d55643af8), `verify-public-api-edge-cache` 에 라우트·변이 5개 추가. `source:"sales"` 는 무변(보고만).
+- [x] 생성 스냅샷 `/tarot/mingri/play` 제거: payment-p0-inventory·purchase-journey inventory 를 생성기로 재생성(ae7d01834). 건너뜀: `docs/seo/PAGE_INVENTORY.md`·`docs/mobile-platform/inventory.*` 는 2026-09-08 일회성 스냅샷으로 scripts/ 에 생성기가 없다(수기 편집 금지라 그대로).
+- [x] CutReader key: 이미 29ca06503 에서 고쳐져 있음(변경 없음).
+- [x] W1 출생 입력: 날짜 1900~오늘은 이미 `dateFromParts`·테스트에 있음. 야자시: 자시 칩 대표값 23:30→00:00(엔진은 시계 23시 이후를 다음 날 일진으로 본다, 엔진 무수정) + 23:30~자정은 직접 입력 안내 12로케일(a7ce20dd6). `scripts/test-mobile-platform-journeys.mjs` 동물 구간을 스텝 흐름으로 갱신(964b5feed, 로컬 dev PASS). 후속(보고만): 같은 스크립트 찻집 구간은 `data-cup-id` UI 가 소스에서 사라져 별도로 낡음.
+- [x] L1 잔여: /saju/free "로그인 없이 무료" 묶음으로(79d1289bc, FREE_RESULT_GUEST_ENABLED 전제), /today/ "로그인 확인 중" 깜빡임 제거(b743fa859), 360 만세 바로가기 '억부' 잘림(86c8279e1, 400px 이하 탭 기준 폭 52px, scroll 360→328=client, 960 무변).
+- 보고만(무변): `__tests__/fortune/daily-scroll-copy.test.mjs`(옆 세션 소유), `source:"sales"` 공개 범위, `index.html` 가격 하드코딩, 숙요·베다 히어로도 셸 경유 패턴.
+- 검증: 대상 테스트(node/jest) 통과, dev 360/960 실측 + visual-checker(점성 진입·TOP5 대체·/today·시각 안내 대비 9.73:1·바로가기 탭) PASS, check:fast·check:pre-push 는 아래 마무리 줄.
 
 ## F1 후속 결함 수정 (2026-11-21, 사용자: "나중에 고칠것 중 이/용에서 줄이 바뀌는것은 바꿔야겠고 전부 이번 세션에서 고치도록해")
 - 워크트리 wt/f1-ui-defects-20261121-142039 → main 직접 머지. 결제 실행 파일·L1 파일(/today/·/manse/·free-reading-access.ts) 무접촉.

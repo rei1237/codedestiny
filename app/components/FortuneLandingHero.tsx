@@ -6,7 +6,8 @@ import styles from "./fortune-landing.module.css";
 
 export function hasFortuneLanding(path: string) { return !!getFortuneLanding(path); }
 
-export default function FortuneLandingHero({ path }: { path: string }) {
+/** startHref: 같은 페이지 안 입력처럼 셸 대신 보낼 곳(없으면 기존 href/셸 action 그대로). */
+export default function FortuneLandingHero({ path, startHref }: { path: string; startHref?: string }) {
   const story = getFortuneLanding(path);
   if (!story) return null;
   const scope = SEO_SERVICE_SCOPES[path === '/ziwei/chart' ? '/ziwei' : path];
@@ -18,7 +19,7 @@ export default function FortuneLandingHero({ path }: { path: string }) {
       <div className={styles.copy}>
         <p className={styles.description}>{story.description}</p>
         {scope && <p className={styles.input}><strong>준비할 정보</strong>{scope.input}</p>}
-        <a className={styles.start} data-landing-start data-cd-cross-sell={sourcePath} data-cd-cta-placement="primary" data-cd-target-service={service} href={"href" in story && story.href !== sourcePath ? story.href : "/ggulggul/?action=" + story.action}>{story.cta}<ArrowRight size={18} aria-hidden="true" /></a>
+        <a className={styles.start} data-landing-start data-cd-cross-sell={sourcePath} data-cd-cta-placement="primary" data-cd-target-service={service} href={startHref || ("href" in story && story.href !== sourcePath ? story.href : "/ggulggul/?action=" + story.action)}>{story.cta}<ArrowRight size={18} aria-hidden="true" /></a>
         {scope && <p className={styles.entryScope}>{scope.free}<br />{scope.paid}</p>}
         <a className={styles.previewLink} href="#landing-preview">결과에서 확인할 내용</a>
         {'guide' in story && <Link className={styles.previewLink} href={story.guide.href} data-cd-cross-sell={sourcePath} data-cd-cta-placement="related" data-cd-target-service={service}>{story.guide.label}</Link>}

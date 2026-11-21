@@ -36,6 +36,7 @@ const REL = {
   today: "worker/routes/fortune-today.js",
   insights: "worker/routes/insights.js",
   content: "worker/routes/content.js",
+  popular: "worker/routes/popular-services.js",
 };
 const read = (rel) => fs.readFileSync(path.join(ROOT, rel), "utf8");
 
@@ -229,14 +230,70 @@ export function auditContentFeed(source) {
   return failures;
 }
 
+/**
+ * /api/popular-services(메인 인기 TOP5, 2026-11-21). 순위만 내보내는 공개 응답이라 KST 날짜 키로 캐시한다.
+ * 테스트 주입 때문에 readCmsThroughCache 를 deps.readThroughCache 로 받아 부른다 — 호출 표식이 다르다.
+ * 지키는 것: 캐시가 집계보다 앞(집계는 load 안), 키에 개인 값 없음, X-CD-Cache, 실패는 no-store 가 아니라
+ * 짧게 캐시하고 장애 중 집계를 매번 다시 부르지 않는 쉼(backoff), 응답 필드 재선택(건수 누출 방지).
+ */
+const POPULAR_CALL = "readThroughCache({";
+
+export function auditPopular(source) {
+  const failures = [];
+  const need = (ok, message) => { if (!ok) failures.push(`${REL.popular}: ${message}`); };
+
+  need(source.includes("deps.readThroughCache || readCmsThroughCache"), "핸들러가 readCmsThroughCache(엣지 캐시)를 기본값으로 쓰지 않는다.");
+  const total = countOccurrences(source, POPULAR_CALL);
+  need(total === 4, `readThroughCache 호출이 ${total}곳이다. 분류된 것은 오늘 키·어제 키·backoff 확인·backoff 표시 4곳뿐이다 — 새로 붙였다면 이 가드에 분류를 추가할 것.`);
+
+  // sliceFunction 은 매개변수 기본값 `deps = {}` 를 본문으로 잘못 잡으므로 선언부터 첫 최상위 `}` 줄까지 자른다.
+  const normalized = source.replace(/\r\n/g, "\n");
+  const start = normalized.indexOf("export async function handlePopularServicesRoutes(request, env, deps = {}) {");
+  const end = start === -1 ? -1 : normalized.indexOf("\n}\n", start);
+  if (start === -1 || end === -1) {
+    need(false, "handlePopularServicesRoutes 를 잘라내지 못했다 — 선언이 바뀌었으면 이 가드도 고칠 것.");
+    return failures;
+  }
+  const body = normalized.slice(start, end);
+  const loadAt = body.indexOf("const load = async");
+  const backoffAt = body.indexOf("await inBackoff(readThroughCache", loadAt);
+  const queryAt = body.indexOf("loadCounts(env, now)");
+  const cacheAt = body.indexOf(POPULAR_CALL);
+  need(loadAt !== -1 && queryAt > loadAt && cacheAt > queryAt, "집계(loadCounts)가 load() 밖에 있거나 캐시 조회보다 앞이다 — 캐시가 맞아도 DB 를 문다.");
+  need(backoffAt !== -1 && backoffAt < queryAt, "load() 가 집계 전에 backoff 를 보지 않는다 — DB 장애 중 매 요청이 다시 집계를 때린다.");
+  need(/catch \(error\) \{\s*await markBackoff\(readThroughCache/.test(body), "집계 실패 때 backoff 를 표시하지 않는다.");
+  need(!body.includes('"no-store"'), "실패 응답이 no-store 다 — 장애 중 모든 요청이 워커·DB 까지 다시 온다.");
+  need(body.includes('"Cache-Control": FAILURE_CACHE_CONTROL'), "503 응답이 짧은 실패 캐시 헤더(FAILURE_CACHE_CONTROL)를 쓰지 않는다.");
+  need(body.includes('"X-CD-Cache": state'), "성공 응답에 X-CD-Cache 가 없다. stale 을 구분할 수 없으면 캐시가 장애를 가린다.");
+  need(body.includes('source: item.source === "sales" ? "sales" : "curated"'), "캐시 값을 공개 필드로 다시 고르지 않는다 — 건수가 응답에 샐 수 있다.");
+
+  let from = 0;
+  for (;;) {
+    const at = source.indexOf(POPULAR_CALL, from);
+    if (at === -1) break;
+    from = at + POPULAR_CALL.length;
+    const keyStart = source.indexOf("key", from);
+    const lineEnd = source.indexOf("\n", keyStart);
+    const key = keyStart === -1 || lineEnd === -1 ? "" : source.slice(keyStart, lineEnd).trim();
+    need(/^key(: cacheKey\((today|addDaysKey\(today, -1\))\))?,/.test(key), `인기 캐시 키는 cacheKey(today)·cacheKey(어제)·backoff 키(key)만 허용한다. (${key})`);
+    for (const token of FORBIDDEN_KEY_TOKENS) {
+      need(!key.split(",")[0].includes(token), `캐시 키에 '${token}' 이 들어갔다. (${key})`);
+    }
+  }
+  need(source.includes("popular-services:${CACHE_VERSION}:backoff:${dateKey}"), "backoff 키가 날짜별 공개 키가 아니다.");
+
+  return failures;
+}
+
 function runSelfTest() {
-  const base = { reviews: read(REL.reviews), today: read(REL.today), insights: read(REL.insights), content: read(REL.content) };
+  const base = { reviews: read(REL.reviews), today: read(REL.today), insights: read(REL.insights), content: read(REL.content), popular: read(REL.popular) };
 
   const expectClean = [
     ["reviews baseline", auditReviews(base.reviews)],
     ["today baseline", auditToday(base.today)],
     ["insights baseline", auditInsights(base.insights)],
     ["content baseline", auditContentFeed(base.content)],
+    ["popular baseline", auditPopular(base.popular)],
   ];
   for (const [label, found] of expectClean) {
     if (found.length) {
@@ -320,6 +377,31 @@ function runSelfTest() {
       () => auditContentFeed(base.content.replace("async function handleContentList(request, env) {", `async function handleContentList(request, env) {\n  await ${CACHE_CALL} key: \`content:list:\${q}\` });`)),
       /호출이 2곳이다/,
     ],
+    [
+      "popular: backoff 확인 제거",
+      () => auditPopular(base.popular.replace('if (await inBackoff(readThroughCache, backoffKey(today))) throw new Error("popular-services backoff");', "")),
+      /backoff 를 보지 않는다|호출이 3곳이다/,
+    ],
+    [
+      "popular: 실패 응답을 no-store 로 되돌림",
+      () => auditPopular(base.popular.replace('"Cache-Control": FAILURE_CACHE_CONTROL', '"Cache-Control": "no-store"')),
+      /no-store 다/,
+    ],
+    [
+      "popular: 캐시 키에 userId 를 섞음",
+      () => auditPopular(base.popular.replace("key: cacheKey(today),", "key: cacheKey(today + userId),")),
+      /캐시 키에 'userId'|만 허용한다/,
+    ],
+    [
+      "popular: 집계를 캐시보다 앞으로 꺼냄",
+      () => auditPopular(base.popular.replace("  let loaded = false;", "  await loadCounts(env, now); let loaded = false;")),
+      /load\(\) 밖에 있거나/,
+    ],
+    [
+      "popular: X-CD-Cache 제거",
+      () => auditPopular(base.popular.replace(', "X-CD-Cache": state', "")),
+      /X-CD-Cache 가 없다/,
+    ],
   ];
 
   let ok = true;
@@ -346,6 +428,7 @@ function main() {
     ...auditToday(read(REL.today)),
     ...auditInsights(read(REL.insights)),
     ...auditContentFeed(read(REL.content)),
+    ...auditPopular(read(REL.popular)),
   ];
 
   if (failures.length) {
@@ -358,6 +441,7 @@ function main() {
   console.log("  ✓ worker/routes/fortune-today.js — 공개 모드만 캐시하고 개인화는 앞에서 반환한다");
   console.log("  ✓ worker/routes/insights.js — 목록은 DB 집계, 상세만 캐시하며 404 는 캐시하지 않는다");
   console.log("  ✓ worker/routes/content.js — sitemap·rss 피드만 캐시한다");
+  console.log("  ✓ worker/routes/popular-services.js — 날짜 키로 캐시하고 장애 중엔 쉼(backoff)·짧은 실패 캐시를 둔다");
 
   if (selfTest) {
     console.log("\n=== self-test (변형이 실제로 실패하는가) ===");
@@ -365,7 +449,7 @@ function main() {
       process.exitCode = 1;
       return;
     }
-    console.log("\nself-test passed (14 mutations)");
+    console.log("\nself-test passed (19 mutations)");
   }
 
   console.log("\nOK");
