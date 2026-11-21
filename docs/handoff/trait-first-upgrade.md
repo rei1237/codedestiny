@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 승인 게이트 A — 네오가 trait-first-phase0-report.md 를 검토·승인하면 Phase 1(결제→생성→전달 무결성 감사)
+next: 승인 게이트 B — trait-first-phase1-integrity.md 결정 요청 5건
 ---
 
 # [작업 지시] 전 엔진 "타고난 성향 우선(Trait-First)" 고도화 + 결제 후 미제공 제로 검증
@@ -71,8 +71,8 @@ Phase 6  기능 플래그로 엔진별 단계적 운영 반영 + 모니터링 + 
 ### 단계 체크
 
 - [x] Phase 0 진단 → [trait-first-phase0-report.md](trait-first-phase0-report.md) (2026-11-22)
-- [ ] 승인 게이트 A
-- [ ] Phase 1 → `docs/handoff/trait-first-phase1-integrity.md`
+- [x] 승인 게이트 A — 2026-11-22 네오 원문 "승인, 추천대로 진행하고 Phase 1 시작". 확정: (1) 1차 적용은 첫 섹션이 이미 성향인 6종(신년운세·연애 비책·카르마·흑월·인생의 책·마스터 인연의 서), 장 구조 불변 — 첫 섹션 신설은 Phase 1 뒤 엔진별 별도 승인 (2) 오행 과다/부족 임계는 기존 29%/16% 유지 (3) 희신은 TraitProfile 에서 제외 (4) 운영 DB 고아 주문 집계는 추천이 "별도 승인"이었으므로 Phase 1 에서 쿼리·스크립트만 준비하고 운영 실행은 게이트 B 에서 따로 묻는다
+- [x] Phase 1 → `docs/handoff/trait-first-phase1-integrity.md` (2026-11-22)
 - [ ] 승인 게이트 B (결제 실행 파일이면 별도 결제 게이트)
 - [ ] Phase 2
 - [ ] Phase 3
