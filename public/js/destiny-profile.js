@@ -11223,7 +11223,22 @@
   window.cdHomeSukuyoEntry=function(){window.cdHomeFortuneEntry('sukuyo');};
   window.cdHomeVedicEntry=function(){window.cdHomeFortuneEntry('vedic');};
   window.cdHomeAstroEntry=function(){window.cdHomeFortuneEntry('astro');};
-  window.cdHomeTarotEntry=function(){window.cdHomeFortuneEntry('tarot');};
+  // R4-3(2026-11-21 승인): 홈 타로 진입은 /tarot/mingri/ 랜딩 안 무료 세 장으로 간다. 셸 모달은 ?action=openTarotModal
+  // (한 장 리딩·결제 후 리딩·기존 딥링크)로 그대로 열린다. 롤백은 false — lib/guided-flow/flags.mjs
+  // GUIDED_MINGRI_TAROT_ENABLED 와 함께 바꾼다(__tests__/ui/home-profile-fortune-entry.test.mjs 가 묶는다).
+  var MINGRI_TAROT_ROUTE_ENABLED = true;
+  var MINGRI_TAROT_ROUTE = '/tarot/mingri/';
+  window.cdHomeTarotEntry=function(){
+    if(MINGRI_TAROT_ROUTE_ENABLED){
+      _dpHomeIntent('');
+      var loc=window.location;
+      // 주소의 ?action= 으로 들어온 경우 뒤로 가기가 이 주소로 돌아와 다시 보내지 않도록 기록을 바꾼다.
+      var fromRoute=window.__cdRouteActionHandled==='cdHomeTarotEntry'||/[?&]action=cdHomeTarotEntry(?:&|$)/.test(String(loc.search||''));
+      if(fromRoute) loc.replace(MINGRI_TAROT_ROUTE); else loc.assign(MINGRI_TAROT_ROUTE);
+      return;
+    }
+    window.cdHomeFortuneEntry('tarot');
+  };
   document.addEventListener('destinyProfileChanged',_dpResumeHomeEntry);
   window.addEventListener('cd:destiny-profile-server-ready',_dpResumeHomeEntry);
   function _dpClearHomeSection() {
