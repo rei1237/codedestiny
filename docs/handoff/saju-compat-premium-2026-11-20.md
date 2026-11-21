@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: "D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — C3·C3b·C4는 끝남(실측 절 \"C3·C3b·C4\"). 보고만 항목은 그 절의 남은 위험"
+next: "D2 남은 정체 확정 7종: naming-prompt(+크론 select 에 result.namingPrompt 누락) 와 KNOWN_RETRY_PENDING 6종(nakshatra-ai·human-design-report·destiny-compass-ai·relationship-boundary-test·celestial-harmony·fortune) — 단계 D 줄의 \"남은 것\" 참조"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -104,7 +104,10 @@ next: "D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — C3·C3b·C4�
 - [x] C3 과금 후 레코드 전 4xx 실패(감사 5) — 7d8f2e8f4·b517a51cc·88fcfa0f6·cb8867ece·93fd5a25c·3e7109b12 (아래 "C3·C3b·C4")
 - [x] C3b 환불(요청·승인·정산) 뒤 재개 거절, 무료 재생성 없음 — 41ec5e085
 - [x] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 9e98190d0·e82fef6fa(사전)·01d5c639a(sitemap 원장)
-- [ ] D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — 범위 밖, 별도
+- [ ] D 서비스별 stuck settle — **5/12 완료**(2026-11-22). 공용 헬퍼 `settleStuckRetryFirst`(worker/lib/paid-delivery-stuck.js): 창 안은 generation_failed+retryable(저장 장 보존·빠진 장만 재생성·환불 없음), 생성+7일 뒤엔 서비스 기존 보류 환불(settle<Svc>RetryRefund). 커밋 1d13afe7f(헬퍼·크론 unsettled 이어쓰기), 7bfd2cadd vedic, e7a4bf0f3 astrology, 1989484d2 ziwei, 916d65316 sukuyo(읽기 전용 증빙 — resolveStartAccess 는 이용권 차감 가능해 쓰지 않음), 0658bee74 karma, 37cad9969 감사 B2(증빙 조회 실패 pending 도 이어쓰기·회전 — 안 하면 가장 오래된 1건이 서비스 크론을 막음), 4cba2f230·bfec7eddc·3e62fa12d 감사 B1(이용권 재판정 거절 시 `{}` 저장 → 7일 뒤 이용권 환불 누락; 서비스별 pass 모양으로 대체, refundId 멱등). paid-gate-auditor B1 재감사 PASS·verify-payment-freeze exit 0.
+  - 실측: verify:paid-llm-delivery ok(정체 자동 확정 12개·경보만 7개, 변이 37/37, 100/100). jest ziwei 59·vedic 54·astrology 56·sukuyo+karma+stuck+recovery 159 pass.
+  - 남은 것(KNOWN_STUCK_SETTLE_GAPS 7): naming-prompt(idKey executionId, metaKey result.namingPrompt; 크론 select 에 result.namingPrompt 가 없어 토스 분기 판정 불가 가능 — 먼저 확인), KNOWN_RETRY_PENDING 6종 nakshatra-ai·human-design-report·destiny-compass-ai·relationship-boundary-test·celestial-harmony·fortune(공용 GENERIC_STUCK_SETTLERS 경로 적합 여부 먼저, 아니면 서비스 기존 즉시 환불 사용 후 기록).
+  - 남은 위험(보고만): delivery_pending 정체 건은 구조 대신 retryable 로 감(가정), 크론 동시 실행 경합 미검증, paid-flow-gates.yml 이 paid-delivery-stuck.js 변경에 트리거 안 됨, ziwei Payment 확인이 CAS 전에 돌 수 있음(경미), vedic 은 증빙 없을 때 refundStatus 가 not_required 대신 requested 로 기록(금액 영향 없음).
 - [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
 
 ## 실측 (단계마다 추가)
