@@ -9,7 +9,7 @@ const product={nativeService:'tea',featureKey:'fortune-tea-house-saju-consultati
  sku:'injected-test-only',approved:true,approvedPriceKRW:6000,priceEvidence:'offline fixture'};
 const contract={requestId:'attempt',resultId:'fortune-tea-house:attempt',featureKey:product.featureKey,inputHash:'fixed-input',pricing:{amountKRW:6000}};
 const initial={...auth,_id:'a'.repeat(64),identityId:auth._id,...contract,nativeService:'tea',sku:product.sku,approvedPriceKRW:6000,status:'prepared',orderId:null};
-const order={orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+const order={orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED',purchaserMatched:true};
 function store(){
  const state={purchases:new Map(),intent:structuredClone(initial),writes:0};
  return {state,transaction:async task=>{

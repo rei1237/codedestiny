@@ -35,6 +35,11 @@ export function checkOrder(order, {orderId, sku}) {
   // The official status API has no amount field. Never call a client amount verified.
   return {orderId, sku, status: order.status, statusDeterminedAt: order.statusDeterminedAt};
 }
+// Required only before the FIRST ledger insert. Existing owned rows keep their history.
+export function assertPurchaser(order) {
+  if (order?.purchaserMatched !== true) throw new TossError('ORDER_BUYER_UNVERIFIED', 403);
+  return 'PURCHASER_MATCHED';
+}
 export function assertGrantReceipt(receipt, orderId) {
   return receipt?.orderId === orderId && receipt?.entitlement === 'granted' && receipt?.durable === true;
 }
