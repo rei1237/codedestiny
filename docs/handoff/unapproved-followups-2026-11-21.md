@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 3. L1 `/today/`·`/manse/` 비로그인 무료 결과 (`FREE_READING_GUEST_ENABLED`) — W2 정책대로 무료 결과는 로그인 없이, 동의 단계 유지, 저장·유료·이어보기는 로그인
+next: 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
 ---
 
 # 미승인 후속 항목 — 권장안으로 진행 (2026-11-21)
@@ -16,6 +16,7 @@ next: 3. L1 `/today/`·`/manse/` 비로그인 무료 결과 (`FREE_READING_GUEST
 
 ## 승인 상태
 - 사용자 원문(2026-11-21): "승인 받지 않은 부분에 대해서는 권장안으로 진행해줘" — 위 계획의 "실행" 항목 1~5 를 RED 실행 승인으로 기록한다. 다시 묻지 않는다.
+- 사용자 원문(2026-11-21, 호출 세션 경유): "가장 권장 사항으로 검사 성공되도록해주고 나머지 변경 진행 후 운영에 반영해줘" — 검사 실패는 정석 수정으로 통과시킨다. 운영 승격은 단계 에이전트가 하지 않고 호출 세션이 별도로 다룬다.
 - 함께 적용(사용자, 2026-11-21): "빠르게 진행 … 회귀는 없도록 너무 꼼꼼하지 않아도돼", "서비스 기능에 회귀는 없어야해".
 - 승인 밖: 운영 승격, 과금 LLM 실호출, 실결제·운영 DB 쓰기. 아래 "하지 않음" 표.
 
@@ -62,7 +63,16 @@ next: 3. L1 `/today/`·`/manse/` 비로그인 무료 결과 (`FREE_READING_GUEST
   - 실측: 대상+임포터 node 테스트 83/83, verify-mobile-entry-actions 통과, check:fast exit 0(test:node 5681/0, jest 8447 통과·1 skip). 브라우저 360·960, visual-checker: 차단 결함 0(960 결과의 「내 절기 리듬」 "불러오지 못했어요" 는 로컬 dev 에 /api 워커가 없어서 — 진입 경로와 무관, 미검증).
   - 롤백: `git revert 765b3607b`.
   - 후속(보고만): 정본 경로가 결과까지 간 뒤 궁합 카드로 자동 스크롤되지 않는다(360 scrollY 6279·카드 top 4349, 960 4316·5179 — 무료 칩도 같은 기존 동작). 동의 모달 제목 "이/용" 줄바꿈(keep-all 없음), 360 쿠키 배너가 랜딩 폼을 가림, 960 탭바 손잡이가 업셀 제목에 겹침 — 모두 기존.
-- [ ] 3. L1 `/today/`·`/manse/` 비로그인 무료 결과 (`FREE_READING_GUEST_ENABLED`)
+- [x] 3. L1 `/today/`·`/manse/` 비로그인 무료 결과 (`FREE_READING_GUEST_ENABLED`)
+  - 커밋: 0b1e65215(코드·테스트·가드·sitemap 원장). 플래그 `lib/guided-flow/flags.mjs` `FREE_READING_GUEST_ENABLED = true`(React/lib 전용, 정적 셸 미러 없음 → sync:public 불필요). 경계 `app/_lib/free-reading-access.ts` 에 `freeReadingGuestAllowed()`(불리언 true 일 때만) 추가, `hasFreeReadingSession` 은 그대로.
+  - /today/: "무료로 시작" 뒤 세션 확인은 유지하고, 비로그인(또는 확인 실패)이면 플래그가 켜져 있을 때만 결과를 연다. 계산 API `/api/fortune/today-hub` 는 원래 공개(`credentials:"omit"`, 워커 라우트 인증 없음, jest 라우트 테스트 16/16 비인증 통과) → 워커 변경 없음, 비회원 서버·DB 쓰기 없음. 이어보기(`usePaidResume`)·계정 전환 초기화(`useReadingIdentityReset`)·유료 경로 불변. 비한국어 11개 로케일 heroLead 끝 문장 "로그인 후 무료" → "로그인 없이 무료"(플래그 끔이면 원문, ko UI 는 고정 문구라 화면 변화 없음).
+  - /manse/: 결과는 W2 셸 흐름(`/ggulggul/?action=cdOneStepFreeSajuEntry`, 동의 → 십성 탭 포함 결과)이라 이미 비회원 개방 → 안내 문구만 "십성 배치는 로그인 없이 무료 기본 풀이에서 이어 보고(보관함 저장은 로그인 후)" 로(두 플래그 모두 켜졌을 때만). ctaHref 불변. 건너뛴 페이지 없음.
+  - 가드: `verify-paid-gate-ui-regression.mjs` 에 경계 플래그 단언·/today/ 만 게스트 통과 허용(다른 무료 결정 계산 페이지는 `freeReadingGuestAllowed(` 금지) 추가. 새 테스트 `__tests__/ui/free-reading-guest-l1.test.mjs` 5건. 변이(`if (true)`)로 가드·테스트 모두 실패 확인.
+  - 실측: 관련 node 테스트 34/34, 가드 PASS, 플래그 끔 동일성(브라우저 /today/ 게이트 유지·결과 없음, /manse/ 옛 문구), check:fast exit 0(test:node 5693/0, jest 8447 통과·1 skip). 브라우저 360·960(mock dev, today-hub 응답은 mock dev 501 이라 page.route 스텁): 비회원 /today/ 결과 표시·로그인 모달 0·today-hub 요청 쿠키 없음·가로 넘침 0·pageerror 0; /manse/ → 셸 → 동의 → 십성 탭 결과, 로그인 모달 0. visual-checker 조건부 PASS(차단 결함 0).
+  - SEO: /today/·/manse/ title·H1·canonical(자기)·robots(index) 실측 불변. URL 집합 불변, 원장 서명 갱신(free-reading-access.ts 를 import 하는 /saju-fpti/·/saju/destiny-bias/·/saju/destiny-meeting-place/ lastmod 2026-11-21). hreflang·noindex·이미지 영향 없음.
+  - 롤백: `FREE_READING_GUEST_ENABLED = false` 또는 `git revert 0b1e65215`.
+  - 위험: 가입 전환 감소 가능(W2 와 같은 정책 위험).
+  - 후속(보고만): `lib/seo/free-saju-landing.mjs`(/saju/free/) 가 4체계 오늘의 운세를 아직 "로그인 후 무료" 로 안내(보수적 낡은 문구), 세션 확인 중 "로그인 확인 중" 라벨 잠깐 보임, 360 쿠키 배너가 내용 가림, 360 만세 결과 탭 줄 "억부" 잘림(스크롤 탭, 기존). /today/ 는 별도 동의 모달이 없고 시작 버튼이 유지되는 단계.
 - [ ] 4. R1 `/free/` 무료 목록 단독 페이지 (`FREE_LIST_PAGE_ENABLED`)
 - [ ] 5. R5 자미 (조건부, 결제 감사 먼저)
 - [ ] 마무리: `docs/context/free-tarot-ux-qa.md` 플래그 표·미승인 목록 갱신, 워크트리·임시 파일 정리, main CI 1회 확인, 한국어 최종 보고
