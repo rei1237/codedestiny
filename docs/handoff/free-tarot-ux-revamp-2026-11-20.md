@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 6단계 무료 운세 섹션 재구성 — 계획 보고 후 승인 대기(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검). 3c-A5 완료 2026-11-21
+next: 6단계 리다이렉트·로그인 승인 대기(R1~R5·L1, 아래 "6단계 계획" 표) → 5단계 타로 통합 계획 보고 → 7단계 삭제 목록 승인(D1 포함). 6단계 비리다이렉트 부분 완료 2026-11-21
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -65,6 +65,8 @@ next: 6단계 무료 운세 섹션 재구성 — 계획 보고 후 승인 대기
 - [x] 4. 캐릭터 웹툰 결과 렌더러 — 2026-11-21 완료(플래그 `GUIDED_WEBTOON_RESULT_ENABLED`, `/today/` 오늘의 세 장 결과). 아래 "4단계 결과".
 - [ ] 5. 타로 UX 통합 — **계획 보고 후 승인 대기**(기능별 매핑표, 매핑 안 되는 고유 동작 목록, 기능 플래그 전환 방식).
 - [ ] 6. 무료 운세 섹션 재구성 — **계획 보고 후 승인 대기**(화면 전/후, 리다이렉트 표, sitemap·SEO 동반 점검).
+  - [x] 6a. 홈·SEO 랜딩 무료 배너 "전체 보기"를 카드 목록으로(`GUIDED_FREE_LIST_ENABLED`), 2026-11-21. 아래 "6단계 결과".
+  - [ ] 6b. R1~R5·L1 승인 대기(실행 안 함).
 - [ ] 7. 레거시 정리(삭제) — **삭제 대상·제외 목록 보고 후 승인 대기**. `docs/context/legacy-tarot-free-ui.md` 기록 + CLAUDE.md 한 줄.
 - [ ] 8. QA·성능·접근성 — `docs/context/free-tarot-ux-qa.md`.
 
@@ -427,3 +429,14 @@ next: 6단계 무료 운세 섹션 재구성 — 계획 보고 후 승인 대기
 | R5 | `/ggulggul/?action=cdHome{Ziwei,Sukuyo,Vedic,Astro}Entry` | 새 플로우로 매핑 | 원문 6-3 | 대상 React 가이드 흐름이 아직 없음 → 흐름을 먼저 만든 뒤에만 의미 | — |
 | L1 | `/today/`·`/manse/` 비로그인 결과 | 로그인 없이 무료 기본 결과 | 원문 6-4, 감사 결함 #3 | 인증 경계(`app/_lib/free-reading-access.ts`), D12/W2 와 같은 RED | 플래그 false |
 | D1 | `FreePromoBanner` 칩 마크업·`.chips` CSS | 삭제 | 플래그 안정 뒤 죽은 코드 | 7단계 삭제 목록에 넣고 3면 확인 | `git revert` |
+
+### 6단계 결과 (2026-11-21) — 무료 운세 카드 목록(6a)
+- 만든 것: `app/components/FreePromoBanner.tsx` 전체 보기 details 를 칩 → 카드(포스터 3:2·이름·한 줄 설명·무료 배지·약 N분) 23개로. 데이터 `FREE_PROMO_CATALOG`(`lib/marketing/free-promo.mjs`, 표시 전용 — 무료 판정 정본은 여전히 `lib/payment/free-fortune-policy.mjs`), 문구 `i18n/authored/freePromo-02.json`(5로케일 저작·7개 en 복사), 썸네일 `public/images/free-list/*-320.webp` 11장(16:9 원본 중 글자 든 5장은 contain+가장자리색, 나머지 cover). 열: ≥960 3열, 600~959 2열, <600 1열. href 는 칩과 같은 `freePromoItemHref`.
+- 플래그·롤백: `lib/guided-flow/flags.mjs` `GUIDED_FREE_LIST_ENABLED=false` → 기존 칩 마크업 그대로(실측: 배너 outerHTML 이 origin/main 과 360·960 모두 바이트 동일 10415B). 또는 기능 커밋 `d9d60b8cf` revert(+ 미러·원장 재생성).
+- 건너뜀: 정적 셸 `/ggulggul/` 목록(칩 그대로, R1 과 묶음), 셸 흐름 매핑(R2·R5), 타로 수렴(R4, 5단계 의존), 비로그인(L1), 칩 삭제(D1, 7단계).
+- 검증(실측): free-promo 7/7, 임포터 테스트 51/51, home-direct-feature-links 1/1, verify-home-service-registry OK, check:fast(paid-gate 78/0·lint 통과, sitemap-drift 는 원장 재생성 후 OK), check:pre-push exit 0(미러 sync·원장 재생성 커밋 뒤). dev 360·960: 링크 23, 최소 높이 128px, 가로 넘침 0, H1·title·canonical 불변. visual-checker: 대비 제목 14.5·설명 6.0·배지 7.6·분 8.6:1, 잘림 없음, 포스터 글자 잘림 5건 → contain 재생성 후 OK.
+- 미검증: perf:home, 360 만세력 카드 배지 줄(탭바에 가려 눈 확인 못 함 — DOM·960 은 정상), 스테이징.
+- SEO: 대상 `/`·FREE_PROMO_LANDING_PATHS 랜딩. title/description/H1/canonical/hreflang/robots 영향 없음, 내부 링크 집합 불변(href 동일), 본문에 설명 23줄 추가(닫힌 details), sitemap URL 집합 불변·lastmod 만 갱신, 이미지 alt="" 장식.
+- 커밋: `d9d60b8cf` 기능, `7fe6c541f` 미러(셸 사전에 키 2개 추가·빌드 해시), `148344a80` 원장.
+- 위험: "약 N분"은 표시용 추정(실측 아님), details 열 때 썸네일 최대 23장 지연 로드, 정적 셸 목록과 모양 불일치(R1 까지), 960 카드 행 높이 127/149 혼재(설명 3줄).
+- 다음: 위 승인 표 R1~R5·L1 사용자 결정 → 7단계 삭제 목록(D1).
