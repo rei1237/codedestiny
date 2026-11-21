@@ -128,3 +128,32 @@
 
 .animalPortrait { display:block; width:min(100%,400px); height:auto; aspect-ratio:1; object-fit:contain; border-radius:12px; margin:0 0 24px; }
 @media (min-width:768px) { .animalSurface .heroContent { max-width:none; } .animalPortrait { float:right; width:38%; margin:0 0 24px 32px; } .animalSurface .hero:after { content:''; display:block; clear:both; } }
+
+/* 무성 화자 레이어 — 말풍선(결정적 템플릿)과 3개년 유년 리딩 */
+.musungSay{display:grid;grid-template-columns:56px 1fr;gap:12px;align-items:start;margin:20px 0;max-width:72ch}
+.musungFace{width:56px;height:56px;border-radius:50%;object-fit:cover;object-position:top;background:var(--zw-surface);border:1px solid var(--zw-rule)}
+.musungBubble{position:relative;background:var(--zw-surface);border:1px solid var(--zw-rule);border-left:3px solid var(--zw-gold);border-radius:4px 12px 12px 12px;padding:12px 16px}
+.musungName{display:inline-block;font-size:var(--zw-small);color:var(--zw-gold);letter-spacing:.04em;margin-bottom:4px}
+.musungText{margin:0;font-size:var(--zw-body);line-height:1.85;color:var(--zw-muted)}
+.musungText strong{color:var(--zw-text);font-weight:600}
+.flow{margin:40px 8px;scroll-margin-top:120px;border-bottom:1px solid var(--zw-rule);padding-bottom:40px}
+.flow>h2{font-size:var(--zw-section);margin:0 0 12px}
+.flowIntro{font-size:var(--zw-body);line-height:1.9;color:var(--zw-muted);margin:0 0 8px;max-width:64ch}
+.flowCard{border-top:1px solid var(--zw-rule);padding:20px 0}
+.flowCardHead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+.flowCardHead h3{font-size:1.2rem;font-weight:600;margin:0;color:var(--zw-gold)}
+.flowCardHead span{font-size:var(--zw-small);color:var(--zw-muted)}
+.flowMarks{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:12px}
+.flowMarks li{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.flowMarks p{margin:0;font-size:var(--zw-body);line-height:1.8;color:var(--zw-muted)}
+.flowMarks p:first-child{color:var(--zw-text)}
+.flowChip{display:inline-block;padding:2px 10px;border:1px solid var(--zw-rule);border-radius:999px;font-size:var(--zw-small);font-weight:600;color:var(--zw-gold);white-space:nowrap}
+.flowChip[data-type="화기"]{color:#f0a8a0;border-color:#7d4a46}
+.flowChip[data-type="화록"]{color:#9fd8b0;border-color:#3f6b4f}
+.flowTriad{color:var(--zw-gold);font-size:var(--zw-small)}
+.flowNote,.flowOlympus,.flowAction{margin:12px 0 0;font-size:var(--zw-body);line-height:1.8;color:var(--zw-muted);border:1px solid var(--zw-rule);border-radius:6px;padding:10px 14px}
+.flowNote b,.flowOlympus b,.flowAction b{color:var(--zw-gold);font-weight:600}
+.flowOlympus small{color:var(--zw-muted);font-size:var(--zw-small)}
+.flowAction{color:var(--zw-text);border-color:var(--zw-gold)}
+.flowFoot{font-size:var(--zw-small);line-height:1.7;color:var(--zw-muted);margin:16px 0 0}
+@media (max-width:600px){.musungSay{grid-template-columns:44px 1fr;gap:10px}.musungFace{width:44px;height:44px}.musungBubble{padding:10px 12px}.flowMarks li{grid-template-columns:1fr;gap:4px}.flow{margin:32px 0}}
