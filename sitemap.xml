@@ -140,7 +140,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -2572,7 +2572,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/prompt-hub/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -12085,13 +12085,13 @@
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei/animal-destiny/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.87</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei/chart/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.92</priority>
   </url>
