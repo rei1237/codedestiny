@@ -531,7 +531,7 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   const auth = {_id:'identity',ownerId:'owner',userId:'owner',revision:1,userKey:'123',environment:'SANDBOX'};
   const product = {approved:true,nativeService:'love-secret',sku:'offline-love',featureKey:'love-secret-ai-consultation',productId:'native:love-secret:love-secret-ai-consultation',approvedPriceKRW:6000,priceEvidence:'offline fixture'};
   const input = {idempotencyKey:'original-paid-request',inputHash:'same-input',topic:'일생'};
-  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED',purchaserMatched:true};
   const state = {rows:[],purchases:[],catalog:[product],order,identity:true};
   const chain = value => ({lean:async()=>value,sort(){return this;},limit(){return this;}});
   state.models = {
@@ -649,10 +649,12 @@ test('new love-secret facts stay pinned across OFF resume without regenerating g
  assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.sajuResult,saved);assert.equal(f.usage,1);
 });
 
-test('corrupt pinned love-secret facts stop before provider and refund', async () => {
+// 2026-11-22 C3: 불일치는 다시 해도 같은 409 라 결제를 되돌린다(이전 계약: 환불 없이 중단).
+test('corrupt pinned love-secret facts stop before the provider and restore the payment', async () => {
  const f=fixture('paid');Object.assign(f.ctx,await import('../../worker/lib/representative-consumer-facts.js'));
  await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});const calls=f.calls,refunds=f.refunds;f.doc.sajuResult.dayMaster='tampered';
- const result=await f.post({resumeSessionId:f.doc.id});assert.equal(result.status,409);assert.equal(f.calls,calls);assert.equal(f.refunds,refunds);
+ const result=await f.post({resumeSessionId:f.doc.id});assert.equal(result.status,409);assert.equal(f.calls,calls);assert.equal(f.refunds,refunds+1);
+ const payload=await result.json();assert.equal(payload.reason,'REPRESENTATIVE_FACTS_MISMATCH');assert.equal(payload.refunded,true);
 });
 
 test('새 상담은 7개 그룹 계획(V2)으로, 버전 없는 예전 상담은 V1 계획으로 이어 쓴다', async () => {

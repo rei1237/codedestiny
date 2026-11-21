@@ -1,5 +1,5 @@
 import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
-import {checkOrder,TossError} from './policy.js';
+import {assertPurchaser,checkOrder,TossError} from './policy.js';
 
 export function nativeProduct(item,contract){
   if(!item||item.approved!==true||!['music','tea','nakshatra','geomancy','totem-basic','totem-deep','ziwei-deep','compass','yoga','human-design','codex','guardian','sibyl','saju-compat','neo','palm','naming','dream','heukwol','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship','pet'].includes(item.nativeService)||typeof item.sku!=='string'||!item.sku
@@ -31,12 +31,12 @@ export function assertNativeIntent(intent,auth,contract){
 
 // Grant acknowledgement contains no generated result. The order and immutable
 // original input are committed together, before the SDK may acknowledge it.
-export async function grantNativeOrder({store,auth,order,product,requestId=null}){
+export async function grantNativeOrder({store,auth,order,product,requestId=null,closedRestore=false}){
   checkOrder(order,{orderId:order.orderId,sku:product.sku});
   return store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
-    if(!purchase&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
+    if(!purchase&&!NEW_PURCHASES_AVAILABLE&&!(closedRestore===true&&order.purchaserMatched===true))throw new TossError('TOSS_PURCHASES_DISABLED',503);
     if(purchase){
       if(purchase.identityId!==auth._id||String(purchase.ownerId)!==String(auth.ownerId)||purchase.environment!==auth.environment||purchase.sku!==product.sku
         ||purchase.nativeService!==product.nativeService||purchase.featureKey!==product.featureKey)
@@ -44,7 +44,7 @@ export async function grantNativeOrder({store,auth,order,product,requestId=null}
       if(purchase.status==='REFUNDED')throw new TossError('ORDER_REFUNDED',409);
       if(purchase.requestId&&requestId&&purchase.requestId!==requestId)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
     }else{
-      purchase={_id:order.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,
+      purchase={_id:order.orderId,buyerVerification:assertPurchaser(order),identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,
         sku:product.sku,productId:product.productId,serviceId:product.nativeService==='neo'?'neo':'yeoni',nativeService:product.nativeService,featureKey:product.featureKey,
         approvedPriceKRW:product.approvedPriceKRW,priceEvidence:product.priceEvidence,
         status:order.status,requestId:null,verifiedAt:new Date(),grantedAt:new Date()};

@@ -204,3 +204,20 @@ test('작업 목록은 minChars 1(분량 미달 단독 거부 없음)이고 근�
   const reasonPaths = groupFields('reasons', input).required.map((spec) => spec.path);
   assert.deepEqual(reasonPaths, input.facts.reasons.map((reason) => `reasonDetails.${reason.code}`));
 });
+
+test('시각 미상 쪽의 빈 시주는 받아 주고, 시각을 안다면서 빈 시주면 422 로 막는다', () => {
+  const unknown = sample();
+  unknown.self.pillars[3] = { gan: '', ji: '' };
+  unknown.self.birthTimeUnknown = true;
+  const input = normalizeSajuCompatInput(unknown);
+  assert.deepEqual(input.self.pillars[3], { gan: '', ji: '' });
+  assert.equal(input.self.birthTimeUnknown, true);
+  assert.equal(input.partner.pillars[3].gan.length, 1);
+  const claimsKnown = sample();
+  claimsKnown.self.pillars[3] = { gan: '', ji: '' };
+  assert.throws(() => normalizeSajuCompatInput(claimsKnown), invalid('self.3.gan'));
+  const emptyDay = sample();
+  emptyDay.self.pillars[2] = { gan: '', ji: '' };
+  emptyDay.self.birthTimeUnknown = true;
+  assert.throws(() => normalizeSajuCompatInput(emptyDay), invalid());
+});

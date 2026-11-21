@@ -22264,7 +22264,8 @@
       "review": "La lecture IA n'a pas pu être terminée. Paiement et contenu enregistré sont conservés pour examen par l'assistance. La lecture de base apparaît ci-dessous.",
       "revoked": "Un résultat lié à un paiement annulé ou remboursé ne peut pas être poursuivi. La lecture de base apparaît ci-dessous.",
       "retry": "Reprendre la lecture IA",
-      "moduleFail": "L'écran de lecture IA n'a pas pu être chargé. Aucun paiement n'a été effectué. Réessayez dans un instant."
+      "moduleFail": "L'écran de lecture IA n'a pas pu être chargé. Aucun paiement n'a été effectué. Réessayez dans un instant.",
+      "inputInvalid": "Vérifie la date et l'heure de naissance saisies. Une demande arrêtée à la validation n'est pas facturée ; si un paiement a déjà eu lieu, il est conservé et l'assistance le remboursera ou le rétablira. La lecture de base apparaît ci-dessous."
     },
     "archive": {
       "title": "Historique de compatibilité Saju",

@@ -84,6 +84,20 @@
     "nl": "De AI-duiding is nog niet afgerond. Betaling en opgeslagen inhoud blijven bewaard voor controle door ondersteuning. De basisduiding staat hieronder.",
     "ms": "Tafsiran AI belum selesai. Pembayaran dan kandungan tersimpan dikekalkan untuk semakan sokongan. Tafsiran asas dipaparkan di bawah."
   },
+  "sajuCompat.flow.inputInvalid": {
+    "ko": "입력한 생년월일·태어난 시간 정보를 확인해 주세요. 입력 확인에서 멈춘 요청은 결제되지 않으며, 이미 결제된 건은 결제가 보존되어 고객센터에서 환불·복구해 드려요. 아래는 기본 해석이에요.",
+    "en": "Please check the birth date and birth time you entered. A request stopped at input validation is not charged; if a payment was already made, it is preserved and our support team will refund or restore it. The basic interpretation is shown below.",
+    "ja": "入力した生年月日・出生時刻をご確認ください。入力確認で止まったリクエストは決済されません。すでに決済済みの場合はお支払いが保全され、サポートで返金・復元いたします。以下は基本の解釈です。",
+    "zh-CN": "请检查您输入的出生日期与出生时间。在输入校验阶段停止的请求不会扣款；若已付款，款项会被保留，客服将为您退款或恢复。以下为基础解读。",
+    "zh-TW": "請檢查您輸入的出生日期與出生時間。在輸入驗證階段停止的請求不會扣款；若已付款，款項會被保留，客服將為您退款或恢復。以下為基礎解讀。",
+    "vi": "Vui lòng kiểm tra ngày sinh và giờ sinh đã nhập. Yêu cầu dừng ở bước kiểm tra dữ liệu không bị tính phí; nếu đã thanh toán, khoản tiền được giữ nguyên và bộ phận hỗ trợ sẽ hoàn tiền hoặc khôi phục. Phần cơ bản hiển thị bên dưới.",
+    "hi": "कृपया दर्ज की गई जन्म तिथि और जन्म समय जाँचें। इनपुट जाँच पर रुका अनुरोध शुल्क नहीं लेता; यदि भुगतान हो चुका है तो वह सुरक्षित है और सहायता टीम धनवापसी या बहाली करेगी। मूल व्याख्या नीचे है।",
+    "es": "Revisa la fecha y la hora de nacimiento introducidas. Una solicitud detenida en la validación no se cobra; si ya pagaste, el pago se conserva y soporte lo reembolsará o restaurará. Abajo aparece la lectura básica.",
+    "fr": "Vérifie la date et l'heure de naissance saisies. Une demande arrêtée à la validation n'est pas facturée ; si un paiement a déjà eu lieu, il est conservé et l'assistance le remboursera ou le rétablira. La lecture de base apparaît ci-dessous.",
+    "de": "Bitte prüfe das eingegebene Geburtsdatum und die Geburtszeit. Eine bei der Eingabeprüfung gestoppte Anfrage wird nicht berechnet; eine bereits geleistete Zahlung bleibt erhalten und der Support erstattet oder stellt sie wieder her. Die Grunddeutung steht unten.",
+    "nl": "Controleer de ingevoerde geboortedatum en geboortetijd. Een verzoek dat bij de invoercontrole stopt, wordt niet in rekening gebracht; een al gedane betaling blijft bewaard en ondersteuning betaalt die terug of herstelt die. De basisduiding staat hieronder.",
+    "ms": "Sila semak tarikh dan masa lahir yang dimasukkan. Permintaan yang terhenti pada semakan input tidak dikenakan bayaran; jika sudah dibayar, pembayaran dikekalkan dan pasukan sokongan akan memulangkan atau memulihkannya. Tafsiran asas dipaparkan di bawah."
+  },
   "sajuCompat.flow.revoked": {
     "ko": "취소·환불된 결제의 결과는 이어서 만들 수 없어요. 아래는 기본 해석이에요.",
     "en": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",

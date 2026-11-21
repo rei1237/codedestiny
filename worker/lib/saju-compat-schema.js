@@ -84,6 +84,8 @@ function pillarsOf(value, field) {
   if (!isObject(value) || !Array.isArray(value.pillars) || value.pillars.length !== 4) throw invalid(field);
   return value.pillars.map((pillar, index) => {
     if (!isObject(pillar)) throw invalid(`${field}.${index}`);
+    // 시각 미상이면 클라이언트 만세력이 시주를 빈 값으로 보낸다. 그 쪽의 시주만 비워 두고 해석에서 뺀다.
+    if (index === 3 && value.birthTimeUnknown === true && pillar.gan === "" && pillar.ji === "") return { gan: "", ji: "" };
     const gan = stemOf(pillar.gan, `${field}.${index}.gan`);
     const ji = branchOf(pillar.ji, `${field}.${index}.ji`);
     if (!yinYangMatches(gan, ji)) throw invalid(`${field}.${index}`);

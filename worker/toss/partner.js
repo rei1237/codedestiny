@@ -10,7 +10,7 @@ const operations = Object.freeze({
 });
 
 // Cloudflare mTLS binding, never https.Agent or a global fetch fallback.
-export async function partnerRequest(env, operation, {body, accessToken, userKey} = {}) {
+export async function partnerRequest(env, operation, {body, accessToken, userKey, buyerCheck = false} = {}) {
   const spec = operations[operation];
   if (!spec) throw new TossError('PARTNER_OPERATION_INVALID', 500);
   if (!env.TOSS_MTLS?.fetch) throw new TossError('TOSS_MTLS_NOT_CONFIGURED', 503);
@@ -20,8 +20,11 @@ export async function partnerRequest(env, operation, {body, accessToken, userKey
   if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
   if (operation === 'order') {
     if (!/^[1-9]\d*$/.test(userKey || '')) throw new TossError('TOSS_IDENTITY_REQUIRED', 401);
-    // The partner endpoint does not accept user headers or prove order ownership.
-    // This local identity check is only a prerequisite; it does not bind buyer to order.
+    // Official OpenAPI (api/iap): x-toss-user-key makes the response carry purchaserMatched.
+    // Only purchaserMatched===true proves the buyer; false/null/absent never does.
+    // Sent only for a first ledger insert (no owned row yet). Rereads, library, recovery and
+    // reconciliation keep the previous header-free request so a partner rejection cannot break them.
+    if (buyerCheck === true) headers['x-toss-user-key'] = String(userKey);
   }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10000);
@@ -50,8 +53,8 @@ export async function loginIdentity(env, input) {
   // Email, birthday and other optional encrypted profile fields are neither required nor retained.
   return {userKey: verifiedUserKey(profile.userKey), referrer: grant.referrer};
 }
-export function lookupOrder(env, userKey, orderId) {
-  return partnerRequest(env, 'order', {userKey, body: {orderId: validateOrderId(orderId)}});
+export function lookupOrder(env, userKey, orderId, {buyerCheck = false} = {}) {
+  return partnerRequest(env, 'order', {userKey, buyerCheck: buyerCheck === true, body: {orderId: validateOrderId(orderId)}});
 }
 export function unlinkIdentity(env, userKey) {
   if (!/^[1-9]\d*$/.test(userKey || '')) throw new TossError('TOSS_IDENTITY_REQUIRED', 401);

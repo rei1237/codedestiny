@@ -1810,9 +1810,10 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
     if (!existing) sajuResult = pinRepresentativeFacts(sajuResult, env, 'love-secret');
     logLoveSecretAi("Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   } catch (error) {
-    if (error?.message === 'REPRESENTATIVE_FACTS_MISMATCH') return json({ ok: false, reason: error.message }, { status: 409 });
-    logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
     const restored = await restoreBillingGateAccessOnFailure({ env, userId: auth.userId, access, idempotencyKey, pricing, error }).catch((restoreError) => ({ restored: false, error: clean(restoreError?.message || restoreError, 300) }));
+    // 저장된 근거 고정값 불일치는 다시 해도 같은 결과다. 결제는 위에서 되돌리고 409 로 알린다.
+    if (error?.message === 'REPRESENTATIVE_FACTS_MISMATCH') return json({ ok: false, reason: error.message, refunded: Boolean(restored?.restored || restored?.refunded) }, { status: 409 });
+    logLoveSecretAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "fortune_data_failed", access: access.accessType, env, error }), "error");
     logLoveSecretAi("LLM Refund Or Restore", {
       ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
       restored,
