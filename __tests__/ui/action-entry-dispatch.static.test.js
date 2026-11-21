@@ -160,6 +160,16 @@ test("런타임은 타일을 찾은 뒤에만 action 을 선점한다", () => {
   );
 });
 
+test("런타임 타일 탐색은 모바일 컬렉션 가상화로 떼어 둔 카드도 본다 (2026-11-21 자존감 타로)", () => {
+  // 모바일은 닫힌 컬렉션 카드를 문서에서 떼어 collection.__cdLazyCards 에만 둔다. 러너가 그 뒤에 돌면
+  // 타일을 못 찾고, 런처 폴백은 지연 로더를 부르지 않아 자존감·재회 타로 딥링크가 열리지 않았다.
+  const fn = runtime.slice(runtime.indexOf("function __cdFindRouteActionElement"));
+  const body = fn.slice(0, fn.indexOf("\n}\n") + 2);
+  assert.ok(body.length > 40, `${RUNTIME_REL}: __cdFindRouteActionElement 본문을 읽지 못했다`);
+  assert.match(body, /__cdLazyCards/, `${RUNTIME_REL}: __cdFindRouteActionElement 가 __cdLazyCards 를 보지 않는다`);
+  assert.match(shell, /collection\.__cdLazyCards = collectionCards\(grid\)/, `${SHELL_REL}: 모바일 가상화가 __cdLazyCards 를 더 이상 채우지 않는다 — 런타임 탐색도 함께 고칠 것`);
+});
+
 /** 셸 타일의 `data-action` -> 그 타일이 물고 있는 유료 키. 없으면 null. */
 function shellTileFeatureKey(action) {
   const at = shell.indexOf(`data-action="${action}"`);
