@@ -62,7 +62,7 @@ export function GuidedFlowShell({ flow, labels, titles, landing, renderStep, bra
     // 가운데로 스크롤하는 기본 포커스는 360 에서 첫 입력을 화면 아래로 밀어낸다. 제목이 헤더에 가렸거나
     // 화면 위쪽 35% 아래에 있으면 셸 머리를 헤더 바로 아래(scroll-margin-top)로 올린 뒤 스크롤 없이 포커스한다.
     const rect = title.getBoundingClientRect();
-    if (rect.top < 64 || rect.top > window.innerHeight * 0.35) rootRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' });
+    if (rect.top < 64 || rect.top > window.innerHeight * 0.35) { const root = rootRef.current; if (root && typeof root.scrollIntoView === 'function') root.scrollIntoView({ block: 'start', behavior: 'auto' }); }
     title.focus({ preventScroll: true });
   }, [step, state.source]);
 
