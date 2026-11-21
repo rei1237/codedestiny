@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-21
-next: 마무리 (free-tarot-ux-qa 플래그 표·미승인 목록, 정리, CI 1회, 최종 보고)
+next: 운영 승격(코디네이터)
 ---
 
 # 미승인 후속 항목 — 권장안으로 진행 (2026-11-21)

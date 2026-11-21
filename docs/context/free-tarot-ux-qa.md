@@ -28,6 +28,14 @@
 | 5단계 ① 명리 무료 세 장 | `/tarot/mingri/` 인라인 | `GUIDED_MINGRI_TAROT_ENABLED` | false 또는 revert `4ff37b8d4` |
 | R4-3 홈 타로 진입 | `cdHomeTarotEntry` → `/tarot/mingri/` | `MINGRI_TAROT_ROUTE_ENABLED`(`js/destiny-profile.js`, 위 플래그와 묶음) | 둘 다 false + sync:public 또는 revert `e178bee44` |
 | 7단계 삭제 | `app/tarot/mingri/play/page.tsx` | 없음 | [legacy-tarot-free-ui](legacy-tarot-free-ui.md) |
+| 후속 1 R5 숙요 | `/sukuyo/` → 셸 폼 채움 | `GUIDED_SUKUYO_ENABLED`(flags.mjs + `js/destiny-profile.js`) | 두 곳 false → sync:public → restamp-paid-runtime-pins → payment-freeze --update, 또는 revert `a988b810e fc2deb290` |
+| 후속 1 R5 베다 | `/vedic/` → 셸 폼 채움 | `GUIDED_VEDIC_ENABLED`(flags.mjs + `js/destiny-profile.js`) | 숙요와 같음(같은 커밋) |
+| 후속 2 R3 궁합 링크 | 궁합 링크·매핑 3곳 | 없음 | revert `765b3607b` |
+| 후속 3 L1 비회원 무료 결과 | `/today/`·`/manse/` | `FREE_READING_GUEST_ENABLED`(flags.mjs 전용, 셸 미러 없음) | false 또는 revert `0b1e65215` |
+| 후속 4 R1 무료 목록 페이지 | `/free/` + `/ggulggul/` 배너 링크 | `FREE_LIST_PAGE_ENABLED`(flags.mjs) | false → sync:public → sitemap:generate, 또는 revert `9298bd0f1` |
+| 후속 5 R5 자미 | `/ziwei/` → 셸 폼 채움 | `GUIDED_ZIWEI_ENABLED`(flags.mjs + `js/destiny-profile.js`) | 두 곳 false → sync:public → restamp-paid-runtime-pins → payment-freeze --update, 또는 revert `0316be0ec b4505ff70` |
+
+W3 `POPULAR_TOP5_ENABLED` 참고: F2 에서 API 실패 시 예약 높이 접힘·503 no-store 재시도·edge-cache 검사 목록을 고쳤다(ce873aace·d55643af8). `source:"sales"` 공개 범위는 아직 미결(아래 후속).
 
 ## 실측 (이번 8단계, 2026-11-21)
 
@@ -71,10 +79,17 @@ JS 예외(pageerror)는 0. 상호작용(진입→결과)은 이번에 다시 돌
 11. ✅ (F2: 생성기 있는 두 파일 재생성 ae7d01834, PAGE_INVENTORY·mobile-platform 은 생성기 없음) `docs/purchase-journey/inventory.json`·`docs/mobile-platform/inventory.*`·`docs/payments/payment-p0-inventory.json`·`docs/seo/PAGE_INVENTORY.md` 생성 스냅샷에 삭제된 `/tarot/mingri/play` 행이 남아 있다(배선된 검사 없음, 다음 재생성 때 빠짐).
 12. 7단계 중 R5(81cc9e199)가 남긴 낡은 캐시 핀(`destiny-profile.js?v=` 독립 페이지 22곳)으로 verify:payment-choice-parity 가 main 에서 실패하던 것을 이번에 고쳤다(`fix(cache)` 커밋).
 
+## 남은 후속 과제 (2026-11-21 미승인 후속·F1~F3 뒤)
+상세는 [인수인계](../handoff/unapproved-followups-2026-11-21.md).
+- 표정 그림 5장(연이 worry, 영냥이 explain·worry·cheer·serious) — Codex 이미지 생성 사용 한도 초과로 차단(21:06 리셋). 재시도 절차는 인수인계 F3 A.
+- `AstroGuidedEntry`(숙요·베다·점성·자미 공통): 빈 이름이면 "다음" 이 비활성인데 도움말은 "비워 두고 다음을 눌러도 돼요". 원인 `app/astrology/AstroGuidedEntry.tsx` 의 `required: { name: true }`. 수정 4곳은 권한 검사(사용자 승인 대기)로 막혀 적용하지 않았다.
+- W3 TOP5 `source:"sales"` 공개 범위 정책 결정.
+- `index.html` 가격 하드코딩.
+- 2027-02-12 무료 프로모션 종료 때 `/free/`·배너 링크 처리.
+- 360 상담 캐러셀 모달 닫기 버튼 잘림.
+- 360·960 쿠키 배너가 열린 동안 단계 제목이 가려짐 — 입력·"다음" 을 배너 위로 올린 대가로 받아들인 절충(배너를 닫으면 사라짐).
+
 ## 아직 승인되지 않은 것 (실행하지 않음)
-- R1 `/free/` 목록 단독 페이지 + 기존 세 영역 요약 카드 축소.
-- R3 궁합 링크 통합·301.
-- L1 `/today/`·`/manse/` 비로그인 결과(인증 경계).
-- R5 나머지: 자미·숙요·베다 가이드 흐름.
+- 완료(2026-11-21 사용자 "권장안으로 진행"): R1 `/free/`, R3 궁합 링크, L1 비로그인 결과, R5 자미·숙요·베다 — 위 플래그 표.
 - D1 `FreePromoBanner` 칩 마크업·`.chips` CSS 삭제(롤백 경로로 유지 — 2026-11-21 7단계 승인은 `/tarot/mingri/play` 만).
 - D8 하루 1회 서버 저장(DB), D10 연애 타로 무료화, 유료 비회원 결제, 운영 승격, 과금 LLM 실호출.
