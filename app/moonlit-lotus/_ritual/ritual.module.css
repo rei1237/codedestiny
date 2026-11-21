@@ -105,12 +105,17 @@
   @keyframes lantern-rise-short { to { transform:translateY(-24dvh) scale(.7); opacity:0; } }
 }
 /* 움직임 줄이기: 카메라 이동(패럴랙스)·떠오름·미끄러짐은 끄고, 페이드와 숨쉬기 빛만 남긴다.
-   입자는 SceneFx 가 멈추고, 타이핑은 SpeechBubble 이 바로 전체를 보인다. */
+   입자는 SceneFx 가 멈추고, 타이핑은 SpeechBubble 이 바로 전체를 보인다.
+   main 이 space.page 를 함께 써서 space.module.css 의 '.page * { animation/transition:none!important }' 를 받는다.
+   남길 움직임만 더 구체적인 !important 로 되살린다(단계별 .flow[data-step] 카메라 규칙보다도 이겨야 한다). */
 @media (prefers-reduced-motion:reduce) {
-  .flow .backdrop img { transform:none; transition:opacity 800ms ease-in-out; }
-  .flow .panel { animation-name:ritual-fade; }
-  .flow .lantern[data-sent=true] { animation:ritual-fade-out 1200ms ease-in forwards; }
-  .flow .petal { transition:opacity 400ms ease-out,fill 400ms ease-out; }
+  .flow .backdrop img { transform:none !important; transition:opacity 800ms ease-in-out !important; }
+  .flow .panel { animation:ritual-fade 560ms ease-out both !important; }
+  .flow .lantern { transition:opacity 300ms ease-out !important; }
+  .flow .lantern[data-sent=true] { animation:ritual-fade-out 1200ms ease-in forwards !important; }
+  .flow .petal { transition:opacity 400ms ease-out,fill 400ms ease-out !important; }
+  .flow .incenseEmber { transition:fill 300ms ease-out !important; }
+  .flow .breathLight { transition:transform var(--ml-breath-ms,0ms) ease-in-out,opacity var(--ml-breath-ms,0ms) ease-in-out !important; }
 }
 @keyframes ritual-fade { from { opacity:0; } to { opacity:1; } }
 @keyframes ritual-fade-out { to { opacity:0; } }

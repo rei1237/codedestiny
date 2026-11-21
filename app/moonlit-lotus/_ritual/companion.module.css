@@ -36,4 +36,8 @@
 @media (prefers-reduced-motion:reduce) {
   .halo,.float,.bounce { animation:none !important; }
   .look { transition:none; transform:none !important; }
+  /* space.page 의 전역 정지(.page * !important)에서 숨쉬기만 되살린다. 절하는 중·호흡 동기 중에는 원래대로 멈춘다. */
+  .companion .breath { animation:companion-breathe 4800ms ease-in-out infinite alternate !important; }
+  .companion[data-state=bow] .breath,.companion .breath[data-breath] { animation:none !important; }
+  .companion .breath[data-breath] { transition:transform var(--companion-breath-ms,0ms) ease-in-out !important; }
 }

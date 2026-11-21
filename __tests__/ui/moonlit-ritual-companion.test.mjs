@@ -143,10 +143,10 @@ test('reduced motion keeps fades and breath, drops parallax, particles and typin
  const reduce=block(css);
  assert.ok(reduce,'ritual css has a reduced-motion block');
  assert.ok(!/\*\s*\{[^}]*animation:none/.test(reduce),'no blanket animation kill (fades must stay)');
- assert.match(reduce,/\.backdrop img \{ transform:none;/,'parallax camera off');
- assert.match(reduce,/\.panel \{ animation-name:ritual-fade;/,'step dissolve becomes a plain fade');
+ assert.match(reduce,/\.backdrop img \{ transform:none !important;/,'parallax camera off, even over the per-step camera rules');
+ assert.match(reduce,/\.panel \{ animation:ritual-fade [^}]*!important/,'step dissolve becomes a plain fade that survives the space.page blanket kill');
  assert.ok(!/breathLight[^}]*transition:none/.test(css),'breath light keeps its transition');
- const compReduce=block(comp);assert.ok(!/\.breath/.test(compReduce),'companion breath keeps running');assert.match(compReduce,/\.halo,\.float,\.bounce \{ animation:none/);
+ const compReduce=block(comp);assert.match(compReduce,/\.halo,\.float,\.bounce \{ animation:none/);assert.match(compReduce,/\.companion \.breath \{ animation:companion-breathe [^}]*!important/,'breath is restored over .page * !important');
  const flow=read('app/moonlit-lotus/_ritual/RitualFlow.tsx'),bubble=read('app/moonlit-lotus/_ritual/SpeechBubble.tsx'),hold=read('app/moonlit-lotus/_ritual/HoldToLight.tsx');
  assert.ok(!/<SpeechBubble key=/.test(flow),'bubble is not remounted, so its live region persists');assert.match(bubble,/aria-live="polite"/);assert.match(flow,/instant=\{reduced\}/);
  assert.match(flow,/aria-disabled=\{bowing\|\|state\.bows>=BOW_TARGET\}/);assert.ok(!/ disabled=\{bowing/.test(flow),'bow button keeps focus while bowing');
