@@ -401,3 +401,29 @@ next: 6단계 무료 운세 섹션 재구성 — 계획 보고 후 승인 대기
 - 분석: 배너에 노출·클릭 이벤트가 없어 analytics-kpi.md 변경 없음.
 - 검증: 관련 node 테스트 41/41, check:fast --base=origin/main 통과(첫 회 fortune/data 날짜 파일 부재 1건 → fortune:build-data 뒤 통과), dev 서버 360·960 전후 visual-checker PASS(배너만 사라지고 레이아웃 정상, 가로 넘침 없음). `/`·`/ggulggul/` 배너 남아 있음 확인. title·H1·canonical 전후 동일.
 - 롤백: `git revert c92607bda`.
+
+## 6단계 계획 (2026-11-21) — 무료 운세 한 목록
+
+승인 범위(호출 세션 전달, 사용자 2026-11-20/21): 4~8단계는 단계별 승인 없이 진행하되 **라우팅·리다이렉트·삭제·결제·로그인·DB 변경은 사용자 승인 먼저**, "서비스 기능에 회귀는 없어야해". 그래서 6단계는 두 갈래로 나눈다.
+
+### 지금 만드는 것 (리다이렉트·삭제·결제·로그인·DB 변경 없음)
+- 목록 카드화: 홈 `/`(app/page.js)와 SeoLandingTemplate 무료 랜딩에 같이 쓰는 `FreePromoBanner` 의 "무료 운세 전체 보기" 펼침(지금은 이름+화살표 칩 23개)을 카드 목록으로 바꾼다. 카드 = 고정 비율(3:2) 포스터 + 기능명 + 한 줄 설명 + "무료" 배지 + 소요 시간(표시용 추정), 카드 전체가 링크(48px 이상). 링크 주소·`data-cd-free-promo-item`·`aria-current` 는 칩과 같다(`freePromoItemHref`). 무료 기간은 배너 상단 한 곳(기존 `until`)만.
+- 표시 데이터: `lib/marketing/free-promo.mjs` 에 항목별 포스터·한 줄 설명·분(`FREE_PROMO_CATALOG`), 무료 판정은 계속 `free-fortune-policy.mjs`. 포스터는 기존 `public/images/service-introductions/*-320.webp` 를 쓰고, 없는 사주 재미 항목·궁합·일 스타일은 기존 `public/fuctionassets/*` 원본에서 320px 썸네일을 만든다(`public/images/free-list/`).
+- 롤백 플래그 `GUIDED_FREE_LIST_ENABLED`(`lib/guided-flow/flags.mjs`). false 면 칩 마크업 그대로(오늘과 동일).
+- i18n: 새 키 `freePromo.desc.<id>`·`freePromo.freeBadge`·`freePromo.minutes` (ko·en·ja·zh-CN·zh-TW 저작, 나머지 7개 en 복사), `i18n/authored/freePromo-02.json` → `public/i18n/*.json`.
+- 손대지 않음: 정적 셸 `/ggulggul/` 배너(`templates/home-funnel.html` → `index.html` `.cdh-promo`), 기능별 흐름 내부, 결과 화면, 워커·API·결제·이용권·인증·DB·보관함·라우트·sitemap 대상 URL.
+
+### 건너뛰는 것 (이유)
+- 기능별 플로우 신규 이전: React 무료 흐름(`/today/`·`/tarot/healing/`·`/saju/free/`·12운성 동물·별빛 포옹·영냥이 출석)은 3c 웨이브에서 이미 공통 셸이다. 정적 셸 자미·숙요·베다·점성(`cdHome*Entry` 공통 프로필 폼)·셸 3장 타로는 프로필 저장 로그인과 셸 러너를 공유하고 5단계(타로 통합) 계획이 아직 승인 전이라 이번에 옮기지 않는다.
+- 정적 셸 `/ggulggul/` 무료 목록 카드화: 아래 승인 목록 R1(요약 카드 축소)과 함께 다룬다(같은 화면을 두 번 바꾸지 않기 위해).
+
+### 사용자 승인이 필요한 것 (실행하지 않음)
+| # | 대상 URL / 화면 | 변경 | 이유 | 위험 | 롤백 |
+|---|---|---|---|---|---|
+| R1 | 새 공개 URL `/free/`(가칭) + 홈 `/` 배너·`/ggulggul/` "지금 무료로 시작"·"엔진별 기본 풀이"·#cdQuickServices | 목록 단독 페이지 신설, 기존 세 영역을 그 페이지로 가는 요약 카드 1장으로 축소 | 원문 6-1 "한 화면 한 경로", 감사 A1(같은 무료 기능이 5군데 노출) | 새 색인 URL·sitemap·원장·hreflang 12로케일, 홈 첫 화면 구성 변경(전환·perf:home), 정적 셸 미러 7개 | 페이지·요약 카드 플래그 false 또는 커밋 revert, sitemap 재생성 |
+| R2 | `/?action=cdOneStepFreeSajuEntry`(section 없음)·`/ggulggul/?action=cdOneStepFreeSajuEntry` | React 가이드 흐름 `/saju/free/` 로 클라이언트 매핑 | 무료 사주 진입 형식 셋(감사 A2) | 셸 결과의 섹션(재미 카드·궁합)과 결과 범위가 다름 → 같은 결과가 아님, 외부 링크 동작 변화 | 매핑 표 한 줄 제거 |
+| R3 | `/compatibility` → `/index.html?action=runCompat`·`?section=compatCard`·`/saju/compatibility/` | 내부 링크를 한 곳으로 모으고 나머지 301/클라이언트 매핑 | 궁합 링크 3분산(감사 A2) | `/compatibility` 는 지금 SEO 랜딩(색인, hreflang) — 301 시 색인 이동 | `_redirects`/매핑 한 줄 revert |
+| R4 | `/tarot/<slug>` 운영 301→302 이중 리다이렉트, `/tarot/mingri`·`?action=openTarotModal`·`cdHomeTarotEntry`·`/tarot/mingri/play` | canonical 하나로 수렴 | 감사 A2 | 5단계 타로 통합 결정에 의존, 워커 `public/_worker.js` 라우팅 | 워커·`_redirects` revert |
+| R5 | `/ggulggul/?action=cdHome{Ziwei,Sukuyo,Vedic,Astro}Entry` | 새 플로우로 매핑 | 원문 6-3 | 대상 React 가이드 흐름이 아직 없음 → 흐름을 먼저 만든 뒤에만 의미 | — |
+| L1 | `/today/`·`/manse/` 비로그인 결과 | 로그인 없이 무료 기본 결과 | 원문 6-4, 감사 결함 #3 | 인증 경계(`app/_lib/free-reading-access.ts`), D12/W2 와 같은 RED | 플래그 false |
+| D1 | `FreePromoBanner` 칩 마크업·`.chips` CSS | 삭제 | 플래그 안정 뒤 죽은 코드 | 7단계 삭제 목록에 넣고 3면 확인 | `git revert` |
