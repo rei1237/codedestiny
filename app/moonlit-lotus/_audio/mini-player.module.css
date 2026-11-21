@@ -25,13 +25,19 @@
 .sheet .note { margin:0; color:var(--ml-muted); font-size:.82rem; }
 .sheet .toggle { display:flex; justify-content:space-between; align-items:center; min-height:44px; padding:8px 16px; font-size:.92rem; }
 .toggle span { color:var(--ml-muted); }
-.toggle[aria-pressed=true] span { color:var(--ml-gold); }
+.toggle[aria-pressed=true] span { color:inherit; font-weight:600; }
 .list { margin:0; padding:0 2px 0 0; list-style:none; overflow-y:auto; overscroll-behavior:contain; display:grid; gap:6px; min-height:0; }
 .sheet .list button { display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; min-height:44px; padding:8px 14px; border-radius:14px; text-align:left; font-size:.92rem; }
 .list button[aria-current=true] { border-color:var(--ml-gold); background:var(--ml-petal); }
 .trackTitle { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .mood { flex:0 0 auto; padding:2px 8px; border-radius:999px; border:1px solid var(--ml-line); color:var(--ml-muted); font-size:.78rem; }
 .list button[aria-current=true] .mood { color:var(--ml-gold); border-color:var(--ml-gold-line); }
+
+/* 가로 폰처럼 낮은 화면: 시트 전체가 화면 높이에 맞춰 스크롤되고 목록은 그 안에서 펼친다. */
+@media (max-height:520px) {
+  .sheet { max-height:calc(100dvh - 24px); overflow-y:auto; overscroll-behavior:contain; grid-template-rows:none; gap:8px; }
+  .list { overflow:visible; }
+}
 
 @media (prefers-reduced-motion:reduce) {
   .orb[data-playing=true],.orb[data-playing=true] .glyph { animation:none; }
