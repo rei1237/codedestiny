@@ -2,6 +2,7 @@
 import DailyCompanionEntry from "@/app/components/DailyCompanionEntry";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronRight, MoonStar, Sparkles } from "lucide-react";
 import MobileAppActions from "./MobileAppActions";
 import { listServiceFeatures } from "@/app/_lib/serviceFeatureRegistry";
@@ -18,7 +19,7 @@ const CORE_SLUGS = [
   "ziwei",
 ] as const;
 
-function buildSpotlightFeatures(copy: AppShellCopy, locale: string): Array<FeatureMarketingTarget & { eyebrow: string; image: string }> {
+function buildSpotlightFeatures(copy: AppShellCopy): Array<FeatureMarketingTarget & { image: string }> {
   return [
     {
       title: copy.spotlightTeaHouseTitle,
@@ -29,8 +30,7 @@ function buildSpotlightFeatures(copy: AppShellCopy, locale: string): Array<Featu
       featureKey: "fortune-tea-house",
       category: "tarot",
       accessType: "free",
-      eyebrow: copy.spotlightSectionTitle,
-      image: "https://assets.code-destiny.com/DestinyCafe/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91.webp",
+      image: "/images/consultation-editorial/yeoni-768.webp",
     },
     {
       title: copy.spotlightNeoRoomTitle,
@@ -42,10 +42,7 @@ function buildSpotlightFeatures(copy: AppShellCopy, locale: string): Array<Featu
       category: "saju",
       accessType: "paid",
       badges: [{ text: copy.spotlightNeoRoomBadge }],
-      eyebrow: copy.spotlightSectionTitle,
-      image: locale === "ko"
-        ? "https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp"
-        : "/images/consultation-editorial/neo.webp",
+      image: "/images/consultation-editorial/neo-768.webp",
     },
   ];
 }
@@ -71,7 +68,7 @@ export default function AppHomeClient() {
   const copy = getAppShellCopy(locale);
   const featureBySlug = new Map(listServiceFeatures(locale).map((feature) => [feature.slug, feature]));
   const features = CORE_SLUGS.map((slug) => featureBySlug.get(slug)).filter(isDefined);
-  const spotlightFeatures = buildSpotlightFeatures(copy, locale);
+  const spotlightFeatures = buildSpotlightFeatures(copy);
 
   return (
     <>
@@ -148,9 +145,8 @@ export default function AppHomeClient() {
               target={feature}
               className="cd-app-surface cd-app-enter cd-app-press grid overflow-hidden text-left no-underline"
             >
-              <img src={feature.image} alt="" width={640} height={360} loading="lazy" decoding="async" className="h-32 w-full object-cover" />
-              <span className="px-4 pt-3 text-[11px] font-black" style={{ color: "var(--cd-app-gold)" }}>{feature.eyebrow}</span>
-              <span className="cd-app-heading px-4 pt-1 text-lg">{feature.title}</span>
+              <Image src={feature.image} alt="" width={768} height={512} className="h-40 w-full object-cover object-[center_30%]" />
+              <span className="cd-app-heading px-4 pt-3 text-lg">{feature.title}</span>
               <span className="cd-app-body px-4 pb-4 pt-1">{feature.description}</span>
             </FeatureMarketingLink>
           ))}
