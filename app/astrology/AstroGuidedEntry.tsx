@@ -1,7 +1,7 @@
 "use client";
 
 // /astrology/ 서양 점성술 출생 입력 — 공통 스텝 플로우판(R5, 2026-11-21 승인 "서양 점성술만 먼저"). 롤백은 lib/guided-flow/flags.mjs GUIDED_ASTRO_ENABLED.
-// 같은 컴포넌트를 kind="sukuyo"(/sukuyo/, GUIDED_SUKUYO_ENABLED)·kind="vedic"(/vedic/, GUIDED_VEDIC_ENABLED)로도 쓴다(2026-11-21 "권장안으로 진행").
+// 같은 컴포넌트를 kind="sukuyo"(/sukuyo/, GUIDED_SUKUYO_ENABLED)·kind="vedic"(/vedic/, GUIDED_VEDIC_ENABLED)·kind="ziwei"(/ziwei/, GUIDED_ZIWEI_ENABLED)로도 쓴다(2026-11-21 "권장안으로 진행").
 // 랜딩 → 이름 → 성별 → 생년월일 → 달력 → 시각(선택) → 장소(선택) → 확인 → 셸로 넘김.
 // 🔴 결과(출생 차트·유료 심화 패널·이용권 판정)는 지금처럼 정적 셸 점성술 모달이 그린다. 이 화면은 입력만 받는다.
 // 확인 뒤 입력을 셸 프로필 폼 초안으로 넘기고(lib/guided-flow/astro-draft.mjs) /ggulggul/?action=cdHomeAstroEntry 로 간다.
@@ -16,20 +16,22 @@ import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedB
 import { BIRTH_CONFIRM, birthSteps, isBirthField, readBirthAnswers } from "@/app/components/guided-flow/birth/birth-steps";
 import { BIRTH_DRAFT_TARGETS, astroDraftProfile, writeBirthDraft } from "@/lib/guided-flow/astro-draft.mjs";
 
-type GuidedBirthKind = "astro" | "sukuyo" | "vedic";
+type GuidedBirthKind = "astro" | "sukuyo" | "vedic" | "ziwei";
 // 셸 프로필 폼은 이름과 성별(여·남)을 받아야 저장된다 — 이름 필수, '밝히지 않을래요' 없음.
 // 숙요점은 생년월일(달의 자리)만 쓰므로 장소를 묻지 않는다. 시각은 프로필용 선택 단계로 남긴다.
 const KINDS: Record<GuidedBirthKind, { flowId: string; featureId: string; surface: string; fields: GuidedBirthOptions["fields"] }> = {
   astro: { flowId: "astro-birth-chart", featureId: "astrology", surface: "astrology_landing", fields: ["name", "gender", "date", "calendar", "time", "place"] },
   sukuyo: { flowId: "sukuyo-birth-entry", featureId: "sukuyo", surface: "sukuyo_landing", fields: ["name", "gender", "date", "calendar", "time"] },
   vedic: { flowId: "vedic-birth-entry", featureId: "vedic", surface: "vedic_landing", fields: ["name", "gender", "date", "calendar", "time", "place"] },
+  // 자미두수 명반은 생년월일·시각만 쓴다(셸 자미 모달 입력과 같음). 장소 단계 없음.
+  ziwei: { flowId: "ziwei-birth-entry", featureId: "ziwei", surface: "ziwei_landing", fields: ["name", "gender", "date", "calendar", "time"] },
 };
 function kindSetup(kind: GuidedBirthKind) {
   const options: GuidedBirthOptions = { idPrefix: kind, fields: KINDS[kind].fields, required: { name: true }, genderUnknown: false, profile: false };
   const steps: GuidedStep[] = [...birthSteps(options), { id: "open", kind: "result", history: "replace" }];
   return { options, steps };
 }
-const SETUPS = { astro: kindSetup("astro"), sukuyo: kindSetup("sukuyo"), vedic: kindSetup("vedic") };
+const SETUPS = { astro: kindSetup("astro"), sukuyo: kindSetup("sukuyo"), vedic: kindSetup("vedic"), ziwei: kindSetup("ziwei") };
 
 export default function AstroGuidedEntry({ kind = "astro" }: { kind?: GuidedBirthKind }) {
   const t = useGuidedT();
