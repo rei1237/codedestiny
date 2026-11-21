@@ -40,6 +40,8 @@ export const SUKUYO_V2_SECTION_GUIDES = Object.freeze({
 
 /** 질문을 받지 않는 묶음이 받는 줄. */
 export const SUKUYO_V2_NO_QUESTION_LINE = "질문 처리: 사용자의 질문은 첫 장에서 이미 받아 답했습니다. 질문 문장을 다시 옮겨 적거나 풀어 쓰지 말고, 관계 유형과 상담 주제, 이번 장의 관점으로만 비추십시오.";
+/** 역할 분담 줄(판 2 전용). 달 풀이의 정본은 베다 점성술이라 숙요는 두 사람 사이의 거리감·역할·시기에 집중한다. */
+export const SUKUYO_V2_ROLE_LINE = "역할 분담: 이 상담은 두 사람 사이의 거리감·관계 역할·시기를 풀이합니다. 베다 점성술의 나크샤트라나 서양 점성술의 달 별자리 풀이는 되풀이하지 않고, 필요하면 한 줄로만 언급합니다.";
 /** 질문을 받는 묶음이 받는 줄. */
 export const SUKUYO_V2_QUESTION_OWNER_LINE = "질문 처리: 사용자의 질문(user_input.question)은 이 요청의 장들만 받습니다. twoStars 첫 문단에서 질문을 꺼낸 마음을 공감하며 받아 주고, overview 에서 결론부터 답하십시오. 질문 문장을 그대로 옮겨 적는 곳은 상담 전체에서 twoStars 첫 문단 한 곳뿐입니다.";
 
