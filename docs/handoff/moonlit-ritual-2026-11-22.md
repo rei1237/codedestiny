@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: Phase 2 오디오(_audio/audio-engine.ts → use-ambient-audio → MiniPlayer)
+next: Phase 3 캐릭터·연출(companion-machine → CompanionStage → _fx/scene-fx.ts)
 ---
 
 # 달빛 연화당 참배 흐름(명상 게임형) 인수인계
@@ -36,7 +36,7 @@ next: Phase 2 오디오(_audio/audio-engine.ts → use-ambient-audio → MiniPla
 
 ## 단계
 - [x] Phase 1 셸·흐름: `ritual-machine.ts`+테스트, RitualFlow, LotusProgress, SpeechBubble, BreathGuide, HoldToLight, use-ritual-bow(+테스트), WishLantern, 회향, page.tsx 분기(+딥링크 테스트), i18n ko/en. 캐릭터는 기존 `_components/Character.tsx` 정적 사용.
-- [ ] Phase 2 오디오: `_audio/audio-engine.ts`(BGM 2채널 1.5s 크로스페이드, SFX 풀, ducking), use-ambient-audio(선호 `cd:moonlit-music:v1` + trackId·sfx, try/catch), MiniPlayer(44px 오브 → 시트: 목록+분위기 태그, 이전/다음, 재생/정지, 볼륨, 효과음), visibilitychange, BroadcastChannel `cd:moonlit-audio`, 테스트. `music.code-destiny.com` CORS 는 `curl -sI -H 'Origin: https://code-destiny.com'` 로 확인만(없으면 볼륨 램프 경로).
+- [x] Phase 2 오디오: `_audio/audio-engine.ts`(BGM 2채널 1.5s 크로스페이드, SFX 풀, ducking), use-ambient-audio(선호 `cd:moonlit-music:v1` + trackId·sfx, try/catch), MiniPlayer(44px 오브 → 시트: 목록+분위기 태그, 이전/다음, 재생/정지, 볼륨, 효과음), visibilitychange, BroadcastChannel `cd:moonlit-audio`, 테스트. `music.code-destiny.com` CORS 는 `curl -sI -H 'Origin: https://code-destiny.com'` 로 확인만(없으면 볼륨 램프 경로).
 - [ ] Phase 3 캐릭터·연출: companion-machine(idle·greet·guide·breathe·bow·pray·bless·react·rest), CompanionStage(연이 포즈는 `model-review/sprite-clips.ts` POSES/PREVIEW_CLIPS, 기타 캐릭터 transform 1단계), `_fx/scene-fx.ts`(입자 ≤40/저사양 12, 탭 물결, 정지 조건), 연기·연등·디졸브 400~800ms.
 - [ ] Phase 4 다듬기: 품질 단계, reduced-motion, 키보드·aria-live, 나머지 로케일, 안 쓰게 된 코드 삭제(deletion-auditor, 별도 커밋), `docs/design/moonlit-lotus-ritual.md`, CONTEXT_AUDIT 충돌 2건(`_graveyard`→삭제, 브랜치/PR→main 직접), 화면 시나리오 검증, `npm run check:pre-push`, main 머지·push·워크트리 배수(메인 세션이 수행해도 됨), 이 문서 status: done.
 
@@ -50,3 +50,12 @@ next: Phase 2 오디오(_audio/audio-engine.ts → use-ambient-audio → MiniPla
 - 화면: Playwright 워크스루 360×740·390×844(빠르게)·1440×900(en)·844×390(빠르게)·딥링크 `?scene=hall&activity=bow`. 전 뷰포트 가로 넘침 0, 콘솔 오류 0, records = bow 3/3 1행 + prayer 1행, sessions 0, 둘러보기 URL `?stay=1`(lang 유지), 뒤로 가기 → 참배, 딥링크 → 기존 공간. visual-checker 1차 차단 2(가로 화면 행동 밀림·동의 배너) + 경미(연꽃 윗잎 잘림 = `transform-box:fill-box`, 360 상단 바 12px 넘침 = grid 열 min-content) → 가로 2열 배치·transform-box 제거·`grid-template-columns:minmax(0,1fr)` 로 고친 뒤 재판정 통과(가로 소원 건너뛰기 하단 387/390px 로 여유 3px).
 - 함정: 첫 방문 쿠키 동의 배너(`app/components/AnalyticsConsent.tsx`, 전역)가 하단 행동 영역 위에 뜬다 — 세로 360 은 2px 차로 안 가리지만 가로 844×390 에서는 '참배 시작하기' 대부분을 가린다. 전역 컴포넌트라 이번 범위 밖, 후속 과제. Playwright 로 걸을 때는 `cd_cookie_consent=essential` 쿠키를 미리 넣는다. CSS 모듈이라 `primary` 는 `space.primary` 로 붙여야 하고, `.page button` 을 이기려면 `.flow .x` 로 쓴다.
 - 남은 위험: ja·zh 등 10개 로케일은 영어 복사(Phase 4). 오디오·캐릭터 상태기계 없음(Phase 2·3, 캐릭터는 정적 Character, 일부 포즈 뒤 밝은 사각 박스 보임). 모드 결정 전 빈 화면 1프레임. 둘러보기 후 복귀 시 처음부터. 절 단계 건너뛰기는 기록 없음. reduced-motion 일부만. 가로 화면 절하는 포즈 하단 잘림(경미). 실기기 미검증.
+
+### Phase 2 (2026-11-22, 같은 브랜치, 미머지·미push)
+- 커밋: 05abbbe24 i18n(`i18n/authored/moonlitRitual-02.json`, audio 26키, ko·en 저작·나머지 영어 복사), 1db881b57 엔진·선호·곡 목록(`_audio/audio-engine.ts`·`music-preference.ts`·`tracks.ts`), 160f2f5a1 MiniPlayer·use-ambient-audio·RitualFlow 연결·테스트(`__tests__/ui/moonlit-ritual-audio.test.mjs`), 5be5935d0 시각 판정 수정(효과음 켜짐 대비, 낮은 화면 시트 스크롤).
+- CORS 실측: `curl -sI -H "Origin: https://code-destiny.com" https://music.code-destiny.com/Meditation/Crystal%20Garden.mp3` → `Access-Control-Allow-Origin: https://code-destiny.com`, `Vary: Origin`. GainNode 는 이 출처에서만, AudioContext 가 running 일 때만 연결(그 외 localhost·스테이징은 볼륨 램프). 서버 설정은 건드리지 않음.
+- 설계 결정: 훅 반환에서 `sfx` 는 재생 함수, 켜짐 여부는 `sfxOn`(스냅샷 `sfx` 가 함수에 덮여 토글이 늘 켜짐으로 보이던 버그를 typecheck 가 잡음, 테스트로 고정·변이 확인). 자동재생은 마운트 뒤 1회 시도 → 막히면 blocked + "소리 켜기" 알약, 입장 탭이 동기 play. 정지 탭은 auto:false 로 저장. 범종(회향)·풍경(입장)·불(점화)은 무음 슬롯.
+- 검증: moonlit 테스트 63/63 pass(신규 13). `npm run check:fast` 1차 typecheck 실패(위 sfx 버그) → 수정 뒤 재실행 EXIT 0(paid-gate 78/0, jest 8487 pass·1 skip). Playwright(.tmp, mock dev) 18/18: blocked→알약→입장 탭 재생, 허용 시 도착 재생, 곡 변경 2탭(크로스페이드 뒤 단독 재생), Esc 닫힘, 백그라운드 정지·복귀 재개, 재방문 곡·볼륨 0.6 복원, 절 3회 = 목탁 3회, ?stay=1 전환 시 재생 0, 콘솔 오류 0, 360·844×390·1440 가로 넘침 0.
+- 화면 판정: visual-checker 1차 블로커 2 — 효과음 '켜짐' 대비 1.22:1, 844×390 시트가 높이 넘침 → span color:inherit, `@media (max-height:520px)` 시트 전체 스크롤로 수정. DOM 실측 844×390 시트 y12–378/390, 목록 7행 보임. 수정 뒤 재판정은 미회신(미검증).
+- 함정: Playwright 의 evaluate·locator 호출이 페이지에 사용자 활성화를 준다(`navigator.userActivation.hasBeenActive` true). 차단 시나리오는 goto 뒤 손대지 않고 기다린 다음 읽어야 한다. Next 개발 route announcer 가 빈 role=alert 를 둔다. 이 워크트리 해시 포트(27592)에 03:17 부터 떠 있던 dev 서버를 재사용(내가 띄운 것 아님, 끄지 않음).
+- 남은 위험: 실기기(iOS Safari 무음 스위치·고정 볼륨) 미검증. 다른 탭 MusicPlayer 와의 BroadcastChannel 상호 정지는 정적 검사만. 목탁 외 효과음 자산 없음. 절 단계 돼지 뒤 밝은 사각은 플레이어와 무관(숨김 전후 픽셀 차 0), Phase 1 기록과 같은 항목.
