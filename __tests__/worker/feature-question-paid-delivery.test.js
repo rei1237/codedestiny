@@ -210,3 +210,8 @@ test.each(['Astrology','Vedic','Ziwei','Sukuyo'])('%s delivers a result at the n
  expect(provider).toHaveBeenCalledTimes(10);expect(provider.mock.calls.filter(([,prompt])=>prompt.includes('[저장된 초안 보완]'))).toHaveLength(0);expect(refund).not.toHaveBeenCalled();
  expect(provider.mock.calls[0][1]).toContain('목표 1200~1400자');
 });
+test.each(['monthly','single','pass'])('%s payment without calculated facts is refunded before the 422 because no record can be retried',async access=>{
+ mode=access;const response=await post({...original(),astrologyResult:{}});expect(response.status).toBe(422);
+ const payload=await response.json();expect(payload.code).toBe('MISSING_CALCULATED_FACTS');expect(payload.refunded).toBe(true);expect(payload.retryable).toBe(false);
+ expect(refund).toHaveBeenCalledTimes(1);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);
+});

@@ -58,9 +58,17 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
       ...featureQuestionNarrativeAdapter(env, featureKey), featureKey,
       verify: async original => { proof = await verify(original); },
       seed: async original => {
-        const { built, factsInput } = await prepare(original);
-        const facts = questionFacts(factsInput);
-        if (!facts.length) throw Object.assign(Error('상담의 계산 근거가 필요합니다.'), { status: 422, code: 'MISSING_CALCULATED_FACTS' });
+        let built, facts;
+        try {
+          const prepared = await prepare(original);
+          built = prepared.built;
+          facts = questionFacts(prepared.factsInput);
+          if (!facts.length) throw Object.assign(Error('상담의 계산 근거가 필요합니다.'), { status: 422, code: 'MISSING_CALCULATED_FACTS' });
+        } catch (error) {
+          // 결제 확인 뒤, 기록을 만들기 전에 입력 오류로 끝나면 같은 요청을 다시 해도 똑같이 실패한다. 결제를 되돌린다.
+          if (error?.status >= 400 && error.status < 500 && proof !== undefined) error.refunded = await refundBeforeRecord(refund, proof, original);
+          throw error;
+        }
         return { built: JSON.parse(JSON.stringify(built)), facts, paymentProof: proof,
           prompt: String(built.generatedPrompt || built.prompt || ''),
           systemPrompt: '각 점술 체계를 섞지 말고 제공된 계산값만 해설합니다. 시기 정보가 없으면 날짜를 지어내지 않습니다. 확률이나 타인의 마음을 단정하지 않고 근거와 반대 조건, 실행 가능한 선택을 제시합니다. 호칭은 처음부터 끝까지 \'당신\'으로 통일하고 HTML 태그를 쓰지 않습니다.',
@@ -78,7 +86,19 @@ export async function deliverFeatureQuestion(request, env, auth, supplied, { fea
     const storage = error?.code === 'RESULT_STORAGE_UNAVAILABLE' || !error?.status;
     return json({ ok: false, code: storage ? 'RESULT_STORAGE_UNAVAILABLE' : error.code || 'INVALID_QUESTION',
       message: storage ? '저장된 상담을 확인하고 있어요. 같은 상담으로 다시 시도해 주세요.' : error.message,
-      resultId: error.resultId, retryable: storage, paymentRetainedForRetry: storage }, { status: storage ? 503 : error.status });
+      resultId: error.resultId, retryable: storage, paymentRetainedForRetry: storage,
+      ...(error.refunded === undefined ? {} : { refunded: error.refunded }) }, { status: storage ? 503 : error.status });
+  }
+}
+
+async function refundBeforeRecord(refund, proof, original) {
+  try {
+    const response = await refund(proof, original);
+    const payload = response instanceof Response ? await response.json() : response;
+    return payload?.refundOk === true || payload?.refunded === true;
+  } catch (error) {
+    console.error('[feature-question] refund before record failed', String(error?.message || error).slice(0, 300));
+    return false;
   }
 }
 
