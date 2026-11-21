@@ -13,6 +13,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { sitemapLocsRejectedByPolicy } from "./lib/indexnow-delta.mjs";
 
 const rootDir = process.cwd();
 const failures = [];
@@ -91,6 +92,22 @@ if (!workflow) {
   const stepBlock = workflow.slice(Math.max(0, stepStart - 600), stepStart + 200);
   if (!stepBlock.includes("continue-on-error: true")) {
     fail(`${workflowRel} 의 IndexNow 스텝에 continue-on-error: true 가 없습니다 — 제출 실패가 배포를 롤백시킵니다.`);
+  }
+}
+
+// 5) 사이트맵의 모든 URL 이 공개 알림 정책을 통과하는가 — 하나만 거부돼도 제출 전체가 throw 로 0건이 된다.
+//    2026-11-14 /yeongnyangi/faq/ 가 사이트맵에만 추가돼 그 뒤 운영 제출이 전부 실패했다.
+const hostMatch = /INDEXNOW_HOST\s*=\s*"([^"]+)"/.exec(contract || "");
+const sitemapXml = read("sitemap.xml");
+if (!hostMatch) {
+  fail("lib/indexnow.ts 에서 INDEXNOW_HOST 를 찾지 못했습니다.");
+} else if (sitemapXml === null) {
+  fail("sitemap.xml 이 없습니다 — 제출 목록의 정본이 없습니다.");
+} else {
+  const { total, rejected } = sitemapLocsRejectedByPolicy(sitemapXml, hostMatch[1]);
+  if (total === 0) fail("sitemap.xml 에서 <url> 항목을 하나도 읽지 못했습니다.");
+  for (const loc of rejected) {
+    fail(`사이트맵 URL 이 공개 알림 정책에 거부됩니다(제출 전체가 실패): ${loc} — scripts/lib/indexnow-delta.mjs 의 PUBLIC_SERVICE_PAGES 를 확인하세요.`);
   }
 }
 
