@@ -10,6 +10,7 @@ import {resolve,dirname,sep,extname} from 'node:path';
 import sharp from 'sharp';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
+import {execFileSync} from 'node:child_process';
 import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
 import {TOSS_WEBP_ART} from './bundle-art.mjs';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
@@ -78,6 +79,13 @@ export async function screenTarotBytes(source){
  return encoded.length<source.length?encoded:source;
 }
 
+// Settings shows this so a reviewer can match the running bundle to its commit.
+// CI passes GITHUB_SHA; local builds ask git; the date is the KST build day.
+export function tossBuildId(sha=process.env.GITHUB_SHA,now=Date.now()){
+ let short=String(sha||'').trim().slice(0,7);
+ if(!short){try{short=execFileSync('git',['rev-parse','--short=7','HEAD'],{cwd:fileURLToPath(new URL('.',import.meta.url)),encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}catch{short='';}}
+ return (short||'unknown')+' · '+new Date(now+9*3600e3).toISOString().slice(0,10);
+}
 export default function serviceCompat(){
  const references=new Set(['/fuctionassets/rune.webp']);
  let privateArt=false;
@@ -88,6 +96,7 @@ export default function serviceCompat(){
   return {...cut,src:cut.src?storySource(cut.src):''};
  });
  return {name:'canonical-service-runtime',enforce:'pre',
+  config(){return {define:{__TOSS_BUILD_ID__:JSON.stringify(tossBuildId())}};},
   configResolved(config){privateArt=config.mode==='private-simulation';},
   transform(code,id){
    if(id.includes('node_modules'))return;
