@@ -6,6 +6,7 @@ import { SAJU_LUCK_JUDGEMENT_RULE } from "./saju-temperament.js";
 import { expertSubchapterPromptLines } from "./expert-subchapter-prompt.js";
 import { followupSolutionPromptLines } from "./followup-solution-prompt.js";
 import { compactFollowupMessages } from "./followup-context.js";
+import { sajuTraitFirstLines } from "./trait-profile/index.js";
 
 // 🔴 /g 플래그를 쓰지 않는다. RegExp.test() 는 /g 일 때 lastIndex 를 기억해, 같은 패턴으로 두 번째
 //    호출하면 앞부분 일치를 건너뛰어 거짓 음성이 난다(같은 본문이 호출마다 다르게 판정된다).
@@ -473,6 +474,15 @@ function loveSecretV2SectionLengthLine(group) {
  * 그룹 하나를 생성하는 프롬프트.
  * repairLines/previousText 가 있으면 수리(wave 2) 프롬프트가 된다.
  */
+// Trait-First(게이트 B): 생성 시작 때 고정한 traitFirst 가 있는 세션의 nature 그룹에만, 내 명식 근거만 붙인다.
+// 고정 소제목·필드·분량 지시는 그대로다. 승인 명식(approvedSaju) 경로는 판정 규칙과 겹치지 않게 제외한다.
+// OFF·옛 세션은 빈 배열이라 프롬프트가 바이트 단위로 같다.
+export function loveSecretTraitFirstLines(sajuResult, group, { traitFirst = null, traitSeed = "" } = {}) {
+  if (!traitFirst || group?.key !== "nature" || sajuResult?.myChart?.approvedSaju) return [];
+  const lines = sajuTraitFirstLines(sajuResult?.myChart, { traitFirst, seed: traitSeed });
+  return lines.length ? [...lines, ""] : [];
+}
+
 export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, options = {}) {
   const { repairLines = [], previousText = "" } = options;
   const partnerMode = sajuResult?.partnerChart ? "상대 포함 연애 상담 모드" : "단독 연애 상담 모드";
@@ -500,6 +510,7 @@ export function buildLoveSecretGroupPrompt(input = {}, sajuResult = {}, group, o
     "[이 부분에서 쓸 계산 데이터]",
     safeJson(groupFacts),
     "",
+    ...loveSecretTraitFirstLines(sajuResult, group, options),
     ...(luckJudgement ? [
       "[운 판정 — 최종 용신·조후·십간 짝과 이 부분이 다루는 시기의 판정]",
       safeJson(luckJudgement),

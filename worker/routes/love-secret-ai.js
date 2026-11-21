@@ -28,6 +28,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { appendExpertPersona, hanbiLoveRegisterDrift, resolveExpertPersona, yeoniLoveRegisterDrift } from "../lib/expert-character-personas.js";
 import { appendAnswerVoice, pinAnswerVoice } from "../lib/consultation-answer-contract.js";
+import { pinTraitFirst, selectTraitFirst, TRAIT_FIRST_META, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import {
@@ -791,6 +792,8 @@ async function generateLoveSecretGroup(env, {
   group,
   systemPromptBase,
   answerVoice = null,
+  traitFirst = null,
+  traitSeed = "",
   cache,
   timeoutMs,
   logContext = {},
@@ -827,6 +830,8 @@ async function generateLoveSecretGroup(env, {
   try {
     const prompt = buildLoveSecretGroupPrompt(input, sajuResult, group, {
       repairLines,
+      traitFirst,
+      traitSeed,
       previousText: previousResult?.sections?.map((section) => `${section.title}\n${section.body}`).join("\n\n") || "",
     });
     // 공동 마스터 — 이 그룹의 화자 페르소나만 붙인다. CMS 오버라이드는 메모 캐시에서 읽으므로 그룹마다 읽어도 싸다.
@@ -897,6 +902,11 @@ async function generateLoveSecretGroup(env, {
     }
     if (parsed.scrubbed) {
       logLoveSecretAi("Group Scrubbed", { ...logContext, groupKey: group.key, droppedSentences: parsed.scrubbed, excerpt: clean(parsed.flagged?.[0]?.excerpt, 120) }, "warn");
+    }
+    // Trait-First shadow 검증: 기록만 한다. ok·재시도·전달 판정에 쓰지 않는다(게이트 B 설계 제약 4).
+    if (traitFirst && group.key === "nature") {
+      const shadow = traitFirstShadowCheck(sajuResult?.myChart, parsed.sections.map((section) => section.body).join("\n"), { traitFirst, seed: traitSeed });
+      if (shadow) logLoveSecretAi("Trait First Shadow", { ...logContext, groupKey: group.key, ok: shadow.ok, issues: shadow.issues, headline: shadow.headline }, shadow.ok ? "info" : "warn");
     }
     if (parsed.salvaged) {
       logLoveSecretAi("Group Salvaged", { ...logContext, groupKey: group.key, chars: Number(parsed.chars || 0), issues: parsed.salvageIssues || [], truncated: cutOff }, "warn");
@@ -1026,6 +1036,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     group,
     systemPromptBase,
     answerVoice: options.answerVoice ?? null,
+    traitFirst: options.traitFirst ?? null,
+    traitSeed: options.traitSeed || "",
     cache: { ...cache, skipRead: checkpointed && (attempts[group.key] || 0) > 1 },
     timeoutMs: budgetedTimeout(groupTimeoutCap),
     logContext,
@@ -1071,6 +1083,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         group,
         systemPromptBase,
         answerVoice: options.answerVoice ?? null,
+        traitFirst: options.traitFirst ?? null,
+        traitSeed: options.traitSeed || "",
         cache: { ...cache, skipRead: checkpointed && (attempts[key] || 0) > 2 },
         timeoutMs: budgetedTimeout(LOVE_SECRET_AI_REPAIR_TIMEOUT_MS),
         logContext,
@@ -1848,6 +1862,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
         groupPlanVersion: existing ? (Number(existing?.llmMeta?.delivery?.groupPlanVersion) || 1) : LOVE_SECRET_AI_GROUP_PLAN_VERSION,
         // 생성 도중 플래그가 바뀌어도 부마다 문체가 섞이지 않게 시작 시점 값을 고정한다.
         answerVoice: pinAnswerVoice(existing?.llmMeta?.delivery, env),
+        // Trait-First: 새 세션만 생성 시작 때 고정. 키 없는 기존 세션은 끝까지 OFF.
+        ...((existing ? pinTraitFirst(existing.llmMeta?.delivery ?? {}, env) : selectTraitFirst(env)) ? { traitFirst: TRAIT_FIRST_META } : {}),
       },
     },
   };
@@ -1885,6 +1901,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate",
       groups: loveSecretGroupsForPlan(seed.llmMeta.delivery.groupPlanVersion),
       attempts: seed.llmMeta.delivery.attempts,
       answerVoice: seed.llmMeta.delivery.answerVoice,
+      traitFirst: seed.llmMeta.delivery.traitFirst ?? null,
+      traitSeed: `${clean(auth.userId)}|love-secret-ai`,
       onReserve: async (key) => {
         const attempts = seed.llmMeta.delivery.attempts;
         if ((attempts[key] || 0) >= LOVE_SECRET_AI_GROUP_HARD_CAP) throw Object.assign(new Error("보완 호출 한도에 도달했습니다."), { code: "LLM_GENERATION_FAILED" });
