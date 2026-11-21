@@ -1,0 +1,84 @@
+{
+  "id": "yun-life-book",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/yun-life-book-portrait.webp",
+  "baseSha256": "d6bfd5007a802bcb9f03ad5f0da43cc41b64ed1c27dafd2bf501b1c2d7405bd2",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/yun-life-book/portrait-poster.webp",
+      "posterBytes": 58912,
+      "sheet": {
+        "src": "/images/master-motion/yun-life-book/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        }
+      },
+      "sheetBytes": 189672
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/yun-life-book/avatar-poster.webp",
+      "posterBytes": 4350,
+      "sheet": {
+        "src": "/images/master-motion/yun-life-book/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 12798,
+      "crop": {
+        "left": 130,
+        "top": 5,
+        "size": 280
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 2.32,
+      "wholeDiff": 3.51,
+      "regionDiff": 18,
+      "colorShift": [
+        3.24,
+        4.91,
+        6.36
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 6.3
+      }
+    },
+    "closed": {
+      "guardDiff": 3.7,
+      "wholeDiff": 4.48,
+      "regionDiff": 27.36,
+      "colorShift": [
+        -2.75,
+        1.8,
+        3.73
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 7.78
+      }
+    }
+  }
+}

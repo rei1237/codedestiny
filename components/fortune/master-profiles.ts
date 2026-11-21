@@ -16,7 +16,7 @@ const dedicated = (key: string) => ({
 
 /**
  * 마스터 모션(W4): 각 항목에 선택 필드 `motion: { frames?, video?, poster }` 를 넣으면 MasterMotion 이 CSS 숨쉬기 대신
- * 그 그림을 돌린다(productMasters 의 항목도 같다). 스프라이트 시트는 masterMotionArt(id, 변형)로 넣고 lib/master-motion/flags.mjs 가 켠다(지금은 연이만). 규격·빠진 그림: docs/design/master-motion-assets.md
+ * 그 그림을 돌린다(productMasters 의 항목도 같다). 스프라이트 시트는 masterMotionArt(id, 변형)로 넣고 lib/master-motion/flags.mjs 가 켠다(지금은 연이·윤달). 규격·빠진 그림: docs/design/master-motion-assets.md
  */
 export const masterProfiles = {
   master: {
@@ -54,6 +54,7 @@ export const masterProfiles = {
     approach: "서양 점성술은 행성·사인·하우스·애스펙트로, 베다점은 라시·나크샤트라·다샤로 읽어요. 두 체계의 근거를 구분하고, 비유는 쉽게 하나만 곁들여요. 생시를 모르면 상승궁 해석의 한계부터 말씀드리고, 읽을 수 있는 하늘부터 차근차근 풀어 드려요.",
     portrait: `${base}/yun-astrology-portrait.webp`, portraitAlt: "남색 두루마기에 은빛 초승달 귀걸이를 하고 접부채를 든 점성술사 윤달",
     sheet: `${base}/yun-astrology-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "yun",
+    motion: masterMotionArt("yun", "portrait"),
   },
   musung: {
     name: "무성", role: "막힌 별을 녹으로 바꾸는 판결 · 자미두수",
@@ -120,6 +121,7 @@ export const masterProfiles = {
     ],
     principles: ["근거 없는 문장은 쓰지 않아요", "결말을 단정하지 않아요", "다음 장의 첫 문장은 당신 몫으로 남겨요"],
     ...dedicated("yun-life-book"), portraitAlt: "달빛 서고에서 빛이 오르는 큰 책을 펼쳐 든 인생의 책 화자 윤달과 흰 고양이", theme: "yun",
+    motion: masterMotionArt("yun-life-book", "portrait"),
   },
 } satisfies Record<string, MasterProfileData>;
 
@@ -145,7 +147,7 @@ export const productMasters = {
     { name: "서한비", role: "관계의 거리와 마음의 매듭", avatar: masterAvatars.hanbi, line: "이어진 마음과 놓아도 되는 마음을 천천히 살펴드릴게요." },
   ],
   vedic: [
-    { name: "윤달", role: "베다점 · 별의 자리와 시기의 흐름", avatar: masterAvatars.yun, line: "지금 지나가는 별의 계절을, 당신의 일상과 함께 읽어볼게요." },
+    { name: "윤달", role: "베다점 · 별의 자리와 시기의 흐름", avatar: masterAvatars.yun, line: "지금 지나가는 별의 계절을, 당신의 일상과 함께 읽어볼게요.", motion: masterMotionArt("yun", "avatar") },
   ],
   love: [
     { name: "연이", role: "마음을 먼저 듣는 연애 상담가", avatar: masterAvatars.yeoniLove, line: "설레는 마음도, 서운한 마음도 먼저 들려주세요. 끝까지 들을게요.", motion: masterMotionArt("yeoni", "avatar") },
@@ -155,14 +157,14 @@ export const productMasters = {
     { name: "네오", role: "한 해의 판세를 짜는 운명 사령관", avatar: masterAvatars.neoNewYear, line: "올해 판세는 내가 먼저 읽는다. 너는 밀 때와 멈출 때만 기억하면 된다." },
   ],
   lifeBook: [
-    { name: "윤달", role: "인생 소설을 읽어 주는 화자", avatar: masterAvatars.yunLifeBook, line: "당신의 인생, 첫 장부터 읽어 드릴게요. 다음 장은 같이 써 보고요." },
+    { name: "윤달", role: "인생 소설을 읽어 주는 화자", avatar: masterAvatars.yunLifeBook, line: "당신의 인생, 첫 장부터 읽어 드릴게요. 다음 장은 같이 써 보고요.", motion: masterMotionArt("yun-life-book", "avatar") },
   ],
   // 초융합 v2 — 체계 장과 영역별 장을 나눠 맡는 다섯 화자(lib/fusion-premium-report.js FUSION_NARRATOR_BY_KEY).
   fusion: [
     { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "돈이랑 일은 흐름부터 본다. 무리수는 내가 먼저 말릴게." },
     { name: "연이", role: "타로 · 연애", avatar: masterAvatars.yeoni, line: "마음이 먼저 움직이는 자리부터 같이 볼게요." },
     { name: "서한비", role: "숙요 · 결혼 · 인간관계", avatar: masterAvatars.hanbi, line: "사람 사이에 쌓이는 것과 갚는 법을 차분히 짚어 드리겠습니다." },
-    { name: "윤달", role: "베다 · 점성술 · 시기 · 생활 리듬", avatar: masterAvatars.yun, line: "별길이 바뀌는 계절을 같이 짚어 볼게요." },
+    { name: "윤달", role: "베다 · 점성술 · 시기 · 생활 리듬", avatar: masterAvatars.yun, line: "별길이 바뀌는 계절을 같이 짚어 볼게요.", motion: masterMotionArt("yun", "avatar") },
     { name: "무성", role: "자미두수 · 타고난 성향", avatar: masterAvatars.musung, line: "명반이 말하는 대로 판결합니다. 꾸미지 않을게요." },
   ],
 } satisfies Record<string, ProductMaster[]>;
