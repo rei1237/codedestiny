@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 승인 게이트 B — 네오가 아래 "결정 요청" 5건을 정하면 Phase 2(TraitProfile 추출기·KB, 코드 기본값 off)
+next: Phase 5 골든셋 — 과금 LLM 실호출 1회 승인 대기. 운영 DB 고아 집계(audit-paid-orphans.mjs)도 1회 승인 대기
 ---
 
 # Trait-First Phase 1 — 결제→생성→전달 무결성 감사
@@ -99,6 +99,18 @@ next: 승인 게이트 B — 네오가 아래 "결정 요청" 5건을 정하면 
 
 **운영 실행 여부는 아래 결정 요청 4번이다.**
 
+**스테이징 실행 결과**(2026-11-22, `--db code_destiny_staging`, 읽기 전용). 스테이징 행은 대부분 테스트 데이터다.
+
+| 스크립트 | 범위 | 결과 |
+|---|---|---|
+| report-paid-delivery-health | 30일 | 전부 0 |
+| report-consultation-delivery-health | 90일 | 네오 generation_failed 1 · PaidExecutionRecord paid_pending_generation 2 · FortuneTeaHouseResult generation_failed 3 |
+| audit-paid-consultation-delivery | 전체 | 0 |
+| audit-yeongnyangi-paid-without-result | 24시간 초과 | 1건(가장 오래된 것 2026-09-23T23:01:54Z) |
+| audit-paid-orphans(신규) | 365일 | 단건 결제 17건 중 전달 확인 3, 근거 못 찾음 14(궁합 숙요 5·찻집 4·영냥이 3·인연의 서 2) · PaidExecutionRecord paid_pending_generation 2(vedic_prashna_prompt, 2026-09-07) · 거래 대기 0 · 토스 0 · 손금 0 |
+
+"근거 못 찾음"은 미제공의 증거가 아니다. 숙요 궁합·찻집·영냥이는 결과 연결 키가 달라 이 스크립트의 조인 범위 밖일 수 있다(영냥이는 전용 스크립트가 맡는다). 운영 실행 시 이 14건 유형부터 서비스별 연결 키를 확인한다.
+
 ## 미확인 서비스 확정 (Phase 0 보완)
 
 | 서비스 | 판정 | 근거 |
@@ -143,5 +155,10 @@ next: 승인 게이트 B — 네오가 아래 "결정 요청" 5건을 정하면 
 
 - [x] 감사 3갈래 + 메인 재확인
 - [x] 이 문서
-- [ ] 게이트 B 결정
-- [ ] Phase 2: `worker/lib/trait-profile/` 추출기(순수 함수) + KB(기존 자산 우선) + 단위 테스트(지시서 5-4)
+- [x] 승인 게이트 B — 2026-11-22 네오 원문 "권장안으로 진행해주고 결제 이후에는 반드시 제공되어야하므로 이 부분에서 회귀가 없도록 작업을 진행해줘". 결정 요청 5건 모두 추천안 확정: (1) 설계 제약 1~7 승인 (2) 마스터 인연의 서는 근거 주입만, 어조 기존 유지 (3) F1 은 별도 RED 로 재현 테스트 → 공용 환불 합류(결제 정산 승인 포함) (4) 스테이징 DB 기존 스크립트 4종 먼저, 운영은 audit-paid-orphans.mjs 작성 뒤 1회 승인 (5) R1·R2 보고만, C1 은 F1 과 함께
+- [x] Phase 2: `worker/lib/trait-profile/` 추출기(순수 함수) + KB(기존 자산 우선) + 단위 테스트(지시서 5-4)
+- [x] F1(카르마 현금·월정석 다시 시도 환불) · C1(paid-flow-gates 트리거) · 스테이징 DB 읽기 전용 5종
+- [x] Phase 3: 6종 주입(카르마·신년운세·인생의 책·연애 비책·흑월·마스터 인연의 서), 플래그 TRAIT_FIRST_SAJU 기본 off
+- [x] Phase 4: `scripts/audit-paid-orphans.mjs` + `__tests__/ui/paid-orphans-audit.test.mjs`, 스테이징 실행
+- [ ] Phase 5: 골든셋 — 과금 실호출 1회 승인 필요
+- [ ] 운영 DB 고아 집계 — 1회 승인 필요
