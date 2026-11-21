@@ -41,7 +41,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { resolveAiLocaleFromRequest } from "../lib/ai-locale-context.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { nativeTossContext } from "../toss/native-context.js";
-import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations, settleStuckRetryFirst } from "../lib/paid-delivery-stuck.js";
 const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "vedic-ai";
@@ -2010,6 +2010,25 @@ export async function settleDueVedicRetryRefunds(env, { now = Date.now(), model 
     catch { outcomes.push({ service: "vedic-ai", refundStatus: "pending" }); }
   }
   return outcomes;
+}
+
+// 2026-11-22 D 복구 크론의 정체 확정. 창 안은 다시 시도 가능(저장된 묶음 유지·환불 없음), 창이 지나면 위 보류 환불로 정산한다.
+// 크론 문서에는 접근 증빙이 없으므로 저장된 결제 키로 같은 증빙을 다시 찾는다(실패 경로 vedicRetryMeta 와 같은 스냅샷). 토스 네이티브는 기존 이어쓰기.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  await connectDb(env);
+  const target = model || VedicAiConsultation;
+  return settleStuckRetryFirst({ service: "vedic-ai", model: target, doc, now, failedFields: { generationLease: "" },
+    isLive: (fresh, at) => at - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS,
+    hold: fresh => fresh.accessSource !== "toss",
+    // 선결제(paid·subscription)인데 증빙을 다시 못 찾으면 "환불 불필요"로 굳히지 않고 확정을 미룬다(fail-closed, pending).
+    snapshot: async fresh => {
+      const access = await resolveBillingEvidence({ env, userId: fresh.userId, body: { paymentId: fresh.paymentId }, idempotencyKey: clean(fresh.idempotencyKey, 180), pricing: getPricing() });
+      if (access) return vedicRefundAccessSnapshot(access);
+      if (fresh.accessType !== "pass") throw new Error("billing evidence not found");
+      // 감사 B1: 재판정이 거절돼도 결제창이 이미 차감한 이용권은 요청 키로 되돌릴 수 있게 남긴다(refundId 멱등).
+      return vedicRefundAccessSnapshot({ accessType: "pass", source: "pass-receipt", prepaid: true, evidenceType: "pass" });
+    },
+    settleRefund: owner => settleVedicRetryRefund(env, owner, target, now) });
 }
 
 export async function handleVedicAiRoutes(request, env) {

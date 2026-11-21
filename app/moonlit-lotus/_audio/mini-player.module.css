@@ -1,0 +1,44 @@
+/* 참배 흐름 미니 플레이어. 색은 space.module.css 의 --ml-* 만 쓴다. .page button 기본값을 이기려고 .root/.sheet 를 앞에 붙인다. */
+.root { position:absolute; z-index:2; right:max(12px,env(safe-area-inset-right)); bottom:12px; }
+.root.root button::before,.sheet.sheet button::before { content:none; }
+.root .orb { display:grid; place-items:center; width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; background:var(--ml-surface); border-color:var(--ml-gold-line); box-shadow:var(--ml-control-shadow); }
+.glyph { width:26px; height:26px; flex:0 0 26px; fill:var(--ml-gold); opacity:.8; }
+.glyph circle { fill:var(--ml-rose); }
+.orb[data-playing=true] { border-color:var(--ml-gold); animation:orb-pulse 4.8s ease-in-out infinite; }
+.orb[data-playing=true] .glyph { opacity:1; animation:orb-turn 24s linear infinite; }
+@keyframes orb-turn { to { transform:rotate(360deg); } }
+@keyframes orb-pulse { 50% { box-shadow:0 0 0 6px var(--ml-petal),var(--ml-control-shadow); } }
+.root .soundOn { display:inline-flex; align-items:center; gap:6px; min-height:44px; padding:6px 14px 6px 10px; background:var(--ml-surface); color:var(--ml-ink); font-size:.88rem; font-weight:600; white-space:nowrap; box-shadow:var(--ml-control-shadow); }
+
+.sheet { position:fixed; z-index:30; left:50%; bottom:max(12px,env(safe-area-inset-bottom)); translate:-50% 0; width:min(calc(100% - 24px),26rem); max-height:min(72dvh,560px); display:grid; grid-template-rows:auto auto auto auto auto minmax(0,1fr); gap:10px; padding:12px 14px 14px; border:1px solid var(--ml-gold-line); border-radius:20px; background:var(--ml-surface); color:var(--ml-ink); box-shadow:0 12px 32px var(--ml-night-shadow); }
+.head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.sheet .title { margin:0; font:400 1.1rem/1.3 var(--ml-display); color:var(--ml-gold); }
+.sheet .icon { display:grid; place-items:center; width:44px; height:44px; min-height:44px; padding:0; border-radius:50%; }
+.now { display:grid; gap:2px; min-width:0; }
+.now small { color:var(--ml-muted); font-size:.82rem; }
+.now strong { font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.controls { display:flex; justify-content:center; align-items:center; gap:14px; }
+.sheet .play { display:grid; place-items:center; width:52px; height:52px; min-height:52px; padding:0; border-radius:50%; background:var(--ml-gold); color:var(--ml-on-accent); border-color:var(--ml-gold); }
+.sheet .play:hover { background:var(--ml-gold); color:var(--ml-on-accent); }
+.volume { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:10px; font-size:.9rem; }
+.volume input { width:100%; min-height:44px; accent-color:var(--ml-gold); }
+.sheet .note { margin:0; color:var(--ml-muted); font-size:.82rem; }
+.sheet .toggle { display:flex; justify-content:space-between; align-items:center; min-height:44px; padding:8px 16px; font-size:.92rem; }
+.toggle span { color:var(--ml-muted); }
+.toggle[aria-pressed=true] span { color:inherit; font-weight:600; }
+.list { margin:0; padding:0 2px 0 0; list-style:none; overflow-y:auto; overscroll-behavior:contain; display:grid; gap:6px; min-height:0; }
+.sheet .list button { display:flex; justify-content:space-between; align-items:center; gap:10px; width:100%; min-height:44px; padding:8px 14px; border-radius:14px; text-align:left; font-size:.92rem; }
+.list button[aria-current=true] { border-color:var(--ml-gold); background:var(--ml-petal); }
+.trackTitle { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mood { flex:0 0 auto; padding:2px 8px; border-radius:999px; border:1px solid var(--ml-line); color:var(--ml-muted); font-size:.78rem; }
+.list button[aria-current=true] .mood { color:var(--ml-gold); border-color:var(--ml-gold-line); }
+
+/* 가로 폰처럼 낮은 화면: 시트 전체가 화면 높이에 맞춰 스크롤되고 목록은 그 안에서 펼친다. */
+@media (max-height:520px) {
+  .sheet { max-height:calc(100dvh - 24px); overflow-y:auto; overscroll-behavior:contain; grid-template-rows:none; gap:8px; }
+  .list { overflow:visible; }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .orb[data-playing=true],.orb[data-playing=true] .glyph { animation:none; }
+}

@@ -57,7 +57,7 @@ import {
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
 import { settleFailedConsultationRefund } from "../lib/consultation-delivery-refund.js";
-import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, settleStuckRetryFirst, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "karma-destiny-ai";
 const FEATURE_KEY = "karma-destiny-ai-consultation";
@@ -3379,6 +3379,20 @@ export async function settleDueKarmaRetryRefunds(env, { now = Date.now(), model 
     catch { outcomes.push({ service: "karma-destiny-ai", refundStatus: "pending" }); }
   }
   return outcomes;
+}
+
+// 2026-11-22 D: 복구 크론의 정체 확정(다시 시도 우선). 창 안은 다시 시도 가능 상태로 두고(장 보존), 창이 지나면 기존 보류 환불로 1회 정산.
+// 카르마의 보류 환불은 문서의 accessType·billingState·요청 키로 정산하므로 접근 증빙 스냅숏이 필요 없다.
+// 생성 중 표시는 generationProgress.lockedAt(120초) + updatedAt 이다.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  await connectDb(env);
+  const target = model || KarmaDestinyAiConsultation;
+  return settleStuckRetryFirst({ service: "karma-destiny-ai", model: target, doc, now,
+    failedFields: { "generationProgress.lockToken": "", "generationProgress.lockedAt": null },
+    isLive: (fresh, at) => at - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS
+      || at - new Date(fresh.generationProgress?.lockedAt || 0).getTime() < PREMIUM_BATCH_LOCK_TTL_MS,
+    hold: fresh => fresh.accessSource !== "toss",
+    settleRefund: owner => settleKarmaRetryRefund(env, owner, target, now) });
 }
 
 export async function handleKarmaDestinyAiRoutes(request, env = {}) {
