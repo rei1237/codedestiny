@@ -33,3 +33,12 @@
   .say { gap: .55rem; margin-block: 1.1rem; }
   .frame { flex-basis: 3.9rem; width: 3.9rem; }
 }
+
+.cross {
+  display: block;
+  margin-top: .45rem;
+  font-size: .85em;
+  color: var(--reading-accent);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}

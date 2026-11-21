@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- Pre-sized WebP in a static export, same as ConsultationIllustration. */
+import Link from "next/link";
 import { getExpertCharacter, getExpertMoodSprite, isExpertCharacterEnabled, type ExpertMood } from "@/src/features/expert-characters";
 import { masterSayFor } from "@/lib/master-say/master-say.mjs";
 import styles from "./master-say.module.css";
@@ -9,6 +10,17 @@ export type MasterSayInput = { domain: "sukuyo" | "astrology" | "vedic"; section
  * 결과 장 사이에 끼는 마스터 말풍선: 표정 그림 + 한마디. 본문(LLM 원문)은 바꾸지 않는 장식이라 서버 컴포넌트로도 쓴다.
  * 캐릭터가 꺼져 있거나(enabled=false) 지원하지 않는 분야면 아무것도 그리지 않아 기존 화면이 그대로 남는다.
  */
+/** 같은 달 위치를 다른 체계로 이어 읽는 교차 링크. 달 풀이의 정본은 베다라, 풀이를 되풀이하는 대신 마지막 장 끝에서 이어 준다. */
+const CROSS_LINK: Record<MasterSayInput["domain"], { href: string; label: string }> = {
+  sukuyo: { href: "/vedic/", label: "같은 달을 베다 나크샤트라로 깊게 읽기" },
+  astrology: { href: "/vedic/", label: "달을 나크샤트라와 다샤로 더 깊게 읽기" },
+  vedic: { href: "/sukuyo/", label: "같은 달을 숙요 27수로 읽어 두 사람 사이 보기" },
+};
+
+function isClosing({ domain, sectionKey, index = 0, total = 0 }: MasterSayInput) {
+  return domain === "sukuyo" ? sectionKey === "closingLetter" : total > 1 && index >= total - 1;
+}
+
 export default function MasterSay({ say }: { say: MasterSayInput }) {
   const line = masterSayFor(say);
   if (!line || !isExpertCharacterEnabled(line.character)) return null;
@@ -22,6 +34,7 @@ export default function MasterSay({ say }: { say: MasterSayInput }) {
       <p className={styles.bubble}>
         <b>{character.name.ko}</b>
         {line.text}
+        {isClosing(say) ? <Link className={styles.cross} href={CROSS_LINK[line.domain as MasterSayInput["domain"]].href}>{CROSS_LINK[line.domain as MasterSayInput["domain"]].label} →</Link> : null}
       </p>
     </aside>
   );
