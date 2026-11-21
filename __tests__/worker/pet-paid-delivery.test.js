@@ -26,7 +26,7 @@ beforeAll(async()=>{
  const db=await import('../../worker/lib/db.js'),auth=await import('../../worker/lib/auth.js'),models=await import('../../worker/lib/models.js'),structured=await import('../../worker/lib/structured-consultation.js');
  jest.unstable_mockModule('../../worker/lib/db.js',()=>({...db,connectDb:async()=>{},withMongoRetry:async(_env,fn)=>fn()}));
  jest.unstable_mockModule('../../worker/lib/auth.js',()=>({...auth,requireAuth:async()=>({userId})}));
- jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode};}}));
+ jest.unstable_mockModule('../../worker/lib/access-control.js',()=>({requirePremiumReportAccess:async()=>{if(mode==='denied')throw new HttpError(403,'payment denied');return {ok:true,accessType:mode,...(mode==='coin'?{matchedTransactionId:'64b7f2a1c3d4e5f6000000aa'}:{})};}}));
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/toss/models.js',()=>({TossNativeConsultation:{findOne:filter=>query(tossRow&&matches(tossRow,filter)?tossRow:null)},TossIdentity:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/toss/native-tea.js',()=>({nativeIntentId:async()=>tossRow?._id,nativeOwnerFilter:(auth,service)=>({identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:service}),prepareNativeConsultation:async()=>{},verifiedIntent:async()=>{if(tossDeny)throw tossDeny;return tossRow;}}));
@@ -101,6 +101,10 @@ test.each(['report','compat'])('the native pet %s adapter and actual paid engine
  expect(response.status).toBe(200);expect((await response.json()).saved).toBe(true);const count=provider.mock.calls.length;
  expect((await readNativePet({},auth,id)).status).toBe(200);expect(provider).toHaveBeenCalledTimes(count);
  tossDeny=Object.assign(new Error('ORDER_REFUNDED'),{status:409,code:'ORDER_REFUNDED'});await expect(readNativePet({},auth,id)).rejects.toBe(tossDeny);expect(provider).toHaveBeenCalledTimes(count);
+});
+// C2 retry-first refund: the route verifier returns { auth, access }; the engine must keep the access proof it unwraps.
+test('pet report and pet compatibility keep the coin proof the route verifier returned',async()=>{
+ for(const value of ['report','compat']){docs=[];kind=value;mode='coin';expect((await start()).status).toBe(202);expect(docs[0].sourceTransactionId).toBe('64b7f2a1c3d4e5f6000000aa');}
 });
 test('access rejection prevents initial and resumed provider calls',async()=>{
  mode='denied';expect((await start()).status).toBe(403);expect(provider).not.toHaveBeenCalled();expect(docs).toHaveLength(0);

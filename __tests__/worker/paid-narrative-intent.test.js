@@ -131,6 +131,16 @@ test('a page that reaches the route first owns the delivery and the intent close
  expect(outcomes(await tick(360000))).toEqual(['execution_exists']);
  expect(docs.map(doc=>doc.executionKey)).toEqual([key()]);expect(docs[0].metadata).not.toHaveProperty('paidNarrativeProof');expect(proofs.map(proof=>proof.requireExisting===true)).toEqual([true,false]);
 });
+// C2-UI: a free retry days after payment must not depend on a payment proof that lapsed (120-minute window, 30-minute token)
+// or settle a pass again. The record exists only because verify passed at creation; the reopen marker is owner-bound.
+test('a run reopened by the free retry resumes without a second payment check',async()=>{
+ paid=true;expect((await post({...original(),transactionId:'pay-1'})).status).toBe(202);expect(docs[0].metadata).not.toHaveProperty('paidNarrativeProof');
+ const checks=proofs.length;paid=false;
+ expect((await post({resumeResultId:key()})).status).toBe(402);expect(proofs).toHaveLength(checks+1);
+ docs[0].metadata.paidNarrativeRetry={reopenedAt:new Date(),reopens:1};
+ expect((await finish()).status).toBe(200);expect(proofs).toHaveLength(checks+1);
+ revoked=true;expect(await reason(await post({resumeResultId:key()}))).toEqual([403,'PAYMENT_REVOKED']);
+});
 test('refunds, admin access and verification outages never create a delivery',async()=>{
  await register(dream,original());paid=true;revoked=true;expect(outcomes(await tick(360000))).toEqual(['revoked']);expect(docs).toEqual([]);
  revoked=false;paid='admin';expect((await register(dream,original())).status).toBe(200);expect(outcomes(await tick(360000))).toEqual(['unpaid']);

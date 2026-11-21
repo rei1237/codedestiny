@@ -139,7 +139,11 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   if (nativeOrigin) await verify(original, doc);
   // A route verifier may return its access proof; a new record keeps the restorable part (C2 retry-first refund).
   let refundEvidence = null;
-  if (!nativeOrigin && !doc?.metadata?.paidNarrativeProof) refundEvidence = paidNarrativeRefundEvidence(await verify(original));
+  // C2-UI: a run the owner reopened through /api/paid-narrative/retry (paid-narrative-retry.js) was verified when it was
+  // created, so a free retry days later does not re-check a lapsed proof (recent-payment window, 30-minute token) or settle
+  // a pass again. The lookup above already binds userId, featureKey and executionKey; revoked() below still applies.
+  const reopenedRetry = Boolean(resumeId && doc?.metadata?.paidNarrativeRetry?.reopenedAt);
+  if (!nativeOrigin && !doc?.metadata?.paidNarrativeProof && !reopenedRetry) refundEvidence = paidNarrativeRefundEvidence(await verify(original));
   if (await revoked(env, doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
   if (doc && !resumeId && request.method !== "GET" && paidNarrativeInputHash(body) !== paidNarrativeInputHash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
   const deliver = async (busy = false) => {
