@@ -1,6 +1,7 @@
 import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { sajuTraitFirstLines, selectTraitFirst, traitFirstShadowCheck } from '../lib/trait-profile/index.js';
 import { sajuAuthorityOn } from '../lib/saju-authority-consumer.js';
 import { createHash } from "node:crypto";
 import {lunarToSolar} from "../../lib/korean-calendar/index.js";
@@ -2169,6 +2170,8 @@ function buildChapterPrompt(consultation, definition, context = {}) {
     // (후속 질문 경로는 장 개념이 없어 #224 의 직렬화기를 그대로 쓴다.)
     "[계산 근거 · 다섯 렌즈]",
     buildLensDigest(consultation.integratedResult, definition),
+    // 성향 장(chapter-00, 장 구성 판 2)에만 핵심 근거를 덧붙인다. OFF·옛 문서는 빈 배열이라 프롬프트가 바이트 단위로 같다.
+    ...(definition.id === KARMA_DISPOSITION_CHAPTER.id ? sajuTraitFirstLines(lensesForChapter.saju?.data, { traitFirst: consultation.llmMeta?.traitFirst, seed: `${clean(consultation.userId)}|karma-destiny-ai` }) : []),
     buildRelationshipPrompt(consultation.integratedResult?.relationshipAnalysis, definition.id),
     "",
     "[이 장의 렌즈 구성]",
@@ -2286,6 +2289,11 @@ async function generateOneChapter(env, consultation, definition, context = {}) {
     if (context.singleAttempt && !context.lastAttempt && safeArray(raw?.keyTakeaways).filter(Boolean).length < 3) return { ok: false, definition, reason: "CHAPTER_TAKEAWAYS_MISSING" };
     if (!clean(raw?.content)) {
       return { ok: false, definition, reason: "EMPTY_CHAPTER_CONTENT" };
+    }
+    // Trait-First shadow 검증: 기록만 한다. 판정·재생성·전달에 쓰지 않는다(게이트 B 설계 제약 4).
+    if (definition.id === KARMA_DISPOSITION_CHAPTER.id && consultation.llmMeta?.traitFirst) {
+      const shadow = traitFirstShadowCheck(consultation.integratedResult?.lenses?.saju?.data, clean(raw.content), { traitFirst: consultation.llmMeta.traitFirst, seed: `${clean(consultation.userId)}|karma-destiny-ai` });
+      if (shadow) logKarmaAi("Trait First Shadow", { sessionId: clean(consultation.id), ok: shadow.ok, issues: shadow.issues, headline: shadow.headline }, shadow.ok ? "info" : "warn");
     }
     return {
       ok: true,
@@ -2782,6 +2790,8 @@ async function handleStart(request, env, recoveryAuth = null, options = {}) {
   const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
   const seed = {
     llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody, ...(!existing?.llmMeta && selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
+      // Trait-First(TRAIT_FIRST_SAJU): 새 세션만 생성 시작 때 고정한다. 기존·진행 중 문서는 키가 없어 끝까지 OFF.
+      ...(!existing?.llmMeta && selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
       // 장 구성 판: 이미 쓴 장이 있는 문서는 그 판 그대로(저장값이 없으면 1), 장이 하나도 없으면 새 판(2)으로 시작한다.
       chapterPlanVersion: resumedChapters.length ? karmaPlanVersion(existing) : KARMA_CHAPTER_PLAN_VERSION },
     id: sessionId,
