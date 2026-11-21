@@ -28,6 +28,8 @@ const draft = { name: '하늘', gender: 'F', birth: { year: 1995, month: 3, day:
 const KINDS = [
   { type: 'sukuyo', flag: 'GUIDED_SUKUYO_ENABLED', entry: 'cdHomeSukuyoEntry', landing: '/sukuyo/?step=name', page: 'app/sukuyo/page.js' },
   { type: 'vedic', flag: 'GUIDED_VEDIC_ENABLED', entry: 'cdHomeVedicEntry', landing: '/vedic/?step=name', page: 'app/vedic/page.js' },
+  // R5 자미(2026-11-21, 결제 감사 CLEAR 뒤): 같은 계약.
+  { type: 'ziwei', flag: 'GUIDED_ZIWEI_ENABLED', entry: 'cdHomeZiweiEntry', landing: '/ziwei/?step=name', page: 'app/ziwei/page.js' },
 ];
 
 test('flags, draft keys and entry/landing addresses are mirrored in the static shell', () => {
@@ -42,7 +44,7 @@ test('flags, draft keys and entry/landing addresses are mirrored in the static s
   }
   assert.equal(BIRTH_DRAFT_TARGETS.astro.key, ASTRO_DRAFT_KEY);
   assert.equal(BIRTH_DRAFT_TARGETS.astro.entry, ASTRO_SHELL_ENTRY);
-  assert.equal(new Set(Object.values(BIRTH_DRAFT_TARGETS).map((t) => t.key)).size, 3, 'each service has its own draft key');
+  assert.equal(new Set(Object.values(BIRTH_DRAFT_TARGETS).map((t) => t.key)).size, 4, 'each service has its own draft key');
 });
 
 test('profile-less entry goes to its own guided input once, then falls back to the form', () => {
@@ -96,6 +98,6 @@ test('flag off, saved profile, locale shell: unchanged', () => {
 test('i18n: every locale has sukuyo/vedic copy with the same keys as astro', () => {
   for (const loc of ['de', 'en', 'es', 'fr', 'hi', 'ja', 'ko', 'ms', 'nl', 'vi', 'zh-cn', 'zh-tw']) {
     const g = JSON.parse(readFileSync(`public/i18n/${loc}/guidedFlow.json`, 'utf8')).guidedFlow;
-    for (const kind of ['sukuyo', 'vedic']) assert.deepEqual(Object.keys(g[kind]), Object.keys(g.astro), `${loc}.${kind}`);
+    for (const kind of ['sukuyo', 'vedic', 'ziwei']) assert.deepEqual(Object.keys(g[kind]), Object.keys(g.astro), `${loc}.${kind}`);
   }
 });
