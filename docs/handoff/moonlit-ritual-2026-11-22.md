@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-22
-next: "main 머지·push·워크트리 배수(메인 세션)"
+next: "없음 — main 반영·push 완료(2026-11-22). 후속은 결과 기록의 범위 밖 발견 참고"
 ---
 
 # 달빛 연화당 참배 흐름(명상 게임형) 인수인계
