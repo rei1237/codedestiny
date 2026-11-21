@@ -3,7 +3,7 @@
  * The caller supplies its existing DB context so balance restoration stays in
  * one transaction. No network calls or second DB admission are opened here.
  */
-export async function findProtectedFundingExecution({ userId, ids, executionId = "", failedRequestId = "" }, findOne) {
+export async function findProtectedFundingExecution({ userId, ids, executionId = "", failedRequestId = "", releasedExecutionId = "" }, findOne) {
   const references = [...new Set(ids.filter(Boolean).map(String))];
   if (!references.length) return null;
   const activeOther = {
@@ -26,7 +26,10 @@ export async function findProtectedFundingExecution({ userId, ids, executionId =
       { $or: [
         { status: { $in: ["success", "completed", "delivered"] } },
         { deliveryStatus: "delivered" }, { premiumStatus: "completed" }, activeOther,
-        { "metadata.paidNarrative.parts": { $exists: true, $ne: {} } },
+        // Saved narrative parts protect the funding, including on the settling execution itself. Only a C2
+        // retry-first refund the customer or the 7-day point approved (paidNarrativeRetry.refundApprovedAt)
+        // releases its own parts; the caller passes that execution as releasedExecutionId.
+        { "metadata.paidNarrative.parts": { $exists: true, $ne: {} }, ...(releasedExecutionId ? { _id: { $ne: releasedExecutionId } } : {}) },
         { "metadata.celestialDelivery.delivery.parts": { $exists: true, $ne: {} } },
       ] },
       { $or: paths.map(path => ({ [path]: { $in: references } })) },

@@ -194,6 +194,22 @@ describe('paid narrative terminal hold',()=>{
   Object.assign(execution.metadata.paidNarrative,{deliveryPlanVersion:2,attempts:{a:1,b:3}});expect(await inspect(execution)).toBe('recoverable');
   execution.metadata.paidNarrative.attempts.b=4;expect(await inspect(execution)).toBe('held');
  });
+ // C2: a customer retry opens a fresh 24h resume window; a proven refund settles; missing evidence waits for an operator.
+ test('the resume window counts from the last customer retry',async()=>{
+  execution.createdAt=new Date(Date.now()-3*DAY);execution.metadata.paidNarrativeRetry={reopenedAt:new Date(Date.now()-60000)};
+  expect(await inspect(execution)).toBe('recoverable');
+ });
+ test('an approved retry-first refund settles on an explicit close but never on the timeout sweep',async()=>{
+  execution.metadata.paidNarrative.attempts.b=2;execution.metadata.paidNarrativeRetry={refundApprovedAt:new Date()};
+  expect(await inspect(execution,{includeResumable:false})).toBe('unmanaged');expect(await inspect(execution)).toBe('held');
+ });
+ test('missing refund evidence keeps the run held for an operator',async()=>{
+  const {paidNarrativeHoldCode}=await import('../../worker/lib/checkpoint-refund-guard.js');
+  execution.metadata.paidNarrativeRetry={heldAt:new Date(),holdCode:'PAID_NARRATIVE_REFUND_EVIDENCE_MISSING'};
+  expect(paidNarrativeHoldCode(execution)).toBe('PAID_NARRATIVE_REFUND_EVIDENCE_MISSING');expect(await inspect(execution)).toBe('held');
+  execution.metadata.paidNarrativeRetry.holdCode='PAID_NARRATIVE_EXHAUSTION_REFUND_UNCONFIRMED';
+  expect(paidNarrativeHoldCode(execution)).toBe('PAID_NARRATIVE_EXHAUSTION_REFUND_UNCONFIRMED');
+ });
  test('a progressing narrative stays recoverable for the sweep',async()=>{
   expect(await inspect(execution)).toBe('recoverable');
  });

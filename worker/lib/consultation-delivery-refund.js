@@ -325,5 +325,11 @@ export async function runPendingConsultationRefunds(env, options = {}) {
     try { outcomes.push(...await (await load())(env)); }
     catch { outcomes.push({ service, refundStatus: 'pending' }); }
   }
+  // 2026-11-21 C2 서술형 다시 시도 우선: 보류(PAID_NARRATIVE_*)된 실행을 생성 + 7일 또는 고객 요청 뒤 저장된 결제 근거로 환불한다.
+  // 실패는 격리하고 다음 주기에 다시 돈다. 테스트는 paidNarrativeRetryRefunds 로 바꿔 끼운다.
+  try {
+    const retryNarrative = options.paidNarrativeRetryRefunds || (await import('../routes/paid-narrative-retry.js')).settleDuePaidNarrativeRetryRefunds;
+    outcomes.push(...await retryNarrative(env));
+  } catch { outcomes.push({ service: 'paid-narrative', refundStatus: 'pending' }); }
   return { outcomes };
 }

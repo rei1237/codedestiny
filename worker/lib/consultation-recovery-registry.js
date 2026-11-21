@@ -30,7 +30,8 @@ export const CONSULTATION_RECOVERY_ADAPTERS = Object.freeze([
 // __tests__/worker/paid-llm-delivery-contract.test.js 에 함께 등록한다.
 // gap 은 자동 환불이 아직 없는 알려진 구멍이다(검증기 KNOWN_REFUND_GAPS 와 짝 — 새로 늘리면 실패).
 const narrative = ['runPaidNarrativeDelivery'];
-const NARRATIVE_CARD_GAP = 'paid-narrative 실행 기록에 paymentRef 가 없어 시간 초과 정산(runServiceExecutionTimeoutTask)이 단건 카드 PG 취소를 하지 못할 수 있다 — 이용권·코인·월정석만 자동 복원';
+// 2026-11-21 C2: 결제 시점 근거(sourceTransactionId·passRefund)를 실행 기록에 남겨 생성 + 7일 또는 고객 요청 때 그 근거로 환불한다(worker/routes/paid-narrative-retry.js).
+const NARRATIVE_CARD_GAP = 'paid-narrative 실행은 저장된 결제 근거(코인 차감 행·이용권 사용 근거·PG 참조가 있는 단건 결제)로만 자동 환불한다 — 근거 없는 옛 기록·원장만 있는 월정석·꿀단지·기능 키가 다른 근거(지오맨시 이용권 openGeomancyOracle)는 보류 + 운영 검토(PAID_NARRATIVE_REFUND_EVIDENCE_MISSING)';
 export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'astrology-ai', files: ['worker/routes/astrology-ai.js'], featureKeys: ['astrology-ai-consultation'], refunds: ['failServiceExecution', 'autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'vedic-ai', files: ['worker/routes/vedic-ai.js'], featureKeys: ['vedic-ai-consultation'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
@@ -57,16 +58,16 @@ export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'fusion-fortune', files: ['worker/routes/fusion-fortune.js', 'worker/lib/fusion-fortune.js', 'worker/lib/fusion-fortune-recovery-task.js'], featureKeys: ['fusion-fortune-consultation'], refunds: ['refundEligibleAt'] },
   { service: 'yeongnyangi', files: ['worker/yeongnyangi/service.ts', 'worker/yeongnyangi/repository.js', 'worker/yeongnyangi/terminal-refund.js'], featureKeys: ['yeongnyangi-*'], refunds: ['refundYeongnyangiServicePack', 'refundYeongnyangiMoonstone', 'refundPassCoverage', 'refundPaymentAsOperator'] },
   { service: 'fortune-chat-question', files: ['worker/yeongnyangi/per-use-access.js', 'worker/yeongnyangi/repository.js', 'worker/routes/fortune-chat-consultations.js'], featureKeys: ['fortune-chat-question-*'], refunds: ['refundYeongnyangiMoonstone', 'refundPassCoverage'], gap: 'PER_USE 카드 환불은 지원 검토로 유지: 2026-11-18 승격 검증에서 보관 초안 보호 전 PG 취소 결함을 재현하여 신규 자동 환불을 제외했다. 원자적 환불 예약·재시도 정산을 구현하기 전에는 자동 취소하지 않는다' },
-  { service: 'tarot-oracle', files: ['worker/lib/tarot-oracle-delivery.js', 'worker/routes/tarot.js'], featureKeys: ['tarot-prompt-maker', 'tarot-prompt-maker-standard', 'tarot-prompt-maker-deep', 'tarot-prompt-maker-master'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'love-tarot', files: ['worker/lib/love-tarot-delivery.js'], featureKeys: ['tarot-love-relationship'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'mindscan', files: ['worker/lib/mindscan-delivery.js'], featureKeys: ['tarot-mindscan'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'dream', files: ['worker/routes/dream.js'], featureKeys: ['dream-psycho-analysis'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'yoga-guru', files: ['worker/routes/yoga-guru.js'], featureKeys: ['yoga-guru-per-use'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'saju-compat-basic', files: ['worker/routes/saju-compat-basic.js'], featureKeys: ['compat-saju-compatibility'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'pet-saju-ai', files: ['worker/routes/pet-saju-ai.js'], featureKeys: ['pet-saju-ai-consultation', 'pet-compatibility-ai'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'geomancy-oracle', files: ['worker/routes/oracle.js'], featureKeys: ['openGeomancyOracle', 'geomancy'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'animal-totem', files: ['worker/routes/animal-totem.js'], featureKeys: ['animal-totem-basic', 'animal-totem-deep'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
-  { service: 'guardian-fortune', files: ['worker/lib/guardian-paid-delivery.js', 'worker/lib/guardian-fortune-generate.js', 'worker/routes/fortune-chat.js'], featureKeys: ['fortune-chat-consultation'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'tarot-oracle', files: ['worker/lib/tarot-oracle-delivery.js', 'worker/routes/tarot.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['tarot-prompt-maker', 'tarot-prompt-maker-standard', 'tarot-prompt-maker-deep', 'tarot-prompt-maker-master'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'love-tarot', files: ['worker/lib/love-tarot-delivery.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['tarot-love-relationship'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'mindscan', files: ['worker/lib/mindscan-delivery.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['tarot-mindscan'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'dream', files: ['worker/routes/dream.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['dream-psycho-analysis'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'yoga-guru', files: ['worker/routes/yoga-guru.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['yoga-guru-per-use'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'saju-compat-basic', files: ['worker/routes/saju-compat-basic.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['compat-saju-compatibility'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'pet-saju-ai', files: ['worker/routes/pet-saju-ai.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['pet-saju-ai-consultation', 'pet-compatibility-ai'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'geomancy-oracle', files: ['worker/routes/oracle.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['openGeomancyOracle', 'geomancy'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'animal-totem', files: ['worker/routes/animal-totem.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['animal-totem-basic', 'animal-totem-deep'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
+  { service: 'guardian-fortune', files: ['worker/lib/guardian-paid-delivery.js', 'worker/lib/guardian-fortune-generate.js', 'worker/routes/fortune-chat.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['fortune-chat-consultation'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
   // 토스 인앱결제(TOSS_IAP): 파트너 환불 API 가 없다(worker/toss/order-reconciliation.js — 읽기만).
   // 환불은 토스 쪽에서 일어나고 대사 cron 이 recordTossRefund 로 반영한다.
   { service: 'toss-native', files: ['worker/toss/routes.js', 'worker/toss/owned-narrative.js', 'worker/toss/native-pet-paid.js', 'worker/toss/native-saju-compat.js', 'worker/toss/native-yoga.js', 'worker/toss/tarot-library-generator.js'],

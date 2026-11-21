@@ -479,6 +479,7 @@ const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => impo
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
 const handleSajuCompatBasicRoutes = createLazyRouteHandler("./routes/saju-compat-basic.js", () => import("./routes/saju-compat-basic.js"), "handleSajuCompatBasicRoutes");
+const handlePaidNarrativeRetryRoutes = createLazyRouteHandler("./routes/paid-narrative-retry.js", () => import("./routes/paid-narrative-retry.js"), "handlePaidNarrativeRetryRoutes");
 const handleDestinyFlowerRoutes = createLazyRouteHandler("./routes/destiny-flower.js", () => import("./routes/destiny-flower.js"), "handleDestinyFlowerRoutes");
 const handleHeukwolRoutes = createLazyRouteHandler("./routes/heukwol.js", () => import("./routes/heukwol.js"), "handleHeukwolRoutes");
 const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
@@ -1774,6 +1775,11 @@ const app = {
 
       if (url.pathname === "/api/saju-compat-basic" || url.pathname.startsWith("/api/saju-compat-basic/")) {
         return withCorsHeaders(request, env, await handleSajuCompatBasicRoutes(request, env));
+      }
+
+      // 2026-11-21 C2: shared retry-first endpoints (free retry of missing parts, refund request) for paid narrative results.
+      if (url.pathname.startsWith("/api/paid-narrative/")) {
+        return withCorsHeaders(request, env, await handlePaidNarrativeRetryRoutes(request, env));
       }
 
       if (url.pathname === "/api/destiny-flower" || url.pathname.startsWith("/api/destiny-flower/")) {

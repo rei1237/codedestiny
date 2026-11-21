@@ -431,7 +431,9 @@ function toSummary(doc) {
  *    호출자가 같은 모양을 만들어 넘기면 된다. 여기에 ServiceExecutionTransaction 전용 필드 의존을
  *    새로 넣으면 그 호출자가 조용히 skip 된다.
  */
-export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, failedRequestId = requestId, reason, receiptSource }, deps = {}) {
+// 2026-11-21 C2: only an approved retry-first narrative refund releases its own saved parts from refund protection.
+const releasedNarrativeExecution = execution => (execution?.metadata?.paidNarrativeRetry?.refundApprovedAt ? execution._id : "");
+export async function runCoinRefund({ env, userId, featureKey, sourceTransactionId, executionId, requestId, failedRequestId = requestId, reason, receiptSource, releasedExecutionId = "" }, deps = {}) {
   if (!userId || !sourceTransactionId) {
     return { refunded: false, skipped: true };
   }
@@ -458,7 +460,7 @@ export async function runCoinRefund({ env, userId, featureKey, sourceTransaction
     if (!Number.isSafeInteger(delta) || delta >= 0) return { refunded: false, skipped: true, reason: "DEDUCT_AMOUNT_UNVERIFIED" };
     const protectedResult = await findProtectedFundingExecution({
       userId: uid, ids: [sourceId, deducted.metadata?.requestId, deducted.metadata?.purchaseId, deducted.metadata?.orderId, requestId],
-      executionId: toObjectId(executionId), failedRequestId,
+      executionId: toObjectId(executionId), failedRequestId, releasedExecutionId: releasedExecutionId ? toObjectId(releasedExecutionId) : "",
     }, (name, filter) => tx.findOne(refundModels[name], filter));
     if (protectedResult) return {refunded:false,skipped:true,adminReviewRequired:true,reason:'FUNDING_ACTIVE_OR_COMPLETED'};
     const now = new Date(), refundAmount = -delta;
@@ -519,7 +521,7 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
   if (!sourcePointHistoryId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
   const protectedResult = await findProtectedFundingExecution({
     userId, ids: [sourcePointHistoryId, execution.sourceTransactionId, requestId],
-    executionId: execution._id || executionId, failedRequestId: requestId,
+    executionId: execution._id || executionId, failedRequestId: requestId, releasedExecutionId: releasedNarrativeExecution(execution),
   }, (name, filter) => refundModels[name].findOne(filter).lean());
   if (protectedResult) return { refunded: false, skipped: true, adminReviewRequired: true, reason: "FUNDING_ACTIVE_OR_COMPLETED" };
   const { refundPassCoverage } = await import("./pass-consumption.js");
@@ -684,7 +686,7 @@ export async function runMonthlyCreditRefund({ env, userId, featureKey, sourceTr
     const receipt = await tx.findOne(MonthlyCreditLedger,{userId:uid,type:'MONTHLY_CREDIT_GRANT',sourceId:refundSourceId});
     if (receipt) return receipt.settledAt ? {refunded:true,idempotent:true,amount:receipt.amount,ledgerId:String(receipt._id)} : {refunded:false,skipped:true,adminReviewRequired:true,reason:'MONTHLY_REFUND_RECEIPT_REVIEW_REQUIRED'};
     const other = await findProtectedFundingExecution({
-      userId: uid, ids: [source, ...tokens], executionId: toObjectId(executionId), failedRequestId: requestId,
+      userId: uid, ids: [source, ...tokens], executionId: toObjectId(executionId), failedRequestId: requestId, releasedExecutionId: releasedNarrativeExecution(execution),
     }, (name, filter) => tx.findOne(refundModels[name], filter));
     if (other) return {refunded:false,skipped:true,adminReviewRequired:true,reason:'MONTHLY_SOURCE_ACTIVE_OR_COMPLETED'};
     const now = new Date();
@@ -760,7 +762,7 @@ export async function runPaymentCancel(env, paymentRef = {}, reason, execution =
   const refundIdempotencyKey = normalizeRefundIdempotencyKey('service-refund-payment-' + String(payment._id));
   const other = await withMongoRetry(env, () => findProtectedFundingExecution({
     userId: execution.userId, ids: [payment._id, payment.impUid, payment.merchantUid, payment.requestId, execution.sourceTransactionId],
-    executionId: execution._id, failedRequestId: execution.executionKey || execution.idempotencyKey,
+    executionId: execution._id, failedRequestId: execution.executionKey || execution.idempotencyKey, releasedExecutionId: releasedNarrativeExecution(execution),
   }, (name, filter) => refundModels[name].findOne(filter).lean()), { retries: 0 });
   if (other) return {cancelled:false,skipped:true,adminReviewRequired:true,reason:'PAYMENT_ACTIVE_OR_COMPLETED'};
   const claim = await withMongoRetry(env, () => Payment.updateOne({
@@ -933,7 +935,7 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       featureKey: execution.featureKey,
       cost: Number(execution.cost || 0),
       sourceTransactionId: execution.sourceTransactionId,
-      executionId: String(execution._id),
+      executionId: String(execution._id), releasedExecutionId: releasedNarrativeExecution(execution) ? String(execution._id) : "",
       requestId,
       reason: `${reason.message}`.slice(0, 120),
     });
@@ -1537,4 +1539,10 @@ export async function runServiceExecutionTimeoutTask(env) {
     console.error("[CRON] service-execution timeout task failed", String(error?.message || error));
     throw error;
   }
+}
+
+// 2026-11-21 C2 retry-first: worker/routes/paid-narrative-retry.js settles a held paid narrative by its own
+// executionId at created + 7 days or on a customer refund request, after it proved the payment evidence.
+export function settlePaidNarrativeExecution(env, executionId, reasonCode, reasonMessage) {
+  return settleExecutionById(env, executionId, reasonCode, reasonMessage);
 }

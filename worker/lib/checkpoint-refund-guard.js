@@ -34,10 +34,13 @@ function isPaidNarrativeExecution(execution) {
   return Boolean(execution?.metadata?.paidNarrative?.tasks) && (PAID_NARRATIVE_FEATURES.has(execution.featureKey)
     || PAID_NARRATIVE_SERVER_RESUME_KEYS.includes(`${execution.featureKey}|${execution.reportType}`));
 }
+export { isPaidNarrativeExecution };
 export function paidNarrativeHoldCode(execution, { includeResumable = true, now = Date.now() } = {}) {
   if (!isPaidNarrativeExecution(execution)) return "";
-  const state = execution.metadata.paidNarrative;
+  const state = execution.metadata.paidNarrative, retry = execution.metadata.paidNarrativeRetry || {};
   const tasks = Array.isArray(state.tasks) ? state.tasks : [], parts = state.parts || {}, attempts = state.attempts || {};
+  // C2: the refund settle held the run for an operator (no restorable evidence, or an unconfirmed self-refund); keep its code.
+  if (retry.heldAt) return /^PAID_NARRATIVE_[A-Z_]{1,60}$/.test(retry.holdCode || "") ? retry.holdCode : "PAID_NARRATIVE_REFUND_EVIDENCE_MISSING";
   if (state.exhaustionClaimed) return "PAID_NARRATIVE_EXHAUSTION_CLAIMED";
   if (execution.metadata.paidNarrativeRecovery?.reviewRequired === true) return "PAID_NARRATIVE_REVIEW_REQUIRED";
   const ready = tasks.length > 0 && tasks.every(task => parts[task.id]);
@@ -45,8 +48,9 @@ export function paidNarrativeHoldCode(execution, { includeResumable = true, now 
     ? tasks.every(task => parts[task.id] || (attempts[task.id] || 0) >= 4)
     : tasks.some(task => !parts[task.id] && (attempts[task.id] || 0) >= 2));
   if (exhausted) return "PAID_NARRATIVE_EXHAUSTED";
-  const created = new Date(execution.createdAt ?? NaN).getTime();
-  if (Number.isFinite(created) && now - created > PAID_NARRATIVE_RESUME_WINDOW_MS) return "PAID_NARRATIVE_RESUME_WINDOW_CLOSED";
+  // A customer retry (C2 /api/paid-narrative/retry) opens a fresh resume window from that retry.
+  const opened = Math.max(new Date(execution.createdAt ?? NaN).getTime() || 0, new Date(retry.reopenedAt ?? NaN).getTime() || 0);
+  if (opened > 0 && now - opened > PAID_NARRATIVE_RESUME_WINDOW_MS) return "PAID_NARRATIVE_RESUME_WINDOW_CLOSED";
   // includeResumable gate: an explicit close of a run with nothing saved is not retried, and not refunded here either.
   if (!includeResumable && Object.keys(parts).length === 0) return "PAID_NARRATIVE_CLOSE_REQUESTED";
   return "";
@@ -83,6 +87,8 @@ export async function inspectCheckpointBeforeTimeoutRefund(execution, { includeR
   // Resume adapters define the exact paid product/report pairs that can have
   // persisted narrative checkpoints. Never infer a match from reportType alone.
   if (isPaidNarrativeExecution(execution)) {
+    // C2: an explicit settle (7-day point or customer refund request) that proved its payment evidence refunds.
+    if (!includeResumable && execution.metadata.paidNarrativeRetry?.refundApprovedAt) return "unmanaged";
     if (paidNarrativeHoldCode(execution, { includeResumable })) return "held";
     if (includeResumable || Object.keys(execution.metadata.paidNarrative.parts || {}).length > 0) return "recoverable";
   }

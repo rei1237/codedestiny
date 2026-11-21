@@ -95,6 +95,17 @@ export const RETRY_FIRST_POLICY = Object.freeze({
   "karma-destiny-ai": { marker: "retryableFailureMeta", settle: { symbol: "settleDueKarmaRetryRefunds", cron: REFUND_CRON } },
   "naming-prompt": { marker: "retryableFailureMeta", settle: { symbol: "settleDueNamingRetryRefunds", cron: REFUND_CRON } },
   "fusion-fortune": { marker: "retryableFailureMeta", settle: { symbol: "settleDueFusionRetryRefunds", cron: REFUND_CRON } },
+  // 2026-11-21 C2: 서술형 엔진 10종은 공용 엔드포인트(worker/routes/paid-narrative-retry.js)의 /retry·/refund-request 와 7일 정산을 쓴다.
+  "tarot-oracle": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "love-tarot": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "mindscan": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "dream": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "yoga-guru": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "saju-compat-basic": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "pet-saju-ai": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "geomancy-oracle": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "animal-totem": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
+  "guardian-fortune": { marker: "retryRefundAt", settle: { symbol: "settleDuePaidNarrativeRetryRefunds", cron: REFUND_CRON } },
 });
 // 크론 파일이 실제로 스케줄러에서 도는지: 파일 → [호출하는 파일, 그 파일이 참조해야 하는 진입 기호].
 export const RETRY_CRON_CHAIN = Object.freeze({
@@ -107,8 +118,7 @@ const STUCK_LIB = "worker/lib/paid-delivery-stuck.js";
 export const KNOWN_RETRY_PENDING = Object.freeze([
   "nakshatra-ai", "human-design-report", "destiny-compass-ai",
   "relationship-boundary-test", "celestial-harmony", "fortune", "feature-question", "ziwei-deep-report",
-  "yeongnyangi", "fortune-chat-question", "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic",
-  "pet-saju-ai", "geomancy-oracle", "animal-totem", "guardian-fortune", "toss-native", "palm",
+  "yeongnyangi", "fortune-chat-question", "toss-native", "palm",
 ]);
 const RETRY_ROUTE_RE = /path\s*===\s*["'](?:\/api\/[a-z0-9-]+)?\/retry["']/;
 const REFUND_REQUEST_ROUTE_RE = /path\s*===\s*["'](?:\/api\/[a-z0-9-]+)?\/refund-request["']/;
