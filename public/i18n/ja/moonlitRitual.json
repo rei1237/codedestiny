@@ -119,6 +119,17 @@
         "stars": "Starlight",
         "renew": "Renewal"
       }
+    },
+    "companion": {
+      "idle": "Resting beside you",
+      "greet": "Greeting you",
+      "guide": "Showing you the next step",
+      "breathe": "Breathing with you",
+      "bow": "Bowing with you",
+      "pray": "Praying with joined hands",
+      "bless": "Offering a blessing",
+      "react": "Reacting with delight",
+      "rest": "Dozing off"
     }
   }
 }
