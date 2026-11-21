@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: Phase 3 캐릭터·연출(companion-machine → CompanionStage → _fx/scene-fx.ts)
+next: Phase 4 다듬기(품질 단계·reduced-motion·키보드/aria-live·나머지 로케일·안 쓰는 코드 삭제·문서·check:pre-push·머지)
 ---
 
 # 달빛 연화당 참배 흐름(명상 게임형) 인수인계
@@ -37,7 +37,7 @@ next: Phase 3 캐릭터·연출(companion-machine → CompanionStage → _fx/sce
 ## 단계
 - [x] Phase 1 셸·흐름: `ritual-machine.ts`+테스트, RitualFlow, LotusProgress, SpeechBubble, BreathGuide, HoldToLight, use-ritual-bow(+테스트), WishLantern, 회향, page.tsx 분기(+딥링크 테스트), i18n ko/en. 캐릭터는 기존 `_components/Character.tsx` 정적 사용.
 - [x] Phase 2 오디오: `_audio/audio-engine.ts`(BGM 2채널 1.5s 크로스페이드, SFX 풀, ducking), use-ambient-audio(선호 `cd:moonlit-music:v1` + trackId·sfx, try/catch), MiniPlayer(44px 오브 → 시트: 목록+분위기 태그, 이전/다음, 재생/정지, 볼륨, 효과음), visibilitychange, BroadcastChannel `cd:moonlit-audio`, 테스트. `music.code-destiny.com` CORS 는 `curl -sI -H 'Origin: https://code-destiny.com'` 로 확인만(없으면 볼륨 램프 경로).
-- [ ] Phase 3 캐릭터·연출: companion-machine(idle·greet·guide·breathe·bow·pray·bless·react·rest), CompanionStage(연이 포즈는 `model-review/sprite-clips.ts` POSES/PREVIEW_CLIPS, 기타 캐릭터 transform 1단계), `_fx/scene-fx.ts`(입자 ≤40/저사양 12, 탭 물결, 정지 조건), 연기·연등·디졸브 400~800ms.
+- [x] Phase 3 캐릭터·연출: companion-machine(idle·greet·guide·breathe·bow·pray·bless·react·rest), CompanionStage(연이 포즈는 `model-review/sprite-clips.ts` POSES/PREVIEW_CLIPS, 기타 캐릭터 transform 1단계), `_fx/scene-fx.ts`(입자 ≤40/저사양 12, 탭 물결, 정지 조건), 연기·연등·디졸브 400~800ms.
 - [ ] Phase 4 다듬기: 품질 단계, reduced-motion, 키보드·aria-live, 나머지 로케일, 안 쓰게 된 코드 삭제(deletion-auditor, 별도 커밋), `docs/design/moonlit-lotus-ritual.md`, CONTEXT_AUDIT 충돌 2건(`_graveyard`→삭제, 브랜치/PR→main 직접), 화면 시나리오 검증, `npm run check:pre-push`, main 머지·push·워크트리 배수(메인 세션이 수행해도 됨), 이 문서 status: done.
 
 ## 결과 기록
@@ -59,3 +59,10 @@ next: Phase 3 캐릭터·연출(companion-machine → CompanionStage → _fx/sce
 - 화면 판정: visual-checker 1차 블로커 2 — 효과음 '켜짐' 대비 1.22:1, 844×390 시트가 높이 넘침 → span color:inherit, `@media (max-height:520px)` 시트 전체 스크롤로 수정. DOM 실측 844×390 시트 y12–378/390, 목록 7행 보임. 재판정: 켜짐 7.13:1 통과, 남은 블로커 1(낮은 화면에서 scrollIntoView 가 시트 전체를 내려 머리말·재생 버튼이 가려짐) → 목록 자체 scrollTop 만 조정하고 시트는 scrollTop 0 으로 열기. 실측 844×390 시트 scrollTop 0·닫기 보임, 390 목록 scrollTop 798·지금 곡 목록 안에 보임. 이 마지막 수정은 DOM 실측으로 확인(스크린샷 재판정 없음).
 - 함정: Playwright 의 evaluate·locator 호출이 페이지에 사용자 활성화를 준다(`navigator.userActivation.hasBeenActive` true). 차단 시나리오는 goto 뒤 손대지 않고 기다린 다음 읽어야 한다. Next 개발 route announcer 가 빈 role=alert 를 둔다. 이 워크트리 해시 포트(27592)에 03:17 부터 떠 있던 dev 서버를 재사용(내가 띄운 것 아님, 끄지 않음).
 - 남은 위험: 실기기(iOS Safari 무음 스위치·고정 볼륨) 미검증. 다른 탭 MusicPlayer 와의 BroadcastChannel 상호 정지는 정적 검사만. 목탁 외 효과음 자산 없음. 절 단계 돼지 뒤 밝은 사각은 플레이어와 무관(숨김 전후 픽셀 차 0), Phase 1 기록과 같은 항목.
+
+### Phase 3 (2026-11-22, 같은 브랜치, 미머지·미push)
+- 커밋: e89ca29e4(길동무 상태 문구 i18n), 819ee1800(순수 모듈 companion-machine·companion-pose·_fx/scene-fx), d6327a356(CompanionStage·SceneFx 연결, 디졸브, 사각·잘림 수정).
+- 구조: `_ritual/companion-machine.ts`(시간은 호출부 now, 30s 무입력 rest, 불 붙임·3배·연등 react, 연등 lookUp) → `_ritual/companion-pose.ts`(연이 포즈·깜빡임·숨 프레임, 1단계 activity) → `_ritual/CompanionStage.tsx`. 연출은 `_fx/SceneFx.tsx`(next/dynamic, ssr:false) + `_fx/scene-fx.ts`(rAF 1개, 반딧불 40/저사양 12, 숨김·화면 밖·reduced 정지, `canvas[data-running]`).
+- 검증: `node --test __tests__/ui/moonlit-*.test.mjs __tests__/ui/home-moonlit-entry-card.test.mjs` 70/70. `npm run check:fast` exit 0(critical 승격, jest 490 suites/8487 pass). Playwright 360/390/844x390/1440 걸음: 단계별 상태 전부 도달, 콘솔 오류 0, 가로 넘침 0, 숨김 탭 1s 동안 rAF 0·running=false, 복귀 시 true. visual-checker 1차 BLOCKER(합장 단계 사각) → 수정 후 재판정 PASS.
+- 함정: (1) 캐릭터 뒤 밝은 사각의 원인은 두 가지. 배경 그림의 밝은 제단(→ .pool 그라데이션)과 `yeoni/2d-v2/bow-down.webp` 시트 자체의 옅은 사각 매트(알파≤60, 셀 384 중 x67~311·y3~353, 셀 가장자리 검사로는 안 잡힘). 정지 합장은 rest 3 프레임으로 바꿨고, 절 동작은 여전히 bow-down 을 쓰지만 어두운 배경이라 안 보임. 에셋 재가공은 승인 범위 밖. (2) 퍼센트 margin 은 무대 너비 기준이라 가로 화면에서 절 포즈가 잘렸다 → `--figure-size` 기준. (3) ritual-flow 테스트의 한글 마크업 정규식 `>[^<{]*[가-힣]` 은 화살표 `=>` 뒤 한글 주석도 잡는다 → 주석을 중괄호 안으로. (4) Bash 에서 백틱이 든 문서를 인라인으로 쓰면 명령 치환이 실행된다 → 스크립트 파일로.
+- 남은 위험: 360/390 세로에서 캐릭터 하단이 무대 아래로 7px 겹침(스프라이트 여백 안, 의도). 844x390 합장 하단 여유 약 10px. 1단계 Character 의 aria 라벨은 기존 코드의 한국어 고정. 올려다보기는 transform 근사. 향 연기·등불은 정지 화면에서 약하게만 보임(애니메이션 육안 미확인). 기존 Character.tsx 의 prayer(bow-down 2)도 같은 매트가 있음(범위 밖, 보고만). reduced-motion 전면·품질 단계는 Phase 4. 실기기 미검증.
