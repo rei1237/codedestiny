@@ -13,6 +13,17 @@
 3. 값이 있으면 화면에 보이고 움직임 줄이기가 꺼져 있을 때만 영상(`muted`·`playsinline`·`loop`·`preload="none"`·`poster`)이나 프레임 줄(CSS `steps()` 한 줄, JS 루프 없음)을 초상 위에 겹친다. 값이 없거나 플래그가 꺼져 있으면 지금의 CSS 모션이나 정적 초상으로 돌아간다.
 4. 롤백 스위치는 `lib/master-motion/flags.mjs`의 `MASTER_MOTION_ENABLED`와 정적 셸 `js/core/yehwa-home.mjs`의 같은 이름 상수다.
 
+## 스프라이트 시트 (F, 2026-11-22)
+
+영상·프레임 대신 한 줄 WebP 시트를 쓰는 길이다. 캐릭터를 다시 그리지 않고, 정본 초상을 기본 칸으로 둔 채 편집 생성물에서 눈·입 같은 작은 영역만 합성한다.
+
+1. 편집 생성물(Codex OAuth `gpt-image-2`, 정본 초상을 이미지 입력)을 `D:\CodeDestiny-Build\master-motion/<id>/`에 둔다.
+2. spec `scripts/sprites/master-motion/<id>.json`을 쓰고 `node scripts/sprites/build-master-motion.mjs <spec> --report`로 1차 픽셀 검수 수치(영역 밖 평균 차이 `guardDiff`, 영역 안 변화 `regionDiff`)를 본다. 2차는 visual-checker 판정이다.
+3. `--report` 없이 돌리면 `public/images/master-motion/<id>/`에 `<변형>-sheet.webp`·`<변형>-poster.webp`·`manifest.json`·`provenance.json`을 쓴다. 1차 검수 불합격 프레임이 있거나 아래 용량 상한(`lib/master-motion/sheets.mjs`의 `MASTER_MOTION_BUDGETS`)을 넘으면 파일을 쓰지 않고 실패한다.
+4. `lib/master-motion/sheets.mjs`의 `MASTER_MOTION_SHEETS`에 매니페스트 값을 옮기고, `lib/master-motion/flags.mjs`의 `MASTER_SPRITE_SHEETS.<id>`를 켠다. 화면 연결은 `motion: masterMotionArt("<id>", "<변형>")`이다. `__tests__/ui/master-motion-assets.test.mjs`가 매니페스트·용량·크기·플래그·CSS 계약을 확인한다.
+
+재생: 포스터(=기본 칸)를 먼저 깔고 시트를 다 받으면 0.3s 페이드로 드러낸다. 시트 줄은 `transform`만 `steps()`로 옮긴다(design-canon의 transform·opacity 예외 안). 주기는 칸 수 × 1200ms이고, 앞 10% 동안 칸마다 120ms씩 재생한 뒤 나머지 90%는 포스터가 대기 화면이다. 화면 밖·탭 숨김·움직임 줄이기면 그리지 않는다(`useSpritePlaybackGate`). 시트는 600×720 한 크기만 만든다(360×432 변형 없음).
+
 ## 공통 규격
 
 | 항목 | 대기 루프 영상 | 프레임 줄 | 포스터 |
