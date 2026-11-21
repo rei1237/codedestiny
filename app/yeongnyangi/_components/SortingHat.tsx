@@ -43,13 +43,13 @@ export default function SortingHat(){
   <div className={styles.invitation}>
    <div className={styles.invitationArt}><Image src={hatImage('invitation')} width={1200} height={800} sizes="(max-width: 700px) 100vw, 50vw" alt="초승달 모자를 쓴 영냥이가 여섯 기숙사의 문 앞에서 배정을 기다리는 모습"/></div>
    <div className={styles.invitationCopy}><h2 id="hat-title">영냥이의 모자</h2><p className={styles.lead}>너의 자리는,<br/>어느 기숙사에 있을까?</p><p>“잠깐, 내 모자가 너한테 할 말이 있대.”<br/>타고난 기질과 마음의 결을 읽고,<br/>여섯 기숙사 중 너와 닮은 곳을 찾아줄게.</p>
-    <button type="button" className={styles.primary} aria-expanded={open} aria-controls="hat-chamber" onClick={()=>setOpen(v=>!v)}>{open?'배정실 접기':'내 기숙사 알아보기'}<ArrowRight size={18} aria-hidden="true"/></button><p className={styles.note}>로그인 후 무료 · 멸치 차감 없이 이용해요</p>
+    <button type="button" className={open?styles.secondary:styles.primary} aria-expanded={open} aria-controls="hat-chamber" onClick={()=>setOpen(v=>!v)}>{open?'배정실 접기':'내 기숙사 알아보기'}<ArrowRight size={18} aria-hidden="true"/></button><p className={styles.note}>로그인 후 무료 · 멸치 차감 없이 이용해요</p>
    </div>
   </div>
   {open&&<div id="hat-chamber" className={styles.chamber}>
    <div className={styles.intake}><h3>모자를 쓰기 전에</h3><p>내 출생 프로필을 골라주세요. 같은 정보와 계산 버전에는 같은 배정이 나와요. 시간을 모르면 가능한 근거로 참고 배정을 받을 수 있어요.</p><ProfilePicker state={profiles}/>
     {!profiles.guest&&<p className={styles.note}>정보를 보완하려면 프로필을 새로 만들어 선택해 주세요. 기존 상담 기록은 그대로 남아요.</p>}
-    <button className={styles.primary} type="button" disabled={busy||story||profiles.loading||(!profiles.guest&&!profiles.profileId)} onClick={profiles.guest?loginForCurrentPage:()=>void sort()}>{profiles.guest?'로그인하고 모자 써보기':story?'모자와 이야기하는 중':busy?'모자가 너의 결을 읽고 있어요':result?'같은 정보로 다시 배정하기':'모자 써보기'}{result?<RotateCcw size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>
+    <button className={result?styles.secondary:styles.primary} type="button" disabled={busy||story||profiles.loading||(!profiles.guest&&!profiles.profileId)} onClick={profiles.guest?loginForCurrentPage:()=>void sort()}>{profiles.guest?'로그인하고 모자 써보기':story?'모자와 이야기하는 중':busy?'모자가 너의 결을 읽고 있어요':result?'같은 정보로 다시 배정하기':'모자 써보기'}{result?<RotateCcw size={18} aria-hidden="true"/>:<ArrowRight size={18} aria-hidden="true"/>}</button>
     {busy&&<p role="status" className={styles.loading}>사주부터 별의 지도까지, 계산 가능한 근거를 살피고 있어요. 잠시만 기다려 주세요.</p>}{error&&<p role="alert" className={styles.error}>{error}</p>}
    </div>
    {story&&<HatPrologue key={attempt} result={pending} error={error} onRetry={()=>void sort()} onFinish={()=>{if(pending){setResult(pending);setStory(false);}}}/>}

@@ -10,9 +10,12 @@
 .invitationCopy { padding:clamp(1.5rem,4vw,3.5rem); }
 .invitationCopy h2 { font:600 clamp(1.8rem,3.5vw,2.8rem)/1.3 var(--font-serif,'CodeDestinySerifKR',serif); margin:0 0 1.25rem; color:var(--yn-gold); }
 .invitationCopy .lead { font:500 clamp(1.3rem,2.5vw,1.9rem)/1.55 var(--font-serif,'CodeDestinySerifKR',serif); margin:0 0 1.2rem; }
-.hat .primary { display:inline-flex; align-items:center; justify-content:center; gap:.65rem; min-height:48px; max-width:100%; padding:.8rem 1.25rem; border:1px solid var(--yn-gold); border-radius:var(--yn-radius); background:var(--yn-gold); color:var(--yn-deep); font:600 1rem/1.5 var(--font-body); cursor:pointer; margin-top:.75rem; transition:background .16s ease; }
+.hat :is(.primary,.secondary) { display:inline-flex; align-items:center; justify-content:center; gap:.65rem; min-height:48px; max-width:100%; padding:.8rem 1.25rem; border:1px solid var(--yn-gold); border-radius:var(--yn-radius); background:var(--yn-gold); color:var(--yn-deep); font:600 1rem/1.5 var(--font-body); cursor:pointer; margin-top:.75rem; transition:background .16s ease; }
 .hat .primary:hover:not(:disabled) { background:var(--yn-ivory); }
-.hat .primary:disabled { cursor:wait; opacity:.65; }
+.hat :is(.primary,.secondary):disabled { cursor:wait; opacity:.65; }
+/* 버튼 등급: 금 채움은 화면당 핵심 행동 하나. 접기·다시 배정은 라인. */
+.hat .secondary { background:var(--yn-night); color:var(--yn-ivory); border-color:var(--yn-line); }
+.hat .secondary:hover:not(:disabled) { background:var(--yn-night); border-color:var(--yn-gold); }
 .hat .note { color:var(--yn-muted); font-size:.875rem; line-height:1.7; }
 .chamber { padding:clamp(1.25rem,4vw,3rem); border-top:1px solid var(--yn-line); }
 .intake { max-width:760px; margin:0 auto 3rem; }
@@ -60,8 +63,8 @@
 .directory p { color:var(--yn-muted); font-size:.9rem; }
 @keyframes hat-reveal { from { opacity:.55; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
 @media(max-width:700px) { .invitation { grid-template-columns:1fr; } .invitationArt { min-height:0; } .invitationArt img { aspect-ratio:3/2; height:auto; } .directory>div { grid-template-columns:repeat(2,minmax(0,1fr)); } .invitationCopy { padding:1.5rem; } }
-@media(max-width:440px) { .directory>div { grid-template-columns:1fr; } .hat .primary { width:100%; } .hat { margin-block:1rem; } }
-@media(prefers-reduced-motion:reduce) { .result { animation:none; } .hat .primary { transition:none; } }
+@media(max-width:440px) { .directory>div { grid-template-columns:1fr; } .hat :is(.primary,.secondary) { width:100%; } .hat { margin-block:1rem; } }
+@media(prefers-reduced-motion:reduce) { .result { animation:none; } .hat :is(.primary,.secondary) { transition:none; } }
 .personality { max-width:68ch; margin:2rem auto; }
 .personality section { margin-block:2.4rem; }
 .personality h4 { font-family:var(--font-serif,'CodeDestinySerifKR',serif); color:var(--yn-gold); }
