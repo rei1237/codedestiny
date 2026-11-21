@@ -308,7 +308,7 @@ export const APP_VERIFIED_DEAD_IMAGES = [
   [/^assets\/yeongnyangi\/companion\/[a-z-]+-original\.png$/, "잠금화면 동행 그림의 webp 이전 원본"],
   [/^assets\/yeongnyangi\/service-packs\/[a-z]+-gift-set-v1\.webp$/, "선물 세트 그림은 v2만 사용"],
   [/^assets\/yeongnyangi\/mv\/heaven-light-(?:v[456]-ch\d-320|(?:v5-)?poster-\d+)\.webp$/, "HEAVEN LIGHT는 v7 포스터·v72 컷만 사용"],
-  [/^assets\/yeongnyangi\/hat\/[a-z-]+-v\d+(?:-\d+)?\.(?:webp|avif)$/, "모자 기숙사는 아이콘 엠블럼과 spirit-hat-v2만 사용"],
+  [/^assets\/yeongnyangi\/hat\/[a-z-]+-v\d+-(?:\d+\.avif|(?:640|960|1536)\.webp)$/, "앱 모자 화면은 초대장·기숙사별 기준 WebP만 사용"],
   [/^images\/destiny-island\/gate-hero-(?:mobile|desktop)(?:-v2)?\.webp$/, "운명섬 첫 그림 교체 전 사본"],
   [/^images\/destiny-bias\/stage\/idol-[fm]\d\.webp$/, "최애 무대는 배경 그림만 사용"],
   [/^assets\/sharing\/[a-z]+-letter-v1\.jpg$/, "OG 카드는 웹 서버가 사이트에서 직접 가져감"],
