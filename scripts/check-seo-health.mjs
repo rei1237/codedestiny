@@ -13,6 +13,9 @@ const targets = ['/ggulggul/', '/about/', '/faq/', '/methodology/', '/yeongnyang
 const userAgent = 'Mozilla/5.0 (compatible; Yeti/1.1; +https://naver.me/spd)';
 const robotsAgents = ['googlebot', 'bingbot', 'yeti', 'oai-searchbot', 'perplexitybot'];
 const privatePaths = ['/api/billing/', '/admin/', '/account/', '/checkout/', '/points/', '/results/', '/records/', '/yeongnyangi/library/', '/yeongnyangi/room/'];
+// K1(2026-11-13, lib/seo/robots-policy.mjs): /points/ 는 robots 로 막지 않는다 — 막으면 크롤러가 noindex 를 읽지 못한다.
+// robots 차단 기대는 건너뛰고, 실제 응답의 noindex 를 단언한다(사이트맵 제외 검사는 그대로).
+const noindexOnlyPaths = ['/points/'];
 const issues = [];
 const rows = [];
 async function get(path, probeUserAgent = userAgent, extraHeaders = {}) {
@@ -55,8 +58,13 @@ issues.push(...edgeSampleIssues(edgeSamples).map(issue => `edge sample: ${issue}
 const rootRedirect = await get('/');
 const rootIsLanding = rootRedirect.status === 200;
 if (!rootIsLanding) issues.push('root must be the 200 canonical brand landing');
+for (const path of noindexOnlyPaths) {
+  const page = await get(path);
+  issues.push(...inspectPage({ ...page, indexable: false }).map(issue => `${path}: ${issue}`));
+}
 for (const path of privatePaths) {
   if (urls.some(url => new URL(url).pathname.startsWith(path))) issues.push(`private path in sitemap: ${path}`);
+  if (noindexOnlyPaths.includes(path)) continue;
   for (const agent of robotsAgents) {
     if (robotsAllows(robots.html, path, agent)) issues.push(`private path allowed for ${agent}: ${path}`);
   }

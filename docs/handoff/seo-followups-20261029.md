@@ -1,6 +1,6 @@
 ---
 status: active
-updated: 2026-10-30
+updated: 2026-11-21
 next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상·IndexNow 통지 성공) → 사용자가 서치어드바이저·GSC에서 sitemap-index.xml 재제출과 2027 13쪽 수집·색인 요청 → D+7(11/06) 노출 관찰"
 ---
 
@@ -28,6 +28,12 @@ next: "운영 반영 확인됨(2026-10-30, 81200d3cc, 시즌 점검 13쪽 정상
   - 스테이징 대상 `new-year-season.mjs`: 13쪽 모두 200. noindex·robots 차단·운영 canonical은 스테이징 보호가 정상 동작한 결과다.
 - 운영 배포, 서치어드바이저·GSC 제출, 수집 요청은 **하지 않았다**. 사용자 승인 대기.
 - 네이버 서치어드바이저·검색광고 키워드도구는 이번 세션에 조회하지 못했다(Chrome 확장 미연결). 키워드 경쟁도는 실측값이 없다.
+- **2026-11-21 재진단**(프로덕션·`gh` 실측. 사이트·robots·워크플로는 바꾸지 않았다. 실행 날짜는 UTC 기준이며 KST로는 하루 뒤다):
+  - `seo-operations` 일일 헬스는 11/15부터 실패했다. 사이트 결함이 아니라 `scripts/check-seo-health.mjs`의 낡은 기대였다. K1(2026-11-13)에서 `/points/`를 robots 차단 대신 `noindex, nofollow`로 노출하도록 바꿨는데, 검사는 5개 크롤러의 robots 차단을 계속 기대했다. 그 기대를 실제 응답의 noindex 단언으로 바꿨다(`36bd522bb`). 프로덕션 기준 5건 → 0건이다.
+  - T2는 해결됐다. `/fortune/tomorrow/pig`가 301 + 절대 Location이고, `?v=1`이 붙어도 1단으로 끝난다.
+  - C2는 소스·JSON·public 사본에서 사라졌다(`git grep`). 추적 중인 `.md` 12개에만 남았다: 상품 원고 2, 마케팅 원문 1, 스펙 1, handoff 8. 링크는 claude.ai의 `artifact/`·`code/artifact/` 두 경로 형태다. 이 12개 중 사이트에 노출되는 것이 있는지는 확인하지 않았다.
+  - T6: 사이트맵 1,087 URL 중 hreflang 대안이 있는 627개는 모두 x-default를 가진다. 대안이 없는 460개 중 `/fortune/` 14개(2027 허브·12띠·`prompt-hub`)는 HTML에도 hreflang이 없다. 나머지 `/fortune/` 101개는 HTML에 hreflang 링크가 있다(6쪽 표본 모두 9개). 14개가 의도된 단일 언어인지는 확인하지 않았다.
+  - T1: 최근 14회(11/07~11/20) 중 5회 실패했고 11/17부터 4회 연속 성공이다. 5회 모두 "Publish and verify" 스텝에서 2회 시도 후 실패했다. 11/11은 릴리스가 "Install Playwright Chromium"에서, 11/13은 "Deploy Pages and Worker at the exact SHA"에서 두 번 다 실패했다(릴리스 자체의 실패). 11/09·11/10·11/16은 두 시도 모두 릴리스 런의 conclusion이 공백인 채 실패로 판정됐다(소요 33·53·52분). RED라 패치하지 않았다.
 
 ## 남은 작업
 
