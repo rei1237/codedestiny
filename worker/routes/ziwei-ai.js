@@ -3220,8 +3220,10 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model } 
       if (!normalized.ok) throw new Error("stored request invalid");
       const request = new Request("https://internal.invalid/api/ziwei-ai/stuck", { method: "POST" });
       const access = await resolveStartAccess({ request, env, auth: { userId: String(fresh.userId) }, body, normalized, pricing: getPricing(), idempotencyKey: clean(fresh.idempotencyKey, 180) });
-      if (!access?.ok && fresh.accessType !== "pass") throw new Error("billing evidence not found");
-      return ziweiRefundAccessSnapshot(access?.ok ? access : {});
+      if (access?.ok) return ziweiRefundAccessSnapshot(access);
+      if (fresh.accessType !== "pass") throw new Error("billing evidence not found");
+      // 감사 B1: 재판정이 거절돼도 결제창이 이미 차감한 이용권은 요청 키로 되돌릴 수 있게 남긴다(refundId 멱등).
+      return { accessType: "pass", prepaid: true, evidenceType: "pass" };
     },
     settleRefund: owner => settleZiweiRetryRefund(env, owner, target, now) });
 }
