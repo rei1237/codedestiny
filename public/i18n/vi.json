@@ -22608,7 +22608,23 @@
       "ziwei": "Khám phá mười hai cung lá số",
       "sukuyo": "Tính cách và quan hệ qua sao Mặt Trăng",
       "vedic": "Khám phá bầu trời lúc chào đời",
-      "astro": "Khám phá tính cách qua hành tinh và các cung nhà"
+      "astro": "Khám phá tính cách qua hành tinh và các cung nhà",
+      "brain": "Map what fills your mind through the Ten Gods",
+      "fourCut": "Turn today’s day-pillar energy into four short frames",
+      "dopamine": "See which stimuli and focus areas pull you in",
+      "hormone": "Teto and Egen scores and your charm, from the Ten Gods",
+      "tTest": "Measure your logic temperature and T score",
+      "lotto": "Draw just-for-fun symbolic numbers from today’s day pillar",
+      "aiPrompt": "Write image-generation prompts from your chart",
+      "skillTree": "Turn your five elements into RPG stats and skills",
+      "bias": "Find the kind of favorite that suits your chart",
+      "animal": "Meet your guardian animal from the twelve life stages",
+      "seasonRhythm": "Read your season and daily rhythm from your birth solar term",
+      "compat": "Look at how two charts fit together",
+      "manse": "Calculate your four pillars from your birth date and time",
+      "career": "Your work style and conditions in eight cards",
+      "humanDesign": "See your energy blueprint from your birth data",
+      "promptHub": "Turn your readings into questions to ask an AI"
     },
     "action": {
       "natal": "Xem lá số của tôi",
@@ -22617,6 +22633,8 @@
       "sukuyo": "Xem sao bản mệnh",
       "vedic": "Xem bản đồ bầu trời",
       "astro": "Xem bản đồ sao ngày sinh"
-    }
+    },
+    "freeBadge": "Free",
+    "minutes": "About {n} min"
   }
 }

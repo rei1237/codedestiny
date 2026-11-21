@@ -20,7 +20,7 @@ test('free promo countdown follows the KST calendar and is display-only', () => 
 });
 
 test('free promo Korean copy, authored i18n and baked shell stay in sync', () => {
-  const authored = JSON.parse(read('i18n/authored/freePromo-01.json'));
+  const authored = { ...JSON.parse(read('i18n/authored/freePromo-01.json')), ...JSON.parse(read('i18n/authored/freePromo-02.json')) };
   for (const [key, ko] of Object.entries(FREE_PROMO_COPY_KO)) {
     const entry = authored['freePromo.' + key];
     assert.ok(entry, 'missing authored key freePromo.' + key);
@@ -112,4 +112,32 @@ test('campaign entries use existing actions and existing result sections', async
   assert.ok(card.querySelector('img'));assert.equal(card.querySelectorAll('a,button').length,0);
  }
  assert.ok(doc.querySelector('.cdh-promo__cta').compareDocumentPosition(doc.getElementById('cdQuickServices'))&4,'primary CTA precedes feature list');
+});
+
+test('stage 6 free card list covers every promo item and keeps the chip markup behind its rollback flag', async () => {
+  const { FREE_PROMO_GROUPS, FREE_PROMO_CATALOG, FREE_PROMO_FEATURED } = await import('../../lib/marketing/free-promo.mjs');
+  const { GUIDED_FREE_LIST_ENABLED } = await import('../../lib/guided-flow/flags.mjs');
+  const { existsSync } = await import('node:fs');
+  assert.equal(typeof GUIDED_FREE_LIST_ENABLED, 'boolean');
+  const ids = FREE_PROMO_GROUPS.flatMap(group => group.items.map(item => item.id));
+  assert.deepEqual(Object.keys(FREE_PROMO_CATALOG).sort(), [...ids].sort());
+  const authored = [JSON.parse(read('i18n/authored/freePromo-01.json')), JSON.parse(read('i18n/authored/freePromo-02.json'))];
+  const authoredKo = key => authored.map(file => file[key]?.ko).find(Boolean);
+  for (const id of ids) {
+    const meta = FREE_PROMO_CATALOG[id];
+    assert.match(meta.image, /^\/images\/(service-introductions|free-list)\/[a-z0-9-]+-320\.webp$/, id);
+    assert.ok(existsSync(new URL('../../public' + meta.image, import.meta.url)), meta.image);
+    assert.ok(Number.isInteger(meta.minutes) && meta.minutes >= 1 && meta.minutes <= 5, id);
+    // ko 사전과 표시 원문이 같아야 한다(번역 키가 원문을 덮어쓰지 않게).
+    assert.equal(authoredKo('freePromo.desc.' + id), meta.description, id);
+    const featured = FREE_PROMO_FEATURED.find(item => item.id === id);
+    if (featured) assert.equal(featured.description, meta.description, id);
+  }
+  for (const key of ['freeBadge', 'minutes']) assert.equal(authoredKo('freePromo.' + key), FREE_PROMO_COPY_KO[key]);
+  const banner = read('app/components/FreePromoBanner.tsx');
+  // 켬: 카드 목록, 끔: 이전 칩 목록. 두 갈래 모두 같은 주소·data 속성·aria-current 를 쓴다.
+  assert.match(banner, /GUIDED_FREE_LIST_ENABLED\?<details className=\{styles\.list\}/);
+  assert.match(banner, /:\s*<details className=\{styles\.list\} ref=\{list\}><summary>\{t\('all'\)\}<\/summary><div className=\{styles\.groups\}>/);
+  assert.match(banner, /<ul className=\{styles\.chips\}>/);
+  assert.equal(banner.match(/data-cd-free-promo-item=\{item\.id\}/g)?.length, 3);
 });
