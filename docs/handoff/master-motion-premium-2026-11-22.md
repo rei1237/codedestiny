@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: E — /ggulggul/ 대표 상담 자동 배너(home-consultation-picker.mjs + home-funnel.js 죽은 #cdSigViewport 블록 교체)
+next: F1 — 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 + 자산 테스트(에셋 없이 빈 매니페스트로 통과)
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -86,7 +86,7 @@ next: E — /ggulggul/ 대표 상담 자동 배너(home-consultation-picker.mjs 
   - 진입 장면은 포스터 → 스프라이트
 
 ## 단계
-- [ ] E 대표 상담 자동 배너 — 구현, 테스트, check:fast, 커밋, 화면 확인(visual-checker, 390px·데스크톱)
+- [x] E 대표 상담 자동 배너 — 구현, 테스트, check:fast, 커밋, 화면 확인(visual-checker, 390px·데스크톱)
 - [ ] F1 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 + 자산 테스트(에셋 없이 빈 매니페스트로 통과)
 - [ ] F2 연이 스프라이트 생성·검수·배선
 - [ ] F3 윤달
@@ -123,3 +123,27 @@ next: E — /ggulggul/ 대표 상담 자동 배너(home-consultation-picker.mjs 
 
 ## 결과 기록
 (단계마다 커밋 SHA·명령 출력 요약·남은 위험을 여기에 적는다)
+
+### E 대표 상담 자동 배너 (2026-11-22)
+- 커밋: dbb459da4 (wt/sig-banner-20261122-052839, main 머지)
+- 바뀐 것
+  - lib/marketing/home-consultation-picker.mjs: `cd-sig__head` 아래에 `[data-sig-banner]` 마크업을 둔다. 링크 속성은 피커 카드와 같고 `data-cd-service-id` 는 붙이지 않는다(verify-master-love-codex-flow 의 fusion 1개 단언 유지).
+  - js/core/home-funnel.js: 죽은 `#cdSigViewport` 블록을 배너 컨트롤러로 바꿨다. `setupSignatureLetter` 는 손대지 않았다.
+  - styles/home-consultation-picker.css: 배너 스타일. 모바일(≤760px)에서는 점이 첫 줄, 버튼·위치가 둘째 줄이고 점 너비는 32px다.
+  - 테스트: signature-banner.behavior(새로 7개), home-direct-feature-links.static(배너 단언 추가), home-choice-carousel(죽은 레일 테스트 8개 삭제, 달빛 장식 테스트만 남김)
+- 동작
+  - 보일 때(50% 이상)만 5초마다 넘기고 0.5초 크로스페이드로 바꾼다.
+  - 마우스 올림·포커스·화면 밖·탭 숨김·열린 대화상자·reduced-motion 에서는 멈춘다. 수동 조작 뒤에는 12초 유예한다.
+  - 비활성 장은 inert 다. 키보드로 넘기면 포커스가 새 장 링크로 옮겨 간다.
+- 가정: 문서에는 "7종, 1 / 7" 로 적혀 있지만 실제 `products` 는 8종(흑월 + 6 + fusion-fortune)이다. 8종을 모두 보이고 N 은 데이터에서 계산한다.
+- 검증
+  - node --test 배너 관련 4파일: 17/17 pass
+  - check:fast: sitemap-drift 하나만 BLOCKED였다. sitemap:generate 로 lastmod 원장 5건을 갱신한 뒤 verify:sitemap-drift OK
+  - Playwright 3102(390·1280): pageerror 0, 가로 넘침 없음. 5.6초 뒤 2/8, 다음 버튼으로 3/8. 멈춤 버튼 44×44
+  - visual-checker: 대비 AA 통과(제목 15.3:1, 가격 11.1:1, 비활성 점 3.7:1), 잘림·크롭 없음, 한 장만 보임
+  - 모바일 컨트롤 결함 2건(점 넘침, 3줄 배치)을 visual-checker 가 찾았다. order:-1, 32px 로 고친 뒤 재실측 결과 점 67–323px(배너 32–358px 안), 버튼은 한 줄
+- 남은 위험
+  - 고친 뒤 모바일은 기하 실측만 했고 visual-checker 재판정은 받지 않았다.
+  - 데스크톱에서 설명과 가격 사이 여백이 약 200px 로 크다(결함 아님, G 꿀꿀 고급화에서 재검토).
+  - styles/concern-first-home.css 의 `.cd-sig__controls`·`.cd-sig-card` 규칙이 죽은 CSS 로 남아 있다(범위 밖이라 보고만 한다).
+  - 점 ::before 의 width 전환은 장식 8px 요소라 그대로 둔다.
