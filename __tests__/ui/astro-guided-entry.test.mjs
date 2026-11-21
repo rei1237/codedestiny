@@ -104,8 +104,9 @@ test('unchanged paths: saved profile, server profile, other services, non-shell 
 test('/astrology/ landing renders the guided input only when the flag is on', () => {
   const page = readFileSync('app/astrology/page.js', 'utf8');
   assert.match(page, /if \(!GUIDED_ASTRO_ENABLED\) return <SeoLandingTemplate page=\{page\} \/>;/);
-  assert.match(page, /<SeoLandingTemplate page=\{guidedPage\}>\s*<div id="astro-guided-entry"[^>]*><AstroGuidedEntry \/><\/div>/);
-  assert.match(page, /guidedPage = \{ \.\.\.page, heroForm: undefined, ctaHref: "#astro-guided-entry" \}/, 'hero CTA must jump to the in-page guided entry, not the shell');
+  assert.match(page, /<SeoLandingTemplate page=\{page\} hero=\{<FortuneLandingHero path=\{page\.path\} startHref="#astro-guided-entry" \/>\}>\s*<div id="astro-guided-entry"[^>]*><AstroGuidedEntry \/><\/div>/, 'hero CTA must jump to the in-page guided entry, not the shell');
+  const hero = readFileSync('app/components/FortuneLandingHero.tsx', 'utf8');
+  assert.match(hero, /href=\{startHref \|\| \(/, 'startHref overrides only when given');
   const entry = readFileSync('app/astrology/AstroGuidedEntry.tsx', 'utf8');
   assert.match(entry, /state\.source !== "user" && state\.source !== "auto"/, 'restore/back must not auto-redirect');
   assert.doesNotMatch(entry, /SavedBirthProfilePicker|authFetch|\/api\//, 'no profile/API calls from the guided input');
