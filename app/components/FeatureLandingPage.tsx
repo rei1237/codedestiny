@@ -641,6 +641,10 @@ export default function FeatureLandingPage({ service, inlineFlow }: { service?: 
     ? "/ifa-oracle"
     : basePath === "/ziwei/chart"
     ? "/ziwei/chart"
+    // 타로 랜딩은 워커의 /index.html?action → /ggulggul/ 302 를 거치지 않고 바로 꿀꿀 메인으로
+    // 보낸다(R4-1, 2026-11-21 승인). 다른 기능은 기존 경로를 유지한다.
+    : action && basePath.startsWith("/tarot/")
+    ? `/ggulggul/?action=${encodeURIComponent(action)}`
     : action
     ? `/index.html?action=${encodeURIComponent(action)}`
     : SHELL_HOME_PATH;
