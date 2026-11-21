@@ -4,7 +4,7 @@ import { getExpertCharacter, getExpertMoodSprite, isExpertCharacterEnabled, type
 import { masterSayFor } from "@/lib/master-say/master-say.mjs";
 import styles from "./master-say.module.css";
 
-export type MasterSayInput = { domain: "sukuyo" | "astrology" | "vedic" | "nakshatra"; sectionKey?: string; index?: number; total?: number };
+export type MasterSayInput = { domain: "sukuyo" | "astrology" | "vedic" | "nakshatra" | "saju" | "humanDesign" | "healingTarot" | "mingriTarot" | "numerology"; sectionKey?: string; index?: number; total?: number };
 
 /**
  * 결과 장 사이에 끼는 마스터 말풍선: 표정 그림 + 한마디. 본문(LLM 원문)은 바꾸지 않는 장식이라 서버 컴포넌트로도 쓴다.
