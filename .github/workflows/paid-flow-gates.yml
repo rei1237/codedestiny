@@ -259,6 +259,11 @@ on:
       - "app/fusion-fortune/**"
       - "worker/lib/fusion-fortune*.js"
       - "worker/routes/fusion-fortune.js"
+      # ── 흑월 경고장 — 유료 LLM(heukwol-warning-consultation) ──
+      # 2026-11-22 C1: verify:paid-llm-delivery 가 이 라우트를 열어 다시 시도·환불 계약을 대조하는데
+      #    파일명이 *-ai.js 가 아니라 트리거에서 빠져 있었다(원칙 10). 라우트만 고친 커밋에서도 깨어나게 한다.
+      - "worker/routes/heukwol.js"
+      - "worker/lib/heukwol-*.js"
       # ── 휴먼 디자인 — 유료 기능(human-design-chart, 10,000원) ──
       # 🔴 결정론 계산 자체가 상품이라 엔진·천체 어댑터·fixture 가 전부 게이트 대상이다.
       #    verify:human-design 이 이 파일들을 **열어서** 읽으므로(CLAUDE.md 원칙 10),
