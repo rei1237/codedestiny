@@ -496,7 +496,7 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   };
 }
 
-export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice = "", memory = [], evidenceProvided = false }) {
+export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice = "", memory = [], evidenceProvided = false, traitFacts = [] }) {
   const min = chapter.minChars || 2400;
   const palaces = (chapter.ziweiPalaces || []).join(", ");
   const sajuFocus = (chapter.sajuFocus || []).join(", ");
@@ -514,6 +514,8 @@ export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo,
     "",
     "[사주 명식]",
     formatSajuForPrompt(saju, evidenceProvided),
+    // Trait-First: 1장(gate)의 성향 근거 사실만 덧붙인다(어조 지시 없음). 비어 있으면 프롬프트 바이트가 그대로다.
+    ...(Array.isArray(traitFacts) ? traitFacts : []),
     "",
     "[자미두수 명반]",
     evidenceProvided ? "해당 궁의 계산값과 강약·사화는 아래 장별 근거 기록을 사용한다." : formatZiweiForCodexPrompt(ziweiChart),

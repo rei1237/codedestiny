@@ -106,8 +106,9 @@ for (const mode of ["solo", "compat"]) {
       CODEX_SESSION_REPAIR_CAP: readConstant("worker/routes/master-love-codex.js", "CODEX_SESSION_REPAIR_CAP"),
     });
     const answerContract = await import("../../worker/lib/consultation-answer-contract.js");
+    const traitProfile = await import("../../worker/lib/trait-profile/index.js");
     const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWaveInternal", {
-      ...answerContract,
+      ...answerContract, ...traitProfile,
       ...codexQuality, codexNeedsRepair, codexEarlierBodies,
       sha256: value => value, syncCodexExecution: async () => true, splitPendingChapters, savedChapterRows, codexTotalReady,
       CODEX_EVIDENCE_VERSION: "test-evidence",

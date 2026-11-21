@@ -1,4 +1,5 @@
 import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
+import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, TRAIT_FIRST_META, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
 import { normalizeCodexConsultation, buildCodexConsultation, codexConsultationPrompt, buildCodexConsultationFixture, assertCodexConsultation } from "../lib/master-love-codex-consultation.js";
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -704,6 +705,13 @@ function normalizeChapterContent(parsed, fallbackBody = "", evidenceContract = n
   };
 }
 
+// Trait-First(근거 주입만, 어조 기존 유지): 개인판 1장(gate)·한국어·승인 사주 권위가 없을 때만 성향 사실 줄을 만든다.
+// 블록의 "사용 규칙" 줄(어조·서술 지시)은 빼고 사실만 넣는다.
+export function codexTraitFacts(saju, chapter, { traitFirst = null, traitSeed = "", locale = "ko" } = {}) {
+  if (!traitFirst || chapter?.id !== "gate" || locale !== "ko" || saju?.approvedSaju) return [];
+  return sajuTraitFirstLines(saju, { traitFirst, seed: traitSeed }).filter(line => !line.startsWith("사용 규칙:"));
+}
+
 function buildChapterLogContext(modeDef, chapter) {
   return {
     serviceId: modeDef.featureKey,
@@ -714,7 +722,7 @@ function buildChapterLogContext(modeDef, chapter) {
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
   birthInfo, partnerInfo, chapter, prologueChoice, consultation, memory, previousError = "", snapshotKey, deadlineAt = Infinity, answerVoice = null, locale = "ko",
-  finalAttempt = false, repairHint = "", providerFallback = false,
+  finalAttempt = false, repairHint = "", providerFallback = false, traitFirst = null, traitSeed = "",
 }) {
   // 남은 예산이 한 장을 쓰기에도 모자라면 아예 시작하지 않는다(시작해도 못 끝낸다).
   const remainingMs = deadlineAt - Date.now();
@@ -740,7 +748,8 @@ async function generateChapter(env, {
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
       compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true,
     })
-    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true });
+    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true,
+      ...(traitFirst ? { traitFacts: codexTraitFacts(saju, chapter, { traitFirst, traitSeed, locale }) } : {}) });
   const prompt = appendAnswerVoice(`${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, answerVoice, { master: "master", locale });
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
   // S16: Workers AI 폴백은 장의 마지막 시도에서만 켠다. 짧은 폴백은 최소 분량 × 0.3 문턱으로 거른다.
@@ -762,6 +771,11 @@ async function generateChapter(env, {
       const { ai, parsed } = raced.value;
       const content = normalizeChapterContent(parsed, "", evidenceContract);
       const body = content.body;
+      // Trait-First shadow: 기록만 한다. 받은 장을 거르거나 다시 쓰게 하지 않는다.
+      if (traitFirst && modeDef.mode === "solo" && chapter.id === "gate") {
+        const shadow = traitFirstShadowCheck(saju, body, { traitFirst, seed: traitSeed });
+        if (shadow) try { console[shadow.ok ? "info" : "warn"]("[MasterLoveCodex] Trait First Shadow", JSON.stringify({ ok: shadow.ok, issues: shadow.issues, headline: shadow.headline })); } catch {}
+      }
       const result = {
         status: "ok",
         chapter: { id: chapter.id, order: chapter.order, symbol: chapter.symbol, title: chapter.title, body, content, chars: body.length, provider: clean(ai?.provider || "gemini", 40), ok: true },
@@ -1329,6 +1343,7 @@ export async function startCodexSession(request, env, auth, body, nativeAccess =
     // 🔴 구매 시점의 장 구성을 세션에 **1회** 고정한다($setOnInsert 이므로 재요청이 덮지 않는다).
     //    이후 상품 구성이 바뀌어도 진행 중인 이 책의 기대 장 수·순서는 변하지 않는다.
     deliveryMeta: { ...(nativeAccess?{tossIntentId:nativeAccess.id,tossInputHash:nativeAccess.inputHash}:{}), locale: resolveAiLocaleFromRequest(request, body), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
+      ...(selectTraitFirst(env) ? { traitFirst: TRAIT_FIRST_META } : {}),
       chapterPlanVersion: CODEX_CHAPTER_PLAN_VERSION,
       manifest: { mode: normalized.mode, chapterIds: codexChaptersForPlan(normalized.mode, CODEX_CHAPTER_PLAN_VERSION).map(spec => spec.id),
         version: resolveMode(normalized.mode).cacheKeyExtra } },
@@ -1781,6 +1796,8 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           finalAttempt: !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= 2,
           providerFallback: !byId.has(chapter.id) && Number(attempts[chapter.id] || 0) >= CHAPTER_ATTEMPT_LIMIT,
           answerVoice: pinAnswerVoice(doc.deliveryMeta || {}, env), locale: doc.deliveryMeta?.locale || "ko",
+          // Trait-First 는 세션 시작 때 저장한 값만 따른다. 키가 없는 옛 세션은 꺼진 채로 끝난다.
+          ...(pinTraitFirst(doc.deliveryMeta || {}, env) ? { traitFirst: TRAIT_FIRST_META, traitSeed: `${clean(doc.userId)}|master-love-codex` } : {}),
         }); } catch { result = { status: "retryable", failure: { code: "LLM_TIMEOUT_UNCERTAIN", kind: "uncertain" } }; }
         const write = queue.catch(() => {}).then(async () => {
           const failures = { ...current.deliveryMeta?.failures };
