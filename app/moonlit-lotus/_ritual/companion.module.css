@@ -25,6 +25,8 @@
 .companion[data-state=rest] .look { transform:translateY(1%) rotate(3deg); }
 .companion[data-state=rest] .breath { animation-duration:7200ms; }
 .companion[data-state=rest] .halo { opacity:.1; }
+/* 저사양(low, SceneFx 가 무대에 표시): 후광 맥동을 멈춘다. */
+[data-fx-tier=low] .halo { animation:none; }
 @keyframes companion-halo { from { opacity:.12; transform:scale(.96); } to { opacity:.26; transform:scale(1.04); } }
 @keyframes companion-float { from { transform:translateY(0); } to { transform:translateY(-2.5%); } }
 @keyframes companion-breathe { from { transform:scale(1); } to { transform:scale(1.015); } }

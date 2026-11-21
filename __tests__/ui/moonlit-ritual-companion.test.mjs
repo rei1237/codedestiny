@@ -118,3 +118,22 @@ test('companion state labels exist in ko and en',()=>{
  const stage=read('app/moonlit-lotus/_ritual/CompanionStage.tsx').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm,'');
  assert.ok(!/>[^<{]*[가-힣]/.test(stage),'no hard-coded Korean markup');assert.match(stage,/t\('companion\.'\+state\)/);
 });
+test('quality tier: dropped frames in the first 2s downgrade high → low (12 fireflies, ratio 1, fewer layers)',()=>{
+ assert.equal(FX.judgeFrames(Array(120).fill(16.7)),'high');
+ assert.equal(FX.judgeFrames(Array(60).fill(50)),'low','~20fps is low');
+ assert.equal(FX.judgeFrames([...Array(30).fill(16),...Array(15).fill(40)]),'low','a third of frames dropped');
+ assert.equal(FX.judgeFrames([40,40,40]),'high','too few samples never downgrade');
+ const queue=[];let id=0;const raf=cb=>{queue.push(cb);return ++id;},caf=()=>{queue.length=0;};
+ const pump=(n,gap)=>{for(let i=0;i<n&&queue.length;i++){t+=gap;queue.shift()(t);}};
+ let t=0,told=[];
+ const {canvas}=fakeCanvas();
+ const fast=FX.createSceneFx(canvas,{tier:'high',color:'gold',onTier:v=>told.push(v),random:()=>.5,raf,caf,clock:()=>t});
+ fast.resize(300,200,2);pump(150,16);assert.equal(fast.tier(),'high');assert.deepEqual(told,[]);assert.equal(canvas.width,600);fast.dispose();
+ queue.length=0;
+ const slow=FX.createSceneFx(canvas,{tier:'high',color:'gold',onTier:v=>told.push(v),random:()=>.5,raf,caf,clock:()=>t});
+ slow.resize(300,200,2);pump(60,50);assert.equal(slow.tier(),'low');assert.deepEqual(told,['low']);assert.equal(canvas.width,300,'pixel ratio drops to 1');
+ slow.dispose();
+ const ui=read('app/moonlit-lotus/_fx/SceneFx.tsx');
+ assert.match(ui,/onTier:mark/);assert.match(ui,/stage\.dataset\.fxTier/);assert.match(ui,/tier==='high'&&<span className=\{styles\.moon\}/);
+ assert.match(read('app/moonlit-lotus/_ritual/companion.module.css'),/\[data-fx-tier=low\] \.halo/);
+});
