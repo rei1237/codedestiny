@@ -21,7 +21,7 @@ import HomeMoonlitEntry from "./components/HomeMoonlitEntry";
 import PopularTop5 from "./components/PopularTop5";
 import { POPULAR_TOP5_ENABLED } from "../js/core/popular-top5.mjs";
 import TrustRecordLine from "./components/conversion/TrustRecordLine";
-import { PUBLIC_RECORD_PATH } from "../lib/seo/public-record-copy.mjs";
+import { trustRecordCopy } from "../lib/marketing/trust-record.mjs";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
@@ -149,10 +149,10 @@ export default function HomePage() {
                 <span><NativeHomeText>{role}</NativeHomeText></span>
               </li>)}
             </ul>
-            <p><NativeHomeText>2025년 대통령 운세를 공개 분석한 명리학자 박병하(네오)가 해석 기준을 설계했어요.</NativeHomeText></p>
+            <p><NativeHomeText>{trustRecordCopy.full}</NativeHomeText></p>
             <div className={styles.nativeMasterActions}>
               <Link href="/consultations/" prefetch={false}><NativeHomeText>마스터 상담 둘러보기</NativeHomeText></Link>
-              <Link href={PUBLIC_RECORD_PATH} prefetch={false}><NativeHomeText>공개 원문과 실제 사건 비교하기</NativeHomeText></Link>
+              <Link href={trustRecordCopy.href} prefetch={false}><NativeHomeText>공개 원문과 실제 사건 비교하기</NativeHomeText></Link>
             </div>
           </div>
         </section>}
