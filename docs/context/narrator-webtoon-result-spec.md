@@ -221,7 +221,16 @@ export type WebtoonCut = {
 - 중복 규칙: 같은 (궁, 사화)·쌍록/쌍기·올림포스 신탁은 한 번만 풀고 이후엔 앞 해를 가리킨다. 같은 문장·카드 간 6-gram 겹침은 같은 테스트가 막는다.
 - 올림포스 상징(제우스=자미·화권, 헤르메스=천기·화기 서판, 데메테르=화록, 아폴론=화과)은 무성이 들려주는 서사다. 별도 화자를 두지 않는다.
 - CSS: `styles/basic-fortune-library.css`의 `#ziweiModalOverlay .zw-musung-say*`. 모바일 17px·행간 1.8, 얼굴 이미지는 기존 `public/images/expert-characters/musung/` 재사용.
-- 심화(`/ziwei/chart`)는 이번 범위 밖이다.
+- 심화(`/ziwei/chart`)는 §11-1.
+
+### 11-1. 심화 자미두수 `/ziwei/chart` (2026-11-21)
+
+- 대사·이론 정본: `app/_lib/ziwei-musung-say.ts`(무성 대사·3개년 리딩 조립), `app/_lib/ziwei-year-flow.ts`(유년 이론), `app/_lib/ziwei-flow-data.ts`(표·올림포스). 표시: `app/components/ziwei/ZiweiMusungSay.tsx`, 스타일은 `ziwei-consultation.module.css`의 `.musungSay*`·`.flow*`.
+- 배치: 상담 히어로·바탕·질문별 답(`ZiweiConsultation`), 오늘 한마디, 그리고 `ziwei-result-flow` 섹션(3개년 유년 리딩: 오프닝 → 해마다 카드 → 해 사이 브리지 → 마무리). 상단 내비 칩은 로케일 사전 비용 때문에 추가하지 않았다.
+- 이론(셸 `zwYearFlowTheory`의 TS 이식, 120명×4년 대조 일치): 유년 명궁=태세 지지궁, 유년 역할=명궁 기준 역순, 오호둔으로 대한궁 천간, 대한×유년 관계(같은 궁·대궁·삼합·기타), 쌍록·쌍기, 록기 동궁, 화기 충, 톤(확장·수비·혼재·평온). 명반 계산 엔진은 건드리지 않는다.
+- 상담 문장: 8개 주제 질문별 렌즈(`LENS`)로 같은 별 풀이를 주제에 맞게 바꾸고, 주제 사이 같은 문장은 0건(128명반 실측)이다.
+- ko 전용이고 캐릭터 노출 플래그(`isExpertCharacterEnabled('musung')`)가 꺼지면 말풍선만 사라진다. 결제·잠금·noindex 정책은 그대로다.
+- 가드: `__tests__/ui/ziwei-deep-year-flow.test.mjs`(셸↔TS 표·이론 드리프트, 금기어, 문장 중복, 올림포스 신 연속 방지).
 
 ## 10. 마스터 말풍선 (숙요·점성술·베다 유료 AI 상담, 2026-11-21)
 
