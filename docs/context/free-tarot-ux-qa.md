@@ -82,7 +82,7 @@ JS 예외(pageerror)는 0. 상호작용(진입→결과)은 이번에 다시 돌
 ## 남은 후속 과제 (2026-11-21 미승인 후속·F1~F3 뒤)
 상세는 [인수인계](../handoff/unapproved-followups-2026-11-21.md).
 - 표정 그림 5장(연이 worry, 영냥이 explain·worry·cheer·serious) — Codex 이미지 생성 사용 한도 초과로 차단(21:06 리셋). 재시도 절차는 인수인계 F3 A.
-- `AstroGuidedEntry`(숙요·베다·점성·자미 공통): 빈 이름이면 "다음" 이 비활성인데 도움말은 "비워 두고 다음을 눌러도 돼요". 원인 `app/astrology/AstroGuidedEntry.tsx` 의 `required: { name: true }`. 수정 4곳은 권한 검사(사용자 승인 대기)로 막혀 적용하지 않았다.
+- `AstroGuidedEntry`(숙요·베다·점성·자미 공통): 빈 이름이면 "다음" 이 비활성인데 도움말은 "비워 두고 다음을 눌러도 돼요". 원인 `app/astrology/AstroGuidedEntry.tsx` 의 `required: { name: true }`. 수정 4곳은 권한 검사(사용자 승인 대기)로 막혀 적용하지 않았다. → 해결(2026-11-21 승인, 커밋 05b6ce2a6): 이름 선택 입력, 셸 폼이 저장 전에 이름을 받는다.
 - W3 TOP5 `source:"sales"` 공개 범위 정책 결정.
 - `index.html` 가격 하드코딩.
 - 2027-02-12 무료 프로모션 종료 때 `/free/`·배너 링크 처리.
