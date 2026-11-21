@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1·R3·L1(R2 는 완료). 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
+next: 사용자 결정 대기 — "5단계·R4·R5 계획" 절의 질문 1~6, 그리고 6단계 R1·R3·L1(R2·R4-1·R4-2 는 완료). 결정 뒤 5단계 ①(셸 3장 → /tarot/mingri/) → R4 → R5(점성술부터) → 7단계 삭제 목록(D1)
 ---
 
 # 무료 운세·타로·캐릭터 웹툰 결과 UX 개편 — 구현 계획 (3~8단계)
@@ -592,3 +592,10 @@ SEO 영향 [실측에 근거한 판단]:
 - 범위 밖 기존 결함(보고만): 셸 입력 화면 상단 안내 박스 글자 대비 약 1.89:1(visual-checker 픽셀 추정).
 - 남은 위험: 보내진 비회원은 셸 결과(재미 카드·궁합·저장) 대신 `/saju/free/` 결과를 본다(승인된 변화); httpOnly 세션만 있고 힌트 쿠키가 없는 로그인 사용자는 보내질 수 있음; 크롤러는 저장소가 비어 있어 액션 URL 에서 JS 이동을 본다(canonical `/`·사이트맵 미포함이라 영향 낮음); 셸 `free_saju_*` 이벤트 대신 `/saju/free/` 의 guided 이벤트로 잡힌다.
 - 롤백: 플래그 두 곳 false + `npm run sync:public`, 또는 `git revert d10e048d9`.
+
+## R4-1·R4-2·자존감 결과 (2026-11-21, main 30fcc87f9)
+
+- 자존감 타로 진입(3fceb1b01): 가설(index.html allowlist)은 기각 — 그 목록은 coin-cost>0 때만 쓰이고 타일은 0. 실제 원인은 모바일 컬렉션 가상화(unmountCollectionCards)가 타일을 떼어 `__cdRunRouteActionOnce` 가 못 찾고, 폴백 런처는 지연 로더를 안 돌림. `__cdFindRouteActionElement` 가 `collection.__cdLazyCards` 도 본다. 390px 실측 전 2/4 → 후 6/6, 재회 타로도 1/3 → 3/3(같은 원인). 데스크톱 원래 정상. 롤백 `git revert 3fceb1b01` + sync:public.
+- R4-1(e85ff159a): FeatureLandingPage `/tarot/*` 의 실행 CTA → `/ggulggul/?action=`. 해당 랜딩은 love·mingri·year 셋뿐(다른 타로는 자체 랜딩). 남은 것: app/tarot/self-esteem/TarotSelfEsteemLandingContent.tsx:942 `href="/?action=openTarotSelfEsteemModal"`(302 한 번 더, 범위 밖이라 그대로).
+- R4-2(5afe216aa): 워커 CONSOLIDATED_PAGE_REDIRECTS `/tarot/mingri/play` → `/tarot/mingri/` 301(슬래시 두 꼴, 쿼리·utm 보존 실측). app/tarot/mingri/play 페이지는 7단계 삭제 대상 — consolidated-pages 테스트 `PENDING_PAGE_DELETION` 예외를 7단계에서 함께 지운다.
+- 관찰(미수정): `/ggulggul/?action=startMindScanTarot` 는 쿼리만 지우고 아무것도 안 연다 — base 와 동일(회귀 아님).
