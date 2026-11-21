@@ -116,39 +116,17 @@ function assertWorkflowShape(workflow) {
   const triggers = deploymentTriggerBlock(workflow);
 
   assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?(?:\r?\n|$)/m.test(triggers), `${canonicalWorkflow} must support manual dispatch.`);
-  // 🔴 2026-08-20 컷오버로 push 의 **의미가 뒤집혔다.** 여전히 필수지만 이제 스테이징을 뜻한다.
-  // 사라지면 머지가 스테이징에도 도달하지 못하고, 그 상태는 "배포가 조용히 안 된다"로만 드러난다.
-  // (2026-08-11 에는 이 트리거가 프로덕션의 유일한 경로였다. 지금 프로덕션의 유일한 경로는
-  //  workflow_dispatch 이며, 아래에서 그 사실을 별도로 강제한다.)
-  assert(/^\s+push:/m.test(triggers), `${canonicalWorkflow} must run on push to main; that merge is the staging trigger.`);
-  assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(triggers), `${canonicalWorkflow} push trigger must be limited to the main branch.`);
+  // 🔴 2026-11-21 사용자 요청으로 자동 배포 트리거를 전부 없앴다("스테이징 배포가 자동으로 돌지 않도록").
+  // 2026-08-20 컷오버 뒤 push 는 스테이징 예약을, schedule 은 스테이징 드리프트 워치독을 뜻했다.
+  // 지금은 프로덕션도 스테이징도 workflow_dispatch 로만 나간다. 둘 중 하나가 되살아나면 사람이
+  // 시작하지 않은 배포가 다시 생기므로 재등장을 실패시킨다.
+  assert(!/^\s+push:/m.test(triggers), `${canonicalWorkflow} must not run on push; staging and production are manual-only (2026-11-21).`);
+  assert(!/^\s+schedule:/m.test(triggers), `${canonicalWorkflow} must not run on a schedule; staging and production are manual-only (2026-11-21).`);
   // PR 이벤트에서 배포하면 머지 전 코드가 프로덕션에 나간다. workflow_call 을 열면 아무
   // 워크플로나 릴리스를 부를 수 있게 된다. 둘 다 예외 없이 금지다.
   assert(!/^\s+(pull_request|workflow_call):/m.test(triggers), `${canonicalWorkflow} must not deploy on pull_request or workflow_call.`);
-  // 🔴 2026-08-14: schedule 은 조건부 허용으로 바뀌었다(이전에는 전면 금지였다).
-  //
-  // 금지했던 이유는 "사람이 시작하지 않은 릴리스라 어느 커밋이 왜 나갔는지 모른다" 였는데,
-  // 그 사이 정반대 방향의 사고가 더 잦았다 — concurrency 그룹이 대기 런을 취소해 **머지가
-  // 배포로 이어지지 않는데 아무 신호도 없는** 경우가 최근 60런 중 8건이었다.
-  //
-  // 그래서 규칙을 없애는 대신 좁혔다. 스케줄 릴리스는 드리프트 게이트를 통과해야만 도달할 수
-  // 있고, 게이트는 "프로덕션이 main HEAD 와 다른가"만 본다. 즉 나가는 커밋은 **항상 main
-  // HEAD**이고 이유는 "push 릴리스가 실패했거나 취소됐다" 하나뿐이다. 어느 커밋이 왜 나갔는지
-  // 모르는 상태가 아니다.
-  //
-  // 게이트 없이 schedule 만 남으면 원래 금지하려던 그 상황이 되므로 배선을 함께 강제한다.
-  if (/^\s+schedule:/m.test(triggers)) {
-    assert(/^\s{2}gate:/m.test(workflow), `${canonicalWorkflow} has a schedule trigger, so it must define the drift gate job.`);
-    // 🔴 --soft 까지 강제한다. verify-merge-landed 는 드리프트를 critical 로 보고 exit 1 로 끝나므로,
-    // --soft 없이 부르면 게이트의 `if !` 가 "드리프트 있음"을 "판정 실패"로 읽어 배포를 건너뛴다 —
-    // 자가 수렴이 필요한 바로 그 순간에만 꺼지는, 방향이 뒤집힌 게이트가 된다
-    // (2026-08-19 실사고: 스케줄 7주기 연속 skip, 프로덕션이 9시간 옛 SHA 에 머물렀다).
-    const driftCalls = workflow.split(/\r?\n/).filter((line) => line.includes("--check=drift") && !/^\s*#/.test(line));
-    assert(driftCalls.length > 0, `${canonicalWorkflow} gate must decide with the drift check, not deploy unconditionally.`);
-    assert(driftCalls.every((line) => line.includes("--soft")), `${canonicalWorkflow} gate must call the drift check with --soft, or a real drift exits 1 and the gate skips the very deploy it exists to trigger.`);
-    assert(/needs:\s*gate/.test(workflow), `${canonicalWorkflow} release job must depend on the drift gate.`);
-    assert(/if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(workflow), `${canonicalWorkflow} release job must only run when the gate says production needs this commit.`);
-  }
+  assert(/needs:\s*gate/.test(workflow), `${canonicalWorkflow} release job must depend on the gate.`);
+  assert(/if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(workflow), `${canonicalWorkflow} release job must only run when the gate says production was requested.`);
   // 🔴 concurrency 그룹은 **배포 대상별로** 갈라져 있어야 한다.
   //
   // GitHub 은 그룹당 실행 1 + 대기 1 만 유지하고, 대기 슬롯에 새 런이 들어오면 기존 대기 런을
@@ -190,13 +168,8 @@ function assertWorkflowShape(workflow) {
   // Pages 와 Worker 가 같은 커밋인지 배포 후 런타임에서 대조한다.
   assert(workflow.includes("npm run verify:deployed-sha"), `${canonicalWorkflow} must verify the deployed SHA on both Pages and Worker.`);
 
-  // push·schedule 은 실제 스테이징 배포를 기다리지 않고 별도 dispatch 만 예약한다.
-  const stagingDispatcher = jobBody(workflow, "dispatch_staging");
-  assert(stagingDispatcher, `${canonicalWorkflow} must define an asynchronous staging dispatcher job.`);
-  assert(/dispatch_staging:\s*\$\{\{\s*steps\.decide\.outputs\.dispatch_staging\s*\}\}/.test(workflow), `${canonicalWorkflow} gate must expose the asynchronous staging dispatch decision.`);
-  assert(/needs\.gate\.outputs\.dispatch_staging\s*==\s*'true'/.test(stagingDispatcher), `${canonicalWorkflow} staging dispatcher must depend on the gate decision.`);
-  assert(/gh workflow run cloudflare-pages-deploy\.yml --ref main -f mode=staging/.test(stagingDispatcher), `${canonicalWorkflow} staging dispatcher must queue a staging-only workflow run.`);
-  assert(/actions:\s*write/.test(stagingDispatcher), `${canonicalWorkflow} staging dispatcher must have permission to queue the staging run.`);
+  // 자동 스테이징 예약 잡이 남아 있으면 안 된다(2026-11-21 제거).
+  assert(!jobBody(workflow, "dispatch_staging"), `${canonicalWorkflow} must not define the automatic staging dispatcher job; staging is manual-only.`);
 
   // 🔴 아래 검사들은 전부 **잡 스코프**다.
   //
@@ -549,33 +522,17 @@ async function verifyGhCliRepoTargeting() {
 }
 
 function runSelfTest() {
-  const release = `on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n    inputs:\n      mode:\n        type: choice\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
-  const dispatchOnly = `on:\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
-  const pushAnyBranch = `on:\n  push:\n    branches: [main, develop]\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
+  const release = `on:\n  workflow_dispatch:\n    inputs:\n      mode:\n        type: choice\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
+  const pushTriggered = `on:\n  push:\n    branches: [main]\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
+  const scheduleTriggered = `on:\n  schedule:\n    - cron: "*/20 * * * *"\n  workflow_dispatch:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
   const prTriggered = `on:\n  pull_request:\n\njobs:\n  deploy:\n    runs-on: ubuntu-latest\n`;
 
   const releaseTriggers = deploymentTriggerBlock(release);
   assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?(?:\r?\n|$)/m.test(releaseTriggers), "release fixture must keep manual dispatch");
-  assert(/^\s+push:/m.test(releaseTriggers), "release fixture must be push-triggered");
-  assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(releaseTriggers), "release fixture must limit push to main");
-  assert(!/^\s+push:/m.test(deploymentTriggerBlock(dispatchOnly)), "dispatch-only fixture must be detected as missing the push trigger");
-  assert(!/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(deploymentTriggerBlock(pushAnyBranch)), "a multi-branch push trigger must not satisfy the main-only rule");
+  assert(!/^\s+(push|schedule):/m.test(releaseTriggers), "dispatch-only fixture must not be detected as push/schedule-triggered");
+  assert(/^\s+push:/m.test(deploymentTriggerBlock(pushTriggered)), "push trigger fixture should be detected");
+  assert(/^\s+schedule:/m.test(deploymentTriggerBlock(scheduleTriggered)), "schedule trigger fixture should be detected");
   assert(/^\s+(pull_request|workflow_call):/m.test(deploymentTriggerBlock(prTriggered)), "pull request trigger fixture should be detected");
-
-  // 게이트 없는 스케줄 배포는 여전히 막혀야 한다 — 그게 원래 이 규칙이 지키려던 것이다.
-  const scheduleOnly = `on:\n  push:\n    branches: [main]\n  schedule:\n    - cron: "*/20 * * * *"\n  workflow_dispatch:\n\njobs:\n  release:\n    runs-on: ubuntu-latest\n`;
-  const gatedWith = (call) => `${scheduleOnly}    needs: gate\n    if: needs.gate.outputs.proceed == 'true'\n  gate:\n    steps:\n      - run: ${call}\n`;
-  const scheduleGated = gatedWith("node x.js --check=drift --soft");
-  const scheduleGatedHard = gatedWith("node x.js --check=drift");
-  const gateWired = (text) => {
-    const calls = text.split(/\r?\n/).filter((line) => line.includes("--check=drift") && !/^\s*#/.test(line));
-    return /^\s{2}gate:/m.test(text) && calls.length > 0 && calls.every((line) => line.includes("--soft"))
-      && /needs:\s*gate/.test(text) && /if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(text);
-  };
-  assert(/^\s+schedule:/m.test(deploymentTriggerBlock(scheduleOnly)), "schedule fixture should be detected");
-  assert(!gateWired(scheduleOnly), "a schedule trigger without the drift gate must be rejected");
-  assert(gateWired(scheduleGated), "a schedule trigger wired to the drift gate must be accepted");
-  assert(!gateWired(scheduleGatedHard), "a drift gate called without --soft must be rejected: exit 1 on drift reads as a failed judgement and skips the deploy");
 
   assert(runsWranglerDeployDirectly("npx wrangler deploy --config worker/wrangler.toml"), "a raw worker deploy script should be detected");
   assert(runsWranglerDeployDirectly("npx wrangler versions upload --config worker/wrangler.toml"), "a raw versions upload script should be detected");
@@ -656,8 +613,16 @@ async function runWorkflowShapeMutationTests() {
       ),
     ],
     [
-      "스테이징 디스패처가 다른 모드를 호출하면 거부",
-      (text) => text.replace("-f mode=staging", "-f mode=production"),
+      "push 트리거를 되살리면 거부",
+      (text) => text.replace(/^on:(\r?\n)/m, "on:$1  push:$1    branches: [main]$1"),
+    ],
+    [
+      "schedule 트리거를 되살리면 거부",
+      (text) => text.replace(/^on:(\r?\n)/m, "on:$1  schedule:$1    - cron: \"*/20 * * * *\"$1"),
+    ],
+    [
+      "자동 스테이징 디스패처 잡을 되살리면 거부",
+      (text) => text.replace(/^jobs:(\r?\n)/m, "jobs:$1  dispatch_staging:$1    needs: gate$1    runs-on: ubuntu-latest$1"),
     ],
     [
       "staging 잡이 퍼지 토큰을 잃으면 거부",
