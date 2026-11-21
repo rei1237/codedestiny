@@ -73,6 +73,7 @@ import {
 } from "../lib/nakshatra-ai-prompt.js";
 
 import { nativeTossContext } from "../toss/native-context.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, logStuckUnsettled } from "../lib/paid-delivery-stuck.js";
 const getOptionalUserFromRequest=(request,...args)=>nativeTossContext(request)?.auth||webOptionalUser(request,...args);
 
 const SERVICE_KEY = "nakshatra-ai";
@@ -615,7 +616,7 @@ async function completeRefundableExecution(env, auth, idempotencyKey, sessionId)
 }
 
 async function failRefundableExecution(env, auth, idempotencyKey, sessionId, error) {
-  await failServiceExecution(env, auth.userId, {
+  return failServiceExecution(env, auth.userId, {
     executionKey: `${FEATURE_KEY}:${idempotencyKey}`,
     requestId: `${FEATURE_KEY}:${idempotencyKey}`,
     sessionId,
@@ -625,6 +626,7 @@ async function failRefundableExecution(env, auth, idempotencyKey, sessionId, err
     forceRefundOnClose: true,
   }).catch((refundError) => {
     console.error("[nakshatra-ai] execution guard refund failed", { message: clean(refundError?.message || refundError, 300) });
+    return null;
   });
 }
 
@@ -1137,6 +1139,50 @@ export async function handleNakshatraAiRoutes(request, env = {}) {
     }
     return serverError();
   }
+}
+
+// 2026-11-22 D2: 복구 크론의 정체 확정. 낙샤트라는 즉시 환불 서비스라 다시 시도 보류 없이 위 생성 실패 경로와 같은 순서로 닫는다:
+// 문서를 generation_failed 로 먼저 CAS(실행 환불의 체크포인트 검사가 진행 중 문서를 "recoverable" 로 보고 운영 검토로 돌리지 않게) →
+// 저장된 결제 증빙 해제 → 실행 환불(failServiceExecution, 멱등) → 결제 화면에서 미리 차감한 이용권(pass-receipt) 되돌림.
+// delivery_pending 도 같은 실패로 닫는다: 완성 전달은 접근 재확인(환불·탈퇴·취소 증빙)을 통과해야 하는데, 정체는 그 재확인이 계속 막힌 상태다.
+// 토스 네이티브(accessSource toss)는 토스 환불·대사 경로라 건드리지 않는다(unsettled, 크론이 이어쓴다).
+// 이용권을 새로 소비하지 않고 문서에 저장된 증빙만 쓴다. 본문·결제 ID·출생 정보는 로그에 남기지 않는다.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  if (!doc?.id || !doc?.userId) return { outcome: "unsupported" };
+  await connectDb(env);
+  const target = model || NakshatraAiConsultation;
+  const owner = { id: String(doc.id), userId: String(doc.userId) };
+  const fresh = await target.findOne(owner).lean();
+  if (!fresh || !["generating", "delivery_pending"].includes(fresh.status)) return { outcome: "progressed" };
+  if (now - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS
+    || now - new Date(fresh.generationProgress?.lockedAt || 0).getTime() < BATCH_LOCK_TTL_MS) return { outcome: "leased" };
+  if (fresh.accessSource === "toss") { logStuckUnsettled(SERVICE_KEY, fresh); return { outcome: "unsettled" }; }
+  const idempotencyKey = clean(fresh.idempotencyKey, 160);
+  if (!idempotencyKey) return { outcome: "unsupported" };
+  const stalls = Number(fresh.deliveryWatch?.stalls || 0);
+  const at = new Date(now);
+  const result = await target.updateOne({ ...owner, status: fresh.status, updatedAt: fresh.updatedAt }, { $set: {
+    status: "generation_failed", generationError: { code: "DELIVERY_STUCK", message: "recovery made no progress", at: at.toISOString() },
+    // 옛 문서의 generationProgress:null 에 점 표기 쓰기는 Mongo 가 거부한다 — 객체째 쓴다(updatedAt CAS 안).
+    generationProgress: { ...(fresh.generationProgress || {}), lockedAt: null, lockToken: "" } } });
+  if (!result?.modifiedCount) return { outcome: "progressed" };
+  const auth = { userId: String(fresh.userId) };
+  let refundStatus = "pending";
+  try {
+    // 증빙 해제 실패가 환불을 막지 않게 따로 받는다(해제는 claim 정리일 뿐 돈이 움직이지 않는다).
+    await releaseRequestBillingEvidence(env, { userId: auth.userId, requestId: idempotencyKey, evidenceIds: fresh.llmMeta?.evidenceIds })
+      .catch(releaseError => console.warn("[nakshatra-ai] evidence release failed", clean(releaseError?.message, 120)));
+    const failed = await failRefundableExecution(env, auth, idempotencyKey, fresh.id, { code: "DELIVERY_STUCK", message: "recovery made no progress" });
+    const reported = String(failed?.execution?.refundStatus || failed?.settlement?.refundStatus || "");
+    if (reported && reported !== "none") refundStatus = reported;
+    if (fresh.accessSource === "pass-receipt") {
+      const pass = await refundPassUseEvidence({ userId: auth.userId, featureKey: FEATURE_KEY, requestId: idempotencyKey, refundId: `nakshatra-ai:${idempotencyKey}` })
+        .catch(refundError => { console.error("[nakshatra-ai] pass refund failed", clean(refundError?.message, 120)); return null; });
+      if (pass?.refunded) refundStatus = "refunded";
+    }
+  } catch { refundStatus = "pending"; } // 실행 기록이 pending 으로 남으면 타임아웃 스위프가 생성 실패 문서를 보고 환불한다.
+  logStuckSettled({ service: SERVICE_KEY, sessionId: String(fresh.id), outcome: "generation_failed", refundStatus, stalls });
+  return { outcome: "generation_failed", refundStatus };
 }
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
