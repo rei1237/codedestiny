@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-21
-next: 5. R5 자미 (조건부, 결제 감사 먼저)
+next: 마무리 (free-tarot-ux-qa 플래그 표·미승인 목록, 정리, CI 1회, 최종 보고)
 ---
 
 # 미승인 후속 항목 — 권장안으로 진행 (2026-11-21)
@@ -79,7 +79,11 @@ next: 5. R5 자미 (조건부, 결제 감사 먼저)
   - 롤백: `FREE_LIST_PAGE_ENABLED=false` → `npm run sync:public` → `npm run sitemap:generate`.
   - 배너 빈 공간(360): 새로 생긴 것이 아님. 배너 1211px 중 새 링크 몫은 58px이고, 빈 공간처럼 보인 것은 고정 내비 때문에 생긴 캡처 착시(visual-checker 실측). 대비 9.04:1, 360·960 통과.
   - 후속(미처리): 2027-02-12 무료 프로모션 종료 때 /free/·배너 링크 처리 / 360 상담 캐러셀 모달 닫기 버튼 잘림(이번 범위 밖).
-- [ ] 5. R5 자미 (조건부, 결제 감사 먼저)
+- [x] 5. R5 자미 (조건부, 결제 감사 먼저): `/ziwei/` 공통 스텝 출생 입력(이름·성별·생년월일·양음력·시각, 장소 없음) → `/ggulggul/?action=cdHomeZiweiEntry` 초안 → 셸 `_dpGuidedBirth` 폼 채움. 커밋 b4505ff70(랜딩·i18n 12개) + 0316be0ec(셸·미러·핀 build-4eaca890d93d·billing-client 핀·동결 해시 --update·테스트), 머지 6a7237ef2 push.
+  - 결제 감사(paid-gate-auditor) CLEAR: 동결 파일 직접 수정 없음(restamp 핀·`--update` 해시만), `/ziwei/` 랜딩에 유료 패널 없음(ZiweiDeepPdfPanel 은 /ziwei/chart 의 AdvancedZiweiSectionV2 전용), openZiweiModal 무료 경로 게이트 없음, 저장은 기존 dpSaveProfile, P0 인벤토리 무영향. 옆 세션 b50d90fd9·a707d8516(/ziwei/chart) 과 겹치는 파일은 config/sitemap-lastmod.json 뿐(재생성).
+  - 플래그 `GUIDED_ZIWEI_ENABLED` 두 곳: lib/guided-flow/flags.mjs + js/destiny-profile.js. 롤백: 둘 다 false → `npm run sync:public` → `node scripts/restamp-paid-runtime-pins.mjs` → `node scripts/verify-payment-freeze.mjs --update`, 또는 `git revert 0316be0ec b4505ff70`.
+  - 실측: 대상 node 테스트 25/25(플래그 끔 동일성 포함, 머지 뒤 재실행), check:fast exit 0(test:node 5696/0, jest 489 통과·1 skip), verify:payment-freeze·payment-choice-parity·paid-gate-ui·payment-p0-inventory(173)·public-mirror-fresh PASS, check:pre-push exit 0(머지 뒤). 브라우저 360·960: 제목·H1·canonical·robots 불변, 가로 넘침 0, pageerror 0, 시작 버튼 → `?step=name` #ziwei-name, 초안 없는 셸 진입은 `/ziwei/?step=name` 1회, 초안 있으면 소비·#nameInput 채움. visual-checker 4/4 PASS(동의 배너 닫은 뒤, 대비 8.4~11.9:1).
+  - 후속(보고만): 빈 이름에서 "다음" 비활성인데 도움말은 "비워 두고 다음을 눌러도 돼요"(숙요와 동일한 공통 동작), 비활성 버튼 3.94:1(WCAG 예외), 실제 저장·로그인·결과·스테이징·앱 런타임 미검증.
 - [ ] 마무리: `docs/context/free-tarot-ux-qa.md` 플래그 표·미승인 목록 갱신, 워크트리·임시 파일 정리, main CI 1회 확인, 한국어 최종 보고
 ## F2 후속 결함 수정 (2026-11-21, 사용자 "나중에 고칠것 … 전부 이번 세션에서 고치도록해")
 - 워크트리 `wt/f2-followups-20261121-145951`(기준 ffcc1e263). 항목별 커밋, 롤백은 해당 커밋만 `git revert`.

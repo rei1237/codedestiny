@@ -11129,10 +11129,13 @@
      lib/guided-flow/flags.mjs 와 값을, lib/guided-flow/astro-draft.mjs BIRTH_DRAFT_TARGETS 와 키·주소를 함께 바꾼다(테스트가 묶는다). */
   var GUIDED_SUKUYO_ENABLED = true;
   var GUIDED_VEDIC_ENABLED = true;
+  /* R5 자미(같은 승인, 결제 감사 CLEAR): /ziwei/ 공통 스텝 입력. 결과(셸 자미두수 모달)는 그대로. lib/guided-flow/flags.mjs GUIDED_ZIWEI_ENABLED 와 값을 함께 바꾼다. */
+  var GUIDED_ZIWEI_ENABLED = true;
   var _dpGuidedBirth = {
     astro: { on: GUIDED_ASTRO_ENABLED, key: _dpAstroDraftKey, bounce: _dpAstroBounceKey, landing: '/astrology/?step=name' },
     sukuyo: { on: GUIDED_SUKUYO_ENABLED, key: 'cd:guided-sukuyo-draft:v1', bounce: 'cd:guided-sukuyo-bounce:v1', landing: '/sukuyo/?step=name' },
-    vedic: { on: GUIDED_VEDIC_ENABLED, key: 'cd:guided-vedic-draft:v1', bounce: 'cd:guided-vedic-bounce:v1', landing: '/vedic/?step=name' }
+    vedic: { on: GUIDED_VEDIC_ENABLED, key: 'cd:guided-vedic-draft:v1', bounce: 'cd:guided-vedic-bounce:v1', landing: '/vedic/?step=name' },
+    ziwei: { on: GUIDED_ZIWEI_ENABLED, key: 'cd:guided-ziwei-draft:v1', bounce: 'cd:guided-ziwei-bounce:v1', landing: '/ziwei/?step=name' }
   };
   function _dpTakeAstroDraft(type) {
     var g = _dpGuidedBirth[type || 'astro'];
@@ -11241,7 +11244,7 @@
     _dpHomeIntent(type);
     var entryName=_dpHomeEntryNames[type];
     var entryParticle=(type==='saju'||type==='ziwei')?'를':'을';
-    if(draft) _toast('입력한 출생 정보를 채웠어요.','profile-guide','프로필을 저장하면 바로 '+entryName+(type==='sukuyo'?' 풀이를':' 차트를')+' 열어드릴게요.');
+    if(draft) _toast('입력한 출생 정보를 채웠어요.','profile-guide','프로필을 저장하면 바로 '+entryName+(type==='sukuyo'?' 풀이를':type==='ziwei'?' 명반을':' 차트를')+' 열어드릴게요.');
     else _toast(entryName+entryParticle+' 보려면 프로필을 설정해 주세요.','profile-guide','프로필을 저장하면 지금 고른 운세를 이어서 열어드릴게요.');
     if(typeof window.dpStartProfileCreate==='function') window.dpStartProfileCreate();
     if(draft) _dpApplyAstroDraft(draft);

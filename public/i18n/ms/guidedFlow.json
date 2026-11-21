@@ -491,6 +491,27 @@
       "openCta": "Open Vedic chart",
       "storageBlocked": "This browser can't pass your details along. Please enter them once more on the profile screen.",
       "openFallback": "Go to profile screen"
+    },
+    "ziwei": {
+      "eyebrow": "Ziwei Dou Shu · Purple Star",
+      "title": "Let's set up your 12-palace chart from your birth time",
+      "subtitle": "Tell us your name, birth date and time step by step, and we'll open your Ziwei chart.",
+      "cta": "Start entering birth details",
+      "freeHint": "The basic Ziwei chart is free.",
+      "aboutTitle": "What is this?",
+      "aboutBody": "From your birth date and time we fix the Life and Body palaces and place the stars across 12 palaces to read where weight falls in each area of life.",
+      "guideTitle": "How it works",
+      "guide1Title": "Name and gender",
+      "guide1Body": "Choose the name and gender for your chart.",
+      "guide2Title": "Birth date",
+      "guide2Body": "Pick solar or lunar and we calculate the base of your chart from that day.",
+      "guide3Title": "Birth time",
+      "guide3Body": "The Life palace depends on the time, so knowing it makes the chart much more accurate. You can continue without it.",
+      "openTitle": "Opening your Ziwei chart",
+      "openBody": "We'll fill your details into the profile screen. Save it and your Ziwei chart opens right away.",
+      "openCta": "Open Ziwei chart",
+      "storageBlocked": "This browser can't pass your details along. Please enter them once more on the profile screen.",
+      "openFallback": "Go to profile screen"
     }
   }
 }
