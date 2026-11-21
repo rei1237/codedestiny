@@ -187,6 +187,7 @@ export const SAJU_COMPAT_KO = {
   "sajuCompat.flow.saved": "이 결과는 보관함에 저장되었어요. 다시 열어 볼 때는 추가 결제가 없어요.",
   "sajuCompat.flow.fallback": "AI 풀이를 불러오지 못해 기본 해석을 먼저 보여 드려요. 결제는 보존되어 있고, 아래 버튼으로 같은 궁합의 AI 풀이를 이어서 불러올 수 있어요.",
   "sajuCompat.flow.review": "AI 풀이 생성이 끝나지 못했어요. 결제와 저장된 내용은 안전하게 보존되어 있고, 고객센터에서 확인해 드릴게요. 아래는 기본 해석이에요.",
+  "sajuCompat.flow.inputInvalid": "입력한 생년월일·태어난 시간 정보를 확인해 주세요. 입력 확인에서 멈춘 요청은 결제되지 않으며, 이미 결제된 건은 결제가 보존되어 고객센터에서 환불·복구해 드려요. 아래는 기본 해석이에요.",
   "sajuCompat.flow.revoked": "취소·환불된 결제의 결과는 이어서 만들 수 없어요. 아래는 기본 해석이에요.",
   "sajuCompat.flow.retry": "AI 풀이 이어서 불러오기",
   "sajuCompat.flow.moduleFail": "AI 풀이 화면을 불러오지 못했어요. 결제는 진행되지 않았어요. 잠시 후 다시 시도해 주세요.",

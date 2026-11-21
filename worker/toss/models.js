@@ -25,6 +25,8 @@ export const TossPurchase = model('TossPurchase', {
   status: {type:String,enum:['PAYMENT_COMPLETED','PURCHASED','REFUNDED'],required:true},
   requestId: {type:String,default:null}, verifiedAt: {type:Date,required:true}, grantedAt: Date,
   reconcileAfter: Date, reconcileState: {type:String,enum:['checking','verified','retry','inactive']},
+  // Forward-only: absent on legacy rows. Set once at first insert from purchaserMatched===true.
+  buyerVerification: {type:String,enum:['PURCHASER_MATCHED']},
   commitMarker: String, environment: {type:String,enum:['DEFAULT','SANDBOX'],required:true},
 }, {collection:'toss_purchases'});
 // Each consultation is locked to at most one order using its existing unique request _id.

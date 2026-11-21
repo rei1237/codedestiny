@@ -193,6 +193,8 @@ async function handlePetDelivery(request, env, kind) {
   const auth = await requireAuth(request, env);
   const featureKey = kind === "report" ? REPORT_FEATURE_KEY : COMPAT_FEATURE_KEY;
   const reportType = kind === "report" ? REPORT_TYPE : COMPAT_REPORT_TYPE;
+  // 다른 서술형 라우트처럼 입력을 결제 확인(이용권 정산) 전에 검사한다. 결제 뒤 seed 400 이면 기록도 환불도 없다.
+  if (request.method === "POST" && !body?.resumeResultId) seedPetNarrativePlan(kind, body);
   return runPaidNarrativeDelivery(request, env, auth, body, {
     ...petNarrativeAdapter(env, reportType), featureKey,
     verify: original => resolveAccess(request, env, original, { featureKey, reportType, route: `/api/pet-saju-ai/${kind}` }, auth),

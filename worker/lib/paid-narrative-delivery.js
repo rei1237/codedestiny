@@ -133,6 +133,12 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   };
   await verifyNativeRecovery();
   const original = doc?.metadata?.paidNarrative?.body || body;
+  // C3b: once a refund is requested, approved or settled, a POST must not re-verify (re-settle a pass) or
+  // generate missing parts for free. GET, a completed result and a held (exhausted) partial still deliver.
+  if (request.method !== "GET" && doc && doc.premiumStatus !== "completed" && !doc.metadata?.paidNarrative?.exhaustionClaimed) {
+    if (doc.status === "refunded" || doc.status === "cancelled") return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
+    if ((doc.refundStatus && doc.refundStatus !== "none") || doc.metadata?.paidNarrativeRetry?.refundApprovedAt) return json({ ok: false, retryable: false, reason: "REFUND_IN_PROGRESS" }, { status: 409 });
+  }
   // A record the intent task created stores its server proof of this exact
   // purchase, and its body predates the checkout evidence the route verifier
   // reads. revoked() below still blocks a refunded or cancelled payment.

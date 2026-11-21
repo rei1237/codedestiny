@@ -125,3 +125,37 @@ it('V1 section prompts carry none of the V2 readability rules', () => {
     expect(prompt).not.toContain('핵심 키워드는 달마다 모두 달라야 합니다');
   });
 });
+
+// Trait-First(게이트 B): 생성 시작 때 고정한 llmMeta.traitFirst 가 'v1' 인 세션의 성향 장(nature)에만 근거 블록이 들어간다.
+describe('Trait-First (TRAIT_FIRST_SAJU)', () => {
+  const block = '[타고난 성향 핵심 근거]';
+  const ON = { traitFirst: 'v1', seed: 'u1|new-year-ai' };
+  const setup = () => {
+    const input = utils.normalizeConsultationInput(body).input;
+    return { input, fortuneData: utils.calculateNewYearFortuneData(input) };
+  };
+
+  it('OFF (no key, null, or a non-v1 value) keeps every V1 and V2 prompt byte-identical', () => {
+    const { input, fortuneData } = setup();
+    for (const section of [...utils.NEW_YEAR_AI_SECTIONS_V1, ...utils.NEW_YEAR_AI_SECTIONS_V2]) {
+      const base = utils.buildSectionPrompt(input, fortuneData, section, [], '', []);
+      expect(base).not.toContain(block);
+      for (const off of [{}, { traitFirst: null }, { traitFirst: 'v2' }]) expect(utils.buildSectionPrompt(input, fortuneData, section, [], '', [], off)).toBe(base);
+    }
+  });
+
+  it('pinned v1 adds the block to the nature section only; removing it gives the OFF prompt', () => {
+    const { input, fortuneData } = setup();
+    for (const section of [...utils.NEW_YEAR_AI_SECTIONS_V1, ...utils.NEW_YEAR_AI_SECTIONS_V2]) {
+      const off = utils.buildSectionPrompt(input, fortuneData, section, [], '', []);
+      const on = utils.buildSectionPrompt(input, fortuneData, section, [], '', [], ON);
+      if (section.key !== 'nature') { expect(on).toBe(off); continue; }
+      expect(on).toContain(block);
+      expect(on).toMatch(/가장 먼저 짚을 성향: .+ 일간/);
+      const lines = on.split('\n'), start = lines.indexOf(block);
+      const end = lines.findIndex((line, i) => i > start && line.startsWith('사용 규칙: 성향 장은'));
+      expect(end).toBeGreaterThan(start);
+      expect([...lines.slice(0, start), ...lines.slice(end + 1)].join('\n')).toBe(off);
+    }
+  });
+});

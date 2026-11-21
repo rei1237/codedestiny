@@ -4,7 +4,7 @@ import {mockSaleModule} from './mock-sale-module.mjs';
 const {TAROT_DELIVERY_LEASE_MS,freeTarotReading,failTarotLibraryDelivery,TOSS_TAROT_LIBRARY_FLOWS,attachTarotLibraryInput,claimTarotLibraryDelivery,completeTarotLibraryDelivery,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryProduct,tarotLibraryResult}=await mockSaleModule('worker/toss/tarot-library.js');
 import {generateTarotLibraryResult} from '../../../worker/toss/tarot-library-generator.js';
 
-const order={orderId:'01900000-1111-7111-8111-000000000042',sku:'approved-tarot-library',status:'PAYMENT_COMPLETED'};
+const order={orderId:'01900000-1111-7111-8111-000000000042',sku:'approved-tarot-library',status:'PAYMENT_COMPLETED',purchaserMatched:true};
 const auth={_id:'toss-identity',ownerId:'internal-owner',revision:0,environment:'SANDBOX'};
 const rawProduct={kind:'tarot-library',tarotFlowId:'tarot-mindscan',featureKey:'tarot-mindscan',productId:'tarot-library:tarot-mindscan',sku:order.sku,approved:true,approvedPriceKRW:3000,priceEvidence:'mock-console-evidence'};
 const validInput={question:'상대의 말과 행동을 어떻게 살펴볼까요?',picks:Array.from({length:10},(_,i)=>i)};

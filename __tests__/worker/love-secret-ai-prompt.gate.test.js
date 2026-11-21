@@ -312,3 +312,40 @@ describe("S15 사주 운 판정 연결(V2 만)", () => {
     expect(v1).not.toContain(SAJU_LUCK_JUDGEMENT_RULE);
   });
 });
+
+// Trait-First(게이트 B): 고정한 traitFirst 가 있는 세션의 nature 그룹에만 내 명식 근거 블록. 고정 소제목·분량 지시·다른 그룹은 그대로.
+describe("Trait-First (TRAIT_FIRST_SAJU)", () => {
+  const block = "[타고난 성향 핵심 근거]";
+  const ON = { traitFirst: "v1", traitSeed: "u1|love-secret-ai" };
+  const setup = async () => {
+    const { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } = await import("../../worker/lib/love-secret-ai-calculation.js");
+    const normalized = normalizeLoveSecretAiInput({ myInfo: { gender: "female", birthDate: "1990-03-15", birthTime: "10:30", calendarType: "solar" }, relationshipStatus: "솔로", topic: "전체 연애 흐름" });
+    return { input: normalized.input, saju: calculateLoveSecretAiSaju(normalized, { nowMs: Date.UTC(2026, 10, 18) }) };
+  };
+
+  test("OFF 는 V1·V2 모든 그룹 프롬프트가 그대로이고, 고정된 v1 은 nature 만 바뀐다", async () => {
+    const { input, saju } = await setup();
+    for (const group of [...LOVE_SECRET_AI_GROUPS_V1, ...LOVE_SECRET_AI_GROUPS]) {
+      const off = buildLoveSecretGroupPrompt(input, saju, group);
+      expect(off).not.toContain(block);
+      expect(buildLoveSecretGroupPrompt(input, saju, group, { traitFirst: null })).toBe(off);
+      const on = buildLoveSecretGroupPrompt(input, saju, group, ON);
+      if (group.key !== "nature") { expect({ key: group.key, same: on === off }).toEqual({ key: group.key, same: true }); continue; }
+      expect(on).toContain(block);
+      expect(on).toMatch(/가장 먼저 짚을 성향: .+ 일간/);
+      for (const section of group.sections) expect(on).toContain(`- ${section.title}: ${section.guide}`);
+      const lines = on.split("\n"), start = lines.indexOf(block);
+      const end = lines.findIndex((line, i) => i > start && line.startsWith("사용 규칙: 성향 장은"));
+      expect(end).toBeGreaterThan(start);
+      // 블록 + 뒤 빈 줄 하나를 빼면 OFF 와 같다.
+      expect([...lines.slice(0, start), ...lines.slice(end + 2)].join("\n")).toBe(off);
+    }
+  });
+
+  test("승인 명식(approvedSaju) 경로는 근거 블록을 넣지 않는다", async () => {
+    const { input, saju } = await setup();
+    const nature = LOVE_SECRET_AI_GROUPS.find((group) => group.key === "nature");
+    const approved = { ...saju, myChart: { ...saju.myChart, approvedSaju: { promptRules: [] } } };
+    expect(buildLoveSecretGroupPrompt(input, approved, nature, ON)).not.toContain(block);
+  });
+});

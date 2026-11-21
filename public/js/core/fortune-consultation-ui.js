@@ -56,6 +56,94 @@
       + '<div class="fc-master-reading__copy"><h3>'+item.master+'의 '+labels[service]+' 해설</h3><p>'+item.freeLead+'</p><p class="fc-master-reading__basis">'+item.basis+'</p></div></section>';
   }
 
+  // 기본 운세 결과의 마스터 말풍선(웹툰 컷, 2026-11-22). 고정 문구만 쓴다(LLM 아님).
+  // 규칙은 lib/master-say/master-say.mjs 와 같다 — 60자·2문장 이하, 단정어·이모지·상대 마음 단정 금지(__tests__/ui/master-say-shell.test.mjs).
+  // 표정 → 파일은 src/features/expert-characters/*.ts 와 같다. 윤달 pain 표정은 쓰지 않는다. 한국어 화면에서만 그린다.
+  var cast = {
+    musung: { name: '무성', dir: '/images/expert-characters/musung/', faces: { idle: 'gentle', greet: 'composed', thinking: 'thinking', reveal: 'verdict', caution: 'verdict', comfort: 'smile' } },
+    hanbi: { name: '서한비', dir: '/images/expert-characters/hanbi/', faces: { idle: 'composed', greet: 'smile', thinking: 'thinking', reveal: 'resolve', caution: 'caution', comfort: 'comfort' } },
+    yun: { name: '윤달', dir: '/images/novel/remaster/yun/', faces: { idle: 'base', greet: 'laugh', thinking: 'serious', reveal: 'surprise', caution: 'serious', comfort: 'sly' } }
+  };
+  // 서비스 → 장 키 → [표정, 첫 마디(굵게), 이어지는 말]. {mansion} 같은 자리는 결과 값으로 채운다(없으면 그 줄을 건너뛴다).
+  var sayLines = {
+    ziwei: {
+      character: 'musung',
+      reading: ['thinking', '궁 하나를 골라 주십시오.', '고른 자리의 별과 마주 보는 궁을 함께 읽어요.'],
+      chart: ['idle', '열두 궁 전체 지도입니다.', '별이 모인 궁과 비어 있는 궁을 나란히 보세요.'],
+      flow: ['reveal', '이제 시간의 흐름입니다.', '대한이 바뀌는 때 무게가 어디로 옮겨 가는지 봐요.'],
+      articles: ['comfort', '오늘은 여기까지 짚었습니다.', '궁금한 별이 생기면 읽을거리에서 이어 보세요.']
+    },
+    sukuyo: {
+      character: 'hanbi',
+      core: ['reveal', '먼저 타고난 바탕이에요.', '이 결이 일과 관계에서 되풀이되는지 떠올려 보세요.'],
+      love: ['thinking', '관계의 장부예요.', '가까워지는 속도와 편한 간격을 함께 적어 둘게요.'],
+      work: ['idle', '일과 재물 쪽이에요.', '잘 쓰이는 자리와 새는 자리를 나눠 볼게요.'],
+      advice: ['comfort', '오늘 해 볼 한 가지예요.', '작게 시작해도 장부에는 남아요.']
+    },
+    astrology: {
+      character: 'yun',
+      today: ['greet', '오늘의 하늘부터 볼게요.', '지나가는 행성이 내 차트 어디를 건드리는지 짚어요.'],
+      year: ['thinking', '앞으로 열두 달의 흐름이에요.', '큰 행성이 머무는 집이 바뀌는 달을 눈여겨봐요.'],
+      reading: ['reveal', '여기부터는 당신의 이야기예요.', '태양·달·상승궁이 서로 다른 얼굴을 보여 줘요.'],
+      chart: ['idle', '출생 차트 원본이에요.', '각도 하나도 차트에 있는 것만 읽을게요.'],
+      planets: ['caution', '행성 표는 근거 자료예요.', '생시가 흔들리면 하우스는 조심해서 읽어 주세요.']
+    },
+    vedic: {
+      character: 'yun',
+      greet: ['greet', '별의 계절을 읽을 거예요.', '달이 머문 나크샤트라가 첫 열쇠예요.'],
+      rasi: ['reveal', '라시는 타고난 기질의 바탕이에요.', '달과 라그나가 어디에 앉았는지 먼저 봐요.'],
+      nakshatra: ['thinking', '달이 머문 별자리 마을이에요.', '이 결을 어느 쪽으로 쓰는지가 관건이에요.'],
+      dasha: ['reveal', '지금 흐르는 다샤의 계절이에요.', '이 시기를 어떻게 쓸지 같이 봐요.'],
+      houses: ['idle', '라그나에서 집을 차례로 세어 볼게요.', '서두르지 않아도 돼요.'],
+      relation: ['thinking', '관계의 별을 볼 차례예요.', '일곱째 집이 편하게 여기는 거리를 짚어 볼게요.'],
+      moneywork: ['idle', '일과 재물의 자리예요.', '열째 집과 둘째 집의 주인을 함께 볼게요.'],
+      energy: ['comfort', '몸과 마음의 리듬이에요.', '지친 날에는 이 결부터 돌봐 주세요.'],
+      deep: ['reveal', '여기는 심화 장이에요.', '차트의 근거를 한 겹 더 펼쳐 볼게요.'],
+      close: ['comfort', '별의 계절은 돌고 돌아요.', '다음 계절이 궁금해지면 다시 들러요.']
+    }
+  };
+
+  function sayEsc(value) {
+    return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function sayKorean() {
+    var lang = document.documentElement.lang || 'ko';
+    try { lang = localStorage.getItem('cd_lang') || lang; } catch (_) {}
+    return String(lang).toLowerCase().indexOf('ko') === 0;
+  }
+  function sayFill(text, vars) {
+    var missing = false;
+    var out = String(text).replace(/\{(\w+)\}/g, function (_, key) {
+      var value = vars && vars[key];
+      if (value == null || value === '') { missing = true; return ''; }
+      return String(value);
+    });
+    return missing ? null : out;
+  }
+  /**
+   * 마스터 말풍선 한 컷의 HTML. 한국어가 아니거나 문구가 없으면 ''.
+   * @param {string} service ziwei|sukuyo|astrology|vedic
+   * @param {string} key 장 키(sayLines 참고)
+   * @param {{vars?: Object, side?: 'left'|'right'}} [options]
+   */
+  function say(service, key, options) {
+    var table = sayLines[service];
+    var line = table && table[key];
+    var who = table && cast[table.character];
+    if (!line || !who || !sayKorean()) return '';
+    var opts = options || {};
+    var lead = sayFill(line[1], opts.vars);
+    var rest = sayFill(line[2], opts.vars);
+    if (lead == null || rest == null) return '';
+    var face = who.faces[line[0]] || who.faces.idle;
+    var side = opts.side === 'right' ? 'right' : 'left';
+    return '<figure class="cd-say cd-say--' + table.character + ' cd-say--' + side + '" data-cd-say="' + service + ':' + key + '" data-cd-korean-only>'
+      + '<span class="cd-say__cut"><img class="cd-say__face" src="' + who.dir + face + '.webp" alt="" width="72" height="72" loading="lazy" decoding="async"></span>'
+      + '<figcaption class="cd-say__bubble"><span class="cd-say__name">' + who.name + '</span>'
+      + '<span class="cd-say__text"><strong>' + sayEsc(lead) + '</strong> ' + sayEsc(rest) + '</span></figcaption>'
+      + '</figure>';
+  }
+
   function refreshPrices(service) {
     var store = window.CodeDestinyFeaturePricingStore;
     var targets = document.querySelectorAll('[data-fc-price="' + service + '"]');
@@ -120,5 +208,5 @@
       opener.setAttribute('aria-expanded', String(form.open));
     });
   }, true);
-  window.CodeDestinyConsultationUI = { entry: entry, formIntro: formIntro, guide: guide };
+  window.CodeDestinyConsultationUI = { entry: entry, formIntro: formIntro, guide: guide, say: say, sayLines: sayLines };
 })(window, document);

@@ -763,7 +763,15 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
   if (stored?.llmMeta?.lockedAt && Date.now() - new Date(stored.llmMeta.lockedAt).getTime() < GENERATING_FRESHNESS_MS) return json({ ...publicStoredReport(stored), status: 'generating' }, { status: 202 });
   let chart;
   try { chart = calculateZiweiConsumerChart(normalized.input, { env, existing: stored, year: new Date().getFullYear() }); }
-  catch { return json({ ok: false, reason: 'CALCULATION_FAILED', message: MESSAGES.calculationFailed }, { status: 422 }); }
+  catch (error) {
+    // 결제 확인 뒤에는 같은 입력으로 다시 해도 계산이 똑같이 실패한다. 원래 결제를 되돌린다(토스는 주문 쪽 정본).
+    let refunded = false;
+    if (!auth.assertTossReport) {
+      if (!stored) await startRefundableExecution(env, auth.userId, resolveSourceTransactionId(body), idempotencyKey, reportId, getPricing());
+      refunded = await refundExecution(env, auth.userId, idempotencyKey, reportId, clean(error?.message || 'chart calculation failed', 300));
+    }
+    return json({ ok: false, reason: 'CALCULATION_FAILED', refunded, message: MESSAGES.calculationFailed }, { status: 422 });
+  }
   if (!stored) {
     try {
       await withMongoRetry(env, () => ZiweiDeepReport.create({ id: reportId, userId: clean(auth.userId), idempotencyKey, inputHash: normalized.inputHash,

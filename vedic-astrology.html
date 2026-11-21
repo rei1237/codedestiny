@@ -9,11 +9,11 @@
 <script defer src="/js/vedic-natal.generated.js"></script>
 <script defer src="/js/vedic-birth-inputs.js"></script>
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-e4608387ba94">
+<link rel="stylesheet" href="/styles/fortune-consultation-entry.css?v=build-2633ad4d3c7e">
 <link rel="stylesheet" href="/styles/fortune-reading-actions.css?v=build-b18d5fc933c0">
 <script src="/js/core/free-fortune-policy.js?v=build-3cdd86400e71"></script>
 <script src="/js/core/feature-pricing-store.js"></script>
-<script src="/js/core/fortune-consultation-ui.js?v=build-09442fbaae91"></script>
+<script src="/js/core/fortune-consultation-ui.js?v=build-680c1f3034e0"></script>
 <link rel="stylesheet" href="/styles/saju-reading.css?v=build-1cc90e646064">
 <script defer src="/js/prompt-hub-honey.js?v=build-b06bc35ef432"></script>
 <title>윤달의 베다 점성술 — 별들의 지도</title>
@@ -6373,10 +6373,12 @@ function renderResult(){
 
   // ── 탭 1: 종합 (Overview) ─────────────────────────────
   const tabOverview=`
+  ${_vedicSay('greet','left')}
   <div class="reveal">
     <div class="sage-text">${insights.todayVibe}</div>
   </div>
 
+  ${_vedicSay('rasi','right')}
   <div class="summary-grid reveal reveal-delay-1">
     <div class="sum-card" style="border-color:rgba(212,175,55,0.2)">
       <div class="sum-card-label">라그나 (Lagna)</div>
@@ -6402,6 +6404,7 @@ function renderResult(){
 
   ${_vedicBasicGateBody('overview', renderVedicSectionCards(sections.overview))}
 
+  ${_vedicSay('houses','left')}
   ${tabChart}
 
   ${_vedicBasicGateBody('overview', masterReadingHtml + vedicCanonicalCardsHtml)}
@@ -6409,6 +6412,8 @@ function renderResult(){
   ${renderVedicPrashnaSection()}
 
   ${renderVedicAIPromptSection()}
+
+  ${_vedicSay('close','right')}
 
   <div class="acc-item reveal reveal-delay-2">
     <div class="acc-header" onclick="toggleAcc('ov-basic')">
@@ -6649,12 +6654,12 @@ function renderResult(){
   </div>
 
   <div id="tpanel-overview" class="tab-panel active">${tabOverview}</div>
-  <div id="tpanel-personality" class="tab-panel">${_vedicBasicGateBody('personality', tabPersonality)}</div>
-  <div id="tpanel-relation" class="tab-panel">${_vedicBasicGateBody('relation', tabRelation)}</div>
-  <div id="tpanel-moneywork" class="tab-panel">${_vedicBasicGateBody('moneywork', tabMoneyWork)}</div>
-  <div id="tpanel-dasha" class="tab-panel">${_vedicBasicGateBody('dasha', tabDashaFocus)}</div>
-  <div id="tpanel-energy" class="tab-panel">${_vedicBasicGateBody('energy', tabEnergy)}</div>
-  <div id="tpanel-deep" class="tab-panel">${_vedicBasicGateBody('deep', tabDeep)}</div>
+  <div id="tpanel-personality" class="tab-panel">${_vedicSay('nakshatra','left')}${_vedicBasicGateBody('personality', tabPersonality)}</div>
+  <div id="tpanel-relation" class="tab-panel">${_vedicSay('relation','left')}${_vedicBasicGateBody('relation', tabRelation)}</div>
+  <div id="tpanel-moneywork" class="tab-panel">${_vedicSay('moneywork','left')}${_vedicBasicGateBody('moneywork', tabMoneyWork)}</div>
+  <div id="tpanel-dasha" class="tab-panel">${_vedicSay('dasha','left')}${_vedicBasicGateBody('dasha', tabDashaFocus)}</div>
+  <div id="tpanel-energy" class="tab-panel">${_vedicSay('energy','left')}${_vedicBasicGateBody('energy', tabEnergy)}</div>
+  <div id="tpanel-deep" class="tab-panel">${_vedicSay('deep','left')}${_vedicBasicGateBody('deep', tabDeep)}</div>
 
   <div style="height:36px"></div>`);
 
@@ -7719,6 +7724,12 @@ function _vedicBasicLockCard(sectionId){
 }
 
 /** 잠겼으면 본문 HTML 을 만들지 않고 잠금 카드로 대체한다. */
+// 윤달 말풍선(웹툰 컷, 2026-11-22). 잠금 래퍼 바깥에만 두며 결제 판정과 무관하다. 문구 원본은 js/core/fortune-consultation-ui.js.
+function _vedicSay(key, side){
+  var ui=window.CodeDestinyConsultationUI;
+  return ui&&typeof ui.say==='function'?ui.say('vedic',key,{side:side}):'';
+}
+
 function _vedicBasicGateBody(sectionId, bodyHtml){
   return _vedicBasicIsUnlocked()?bodyHtml:_vedicBasicLockCard(sectionId);
 }

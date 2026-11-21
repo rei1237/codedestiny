@@ -143,6 +143,8 @@ test('실패는 마지막 응답으로 분류된다: 환불·한도·불일치·
     [[{ status: 503, payload: { ok: false, retryable: false, reason: 'RESULT_STORAGE_UNAVAILABLE', resultId: 'res-9' } }], 'REVIEW_REQUIRED', false, false],
     [[{ status: 409, payload: { ok: false } }], 'INPUT_MISMATCH', false, true],
     [[{ status: 404, payload: { ok: false } }], 'NOT_FOUND', false, true],
+    [[{ status: 422, payload: { ok: false, code: 'SAJU_COMPAT_INPUT_INVALID', field: 'self.3.gan' } }], 'INPUT_INVALID', false, true],
+    [[{ status: 400, payload: { ok: false } }], 'INPUT_INVALID', false, true],
     [[{ status: 402, payload: { ok: false, code: 'PAYMENT_REQUIRED' } }], 'PAYMENT_UNCONFIRMED', true, false],
     [[{ status: 401, payload: { ok: false } }], 'AUTH', true, false],
     [[new Error('network')], 'TRANSPORT', true, false],
@@ -164,9 +166,10 @@ test('화면이 비활성·숨김이면 중단으로 돌려주고, 완료 응답
 });
 
 test('실패 코드별 안내 문구 키는 모두 번역 정본(SAJU_COMPAT_KO)에 있다', () => {
-  for (const code of ['REVOKED', 'REVIEW_REQUIRED', 'INPUT_MISMATCH', 'NOT_FOUND', 'PAYMENT_UNCONFIRMED', 'AUTH', 'TRANSPORT', 'INTERRUPTED', 'EMPTY']) {
+  for (const code of ['REVOKED', 'REVIEW_REQUIRED', 'INPUT_MISMATCH', 'INPUT_INVALID', 'NOT_FOUND', 'PAYMENT_UNCONFIRMED', 'AUTH', 'TRANSPORT', 'INTERRUPTED', 'EMPTY']) {
     assert.ok(SAJU_COMPAT_KO[sajuCompatFailureKey(code)], code);
   }
+  assert.equal(sajuCompatFailureKey('INPUT_INVALID'), 'sajuCompat.flow.inputInvalid');
 });
 
 const archiveRow = (id, createdAt, extra = {}) => ({ resultId: id, createdAt, generatedAt: createdAt, compatType: 'love', partnerName: '하늘', selfKey: '甲子 乙丑 丙寅 丁卯', partnerKey: '戊辰 己巳 庚午 辛未', score: 71, grade: 'B', pastLifeGrade: 'C', ...extra });

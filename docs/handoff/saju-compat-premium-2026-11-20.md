@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: "C3 과금 후 레코드 전 4xx 실패(감사 5) — 감사표 5행부터 현재 코드로 재확인. C2-UI는 main b28bd771e로 끝남, 항목4(보관함 표식)는 갭으로 남김(실측 절 C2-UI 완료)"
+next: "D2 남은 정체 확정 7종: naming-prompt(+크론 select 에 result.namingPrompt 누락) 와 KNOWN_RETRY_PENDING 6종(nakshatra-ai·human-design-report·destiny-compass-ai·relationship-boundary-test·celestial-harmony·fortune) — 단계 D 줄의 \"남은 것\" 참조"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -101,9 +101,13 @@ next: "C3 과금 후 레코드 전 4xx 실패(감사 5) — 감사표 5행부터
 - [x] C1 가드 판정 정정(서술형 includeResumable 게이트·소진/창 경과 종결, 코인 복원 경로 확인 선행) — ef3b6b83e (held 종결, 환불은 C2)
 - [x] C2 서술형 엔진 다시 시도 우선 — 서버(빠진 장만 재개·7일·요청 환불·cron 배선·검증기 10종 이동). 실측은 아래 C2 절
 - [x] C2-UI 제품 10종 보류 화면에 다시 시도·환불 요청 버튼 — fe089da75·7bb121d14·0fe7a4f78·01812dbe3, main b28bd771e (아래 "C2-UI 완료"). 항목4 보관함 표식은 갭으로 남김
-- [ ] C3 과금 후 레코드 전 4xx 실패(감사 5) — 범위 밖, 별도
-- [ ] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 범위 밖, 별도
-- [ ] D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — 범위 밖, 별도
+- [x] C3 과금 후 레코드 전 4xx 실패(감사 5) — 7d8f2e8f4·b517a51cc·88fcfa0f6·cb8867ece·93fd5a25c·3e7109b12 (아래 "C3·C3b·C4")
+- [x] C3b 환불(요청·승인·정산) 뒤 재개 거절, 무료 재생성 없음 — 41ec5e085
+- [x] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 9e98190d0·e82fef6fa(사전)·01d5c639a(sitemap 원장)
+- [ ] D 서비스별 stuck settle — **5/12 완료**(2026-11-22). 공용 헬퍼 `settleStuckRetryFirst`(worker/lib/paid-delivery-stuck.js): 창 안은 generation_failed+retryable(저장 장 보존·빠진 장만 재생성·환불 없음), 생성+7일 뒤엔 서비스 기존 보류 환불(settle<Svc>RetryRefund). 커밋 1d13afe7f(헬퍼·크론 unsettled 이어쓰기), 7bfd2cadd vedic, e7a4bf0f3 astrology, 1989484d2 ziwei, 916d65316 sukuyo(읽기 전용 증빙 — resolveStartAccess 는 이용권 차감 가능해 쓰지 않음), 0658bee74 karma, 37cad9969 감사 B2(증빙 조회 실패 pending 도 이어쓰기·회전 — 안 하면 가장 오래된 1건이 서비스 크론을 막음), 4cba2f230·bfec7eddc·3e62fa12d 감사 B1(이용권 재판정 거절 시 `{}` 저장 → 7일 뒤 이용권 환불 누락; 서비스별 pass 모양으로 대체, refundId 멱등). paid-gate-auditor B1 재감사 PASS·verify-payment-freeze exit 0.
+  - 실측: verify:paid-llm-delivery ok(정체 자동 확정 12개·경보만 7개, 변이 37/37, 100/100). jest ziwei 59·vedic 54·astrology 56·sukuyo+karma+stuck+recovery 159 pass.
+  - 남은 것(KNOWN_STUCK_SETTLE_GAPS 7): naming-prompt(idKey executionId, metaKey result.namingPrompt; 크론 select 에 result.namingPrompt 가 없어 토스 분기 판정 불가 가능 — 먼저 확인), KNOWN_RETRY_PENDING 6종 nakshatra-ai·human-design-report·destiny-compass-ai·relationship-boundary-test·celestial-harmony·fortune(공용 GENERIC_STUCK_SETTLERS 경로 적합 여부 먼저, 아니면 서비스 기존 즉시 환불 사용 후 기록).
+  - 남은 위험(보고만): delivery_pending 정체 건은 구조 대신 retryable 로 감(가정), 크론 동시 실행 경합 미검증, paid-flow-gates.yml 이 paid-delivery-stuck.js 변경에 트리거 안 됨, ziwei Payment 확인이 CAS 전에 돌 수 있음(경미), vedic 은 증빙 없을 때 refundStatus 가 not_required 대신 requested 로 기록(금액 영향 없음).
 - [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
 
 ## 실측 (단계마다 추가)
@@ -453,3 +457,35 @@ Base `58ed3c39d` (= origin/main). Worktree `D:\Development\codedestiny-worktrees
   - impeccable gradient-text 는 기존 코드다(MindScanTarot L383, TarotPromptMaker L3172/3179).
   - geomancy 버튼은 픽스처에서 회색 기본 버튼으로 보였다. 실제 페이지 테마 클래스를 확인하지 않았다(미검증).
   - auditor 후속 (a)(b)(c)는 위와 같다.
+
+### C3·C3b·C4 (2026-11-22, 서브에이전트, mock 만)
+- 감사 5 재확인 판정(현재 코드)
+  | 제품 | 이전 | 판정 | 커밋 | 근거 |
+  |---|---|---|---|---|
+  | saju-compat-basic | 미해결 | 고침: 시간 모름 + 빈 시주를 허용. 검증은 결제 확인 전(`saju-compat-basic.js:134`) | 7d8f2e8f4 | `saju-compat-schema.js` pillarsOf |
+  | pet | 미해결 | 고침: 새 POST 는 verify 전에 seedPetNarrativePlan 으로 검증 → 400 | b517a51cc | `pet-saju-ai.js` handlePetDelivery |
+  | feature-question | 미해결 | 고침: seed 의 4xx(proof 있음)에서 route refund 를 호출한다. 환불이 실패하면 retryable·paymentRetainedForRetry 로 남긴다 | 88fcfa0f6·cb8867ece | `feature-question-delivery.js` |
+  | ziwei 계산 실패(:765) | 미해결 | 고침: startRefundableExecution + refundExecution → 422 {CALCULATION_FAILED, refunded} | 93fd5a25c | `ziwei-deep-report.js` |
+  | love-secret 근거 불일치(:1799) | 미해결 | 고침: 409 전에 restoreBillingGateAccessOnFailure. 기존 테스트 계약(손상 pin 은 환불 없음)을 바꿨다 | 3e7109b12 | `love-secret-ai.js` |
+  | yoga-guru·oracle·animal-totem·dream | — | 해당 없음: 검증이 verify 전(yoga-guru.js:82, oracle.js:152, animal-totem.js:681, dream.js:799-803) | — | animal-totem seed 의 resolveSystemPrompt 가 던질 수 있는지는 미검증 |
+- C3b `paid-narrative-delivery.js`: 원본 조회 직후 GET 이 아니고, 미완료이고, 소진 청구가 아닌 문서는 거른다. refunded·cancelled → 403 PAYMENT_REVOKED. refundStatus≠none 또는 refundApprovedAt → 409 REFUND_IN_PROGRESS. 둘 다 provider 를 호출하지 않는다.
+- C4 `js/saju-compat-flow.mjs` classifyFailure: 400/422 → INPUT_INVALID(재시도 없음, 대기 기록 지움). 새 문구 키 `sajuCompat.flow.inputInvalid`(SAJU_COMPAT_KO + authored 12개 언어): 입력 거절은 결제되지 않고, 이미 결제된 건은 보존·환불·복구한다. 같은 계열 `paid-narrative-reader.js`(4xx 는 서버 문구를 던지고 재시도 안 함)와 `oracle-delivery.ts`(<500 즉시 반환)는 이미 재시도하지 않아 손대지 않았다. sync:public 미러 커밋 포함.
+- 실측
+  - jest(run-mock-tests) 9 스위트 291 pass. paid-narrative-retry.test.mjs 8 pass. saju-compat-flow.test.mjs 12 pass.
+  - verify:paid-llm-delivery EXIT 0(계약 37, 변이 37/37·100/100). verify:paid-gate-ui PASS. llm-generation-resilience·audit-ai-locale-calls --check EXIT 0.
+  - paid-gate-auditor PASS: love-secret·ziwei-deep-report·saju-ai-consultation-recovery·pet-saju(180)·payment-choice-parity·payment-freeze 검증기 모두 통과.
+  - check:fast(--base=ae356190a) EXIT 0: node --test 5733 pass·0 fail, jest 490 스위트 8497 pass(1 skip). 처음 두 번은 아래 함정 두 개로 막혔다
+- 함정
+  - 커밋을 끝낸 뒤의 `npm run check:fast` 는 "변경 없음" 으로 끝난다(기본 베이스 HEAD). `node scripts/check-changed.mjs --profile=fast --skip-build --base=<기점>` 으로 돌린다.
+  - 새 `sajuCompat.*` 문구 키는 authored JSON 만으로 끝나지 않는다. `node scripts/i18n-merge-authored.mjs --core --file sajuCompat-02.json` 으로 `public/i18n/<lang>.json` 12개에 병합해야 한다(saju-compat-render.test.mjs:130). `--namespace` 를 쓰면 엉뚱한 `public/i18n/<lang>/sajuCompat.json` 이 생긴다. e82fef6fa
+  - 코어 사전을 바꾸면 sitemap 원장 서명 480개가 바뀐다(verify:sitemap-drift). `sitemap:generate` 를 돌린 뒤 서명이 바뀐 항목만 원장에 남기고 xml 은 되돌린다. 그다음 `--check` OK 를 확인한다. 01d5c639a
+  - love-secret vm 하니스 ctx 에는 factDigest 가 없다. 불일치를 재현하려면 실제 헬퍼를 import 하는 기존 corrupt-pin 테스트를 쓴다.
+  - KNOWN_REFUND_GAPS 13개는 "소진 시 자동 환불" 축이라 이번 수정과 축이 다르다. 검증기가 통과하므로 바꾸지 않았다.
+- 남은 위험(보고만)
+  - ziwei 의 `refunded` 가 과대 보고될 수 있다. failServiceExecution 이 비대기 실행에 ok:true 를 돌려준다(service-execution-task.js:1367, 1432-1438). 읽는 클라이언트는 없다.
+  - ziwei 이용권 경로는 resolveGenerateAccess 가 settle transactionId 를 버려서 환불이 없다(:661-664). 기존 결함이다.
+  - love-secret 은 기존 부분 기록도 환불한다. 부분 장은 계속 읽힌다.
+  - 이 라우트들은 deepRequired·paid-flow-gates 에 없다. CI 변경은 RED 라 사용자 결정이 필요하다.
+  - 크론(paid-narrative-recovery-task.js:72-75)이 환불 상태 문서를 reviewRequired(REFUND_IN_PROGRESS)로 표시한다. checkpoint-refund-guard.js:79-80 덕분에 정산에는 해가 없다. buildRecoverableNarrativeFilter 제외는 하지 않았다.
+  - 409 REFUND_IN_PROGRESS 의 클라이언트 문구는 일반 문구다(paid-narrative-reader.js:16, LoveRelationshipTarot.tsx:475). Toss 클라이언트 처리는 미검증이다.
+  - love-secret 이 readRepresentativeFacts 를 recompute 없이 불러서, v1 로 고정된 저장 기록은 항상 불일치가 된다. 기존 결함이다.

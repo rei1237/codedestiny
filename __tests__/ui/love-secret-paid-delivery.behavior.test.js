@@ -40,7 +40,7 @@ function fixture(accessType = 'pass') {
   let doc = null, providerCalls = 0, refunds = 0, usage = 0, fault = null, permitted = true, owner = 'owner';
   const accessQueue = []; let passOrder = null, withdrawn = false, revokedUse = false;
   const chain = value => ({ lean: async () => clone(value), select: () => chain(value), sort:()=>chain(value) });
-  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), sajuAuthorityOn: () => false, nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), ...require('../../worker/lib/trait-profile/index.js'), sajuAuthorityOn: () => false, nativeTossContext:()=>null, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, Request, Response, Headers, URL, Date, JSON, Map, crypto: webcrypto,
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'love-secret-ai-consultation',
     console: { warn() {}, error() {} }, nativeTossContext:()=>null, nativeLoveSecretStoredState:async()=>null,
@@ -531,7 +531,7 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   const auth = {_id:'identity',ownerId:'owner',userId:'owner',revision:1,userKey:'123',environment:'SANDBOX'};
   const product = {approved:true,nativeService:'love-secret',sku:'offline-love',featureKey:'love-secret-ai-consultation',productId:'native:love-secret:love-secret-ai-consultation',approvedPriceKRW:6000,priceEvidence:'offline fixture'};
   const input = {idempotencyKey:'original-paid-request',inputHash:'same-input',topic:'일생'};
-  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED',purchaserMatched:true};
   const state = {rows:[],purchases:[],catalog:[product],order,identity:true};
   const chain = value => ({lean:async()=>value,sort(){return this;},limit(){return this;}});
   state.models = {
@@ -649,10 +649,12 @@ test('new love-secret facts stay pinned across OFF resume without regenerating g
  assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.sajuResult,saved);assert.equal(f.usage,1);
 });
 
-test('corrupt pinned love-secret facts stop before provider and refund', async () => {
+// 2026-11-22 C3: 불일치는 다시 해도 같은 409 라 결제를 되돌린다(이전 계약: 환불 없이 중단).
+test('corrupt pinned love-secret facts stop before the provider and restore the payment', async () => {
  const f=fixture('paid');Object.assign(f.ctx,await import('../../worker/lib/representative-consumer-facts.js'));
  await f.post({}, {SAJU_CONSUMER_FACTS_V1:'true'});const calls=f.calls,refunds=f.refunds;f.doc.sajuResult.dayMaster='tampered';
- const result=await f.post({resumeSessionId:f.doc.id});assert.equal(result.status,409);assert.equal(f.calls,calls);assert.equal(f.refunds,refunds);
+ const result=await f.post({resumeSessionId:f.doc.id});assert.equal(result.status,409);assert.equal(f.calls,calls);assert.equal(f.refunds,refunds+1);
+ const payload=await result.json();assert.equal(payload.reason,'REPRESENTATIVE_FACTS_MISMATCH');assert.equal(payload.refunded,true);
 });
 
 test('새 상담은 7개 그룹 계획(V2)으로, 버전 없는 예전 상담은 V1 계획으로 이어 쓴다', async () => {
@@ -736,4 +738,19 @@ test('정체된 delivery_pending 은 여섯 묶음이 다 있으면 재생성 �
   assert.equal(g.ctx.isStuckDeliveryComplete(g.doc), false);
   assert.equal((await g.ctx.settleStuckDelivery({}, { doc: g.doc, now: later() })).outcome, 'retryable');
   assert.equal(g.doc.status, 'generation_failed'); assert.equal(g.refunds, 0);
+});
+// Trait-First(게이트 B): 새 상담만 시작 때 traitFirst 를 고정하고, 키 없이 시작한 상담은 플래그가 켜져도 끝까지 OFF 이며, 전달은 그대로다.
+test('Trait-First 는 시작 때 고정하고 옛 상담은 플래그가 켜져도 OFF 로 같은 여섯 묶음을 전달한다', async () => {
+  const ON = { TRAIT_FIRST_SAJU: 'true' };
+  const seen = f => { const rows = []; const gen = f.ctx.generateFirstConsultation; f.ctx.generateFirstConsultation = (...args) => { rows.push(args[4].traitFirst); return gen(...args); }; return rows; };
+  const on = fixture(); const onSeen = seen(on);
+  for (let index = 0; index < 6; index++) await on.post({}, ON);
+  assert.equal(on.doc.status, 'completed'); assert.equal(on.calls, 6);
+  assert.equal(on.doc.llmMeta.delivery.traitFirst, 'v1'); assert.deepEqual([...new Set(onSeen)], ['v1']);
+  const old = fixture(); const oldSeen = seen(old);
+  await old.post();
+  assert.equal(old.doc.llmMeta.delivery.traitFirst, undefined);
+  for (let index = 0; index < 5; index++) await old.post({}, ON);
+  assert.equal(old.doc.status, 'completed'); assert.equal(old.calls, 6);
+  assert.equal(old.doc.llmMeta.delivery.traitFirst, undefined); assert.deepEqual([...new Set(oldSeen)], [null]);
 });

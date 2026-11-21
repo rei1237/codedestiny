@@ -76,135 +76,120 @@
     syncConcernArrows();
   }
 
-  // One native-scroll rail; all other home content stays still.
-  var signatureViewport = home.querySelector('#cdSigViewport');
-  var signatureControls = home.querySelector('.cd-sig__controls');
-  if (signatureViewport && signatureControls) {
-    var signatureCards = Array.prototype.slice.call(signatureViewport.querySelectorAll('.cd-sig-card'));
-    var signaturePrevious = signatureControls.querySelector('[data-sig-prev]');
-    var signatureNext = signatureControls.querySelector('[data-sig-next]');
-    var signaturePosition = signatureControls.querySelector('[data-sig-position]');
-    var signaturePause = signatureControls.querySelector('[data-sig-pause]');
-    var signatureDots = signatureControls.querySelector('[data-sig-dots]');
-    var signatureMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    var signaturePaused = false, signatureIndex = 0, signatureFrame = 0, signatureAnchor = null;
-    var signatureTimer = 0, signatureResumeTimer = 0, signatureManualUntil = 0;
-    var signatureVisible = false, signatureHover = false;
-    var signatureInteraction = signatureViewport.parentElement;
-    function signatureCount() { return window.innerWidth > 1000 ? 3 : window.innerWidth > 760 ? 2 : 1; }
-    function signatureLast() { return Math.max(0, signatureCards.length - signatureCount()); }
-    function setSignatureInert(card, value) {
-      card.inert = value;
-      // A consultation and its webtoon link occupy the same carousel position.
-      var entry = card.closest('.cd-story-entry');
-      if (entry) entry.inert = value;
-    }
-    function signatureHasBlockingModal() {
+  // Signature banner: one consultation at a time, auto-advancing only while visible and idle.
+  // The comparison list and the moonlight letter popup below keep their own controls.
+  var signatureBanner = home.querySelector('[data-sig-banner]');
+  var bannerSlides = signatureBanner ? Array.prototype.slice.call(signatureBanner.querySelectorAll('[data-sig-banner-slide]')) : [];
+  var bannerControls = signatureBanner && signatureBanner.querySelector('[data-sig-banner-controls]');
+  if (bannerSlides.length > 1 && bannerControls) {
+    var bannerTrack = signatureBanner.querySelector('.cd-sig-banner__track');
+    var bannerPrevious = bannerControls.querySelector('[data-sig-banner-prev]');
+    var bannerNext = bannerControls.querySelector('[data-sig-banner-next]');
+    var bannerPause = bannerControls.querySelector('[data-sig-banner-pause]');
+    var bannerPosition = bannerControls.querySelector('[data-sig-banner-position]');
+    var bannerDots = Array.prototype.slice.call(bannerControls.querySelectorAll('[data-sig-banner-dot]'));
+    var bannerMotion = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+    var BANNER_INTERVAL = 5000, BANNER_GRACE = 12000;
+    var bannerIndex = 0, bannerPaused = false, bannerVisible = typeof IntersectionObserver !== 'function', bannerHover = false;
+    var bannerTimer = 0, bannerManualUntil = 0, bannerTouch = null;
+    function bannerBlockingModal() {
       return Array.prototype.some.call(document.querySelectorAll('dialog[open],[aria-modal="true"]:not([hidden])'), function (node) {
         return node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
       });
     }
-    function syncSignature() {
-      signatureFrame = 0;
-      if (signatureResize && signatureWidth !== signatureViewport.clientWidth) return;
-      var edge = signatureViewport.getBoundingClientRect().left;
-      var best = Infinity;
-      signatureCards.forEach(function (card, index) {
-        var distance = Math.abs(card.getBoundingClientRect().left - edge - 4);
-        if (distance < best) { best = distance; signatureIndex = index; }
+    function bannerIdle() {
+      return !bannerPaused && !bannerMotion.matches && bannerVisible && !bannerHover && !document.hidden && !signatureBanner.contains(document.activeElement) && !bannerBlockingModal();
+    }
+    function renderBanner(nextIndex) {
+      bannerIndex = (nextIndex + bannerSlides.length) % bannerSlides.length;
+      bannerSlides.forEach(function (slide, index) {
+        var active = index === bannerIndex;
+        slide.toggleAttribute('data-active', active);
+        if (active) slide.removeAttribute('inert'); else slide.setAttribute('inert', '');
       });
-      signatureIndex = Math.min(signatureIndex, signatureLast());
-      var end = Math.min(signatureCards.length, signatureIndex + signatureCount());
-      signaturePosition.textContent = String(signatureIndex + 1).padStart(2, '0') + (end > signatureIndex + 1 ? '–' + String(end).padStart(2, '0') : '') + ' / ' + String(signatureCards.length).padStart(2, '0');
-      signatureCards.forEach(function (card, index) { setSignatureInert(card, index < signatureIndex || index >= end); });
-      if (signatureDots && signatureDots.children.length !== signatureLast() + 1) {
-        signatureDots.replaceChildren();
-        for (var i = 0; i <= signatureLast(); i++) {
-          var dot = document.createElement('button'); dot.type = 'button'; dot.dataset.sigSlide = String(i);
-          dot.setAttribute('data-cd-trans-attr', 'aria-label:home.choice.position');
-          dot.setAttribute('data-cd-vars', JSON.stringify({number: String(i + 1)}));
-          dot.setAttribute('aria-label', typeof window.cdTranslate === 'function' ? window.cdTranslate('home.choice.position', {number: String(i + 1)}, '상담 카드 ' + (i + 1) + '번부터 보기') : '상담 카드 ' + (i + 1) + '번부터 보기');
-          signatureDots.append(dot);
-        }
+      bannerDots.forEach(function (dot, index) { dot.setAttribute('aria-pressed', String(index === bannerIndex)); });
+      if (bannerPosition) bannerPosition.textContent = (bannerIndex + 1) + ' / ' + bannerSlides.length;
+    }
+    function scheduleBanner() {
+      window.clearTimeout(bannerTimer); bannerTimer = 0;
+      if (bannerPause) {
+        bannerPause.hidden = !!bannerMotion.matches;
+        bannerPause.setAttribute('aria-pressed', String(bannerPaused));
+        bannerPause.setAttribute('aria-label', bannerPaused ? '대표 상담 자동 넘김 다시 시작' : '대표 상담 자동 넘김 멈추기');
       }
-      if (signatureDots) Array.prototype.forEach.call(signatureDots.children, function (dot, index) { dot.setAttribute('aria-pressed', String(index === signatureIndex)); });
+      if (bannerTrack) bannerTrack.setAttribute('aria-live', bannerPaused || bannerMotion.matches ? 'polite' : 'off');
+      if (!bannerIdle()) return;
+      var wait = Math.max(BANNER_INTERVAL, bannerManualUntil - Date.now());
+      bannerTimer = window.setTimeout(function () {
+        bannerTimer = 0;
+        if (bannerIdle()) renderBanner(bannerIndex + 1);
+        scheduleBanner();
+      }, wait);
     }
-    function scheduleSignature() {
-      window.clearInterval(signatureTimer); signatureTimer = 0;
-      window.clearTimeout(signatureResumeTimer); signatureResumeTimer = 0;
-      signaturePause.hidden = signatureMotion.matches;
-      signaturePause.setAttribute('aria-pressed', String(signaturePaused));
-      var pauseKey = signaturePaused ? 'home.choice.resume' : 'home.choice.pause';
-      var pauseCopy = signaturePaused ? '상담 카드 자동 넘김 다시 시작하기' : '상담 카드 넘김 멈추기';
-      signaturePause.setAttribute('data-cd-trans-attr', 'aria-label:' + pauseKey);
-      signaturePause.setAttribute('aria-label', typeof window.cdTranslate === 'function' ? window.cdTranslate(pauseKey, {}, pauseCopy) : pauseCopy);
-      if (signaturePaused || signatureMotion.matches || !signatureVisible || signatureHover || document.hidden || signatureViewport.contains(document.activeElement) || signatureHasBlockingModal()) return;
-      var remaining = signatureManualUntil - Date.now();
-      if (remaining > 0) {
-        signatureResumeTimer = window.setTimeout(function () {
-          signatureManualUntil = 0;
-          if (signaturePaused || signatureMotion.matches || !signatureVisible || signatureHover || document.hidden || signatureViewport.contains(document.activeElement) || signatureHasBlockingModal()) { scheduleSignature(); return; }
-          moveSignature(signatureIndex + 1, false);
-        }, remaining + 40);
-        return;
+    function moveBanner(index) {
+      var focusInSlide = bannerSlides.some(function (slide) { return slide.contains(document.activeElement); });
+      bannerManualUntil = Date.now() + BANNER_GRACE;
+      renderBanner(index);
+      // Keyboard users never land on an inert slide.
+      if (focusInSlide) {
+        var link = bannerSlides[bannerIndex].querySelector('a[href]');
+        if (link) link.focus({ preventScroll: true });
       }
-      signatureTimer = window.setInterval(function () { moveSignature(signatureIndex + 1, false); }, 6000);
+      scheduleBanner();
     }
-    function moveSignature(index, manual) {
-      if (manual) signatureManualUntil = Date.now() + 12000;
-      var nextIndex = (index + signatureLast() + 1) % (signatureLast() + 1);
-      var card = signatureCards[nextIndex];
-      if (!card) return;
-      signatureAnchor = nextIndex;
-      // Release inert before moving so pointer/keyboard use never targets a hidden card.
-      signatureCards.forEach(function (item) { setSignatureInert(item, false); });
-      signatureViewport.scrollTo({left: signatureViewport.scrollLeft + card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior: signatureMotion.matches ? 'instant' : 'smooth'});
-      if (Math.abs(card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4) < 1) syncSignature();
-      scheduleSignature();
-    }
-    if (signatureCards.length && signaturePrevious && signatureNext && signaturePause) {
-      signatureControls.hidden = false;
-      signaturePrevious.addEventListener('click', function () { moveSignature(signatureIndex - 1, true); });
-      signatureNext.addEventListener('click', function () { moveSignature(signatureIndex + 1, true); });
-      signaturePause.addEventListener('click', function () {
-        signaturePaused = !signaturePaused;
-        if (!signaturePaused) signatureManualUntil = 0;
-        scheduleSignature();
-      });
-      if (signatureDots) signatureDots.addEventListener('click', function (event) { var dot = event.target.closest('[data-sig-slide]'); if (dot) moveSignature(Number(dot.dataset.sigSlide), true); });
-      signatureViewport.addEventListener('scroll', function () { if (!signatureFrame) signatureFrame = requestAnimationFrame(syncSignature); }, {passive:true});
-      signatureViewport.addEventListener('scrollend', syncSignature);
-      signatureViewport.addEventListener('keydown', function (event) {
-        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-        event.preventDefault(); moveSignature(signatureIndex + (event.key === 'ArrowRight' ? 1 : -1), true);
-      });
-      ['pointerdown','touchstart','wheel'].forEach(function (name) { signatureViewport.addEventListener(name, function () { signatureAnchor = null; signatureManualUntil = Date.now() + 12000; scheduleSignature(); }, {passive:true}); });
-      signatureInteraction.addEventListener('mouseenter', function () { signatureHover = true; scheduleSignature(); });
-      signatureInteraction.addEventListener('mouseleave', function () { signatureHover = false; scheduleSignature(); });
-      signatureInteraction.addEventListener('focusin', scheduleSignature);
-      signatureInteraction.addEventListener('focusout', function () { requestAnimationFrame(scheduleSignature); });
-      signatureMotion.addEventListener('change', scheduleSignature);
-      document.addEventListener('visibilitychange', scheduleSignature);
-      var signatureWidth = signatureViewport.clientWidth;
-      var signatureResize = window.ResizeObserver ? new ResizeObserver(function () {
-        if (signatureViewport.clientWidth === signatureWidth) return;
-        signatureWidth = signatureViewport.clientWidth;
-        // Keep the requested card as the resize anchor; a native drag releases it.
-        var card = signatureCards[Math.min(signatureAnchor === null ? signatureIndex : signatureAnchor, signatureLast())];
-        signatureViewport.scrollTo({left: signatureViewport.scrollLeft + card.getBoundingClientRect().left - signatureViewport.getBoundingClientRect().left - 4, behavior:'instant'});
-        syncSignature(); scheduleSignature();
-      }) : null;
-      if (signatureResize) signatureResize.observe(signatureViewport);
-      window.addEventListener('resize', function () { if (!signatureResize) syncSignature(); scheduleSignature(); });
-      var signatureObserver = new IntersectionObserver(function (entries) { signatureVisible = entries[0].intersectionRatio >= 0.5; scheduleSignature(); }, {threshold:[0,0.5]});
-      signatureObserver.observe(signatureViewport);
-      var signatureOverlayObserver = new MutationObserver(function (changes) {
-        if (changes.some(function (change) { return (change.type === 'childList' && Array.prototype.some.call(change.addedNodes, function (node) { return node.nodeType === 1 && (node.matches('dialog,[aria-modal="true"]') || node.querySelector('dialog,[aria-modal="true"]')); })) || (change.target.matches && change.target.matches('dialog,[aria-modal="true"]')); })) scheduleSignature();
-      });
-      signatureOverlayObserver.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['open','hidden','aria-modal']});
-      window.addEventListener('pagehide', function () { window.clearInterval(signatureTimer); window.clearTimeout(signatureResumeTimer); signatureObserver.disconnect(); signatureOverlayObserver.disconnect(); if (signatureResize) signatureResize.disconnect(); }, {once:true});
-      syncSignature(); scheduleSignature();
-    }
+    bannerControls.hidden = false;
+    if (bannerPrevious) bannerPrevious.addEventListener('click', function () { moveBanner(bannerIndex - 1); });
+    if (bannerNext) bannerNext.addEventListener('click', function () { moveBanner(bannerIndex + 1); });
+    bannerDots.forEach(function (dot) { dot.addEventListener('click', function () { moveBanner(Number(dot.getAttribute('data-sig-banner-dot')) || 0); }); });
+    if (bannerPause) bannerPause.addEventListener('click', function () {
+      bannerPaused = !bannerPaused;
+      if (!bannerPaused) bannerManualUntil = 0;
+      scheduleBanner();
+    });
+    signatureBanner.addEventListener('keydown', function (event) {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+      event.preventDefault();
+      moveBanner(bannerIndex + (event.key === 'ArrowRight' ? 1 : -1));
+    });
+    signatureBanner.addEventListener('touchstart', function (event) {
+      var touch = event.changedTouches && event.changedTouches[0];
+      bannerTouch = touch ? { x: touch.clientX, y: touch.clientY } : null;
+    }, { passive: true });
+    signatureBanner.addEventListener('touchend', function (event) {
+      var touch = event.changedTouches && event.changedTouches[0];
+      var start = bannerTouch; bannerTouch = null;
+      if (!touch || !start) return;
+      var dx = touch.clientX - start.x, dy = touch.clientY - start.y;
+      if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
+      moveBanner(bannerIndex + (dx < 0 ? 1 : -1));
+    }, { passive: true });
+    signatureBanner.addEventListener('mouseenter', function () { bannerHover = true; scheduleBanner(); });
+    signatureBanner.addEventListener('mouseleave', function () { bannerHover = false; scheduleBanner(); });
+    signatureBanner.addEventListener('focusin', scheduleBanner);
+    signatureBanner.addEventListener('focusout', function () { requestAnimationFrame(scheduleBanner); });
+    if (typeof bannerMotion.addEventListener === 'function') bannerMotion.addEventListener('change', scheduleBanner);
+    else if (typeof bannerMotion.addListener === 'function') bannerMotion.addListener(scheduleBanner);
+    document.addEventListener('visibilitychange', scheduleBanner);
+    var bannerObserver = typeof IntersectionObserver === 'function' ? new IntersectionObserver(function (entries) {
+      bannerVisible = entries[entries.length - 1].intersectionRatio >= 0.5;
+      scheduleBanner();
+    }, { threshold: [0, 0.5] }) : null;
+    if (bannerObserver) bannerObserver.observe(signatureBanner);
+    // Any dialog (the letter popup included) pauses the banner until it closes.
+    var bannerOverlayObserver = typeof MutationObserver === 'function' ? new MutationObserver(function (changes) {
+      if (changes.some(function (change) {
+        if (change.type === 'childList') return Array.prototype.some.call(change.addedNodes, function (node) { return node.nodeType === 1 && (node.matches('dialog,[aria-modal="true"]') || !!node.querySelector('dialog,[aria-modal="true"]')); });
+        return !!(change.target.matches && change.target.matches('dialog,[aria-modal="true"]'));
+      })) scheduleBanner();
+    }) : null;
+    if (bannerOverlayObserver) bannerOverlayObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['open', 'hidden', 'aria-modal'] });
+    window.addEventListener('pagehide', function () {
+      window.clearTimeout(bannerTimer);
+      if (bannerObserver) bannerObserver.disconnect();
+      if (bannerOverlayObserver) bannerOverlayObserver.disconnect();
+    }, { once: true });
+    renderBanner(0);
+    scheduleBanner();
   }
 
   function setupSignatureLetter() {

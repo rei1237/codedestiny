@@ -75,7 +75,8 @@ beforeAll(async () => {
     MonthlyCreditLedger: { findOne: () => query(blocked === 3 ? {} : null), updateOne: (...args) => refund(...args) },
   }));
   jest.unstable_mockModule("../../worker/lib/entitlement-policy.js", () => ({ ...entitlement, resolveFeatureAccessPolicy: () => ({ allowed: mode === "pass", accessType: "pass" }) }));
-  jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
+  const moonstone = await import("../../worker/lib/moonstone-spend-proof.js");
+  jest.unstable_mockModule("../../worker/lib/moonstone-spend-proof.js", () => ({ ...moonstone, findMoonstoneSpendEvidence: async () => mode === "monthly" ? { ledgerId: uid } : null }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({ callGeminiText: (...args) => provider(...args) }));
   const calc = await import("../../worker/lib/karma-destiny-ai-calculations.js");
   jest.unstable_mockModule("../../worker/lib/karma-destiny-ai-calculations.js", () => ({ ...calc, buildKarmaDestinyIntegratedResult: (...args) => chart(...args) }));
@@ -197,4 +198,52 @@ it("an in-flight V1 session without a stored plan version keeps the 15-chapter p
   expect(docs[0].status).toBe("completed");
   expect(docs[0].chapters).toHaveLength(15);
   expect(docs[0].chapters.map(c => c.id)).not.toContain("chapter-00");
+});
+
+describe("Trait-First (TRAIT_FIRST_SAJU)", () => {
+  const BLOCK = "[타고난 성향 핵심 근거]";
+  const withPillars = () => { chart = jest.fn(async () => ({ lenses: { saju: { confidence: "high", data: { pillars: { year: "癸酉", month: "己未", day: "癸卯", hour: "丙辰" }, dayMaster: "癸" } }, ziwei: { confidence: "none" }, vedic: { confidence: "none" }, western: { confidence: "none" }, sukuyo: { confidence: "none" } }, synthesis: {}, saju: { dayMaster: "癸" } })); };
+  const startWith = env => route(new Request("https://mock.test/api/karma-destiny-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify(body) }), env);
+
+  it("flag off: no traitFirst key and chapter-00 has no trait block", async () => {
+    withPillars();
+    await startWith({});
+    expect(docs[0].llmMeta).not.toHaveProperty("traitFirst");
+    expect(utils.buildChapterPrompt(docs[0], utils.PREMIUM_CHAPTERS_V2[0], {})).not.toContain(BLOCK);
+  });
+
+  it("pinned v1 only inserts the block into chapter-00; every other chapter prompt is byte-identical", async () => {
+    withPillars();
+    await startWith({});
+    const off = docs[0], on = { ...clone(off), llmMeta: { ...off.llmMeta, traitFirst: "v1" } };
+    for (const def of utils.PREMIUM_CHAPTERS_V2.slice(1)) expect(utils.buildChapterPrompt(on, def, {})).toBe(utils.buildChapterPrompt(off, def, {}));
+    const offLines = utils.buildChapterPrompt(off, utils.PREMIUM_CHAPTERS_V2[0], {}).split("\n");
+    const onLines = utils.buildChapterPrompt(on, utils.PREMIUM_CHAPTERS_V2[0], {}).split("\n");
+    const at = onLines.indexOf(BLOCK);
+    expect(at).toBeGreaterThan(0);
+    expect(onLines[at + 1]).toMatch(/^가장 먼저 짚을 성향: 계수 일간/);
+    const end = onLines.findIndex(l => l.startsWith("사용 규칙: 성향 장은"));
+    expect([...onLines.slice(0, at), ...onLines.slice(end + 1)]).toEqual(offLines);
+    expect(utils.buildChapterPrompt(on, utils.PREMIUM_CHAPTERS[0], {})).toBe(utils.buildChapterPrompt(off, utils.PREMIUM_CHAPTERS[0], {}));
+  });
+
+  it("flag on pins v1 at start and the paid run still completes all 16 chapters", async () => {
+    withPillars();
+    await startWith({ TRAIT_FIRST_SAJU: "true" });
+    expect(docs[0].llmMeta.traitFirst).toBe("v1");
+    await runToEnd();
+    expect(docs[0].status).toBe("completed");
+    expect(docs[0].chapters).toHaveLength(16);
+    const first = provider.mock.calls.find(([, , o]) => /chapter-chapter-00/.test(o.cache.keyExtra));
+    expect(first[1]).toContain(BLOCK);
+    expect(provider.mock.calls.filter(([, p]) => p.includes(BLOCK))).toHaveLength(provider.mock.calls.filter(([, , o]) => /chapter-chapter-00/.test(o.cache.keyExtra)).length);
+  });
+
+  it("a session started without the key stays off even if the flag turns on later", async () => {
+    withPillars();
+    await startWith({});
+    await startWith({ TRAIT_FIRST_SAJU: "true" });
+    expect(docs).toHaveLength(1);
+    expect(docs[0].llmMeta).not.toHaveProperty("traitFirst");
+  });
 });

@@ -56,7 +56,7 @@ import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-
 import { ZIWEI_AI_GROUP_PLAN_VERSION, ZIWEI_V2_GROUP_SPECS, ZIWEI_V2_NO_QUESTION_LINE, ZIWEI_V2_NO_QUESTION_RULE, ZIWEI_V2_SECTION_RULES, buildZiweiFallbackMeta, detectZiweiSoftIssues, salvageZiweiGroup, scrubZiweiSoftIssues, ziweiAiDeliveryV2Enabled, ziweiSoftIssueHint } from "../lib/ziwei-ai-delivery-v2.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked, neverPaidExpiredOrder } from "../lib/paid-result-revocation.js";
-import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, settleStuckRetryFirst, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -3204,6 +3204,28 @@ export async function settleDueZiweiRetryRefunds(env, { now = Date.now(), model 
     catch { outcomes.push({ service: "ziwei-ai", refundStatus: "pending" }); }
   }
   return outcomes;
+}
+
+// 2026-11-22 D: 복구 크론의 정체 확정(다시 시도 우선). 창 안은 다시 시도 가능 상태로 두고(묶음 보존), 창이 지나면 기존 보류 환불로 1회 정산.
+// 크론 문서에는 접근 증빙이 없어 저장된 요청 본문으로 기존 접근 판정을 다시 돌린다. 증빙을 못 찾은 선결제 건은 확정하지 않는다(pending).
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  await connectDb(env);
+  const target = model || ZiweiAiConsultation;
+  return settleStuckRetryFirst({ service: "ziwei-ai", model: target, doc, now, failedFields: { generationLease: "" },
+    isLive: (fresh, at) => at - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS,
+    hold: fresh => fresh.accessSource !== "toss",
+    snapshot: async fresh => {
+      const body = { ...(fresh.llmMeta?.resumeBody || {}), accessToken: undefined };
+      const normalized = normalizeConsultationInput(body);
+      if (!normalized.ok) throw new Error("stored request invalid");
+      const request = new Request("https://internal.invalid/api/ziwei-ai/stuck", { method: "POST" });
+      const access = await resolveStartAccess({ request, env, auth: { userId: String(fresh.userId) }, body, normalized, pricing: getPricing(), idempotencyKey: clean(fresh.idempotencyKey, 180) });
+      if (access?.ok) return ziweiRefundAccessSnapshot(access);
+      if (fresh.accessType !== "pass") throw new Error("billing evidence not found");
+      // 감사 B1: 재판정이 거절돼도 결제창이 이미 차감한 이용권은 요청 키로 되돌릴 수 있게 남긴다(refundId 멱등).
+      return { accessType: "pass", prepaid: true, evidenceType: "pass" };
+    },
+    settleRefund: owner => settleZiweiRetryRefund(env, owner, target, now) });
 }
 
 export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {

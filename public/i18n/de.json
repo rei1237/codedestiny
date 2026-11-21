@@ -22264,7 +22264,8 @@
       "review": "Die KI-Deutung konnte nicht abgeschlossen werden. Zahlung und gespeicherter Inhalt bleiben für die Prüfung durch den Support erhalten. Die Grunddeutung steht unten.",
       "revoked": "Ein Ergebnis zu einer stornierten oder erstatteten Zahlung kann nicht fortgesetzt werden. Die Grunddeutung steht unten.",
       "retry": "KI-Deutung fortsetzen",
-      "moduleFail": "Die KI-Deutungsansicht konnte nicht geladen werden. Es wurde keine Zahlung vorgenommen. Bitte versuche es gleich erneut."
+      "moduleFail": "Die KI-Deutungsansicht konnte nicht geladen werden. Es wurde keine Zahlung vorgenommen. Bitte versuche es gleich erneut.",
+      "inputInvalid": "Bitte prüfe das eingegebene Geburtsdatum und die Geburtszeit. Eine bei der Eingabeprüfung gestoppte Anfrage wird nicht berechnet; eine bereits geleistete Zahlung bleibt erhalten und der Support erstattet oder stellt sie wieder her. Die Grunddeutung steht unten."
     },
     "archive": {
       "title": "Saju-Kompatibilitätsarchiv",

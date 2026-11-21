@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { settleFailedConsultationRefund, runPendingConsultationRefunds, consultationRefundResponse } from '../../worker/lib/consultation-delivery-refund.js';
 import { refundPassCoverage } from '../../worker/lib/pass-consumption.js';
-import { NewYearAiConsultation, LifeBookAiConsultation, FusionFortuneConsultation, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger, User } from '../../worker/lib/models.js';
+import { NewYearAiConsultation, LifeBookAiConsultation, FusionFortuneConsultation, KarmaDestinyAiConsultation, Payment, PaidExecutionRecord, PointHistory, MonthlyCreditLedger, User } from '../../worker/lib/models.js';
 const originalFetch = globalThis.fetch;
 test.beforeEach(() => { globalThis.fetch = () => { throw new Error('External HTTP forbidden in refund mocks'); }; });
 test.afterEach(() => { globalThis.fetch = originalFetch; });
@@ -126,6 +126,25 @@ test('life-book terminal failures use their own model and original feature fundi
   assert.equal((await f.settle({ service: 'life-book-ai' })).refundStatus, 'refunded');
   assert.equal(f.rows(LifeBookAiConsultation)[0].llmMeta.deliveryRefund.status, 'refunded');
   assert.equal(f.rows(NewYearAiConsultation).length, 0); assert.equal(f.cancels, 1);
+});
+// 2026-11-22 F1: 카르마 다시 시도 보류 정산이 현금·월정석 건을 이 함수로 돌려준다. 대기 순회에는 들어가지 않는다.
+for (const method of ['cash', 'monthly']) test(`karma retry hold settles ${method} funding through its own model`, async () => {
+  const f = fixture(method), doc = f.put(KarmaDestinyAiConsultation, f.rows(NewYearAiConsultation).pop());
+  doc.accessType = method === 'cash' ? 'paid' : 'monthly_credit';
+  f.execution.featureId = 'karma-destiny-ai-consultation';
+  if (f.payment) f.payment.featureKey = 'karma-destiny-ai-consultation';
+  if (method === 'monthly') f.proof.serviceKey = 'karma-destiny-ai-consultation';
+  assert.equal((await f.settle({ service: 'karma-destiny-ai' })).refundStatus, 'refunded');
+  assert.equal((await f.settle({ service: 'karma-destiny-ai' })).refundStatus, 'refunded');
+  assert.equal(f.cancels, method === 'cash' ? 1 : 0);
+  assert.equal(f.rows(KarmaDestinyAiConsultation)[0].llmMeta.deliveryRefund.status, 'refunded');
+  assert.equal(f.rows(PaidExecutionRecord)[0].status, 'refunded');
+  if (method === 'monthly') assert.equal(f.rows(User)[0].profileSubscription.membershipCreditBalance, 3000);
+});
+test('a completed karma consultation on the same order blocks another service refund', async () => {
+  const f = fixture();
+  f.put(KarmaDestinyAiConsultation, { id: 'karma-done', userId: UID, status: 'completed', paymentId: f.doc.paymentId });
+  assert.equal((await f.settle()).refundStatus, 'manual_review'); assert.equal(f.cancels, 0);
 });
 for (const source of ['featureKey', 'consultationType', 'resumeBody']) test(`life-fortune original funding is refunded using saved ${source}`, async () => {
   const f = fixture(), doc = f.put(LifeBookAiConsultation, f.rows(NewYearAiConsultation).pop());
