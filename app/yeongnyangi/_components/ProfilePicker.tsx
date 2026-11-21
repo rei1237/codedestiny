@@ -12,20 +12,20 @@ import {consultationInputCopy,profileLoadError} from '../_lib/consultation-input
 import type {ReadingLocale} from '@/worker/yeongnyangi/fortune/reading-locale';
 import styles from './profiles.module.css';
 type ProfileState=ReturnType<typeof useProfiles>;
-export default function ProfilePicker({state,locale,conversational=false,guided=false,onEditingChange,voice='banmal',premium=false,onLogin=loginForCurrentPage}:{state:ProfileState;locale?:ReadingLocale;conversational?:boolean;guided?:boolean;onEditingChange?:(editing:boolean)=>void;voice?:VoiceStyle;premium?:boolean;onLogin?:()=>void}){
+export default function ProfilePicker({state,locale,conversational=false,guided=false,onEditingChange,voice='banmal',premium=false,loadProfilePetArt,onLogin=loginForCurrentPage}:{state:ProfileState;locale?:ReadingLocale;conversational?:boolean;guided?:boolean;onEditingChange?:(editing:boolean)=>void;voice?:VoiceStyle;premium?:boolean;loadProfilePetArt?:()=>Promise<(speciesId:string)=>string>;onLogin?:()=>void}){
  const copy=consultationInputCopy(locale);
  const [query,setQuery]=useState(''),[open,setOpen]=useState(()=>guided&&Boolean(readFeatureSessionDraft(profileEntryDraftScope())));
  const account=readDestinyProfileAccountId();
  useEffect(()=>{setOpen(guided&&Boolean(readFeatureSessionDraft(profileEntryDraftScope())));setQuery('');},[account,guided]);
  const selected=state.profiles.find(p=>profileKey(p)===state.profileId);
- const avatarId=premium&&!state.guest&&!state.loading&&!state.error&&selected&&account?profileKey(selected):'';
+ const avatarId=premium&&loadProfilePetArt&&!state.guest&&!state.loading&&!state.error&&selected&&account?profileKey(selected):'';
  const [avatar,setAvatar]=useState<{account:string;id:string;url:string}|null>(null);
  useEffect(()=>{
-  if(!avatarId)return;
+  if(!avatarId||!loadProfilePetArt)return;
   const controller=new AbortController();
   const timer=window.setTimeout(async()=>{
    try{
-    const {petArtUrl}=await import('@/js/core/profile-pet.mjs');
+    const petArtUrl=await loadProfilePetArt();
     if(controller.signal.aborted||readDestinyProfileAccountId()!==account)return;
     const response=await authFetch('/api/rpg/pet?profileId='+encodeURIComponent(avatarId),{signal:controller.signal,cache:'no-store'},{retryOn401:false});
     if(!response.ok)return;
@@ -35,7 +35,7 @@ export default function ProfilePicker({state,locale,conversational=false,guided=
    }catch{/* The initials are also the fallback when a pet cannot be loaded. */}
   },220);
   return ()=>{window.clearTimeout(timer);controller.abort();};
- },[account,avatarId]);
+ },[account,avatarId,loadProfilePetArt]);
  const firstEntry=guided&&!state.loading&&!state.error&&!state.profiles.length;
  const editing=open||firstEntry;
  useEffect(()=>{onEditingChange?.(guided&&editing&&!state.guest);return()=>onEditingChange?.(false);},[guided,editing,state.guest,onEditingChange]);

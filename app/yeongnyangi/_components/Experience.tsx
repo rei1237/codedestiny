@@ -13,6 +13,8 @@ function ConsultationLoading(){const {siteLocale}=useReadingLanguage();return <p
 // browser's route, language and private draft. Keep that client-only boundary explicit.
 const QuestionEntry=dynamic(()=>import('./QuestionEntry'),{ssr:false,loading:ConsultationLoading});
 const Consultation=dynamic(()=>import('./Consultation'),{ssr:false,loading:ConsultationLoading});
+// Web owns the wardrobe import; the shared Toss inputs receive no portrait loader.
+const loadProfilePetArt=async()=>(await import('@/js/core/profile-pet.mjs')).petArtUrl;
 const QuestionSkyConsultation=dynamic(()=>import('./QuestionSkyConsultation'),{ssr:false,loading:()=> <p className={styles.loading}>질문의 결을 살피는 중</p>});
 const Result=dynamic(()=>import('./Result'),{ssr:false,loading:ConsultationLoading});
 const Library=dynamic(()=>import('./Library'),{ssr:false,loading:ConsultationLoading});
@@ -39,7 +41,7 @@ export default function Experience({view}:{view:'fortune'|'result'|'library'}){
   setQuestion(value);
   try{sessionStorage.setItem(CONSULTATION_DRAFT_KEY,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale:'ko',question:value,chatStep:'question',savedAt:Date.now()}));}catch{/* Input remains usable without draft storage. */}
  };
- const content=view==='fortune'?(mode===null?<ConsultationLoading/>:['spirit','prashna','horary'].includes(mode)?<QuestionSkyConsultation key={mode} mode={mode==='horary'?'horary-v1':'prashna-v1'}/>:quickEntry&&siteLocale==='ko'&&!submitted?<QuestionEntry question={question} onQuestion={changeQuestion} onOpen={()=>setSubmitted(true)}/>:<Consultation initialQuestion={quickEntry&&submitted?question:undefined}/>):view==='result'?<Result/>:<Library/>;
+ const content=view==='fortune'?(mode===null?<ConsultationLoading/>:['spirit','prashna','horary'].includes(mode)?<QuestionSkyConsultation key={mode} mode={mode==='horary'?'horary-v1':'prashna-v1'}/>:quickEntry&&siteLocale==='ko'&&!submitted?<QuestionEntry question={question} onQuestion={changeQuestion} onOpen={()=>setSubmitted(true)}/>:<Consultation initialQuestion={quickEntry&&submitted?question:undefined} loadProfilePetArt={loadProfilePetArt}/>):view==='result'?<Result/>:<Library/>;
  return <div className={styles.experience}>{content}{storyOpen&&view==='fortune'&&siteLocale==='ko'&&<StoryPanel onClose={()=>{
   setStoryOpen(false);document.getElementById('yn-question')?.focus({preventScroll:true});
  }}/>}</div>;

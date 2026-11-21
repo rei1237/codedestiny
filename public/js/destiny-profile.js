@@ -11148,7 +11148,7 @@
       var draft = JSON.parse(raw);
       var age = Date.now() - Number(draft && draft.at);
       var p = draft && draft.profile;
-      if (!(age >= 0 && age < _dpAstroDraftTtl) || !p || !p.birth || !p.name) return null;
+      if (!(age >= 0 && age < _dpAstroDraftTtl) || !p || !p.birth) return null;
       return p;
     } catch (_) { return null; }
   }

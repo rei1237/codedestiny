@@ -29,7 +29,7 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  const state={row,orders:new Map(),sdk:[],confirm:0,activates:0,generates:0,resumeReads:0,unknown:[],errors:[],approved:false,pending:false,auth:true,read503:0,activate503:0,generate503:0,holdGeneration:false,generationBoundary:0,sdkMode:'redirect',handlerDelay:0,assetDelays:0};
  state.monthlyBalance=monthlyBalance;state.monthlyRequests=[];state.monthlySpends=new Map();state.monthlyDeductions=0;
  const authUser=()=>({...user,profileSubscription:{tier:'free',isActive:false,membershipCreditBalance:state.monthlyBalance}});
- state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;
+ state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;state.avatarProfileReads=[];
  state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.pageErrorDetails=[];
  state.pageIds=new WeakMap();state.requestStartedAt=new WeakMap();state.fulfilledRequests=new WeakSet();state.finishedRequests=new WeakSet();state.httpProof=new WeakMap();let nextPageId=0;
  context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event'){state.requestStartedAt.set(request,Date.now());state.apiInFlight.set(request,request.frame().page());}});
@@ -118,6 +118,12 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
   if(path==='/api/yeongnyangi/profiles'){
    if(request.method()==='POST'){state.profileCreates++;state.profiles.push(input.profile);return send({ok:true,profile:input.profile});}
    return send({ok:true,profiles:state.profiles,currentId:state.profiles[0]?.profileId});
+  }
+  if(path==='/api/rpg/pet'&&request.method()==='GET'){
+   const profileId=url.searchParams.get('profileId');
+   state.avatarProfileReads.push(profileId);
+   if(!profileId||!state.profiles.some(profile=>String(profile.profileId||profile.id||'')===profileId))return send({ok:false,code:'PROFILE_NOT_FOUND'},404);
+   return send({ok:true,degraded:false,pet:{speciesId:'rabbit'}});
   }
   if(path==='/api/yeongnyangi/products')return send({ok:true,products:state.products.map(p=>({...p,available:true}))});
   if(path==='/api/yeongnyangi/attendance')return send({ok:true,day:'2026-09-16',balance:0,attended:false,unlocked:false});
@@ -441,7 +447,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
     });
     await check(browser,`${engine.name()}-home-profile-catalog`,products[0],390,async f=>{
      f.state.profiles=[];
-     await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{name:/사주보는 고양이/}).waitFor();
+     await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{level:1,name:'운세보는 고양이 영냥이',exact:true}).waitFor();
      assert.equal(await f.page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(11, 18, 32)');
      await f.page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();await f.page.getByText('쓰다듬는 건… 딱 한 번만이야.',{exact:true}).waitFor();
      await f.page.waitForLoadState('load');
@@ -449,6 +455,15 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.getByLabel('이름',{exact:true}).fill('QA 고객');await f.page.getByLabel('생년월일',{exact:true}).fill('1990-06-15');
      await f.page.getByLabel('태어난 시간',{exact:true}).fill('14:30');await f.page.getByLabel('출생지역',{exact:true}).fill('부산');
      await f.page.getByRole('button',{name:'프로필 저장하기',exact:true}).click();await waitFixture(()=>f.state.profileCreates===1);
+     const avatarProfileId=String(f.state.profiles[0].profileId||f.state.profiles[0].id||'');
+     assert.ok(avatarProfileId,'Synthetic saved profile is required before requesting its portrait');
+     const savedProfile=f.page.getByRole('group',{name:'함께 볼 프로필'}).getByRole('button',{name:/QA 고객/});
+     await savedProfile.click();
+     assert.equal(await savedProfile.getAttribute('aria-pressed'),'true');
+     const portrait=savedProfile.locator('img[src="/assets/profile-pets/moon-garden-v1/rabbit-body.webp"]');
+     await portrait.waitFor();
+     await portrait.evaluate(async image=>{await image.decode();if(!image.complete||image.naturalWidth<=0)throw new Error('Expected decoded synthetic profile portrait');});
+     assert.deepEqual([...new Set(f.state.avatarProfileReads)],[avatarProfileId],'Only the selected synthetic profile may request a portrait');
      let displayed=0;
      for(const [domain,label] of [...Object.entries(systemNames),['fusion','복합 운세']]){
       await f.page.getByRole('group',{name:'운세 종류'}).getByRole('button',{name:label,exact:true}).click();
@@ -468,10 +483,23 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.goto(base+'/yeongnyangi/room/#story');await f.page.getByRole('dialog',{name:'영냥이의 프롤로그'}).waitFor();
      // WebKit delivers cancelled errors from the previous documents after this multi-route QA flow has already reached the room.
      if(engine===webkit)f.state.errors.length=0;
-     await f.page.getByRole('button',{name:'닫기',exact:true}).click();assert.equal(await f.page.getByRole('link',{name:/상담 내용 살펴보기/}).getAttribute('href'),'/yeongnyangi/fortune/');
+     await f.page.getByRole('button',{name:'닫기',exact:true}).click();
+      const dock=f.page.getByRole('navigation',{name:'영냥이 하단 메뉴'});
+      const roomConsultation=dock.getByRole('link',{name:'상담하기',exact:true});
+      assert.equal(await roomConsultation.getAttribute('href'),'/yeongnyangi/#questions');
+      assert.equal(await dock.getByRole('link',{name:'영냥이의 방',exact:true}).getAttribute('aria-current'),'page');
+      const shelf=f.page.getByRole('navigation',{name:'영냥이의 방 콘텐츠'});
+      for(const [label,href] of [['잡담','#room-chat'],['모자 이야기','#sorting-hat'],['오늘의 무료 운세','#daily'],['오늘·내일 타로','#daily-tarot']]){
+       assert.equal(await shelf.getByRole('link',{name:label,exact:true}).getAttribute('href'),href);
+       await f.page.locator(href).waitFor({state:'attached'});
+      }
      assert.equal(await f.page.getByRole('group',{name:'무료 운세 16종'}).getByRole('button').count(),16);
      await f.page.screenshot({path:`build-cache/yeongnyangi-payment-${engine.name()}-home.png`,fullPage:true});
      assert.equal(f.state.sdk.length,0);assert.equal(await f.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      await roomConsultation.click();
+      await f.page.waitForURL('**/yeongnyangi/#questions');
+      await f.page.getByRole('heading',{name:'지금 마음에 걸리는 질문은?',exact:true}).waitFor();
+      assert.equal(f.state.creates,1);assert.equal(f.state.sdk.length,0);assert.equal(f.state.orders.size,0);
     });
     for(const scenario of ['handler-delay','idle-return','no-redirect-poll','pending-webhook','read-503','activate-503','generation-failure','generation-interrupted','refund','delivery-refund-pending','delivery-refund-partial','foreign-request','foreign-order','wrong-product','external-return','abandon-back','abandon-from-result','tampered-url','reload-checkout','back-forward','double-click','concurrent-tabs','concurrent-pending-tabs','expired-login','pg-cancel-return','pg-failed-return','inline-payment','inline-cancel','inline-failure']){
      await check(browser,`${engine.name()}-${scenario}`,products[0],390,async f=>{
