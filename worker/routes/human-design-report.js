@@ -30,6 +30,7 @@ import { isPaidResultRevoked, isStoredPaidResultRevoked } from "../lib/paid-resu
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, logStuckUnsettled } from "../lib/paid-delivery-stuck.js";
 import { HumanDesignCalculation, HumanDesignReport } from "../lib/models.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { calculateHumanDesignChart } from "../lib/human-design-ephemeris.js";
@@ -858,6 +859,50 @@ export const __humanDesignReportTestUtils = {
   parseSectionPayload,
   publicReport,
 };
+
+// 복구 크론의 정체 자동 확정. 진전 없는 웹 결제 리포트를 생성 실패로 먼저 확정하고(체크포인트 가드가
+// generation_failed 만 환불 대상으로 본다) 기존 즉시 환불 경로(refundExecution)를 한 번 부른다.
+// delivery_pending 은 웹 결제가 회수되지 않았으면 경로와 같은 verifyStoredHdAccess 로 완료로 구제하고, 회수됐으면
+// (이미 다른 경로로 돈이 돌아갔다) 쓰지 않고 경보만 남긴다 — 생성 실패로 바꾸면 타임아웃 스위프가 한 번 더 환불한다.
+// partial 은 /generate 가 202 만 돌려주는 막다른 상태라 실패 확정 대상이다. 토스 네이티브는 경보만 남긴다.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  if (!doc?.id || !doc?.userId) return { outcome: "unsupported" };
+  await connectDb(env);
+  const target = model || HumanDesignReport;
+  const owner = { id: String(doc.id), userId: String(doc.userId) };
+  const fresh = await target.findOne(owner).lean();
+  if (!fresh || !["generating", "delivery_pending", "partial"].includes(fresh.status)) return { outcome: "progressed" };
+  if (now - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS
+    || now - new Date(fresh.lock?.at || 0).getTime() < HD_REPORT_LOCK_TTL_MS) return { outcome: "leased" };
+  if (fresh.accessSource === "toss") { logStuckUnsettled(FEATURE_KEY, fresh); return { outcome: "unsettled" }; }
+  const requestId = clean(fresh.billingRequestId, 160);
+  if (!requestId) return { outcome: "unsupported" };
+  const stalls = Number(fresh.deliveryWatch?.stalls || 0);
+  const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
+  if (fresh.status === "delivery_pending") {
+    let allowed;
+    try { allowed = await verifyStoredHdAccess(fresh, env, null); } catch { return { outcome: "pending" }; } // 판단 보류 — 이어쓰기로 둔다.
+    if (!allowed) { logStuckUnsettled(FEATURE_KEY, fresh); return { outcome: "unsettled" }; }
+    const done = await target.updateOne(cas, { $set: { status: "completed", completedAt: new Date(now), lock: null } });
+    if (!done?.modifiedCount) return { outcome: "progressed" };
+    await closeExecution(env, owner.userId, requestId, owner.id).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
+    logStuckSettled({ service: FEATURE_KEY, sessionId: owner.id, outcome: "rescued", stalls });
+    return { outcome: "rescued" };
+  }
+  const generationError = { reason: "DELIVERY_STUCK", code: "DELIVERY_STUCK", message: "recovery made no progress", at: new Date(now).toISOString() };
+  const result = await target.updateOne(cas, { $set: { status: "generation_failed", generationError, lock: null } });
+  if (!result?.modifiedCount) return { outcome: "progressed" };
+  let refundStatus = "pending";
+  try {
+    if (await refundExecution(env, owner.userId, requestId, owner.id, "delivery stuck")) {
+      refundStatus = "refunded";
+      await target.updateOne({ ...owner, status: "generation_failed" }, { $set: { generationError: { ...generationError, refunded: true } } })
+        .catch(error => console.warn("[human-design-report] refund mark failed", clean(error?.message, 120)));
+    }
+  } catch { refundStatus = "pending"; } // 실행 기록이 pending 으로 남으면 타임아웃 스위프가 생성 실패 문서를 보고 환불한다.
+  logStuckSettled({ service: FEATURE_KEY, sessionId: owner.id, outcome: "generation_failed", refundStatus, stalls });
+  return { outcome: "generation_failed", refundStatus };
+}
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.
