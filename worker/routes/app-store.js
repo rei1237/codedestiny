@@ -662,6 +662,7 @@ async function fetchGooglePurchase(env, { packageName, productId, productType, p
     const error = new Error(cleanText(payload.error?.message || payload.message || "Google Play purchase verification failed."));
     error.code = "GOOGLE_PLAY_VERIFY_FAILED";
     error.status = response.status >= 400 && response.status < 500 ? 400 : 502;
+    error.googleStatus = response.status;
     error.details = payload;
     throw error;
   }
@@ -1619,8 +1620,13 @@ async function handleGoogleRtdn(request, env) {
     });
     active = isVerifiedPurchase(googlePurchase, notification.productType);
   } catch (error) {
-    const status = Number(error?.status || error?.statusCode || 0);
-    if (status >= 500) throw error;
+    // 권한·호출 한도·연결 오류는 구매 상태가 아니다. Pub/Sub가 재시도하도록 실패를 돌려준다.
+    if (error?.googleStatus !== 404 && error?.googleStatus !== 410) {
+      const retry = new Error("Google Play purchase status could not be confirmed.");
+      retry.code = "GOOGLE_PLAY_RTDN_RETRY";
+      retry.status = 502;
+      throw retry;
+    }
   }
 
   if (active) {
