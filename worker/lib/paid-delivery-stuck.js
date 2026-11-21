@@ -143,6 +143,57 @@ export async function settleStuckConsultation(env, { service, model, doc, now, r
   return { outcome: 'generation_failed', refundStatus };
 }
 
+/** R10 다시 시도 서비스(자체 /retry·/refund-request·7일 보류 환불이 있는 라우트)의 정체 확정(2026-11-22 D).
+ * 창 안: generation_failed + 다시 시도 표지(retryable). 저장된 장은 그대로 두고 환불하지 않는다 — 다시 시도가 빠진 장만 이어쓴다.
+ * 창 경과: 같은 표지에 refundEligibleAt(RETRY_WINDOW_EXPIRED)을 붙여 서비스의 기존 보류 환불(settleRefund)로 넘긴다.
+ * hold(fresh) 가 false 인 문서(토스 네이티브: 다시 시도 화면·보류 환불 없음)는 건드리지 않고 'unsettled' — 크론이 기존처럼 이어쓴다.
+ * snapshot(fresh) 은 보류 환불이 요청 없이 되돌릴 접근 증빙을 저장 문서로 다시 찾는다(표지에 access 가 이미 있으면 그것을 쓴다).
+ * 증빙 조회가 실패하면 확정하지 않는다('pending', 다음 크론이 다시 본다).
+ * metaKey: 표지 위치(기본 llmMeta, 작명은 result.namingPrompt). idKey: 소유 식별 필드(기본 id). */
+export async function settleStuckRetryFirst({ service, model, doc, now, idKey = 'id', metaKey = 'llmMeta', statuses = STUCK_STATUSES,
+  isLive, hold = () => true, snapshot, settleRefund, failedFields = {} } = {}) {
+  const id = doc?.[idKey];
+  if (!model || !id || !doc.userId) return { outcome: 'unsupported' };
+  const owner = { [idKey]: id, userId: doc.userId };
+  const fresh = await model.findOne(owner).lean();
+  if (!fresh || !statuses.includes(fresh.status)) return { outcome: 'progressed' };
+  const meta = metaKey.split('.').reduce((row, part) => row?.[part], fresh) || null;
+  if (ms(meta?.lockedAt) > now - LIVE_LEASE_MS || (typeof isLive === 'function' && isLive(fresh, now))) return { outcome: 'leased' };
+  if (!hold(fresh)) { logStuckUnsettled(service, fresh); return { outcome: 'unsettled' }; }
+  const sessionId = String(id);
+  const stalls = Number(fresh.deliveryWatch?.stalls || 0);
+  const at = new Date(now).toISOString();
+  const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
+  const field = key => `${metaKey}.${key}`;
+  const failed = { ...failedFields, status: 'generation_failed', generationError: { code: 'DELIVERY_STUCK', message: 'recovery made no progress', at },
+    ...(meta ? { [field('lockedAt')]: null, [field('lockToken')]: '' } : {}) };
+  const prev = meta?.retryable;
+  let access = prev?.access;
+  if (access === undefined && typeof snapshot === 'function') {
+    try { access = await snapshot(fresh); } catch { return { outcome: 'pending' }; }
+  }
+  const withAccess = row => access === undefined ? row : { ...row, access };
+  const metaSet = values => meta ? Object.fromEntries(Object.entries(values).map(([key, value]) => [field(key), value])) : { [metaKey]: values };
+  const inWindow = retryableFailureMeta({ ...fresh, llmMeta: meta }, now, 'DELIVERY_STUCK');
+  if (inWindow) {
+    const result = await model.updateOne(cas, { $set: { ...failed, ...metaSet({ retryable: withAccess(inWindow) }) } });
+    if (!result?.modifiedCount) return { outcome: 'progressed' };
+    logSettled({ service, sessionId, outcome: 'retryable', stalls });
+    return { outcome: 'retryable', refundAt: inWindow.refundAt.toISOString() };
+  }
+  // 창이 지났거나 환불이 이미 시작된 건: 다시 시도 없이 서비스의 기존 보류 환불로 정산한다.
+  const prevRefundAt = ms(prev?.refundAt);
+  const retryable = withAccess({ ...(prev || {}), since: prev?.since ? new Date(prev.since) : new Date(now),
+    refundAt: Number.isFinite(prevRefundAt) ? new Date(prevRefundAt) : retryRefundAt(fresh, now), code: 'DELIVERY_STUCK',
+    refundReason: prev?.refundReason || 'RETRY_WINDOW_EXPIRED' });
+  const result = await model.updateOne(cas, { $set: { ...failed, ...metaSet({ retryable, ...(meta?.refundEligibleAt ? {} : { refundEligibleAt: at }) }) } });
+  if (!result?.modifiedCount) return { outcome: 'progressed' };
+  let refundStatus = 'pending';
+  try { refundStatus = (await settleRefund(owner))?.refundStatus || 'pending'; } catch { refundStatus = 'pending'; } // 서비스 환불 크론이 이어 정산한다.
+  logSettled({ service, sessionId, outcome: 'generation_failed', refundStatus, stalls });
+  return { outcome: 'generation_failed', refundStatus };
+}
+
 // llmMeta 가 null 인 문서에 'llmMeta.x' 를 $set 하면 Mongo 가 거부한다 — 그때는 객체째 쓴다.
 function llmMetaFields(fresh, fields) {
   if (fresh?.llmMeta && typeof fresh.llmMeta === 'object') return fields;

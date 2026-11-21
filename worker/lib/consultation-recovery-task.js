@@ -87,7 +87,8 @@ export async function runConsultationRecovery(env, options = {}) {
               : await settleStuckConsultation(env, { service: route, model, doc, now, refund: options.settleRefund,
                 isComplete: typeof adapter.isStuckDeliveryComplete === 'function' ? adapter.isStuckDeliveryComplete : undefined });
             outcomes.push({ service: route, stuck: settled.outcome, ...(settled.refundStatus ? { refundStatus: settled.refundStatus } : {}) });
-            if (settled.outcome !== 'leased') continue;
+            // unsettled: 설정자가 확정하지 않은 건(토스 네이티브 등) — 기존처럼 이어쓴다.
+            if (!['leased', 'unsettled'].includes(settled.outcome)) continue;
           } else logStuckUnsettled(route, doc);
         }
         try {
