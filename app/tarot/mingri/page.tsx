@@ -1,5 +1,7 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
+import { GUIDED_MINGRI_TAROT_ENABLED } from "../../../lib/guided-flow/flags.mjs";
+import MingriTarotEntry from "./MingriTarotEntry";
 
 const MINGRI_TAROT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -530,5 +532,6 @@ export const metadata = withUniqueRouteMetadata("/tarot/mingri", {
 });
 
 export default function MingriTarotLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  // 무료 세 장을 이 페이지 안에서 바로 실행한다(5단계 ①). 롤백은 lib/guided-flow/flags.mjs 를 false 로(기존 랜딩 그대로).
+  return <FeatureLandingPage service={SERVICE} inlineFlow={GUIDED_MINGRI_TAROT_ENABLED ? <MingriTarotEntry /> : undefined} />;
 }

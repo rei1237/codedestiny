@@ -1,0 +1,25 @@
+/* /tarot/mingri/ 무료 세 장(5단계 ①) — 공통 스텝 플로우(guided-flow·guided-tarot) 위의 덧칠만 둔다. 색은 토큰에서만. */
+.reserve {
+  /* 첫 화면(랜딩) 높이만큼 미리 잡아 늦게 붙어도 아래 본문이 밀리지 않게 한다. */
+  min-height: 560px;
+  border-radius: var(--cd-r-card, 16px);
+  background: var(--cd-nav-bg);
+}
+.reversed {
+  transform: rotate(180deg);
+}
+.shellLink {
+  margin: var(--cd-sp-sm) 0 0;
+  text-align: center;
+  font-size: var(--cd-t-caption);
+}
+.shellLink a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 var(--cd-sp-md);
+  color: var(--cd-nav-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
