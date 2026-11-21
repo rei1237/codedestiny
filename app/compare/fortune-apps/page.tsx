@@ -4,6 +4,7 @@ import GuideCta from "@/app/components/GuideCta";
 import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { generatePageMetadata } from "@/lib/generate-page-metadata";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
+import { FREE_RESULT_GUEST_ENABLED } from "@/lib/guided-flow/flags.mjs";
 
 /**
  * 체계 간 비교 문서 3호 — 그리고 **처음으로 외부 서비스 이름이 들어가는 문서**다.
@@ -120,7 +121,7 @@ const faqItems = [
   {
     question: "무료로 볼 수 있는 범위는 어디까지인가요?",
     answer:
-      "꿀꿀운세 에서는 오늘의 운세, 별자리·띠별 운세, 타로 리딩을 로그인 없이 무료로 볼 수 있고, 무료 만세력은 로그인 후 확인할 수 있습니다. 사주 전체 풀이와, 여러 체계를 한 번에 교차 검증해 하나의 결론으로 모으는 초융합 심층 리딩은 유료이며, 금액과 결제 수단은 해당 화면에서 결제 전에 표시됩니다.",
+      `꿀꿀운세 에서는 오늘의 운세, 별자리·띠별 운세, 타로 리딩을 로그인 없이 무료로 볼 수 있고, ${FREE_RESULT_GUEST_ENABLED ? "무료 만세력도 로그인 없이 확인할 수 있습니다(저장·상세 풀이는 로그인 후)" : "무료 만세력은 로그인 후 확인할 수 있습니다"}. 사주 전체 풀이와, 여러 체계를 한 번에 교차 검증해 하나의 결론으로 모으는 초융합 심층 리딩은 유료이며, 금액과 결제 수단은 해당 화면에서 결제 전에 표시됩니다.`,
   },
 ];
 
@@ -241,7 +242,7 @@ export default function FortuneAppsComparePage() {
         </p>
         <p>
           오늘의 운세와 별자리·띠별 운세, 타로 리딩은 로그인 없이 무료로 볼 수 있고, 무료 만세력(사주 원국과 한 줄
-          성향)은 로그인 후 확인할 수 있습니다. 사주 전체 풀이와 여섯 체계를 한 상담 안에서 교차 검증하는 초융합
+          성향){FREE_RESULT_GUEST_ENABLED ? "도 로그인 없이 확인할 수 있습니다(저장·상세 풀이는 로그인 후)" : "은 로그인 후 확인할 수 있습니다"}. 사주 전체 풀이와 여섯 체계를 한 상담 안에서 교차 검증하는 초융합
           심층 리딩은 유료이며, 금액과 결제 수단은 결제 전에 화면에서 확인할 수 있습니다. (<time dateTime={SEO_SERVICE_SCOPES_UPDATED}>{seoServiceScopeAsOfLabel()}</time>)
         </p>
       </section>

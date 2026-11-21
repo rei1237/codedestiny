@@ -917,7 +917,8 @@ function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
   );
 }
 
-function ChapterReadingArticle({ sectionKey, section, chapterLabel = "" }: { sectionKey: string; section: { title: string; body: string }; chapterLabel?: string }) {
+/** speak: 화면(페이지 뷰어)에서만 서한비 말풍선을 끼운다. PDF 캡처 경로는 켜지 않아 PDF 구성이 그대로다. */
+function ChapterReadingArticle({ sectionKey, section, chapterLabel = "", speak = false }: { sectionKey: string; section: { title: string; body: string }; chapterLabel?: string; speak?: boolean }) {
   const locale = useSukuyoCompatLocale();
   // 마지막 편지에만 서명한다 — 화면과 PDF 가 같은 컴포넌트를 쓰므로 둘 다 남는다.
   const signoff = sectionKey === "closingLetter" && isExpertCharacterEnabled("hanbi") ? getExpertLine("hanbi", "result.signoff", locale).text : "";
@@ -933,7 +934,7 @@ function ChapterReadingArticle({ sectionKey, section, chapterLabel = "" }: { sec
         <span>{SECTION_ICONS[sectionKey] || "✦"}</span>
         <h3>{section.title}</h3>
       </div>
-      <div className={styles.readingBody}><ConsultationReading kind="sukuyo" value={section.body} index={sectionKey === "closingLetter" ? 1 : 0} /></div>
+      <div className={styles.readingBody}><ConsultationReading kind="sukuyo" value={section.body} index={sectionKey === "closingLetter" ? 1 : 0} say={speak ? { sectionKey } : undefined} /></div>
       {signoff && <p className={styles.hanbiSignoff}>{signoff}</p>}
     </article>
   );
@@ -1254,7 +1255,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null, com
               pages={chapterEntries.map(([key, section], index) => ({
                 id: key,
                 label: `${index + 1}장`,
-                content: <ChapterReadingArticle sectionKey={key} section={section} chapterLabel={chapterLabel(index)} />,
+                content: <ChapterReadingArticle sectionKey={key} section={section} chapterLabel={chapterLabel(index)} speak />,
               }))}
               deckLabel={`달빛 궁합 ${chapterEntries.length}장 해설`}
               className={styles.pagedViewer}

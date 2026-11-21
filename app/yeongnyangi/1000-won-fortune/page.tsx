@@ -9,6 +9,7 @@ import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expan
 import {topicCatalog} from '@/worker/yeongnyangi/fortune/topics';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {siteSeo} from '@/lib/seo/siteSeo';
+import {FREE_RESULT_GUEST_ENABLED} from '@/lib/guided-flow/flags.mjs';
 import {yeongnyangiOgImage} from '../_lib/share-image';
 import {buildBreadcrumbJsonLd,buildFaqPageJsonLd,buildServiceJsonLd,buildWebPageJsonLd} from '@/lib/structured-data';
 import styles from './page.module.css';
@@ -169,7 +170,7 @@ export default function Page(){
 
   <section aria-labelledby="difference">
    <h2 id="difference">무료 운세와 영냥이 상담의 차이</h2>
-   <p>꿀꿀운세의 무료 기능을 먼저 살펴보세요. <a href="/today/">오늘의 운세</a>, <a href="/saju/">무료 만세력</a>, <a href="/ziwei/">자미두수 명반</a>, <a href="/sukuyo/">숙요점 본명숙</a>, <a href="/vedic/">베다 점성술</a>, <a href="/astrology/">점성술 차트</a>, <a href="/tarot/">타로</a>에서 각 기능을 알아볼 수 있어요. 무료 만세력은 출생 정보를 입력하고 회원가입 또는 로그인 후 결과를 확인해요. 만세력 아래의 기본풀이와 계산형 재미 리포트도 무료예요. 라이트 사주 풀이·사주 대운 분석은 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE})로 별도 제공해요.</p>
+   <p>꿀꿀운세의 무료 기능을 먼저 살펴보세요. <a href="/today/">오늘의 운세</a>, <a href="/saju/">무료 만세력</a>, <a href="/ziwei/">자미두수 명반</a>, <a href="/sukuyo/">숙요점 본명숙</a>, <a href="/vedic/">베다 점성술</a>, <a href="/astrology/">점성술 차트</a>, <a href="/tarot/">타로</a>에서 각 기능을 알아볼 수 있어요. {FREE_RESULT_GUEST_ENABLED?'무료 만세력은 출생 정보를 입력하면 로그인 없이 결과를 확인해요.':'무료 만세력은 출생 정보를 입력하고 회원가입 또는 로그인 후 결과를 확인해요.'}만세력 아래의 기본풀이와 계산형 재미 리포트도 무료예요. 라이트 사주 풀이·사주 대운 분석은 {SAJU_BUNDLE_LABEL}({BUNDLE_PRICE})로 별도 제공해요.</p>
    <p>영냥이 상담은 같은 계산을 출발점으로 삼되, 내가 고른 주제와 질문을 반영해 챕터별로 이어지는 글을 새로 써요. 결과는 내 계정의 상담 기록에 남아 나중에 다시 열 수 있어요. 기본 성향만 알고 싶다면 무료 페이지로 충분하고, 한 가지 고민을 근거와 함께 길게 읽고 싶을 때 영냥이 상담이 맞아요.</p>
    <div className={styles.tableWrap}><table>
     <caption>무료 운세 페이지와 영냥이 고등어 상담 비교</caption>
@@ -178,7 +179,7 @@ export default function Page(){
      <tr><th scope="row">비용</th><td>무료</td><td>{PRICE} · 꿀단지 이용권·월정석 또는 단건 결제</td></tr>
      <tr><th scope="row">결과 형태</th><td>만세력·기본풀이·계산형 재미 리포트</td><td>{chapterRange(mackerels)} 챕터로 나눈 상담 글</td></tr>
      <tr><th scope="row">주제·질문 반영</th><td>페이지마다 정해진 항목</td><td>운세별 전용 상담 또는 무엇이든 물어보기</td></tr>
-     <tr><th scope="row">로그인</th><td>기능별로 다름 · 무료 만세력은 로그인 후 결과 확인</td><td>CODE DESTINY 계정 필요</td></tr>
+     <tr><th scope="row">로그인</th><td>{FREE_RESULT_GUEST_ENABLED?'무료 만세력 결과는 로그인 없이 확인 · 저장·상세 풀이는 로그인':'기능별로 다름 · 무료 만세력은 로그인 후 결과 확인'}</td><td>CODE DESTINY 계정 필요</td></tr>
      <tr><th scope="row">다시 보기</th><td>입력 정보로 다시 계산</td><td>영냥이 보관함에서 다시 열기</td></tr>
     </tbody>
    </table></div>

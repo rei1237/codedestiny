@@ -2795,6 +2795,9 @@ export function StructuredReadingResult({
       {sectionEntries.map(([key, rawSection], index) => {
         const section = asRecord(rawSection);
         const { ko, sans } = splitBilingual(toText(section.title) || key);
+        // 마스터 말풍선은 본 풀이 장에만(참고 장 제외), 위치는 본 풀이 장끼리 센다.
+        const mainKeys = sectionEntries.map(([entryKey]) => entryKey).filter((entryKey) => !['reading_guide', 'calculation_basis'].includes(entryKey));
+        const mainIndex = mainKeys.indexOf(key);
         const article = (
           <article className={`${styles.structuredSection} ${styles.revealItem}`} style={{ animationDelay: `${index * 70}ms` }} key={key}>
             <div className={styles.structuredSectionHead}>
@@ -2804,7 +2807,7 @@ export function StructuredReadingResult({
                 {sans ? <em className={styles.sectionTitleSans}>{sans}</em> : null}
               </h3>
             </div>
-            <ConsultationReading kind="vedic" value={section.body} index={index} />
+            <ConsultationReading kind="vedic" value={section.body} index={index} say={mainIndex >= 0 ? { index: mainIndex, total: mainKeys.length } : undefined} />
           </article>
         );
         return ['reading_guide', 'calculation_basis'].includes(key)

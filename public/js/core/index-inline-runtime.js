@@ -2291,12 +2291,12 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/kasi-calendar-service.js?v=build-2004797c0450',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
     '/js/core/saju/manse-shinsal.js',
-    '/js/saju-engine.js?v=build-e7c41652e5fb',
+    '/js/saju-engine.js?v=build-c24290aa70ba',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a150de26add3',
-    '/js/core/saju/basicFortunePresentation.js?v=build-2625c92ed995',
+    '/js/core/saju/basicFortunePresentation.js?v=build-7c215edc6702',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-21e2a9a7819a',
     '/js/saju-engine-continuation.js?v=build-f4d87e14c1c7',
@@ -9153,7 +9153,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-8a9c0f9afe96',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/core/saju/manse-shinsal.js',
-      '/js/saju-engine.js?v=build-e7c41652e5fb',
+      '/js/saju-engine.js?v=build-c24290aa70ba',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a150de26add3'
   ];
@@ -9172,7 +9172,7 @@ function __cdEnsureBirthModalDepsLoaded() {
   if (__cdBirthModalDepsLoadPromise) return __cdBirthModalDepsLoadPromise;
   var presentationReady = window.BasicFortunePresentation
     ? Promise.resolve()
-    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-2625c92ed995');
+    : __cdLoadScriptOnce('/js/core/saju/basicFortunePresentation.js?v=build-7c215edc6702');
   var tasks = [presentationReady];
   if (
     typeof _ModalProfileState === 'undefined' ||
