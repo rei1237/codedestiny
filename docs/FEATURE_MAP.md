@@ -62,7 +62,7 @@
 
 ## 타로
 
-- 주요 라우트: `/tarot`, `/tarot/mingri`, `/tarot/mingri/play`, `/tarot/love`, `/tarot/reunion`, `/tarot/mindscan`, `/tarot/healing`, `/tarot/prompt-maker`, `/tarot/year`
+- 주요 라우트: `/tarot`, `/tarot/mingri`, `/tarot/love`, `/tarot/reunion`, `/tarot/mindscan`, `/tarot/healing`, `/tarot/prompt-maker`, `/tarot/year`
 - 주요 컴포넌트: `app/components/MindScanTarot.tsx`, `app/components/LoveRelationshipTarot.tsx`, `app/tarot/**`
 - 주요 API: `/api/tarot/*`, App API `app/api/tarot/**`
 - 주요 lib: `lib/tarot/**`, `server/data/tarot-cards.*`
