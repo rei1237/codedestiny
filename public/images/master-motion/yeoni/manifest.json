@@ -1,0 +1,84 @@
+{
+  "id": "yeoni",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/yeoni-love-portrait.webp",
+  "baseSha256": "00b67f9deb63f4caf031f65415a1fa98e3f822e759602a652d5c8e868f94c6b4",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/yeoni/portrait-poster.webp",
+      "posterBytes": 79348,
+      "sheet": {
+        "src": "/images/master-motion/yeoni/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        }
+      },
+      "sheetBytes": 253022
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/yeoni/avatar-poster.webp",
+      "posterBytes": 4944,
+      "sheet": {
+        "src": "/images/master-motion/yeoni/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 14452,
+      "crop": {
+        "left": 115,
+        "top": 45,
+        "size": 280
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 4.27,
+      "wholeDiff": 3.94,
+      "regionDiff": 30.29,
+      "colorShift": [
+        -1.64,
+        1.65,
+        2.49
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 1,
+        "score": 11.38
+      }
+    },
+    "closed": {
+      "guardDiff": 4.18,
+      "wholeDiff": 3.67,
+      "regionDiff": 36.74,
+      "colorShift": [
+        -5.06,
+        -1.51,
+        -0.82
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 11.39
+      }
+    }
+  }
+}

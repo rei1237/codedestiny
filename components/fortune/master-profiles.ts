@@ -1,5 +1,6 @@
 import type { ProductMaster } from "@/app/components/ProductMasterStrip";
 import type { MasterProfileData } from "./MasterProfile";
+import { masterMotionArt } from "@/lib/master-motion/sheets.mjs";
 
 const base = "/images/master-profiles";
 
@@ -15,7 +16,7 @@ const dedicated = (key: string) => ({
 
 /**
  * 마스터 모션(W4): 각 항목에 선택 필드 `motion: { frames?, video?, poster }` 를 넣으면 MasterMotion 이 CSS 숨쉬기 대신
- * 그 그림을 돌린다(productMasters 의 항목도 같다). 지금은 비어 있어 CSS 모션·꽃잎만 쓴다. 규격·빠진 그림: docs/design/master-motion-assets.md
+ * 그 그림을 돌린다(productMasters 의 항목도 같다). 스프라이트 시트는 masterMotionArt(id, 변형)로 넣고 lib/master-motion/flags.mjs 가 켠다(지금은 연이만). 규격·빠진 그림: docs/design/master-motion-assets.md
  */
 export const masterProfiles = {
   master: {
@@ -82,6 +83,7 @@ export const masterProfiles = {
     ],
     principles: ["마음을 먼저 듣고, 판단은 그다음에 해요", "누구를 탓하는 말로 위로하지 않아요", "그대로 보낼 수 있는 문장과 이번 주의 한 걸음으로 맺어요"],
     ...dedicated("yeoni-love"), portraitAlt: "분홍빛 한복을 입고 달빛 찻집의 연서 책상에서 찻잔을 건네는 연애 비책 공동 마스터 연이", theme: "yeoni",
+    motion: masterMotionArt("yeoni", "portrait"),
   },
   hanbiLove: {
     name: "서한비", epithet: "연애 비책 공동 마스터 · 관계의 장", role: "두 사람 사이의 거리를 재는 사람",
@@ -146,7 +148,7 @@ export const productMasters = {
     { name: "윤달", role: "베다점 · 별의 자리와 시기의 흐름", avatar: masterAvatars.yun, line: "지금 지나가는 별의 계절을, 당신의 일상과 함께 읽어볼게요." },
   ],
   love: [
-    { name: "연이", role: "마음을 먼저 듣는 연애 상담가", avatar: masterAvatars.yeoniLove, line: "설레는 마음도, 서운한 마음도 먼저 들려주세요. 끝까지 들을게요." },
+    { name: "연이", role: "마음을 먼저 듣는 연애 상담가", avatar: masterAvatars.yeoniLove, line: "설레는 마음도, 서운한 마음도 먼저 들려주세요. 끝까지 들을게요.", motion: masterMotionArt("yeoni", "avatar") },
     { name: "서한비", role: "두 사람 사이의 거리를 재는 사람", avatar: masterAvatars.hanbiLove, line: "두 분 사이의 거리는 제가 재어 드릴게요. 서두르지 않되, 흐려 두지도 않겠습니다." },
   ],
   newYear: [

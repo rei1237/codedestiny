@@ -2,14 +2,25 @@
 
 import type { CSSProperties, ElementType, ReactNode } from "react";
 import { MASTER_MOTION_ENABLED } from "@/lib/master-motion/flags.mjs";
-import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
+import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import styles from "./MasterMotion.module.css";
 
 /**
- * 후속 그림(대기 루프) 확장 지점. 값이 있으면 프레임·영상을 쓰고, 없으면 CSS 숨쉬기·흔들림으로 대신한다.
+ * 가로 스프라이트 시트(F, 2026-11-22) — scripts/sprites/build-master-motion.mjs 가 만든다.
+ * 칸은 재생 순서대로 한 줄(cols === frames)이고, 각 칸은 cell 크기(초상 상자와 같은 비율)다.
+ */
+export type MasterMotionSheet = { src: string; frames: number; cols: number; cell: { width: number; height: number } };
+
+/**
+ * 후속 그림(대기 루프) 확장 지점. 값이 있으면 영상·시트·프레임 순으로 쓰고, 없으면 CSS 숨쉬기·흔들림으로 대신한다.
  * 그림 목록과 규격은 docs/design/master-motion-assets.md.
  */
-export type MasterMotionArt = { frames?: readonly string[]; video?: string; poster: string };
+export type MasterMotionArt = { frames?: readonly string[]; video?: string; sheet?: MasterMotionSheet; poster: string };
+
+/** 한 줄 시트만 받는다. 모양이 어긋나면 그리지 않고 CSS 모션으로 남는다(잘못된 칸을 보여 주지 않는다). */
+function usableSheet(sheet: MasterMotionSheet | undefined) {
+  return sheet && Number.isInteger(sheet.frames) && sheet.frames > 0 && sheet.cols === sheet.frames ? sheet : null;
+}
 
 export type MasterMotionVariant = "ggulggul" | "yeongnyangi";
 
@@ -45,17 +56,30 @@ function MasterMotionLive({ children, variant = "ggulggul", density = "md", as: 
   const gate = useSpritePlaybackGate<HTMLElement>();
   const on = gate.canAnimate;
   const frames = art?.frames?.length ? art.frames : null;
+  const sheet = art?.video ? null : usableSheet(art?.sheet);
+  // 시트는 보일 때만 받아 오고, 다 받은 뒤에 포스터 위로 0.3s 페이드한다(받기 실패면 포스터·CSS 모션 그대로).
+  const sheetImage = useLazySpriteSource(sheet?.src ?? "", on && Boolean(sheet));
   return (
     <Tag
       ref={gate.ref}
       className={`${styles.root} ${className ?? slotClassName ?? styles.inline}`}
       data-master-motion={variant}
       data-motion={on ? "on" : "off"}
-      data-art={art ? (art.video ? "video" : frames ? "frames" : undefined) : undefined}
+      data-art={art ? (art.video ? "video" : sheet ? "sheet" : frames ? "frames" : undefined) : undefined}
     >
       {children}
       {on && art?.video ? (
         <video className={styles.art} src={art.video} poster={art.poster} muted playsInline autoPlay loop preload="none" aria-hidden="true" />
+      ) : on && sheet && art ? (
+        <span
+          className={`${styles.art} ${styles.sheetArt}`}
+          data-mm-sheet=""
+          data-ready={sheetImage.isLoaded ? "" : undefined}
+          style={{ backgroundImage: `url("${art.poster}")` }}
+          aria-hidden="true"
+        >
+          <span className={styles.sheet} style={{ "--mm-n": sheet.frames, backgroundImage: `url("${sheet.src}")` } as CSSProperties} />
+        </span>
       ) : on && frames ? (
         <span className={styles.art} aria-hidden="true">
           <span className={styles.frames} style={{ "--mm-n": frames.length } as CSSProperties}>

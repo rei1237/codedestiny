@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: F1 — 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 + 자산 테스트(에셋 없이 빈 매니페스트로 통과)
+next: F3 — 윤달 스프라이트(F2 연이와 같은 절차 — Codex 편집 생성 → spec → build --report → visual-checker → 배선)
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -87,8 +87,8 @@ next: F1 — 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 +
 
 ## 단계
 - [x] E 대표 상담 자동 배너 — 구현, 테스트, check:fast, 커밋, 화면 확인(visual-checker, 390px·데스크톱)
-- [ ] F1 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 + 자산 테스트(에셋 없이 빈 매니페스트로 통과)
-- [ ] F2 연이 스프라이트 생성·검수·배선
+- [x] F1 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 + 자산 테스트(에셋 없이 빈 매니페스트로 통과)
+- [x] F2 연이 스프라이트 생성·검수·배선
 - [ ] F3 윤달
 - [ ] F4 무성
 - [ ] F5 서한비
@@ -147,3 +147,93 @@ next: F1 — 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 +
   - 데스크톱에서 설명과 가격 사이 여백이 약 200px 로 크다(결함 아님, G 꿀꿀 고급화에서 재검토).
   - styles/concern-first-home.css 의 `.cd-sig__controls`·`.cd-sig-card` 규칙이 죽은 CSS 로 남아 있다(범위 밖이라 보고만 한다).
   - 점 ::before 의 width 전환은 장식 8px 요소라 그대로 둔다.
+
+### F1 스프라이트 빌드 스크립트·MasterMotion sheet (2026-11-22)
+- 커밋: fe10f4892 (wt/master-motion-f1f2-20261122-054914)
+- 바뀐 것
+  - `scripts/sprites/build-master-motion.mjs`(sharp): spec 을 읽어 정본 초상 위에 생성물의 지정 영역만 합성한다. 영역은 타원이고 여러 개를 줄 수 있다.
+    - 순서: 등록(스케일·이동 탐색) → 영역 합성(smoothstep 페더 + 테두리 색 평균 보정) → 1차 검수 → 한 줄 시트·포스터 WebP·manifest.json·provenance.json 쓰기.
+    - 검수에서 떨어지거나 용량 상한을 넘으면 파일을 쓰지 않고 실패한다.
+    - `--report` 는 검수 수치와 칸 PNG 만 spec.reportDir 에 쓴다.
+  - `lib/master-motion/sheets.mjs`
+    - 칸 120ms, 2~12칸.
+    - 용량 상한 `MASTER_MOTION_BUDGETS`: portrait 600×720(시트 400KB·포스터 80KB), avatar 112×112(시트 80KB·포스터 12KB).
+    - 목록 `MASTER_MOTION_SHEETS`, `masterMotionArt(id, 변형)`.
+  - `lib/master-motion/flags.mjs`: `MASTER_SPRITE_SHEETS`(마스터별 롤백 스위치).
+  - `MasterMotion.tsx`·`.module.css`: `art.sheet` 지원.
+    - 포스터를 배경으로 깔고, 시트를 다 받으면 0.3s 페이드로 드러낸다.
+    - 재생은 `useSpritePlaybackGate` 가 화면 밖·탭 숨김·reduced-motion 에서 멈춘다. 시트는 게이트가 열릴 때만 받는다(`useLazySpriteSource`).
+  - `__tests__/ui/master-motion-assets.test.mjs` 4개: 매니페스트·provenance 존재, 용량·크기, 목록 = 폴더·매니페스트·플래그, CSS 계약(transform 만, steps(), .3s 페이드, reduced-motion 숨김).
+  - `docs/design/master-motion-assets.md` 에 "스프라이트 시트 (F)" 절.
+- 설계 차이(문서 원안과 다름)
+  - 원안은 `background-position` 을 steps() 로 옮기는 방식이었다. design-canon 의 "transform·opacity 만" 규칙에 맞춰, 칸 수 × 100% 너비의 줄을 `transform: translateX` 로 steps() 이동한다.
+  - 주기 = 칸 수 × 1200ms. 앞 10% 동안 칸마다 120ms 를 보이고, 나머지 90% 는 줄이 상자 밖에 있어 포스터가 대기 화면이다.
+- 검증: node --test 4/4. check:fast 는 sitemap-drift 만 BLOCKED였고, sitemap:generate(lastmod 9건) 뒤 다시 돌려 exit 0.
+
+### F2 연이 스프라이트 (2026-11-22)
+- 커밋: ed3f38db4 (check:fast exit 0 — paid-gate 78/78, typecheck, lint, test:node, jest 8518 pass)
+- 생성
+  - 도구: Codex CLI 0.156.1 OAuth 내장 image_gen(gpt-image-2), `-m gpt-5.6-terra`. 과금 API 호출 0회.
+  - 입력: 정본 `yeoni-love-portrait.webp`(600×720)를 좌우 60px 거울 확장해 720², 다시 1024² 로 키운 `input-1024.png`.
+  - 편집 4종: half·closed·mouth·breeze. 프롬프트는 텍스트·워터마크·꽃잎·물체 추가를 금지하고 같은 배경을 유지하게 했다.
+  - 원본: `D:\CodeDestiny-Build\master-motion\yeoni\` (input-1024.png, raw-half/closed/mouth/breeze.png, report/).
+    - Codex 샌드박스가 이 폴더에 쓰지 못해 `~/.codex/generated_images/<세션>/` 에서 시간 순으로 직접 복사했다.
+  - spec: `scripts/sprites/master-motion/yeoni.json`
+- 1차 픽셀 검수
+  - 방식: 8px 블록 평균 밝기 차이. Codex 가 그림 전체를 다시 그려 픽셀 단위 잡음이 약 12 라서 블록 평균으로 바꿨다.
+  - 등록 결과: 전부 스케일 1, 이동 0~1px.
+
+  | 칸 | guardDiff(영역 밖) | regionDiff(영역 안) | 판정 |
+  |---|---|---|---|
+  | half | 4.27 | 30.29 | 합격 |
+  | closed | 4.18 | 36.74 | 합격 |
+  | mouth | 2.88 | 2.69 | 불합격(변화 부족) |
+  | breeze | 3.32 | 12.04 | 합격이나 쓰지 않음(한 칸만 튀어 루프가 안 됨) |
+
+  - 문턱(guard ≤ 5, region ≥ 8)은 수치를 본 뒤에 정했다. 생성물 4장의 영역 밖 흔들림(2.9~4.3) 바로 위로 잡은 값이다.
+  - 결과: 최소 구성(깜빡임만) `["half","closed","half"]` 3칸.
+- 2차 visual-checker(칸 정지 이미지): 출시 합격.
+  - 바뀐 픽셀은 x206–346·y87–179 안에만 있고, 밖은 원본과 같다.
+  - 페더 색 편차 2/255 미만.
+  - 관찰(결함 아님): closed 의 왼눈 위 옅은 주름, half·closed 의 오른눈 아래 왼쪽 가는 분홍 선.
+- 산출: `public/images/master-motion/yeoni/`
+
+  | 파일 | 크기 | 비고 |
+  |---|---|---|
+  | portrait-sheet.webp | 253,022B | 1800×720 |
+  | portrait-poster.webp | 79,348B | q76. q80 은 85,088B 로 상한을 넘어 빌드가 실패했다 |
+  | avatar-sheet.webp | 14,452B | 336×112 |
+  | avatar-poster.webp | 4,944B | |
+  | manifest.json, provenance.json | | |
+
+  - 아바타 크롭(115,45,280)은 기존 `avatars/yeoni-love.webp`(build-master-avatars.mjs)와 같다.
+- 배선
+  - `MASTER_MOTION_SHEETS.yeoni`, `MASTER_SPRITE_SHEETS = { yeoni: true }`.
+  - `master-profiles.ts`: `masterProfiles.yeoniLove.motion`(소개장 초상), `productMasters.love[0].motion`(마스터 띠 아바타).
+  - `master-profile.module.css`: `.frame { --mm-art-inset: 10px }`, 시트 레이어 둥글림, `.seal { z-index: 2 }`.
+  - 연이가 나오는 곳은 `/love-secret-ai/` 하나다(마스터 띠 + 소개장). 다음 세 곳에는 연이 초상이 없어 연결하지 않았다.
+    - yehwa-home 마스터 카드(무성·서한비·윤달)
+    - fortune-consultation-ui `entry()`
+    - 대표 상담 배너(정적 셸)
+- 실제 화면 확인(dev 3123, Playwright, DPR 2, 390·1280·390 reduced-motion)
+  - pageerror 0.
+  - 소개장: 시트 `data-ready`, 애니메이션 3.6s steps(3). 레이어 278×334 가 img 와 같은 자리다(테두리 1px + inset 10px).
+  - 아바타: 화면 안에서 시트 `data-ready`, 3.6s steps(3). 화면 밖으로 나가면 게이트가 닫혀 시트 레이어가 빠진다.
+  - reduced-motion: 시트 레이어 0개, 정적 img 만 보인다.
+  - visual-checker: 출시 합격.
+    - 포스터와 정적 원본은 dx=0·dy=0 에서 가장 잘 맞는다(1px 밀면 차이 6.3→27.9).
+    - 둥글림이 같고, 원 밖으로 삐져나온 곳이 없다.
+    - 입·배경은 그대로다.
+    - 인장이 시트 위에 보인다(데스크톱에서 확인).
+- 남은 위험
+  - 360×432 변형이 없다. 모바일도 600×720 시트(253KB)를 받는다. 게이트가 열릴 때만 받는다.
+  - 검수 문턱을 수치를 본 뒤 정했다.
+  - 모바일 390 캡처는 쿠키 배너가 초상 하단 약 40%와 인장을 가려, 그 부분은 데스크톱으로 대신 판정했다.
+  - 아바타 포스터가 정적 원본(128→56 축소)보다 약간 선명하다. 시트를 늦게 받으면 페이드 때 선명도가 아주 약하게 바뀔 수 있다.
+  - 시트 칸이 포스터보다 약간 흐리다(라플라시안 분산 774→569). 120ms 라 거의 눈에 띄지 않는다.
+  - visual-checker 는 정지 칸만 봤다. 실제 120ms 재생을 사람이 눈으로 본 확인은 없다.
+- F3(윤달)에서 피할 함정
+  - Codex 는 `-m gpt-5.6-terra` 가 필요하다. 샌드박스 밖(D:\CodeDestiny-Build)에 쓰지 못하므로 `~/.codex/generated_images` 에서 복사한다.
+  - 기울어진 얼굴은 영역을 타원 두 개(눈마다 하나)로 준다.
+  - 포스터가 80KB 를 넘으면 spec `webp.default.poster` 품질을 낮춘다.
+  - 저장소 밖 스크래치 스크립트는 sharp 를 못 찾는다. 워크트리 `.tmp/` 에서 돌린다.
