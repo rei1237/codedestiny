@@ -17,7 +17,7 @@ const mocks={
 };
 globalThis.__tossRouteMocks=mocks;
 const stubMap={
- 'lib/toss-release.mjs':'export const NEW_PURCHASES_AVAILABLE=true;',
+ 'lib/toss-release.mjs':'export let NEW_PURCHASES_AVAILABLE=true;globalThis.__tossRouteMocks.setSales=v=>{NEW_PURCHASES_AVAILABLE=v;};',
  'worker/toss/music-download.js':"import {TossError} from './policy.js';const call=(kind,...args)=>{const state=globalThis.__tossRouteMocks;(state.musicCalls??=[]).push([kind,...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {owner:args[1].ownerId};};export const prepareNativeMusic=(...args)=>call('prepare',...args),readNativeMusic=(...args)=>call('read',...args),downloadNativeMusic=(...args)=>call('file',...args);",
  'worker/toss/vedic-compatibility.js':"export const tossVedicCompatibility=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public',stored:false});",
  'worker/toss/vedic-prashna.js':"export const tossVedicPrashna=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public'});",
@@ -504,6 +504,46 @@ test('tarot result POST is rate limited per identity before partner lookup or ge
  }finally{Object.assign(mocks,previous);delete mocks.tarotDeliverCounts;}
 });
 
+test('closed sales: only a buyer-proven restore creates a first row, and only first-grant lookups send the user key',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000079',sku='saju_tuna';
+ const previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder,genericGrant:mocks.genericGrant,product:mocks.product};
+ const lookups=[],grants=[];let matched=true,stored=null;
+ mocks.purchase=()=>({lean:async()=>stored});
+ mocks.product=sku=>({productId:sku,serviceId:'yeongnyangi',sku,approvedPriceKRW:1,approved:true});
+ mocks.lookupOrder=async(...args)=>{lookups.push(args);return {orderId,sku,status:'PURCHASED',purchaserMatched:matched};};
+ mocks.genericGrant=async args=>{grants.push(args);return {orderId,requestId:null,entitlement:'granted',durable:true};};
+ mocks.setSales(false);
+ try{
+  for(const path of ['/orders/grant','/tarot-library/orders/grant'])assert.equal((await request({orderId,sku},path)).status,503);
+  assert.equal(lookups.length,0);
+  const ok=await request({orderId,sku},'/orders/restore');
+  assert.equal(ok.status,200);assert.equal(grants.length,1);assert.equal(grants[0].closedRestore,true);
+  assert.deepEqual(lookups.at(-1).slice(1),[auth.userKey,orderId,{buyerCheck:true}]);
+  for(const value of [false,null,undefined,'true']){
+   matched=value;const r=await request({orderId,sku},'/orders/restore');
+   assert.equal(r.status,503);assert.equal((await r.json()).error,'TOSS_PURCHASES_DISABLED');
+  }
+  assert.equal(grants.length,1);
+  stored={_id:orderId,sku,productId:sku,serviceId:'yeongnyangi',approvedPriceKRW:1,priceEvidence:'fixture',identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment};
+  matched=undefined;
+  assert.equal((await request({orderId,sku},'/orders/restore')).status,200);
+  assert.deepEqual(lookups.at(-1).slice(1),[auth.userKey,orderId,{buyerCheck:false}]);
+  assert.equal(grants.at(-1).closedRestore,false);
+  mocks.setSales(true);stored=null;matched=true;
+  assert.equal((await request({orderId,sku},'/orders/grant')).status,200);
+  assert.deepEqual(lookups.at(-1).slice(1),[auth.userKey,orderId,{buyerCheck:true}]);
+  assert.equal(grants.at(-1).closedRestore,false);
+ }finally{mocks.setSales(true);Object.assign(mocks,previous);}
+});
+test('owned tarot rereads never send the buyer-check option to the partner lookup',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000080',previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder};const lookups=[];
+ mocks.purchase=()=>({lean:async()=>({_id:orderId,sku:'owned-sku',tarotFlowId:'tarot-mindscan'})});
+ mocks.lookupOrder=async(...args)=>{lookups.push(args);return {orderId,sku:'owned-sku',status:'PAYMENT_PENDING'};};
+ try{
+  assert.equal((await request({},'/tarot-library/results/'+orderId)).status,409);
+  assert.equal(lookups.length,1);assert.equal(lookups[0].length,3);
+ }finally{Object.assign(mocks,previous);}
+});
 test('guest manse works independently of release readiness and never creates a profile or purchase',async()=>{
  assert.equal((await request({birth},'/manse/calculate',{})).status,200);
  mocks.denyAuth=true;
@@ -760,8 +800,11 @@ test('production sales policy closes public catalogs and rejects raw prepare bef
  const previousPurchase=mocks.purchase,previousOrder=mocks.lookupOrder;
  mocks.purchase=()=>({lean:async()=>null});mocks.lookupOrder=()=>assert.fail('partner lookup must not happen for an unattributed order');
  try{for(const endpoint of ['/orders/grant','/orders/restore','/tarot-library/orders/grant']){
+  // A closed restore may ask the partner, but only purchaserMatched===true may pass (false here).
   const denied=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss'+endpoint,{method:'POST',headers:{Origin:'https://ai-saju-studio.apps.tossmini.com','Content-Type':'application/json',Authorization:'Bearer mock'},body:JSON.stringify({orderId:'01900000-1111-7111-8111-000000000042',sku:'known-paid-sku'})}),{TOSS_RELEASE_READY:'true'});
   assert.equal(denied.status,503);assert.equal((await denied.json()).error,'TOSS_PURCHASES_DISABLED');
+  if(endpoint==='/orders/grant')mocks.lookupOrder=async()=>({orderId:'01900000-1111-7111-8111-000000000042',sku:'known-paid-sku',status:'PURCHASED',purchaserMatched:false});
+  if(endpoint==='/orders/restore')mocks.lookupOrder=()=>assert.fail('partner lookup must not happen for an unattributed order');
  }}finally{mocks.purchase=previousPurchase;mocks.lookupOrder=previousOrder;}
  const response=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss/prepare',{method:'POST',headers:{Origin:'https://ai-saju-studio.apps.tossmini.com','Content-Type':'application/json',Authorization:'Bearer mock'},body:JSON.stringify(input())}),{TOSS_RELEASE_READY:'true'});
  assert.equal(response.status,503);assert.equal((await response.json()).error,'TOSS_PURCHASES_DISABLED');

@@ -847,23 +847,27 @@ export async function handleTossRoutes(request,env) {
     if((path==='/orders/grant'||path==='/orders/restore')&&request.method==='POST') {
       const input=await bodyOf(request);
       const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
-      if(!stored&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
+      // While new sales are closed, only a restore whose partner lookup proves this buyer
+      // (purchaserMatched===true) may create the first row, so paid pending orders stay recoverable.
+      const closedRestore=!stored&&!NEW_PURCHASES_AVAILABLE&&path==='/orders/restore';
+      if(!stored&&!NEW_PURCHASES_AVAILABLE&&!closedRestore)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(!stored)assertUniqueApprovedSaleSkus();
       // A durable purchase keeps its original product and price after a sale ends.
       const tarotProduct=path==='/orders/restore'&&(stored?(stored.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:null):currentTarotSale(input.sku));
       const native=stored?!!stored.nativeService:APPROVED_TOSS_NATIVE_PRODUCTS.some(item=>item.sku===input.sku);
       if(stored&&stored.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
       const product=stored?.nativeService?(await import('./native-consultation.js')).retainedNativeProduct(stored,auth):native?(await import('./native-tea.js')).approvedNativeTeaProduct(input.sku):tarotProduct?tarotLibraryProduct(tarotProduct):stored||approvedProduct(input.sku);
-      const order=await lookupOrder(env,auth.userKey,input.orderId);
+      const order=await lookupOrder(env,auth.userKey,input.orderId,{buyerCheck:!stored});
       if(order.orderId!==input.orderId||order.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
+      if(closedRestore&&order.purchaserMatched!==true)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
-      if(tarotProduct)return reply(await grantTarotLibraryOrder({store:purchaseStore,auth,order,product}));
+      if(tarotProduct)return reply(await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,closedRestore}));
       if(input.requestId!==undefined&&!/^[a-f0-9]{64}$/.test(input.requestId))throw new TossError('REQUEST_ID_INVALID');
       if(native){
         const {grantNativeOrder}=await import('./native-consultation.js');
-        return reply(await grantNativeOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null}));
+        return reply(await grantNativeOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,closedRestore}));
       }
-      return reply(await grantVerifiedOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,
+      return reply(await grantVerifiedOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,closedRestore,
         enqueue:async id=>enqueueConsultation(env,await readRequest(env,auth.userId,id))}));
     }
     if(path==='/tarot-library/orders/grant'&&request.method==='POST') {
@@ -872,7 +876,7 @@ export async function handleTossRoutes(request,env) {
       if(!stored&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(!stored)assertUniqueApprovedSaleSkus();
       const product=tarotLibraryProduct(stored?.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:currentTarotSale(input.sku));
-      const order=await lookupOrder(env,auth.userKey,input.orderId);
+      const order=await lookupOrder(env,auth.userKey,input.orderId,{buyerCheck:!stored});
       if(order.orderId!==input.orderId||order.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       const receipt=await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,input:input.input});

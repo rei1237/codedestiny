@@ -1,5 +1,5 @@
 import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
-import {checkOrder,TossError} from './policy.js';
+import {assertPurchaser,checkOrder,TossError} from './policy.js';
 import {consultationService,requestMatchesService} from './services.js';
 
 /**
@@ -8,20 +8,20 @@ import {consultationService,requestMatchesService} from './services.js';
  * A missing callback can restore an unassigned right; restoration never picks a different
  * user's draft or guesses the most recent question. The buyer explicitly attaches a draft.
  */
-export async function grantVerifiedOrder({store,auth,order,product,requestId=null,enqueue}) {
+export async function grantVerifiedOrder({store,auth,order,product,requestId=null,enqueue,closedRestore=false}) {
   checkOrder(order,{orderId:order.orderId,sku:product.sku});
   const service=consultationService(product);
   const receipt=await store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
-    if(!purchase&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
+    if(!purchase&&!NEW_PURCHASES_AVAILABLE&&!(closedRestore===true&&order.purchaserMatched===true))throw new TossError('TOSS_PURCHASES_DISABLED',503);
     if(purchase) {
       if(purchase.identityId!==auth._id || String(purchase.ownerId)!==String(auth.ownerId) || purchase.sku!==product.sku || purchase.environment!==auth.environment) throw new TossError('ORDER_OWNERSHIP_MISMATCH',403);
       if(purchase.status==='REFUNDED')throw new TossError('ORDER_REFUNDED',409);
       if((purchase.serviceId||'yeongnyangi')!==service.id||purchase.productId!==product.productId)throw new TossError('ORDER_PRODUCT_MISMATCH',409);
       if(purchase.requestId&&requestId&&purchase.requestId!==requestId)throw new TossError('ORDER_ALREADY_ASSIGNED',409);
     } else {
-      purchase={_id:order.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,
+      purchase={_id:order.orderId,buyerVerification:assertPurchaser(order),identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,
         sku:product.sku,productId:product.productId,serviceId:service.id,approvedPriceKRW:product.approvedPriceKRW,priceEvidence:product.priceEvidence,
         status:order.status,requestId:null,verifiedAt:new Date(),grantedAt:new Date()};
       await tx.insertPurchase(purchase);

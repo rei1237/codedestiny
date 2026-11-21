@@ -579,7 +579,7 @@ test('Toss original life-book waves use one bound order, saved chapters, recover
   const auth = {_id:'identity',ownerId:'owner',userId:'owner',revision:1,userKey:'123',environment:'SANDBOX'};
   const product = {approved:true,nativeService:'life-book',sku:'offline-life',featureKey:'life-book-ai-consultation',productId:'native:life-book:life-book-ai-consultation',approvedPriceKRW:6000,priceEvidence:'offline fixture'};
   const input = {idempotencyKey:'original-paid-request',inputHash:'same-input',topic:'일생'};
-  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED',purchaserMatched:true};
   const state = {rows:[],purchases:[],catalog:[product],order,identity:true};
   const chain = value => ({lean:async()=>value,sort(){return this;},limit(){return this;}});
   state.models = {

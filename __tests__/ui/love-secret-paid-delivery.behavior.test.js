@@ -531,7 +531,7 @@ test('Toss original love-secret waves use one bound order, saved chapters, recov
   const auth = {_id:'identity',ownerId:'owner',userId:'owner',revision:1,userKey:'123',environment:'SANDBOX'};
   const product = {approved:true,nativeService:'love-secret',sku:'offline-love',featureKey:'love-secret-ai-consultation',productId:'native:love-secret:love-secret-ai-consultation',approvedPriceKRW:6000,priceEvidence:'offline fixture'};
   const input = {idempotencyKey:'original-paid-request',inputHash:'same-input',topic:'일생'};
-  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+  const order = {orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED',purchaserMatched:true};
   const state = {rows:[],purchases:[],catalog:[product],order,identity:true};
   const chain = value => ({lean:async()=>value,sort(){return this;},limit(){return this;}});
   state.models = {
