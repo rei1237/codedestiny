@@ -133,3 +133,4 @@ next: 마무리 (free-tarot-ux-qa 플래그 표·미승인 목록, 정리, CI 1�
 - 검증: 대상 node 테스트 64/64, dev 서버 360/960 visual-checker, `npm run check:fast` 통과(jest 489 스위트·8447 통과), sitemap:generate(1087 URL). SEO: 공개 URL title/description/H1/canonical/robots 변화 없음 — 영향 없음.
 - 롤백: `git revert <SHA>`(b6ea399f4 그림, 40d310b9c 대비 — 되돌린 뒤 `npm run sync:public`, b04f757ea 배너 스크롤).
 - 후속(보고만): 960 에서 배너가 "다음" 버튼 오른쪽 절반을 가림(기존), 360 배너 열린 동안 제목 가림(위 절충), 연이 greet 가 talk 와 비슷해 보임.
+- [x] 960 "다음" 배너 가림 해결 — 커밋 eebb6b0bd(`GuidedFlowShell` F3 scrollBy 에 48rem 이상 CTA 포함 + 배너 열린 동안 F1 scrollIntoView 즉시). 960×800: 버튼 590~638→373~421(배너 top 441), 입력 227~278. 360 은 입력 323~372 그대로(기본 모션에서도 이제 같은 값, 전에는 부드러운 스크롤 경합으로 452). 절충: 960 에서 단계 제목이 헤더 위로 밀림. 롤백 `git revert eebb6b0bd`.
