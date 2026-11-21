@@ -1911,12 +1911,12 @@ function __cdEnsureSukuyoAIConsultationReady() {
 var __cdLazyActionLoaders = {
   openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-f2dd1b22ed44'); },
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-cf48ab7e8047'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-f7656ba31ff5'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-65b1f2e5ad77'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=haecc3241c877'); },
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-1bd57ce11c0e').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ceb2b1b1a0eb'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-889b8c7f182e').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-e2521ca380b2'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-889b8c7f182e').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-e09a908dc1c4'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/ggulggul/#dpMasterCard')); },
   openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-b43826e23353'); },
   openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-8e57ec2d8607'); },
@@ -2291,7 +2291,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/kasi-calendar-service.js?v=build-2004797c0450',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
     '/js/core/saju/manse-shinsal.js',
-    '/js/saju-engine.js?v=build-5ad18587ce67',
+    '/js/saju-engine.js?v=build-bf02da2f0cd3',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
@@ -9170,7 +9170,7 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-8a9c0f9afe96',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/core/saju/manse-shinsal.js',
-      '/js/saju-engine.js?v=build-5ad18587ce67',
+      '/js/saju-engine.js?v=build-bf02da2f0cd3',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a150de26add3'
   ];
@@ -10143,7 +10143,7 @@ function openAnimalTotemModal() {
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
     __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-889b8c7f182e')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-e2521ca380b2'); })
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-e09a908dc1c4'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {

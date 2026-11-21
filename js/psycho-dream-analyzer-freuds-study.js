@@ -719,7 +719,7 @@
     return html;
   }
 
-  var paidOwner = "", paidEpoch = 0, paidFlight = null, paidRecord = null, paidReaderLoad = null, paidCanRetry = true;
+  var paidOwner = "", paidEpoch = 0, paidFlight = null, paidRecord = null, paidReaderLoad = null, paidCanRetry = true, paidLatest = null, paidRetryLoad = null;
   function readPaidOwner() {
     try { var user = JSON.parse(localStorage.getItem("fortune_auth_user") || "null"); return String(user && (user.id || user._id || user.userId) || ""); } catch (_) { return ""; }
   }
@@ -727,7 +727,7 @@
   function syncPaidOwner() {
     var owner = readPaidOwner();
     if (owner !== paidOwner) {
-      paidOwner = owner; paidEpoch++; paidFlight = null; paidRecord = null; resetUI();
+      paidOwner = owner; paidEpoch++; paidFlight = null; paidRecord = null; paidLatest = null; resetUI();
       if ($(RESULT_MARKDOWN_ID)) $(RESULT_MARKDOWN_ID).textContent = "";
       var progress = $("psychoPaidProgress"); if (progress) progress.remove();
       var toc = $("psychoPaidContents"); if (toc) toc.remove();
@@ -751,6 +751,30 @@
     });
     return paidReaderLoad;
   }
+  function loadPaidRetry() {
+    if (window.CDPaidNarrativeRetry) return Promise.resolve(window.CDPaidNarrativeRetry);
+    if (!paidRetryLoad) paidRetryLoad = new Promise(function(resolve, reject) {
+      var script = document.createElement("script"); script.src = "/js/core/paid-narrative-retry.js";
+      script.onload = function() { resolve(window.CDPaidNarrativeRetry); };
+      script.onerror = function() { paidRetryLoad = null; reject(new Error(psychoDreamText("networkFailed"))); };
+      document.head.appendChild(script);
+    });
+    return paidRetryLoad;
+  }
+  // 생성 한도에 걸려 보류된 건: 미완성 해석·목차를 지우고 무료 다시 시도·환불 요청 패널(js/core/paid-narrative-retry.js)만 보인다.
+  function showPaidHold(progress, resultId) {
+    var md = $(RESULT_MARKDOWN_ID); if (md) md.textContent = "";
+    var toc = $("psychoPaidContents"); if (toc) toc.remove();
+    loadPaidRetry().then(function(retry) {
+      if (!progress.isConnected) return;
+      retry.mount(progress, { resultId: resultId, apiBase: getPsychoApiBase(), onResume: resumeHeldDream, primaryClass: "ps-btn ps-btn-primary", secondaryClass: "ps-btn" });
+    }).catch(function() {});
+  }
+  function resumeHeldDream(body) {
+    paidLatest = null;
+    paidRecord = Object.assign({}, paidRecord, { body: body, resultId: body.resumeResultId }); storePaidRecord();
+    return runPaidDream(body);
+  }
   async function paidRequest(body) {
     var headers = { "Content-Type": "application/json" }, token = getAuthToken(); if (token) headers.Authorization = "Bearer " + token;
     var controller = new AbortController(), timer = setTimeout(function() { controller.abort(); }, body ? 90000 : 22000);
@@ -770,10 +794,13 @@
     var host = $(RESULT_SCREEN_ID); if (!host) return;
     var progress = $("psychoPaidProgress"); if (!progress) { progress = document.createElement("div"); progress.id = "psychoPaidProgress"; host.prepend(progress); }
     progress.textContent = "";
+    var hold = window.CDPaidNarrativeRetry ? window.CDPaidNarrativeRetry.holdOf(paidLatest) : (paidLatest && paidLatest.retryable === false && paidLatest.reviewRequired === true && paidLatest.saved !== true && paidLatest.resultId ? { resultId: paidLatest.resultId } : null);
+    if (hold) { showPaidHold(progress, hold.resultId); return; }
     var status = document.createElement("p"); status.setAttribute("role", "status"); status.style.color = "#f5ead0"; status.textContent = message; progress.appendChild(status);
     if (canRetry) { var retry = document.createElement("button"); retry.type = "button"; retry.className = "ps-btn ps-btn-primary"; retry.textContent = psychoDreamText("resumeReading"); retry.onclick = recoverPaidDream; progress.appendChild(retry); }
   }
   function showPaidDream(data) {
+    paidLatest = data;
     paidCanRetry = data.retryable !== false;
     paidRecord = Object.assign({}, paidRecord, { requestId: data.requestId, resultId: data.resultId, body: data.status === "completed" ? null : data.resumeBody }); storePaidRecord();
     state.currentRecordId = data.resultId; state.currentMarkdown = data.record && data.record.markdown || "";

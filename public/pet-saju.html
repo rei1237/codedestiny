@@ -485,6 +485,7 @@ h3{font-size:1.05rem; line-height:1.4}
 </div>
 
 <script src="/js/core/paid-narrative-reader.js"></script>
+<script src="/js/core/paid-narrative-retry.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/core/pass-verdict.js?v=build-7244122e56ff"></script>
 <script src="/js/core/checkout-entry.js?v=build-7244122e56ff"></script>
@@ -1357,7 +1358,7 @@ window.addEventListener('storage',function(event){if(event.key==='fortune_auth_u
 function petDeliveryRequest(path,body){var controller=new AbortController();var timer=setTimeout(function(){controller.abort();},body?90000:22000);return apiFetch(path,{method:body?'POST':'GET',body:body?JSON.stringify(body):undefined,signal:controller.signal}).finally(function(){clearTimeout(timer);});}
 function showPetDelivery(kind,payload){
   var record=petDeliveryRecords[kind]||{};record.status=payload.status||'completed';record.resultId=payload.resultId||record.resultId;record.completedParts=payload.completedParts||[];record.totalParts=payload.totalParts||0;
-  if(record.status==='completed')record.body=null;rememberPetDelivery(kind,record);
+  if(record.status==='completed')record.body=null;record.held=window.CDPaidNarrativeRetry?window.CDPaidNarrativeRetry.holdOf(payload,record.resultId):null;rememberPetDelivery(kind,record);
   if(kind==='report'){state.report=payload.report;state.blueprint=payload.blueprint;renderReport();}
   else{state.compat={compat:payload.compat,reading:payload.reading,pets:(payload.pets||[]).map(function(pet){return {name:pet.name,species:pet.species&&pet.species.key||pet.species,breed:pet.breed&&pet.breed.key||pet.breed};})};renderCompatResult();}
   hideOverlay();var host=$(kind==='report'?'stepReport':'stepCompat');if(!host.classList.contains('is-active'))go(kind);
@@ -1376,7 +1377,7 @@ function runPetDelivery(kind,body){
     post:function(value){return petDeliveryRequest('/api/pet-saju-ai/'+kind,value);},
     persist:function(value,id){if(active()){record.body=value;record.resultId=id;rememberPetDelivery(kind,record);}},
     show:function(value){if(active())showPetDelivery(kind,value);}
-  }).finally(function(){if(active()){delete petDeliveryFlights[kind];if(kind==='report'&&state.report)renderReport();if(kind==='compat'&&state.compat)renderCompatResult();hideOverlay();}});
+  }).catch(function(error){if(active()&&(petDeliveryRecords[kind]||{}).held)return false;throw error;}).finally(function(){if(active()){delete petDeliveryFlights[kind];if(kind==='report'&&state.report)renderReport();if(kind==='compat'&&state.compat)renderCompatResult();hideOverlay();}});
   petDeliveryFlights[kind]=promise;return promise;
 }
 var petRecoveryRunning=false;
@@ -1396,6 +1397,8 @@ window.addEventListener('online',function(){void recoverPetDeliveries();});
 document.addEventListener('visibilitychange',function(){void recoverPetDeliveries();});
 function petDeliveryControls(host,kind){
   var record=petDeliveryRecords[kind]||{};
+  // 생성 한도에 걸려 보류된 건: 미완성 리포트는 지우고(제목만 남김) 무료 다시 시도·환불 요청 패널만 보인다.
+  if(record.held&&window.CDPaidNarrativeRetry){while(host.children.length>1)host.removeChild(host.lastChild);window.CDPaidNarrativeRetry.mount(host,{resultId:record.held.resultId,request:function(path,body){return petDeliveryRequest(path,body);},onResume:function(next){record.held=null;record.body=next;record.resultId=next.resumeResultId;rememberPetDelivery(kind,record);runPetDelivery(kind,null).catch(function(error){handlePaidFailure(error,function(){void recoverPetDeliveries();});});},primaryClass:'btn btn--primary',secondaryClass:'btn btn--ghost'});return;}
   if(record.status&&record.status!=='completed'){
     var panel=el('div','prose');panel.setAttribute('aria-live','polite');panel.appendChild(el('p',null,(record.completedParts||[]).length+'/'+record.totalParts+' 부분 저장 · 저장된 본문부터 읽을 수 있어요.'));
     var resume=el('button','btn btn--ghost',petDeliveryFlights[kind]?'이어서 작성 중':'같은 결과 이어서 생성하기');resume.disabled=!!petDeliveryFlights[kind];resume.addEventListener('click',function(){runPetDelivery(kind,null).catch(function(error){handlePaidFailure(error,function(){void recoverPetDeliveries();});});});panel.appendChild(resume);host.insertBefore(panel,host.children[1]||null);

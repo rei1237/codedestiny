@@ -79,3 +79,50 @@ test('the four web narratives hide the partial result behind the panel while hel
   assert.match(read('app/components/MindScanTarot.tsx'), /mindscanHold && !readingLoading \? <PaidNarrativeRetryPanel/);
   assert.match(read('app/fortune-chat/FortuneChatClient.tsx'), /if \(hold\) \{ setError\(""\); setGuardianHold\(hold\); return false; \}/);
 });
+
+test('the mounted panel resumes for free and opens a finished result instead of refunding', async () => {
+  const { JSDOM } = require('jsdom');
+  const dom = new JSDOM('<!doctype html><html lang="ko"><body><div id="host"><p>미완성</p></div></body></html>');
+  const saved = { document: globalThis.document };
+  globalThis.document = dom.window.document;
+  try {
+    const host = dom.window.document.getElementById('host');
+    const calls = [];
+    const resumed = [];
+    const replies = [
+      { status: 409, payload: { reason: 'RESULT_READY', resumeBody: { resumeResultId: 'r5' } } },
+      { status: 200, payload: { ok: true, resumeBody: { resumeResultId: 'r5' } } },
+    ];
+    const request = async (path, body) => { calls.push([path, body]); return replies.pop(); };
+    retry.mount(host, { resultId: 'r5', request, onResume: (body) => resumed.push(body) });
+    retry.mount(host, { resultId: 'r5', request, onResume: (body) => resumed.push(body) });
+    const panels = host.querySelectorAll('[data-paid-narrative-retry]');
+    assert.equal(panels.length, 1);
+    const [retryButton, refundButton] = panels[0].querySelectorAll('button');
+    assert.equal(retryButton.textContent, '무료로 다시 시도 · 추가 결제·차감 없음');
+    retryButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    refundButton.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    assert.deepEqual(calls.map(([path]) => path), ['/api/paid-narrative/retry', '/api/paid-narrative/refund-request']);
+    assert.deepEqual(resumed, [{ resumeResultId: 'r5' }, { resumeResultId: 'r5' }]);
+  } finally {
+    globalThis.document = saved.document;
+  }
+});
+
+test('the six legacy narratives mount the shared panel and resume through their saved runner', () => {
+  const pages = {
+    'yoga-guru.html': [/CDPaidNarrativeRetry\?\.holdOf\(yogaLatest\)/, /function resumeHeldYoga\(body\)\{yogaLatest=null;[^\n]*runSavedYoga\(body\)/],
+    'geomancy-oracle-v4.html': [/CDPaidNarrativeRetry\?\.holdOf\(geomancyLatest\);if\(hold\)\{document\.getElementById\('rs-ai-txt'\)\.textContent=''/, /function resumeHeldGeomancy\(body\)/],
+    'js/psycho-dream-analyzer-freuds-study.js': [/if \(hold\) \{ showPaidHold\(progress, hold\.resultId\); return; \}/, /function resumeHeldDream\(body\)[\s\S]{0,200}runPaidDream\(body\)/],
+    'js/animal-totem-experience.js': [/if \(state\.deliveryHold \|\| !narrative/, /function resumeHeldTotem\(body\)[\s\S]{0,200}continueTotemDelivery\(body\)/],
+    'pet-saju.html': [/record\.held=window\.CDPaidNarrativeRetry\?window\.CDPaidNarrativeRetry\.holdOf\(payload,record\.resultId\)/, /if\(record\.held&&window\.CDPaidNarrativeRetry\)\{while\(host\.children\.length>1\)/],
+    'js/saju-engine.js': [/outcome\.code === 'REVIEW_REQUIRED' && outcome\.resultId/, /store\.update\(inputKey, \{ resumeBody: next/],
+  };
+  for (const [file, patterns] of Object.entries(pages)) {
+    const source = read(file);
+    assert.match(source, /paid-narrative-retry\.js/, file);
+    for (const pattern of patterns) assert.match(source, pattern, file);
+  }
+});

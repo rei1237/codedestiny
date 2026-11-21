@@ -7,6 +7,7 @@
 <title>Divya Yoga — Sacred Practice Portal</title>
 <script src="/js/core/yoga-guru-prompts.js"></script>
 <script src="/js/core/paid-narrative-reader.js"></script>
+<script src="/js/core/paid-narrative-retry.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/inline/api-base-init.js" defer></script>
 <script src="/js/core/pass-verdict.js?v=build-7244122e56ff"></script>
@@ -2077,7 +2078,9 @@ function storeYoga(){if(yogaOwner&&yogaOwner===yogaAccount())try{localStorage.se
 function parkYogaMusic(){const panel=document.getElementById('musicPanel'),home=document.getElementById('musicPanelHome');if(panel&&home)home.appendChild(panel);}
 function syncYogaOwner(){const owner=yogaAccount();if(owner!==yogaOwner){yogaOwner=owner;yogaEpoch++;yogaFlight=null;yogaLatest=null;yogaSaved=null;try{yogaSaved=JSON.parse(localStorage.getItem('cd:yoga:v2:'+owner)||'null');}catch(_){}
  stopTypingFlow();stopGeneratedMusic();parkYogaMusic();document.getElementById('yogaDeliveryProgress')?.remove();document.getElementById('courseOutput').textContent='';document.getElementById('courseOutput').classList.remove('active');document.getElementById('moodInput').value='';document.getElementById('loadingState').classList.remove('active');document.getElementById('inputSection').style.display='block';}return owner;}
-function yogaProgress(text,retry){let host=document.getElementById('yogaDeliveryProgress');if(!host){host=document.createElement('div');host.id='yogaDeliveryProgress';document.getElementById('courseOutput').before(host);}host.textContent='';const p=document.createElement('p');p.setAttribute('role','status');p.textContent=text;host.appendChild(p);
+function yogaProgress(text,retry){let host=document.getElementById('yogaDeliveryProgress');if(!host){host=document.createElement('div');host.id='yogaDeliveryProgress';document.getElementById('courseOutput').before(host);}host.textContent='';
+ // 생성 한도에 걸려 보류된 건: 무료 다시 시도·환불 요청 패널(js/core/paid-narrative-retry.js)만 보인다.
+ const hold=window.CDPaidNarrativeRetry?.holdOf(yogaLatest);if(hold){window.CDPaidNarrativeRetry.mount(host,{resultId:hold.resultId,apiBase:resolveApiBase(),onResume:resumeHeldYoga,primaryClass:'invoke-btn',secondaryClass:'invoke-btn'});return;}const p=document.createElement('p');p.setAttribute('role','status');p.textContent=text;host.appendChild(p);
  if(retry){const button=document.createElement('button');button.type='button';button.className='invoke-btn';button.textContent='저장된 코스 이어서 확인';button.onclick=recoverYoga;host.appendChild(button);}}
 async function yogaRequest(body){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),body?90000:22000);const headers={'Content-Type':'application/json','x-code-destiny-locale':window.cdStandaloneAiLocale.current()};const token=localStorage.getItem('fortune_auth_token');if(token)headers.Authorization='Bearer '+token;
  const base=resolveApiBase();try{const response=await fetch(base+'/api/yoga-guru'+(body?'':'/result'+(yogaSaved?.resultId?'?resultId='+encodeURIComponent(yogaSaved.resultId):'')),{method:body?'POST':'GET',credentials:'include',headers,signal:controller.signal,body:body?JSON.stringify(body):undefined});return {status:response.status,payload:await response.json()};}finally{clearTimeout(timer);}}
@@ -2088,6 +2091,7 @@ function runSavedYoga(body){if(yogaFlight)return yogaFlight;const owner=yogaOwne
  const flight=(async()=>{try{return await window.CDPaidNarrativeReader.run(body,{active,visible:()=>document.visibilityState!=='hidden'&&navigator.onLine!==false,post:yogaRequest,get:()=>yogaRequest(),wait:ms=>new Promise(resolve=>setTimeout(resolve,ms)),persist:(body,resultId)=>{yogaSaved={...yogaSaved,body,resultId};storeYoga();},show:showYogaDelivery});}
  catch(error){if(active()){document.getElementById('loadingState').classList.remove('active');yogaProgress(error.message,yogaLatest?.retryable!==false);}return false;}
  finally{if(yogaFlight===flight){yogaFlight=null;if(active()&&yogaSaved?.body)yogaProgress('저장된 요청을 보존했어요. 같은 코스를 이어서 확인해 주세요.',yogaLatest?.retryable!==false);}}})();yogaFlight=flight;return flight;}
+function resumeHeldYoga(body){yogaLatest=null;yogaSaved={...yogaSaved,body,resultId:body.resumeResultId};storeYoga();return runSavedYoga(body);}
 function recoverYoga(){if(!syncYogaOwner())return Promise.resolve(false);return runSavedYoga(yogaSaved?.body);}
 window.addEventListener('load',()=>recoverYoga());window.addEventListener('online',()=>recoverYoga());window.addEventListener('cd:auth-changed',()=>recoverYoga());window.addEventListener('storage',event=>{if(['fortune_auth_user','fortune_auth_token'].includes(event.key))recoverYoga();});document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='hidden')recoverYoga();});
 

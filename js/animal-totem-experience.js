@@ -1022,7 +1022,7 @@
     };
   }
 
-  var deliveryOwner = "", deliveryEpoch = 0, deliveryFlight = null, readerLoad = null;
+  var deliveryOwner = "", deliveryEpoch = 0, deliveryFlight = null, readerLoad = null, retryLoad = null;
   function currentDeliveryOwner() {
     try { var user = JSON.parse(localStorage.getItem("fortune_auth_user") || "null"); return String(user && (user.id || user._id || user.userId) || ""); } catch (_) { return ""; }
   }
@@ -1030,7 +1030,7 @@
   function syncDeliveryOwner() {
     var owner = currentDeliveryOwner();
     if (owner !== deliveryOwner) {
-      deliveryOwner = owner; deliveryEpoch += 1; deliveryFlight = null; state.delivery = null;
+      deliveryOwner = owner; deliveryEpoch += 1; deliveryFlight = null; state.delivery = null; state.deliveryHold = null;
       state.deliveryMessage = ""; state.requestId = "";
       resetAnimalTotemFlow();
     }
@@ -1052,6 +1052,29 @@
       document.head.appendChild(script);
     });
     return readerLoad;
+  }
+  function retryHelper() {
+    if (global.CDPaidNarrativeRetry) return Promise.resolve(global.CDPaidNarrativeRetry);
+    if (!retryLoad) retryLoad = new Promise(function(resolve, reject) {
+      var script = document.createElement("script"); script.src = "/js/core/paid-narrative-retry.js";
+      script.onload = function() { resolve(global.CDPaidNarrativeRetry); };
+      script.onerror = function() { retryLoad = null; reject(new Error(animalTotemText("delivery.reader"))); };
+      document.head.appendChild(script);
+    });
+    return retryLoad;
+  }
+  // 생성 한도에 걸려 보류된 건: 미완성 서술 대신 무료 다시 시도·환불 요청 패널(js/core/paid-narrative-retry.js)만 보인다.
+  function mountTotemRetry() {
+    var hold = state.deliveryHold; if (!hold) return;
+    retryHelper().then(function(retry) {
+      var host = document.querySelector("[data-totem-retry-host]");
+      if (host && state.deliveryHold === hold) retry.mount(host, { resultId: hold.resultId, onResume: resumeHeldTotem, primaryClass: "totem-tab", secondaryClass: "totem-tab" });
+    }).catch(function() {});
+  }
+  function resumeHeldTotem(body) {
+    state.deliveryHold = null;
+    state.delivery = Object.assign({}, state.delivery, { body: body, resultId: body.resumeResultId }); persistTotemDelivery();
+    return continueTotemDelivery(body);
   }
   async function totemDeliveryFetch(url, body) {
     var controller = new AbortController(), timer = setTimeout(function() { controller.abort(); }, body ? NARRATIVE_REQUEST_TIMEOUT_MS : 22000);
@@ -1088,6 +1111,7 @@
           persist: function(body, resultId) { state.delivery = Object.assign({}, state.delivery, { mode: state.mode, body: body, resultId: resultId }); persistTotemDelivery(); },
           show: function(data) {
             restoreTotemCards(data); state.narrative = data.narrative; state.narrativeSource = data.source;
+            state.deliveryHold = data.retryable === false && data.reviewRequired === true && data.saved !== true && data.resultId ? { resultId: String(data.resultId) } : null;
             state.delivery = Object.assign({}, state.delivery, { mode: data.mode, requestId: data.requestId, resultId: data.resultId, body: data.status === "completed" ? null : data.resumeBody });
             state.deliveryMessage = data.status === "completed" ? "" : animalTotemText("delivery.pending");
             persistTotemDelivery();
@@ -1754,7 +1778,7 @@
 
   function narrativeBridgeFor(slot) {
     var narrative = state.narrative;
-    if (!narrative || !Array.isArray(narrative.card_bridges)) return "";
+    if (state.deliveryHold || !narrative || !Array.isArray(narrative.card_bridges)) return "";
     var found = narrative.card_bridges.filter(function(bridge) { return bridge && bridge.slot === slot; })[0];
     return found ? String(found.line || "") : "";
   }
@@ -1802,6 +1826,12 @@
     var body = narrative && narrative.question_answer ? narrative.question_answer : "";
     var plan = (narrative && narrative.action_plan) || [];
     var synthesis = (narrative && narrative.shadow_gift_synthesis) || "";
+    if (state.deliveryHold) {
+      setTimeout(mountTotemRetry, 0);
+      return '<article class="totem-narrative" data-totem-panel="0">'
+        + '<h3 class="totem-narrative-title">' + escapeHtml(animalTotemText("result.yeoniTitle")) + "</h3>"
+        + '<div data-totem-retry-host></div></article>';
+    }
 
     return '<article class="totem-narrative" data-totem-panel="0">'
       + '<h3 class="totem-narrative-title">' + escapeHtml(animalTotemText("result.yeoniTitle")) + "</h3>"

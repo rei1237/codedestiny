@@ -63,10 +63,10 @@ const __lazyActionLoaders = {
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
   openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-f2dd1b22ed44'),
   openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-cf48ab7e8047'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-f7656ba31ff5'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-65b1f2e5ad77'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-e2521ca380b2')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-e09a908dc1c4')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/ggulggul/#dpMasterCard')),
