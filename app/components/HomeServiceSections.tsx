@@ -39,7 +39,7 @@ function getCurrentHomeServiceLocale(): LoadingLocale {
 const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
   "/saju": "/?action=cdOneStepFreeSajuEntry",
   "/manse": "/index.html",
-  "/compatibility": "/index.html?action=runCompat",
+  "/compatibility": "/ggulggul/?action=cdOneStepFreeSajuEntry&section=compatCard",
   "/tarot/mingri": "/tarot/mingri",
   "/ziwei/chart": "/ziwei/chart",
   "/dream": "/index.html?action=openDreamModal",
