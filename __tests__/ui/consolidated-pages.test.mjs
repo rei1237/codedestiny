@@ -9,8 +9,6 @@ const map = JSON.parse(source.match(/const CONSOLIDATED_PAGE_REDIRECTS = (\{[\s\
 const worker = (await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'))).default;
 // Policy canonical pages import these shared content modules; keep the source,
 // while every HTTP visit to its old public address permanently redirects.
-// 소스 페이지 삭제가 7단계로 미뤄진 은퇴 주소. 301 은 지금 걸고 app 페이지(redirect+noindex)는 7단계에서 지운다(R4-2, 2026-11-21).
-const PENDING_PAGE_DELETION = new Set(["/tarot/mingri/play"]);
 const policyAliases = new Map(STATIC_POLICY_ROUTES.flatMap(route => route.aliases.map(alias => [alias, route.canonical + '/'])));
 test('every retired page redirects once to an existing destination and retains input', async () => {
   for (const [from, to] of Object.entries(map)) {
@@ -21,7 +19,7 @@ test('every retired page redirects once to an existing destination and retains i
     }
     assert.equal(map[to.replace(/\/$/, '')], undefined);
     if (to !== '/ggulggul/') assert.ok(['js', 'tsx'].some(ext => fs.existsSync(path.join(root, 'app', to, 'page.' + ext))));
-    if (!policyAliases.has(from) && !PENDING_PAGE_DELETION.has(from)) assert.ok(!['js', 'tsx'].some(ext => fs.existsSync(path.join(root, 'app', from, 'page.' + ext))));
+    if (!policyAliases.has(from)) assert.ok(!['js', 'tsx'].some(ext => fs.existsSync(path.join(root, 'app', from, 'page.' + ext))));
   }
 });
 
