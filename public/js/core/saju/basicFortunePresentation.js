@@ -25,6 +25,21 @@
     return el;
   }
   function heading(text) { return node('h3', 'fr-heading', text); }
+  // 마스터 말풍선(웹툰 컷, 2026-11-22): 무료로 보이는 장마다 머리에 한마디를 둔다. 좌우는 장 차례대로 번갈아 간다.
+  // 문구·그리기·한국어 판정은 fortune-consultation-ui.js(say) 가 맡는다. 없거나 ''이면 아무것도 넣지 않는다.
+  function masterSayChapters(scope, service, chapters) {
+    var ui = window.CodeDestinyConsultationUI;
+    if (!scope || !ui || typeof ui.say !== 'function') return;
+    chapters.forEach(function (chapter, order) {
+      var section = typeof chapter[0] === 'string' ? scope.querySelector('#' + chapter[0]) : chapter[0];
+      if (!section || section.querySelector(':scope > .cd-say')) return;
+      var html = ui.say(service, chapter[1], { vars: chapter[2], side: order % 2 ? 'right' : 'left' });
+      if (!html) return;
+      var first = section.firstElementChild;
+      if (first && first.matches('h2,h3,.fr-heading')) first.insertAdjacentHTML('afterend', html);
+      else section.insertAdjacentHTML('afterbegin', html);
+    });
+  }
   function emblem(type) {
     var icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     icon.setAttribute('viewBox', '0 0 80 80'); icon.setAttribute('class', 'fr-emblem'); icon.setAttribute('aria-hidden', 'true');
@@ -219,7 +234,7 @@
     // Paid deep-dive fields (hidden/karma/mantra/health/timing) stay in their original gated renderer.
     [[8,'core'],[10,'love',11,'social'],[12,'work',14,'wealth'],[15,'advice']].forEach(function (entry, order) {
       if (!traits || !traits[entry[1]]) return;
-      var section = node('section', 'fr-reading-item');
+      var section = node('section', 'fr-reading-item'); section.dataset.syTrait = entry[1];
       var parts = [];
       var text = node('p', '', traits[entry[1]]); text.lang = 'ko'; parts.push(text);
       if (entry[3] && traits[entry[3]]) { parts.push(node('h4','',labels[entry[2]])); var extra = node('p','',traits[entry[3]]); extra.lang='ko'; parts.push(extra); }
@@ -231,6 +246,7 @@
       }
       body.appendChild(section);
     });
+    if (collapsible) masterSayChapters(body, 'sukuyo', Array.from(body.children).map(function (section) { return [section, section.dataset.syTrait]; }));
     body.appendChild(node('p','fr-caption',labels[30])); return body;
   }
   function syMansionDirectory(natal, labels) {
@@ -765,7 +781,7 @@
     area.appendChild(ziweiArticleLibrary(area));
     // The atlas is the sole decorative artwork on this surface. Keep text/captions.
     // The consultation entry scene is product imagery, not decoration — it must stay visible.
-    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.fc-master-reading,.fc-entry__scene,.zwla-illustration,.fr-compat-entry,[data-crafted-static-offer="ziwei_ai_prompt_generator"]')) img.hidden = true; });
+    area.querySelectorAll('img').forEach(function (img) { if (!img.closest('.cd-say,.fc-master-reading,.fc-entry__scene,.zwla-illustration,.fr-compat-entry,[data-crafted-static-offer="ziwei_ai_prompt_generator"]')) img.hidden = true; });
     cells.forEach(function (cell) {
       cell.setAttribute('aria-label', cell.querySelector('.zw-palace-name').textContent + ' · ' + cell.querySelector('.zw-branch-name').textContent);
     });
@@ -773,6 +789,7 @@
     var ming = mingCell && choices.querySelector('[data-palace-index="' + mingCell.className.match(/\bzw-cell-(\d+)\b/)[1] + '"]');
     if (ming) ming.click();
     initialSelection = false;
+    masterSayChapters(area, 'ziwei', [['fr-ziwei-chart','chart'],['fr-ziwei-reading','reading'],['fr-ziwei-flow','flow'],['fr-ziwei-articles','articles']]);
     // 지금 읽는 구간을 내비에 되돌려 준다. 의미는 색이 아니라 aria-current 가 진다(§22).
     // 배선이 함수 끝에 있는 이유: 흐름·상담·아티클 섹션은 바로 위에서야 DOM 에 붙는다.
     var spy = Array.from(nav.querySelectorAll('a')).map(function (link) {
@@ -935,6 +952,7 @@
     });
     if (extra.length) foldIfContent(root, t('explore'), extra, 'fr-astro-explore');
     root.appendChild(astroArticleLibrary(root));
+    masterSayChapters(root, 'astrology', [['fr-astro-today','today'],['fr-astro-year','year'],['fr-astro-reading','reading'],['fr-astro-chart','chart'],['fr-astro-planets','planets']]);
   }
   function init() {
     if (!document.getElementById('basicFortuneLibraryStyle')) {

@@ -62,6 +62,7 @@ import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import type { HdChart, HdInterpretation, HdPipelineStage, HdSelection } from "./_lib/types";
 import { BIRTH_STORAGE_KEY, writeChartHandoff } from "./_lib/chart-handoff";
 import styles from "./human-design.module.css";
+import YeoniSay from "@/components/fortune/YeoniSay";
 
 /**
  * 요구사항 6의 단계 순서. 첫 화면(마이 디자인)은 차트 자체이므로 이동 칩에서 뺀다.
@@ -499,6 +500,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             {/* ② 타입 */}
             <section className={styles.block} id="hd-type">
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionType, locale)}</h2>
+              <YeoniSay domain="humanDesign" sectionKey="type" />
               <p className={styles.blockLead}>{pick(typeCopy?.name, locale)}</p>
               <p className={styles.blockBody}>{pick(typeCopy?.summary, locale)}</p>
               {guide && <GuideParagraphs section={guide.type} ui={guide.ui} />}
@@ -518,6 +520,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             {/* ③ 전략 */}
             <section className={styles.block} id="hd-strategy">
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionStrategy, locale)}</h2>
+              <YeoniSay domain="humanDesign" sectionKey="strategy" />
               <p className={styles.blockLead}>
                 {pick(STRATEGY_COPY[chart.strategy as keyof typeof STRATEGY_COPY], locale)}
               </p>
@@ -528,6 +531,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             {/* ④ 내적 권위 */}
             <section className={styles.block} id="hd-authority">
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionAuthority, locale)}</h2>
+              <YeoniSay domain="humanDesign" sectionKey="authority" />
               <p className={styles.blockLead}>{pick(authorityCopy?.name, locale)}</p>
               <p className={styles.blockBody}>{pick(authorityCopy?.summary, locale)}</p>
               {guide && <GuideParagraphs section={guide.authority} ui={guide.ui} />}
@@ -536,6 +540,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             {/* ⑤ 프로파일 */}
             <section className={styles.block} id="hd-profile">
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionProfile, locale)}</h2>
+              <YeoniSay domain="humanDesign" sectionKey="profile" />
               <p className={`${styles.blockLead} ${styles.coreNumeral}`}>{chart.profile}</p>
               <p className={styles.blockBody}>
                 {pick(UI_TEXT.profileLines, locale)} — {chart.profileLines.personality} / {chart.profileLines.design}
@@ -555,6 +560,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             {/* ⑥ 센터 — 누르면 차트에서 같은 센터가 선택된다. */}
             <section className={styles.block} id="hd-centers">
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionCenters, locale)}</h2>
+              <YeoniSay domain="humanDesign" sectionKey="centers" />
               <p className={styles.blockBody}>{pick(UI_TEXT.centersDefinedHint, locale)}</p>
               <ul className={styles.rowList}>
                 {centerRows.map((row) => (
@@ -582,6 +588,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             {/* ⑦ 채널 */}
             <section className={styles.block} id="hd-channels">
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionChannels, locale)}</h2>
+              <YeoniSay domain="humanDesign" sectionKey="channels" />
               <p className={styles.blockBody}>{pick(UI_TEXT.channelsHint, locale)}</p>
               {chart.channels.length === 0 ? (
                 <p className={styles.blockEmpty}>{pick(UI_TEXT.noneYet, locale)}</p>
@@ -617,6 +624,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
             {/* ⑧ 게이트 */}
             <section className={styles.block} id="hd-gates">
               <h2 className={styles.blockHeading}>{pick(UI_TEXT.sectionGates, locale)}</h2>
+              <YeoniSay domain="humanDesign" sectionKey="gates" />
               <p className={styles.blockBody}>{pick(UI_TEXT.gatesHint, locale)}</p>
               <div className={styles.gateGrid}>
                 {[...chart.activeGates].sort((a, b) => a - b).map((gate) => (
@@ -639,6 +647,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
               <h2 id="hd-reading-heading" className={styles.blockHeading}>
                 {pick(UI_TEXT.sectionReading, locale)}
               </h2>
+              <YeoniSay domain="humanDesign" sectionKey="reading" />
               <p className={styles.blockBody}>{pick(UI_TEXT.legacyReadingNote, locale)}</p>
 
               {(

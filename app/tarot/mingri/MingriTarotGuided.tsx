@@ -15,6 +15,7 @@ import fan from '@/app/today/daily-tarot-fan.module.css';
 import {historyStateFor,snapshotKey,urlWithStep} from '@/lib/guided-flow/step-controller.mjs';
 import {MINGRI_CATEGORIES,MINGRI_DECK,MINGRI_POSITIONS,drawMingriOrientation,mingriCardImages,mingriTenGod,shuffleMingriDeck} from '@/lib/tarot/mingri-free-three.mjs';
 import styles from './mingri-tarot.module.css';
+import YeoniSay from "@/components/fortune/YeoniSay";
 
 interface Pick {slot:number;reversed:boolean}
 interface MasterReading {
@@ -306,13 +307,14 @@ function ResultStep({codes,picks,outcome,failed,categoryLabel,share,again,shareN
    :failed?<div className={tarot.verdict}><small>{t('mingriTarot.fallbackLabel')}</small><p>{t('mingriTarot.fallbackBody')}</p></div>:null}
   <section className={tarot.section}>
    <h3 className={tarot.sectionTitle}>{t('mingriTarot.positionsTitle')}</h3>
+   <YeoniSay domain="mingriTarot" sectionKey="positions" />
    <ol className={tarot.positions}>{rows.map((row,i)=><li key={codes[i]} className={tarot.position}><CardImage code={codes[i]} reversed={picks[i].reversed} alt=""/><p className={tarot.body}><span className={tarot.positionLabel}>{row.label}</span><span className={tarot.positionName}>{row.title}</span>{row.text}</p></li>)}</ol>
   </section>
   {reading&&outcome?<>
-   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('mingriTarot.energyTitle')}</h3><dl className={tarot.energy}>{reading.energy.map(row=><div key={row.label}><dt>{row.label}</dt><dd><b>{row.head}</b>{row.body}</dd></div>)}</dl></section>
+   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('mingriTarot.energyTitle')}</h3><YeoniSay domain="mingriTarot" sectionKey="energy" /><dl className={tarot.energy}>{reading.energy.map(row=><div key={row.label}><dt>{row.label}</dt><dd><b>{row.head}</b>{row.body}</dd></div>)}</dl></section>
    <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('mingriTarot.betweenTitle')}</h3><p className={tarot.body}>{reading.between}</p></section>
-   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('mingriTarot.sipsinTitle')}</h3><p className={tarot.body}>{outcome.sipsin}</p></section>
-   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('mingriTarot.synthesisTitle',{category:categoryLabel})}</h3><div className={tarot.synth}>
+   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('mingriTarot.sipsinTitle')}</h3><YeoniSay domain="mingriTarot" sectionKey="sipsin" /><p className={tarot.body}>{outcome.sipsin}</p></section>
+   <section className={tarot.section}><h3 className={tarot.sectionTitle}>{t('mingriTarot.synthesisTitle',{category:categoryLabel})}</h3><YeoniSay domain="mingriTarot" sectionKey="synthesis" /><div className={tarot.synth}>
     <div><h4>{t('mingriTarot.flowLabel')}</h4><p className={tarot.body}>{reading.synthesis.flow}</p></div>
     <div><h4>{t('mingriTarot.cautionLabel')}</h4><p className={tarot.body}>{reading.synthesis.caution}</p></div>
     <div className={tarot.action}><h4>{t('mingriTarot.actionLabel')}</h4><p className={tarot.body}>{reading.synthesis.action}</p></div>

@@ -103,3 +103,41 @@
   .fc-master-reading {grid-template-columns:56px minmax(0,1fr);gap:12px;}
   .fc-master-reading__portrait {width:56px;height:56px;}
 }
+
+/* 마스터 말풍선 웹툰 컷(2026-11-22) — 기본 자미두수·숙요·점성술·베다 결과의 장 머리. js/core/fortune-consultation-ui.js say() 가 그린다.
+   결과 면이 밝든 어둡든 읽히도록 말풍선은 마스터마다 자기 면·글자 색을 가진다: 무성=먹·청, 서한비=장부 크림, 윤달=밤하늘 금빛. */
+.cd-say {--say-ink:#2a2235;--say-bg:#fffaf0;--say-text:#2a2235;--say-accent:#8a5a2b;--say-line:#2a2235;display:flex;align-items:flex-end;gap:12px;margin:14px 0 18px;padding:0;max-width:640px;}
+.cd-say--right {flex-direction:row-reverse;margin-inline-start:auto;}
+.cd-say__cut {position:relative;flex:none;width:72px;height:72px;overflow:hidden;border:2px solid var(--say-line);border-radius:6px;background:var(--say-cut,#f3e9d6);box-shadow:3px 3px 0 var(--say-line);transform:rotate(-1.5deg);}
+.cd-say--right .cd-say__cut {transform:rotate(1.5deg);box-shadow:-3px 3px 0 var(--say-line);}
+.cd-say__face {display:block;width:100%;height:100%;object-fit:cover;object-position:50% 12%;}
+.cd-say__bubble {position:relative;min-width:0;flex:0 1 auto;margin:0;padding:12px 16px 13px;background:var(--say-bg);color:var(--say-text);border:2px solid var(--say-line);border-radius:18px 18px 18px 6px;box-shadow:3px 3px 0 color-mix(in srgb,var(--say-line) 35%,transparent);}
+.cd-say--right .cd-say__bubble {border-radius:18px 18px 6px 18px;box-shadow:-3px 3px 0 color-mix(in srgb,var(--say-line) 35%,transparent);}
+.cd-say__bubble::before,.cd-say__bubble::after {content:"";position:absolute;bottom:10px;width:0;height:0;border-style:solid;}
+.cd-say__bubble::before {left:-12px;border-width:7px 12px 7px 0;border-color:transparent var(--say-line) transparent transparent;}
+.cd-say__bubble::after {left:-8px;bottom:12px;border-width:5px 9px 5px 0;border-color:transparent var(--say-bg) transparent transparent;}
+.cd-say--right .cd-say__bubble::before {left:auto;right:-12px;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--say-line);}
+.cd-say--right .cd-say__bubble::after {left:auto;right:-8px;border-width:5px 0 5px 9px;border-color:transparent transparent transparent var(--say-bg);}
+.cd-say__name {display:inline-block;margin:0 0 4px;padding:1px 9px;border-radius:999px;background:var(--say-line);color:var(--say-bg);font-size:.75rem;font-weight:800;letter-spacing:.04em;line-height:1.6;}
+.cd-say__text {display:block;font-size:.97rem;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere;}
+.cd-say__text strong {color:var(--say-accent);font-weight:800;}
+.cd-say--musung {--say-bg:#1b2638;--say-text:#edf1f5;--say-accent:#fde68a;--say-line:#0f1724;--say-cut:#26344b;}
+.cd-say--musung .cd-say__name {background:#fde68a;color:#1b2638;}
+.cd-say--hanbi {--say-bg:#fbf5e6;--say-text:#3b2a1e;--say-accent:#8a4b22;--say-line:#5a3d27;--say-cut:#efe2c6;}
+.cd-say--yun {--say-bg:#141a33;--say-text:#eef2ff;--say-accent:#f7d98a;--say-line:#070a18;--say-cut:#222a4d;}
+.cd-say--yun .cd-say__name {background:#f7d98a;color:#141a33;}
+.cd-say--yun .cd-say__face {object-position:50% 6%;}
+html:not([lang|=ko]) .cd-say {display:none !important;}
+@media (prefers-reduced-motion:no-preference) {
+  @supports (animation-timeline:view()) {
+    .cd-say {animation:cd-say-in linear both;animation-timeline:view();animation-range:entry 0% entry 70%;}
+    .cd-say--right {animation-name:cd-say-in-right;}
+  }
+  @keyframes cd-say-in {from {opacity:0;transform:translateX(-14px);} to {opacity:1;transform:none;}}
+  @keyframes cd-say-in-right {from {opacity:0;transform:translateX(14px);} to {opacity:1;transform:none;}}
+}
+@media (max-width:480px) {
+  .cd-say {gap:10px;}
+  .cd-say__cut {width:58px;height:58px;}
+  .cd-say__text {font-size:.94rem;}
+}
