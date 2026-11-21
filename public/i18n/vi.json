@@ -22264,7 +22264,8 @@
       "review": "Chưa hoàn thành luận giải AI. Thanh toán và nội dung đã lưu được giữ an toàn để hỗ trợ kiểm tra. Phần cơ bản hiển thị bên dưới.",
       "revoked": "Không thể tiếp tục kết quả của khoản thanh toán đã hủy hoặc hoàn tiền. Phần cơ bản hiển thị bên dưới.",
       "retry": "Tiếp tục tải luận giải AI",
-      "moduleFail": "Không tải được màn hình luận giải AI. Chưa thanh toán. Vui lòng thử lại sau ít phút."
+      "moduleFail": "Không tải được màn hình luận giải AI. Chưa thanh toán. Vui lòng thử lại sau ít phút.",
+      "inputInvalid": "Vui lòng kiểm tra ngày sinh và giờ sinh đã nhập. Yêu cầu dừng ở bước kiểm tra dữ liệu không bị tính phí; nếu đã thanh toán, khoản tiền được giữ nguyên và bộ phận hỗ trợ sẽ hoàn tiền hoặc khôi phục. Phần cơ bản hiển thị bên dưới."
     },
     "archive": {
       "title": "Lịch sử tương hợp Tứ trụ",

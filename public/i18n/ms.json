@@ -22264,7 +22264,8 @@
       "review": "Tafsiran AI belum selesai. Pembayaran dan kandungan tersimpan dikekalkan untuk semakan sokongan. Tafsiran asas dipaparkan di bawah.",
       "revoked": "Keputusan bagi pembayaran yang dibatalkan atau dipulangkan tidak boleh diteruskan. Tafsiran asas dipaparkan di bawah.",
       "retry": "Sambung tafsiran AI",
-      "moduleFail": "Skrin tafsiran AI tidak dapat dimuatkan. Tiada pembayaran dibuat. Cuba sebentar lagi."
+      "moduleFail": "Skrin tafsiran AI tidak dapat dimuatkan. Tiada pembayaran dibuat. Cuba sebentar lagi.",
+      "inputInvalid": "Sila semak tarikh dan masa lahir yang dimasukkan. Permintaan yang terhenti pada semakan input tidak dikenakan bayaran; jika sudah dibayar, pembayaran dikekalkan dan pasukan sokongan akan memulangkan atau memulihkannya. Tafsiran asas dipaparkan di bawah."
     },
     "archive": {
       "title": "Rekod keserasian Saju",

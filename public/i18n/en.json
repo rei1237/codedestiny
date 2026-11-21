@@ -22264,7 +22264,8 @@
       "review": "The AI reading could not be finished. Your payment and the saved content are safely preserved, and our support team will look into it. The basic interpretation is shown below.",
       "revoked": "A result for a cancelled or refunded payment can't be continued. The basic interpretation is shown below.",
       "retry": "Continue loading the AI reading",
-      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly."
+      "moduleFail": "Couldn't load the AI reading screen. No payment was made. Please try again shortly.",
+      "inputInvalid": "Please check the birth date and birth time you entered. A request stopped at input validation is not charged; if a payment was already made, it is preserved and our support team will refund or restore it. The basic interpretation is shown below."
     },
     "archive": {
       "title": "Saju compatibility records",
