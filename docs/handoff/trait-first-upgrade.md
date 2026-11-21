@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 승인 게이트 C — 골든셋 결과(trait-first-phase5-verification.md) 보고 완료, 플래그 TRAIT_FIRST_SAJU 켜기·스테이징 E2E 여부 결정 대기
+next: 운영 dispatch 재승인 대기 — 플래그 커밋 0469561a0 push 완료(main CI 확인 필요), 승인 뒤 main 에 다른 세션 영냥이 UI 커밋 12개가 올라와 범위 재확인 중
 ---
 
 # [작업 지시] 전 엔진 "타고난 성향 우선(Trait-First)" 고도화 + 결제 후 미제공 제로 검증
@@ -78,7 +78,7 @@ Phase 6  기능 플래그로 엔진별 단계적 운영 반영 + 모니터링 + 
 - [x] Phase 3 (2026-11-22, 사주 6종, 플래그 기본 off)
 - [x] Phase 4 (2026-11-22, audit-paid-orphans 스테이징 실행)
 - [x] Phase 5 골든셋(12회, 2026-11-22) → `docs/handoff/trait-first-phase5-verification.md`. 스테이징 E2E 는 플래그가 꺼져 있어 미실행 — 게이트 C 에서 결정
-- [ ] 승인 게이트 C
+- [x] 승인 게이트 C (2026-11-22 네오 "권장안대로 진행 후 운영에도 반영해줘") — 0469561a0 TRAIT_FIRST_SAJU 켜기. 스테이징 E2E 미실행. 운영 dispatch 는 범위 재확인 대기
 - [ ] Phase 6 → `docs/context/trait-first.md`
 
 ---
