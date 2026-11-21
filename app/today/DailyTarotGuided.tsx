@@ -11,6 +11,7 @@ import {type GuidedStep,useGuidedFlow} from '@/app/components/guided-flow/useGui
 import {useGuidedT} from '@/app/components/guided-flow/useGuidedT';
 import tarot from '@/app/components/guided-flow/guided-tarot.module.css';
 import fan from './daily-tarot-fan.module.css';
+import {useRitualFx} from './useRitualFx';
 import {historyStateFor,readHistoryState,snapshotKey,stepFromSearch,urlWithStep} from '@/lib/guided-flow/step-controller.mjs';
 import {FreeQuestionNext} from '../components/QuestionJourney';
 import {trackEvent} from '@/lib/analytics';
@@ -241,6 +242,8 @@ type T=ReturnType<typeof useGuidedT>;
 function PickStep({reading,onToggle,reduced,next,t}:{reading:Reading;onToggle:(slot:number)=>void;reduced:boolean;next:()=>void;t:T}){
  const count=reading.picks.length,locked=reading.revealed>0;
  const auto=useRef<number|null>(null);
+ const fx=useRitualFx(reduced);
+ const pick=useCallback((slot:number)=>{if(!reading.picks.includes(slot))fx.tick(reading.picks.length===2);onToggle(slot);},[fx,onToggle,reading.picks]);
  // 세 번째 카드를 고르면 450ms 뒤 펼치기로(명세 D1). 그 사이 취소하면 멈춘다. reduced-motion 은 '다음'으로만.
  useEffect(()=>{
   if(auto.current!==null){window.clearTimeout(auto.current);auto.current=null;}
@@ -251,6 +254,7 @@ function PickStep({reading,onToggle,reduced,next,t}:{reading:Reading;onToggle:(s
  },[count,reduced,locked]);
  return <>
   <p className={tarot.pickMeta}><span className={tarot.pickCount}>{t('dailyTarot.pickCount',{count})}</span>{locked?null:<span>{t('dailyTarot.pickHint')}</span>}</p>
+  {reduced?null:<button type="button" className={fan.fxToggle} role="switch" aria-checked={fx.on} onClick={fx.toggle}>{fx.on?'소리·진동 켜짐':'소리·진동 꺼짐'}</button>}
   <ul className={fan.tray} aria-hidden="true">
    {DAILY_POSITIONS.map((position:string,index:number)=><li key={position} className={fan.traySlot} data-filled={index<count}>
     {index<count?<span className={fan.trayThumb}/>:null}
@@ -268,7 +272,7 @@ function PickStep({reading,onToggle,reduced,next,t}:{reading:Reading;onToggle:(s
     <div className={fan.fan} role="group" aria-label={t('dailyTarot.pickGroup')}>
      {reading.deck.map((_:number,slot:number)=>{
       const order=reading.picks.indexOf(slot),taken=order>=0;
-      return <button key={slot} type="button" className={fan.card} style={{'--i':slot,'--k':slot-(reading.deck.length-1)/2} as CSSProperties} aria-pressed={taken} disabled={locked||(!taken&&count>=3)} aria-label={t('dailyTarot.pickCard',{n:slot+1})} onClick={()=>onToggle(slot)}>
+      return <button key={slot} type="button" className={fan.card} style={{'--i':slot,'--k':slot-(reading.deck.length-1)/2} as CSSProperties} aria-pressed={taken} disabled={locked||(!taken&&count>=3)} aria-label={t('dailyTarot.pickCard',{n:slot+1})} onClick={()=>pick(slot)}>
        {taken?<span className={fan.order} aria-hidden="true">{order+1}</span>:null}
       </button>;
      })}

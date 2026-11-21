@@ -218,3 +218,26 @@
     display: none;
   }
 }
+
+/* 소리·진동 선택 토글(기본 꺼짐) */
+.fxToggle {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  margin-top: var(--cd-sp-xs);
+  padding: 0 var(--cd-sp-md);
+  border: 1px solid var(--gf-line);
+  border-radius: var(--cd-r-pill);
+  background: transparent;
+  color: var(--gf-muted);
+  font-size: var(--cd-t-caption);
+  cursor: pointer;
+}
+.fxToggle[aria-checked='true'] {
+  border-color: var(--gf-gold);
+  color: var(--gf-ink);
+}
+.fxToggle:focus-visible {
+  outline: 2px solid var(--gf-gold);
+  outline-offset: 2px;
+}
