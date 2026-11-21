@@ -862,7 +862,7 @@ export const __humanDesignReportTestUtils = {
 
 // 복구 크론의 정체 자동 확정. 진전 없는 웹 결제 리포트를 생성 실패로 먼저 확정하고(체크포인트 가드가
 // generation_failed 만 환불 대상으로 본다) 기존 즉시 환불 경로(refundExecution)를 한 번 부른다.
-// delivery_pending 은 웹 결제가 회수되지 않았으면 경로와 같은 verifyStoredHdAccess 로 완료로 구제하고, 회수됐으면
+// 결제가 회수된 건은 상태와 무관하게 쓰지 않는다. delivery_pending 은 웹 결제가 회수되지 않았으면 경로와 같은 verifyStoredHdAccess 로 완료로 구제하고, 회수됐으면
 // (이미 다른 경로로 돈이 돌아갔다) 쓰지 않고 경보만 남긴다 — 생성 실패로 바꾸면 타임아웃 스위프가 한 번 더 환불한다.
 // partial 은 /generate 가 202 만 돌려주는 막다른 상태라 실패 확정 대상이다. 토스 네이티브는 경보만 남긴다.
 export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
@@ -879,10 +879,10 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model } 
   if (!requestId) return { outcome: "unsupported" };
   const stalls = Number(fresh.deliveryWatch?.stalls || 0);
   const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
+  let allowed;
+  try { allowed = await verifyStoredHdAccess(fresh, env, null); } catch { return { outcome: "pending" }; } // 판단 보류 — 이어쓰기로 둔다.
+  if (!allowed) { logStuckUnsettled(FEATURE_KEY, fresh); return { outcome: "unsettled" }; }
   if (fresh.status === "delivery_pending") {
-    let allowed;
-    try { allowed = await verifyStoredHdAccess(fresh, env, null); } catch { return { outcome: "pending" }; } // 판단 보류 — 이어쓰기로 둔다.
-    if (!allowed) { logStuckUnsettled(FEATURE_KEY, fresh); return { outcome: "unsettled" }; }
     const done = await target.updateOne(cas, { $set: { status: "completed", completedAt: new Date(now), lock: null } });
     if (!done?.modifiedCount) return { outcome: "progressed" };
     await closeExecution(env, owner.userId, requestId, owner.id).catch(error => console.warn("[human-design-report] completion record", clean(error?.message, 120)));
@@ -899,7 +899,10 @@ export async function settleStuckDelivery(env, { doc, now = Date.now(), model } 
       await target.updateOne({ ...owner, status: "generation_failed" }, { $set: { generationError: { ...generationError, refunded: true } } })
         .catch(error => console.warn("[human-design-report] refund mark failed", clean(error?.message, 120)));
     }
-  } catch { refundStatus = "pending"; } // 실행 기록이 pending 으로 남으면 타임아웃 스위프가 생성 실패 문서를 보고 환불한다.
+  } catch { refundStatus = "pending"; }
+  // 실행 기록이 pending 이면 타임아웃 스위프가 생성 실패 문서를 보고 환불한다. 실행 기록이 없는 건(월정석 장부·선차감 이용권)은
+  // 재시도 경로가 없으므로 미환불 경보를 남긴다.
+  if (refundStatus === "pending") logStuckUnsettled(FEATURE_KEY, fresh);
   logStuckSettled({ service: FEATURE_KEY, sessionId: owner.id, outcome: "generation_failed", refundStatus, stalls });
   return { outcome: "generation_failed", refundStatus };
 }

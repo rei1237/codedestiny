@@ -262,11 +262,11 @@ describe('settleStuckDelivery', () => {
     expect(refund).not.toHaveBeenCalled();
     expect(await settle()).toMatchObject({ outcome: 'progressed' });
   });
-  it('delivery_pending with revoked payment is only alerted and never refunded again', async () => {
+  for (const status of ['generating', 'partial', 'delivery_pending']) it(`${status} with revoked payment is only alerted and never refunded again`, async () => {
     revokedSource = 1;
-    Object.assign(docs[0], { status: 'delivery_pending', updatedAt: stale() });
+    Object.assign(docs[0], { status, updatedAt: stale() });
     expect(await settle()).toMatchObject({ outcome: 'unsettled' });
-    expect(docs[0].status).toBe('delivery_pending');
+    expect(docs[0].status).toBe(status);
     expect(refund).not.toHaveBeenCalled();
     expect(closed).toBe(0);
   });
