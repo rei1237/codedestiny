@@ -102,7 +102,7 @@ export default function FreeFeatureDetail({ slug }: { slug: string }) {
           {breadcrumb.map((item, index) => (
             <Fragment key={item.path}>
               {index > 0 ? (
-                <span aria-hidden="true" className="text-[var(--cd-border)]">
+                <span aria-hidden="true" className="text-[var(--cd-text-muted)]">
                   /
                 </span>
               ) : null}
