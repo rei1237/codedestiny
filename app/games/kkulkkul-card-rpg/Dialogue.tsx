@@ -82,16 +82,22 @@ export function NovelLine({
   text,
   speaker,
   still,
+  idleActor,
 }: {
   text: string;
   speaker: string;
   still: boolean;
+  idleActor?: string;
 }) {
   const speech = useSpeech(text, still);
   const actor = companions.findIndex((c) => c.speaker === speaker);
+  const portrait =
+    actor >= 0 ? actor : companions.findIndex((c) => c.speaker === idleActor);
   return (
     <div className={s.novelLine}>
-      {actor >= 0 && <Portrait index={actor} frame={speech.frame} />}
+      {portrait >= 0 && (
+        <Portrait index={portrait} frame={actor >= 0 ? speech.frame : 0} />
+      )}
       <div>
         <small>
           {actor >= 0

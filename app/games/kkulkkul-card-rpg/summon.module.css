@@ -157,7 +157,7 @@
   color: var(--ink);
   transform: rotateY(180deg);
 }
-.front b {
+.front > b {
   position: absolute;
   inset: auto 0 0;
   text-align: center;
@@ -178,10 +178,20 @@
   display: grid;
   justify-items: center;
 }
-.results img {
+.results button > img {
   height: 78px;
   width: 100%;
   object-fit: contain;
+}
+.results button > div {
+  width: min(100%, 134px);
+}
+.banner > div[data-person] {
+  max-width: 190px;
+  justify-self: center;
+}
+.front > div[data-person] {
+  height: 100%;
 }
 .results small {
   color: #69384d;

@@ -4,14 +4,16 @@ import { ArrowRight, Gem, MoonStar } from "lucide-react";
 import {
   banners,
   CARD_BACK,
-  draw,
   fixtures,
   quote,
   scenarios,
   type BannerId,
   type Scenario,
 } from "./summon-preview";
+import CharacterCard from "./CharacterCard";
+import { definitions } from "./formation";
 import s from "./summon.module.css";
+import { applySummon } from "./collection";
 
 type Phase =
   | "banner"
@@ -30,6 +32,8 @@ type Session = {
   retried: boolean;
   due: number;
   fast: boolean;
+  run: string;
+  cards: Awaited<ReturnType<typeof applySummon>>;
 };
 const initial: Session = {
   id: "character",
@@ -40,14 +44,19 @@ const initial: Session = {
   retried: false,
   due: 0,
   fast: false,
+  run: "",
+  cards: [],
 };
-const key = "kkulkkul-card-rpg.summon-preview.v1";
-let memory = initial;
-function restore(): Session {
+const memory = new Map<string, Session>();
+function restore(key: string): Session {
   try {
     const value = JSON.parse(sessionStorage.getItem(key) || "null");
     if (
       value &&
+      Array.isArray(value.cards) &&
+      typeof value.run === "string" &&
+      (["banner", "confirm", "waiting", "error"].includes(value.phase) ||
+        value.cards.length === value.n) &&
       Object.hasOwn(banners, value.id) &&
       Object.hasOwn(scenarios, value.scenario) &&
       [
@@ -71,7 +80,7 @@ function restore(): Session {
   } catch {
     /* Memory also survives local navigation when storage is blocked. */
   }
-  return memory;
+  return memory.get(key) ?? initial;
 }
 function Art({
   src,
@@ -102,24 +111,20 @@ function Art({
     />
   );
 }
-export default function SummonPreview(props: {
+type PreviewProps = {
+  scope: string;
   balance: string;
   still: boolean;
-  go: (id: "team" | "relic") => void;
-}) {
+  go: (id: "team" | "relic" | "cast", ownedId: string) => void;
+};
+export default function SummonPreview(props: PreviewProps) {
   if (process.env.NODE_ENV !== "development")
     return <p>캐릭터·예장 소환 배너를 준비하고 있어요.</p>;
-  return <DevelopmentSummon {...props} />;
+  if (!props.scope) return <p>계정 확인 중</p>;
+  return <DevelopmentSummon key={props.scope} {...props} />;
 }
-function DevelopmentSummon({
-  balance,
-  still,
-  go,
-}: {
-  balance: string;
-  still: boolean;
-  go: (id: "team" | "relic") => void;
-}) {
+function DevelopmentSummon({ scope, balance, still, go }: PreviewProps) {
+  const key = "kkulkkul-card-rpg.summon-preview.v2." + scope;
   const [session, setSession] = useState(initial),
     [ready, setReady] = useState(false);
   const current = useRef(initial);
@@ -128,7 +133,8 @@ function DevelopmentSummon({
   const instant = still || systemReduced;
   function update(patch: Partial<Session>) {
     const next = { ...current.current, ...patch };
-    current.current = memory = next;
+    current.current = next;
+    memory.set(key, next);
     setSession(next);
     try {
       sessionStorage.setItem(key, JSON.stringify(next));
@@ -137,7 +143,7 @@ function DevelopmentSummon({
     }
   }
   useEffect(() => {
-    current.current = restore();
+    current.current = restore(key);
     setSession(current.current);
     setReady(true);
     const mq = matchMedia("(prefers-reduced-motion: reduce)"),
@@ -149,23 +155,42 @@ function DevelopmentSummon({
   const { id, scenario, phase, n, index, fast } = session;
   const banner = banners[id],
     cost = quote(id, n, scenario),
-    results = draw(id, n),
+    results = session.cards,
     pick = banner.entries[0],
     result = results[index];
   useEffect(() => {
     if (!ready || phase !== "waiting") return;
+    let active = true;
     const t = setTimeout(
-      () => {
-        if (current.current.phase === "waiting")
-          update({
-            phase:
-              scenario === "failure" && !session.retried ? "error" : "reveal",
-          });
+      async () => {
+        if (scenario === "failure" && !session.retried) {
+          update({ phase: "error" });
+          return;
+        }
+        try {
+          const cards = await applySummon(scope, session.run, id, n);
+          if (active) update({ cards, phase: "reveal" });
+        } catch {
+          if (active) update({ phase: "error" });
+        }
       },
       Math.max(0, session.due - Date.now()),
     );
-    return () => clearTimeout(t);
-  }, [ready, phase, session.due, scenario, session.retried]);
+    return () => {
+      active = false;
+      clearTimeout(t);
+    };
+  }, [
+    ready,
+    phase,
+    session.run,
+    session.due,
+    scenario,
+    session.retried,
+    scope,
+    id,
+    n,
+  ]);
   useEffect(() => {
     if (!ready || phase !== "reveal") return;
     const t = setTimeout(
@@ -198,6 +223,8 @@ function DevelopmentSummon({
       index: 0,
       due: Date.now() + (scenario === "slow" ? 3000 : 420),
       retried: retry,
+      run: retry ? session.run : crypto.randomUUID(),
+      cards: [],
     });
   }
   if (!ready) return <p>미리보기 불러오는 중…</p>;
@@ -208,7 +235,7 @@ function DevelopmentSummon({
     error: "소환 응답을 받지 못했어요",
     reveal: "카드 공개",
     results: "소환 결과",
-    detail: result.entry.name,
+    detail: result?.entry.name ?? "획득 상세",
   };
   return (
     <div className={s.summon} data-phase={phase} data-still={instant}>
@@ -222,7 +249,7 @@ function DevelopmentSummon({
             {(["character", "relic"] as const).map((tab) => (
               <button
                 key={tab}
-                aria-pressed={id === tab}
+                aria-pressed={tab === "character" ? id !== "relic" : id === tab}
                 onClick={() => update({ id: tab, index: 0 })}
               >
                 {banners[tab].label} 소환
@@ -237,6 +264,20 @@ function DevelopmentSummon({
               <p>{pick.role}</p>
             </div>
           </div>
+          {id !== "relic" && (
+            <label>
+              캐릭터 배너
+              <select
+                value={id}
+                onChange={(e) =>
+                  update({ id: e.target.value as BannerId, index: 0 })
+                }
+              >
+                <option value="character">{banners.character.title}</option>
+                <option value="encounter">{banners.encounter.title}</option>
+              </select>
+            </label>
+          )}
           <div className={s.ledger}>
             <span>
               계정 월정석 <b>{balance}</b>
@@ -281,7 +322,8 @@ function DevelopmentSummon({
             </select>
           </label>
           <small>
-            매 실험은 같은 시작 잔액·보유 목록·추첨 순서로 재현됩니다.
+            실험 잔액과 추첨 순서는 고정됩니다. 획득한 동료와 예장은 이 기기의
+            개발 컬렉션에 누적됩니다.
           </small>
           <div className={s.actions}>
             {([1, 10] as const).map((count) => (
@@ -332,7 +374,7 @@ function DevelopmentSummon({
       )}
       {phase === "error" && (
         <>
-          <p>검증용 첫 응답이 실패했어요. 같은 실험을 다시 열 수 있어요.</p>
+          <p>소환 결과를 저장하지 못했어요. 같은 실험을 다시 열 수 있어요.</p>
           <button onClick={() => start(true)}>다시 시도</button>
         </>
       )}
@@ -350,15 +392,21 @@ function DevelopmentSummon({
                 <Art src={CARD_BACK} name="연꽃 카드 뒷면" />
               </div>
               <div className={s.front}>
-                <Art
-                  key={result.entry.id}
-                  src={result.entry.art}
-                  name={result.entry.name}
-                  broken={scenario === "image"}
-                />
-                <b>
-                  {banner.label} · {result.entry.name}
-                </b>
+                {id !== "relic" && scenario !== "image" ? (
+                  <CharacterCard variant={definitions[result.entry.id]} />
+                ) : (
+                  <>
+                    <Art
+                      key={result.entry.id}
+                      src={result.entry.art}
+                      name={result.entry.name}
+                      broken={scenario === "image"}
+                    />
+                    <b>
+                      {banner.label} · {result.entry.name}
+                    </b>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -396,11 +444,15 @@ function DevelopmentSummon({
                 key={i}
                 onClick={() => update({ phase: "detail", index: i })}
               >
-                <Art
-                  src={r.entry.art}
-                  name={r.entry.name}
-                  broken={scenario === "image"}
-                />
+                {id !== "relic" && scenario !== "image" ? (
+                  <CharacterCard variant={definitions[r.entry.id]} />
+                ) : (
+                  <Art
+                    src={r.entry.art}
+                    name={r.entry.name}
+                    broken={scenario === "image"}
+                  />
+                )}
                 <b>{r.entry.name}</b>
                 <small>
                   {r.duplicate ? "기존 보유 · 조각 +" + banner.shards : "NEW"} ·
@@ -414,11 +466,15 @@ function DevelopmentSummon({
       {phase === "detail" && (
         <>
           <div className={s.banner}>
-            <Art
-              src={result.entry.art}
-              name={result.entry.name}
-              broken={scenario === "image"}
-            />
+            {id !== "relic" && scenario !== "image" ? (
+              <CharacterCard variant={definitions[result.entry.id]} />
+            ) : (
+              <Art
+                src={result.entry.art}
+                name={result.entry.name}
+                broken={scenario === "image"}
+              />
+            )}
             <div>
               <small>
                 {banner.label} · {"★".repeat(result.entry.stars)}
@@ -433,11 +489,20 @@ function DevelopmentSummon({
             </div>
           </div>
           <div className={s.actions}>
+            {id !== "relic" && (
+              <button onClick={() => go("cast", result.ownedId)}>
+                동료 상세 열기
+              </button>
+            )}
             <button onClick={() => update({ phase: "results" })}>
               결과 목록
             </button>
-            <button onClick={() => go(id === "character" ? "team" : "relic")}>
-              {id === "character" ? "편성" : "예장 장착 안내"}{" "}
+            <button
+              onClick={() =>
+                go(id !== "relic" ? "team" : "relic", result.ownedId)
+              }
+            >
+              {id !== "relic" ? "편성" : "예장 장착 안내"}{" "}
               <ArrowRight size={16} />
             </button>
           </div>

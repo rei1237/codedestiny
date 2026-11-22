@@ -26,6 +26,7 @@ import {
   screens,
   type Screen,
 } from "./catalog";
+import CollectionViews from "./CollectionViews";
 import SummonPreview from "./SummonPreview";
 import { Dialogue, Portrait, NovelLine } from "./Dialogue";
 import { usePlayer } from "./usePlayer";
@@ -61,6 +62,12 @@ export default function Lobby({
   const [warning, setWarning] = useState("");
   const [line, setLine] = useState(0);
   const [beat, setBeat] = useState(0);
+  const [target, setTarget] = useState({ scope: "", screen: "", ownedId: "" });
+  const [met, setMet] = useState("");
+  function openOwned(screen: "cast" | "team" | "relic", ownedId: string) {
+    setTarget({ screen, ownedId, scope: player.scope });
+    go(screen);
+  }
   const title = useRef<HTMLHeadingElement>(null);
   const hero = companions[prefs.hero];
   const checkpointKey = player.scope
@@ -80,6 +87,21 @@ export default function Lobby({
       setWarning("이 기기의 읽던 위치를 불러올 수 없어요.");
     }
   }, [checkpointKey, opening]);
+  useEffect(() => {
+    if (!checkpointKey) return;
+    try {
+      if (screen === "story")
+        localStorage.setItem(checkpointKey + ".visited", "1");
+      setMet(
+        localStorage.getItem(checkpointKey + ".visited") ||
+          localStorage.getItem(checkpointKey)
+          ? player.scope
+          : "",
+      );
+    } catch {
+      setMet(screen === "story" ? player.scope : "");
+    }
+  }, [checkpointKey, player.scope, screen]);
   function turnPage(next: number) {
     setBeat(next);
     if (checkpointKey) {
@@ -174,7 +196,12 @@ export default function Lobby({
     </button>
   );
   return (
-    <main className={s.game} data-still={prefs.still} data-large={prefs.large}>
+    <main
+      data-dev={process.env.NODE_ENV === "development"}
+      className={s.game}
+      data-still={prefs.still}
+      data-large={prefs.large}
+    >
       <header className={s.top}>
         <button
           aria-label={screen === "home" ? "서비스 복귀" : "뒤로"}
@@ -307,7 +334,28 @@ export default function Lobby({
             <h1 tabIndex={-1} ref={title}>
               {screens[screen]}
             </h1>
-            {screen === "cast" && (
+            {process.env.NODE_ENV === "development" &&
+              (screen === "cast" || screen === "team" || screen === "relic") &&
+              (player.scope ? (
+                <CollectionViews
+                  key={player.scope + screen}
+                  scope={player.scope}
+                  screen={screen}
+                  target={
+                    target.scope === player.scope && target.screen === screen
+                      ? target.ownedId
+                      : ""
+                  }
+                  hero={prefs.hero}
+                  chooseHero={chooseHero}
+                  go={openOwned}
+                  still={prefs.still}
+                  metYeon={met === player.scope}
+                />
+              ) : (
+                <p>계정 상태 확인 중 · {player.name}</p>
+              ))}
+            {screen === "cast" && process.env.NODE_ENV !== "development" && (
               <>
                 <p>대표 캐릭터를 고르면 로비에서 대화를 나눌 수 있어요.</p>
                 {companions.map((c, i) => (
@@ -331,12 +379,15 @@ export default function Lobby({
               <SummonPreview
                 balance={player.balance}
                 still={prefs.still}
-                go={go}
+                scope={player.scope}
+                go={openOwned}
               />
             )}
-            {screen in pending && (
-              <p>{pending[screen as keyof typeof pending]}</p>
-            )}
+            {screen in pending &&
+              !(
+                process.env.NODE_ENV === "development" &&
+                (screen === "team" || screen === "relic")
+              ) && <p>{pending[screen as keyof typeof pending]}</p>}
             {screen === "menu" &&
               (["archive", "history", "settings", "help"] as const).map(
                 shortcut,

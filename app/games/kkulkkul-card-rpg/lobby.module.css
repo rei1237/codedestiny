@@ -429,6 +429,9 @@
   }
 }
 @media (orientation: portrait) {
+  .game[data-dev="true"] .dock {
+    padding-left: 54px;
+  }
   .game {
     min-height: 100svh;
     height: auto;
@@ -508,6 +511,11 @@
   }
 }
 
+.panel:is([data-screen="team"], [data-screen="relic"], [data-screen="cast"]) {
+  width: min(100%, 1120px);
+  background: linear-gradient(120deg, #55364a, #452d42);
+  border: 1px solid #b889934d;
+}
 .panel[data-screen="summon"] {
   width: min(100%, 960px);
 }
