@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-22
-next: push 대기 → 마무리
+next: 없음 — E~H·P 전부 main push 완료(c4ec066d06), 워크트리 배수
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -491,7 +491,7 @@ next: push 대기 → 마무리
   - [미검증] 사람이 실제 120ms 재생을 눈으로 본 확인은 없다(정지 칸·차분만).
   - [추정] 반응 시트(mascot-reactions) 재생 중에는 패치를 숨기므로 두 시트가 겹치지 않는다. 다만 반응이 끝난 직후의 첫 깜빡임 타이밍은 재지 않았다.
 
-#### F5~F7 전달 상태 (2026-11-22) — push 보류 (G·H 도 같은 워크트리에 얹혀 함께 보류)
+#### F5~F7 전달 상태 (2026-11-22) — 완료: origin/main 8ed2fe5f5 PR CI 녹색 확인 뒤 머지·sync:public·check:pre-push 통과, c4ec066d06 로 push
 - H 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리 그대로 9e6866ce1e, push PR CI 44975100389 failure 그대로(새 실행 없음), Yeongnyangi Browser Shadow 는 최근 5개 머리(9e6866ce1e·099c462781·cbf29560d6·b43e97c003·ed8b080660) 모두 failure 인 기존 shadow 실패(42건 중 1건 TimeoutError). H 도 push 하지 않았다. H 뒤 pre-push 는 push 직전에 돈다.
 - G 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리 그대로 9e6866ce1e, PR CI failure·Yeongnyangi Browser Shadow failure 그대로. G 도 push 하지 않았다. G 커밋 뒤 pre-push 는 아직 안 돌렸다(push 직전에 돈다). G 쪽 check:fast(critical) 는 통과.
 - 워크트리 브랜치 커밋: 4559d30e31(F5) · 45c0c758ea(F6) · 0174f4d2bc(문서) · e4ef55f77b(origin/main 9e6866ce1e 머지, sitemap-lastmod 충돌은 theirs 뒤 `npm run sitemap:generate` 로 재생성, verify ok, sync:public 변경 없음) · b75a9e2464(문서) · f13075f36d(F7) · 이 문서 커밋. F5·F6 시점 `npm run check:pre-push` 통과. F7 뒤에는 pre-push 를 아직 안 돌렸다(push 직전에 돈다).
