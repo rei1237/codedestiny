@@ -20,13 +20,28 @@ export default function AnalyticsConsent() {
   const [error, setError] = useState(false);
   const panel = useRef<HTMLElement>(null);
   const opener = useRef<HTMLElement | null>(null);
+  const focusedBeforeMove = useRef(false);
   const excluded = /^\/(admin|gift|ggulggul)(\/|$)/.test(pathname);
-  const inPage = /^\/snu(\/|$)/.test(pathname);
+  const snuPage = /^\/snu(\/|$)/.test(pathname);
   const [inPageHost, setInPageHost] = useState<HTMLElement | null>(null);
 
+  const inPage = snuPage || Boolean(inPageHost);
+
   useEffect(() => {
-    setInPageHost(inPage ? document.getElementById("snu-consent-slot") : null);
-  }, [inPage]);
+    const homeSlot = pathname === "/" ? document.getElementById("home-consent-slot") : null;
+    if (!homeSlot) {
+      setInPageHost(snuPage ? document.getElementById("snu-consent-slot") : null);
+      return;
+    }
+    const desktop = window.matchMedia("(min-width: 769px)");
+    const placeBanner = () => {
+      focusedBeforeMove.current = Boolean(panel.current?.contains(document.activeElement));
+      setInPageHost(desktop.matches ? homeSlot : null);
+    };
+    placeBanner();
+    desktop.addEventListener("change", placeBanner);
+    return () => desktop.removeEventListener("change", placeBanner);
+  }, [pathname, snuPage]);
 
   useEffect(() => {
     // Preserve the native-app consent policy. This banner is for web visitors.
@@ -53,6 +68,11 @@ export default function AnalyticsConsent() {
     if (!open || !opener.current) return;
     panel.current?.focus();
   }, [open]);
+
+  useEffect(() => {
+    if (focusedBeforeMove.current) panel.current?.focus();
+    focusedBeforeMove.current = false;
+  }, [inPageHost]);
 
   // Fixed banner covers the bottom of the page until a choice is made. Publish how much it covers so
   // sticky CTAs (guided flow) and the page bottom padding can sit clear of it instead of underneath.
@@ -95,7 +115,7 @@ export default function AnalyticsConsent() {
       (window as ConsentWindow).cdSyncConsent?.();
       setError(false);
       setOpen(false);
-      opener.current?.focus({ preventScroll: true });
+      opener.current?.focus({ preventScroll: !inPage });
       opener.current = null;
     } catch { setError(true); }
   }

@@ -37,6 +37,8 @@
 .brandRow { display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 44px; padding-block: 16px 8px; max-width:1120px; margin-inline:auto; }
 .brandMark { width: 28px; height: 28px; flex: none; }
 .wordmark { font-family: var(--font-display); font-size: 1rem; font-weight: 400; letter-spacing: 0; }
+.consentSlot { width: min(100%, var(--cd-w-prose)); }
+.consentSlot:empty { display: none; }
 .stage { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 24px; padding-block: 20px 32px; }
 .head { display: grid; justify-items: center; gap: 12px; text-align: center; }
 .page .title { font-size: clamp(1.5rem, 5.8vw, 2.5rem); line-height: 1.35; letter-spacing: -0.02em; }

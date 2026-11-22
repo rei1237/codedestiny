@@ -99,7 +99,7 @@ export default function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
         <span className={styles.wordmark}>{service.name}</span>
-        {!IS_APP_BUILD && <a href="#homeCardTitle">상담 추천</a>}
+        {!IS_APP_BUILD && <a href="#webServiceTitle">상담 추천</a>}
       </header>
 
       <main className={styles.stage}>
@@ -107,7 +107,7 @@ export default function HomePage() {
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
         </div> : <div className={styles.head}>
-          <h1 id="webServiceTitle" className={styles.title}>꿀꿀 운세 — 사주·타로·자미두수 운세 상담</h1>
+          <h1 id="webServiceTitle" tabIndex={-1} className={styles.title}>꿀꿀 운세 — 사주·타로·자미두수 운세 상담</h1>
           <p className={styles.lead}>마음이 가는 카드를 골라보세요</p>
           {/* 2026-11-15 사용자 결정: 카드 위 한 줄 근거. 날짜가 찍힌 원문 비교로만 연결한다. */}
           <TrustRecordLine className={styles.trust} />
@@ -138,6 +138,7 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {!IS_APP_BUILD && <div id="home-consent-slot" className={styles.consentSlot} />}
         {IS_APP_BUILD && <section className={styles.nativeMasters} aria-labelledby="nativeMastersTitle">
           <Image src="/images/home/fusion-signature-masters-600.webp" alt="" width={600} height={400} />
           <div className={styles.nativeMastersCopy}>
