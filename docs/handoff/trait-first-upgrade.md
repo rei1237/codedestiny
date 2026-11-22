@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: Phase 6 운영 지표 측정 — 데이터가 쌓인 뒤(예: 2026-11-29) 운영 DB 읽기 전용 집계 1회 승인 필요. 그 외 남은 과제는 docs/context/trait-first.md 남은 과제 절
+next: 2026-11-29 D+7 운영 지표 재측정(운영 DB 읽기 전용 1회 승인 필요, 알림 루틴 trig_01GAJCrN4SpPWGi1gXZavXg3)
 ---
 
 # [작업 지시] 전 엔진 "타고난 성향 우선(Trait-First)" 고도화 + 결제 후 미제공 제로 검증
@@ -79,7 +79,11 @@ Phase 6  기능 플래그로 엔진별 단계적 운영 반영 + 모니터링 + 
 - [x] Phase 4 (2026-11-22, audit-paid-orphans 스테이징 실행)
 - [x] Phase 5 골든셋(12회, 2026-11-22) → `docs/handoff/trait-first-phase5-verification.md`. 스테이징 E2E 는 플래그가 꺼져 있어 미실행 — 게이트 C 에서 결정
 - [x] 승인 게이트 C (2026-11-22 네오 "권장안대로 진행 후 운영에도 반영해줘") — 0469561a0 TRAIT_FIRST_SAJU 켜기. 스테이징 E2E 미실행. 운영 반영 2026-11-22 run 44958063343 success(영냥이 UI 12커밋 동반, 네오 재승인)
-- [ ] Phase 6 — 운영 반영 완료(run 44958063343), `docs/context/trait-first.md`·CLAUDE.md 링크 완료, 운영 지표 측정 미실행
+- [ ] Phase 6 — 운영 반영 완료(run 44958063343), `docs/context/trait-first.md`·CLAUDE.md 링크 완료. 2026-11-22 네오 "모두 승인할께 그리고 다소 품질이 안맞아도 품질 게이트로 인해서 결제 후 결과가 제공안되는 일은 없도록해":
+  - [x] 운영 DB 읽기 전용 기준선(11-20 00:22Z~11-22 00:22Z, 플래그 켠 당일이라 켠 뒤 표본은 거의 없음): 고아(미전달) 0, 신년 전달 4·네오 1·융합 2, 영냥이 고등어 3/3(p95 225s). 인생의 책 generation_failed 2건(037d55379fef·b52543bb2dfc, 11-20 생성 = 플래그 이전, DELIVERY_STUCK, 재개 입력 있음) — 플래그와 무관, 운영 DB 쓰기라 별도 RED 로 보고만
+  - [x] 인생의 책 겹친 완곡: 규칙 줄 + 유효 판정 뒤 결정적 교정(softenTraitDoubleHedges), 거부·재시도 없음. 실호출 1회 검수 → [trait-first-phase6-verification.md](trait-first-phase6-verification.md)
+  - [x] 인연의 서 label_leak: JSON evidenceId 만 걸린 과대 판정, 코드 변경 없음
+  - [ ] D+7 운영 지표 재측정(2026-11-29) — 알림 루틴 trig_01GAJCrN4SpPWGi1gXZavXg3, 운영 DB 읽기 전용 1회 승인 필요
 
 ---
 
