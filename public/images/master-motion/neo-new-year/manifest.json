@@ -1,0 +1,84 @@
+{
+  "id": "neo-new-year",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/neo-new-year-portrait.webp",
+  "baseSha256": "4ce86b04ad86a778f27e8a1fa89b68f8d4d1f12a789086fb4ee7e33e97b2b6ac",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/neo-new-year/portrait-poster.webp",
+      "posterBytes": 78522,
+      "sheet": {
+        "src": "/images/master-motion/neo-new-year/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        }
+      },
+      "sheetBytes": 313328
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/neo-new-year/avatar-poster.webp",
+      "posterBytes": 5124,
+      "sheet": {
+        "src": "/images/master-motion/neo-new-year/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 14942,
+      "crop": {
+        "left": 150,
+        "top": 20,
+        "size": 280
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 3.37,
+      "wholeDiff": 3.35,
+      "regionDiff": 26.37,
+      "colorShift": [
+        0.01,
+        2.59,
+        3.48
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 10.45
+      }
+    },
+    "closed": {
+      "guardDiff": 4.35,
+      "wholeDiff": 4.35,
+      "regionDiff": 35.8,
+      "colorShift": [
+        2.57,
+        3.11,
+        4.25
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 12.18
+      }
+    }
+  }
+}

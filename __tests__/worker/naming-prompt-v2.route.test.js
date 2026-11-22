@@ -4,7 +4,7 @@ import { jest } from "@jest/globals";
 // jest 는 TS 를 못 읽으므로 여기서는 service.ts 를 손 가짜로 바꾸고, 라우트의 판 선택·저장·직렬화·무료 경로만 본다.
 
 const uid="64b7f2a1c3d4e5f601234567";
-let route,settleDue,docs,provider,userId,authCalls,fetchBlock,candidateCount,passRefund,revoked,cardPayment,cardRefund;
+let settleStuck,route,settleDue,docs,provider,userId,authCalls,fetchBlock,candidateCount,passRefund,revoked,cardPayment,cardRefund;
 const clone=v=>v==null?v:structuredClone(v);
 const get=(d,k)=>k.split('.').reduce((v,p)=>v?.[p],d);
 function set(d,k,v){const keys=k.split('.');const end=keys.pop();let o=d;for(const key of keys)o=o[key]??={};o[end]=clone(v);}
@@ -71,7 +71,7 @@ beforeAll(async()=>{
  const revocation=await import('../../worker/lib/paid-result-revocation.js');
  jest.unstable_mockModule('../../worker/lib/paid-result-revocation.js',()=>({...revocation,isPaidResultRevoked:async()=>revoked}));
  jest.unstable_mockModule('../../worker/lib/payment-refund.js',()=>({autoRefundSinglePaymentDeliveryFailure:(...args)=>cardRefund(...args)}));
- ({handleNamingPromptRoutes:route,settleDueNamingRetryRefunds:settleDue}=await import('../../worker/routes/naming-prompt.js'));
+ ({handleNamingPromptRoutes:route,settleDueNamingRetryRefunds:settleDue,settleStuckDelivery:settleStuck}=await import('../../worker/routes/naming-prompt.js'));
 });
 beforeEach(()=>{docs=[];userId=uid;authCalls=0;candidateCount=12;passRefund=jest.fn(async()=>({refunded:true}));revoked=false;cardPayment=null;cardRefund=jest.fn(async()=>({refunded:true}));
  for(const fn of [engine.prepareNamingV2,engine.namingBasisV2,engine.buildNamingV2Prompt])fn.mockClear();
@@ -251,4 +251,39 @@ it('환불 크론은 생성 + 7일이 지난 보류만 닫아 정산하고, 창 
  expect(passRefund).toHaveBeenCalledTimes(1);
  expect(docs.map(d=>d.status)).toEqual(['refunded','generation_failed','generating']);
  expect(docs[0].result.namingPrompt.retryable.refundReason).toBe('RETRY_WINDOW_EXPIRED');
+});
+
+// 2026-11-22 D2: 복구 크론의 정체 확정. 창 안은 다시 시도 가능(장·접근 증빙 보존, 환불 없음), 창이 지나면 기존 보류 환불(settleNamingRetryRefund).
+const stalledDoc=(opts={})=>{const doc=heldDoc(PASS_ACCESS,opts);doc.status='partial';delete doc.result.namingPrompt.retryable;doc.updatedAt=new Date(Date.now()-300000);return doc;};
+const quietWarn=async work=>{const warn=jest.spyOn(console,'warn').mockImplementation(()=>{});try{return await work();}finally{warn.mockRestore();}};
+it('정체 확정은 창 안의 작명 회차를 환불 없이 다시 시도 가능으로 둔다',async()=>{
+ docs.push(stalledDoc());
+ const out=await quietWarn(()=>settleStuck({},{doc:{executionId:'exec-held',userId:uid},now:Date.now()}));
+ expect(out.outcome).toBe('retryable');
+ expect(docs[0].status).toBe('generation_failed');
+ expect(docs[0].result.namingPrompt.retryable).toMatchObject({code:'DELIVERY_STUCK'});
+ expect(new Date(docs[0].result.namingPrompt.retryable.refundAt).getTime()).toBe(new Date(docs[0].createdAt).getTime()+7*DAY);
+ expect(docs[0].result.namingPrompt.access).toEqual(PASS_ACCESS);
+ expect(passRefund).not.toHaveBeenCalled();
+ expect((await getResult('exec-held')).status).toBe(503);
+});
+it('정체 확정은 창이 지난 작명 회차를 기존 보류 환불로 한 번만 정산한다',async()=>{
+ docs.push(stalledDoc({createdAt:new Date(Date.now()-8*DAY)}));
+ const out=await quietWarn(()=>settleStuck({},{doc:{executionId:'exec-held',userId:uid},now:Date.now()}));
+ expect(out).toEqual({outcome:'generation_failed',refundStatus:'refunded'});
+ expect(passRefund).toHaveBeenCalledTimes(1);
+ expect(docs[0].status).toBe('refunded');
+ expect(docs[0].result.namingPrompt.retryable.refundReason).toBe('RETRY_WINDOW_EXPIRED');
+ await settleDue({});expect(passRefund).toHaveBeenCalledTimes(1);
+});
+it('정체 확정은 살아 있는 생성·토스 회차·완성 회차를 건드리지 않는다',async()=>{
+ docs.push(stalledDoc());docs[0].updatedAt=new Date();
+ const doc={executionId:'exec-held',userId:uid};
+ expect((await settleStuck({},{doc,now:Date.now()})).outcome).toBe('leased');
+ docs[0].updatedAt=new Date(Date.now()-300000);docs[0].result.namingPrompt.tossIntentId='t'.repeat(64);
+ expect((await quietWarn(()=>settleStuck({},{doc,now:Date.now()}))).outcome).toBe('unsettled');
+ expect(docs[0].status).toBe('partial');
+ delete docs[0].result.namingPrompt.tossIntentId;docs[0].status='completed';
+ expect((await settleStuck({},{doc,now:Date.now()})).outcome).toBe('progressed');
+ expect(passRefund).not.toHaveBeenCalled();
 });

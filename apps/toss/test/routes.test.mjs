@@ -16,7 +16,11 @@ const mocks={
  purchase:()=>({lean:async()=>null}),followup:async()=>{calls.followups++;return {};}
 };
 globalThis.__tossRouteMocks=mocks;
+const forwardedCalculation=name=>`export const ${name}=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});`;
 const stubMap={
+ 'worker/routes/prompt-hub.js':"export const generateFreeTossPrompt=async(_env,input)=>({ok:true,input,paidWith:'public'});",
+ 'worker/routes/astro.js':forwardedCalculation('handleAstrologyRoutes'),
+ 'worker/routes/sukuyo.js':forwardedCalculation('handleSukuyoRoutes'),
  'lib/toss-release.mjs':'export let NEW_PURCHASES_AVAILABLE=true;globalThis.__tossRouteMocks.setSales=v=>{NEW_PURCHASES_AVAILABLE=v;};',
  'worker/toss/music-download.js':"import {TossError} from './policy.js';const call=(kind,...args)=>{const state=globalThis.__tossRouteMocks;(state.musicCalls??=[]).push([kind,...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {owner:args[1].ownerId};};export const prepareNativeMusic=(...args)=>call('prepare',...args),readNativeMusic=(...args)=>call('read',...args),downloadNativeMusic=(...args)=>call('file',...args);",
  'worker/toss/vedic-compatibility.js':"export const tossVedicCompatibility=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public',stored:false});",
@@ -39,7 +43,7 @@ const stubMap={
  'worker/lib/sukuyo-astronomy.js':"export const calculateSukuyoForMoment=async()=>({ok:true});",
  'worker/routes/destiny-compass.js':"export const handleDestinyCompassRoutes=async()=>Response.json({ok:true});",
  'worker/toss/native-palm.js':"export const prepareNativePalm=async()=>Response.json({paid:false}),readNativePalm=async()=>({saved:true}),palmLibraryItem=async()=>({state:'COMPLETED'});",
- 'worker/routes/nakshatra.js':"export const resolveTodayMoon=async()=>Response.json({ok:true}),resolveNatal=async()=>Response.json({ok:true}),resolveCompat=async()=>Response.json({ok:true});",
+ 'worker/routes/nakshatra.js':forwardedCalculation('handleNakshatraRoutes')+"export const resolveTodayMoon=async()=>Response.json({ok:true}),resolveNatal=async()=>Response.json({ok:true}),resolveCompat=async()=>Response.json({ok:true});",
  'worker/toss/mansion-reports.js':"export const readOwnedMansionReport=async()=>({ok:true});",
  'worker/routes/kasi.js':"export const handleKasiRoutes=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});",
  'worker/routes/rpg.js':"export const readOwnedQuestProgress=async(_env,owner)=>({scope:owner});export const completeOwnedQuest=async(_env,owner,key)=>Response.json({owner,key});export const adoptOwnedQuestProgress=async(_env,owner)=>Response.json({owner});",
@@ -111,6 +115,20 @@ const {handleTossRoutes}=loaded.exports;
 const birth={gender:'F',date:{year:1990,month:1,day:1,calType:'solar',timeUnknown:true},location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}};
 const decision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'대화할 때 내 경계를 말하고 싶어요',options:'',period:'',constraints:'',confirmed:true};
 const input=()=>({attemptId:crypto.randomUUID(),sku:'saju_mackerel',question:'어떻게 내 경계를 표현할까?',birth:structuredClone(birth),questionDecision:{...decision}});
+test('prompt generation and its three calculation adapters forward the original input only for an authenticated session',async()=>{
+ const body={toolId:'saju',requestId:'offline-prompt',fields:[]};
+ const generate='/canonical/fortune/prompt-hub/generate';
+ const calculations=['/astrology/basic','/sukuyo/astronomy','/nakshatra/resolve'];
+ mocks.denyAuth=true;
+ try{
+  for(const endpoint of [generate,...calculations.map(path=>'/canonical'+path)])assert.equal((await request(body,endpoint)).status,401);
+ }finally{mocks.denyAuth=false;}
+ assert.deepEqual(await (await request(body,generate)).json(),{ok:true,input:body,paidWith:'public'});
+ for(const path of calculations){
+  const input={date:'1990-01-01'};
+  assert.deepEqual(await (await request(input,'/canonical'+path)).json(),{path:'/api'+path,input});
+ }
+});
 test('meeting place uses the authenticated Korean calendar for lunar conversion and yearly terms',async()=>{
  const endpoint='/canonical/kasi/calendar';
  mocks.denyAuth=true;
