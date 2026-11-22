@@ -6,6 +6,8 @@
  * 날짜를 잘못 잡게 만든다. 범위는 lib/fortune/zodiac-folk.ts 의 SON_EOMNEUN_RANGE 한 곳에서 정한다.
  */
 import Link from "next/link";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
@@ -253,6 +255,8 @@ export default function SonEomneunNalPage() {
           <Link href="/today" className="cd-chip">오늘의 운세</Link>
           <Link href="/manse" className="cd-chip">무료 만세력</Link>
         </nav>
+
+        <GuideCta target={GUIDE_CTA_TARGETS["/fortune/son-eomneun-nal"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
           손없는날은 민속 관습을 정리한 참고 정보이며 개인 사주를 대신하지 않습니다. 음력 날짜는 이 사이트 만세력과 같은 한국 음양력

@@ -6,6 +6,8 @@
  * 그해 띠별 운세는 /fortune/2027 이 맡고, 이 페이지는 삼재의 뜻과 계산 원리, 여러 해의 표를 맡는다.
  */
 import Link from "next/link";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
@@ -271,6 +273,8 @@ export default function SamjaePage() {
           <Link href="/fortune/son-eomneun-nal" className="cd-chip">손없는날 달력</Link>
           <Link href="/saju" className="cd-chip">사주 보기</Link>
         </nav>
+
+        <GuideCta target={GUIDE_CTA_TARGETS["/fortune/samjae"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
           삼재는 민속 해석이며 개인 사주를 대신하지 않습니다. 삼재 연도는 입춘을 해의 경계로 계산했고, 입춘 시각은 한국 음양력 계산 코어의

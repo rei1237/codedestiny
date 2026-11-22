@@ -1,3 +1,4 @@
+import {starHugSessionPlugin} from './star-hug-session-plugin.mjs';
 import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -66,7 +67,7 @@ test('direct Maya route opens the Toss calendar and native back returns to the p
  const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/maya/'});dom.window.fetch=globalThis.fetch;globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  Object.defineProperty(document,'referrer',{configurable:true,value:'http://localhost/'});let back=0;globalThis.history={length:2,back:()=>back++};globalThis.__mayaEvents={};
  const entry=path.join(repo,'apps/toss/service/Screens.jsx');
- const bundle=await build({entryPoints:[entry],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'maya-service-fixtures',setup(b){
+ const bundle=await build({entryPoints:[entry],bundle:true,write:false,platform:'node',format:'cjs',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[starHugSessionPlugin,{name:'maya-service-fixtures',setup(b){
   b.onResolve({filter:/^\.\/fpti-session\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/fpti-session.mjs')}));
   b.onResolve({filter:/^\.\/profile-entry-session\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/profile-entry-session.mjs')}));
   b.onResolve({filter:/.*/},args=>args.kind==='entry-point'?null:/^react(?:\/jsx-runtime)?$/.test(args.path)?{path:args.path,external:true}:{path:args.path,namespace:'mock'});

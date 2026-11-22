@@ -1,7 +1,8 @@
+import {starHugSessionPlugin} from './star-hug-session-plugin.mjs';
 import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {JSDOM,VirtualConsole} from 'jsdom';import {build} from 'esbuild';import {createRequire} from 'node:module';import path from 'node:path';
 const repo=path.resolve(import.meta.dirname,'../../..'),require=createRequire(new URL('../package.json',import.meta.url)),Module=require('node:module'),React=require('react'),{createRoot}=require('react-dom/client'),entry=path.join(repo,'apps/toss/service/Screens.jsx');
-const bundle=await build({entryPoints:[entry],bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'offline-shell',setup(b){
+const bundle=await build({entryPoints:[entry],bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[starHugSessionPlugin,{name:'offline-shell',setup(b){
  b.onResolve({filter:/^\.\/(?:letter-draft-bootstrap|tea-draft-bootstrap|sukuyo-draft-bootstrap|draft-quarantine)\.mjs$/},a=>({path:path.join(repo,'apps/toss/service',a.path.slice(2))}));
  b.onResolve({filter:/^\.\/fpti-session\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/fpti-session.mjs')}));
  b.onResolve({filter:/^\.\/profile-entry-session\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/profile-entry-session.mjs')}));
