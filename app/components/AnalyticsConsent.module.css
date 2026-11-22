@@ -75,7 +75,7 @@
 }
 @media (min-width: 769px) {
   .banner { inset-inline: auto 24px; }
-  .banner { bottom: 24px; }
+  .banner { bottom: var(--yn-room-dock-clearance, 24px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .actions button { transition: none; }

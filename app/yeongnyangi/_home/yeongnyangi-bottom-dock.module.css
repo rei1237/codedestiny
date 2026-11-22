@@ -1,3 +1,6 @@
+:global(html):has(.roomDockReserve), .roomDockReserve, .dock {
+  --yn-bottom-dock-height: calc(72px + env(safe-area-inset-bottom, 0px));
+}
 .dock {
   position: fixed;
   z-index: 20;
@@ -8,7 +11,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 2px;
-  min-height: calc(72px + env(safe-area-inset-bottom, 0px));
+  min-height: var(--yn-bottom-dock-height);
   box-sizing: border-box;
   padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px));
   background: color-mix(in srgb,var(--yn-violet) 23%,var(--yn-night));
@@ -49,7 +52,8 @@
 .mascot img { width: 39px; height: 33px; object-fit: contain; }
 /* Keyboard focus in the room must clear the 72px dock and its focus ring. */
 :global(html):has(.roomDockReserve) {
-  scroll-padding-bottom: max(calc(80px + env(safe-area-inset-bottom, 0px)), var(--cd-consent-offset, 0px));
+  --yn-room-dock-clearance: calc(var(--yn-bottom-dock-height) + 8px);
+  scroll-padding-bottom: max(var(--yn-room-dock-clearance), var(--cd-consent-offset, 0px));
 }
-.roomDockReserve { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); background: color-mix(in srgb,var(--yn-violet) 23%,var(--yn-night)); }
+.roomDockReserve { padding-bottom: var(--yn-bottom-dock-height); background: color-mix(in srgb,var(--yn-violet) 23%,var(--yn-night)); }
 @media (max-width: 350px) { .item { font-size: 11px; } }
