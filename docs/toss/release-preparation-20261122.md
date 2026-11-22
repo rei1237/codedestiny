@@ -6,8 +6,8 @@
 
 | 대상 | 확인 내용 | 근거 |
 |---|---|---|
-| 운영 웹·Worker | Pages와 Worker가 같은 커밋 `74b09ef7bbe2ce8a93b0b456a7cb21183c66103d`를 반환했다. | [Pages](https://code-destiny.com/version.json), [Worker](https://code-destiny.com/api/version) |
-| 원격 main 비교 기준 | `d04c6e4181626e21948e3575e55108706587c722` | [CI 44967809982](https://github.com/rei1237/codedestiny/actions/runs/44967809982) |
+| 운영 웹·Worker | 최초 조회는 `74b09ef7b`, 11시 이후 재조회한 Pages와 Worker는 모두 `29550bf9e87f13fc4948147f83ddbce6280b987f`다. 다른 작업에서 수행한 운영 배포다. | [Pages](https://code-destiny.com/version.json), [Worker](https://code-destiny.com/api/version), [운영 배포 44975011193](https://github.com/rei1237/codedestiny/actions/runs/44975011193) |
+| 웹 원본 대조 기준 | `29550bf9e8`을 이식 소스에 병합했다. 390px 운영 화면에서 영냥이의 방·20장 분기 프롤로그·모자 배정실을 다시 열었다. | [영냥이의 방](https://code-destiny.com/yeongnyangi/room/) |
 | 제출된 QR21 | 콘솔 버전 20261116-21, 출시 준비됨. 제출 소스 `324b95f47757b158b702b628f7683441fb941f46`. 약관 동의와 공개는 별도 사업자 조작이다. | [제출 이력](./launch-candidate-20261116.md) |
 | 토스 로그인·인증서 | 제공 권한은 이름이다. 콘솔에는 간편 로그인 이용약관, 개인정보 제3자 제공, 서비스 이용약관, 개인정보 수집·이용, 국외 이전 등 필수 동의 5개와 `/api/toss/callbacks/unlink` 콜백이 표시됐다. mTLS 인증서 만료일 표시는 2027-12-03이다. | `D:/tmp/toss-release/full-parity-20261122/console-login-certificate.json`. 인증서 발급·복호화 키 조회·콜백 호출 없이 열람했다. |
 | 등록 상품 | 연이 사주 상담 편지 4,950원. 영냥이 사주 상담 고등어·연어·광어·참치 각 9,900·14,850·19,800·29,700원. 콘솔의 다섯 SKU·가격은 서버 원장과 일치하고 모두 미노출이다. | 콘솔 조회 기록 `D:/tmp/toss-release/console-20261122.json`, [서버 원장](../../worker/toss/catalog.js) |
@@ -42,6 +42,14 @@
 5. **일반 비공개 테스트판**에서는 홈·로그인 취소·재로그인·기존 구매 재열람·음원 저장 UI만 확인한다. 정상적인 기존 구매 기록을 가진 테스트 계정이 필요하다. 신용카드 등 실제 결제수단이 표시되는 흐름은 이 검수 범위 밖이다.
 
 ## 공개 전 별도 결정
+
+### 웹 전용 권리와 기기 기능
+
+웹 `/gift/box/`의 보낸·받은 선물은 웹의 구독 또는 서비스팩 주문, 수신인, 청구 토큰에 연결된다. `/snu/` 초대 코드는 지정한 웹 프로필의 사주 콘텐츠를 등록한다. `/editions/verify/`는 실물 굿즈의 발행 번호·거래를 조회한다. 콘솔의 상담 SKU 다섯 개로 이 권리를 다른 계정에 이전하는 운영 근거는 확인되지 않았다. 웹에서 보유한 기존 권리는 각각의 원장에 남는다. [선물 계약](../../app/gift/gift-client.ts) · [초대 코드 진입](../../app/snu/page.tsx) · [굿즈 발행 기록](../../app/editions/verify/verify.jsx)
+
+`/lock-screen-fortune/`의 웹 원본은 Code Destiny 네이티브 앱에서만 열리며 모바일 웹에서는 홈으로 복귀한다. 토스 안의 달빛 홈 화면은 그림·꽃말·운세 미리보기를 제공한다. Android 시스템 잠금화면을 설정하는 권한은 확인되지 않았다. [원본 환경 분기](../../app/lock-screen-fortune/LockScreenFortuneClient.tsx) · [토스 홈 화면](../../apps/toss/src/WidgetPreview.tsx)
+
+### 운영 판단 항목
 
 | 대상 | 확인·결정 주체와 영향 |
 |---|---|
