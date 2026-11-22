@@ -3,7 +3,7 @@ import { generateNamingWave, namingChaptersText, namingReportComplete, confirmed
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { randomUUID } from "node:crypto";
 import { isPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { STUCK_LIVE_LEASE_MS, logStuckSettled, publicRetryState, retryableFailureMeta } from "../lib/paid-delivery-stuck.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, publicRetryState, retryableFailureMeta, settleStuckRetryFirst } from "../lib/paid-delivery-stuck.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
@@ -1986,6 +1986,18 @@ export async function settleDueNamingRetryRefunds(env, { now = Date.now(), limit
     catch { outcomes.push({ service: "naming-prompt", refundStatus: "pending" }); }
   }
   return outcomes;
+}
+
+// 2026-11-22 D2 복구 크론의 정체 확정. 창 안은 다시 시도 가능(장·접근 증빙 보존, 환불 없음), 창이 지나면 위 보류 환불로 정산한다.
+// 접근 증빙은 생성 시작 때 result.namingPrompt.access 에 이미 저장돼 있어 다시 찾지 않는다(이용권 소비 경로를 부르지 않는다).
+// 토스 네이티브 회차는 다시 시도 화면·보류 환불이 없어 건드리지 않는다('unsettled', 크론이 토스 이어쓰기를 계속한다).
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  await connectDb(env);
+  return settleStuckRetryFirst({ service: "naming-prompt", model: model || PaidExecutionRecord, doc, now, idKey: "executionId", metaKey: "result.namingPrompt",
+    failedFields: { "result.namingPrompt.deliveryLease": "", error: { code: "DELIVERY_STUCK", message: "recovery made no progress" } },
+    isLive: (fresh, at) => at - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS,
+    hold: fresh => !fresh.result?.namingPrompt?.tossIntentId,
+    settleRefund: owner => settleNamingRetryRefund(env, owner, now) });
 }
 
 async function handleResult(request, env, id) {

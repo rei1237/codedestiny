@@ -27,7 +27,7 @@ const WATCH_STATUSES = [...STUCK_STATUSES, 'pending'];
 // 상태 기반 공용 환불(settleFailedConsultationRefund)로 확정하는 서비스. 이 밖의 STUCK_SETTLERS 는 복구 어댑터
 // (라우트 모듈)가 settleStuckDelivery(env, { doc, now, model }) 를 내보내 자기 실패·환불 경로로 확정한다(S16).
 export const GENERIC_STUCK_SETTLERS = Object.freeze(['new-year-ai', 'life-book-ai', 'saju-compat-premium']);
-export const STUCK_SETTLERS = Object.freeze([...GENERIC_STUCK_SETTLERS, 'love-secret-ai', 'neo-operation-room', 'heukwol', 'fortune-tea-house', 'vedic-ai', 'astrology-ai', 'ziwei-ai', 'sukuyo-compatibility-ai', 'karma-destiny-ai']);
+export const STUCK_SETTLERS = Object.freeze([...GENERIC_STUCK_SETTLERS, 'love-secret-ai', 'neo-operation-room', 'heukwol', 'fortune-tea-house', 'vedic-ai', 'astrology-ai', 'ziwei-ai', 'sukuyo-compatibility-ai', 'karma-destiny-ai', 'naming-prompt', 'nakshatra-ai', 'human-design-report', 'destiny-compass-ai', 'relationship-boundary-test']);
 export const STUCK_LIVE_LEASE_MS = LIVE_LEASE_MS;
 
 // 진전 크기에서 빼는 필드: 시도마다 바뀌지만 본문이 아닌 것.
@@ -57,10 +57,10 @@ export function retryRefundAt(doc, now = Date.now()) {
 }
 
 // 정체 나이의 시작: 다시 시도로 재개방한 문서는 재개방 시각부터 잰다 — 6일째 연 다시 시도가 다음 크론에 바로 다시 확정되지 않게.
-// 공용·찻집·연애 비책·네오는 llmMeta.retryable.reopenedAt, 흑월은 metadata.retryReopenedAt 에 남긴다.
+// 공용·찻집·연애 비책·네오는 llmMeta.retryable.reopenedAt, 흑월은 metadata.retryReopenedAt, 작명은 result.namingPrompt.retryable.reopenedAt 에 남긴다.
 // 환불 시각(retryRefundAt)은 생성 + 7일 그대로다(재개방이 기한을 늘리지 않는다).
 function stuckAgeStart(doc) {
-  const reopened = Math.max(0, ...[doc?.llmMeta?.retryable?.reopenedAt, doc?.metadata?.retryReopenedAt].map(ms).filter(Number.isFinite));
+  const reopened = Math.max(0, ...[doc?.llmMeta?.retryable?.reopenedAt, doc?.metadata?.retryReopenedAt, doc?.result?.namingPrompt?.retryable?.reopenedAt].map(ms).filter(Number.isFinite));
   const created = docCreatedAt(doc);
   if (!(reopened > 0)) return created;
   return Number.isFinite(created) ? Math.max(created, reopened) : reopened;

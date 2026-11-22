@@ -6,7 +6,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let route, resumeOnServer, bindNative, nativeRecovery, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome, webVerifications;
+let settleStuck, route, resumeOnServer, bindNative, nativeRecovery, docs, provider, accessMode, revoked, userId, fault, lost, fetchBlock, refunds, closes, executionMetadata, refundOutcome, webVerifications;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -42,7 +42,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
  jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async(_env,_user,input)=>{executionMetadata=input.metadata;return {};},completeServiceExecution:async()=>{expect(docs[0].status).toBe('completed');closes++;},failServiceExecution:async()=>{expect(docs[0].status).toBe('generation_failed');refunds++;return refundOutcome;}}));
  jest.unstable_mockModule('../../worker/toss/native-relationship.js',()=>({bindNativeRelationshipRecovery:(...args)=>nativeRecovery(...args)}));
- ({handleRelationshipBoundaryTestRoutes:route,resumeConsultationOnServer:resumeOnServer}=await import('../../worker/routes/relationship-boundary-test.js'));
+ ({handleRelationshipBoundaryTestRoutes:route,resumeConsultationOnServer:resumeOnServer,settleStuckDelivery:settleStuck}=await import('../../worker/routes/relationship-boundary-test.js'));
  ({bindNativeTossRequest:bindNative}=await import('../../worker/toss/native-context.js'));
 });
 beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};webVerifications=0;nativeRecovery=async()=>{throw new Error('native recovery evidence required');};
@@ -240,4 +240,61 @@ test('relationship boundary test delivers a result at the new target',async()=>{
  expect(docs[0].status).toBe('completed');expect(Object.values(docs[0].llmMeta.delivery.short||{}).filter(Boolean)).toHaveLength(0);expect(refunds).toBe(0);
  const bodyPrompt=provider.mock.calls.map(call=>call[1]).find(prompt=>prompt.includes('이 장면의 본문만'));
  expect(bodyPrompt).toContain('이 장면의 본문만 2200~2500자로');expect(bodyPrompt).toContain('목표 1100~1250자');
+});
+
+describe('settleStuckDelivery', () => {
+  const now = () => Date.now();
+  const stale = () => new Date(Date.now() - 60 * 60 * 1000);
+  const settle = () => settleStuck({}, { doc: { id: docs[0].id, userId: user }, now: now(), model });
+  async function stalled(status) { expect((await start()).status).toBe(202); Object.assign(docs[0], { status, updatedAt: stale() }); return provider.mock.calls.length; }
+  for (const status of ['generating', 'partial']) test(`${status} stalled report fails first and refunds exactly once`, async () => {
+    const calls = await stalled(status);
+    expect(await settle()).toEqual({ outcome: 'generation_failed', refundStatus: 'refunded' });
+    expect(docs[0]).toMatchObject({ status: 'generation_failed', generationError: { code: 'DELIVERY_STUCK' } });
+    expect(docs[0].llmMeta.lease.token).toBe('');
+    expect(refunds).toBe(1);
+    expect(await settle()).toEqual({ outcome: 'progressed' });
+    expect(refunds).toBe(1);
+    expect(provider.mock.calls.length).toBe(calls);
+  });
+  test('complete delivery_pending is rescued as completed without a refund', async () => {
+    for (let i = 0; i < 8 && docs[0]?.status !== 'completed'; i++) await (i ? resume() : start());
+    expect(docs[0].status).toBe('completed');
+    closes = 0;
+    Object.assign(docs[0], { status: 'delivery_pending', updatedAt: stale() });
+    expect(await settle()).toEqual({ outcome: 'rescued' });
+    expect(docs[0].status).toBe('completed');
+    expect(closes).toBe(1);
+    expect(refunds).toBe(0);
+  });
+  test('incomplete delivery_pending is failed and refunded', async () => {
+    await stalled('delivery_pending');
+    expect(await settle()).toMatchObject({ outcome: 'generation_failed' });
+    expect(docs[0].status).toBe('generation_failed');
+    expect(refunds).toBe(1);
+  });
+  test('revoked payment and reviewed no-refund repairs are only alerted', async () => {
+    await stalled('partial');
+    revoked = true;
+    expect(await settle()).toEqual({ outcome: 'unsettled' });
+    revoked = false;
+    docs[0].llmMeta.recoveryNoRefund = true;
+    expect(await settle()).toEqual({ outcome: 'unsettled' });
+    expect(docs[0].status).toBe('partial');
+    expect(refunds).toBe(0);
+  });
+  test('leased, toss, settled and incomplete inputs are left alone', async () => {
+    await stalled('partial');
+    docs[0].llmMeta.lease = { token: 'live', until: new Date(Date.now() + 60000).toISOString() };
+    expect(await settle()).toEqual({ outcome: 'leased' });
+    docs[0].llmMeta.lease = { token: '', until: null };
+    docs[0].updatedAt = new Date();
+    expect(await settle()).toEqual({ outcome: 'leased' });
+    Object.assign(docs[0], { updatedAt: stale(), accessType: 'toss' });
+    expect(await settle()).toEqual({ outcome: 'unsettled' });
+    Object.assign(docs[0], { accessType: 'pass', status: 'completed' });
+    expect(await settle()).toEqual({ outcome: 'progressed' });
+    expect(await settleStuck({}, {})).toEqual({ outcome: 'unsupported' });
+    expect(refunds).toBe(0);
+  });
 });

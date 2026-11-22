@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let validate,closed,docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs;
+let settleStuck,validate,closed,docs,fault,lostConfirmation,route,provider,refund,owner,fetchBlock,revokedSource,specs;
 const uid='64b7f2a1c3d4e5f601234567';
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
@@ -57,7 +57,7 @@ const model = {
     }
     const doc=docs.find(row=>matches(row,filter));
     if(doc) assign(doc,update.$set);
-    return{matchedCount:doc?1:0};
+    return{matchedCount:doc?1:0,modifiedCount:doc?1:0};
   },
 };
 
@@ -74,7 +74,7 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/llm-cache-store.js',()=>({createLlmCacheStore:()=>null}));
  jest.unstable_mockModule('../../worker/lib/human-design-report-contract.js',()=>({...contract,requiredSubsectionIds:()=>[],validateHumanDesignReportSection:(...args)=>validate(...args)}));
  jest.unstable_mockModule('../../worker/lib/human-design-report-prompt.js',()=>({HD_REPORT_SECTION_TITLES:{},buildHumanDesignReportSectionPrompt:({spec})=>({prompt:spec.key,systemPrompt:'fixture'}),sectionDigest:()=>''}));
- ({handleHumanDesignReportRoutes:route}=await import('../../worker/routes/human-design-report.js'));
+ ({handleHumanDesignReportRoutes:route,settleStuckDelivery:settleStuck}=await import('../../worker/routes/human-design-report.js'));
 });
 beforeEach(()=>{validate=()=>({ok:true,issues:[],keptSubsections:[],evidence:[]});closed=0;owner=uid;fault=null;lostConfirmation=false;revokedSource=-1;refund=jest.fn(async()=>({ok:true,status:200,idempotent:false,execution:{status:'refunded'},settlement:{ok:true,status:'refunded'}}));
  docs=[{id:'saved-hd',userId:uid,idempotencyKey:'original-request',billingRequestId:'original-request',status:'generating',locale:'ko',waveCount:0,lock:null,basis:{snapshot:{type:'Generator'},allowed:{all:[]}},sections:specs.map(spec=>({key:spec.key,order:spec.order,body:'',status:'pending',attempts:0}))}];
@@ -233,5 +233,61 @@ describe('delivery plan 2 (new sessions only)', () => {
     expect(docs[0].status).toBe('completed');
     expect(docs[0].sections.filter(row => row.body.includes(shared))).toHaveLength(1);
     expect(refund).not.toHaveBeenCalled();
+  });
+});
+
+describe('settleStuckDelivery', () => {
+  const now = Date.parse('2026-11-22T00:00:00Z');
+  const stale = () => new Date(now - 60 * 60 * 1000);
+  const settle = () => settleStuck({}, { doc: { id: 'saved-hd', userId: uid }, now, model });
+  for (const status of ['generating', 'partial']) it(`${status} stalled report fails first and refunds exactly once`, async () => {
+    Object.assign(docs[0], { status, updatedAt: stale(), lock: { at: stale(), token: 'old' } });
+    refund.mockImplementationOnce(async () => { expect(docs[0].status).toBe('generation_failed'); return { ok: true, execution: { status: 'refunded' }, settlement: { status: 'refunded' } }; });
+    expect(await settle()).toMatchObject({ outcome: 'generation_failed', refundStatus: 'refunded' });
+    expect(docs[0].status).toBe('generation_failed');
+    expect(docs[0].generationError).toMatchObject({ code: 'DELIVERY_STUCK', refunded: true });
+    expect(docs[0].lock).toBe(null);
+    expect(refund).toHaveBeenCalledTimes(1);
+    expect(refund.mock.calls[0][2]).toMatchObject({ executionKey: 'human-design-report:original-request', forceRefundOnClose: true });
+    expect(await settle()).toMatchObject({ outcome: 'progressed' });
+    expect(refund).toHaveBeenCalledTimes(1);
+    expect(provider).not.toHaveBeenCalled();
+  });
+  it('delivery_pending with intact payment is rescued as completed without a refund', async () => {
+    Object.assign(docs[0], { status: 'delivery_pending', updatedAt: stale(), lock: { at: stale(), token: 'old' } });
+    expect(await settle()).toMatchObject({ outcome: 'rescued' });
+    expect(docs[0].status).toBe('completed');
+    expect(docs[0].lock).toBe(null);
+    expect(closed).toBe(1);
+    expect(refund).not.toHaveBeenCalled();
+    expect(await settle()).toMatchObject({ outcome: 'progressed' });
+  });
+  for (const status of ['generating', 'partial', 'delivery_pending']) it(`${status} with revoked payment is only alerted and never refunded again`, async () => {
+    revokedSource = 1;
+    Object.assign(docs[0], { status, updatedAt: stale() });
+    expect(await settle()).toMatchObject({ outcome: 'unsettled' });
+    expect(docs[0].status).toBe(status);
+    expect(refund).not.toHaveBeenCalled();
+    expect(closed).toBe(0);
+  });
+  it('refund guard failure reports pending', async () => {
+    Object.assign(docs[0], { updatedAt: stale() });
+    refund.mockRejectedValueOnce(new Error('guard down'));
+    expect(await settle()).toMatchObject({ outcome: 'generation_failed', refundStatus: 'pending' });
+    expect(docs[0].status).toBe('generation_failed');
+    expect(docs[0].generationError.refunded).not.toBe(true);
+  });
+  it('leased, toss, settled and incomplete inputs are left alone', async () => {
+    Object.assign(docs[0], { updatedAt: new Date(now - 1000) });
+    expect(await settle()).toMatchObject({ outcome: 'leased' });
+    Object.assign(docs[0], { updatedAt: stale(), lock: { at: new Date(now - 1000), token: 'live' } });
+    expect(await settle()).toMatchObject({ outcome: 'leased' });
+    Object.assign(docs[0], { lock: null, accessSource: 'toss' });
+    expect(await settle()).toMatchObject({ outcome: 'unsettled' });
+    Object.assign(docs[0], { accessSource: undefined, status: 'completed' });
+    expect(await settle()).toMatchObject({ outcome: 'progressed' });
+    expect(await settleStuck({}, {})).toMatchObject({ outcome: 'unsupported' });
+    expect(refund).not.toHaveBeenCalled();
+    expect(docs[0].status).toBe('completed');
   });
 });
