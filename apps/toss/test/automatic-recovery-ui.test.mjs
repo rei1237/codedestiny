@@ -1,3 +1,4 @@
+import {starHugSessionPlugin} from './star-hug-session-plugin.mjs';
 import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,7 +11,7 @@ const dom=new JSDOM('<div id="root"></div>',{url:'http://localhost/life-book-ai/
 dom.window.fetch=globalThis.fetch;globalThis.window=dom.window;globalThis.document=dom.window.document;globalThis.location=dom.window.location;globalThis.IS_REACT_ACT_ENVIRONMENT=true;
 const React=require('react'),{createRoot}=require('react-dom/client');
 const entry=path.resolve(import.meta.dirname,'../service/Screens.jsx');
-const bundle=await build({entryPoints:[entry],bundle:true,write:false,format:'cjs',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'isolate-screens',setup(b){
+const bundle=await build({entryPoints:[entry],bundle:true,write:false,format:'cjs',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[starHugSessionPlugin,{name:'isolate-screens',setup(b){
  b.onResolve({filter:/^\.\/native-back\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/native-back.mjs')}));
  b.onResolve({filter:/^\.\/fpti-session\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/fpti-session.mjs')}));
  b.onResolve({filter:/^\.\/profile-entry-session\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/profile-entry-session.mjs')}));
