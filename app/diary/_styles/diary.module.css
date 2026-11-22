@@ -19,6 +19,8 @@
  */
 
 .shell {
+  --dy-book-font: "Iowan Old Style", "AppleMyungjo", "Batang", "Noto Serif CJK KR", serif;
+  --font-display: var(--dy-book-font);
   --dy-color-scheme: light;
   /* 🔴 transform / filter / backdrop-filter / contain 금지 —
      시트를 포털 없이 position:fixed 로 덮으려면 조상에 containing block 이 없어야 한다. */
@@ -171,7 +173,7 @@ html[data-cd-theme="neo"] .shell {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-family: var(--font-display, inherit);
+  font-family: var(--dy-book-font);
   font-size: var(--cd-t-card);
   font-weight: 600;
   white-space: nowrap;
@@ -365,6 +367,26 @@ html[data-cd-theme="neo"] .shell {
 .cardLead {
   border-color: var(--dy-line-ui);
 }
+.gardenCover {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  min-height: clamp(200px, 27vw, 300px);
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: clamp(20px, 4vw, 46px);
+  border-radius: 20px 20px 8px 8px;
+  color: #fff7ed;
+  background: linear-gradient(0deg, #131b31f5, #171e32a8 40%, transparent 85%), url("/images/home/illustrated/yeoni-moon-garden-night-1280.webp") center 43% / cover;
+  box-shadow: inset 0 0 0 1px #c6ab7a6b;
+}
+.gardenCover h2 { font: 500 clamp(28px, 5vw, 48px)/1.35 var(--dy-book-font); letter-spacing: -.04em; margin: 0 0 12px; }
+.bookmarks { display: flex; gap: 4px 12px; flex-wrap: wrap; }
+.bookmarks a { display: inline-flex; align-items: center; min-height: 44px; color: #fff4e5; font: 500 14px/1.5 var(--font-body); text-underline-offset: 5px; }
+.bookmarks a:focus-visible { outline: 2px solid #fff4e5; outline-offset: 2px; }
+.journalTitle { scroll-margin-top: 90px; }
 
 .cardLead .cardHead { align-items: center; flex-wrap: wrap; }
 .guidePortrait {
