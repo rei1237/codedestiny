@@ -255,7 +255,8 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   {!row&&!error&&<p className={styles.loading} role="status">{copy.loading}</p>}
   {row&&row.state==='AWAITING_DRAW'&&row.tarotSpread?<TarotCardPick row={row} spread={row.tarotSpread} siteLocale={siteLocale} onRow={setRow}/>:row&&<>
    {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?row.tarotSpread&&spreadReveal?<TarotSpreadReveal requestId={row.id} locale={row.locale} spread={row.tarotSpread} cards={spreadReveal} onComplete={finishRitual}/>:<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
-   {row.state!=='COMPLETED'&&<details className={styles.questionContext} open>
+   {/* A long question starts folded so the progress and saved chapters stay on the first screen (2026-11-22). */}
+   {row.state!=='COMPLETED'&&<details className={styles.questionContext} open={(row.consultation?.question||'').length<=120}>
     <summary>{consultationLabel}</summary>
     {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}
     {row.consultation?.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}
