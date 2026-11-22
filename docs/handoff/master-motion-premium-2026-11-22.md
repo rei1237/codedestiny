@@ -80,6 +80,38 @@ next: F5·F6·F7 push 대기 — origin/main 이 녹색이 되면 워크트리 `
   - 범위: /ggulggul/ 히어로, 배너, 서비스 진입 `entry()`, ProductMasterStrip
   - 금 장식선 소제목, 남색 + 이중 금테 주 버튼, 크림 그라데이션, hover -3px와 scale 1.04, 4:5 포스터
   - 토큰은 `--cd-yehwa-*`만 쓴다.
+  - **G 방향·성공 기준 (구현 전 확정, 2026-11-22, 코딩 원칙 16)**
+    - 캐논 우선으로 기법을 옮긴다(충돌은 CONTEXT_AUDIT 에 기록)
+      - 명조 → 쓰지 않는다. 제목은 주아체(11-09 승인)다. 진입 `entry()` h3 의 MaruBuri 는 캐논 위반이라 `--font-display` 로 바꾼다.
+      - "남색" 주 버튼 → 연이 쪽은 딥 플럼(`--cd-cta-primary-bg`·`--fc-dark`)으로 대체한다. 이중 금테는 버튼 테두리 + 1px 금 outline(offset 3px)이다. 포커스는 별도 `--cd-focus-ring` outline 이라 금테와 구분된다.
+      - 4:5 포스터 → 적용하지 않는다. 캐논이 카탈로그 3:2·진입 16:9 를 고정하고, 세로로 자르면 인물이 잘린다.
+    - 화면별 변경
+      1. 히어로 `.yh-free-start`: 1px 금 outline 을 offset 3px 로 더해 안쪽 금선(::before)과 이중 금테를 이룬다. 포커스 규칙은 명시한다. H1·문구·그림·LCP 이미지는 건드리지 않는다.
+      2. 배너
+         - 색: 하드코딩 hex 를 `--cd-yehwa-night*`·`-champagne`·`-pearl*` 토큰으로 옮긴다(두 블록). 연이는 딥 플럼, 네오는 기존 남보라 값을 그대로 쓴다.
+         - 여백: 데스크톱 설명–가격 사이 약 200px 는 `__copy` 세로 가운데 정렬과 foot 의 금 1px 구분선으로 정리한다.
+         - 장식: kicker 옆에 금 1px 장식선을 둔다.
+         - hover: 카드는 -3px 뜨고 그림은 1.04 배 커진다(art 의 overflow 안에서).
+      3. 피커 카드 목록
+         - 마크업은 그대로 둔다(테스트 4곳이 고정).
+         - hover: 카드는 -3px 뜬다. 그림은 1.04 배 커지되 clip-path 로 틀은 그대로 유지한다.
+         - 소제목 h3 옆에 금 1px 장식선을 둔다.
+         - 설명 영역은 그림 바로 아래에서 크림 그라데이션으로 시작한다.
+      4. `entry()`
+         - h3 는 주아체로 바꾼다.
+         - name 줄 옆에 금 1px 장식선을 둔다.
+         - `.fc-primary` 는 이중 금테로 한다.
+         - 밝은 테마에서는 장면 패널과 캡션을 크림 그라데이션 위 잉크 글자로 바꾼다. 베다·네오의 어두운 팔레트는 서비스 팔레트 보존 원칙에 따라 그대로 둔다.
+      5. ProductMasterStrip: 라벨 옆에 금 1px 장식선을 둔다. 이중 프레임은 이미 있다.
+    - 전환은 전부 `(hover:hover) and (prefers-reduced-motion:no-preference)` 안에만 둔다. transform·clip-path 만 쓴다.
+    - 성공 기준(실측)
+      - pageerror 0, 가로 넘침 0(390·1280)
+      - reduced-motion 일 때 대상 요소의 transition-duration 과 animation 이 0
+      - 본문 대비 4.5:1·UI 3:1(합성색)
+      - 터치 44px·주 행동 48px 유지
+      - perf:home CLS·LCP 가 기준선보다 나빠지지 않는다(측정 잡음 범위 안)
+      - visual-checker 항목별 판정 통과
+      - 결제 게이트·가격·라우트·편지 팝업·title/H1/canonical·배너 동작 테스트·F 스프라이트 배선 불변
 - **H 영냥이**
   - 흰·금 야화(목련·연꽃) SVG 마스크 모티프(`scripts/design/gen-yehwa-motifs.mjs` 방식, `yn-` 토큰)와 금테 카드
   - 별가루·꽃잎 낙하(MasterMotion yn 변형)
