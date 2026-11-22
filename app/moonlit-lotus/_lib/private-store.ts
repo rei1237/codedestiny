@@ -86,7 +86,7 @@ export async function clearTossSpaceOwner(owner:string,keepScope?:string){
  const expired=(scope:string)=>scope.startsWith(prefix)&&scope!==keepScope&&!(keepScope&&scope.startsWith(keepScope+'|'));
  activeScopes.set(owner.toLowerCase(),keepScope);
  try{
- const keys=[];
+ const keys:string[]=[];
  for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);
   if(!key)continue;
   for(const name of ['cd:moonlit:prefs:','cd:moonlit-lotus:yeoni-bow:v1:']){
