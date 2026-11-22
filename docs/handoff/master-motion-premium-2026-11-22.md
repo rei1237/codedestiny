@@ -246,6 +246,7 @@ next: F5 — 서한비 스프라이트(F2~F4와 같은 절차 — Codex 편집 �
   - 88ba0c4ea 인생의 책 윤달 포스터 품질 76→86 (spec `webp.default.poster`, 시트는 바이트 동일)
   - d36e382314 F4 무성 (+ master-profiles 변경으로 sitemap lastmod 26건 재생성)
 - 검증 [실측]: F3·F4 check:fast 모두 paid-gate 78/78 통과, BLOCKED 는 verify:sitemap-drift 하나 → sitemap:generate 뒤 OK. F4 는 BLOCKED 때문에 뒤 단계가 안 돌아 직접 실행: typecheck exit 0, test:node pass 5790 / fail 0, test:jest 8542 pass / 1 skipped. check:pre-push 6종 OK(커밋 737964a06).
+- 전달: 워크트리 브랜치에 origin/main(d04c6e418)을 머지하고 sitemap 재생성 뒤 그 트리를 main 으로 push 했다(check:pre-push OK, tsc 0, 자산 테스트 4/4). main 체크아웃의 로컬 main 에는 옆 세션(card-rpg-lobby, 미push·"전체 검사 통과 판정 보류")의 머지 52c470c4a 가 있어, 그 커밋은 이 push 에 싣지 않았다. 로컬 main 은 push 뒤 origin/main 을 머지해 맞췄다.
 - 생성: F2 와 같은 Codex CLI 0.156.1 OAuth(gpt-image-2, `-m gpt-5.6-terra`), 과금 API 0회. 편집은 half·closed 두 종만(F2 에서 mouth·breeze 는 쓰지 못했다). 원본 `D:\CodeDestiny-Build\master-motion\<id>\`, 해시는 각 `provenance.json`.
 - 1차 픽셀 검수 [실측] — 모든 칸, 문턱 guard ≤ 5 / region ≥ 8. 등록은 전부 스케일 1, 이동 0(무성 half 만 dx1·dy1).
 
