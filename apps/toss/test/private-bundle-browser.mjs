@@ -44,7 +44,14 @@ try{
   async function capture(name){
     if(!evidence)return;
     await mkdir(evidence,{recursive:true});
-    await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));});
+    await page.evaluate(async()=>{
+      await document.fonts.ready;
+      const visible=[...document.images].filter(image=>{
+        const bounds=image.getBoundingClientRect();
+        return bounds.width>0&&bounds.height>0&&bounds.top<innerHeight&&bounds.bottom>0;
+      });
+      await Promise.all(visible.map(image=>image.decode().catch(()=>{})));
+    });
     await page.screenshot({path:join(evidence,name+'-360.png')});
   }
   await page.goto(origin);

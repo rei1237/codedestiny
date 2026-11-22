@@ -1086,7 +1086,7 @@ jobs:
     needs: classify
     if: needs.classify.outputs.runs_critical == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: ${{ github.event_name == 'workflow_dispatch' && inputs.toss_simulation_artifact && 150 || 45 }}
     steps:
       # 블롭 지연 로딩 (PR #1650 과 같은 근거). 이 잡의 검사는 전부 워킹트리 대상이다 —
       # `npm test` 와 배포 게이트들은 체크아웃된 HEAD 만 읽고, git 을 부르는 것들도
@@ -1210,7 +1210,13 @@ jobs:
       # Opt-in only: retain the official Linux build for device testing, never deploy it.
       - name: Verify portable Toss bundle
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_ci && inputs.toss_artifact && needs.classify.outputs.runs_critical == 'true' }}
-        run: npm run verify:release-bundle --prefix apps/toss
+        working-directory: apps/toss
+        run: |
+          npm run verify:release-bundle
+          node test/private-bundle-browser.mjs ai-saju-studio.ait
+          node test/private-bundle-owner-browser.mjs ai-saju-studio.ait new
+          node test/private-bundle-public-readings.mjs ai-saju-studio.ait all
+          node test/story-library-browser.mjs ai-saju-studio.ait
 
       - name: Store Toss preview bundle
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.full_ci && inputs.toss_artifact && needs.classify.outputs.runs_critical == 'true' }}
@@ -1231,6 +1237,7 @@ jobs:
           node scripts/check-bundle-size.mjs --private-simulation --require-portable
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --all-products
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --guided-profile
           for domain in saju ziwei sukuyo vedic astrology tarot; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-domain "$domain"
           done
@@ -1248,7 +1255,8 @@ jobs:
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method"
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method" --neo-partner
           done
-          for report in life-book life-fortune dream naming heukwol codex codex-compat saju-compat saju-compat-premium geomancy totem-basic totem-deep guardian sibyl palm; do
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --free-hub
+          for report in life-book life-fortune dream naming heukwol codex codex-compat saju-compat-premium geomancy totem-basic totem-deep guardian sibyl palm; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --native-report "$report"
           done
           for expert in vedic ziwei astrology new-year karma fusion love-secret; do
