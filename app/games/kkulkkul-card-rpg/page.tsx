@@ -6,7 +6,7 @@ export const metadata = { title: GAME_TITLE };
 
 export default function CardRpgPage() {
   const opening = novel.episodes[0].beats
-    .slice(0, 3)
-    .map(({ id, t }) => ({ id, text: t }));
+    .slice(0, 6)
+    .map(({ id, t, s }) => ({ id, text: t, speaker: s }));
   return <Lobby opening={opening} />;
 }

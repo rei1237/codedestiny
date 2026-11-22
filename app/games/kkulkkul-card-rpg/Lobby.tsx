@@ -14,7 +14,6 @@ import {
   MoonStar,
   Music2,
   Orbit,
-  Repeat2,
   Settings,
   Shield,
   Swords,
@@ -27,6 +26,8 @@ import {
   screens,
   type Screen,
 } from "./catalog";
+import SummonPreview from "./SummonPreview";
+import { Dialogue, Portrait, NovelLine } from "./Dialogue";
 import { usePlayer } from "./usePlayer";
 import s from "./lobby.module.css";
 
@@ -51,7 +52,7 @@ function readScreen(): Screen {
 export default function Lobby({
   opening,
 }: {
-  opening: { id: string; text: string }[];
+  opening: { id: string; text: string; speaker: string }[];
 }) {
   const player = usePlayer();
   const [screen, setScreen] = useState<Screen>("home");
@@ -96,7 +97,10 @@ export default function Lobby({
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
       setPrefs({
-        hero: saved.hero === 1 ? 1 : 0,
+        hero:
+          Number.isInteger(saved.hero) && companions[saved.hero]
+            ? saved.hero
+            : 0,
         sound: saved.sound === true,
         large: saved.large === true,
         still: saved.still === true,
@@ -201,27 +205,14 @@ export default function Lobby({
       <p className={s.rotate}>가로로 돌리면 전장을 넓게 볼 수 있어요.</p>
       {screen === "home" ? (
         <section className={s.stage} aria-label="게임 로비">
-          <div className={s.portrait}>
-            <img src={hero.image} alt={hero.name} />
-          </div>
-          <div className={s.speech}>
-            <div>
-              <b>{hero.name}</b>
-              <button
-                aria-label="대표 캐릭터 교체"
-                onClick={() => chooseHero(1 - prefs.hero)}
-              >
-                <Repeat2 size={16} />
-              </button>
-            </div>
-            <button
-              className={s.line}
-              aria-label="다음 대사"
-              onClick={() => setLine((line + 1) % hero.lines.length)}
-            >
-              {hero.lines[line]} <ChevronRight size={14} />
-            </button>
-          </div>
+          <Dialogue
+            key={hero.name + line}
+            index={prefs.hero}
+            line={line}
+            still={prefs.still}
+            next={() => setLine((line + 1) % hero.lines.length)}
+            swap={() => chooseHero((prefs.hero + 1) % companions.length)}
+          />
           <div className={s.quests}>
             <article className={s.storyCard}>
               <span className={s.kicker}>
@@ -251,13 +242,13 @@ export default function Lobby({
         </section>
       ) : (
         <section className={s.sub} key={screen}>
-          <div className={s.panel}>
+          <div className={s.panel} data-screen={screen}>
             <h1 tabIndex={-1} ref={title}>
               {screens[screen]}
             </h1>
             {screen === "cast" && (
               <>
-                <p>로비에 함께할 대표 캐릭터를 선택하세요.</p>
+                <p>대표 캐릭터를 고르면 로비에서 대화를 나눌 수 있어요.</p>
                 {companions.map((c, i) => (
                   <button
                     className={s.row}
@@ -265,7 +256,7 @@ export default function Lobby({
                     aria-pressed={i === prefs.hero}
                     onClick={() => chooseHero(i)}
                   >
-                    <img src={c.image} alt="" />
+                    <Portrait index={i} />
                     <span>
                       {c.name} · {c.role}
                     </span>
@@ -278,7 +269,11 @@ export default function Lobby({
             {screen === "story" && (
               <>
                 <small>프롤로그 · 이상한 앱이 깔렸다</small>
-                <blockquote>{opening[beat].text}</blockquote>
+                <NovelLine
+                  key={opening[beat].id}
+                  {...opening[beat]}
+                  still={prefs.still}
+                />
                 <p>
                   도입부 미리보기 · {beat + 1} / {opening.length}
                 </p>
@@ -297,10 +292,10 @@ export default function Lobby({
               </>
             )}
             {screen === "summon" && (
-              <img
-                className={s.cardBack}
-                src="/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp"
-                alt="연꽃 문양 카드 뒷면"
+              <SummonPreview
+                balance={player.balance}
+                still={prefs.still}
+                go={go}
               />
             )}
             {screen in pending && (
