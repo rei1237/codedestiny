@@ -14,6 +14,7 @@ async function play(browser, mode) {
       : {}),
   });
   const p = await ctx.newPage();
+  p.setDefaultTimeout(20000);
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
   p.on("console", (m) => {
@@ -49,7 +50,7 @@ async function play(browser, mode) {
       await p.addStyleTag({
         content: "nextjs-portal {display:none!important}",
       });
-    await p.locator("select").first().selectOption("rehearsal");
+    await p.getByLabel("전장", { exact: true }).selectOption("rehearsal");
     await btn("모카와 임시 지원으로 연습").click();
     const special = p.getByRole("group", { name: "사용 가능한 운명해방" });
     const moka = special.getByRole("button", {
@@ -59,6 +60,37 @@ async function play(browser, mode) {
     assert.equal(await special.getByRole("button").count(), 3);
     const hand = p.locator("button[data-type]");
     assert.equal(await hand.count(), 5);
+    if (mode === "normal") {
+      for (const [width, height] of [
+        [800, 360],
+        [915, 412],
+        [1024, 768],
+        [1280, 720],
+        [390, 844],
+        [844, 390],
+      ]) {
+        await p.setViewportSize({ width, height });
+        const usable = await p
+          .locator(
+            'button[data-type], [aria-label="사용 가능한 운명해방"] button',
+          )
+          .evaluateAll(
+            (buttons) =>
+              buttons.length === 8 &&
+              buttons.every((button) => {
+                const r = button.getBoundingClientRect();
+                return (
+                  r.width >= 44 &&
+                  r.height >= 44 &&
+                  r.left >= 0 &&
+                  r.right <= innerWidth + 1 &&
+                  (innerWidth < innerHeight || r.bottom <= innerHeight + 1)
+                );
+              }),
+          );
+        assert.ok(usable, width + "×" + height + " command bounds");
+      }
+    }
     if (mode === "fast") await btn("1×").click();
     await hand.first().click();
     await moka.click();

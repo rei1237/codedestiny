@@ -357,6 +357,7 @@ export default function BattleScreen({
             <label>
               전장
               <select
+                aria-label="전장"
                 value={enc}
                 onChange={(e) => setEnc(e.target.value as EncounterId)}
               >
