@@ -152,6 +152,10 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[...expertProducts,product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});
+  if(path==='/canonical/astro/western-chart'&&method==='POST'){
+   const {privateStarHugChart}=await import('../../private-simulation/star-hug-chart.mjs');
+   return privateStarHugChart(await request.json());
+  }
   if(path==='/canonical/yeongnyangi/free/hat'&&method==='POST'){
    const {privateHat}=await import('../../private-simulation/sorting-hat.mjs');
    return privateHat(state.profiles,await request.json());

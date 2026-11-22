@@ -66,6 +66,7 @@ try{
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
   if(process.argv.includes('--guided-profile')){const {verifyGuidedProfile}=await import('./private-guided-profile.mjs');await verifyGuidedProfile(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private guided profile',reader.deploymentId);
+  }else if(process.argv.includes('--yeon-star-hug')){const {verifyYeonStarHug}=await import('./private-yeon-star-hug.mjs');await verifyYeonStarHug(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT Yeon Star Hug',reader.deploymentId);
   }else if(process.argv.includes('--sorting-hat')){const {verifySortingHat}=await import('./private-sorting-hat.mjs');await verifySortingHat(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT sorting hat',reader.deploymentId);
   }else if(process.argv.includes('--prompt-hub')){const {verifyPromptHub}=await import('./private-prompt-hub.mjs');await verifyPromptHub(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT prompt hub',reader.deploymentId);
   }else if(process.argv.includes('--animal-destiny')){const {verifyPrivateAnimal}=await import('./private-animal-destiny.mjs');await verifyPrivateAnimal(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private animal destiny',reader.deploymentId);

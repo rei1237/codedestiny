@@ -94,6 +94,10 @@ export function createSimulationApi(storage,person,musicTracks=[]){
     if(path==='/canonical/auth/me'&&method==='GET')return replies({ok:true,authenticated:true,user:{id:owner,name:'모의 계정 '+person,role:'user'}});
     if(path==='/canonical/geocode'&&method==='GET')return url.searchParams.get('place')==='서울'?replies({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false}):replies({error:'PLACE_NOT_FOUND'},404);
     if(path==='/canonical/profile'&&method==='GET')return replies({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
+    if(path==='/canonical/astro/western-chart'&&method==='POST'){
+      const {privateStarHugChart}=await import('./star-hug-chart.mjs');
+      return privateStarHugChart(await request.json());
+    }
     if(path==='/canonical/yeongnyangi/free/hat'&&method==='POST'){
       const {privateHat}=await import('./sorting-hat.mjs');
       return privateHat(state.profiles,await request.json());

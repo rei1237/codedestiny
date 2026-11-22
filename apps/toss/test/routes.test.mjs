@@ -20,7 +20,7 @@ const forwardedCalculation=name=>`export const ${name}=async request=>Response.j
 const stubMap={
  'worker/yeongnyangi/hat/service.ts':"export async function prepareHat(_env,owner,body){if(body.profileId!=='owned')throw Object.assign(new Error('PROFILE_NOT_FOUND'),{status:404});return {owner,profileId:body.profileId};}",
  'worker/routes/prompt-hub.js':"export const generateFreeTossPrompt=async(_env,input)=>({ok:true,input,paidWith:'public'});",
- 'worker/routes/astro.js':forwardedCalculation('handleAstrologyRoutes'),
+ 'worker/routes/astro.js':forwardedCalculation('handleAstrologyRoutes')+"export const calculateWesternProfileChart=async body=>Response.json({ok:true,input:body});",
  'worker/routes/sukuyo.js':forwardedCalculation('handleSukuyoRoutes'),
  'lib/toss-release.mjs':'export let NEW_PURCHASES_AVAILABLE=true;globalThis.__tossRouteMocks.setSales=v=>{NEW_PURCHASES_AVAILABLE=v;};',
  'worker/toss/music-download.js':"import {TossError} from './policy.js';const call=(kind,...args)=>{const state=globalThis.__tossRouteMocks;(state.musicCalls??=[]).push([kind,...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {owner:args[1].ownerId};};export const prepareNativeMusic=(...args)=>call('prepare',...args),readNativeMusic=(...args)=>call('read',...args),downloadNativeMusic=(...args)=>call('file',...args);",
@@ -161,6 +161,13 @@ async function request(body,path='/prepare',env={TOSS_RELEASE_READY:'true'}){
  calls.profiles=[];calls.prepared=[];calls.followups=0;
  return handleTossRoutes(new Request('https://code-destiny.com/api/toss'+path,{method:'POST',headers:{Origin:'https://ai-saju-studio.private-apps.tossmini.com','Content-Type':'application/json'},body:JSON.stringify(body)}),env);
 }
+test('optional Swiss chart for Yeoni requires an authenticated session',async()=>{
+ const path='/canonical/astro/western-chart',body={year:1990,month:1,day:1};
+ mocks.denyAuth=true;
+ try{assert.equal((await request(body,path)).status,401);}finally{mocks.denyAuth=false;}
+ const result=await request(body,path);
+ assert.equal(result.status,200);assert.equal((await result.json()).input.year,1990);
+});
 test('sorting hat uses the authenticated owner without purchasing and rejects unavailable profiles',async()=>{
  const path='/canonical/yeongnyangi/free/hat';
  mocks.denyAuth=true;

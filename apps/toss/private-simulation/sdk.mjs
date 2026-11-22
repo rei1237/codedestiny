@@ -10,10 +10,18 @@ export const Accuracy={Balanced:'balanced'};
 export const Clipboard=disabled,Device=disabled;
 export const Share={createLink:blocked,sendMessage:supported(async({message})=>{
  const {hatHouses}=await import('../../../lib/yeongnyangi/hat-houses.ts');
+ if(typeof message==='string'&&message.startsWith('연이의 마음 별자리 · ')&&message.length<=160&&!/[\r\n]/.test(message)){
+  localStorage.setItem('private-star-hug-share','opened');return;
+ }
  if(!hatHouses.some(house=>message===`영냥이의 모자 · ${house.name}\n${house.motto}`))return blocked();
  localStorage.setItem('private-hat-share',message);
 })};
 export const File={saveBase64:supported(async value=>{
+ if(value?.mimeType==='image/svg+xml'&&/^yeon-heart-card-[가-힣]+자리-[a-z]+\.svg$/.test(value.fileName)&&typeof value.data==='string'&&value.data.length<700000){
+  const svg=atob(value.data);
+  if(!svg.includes('<svg')||!svg.includes('width="1080"')||!svg.includes('height="1350"')||!svg.includes('href="data:image/webp;base64,')||svg.includes('<script'))return blocked();
+  localStorage.setItem('private-star-hug-save',value.fileName);return;
+ }
  if(value?.mimeType==='image/png'&&value.fileName?.startsWith('영냥이의-모자-')){
    const {hatHouses}=await import('../../../lib/yeongnyangi/hat-houses.ts');
    if(!hatHouses.some(house=>value.fileName===`영냥이의-모자-${house.name}.png`)||typeof value.data!=='string'||!value.data.startsWith('iVBORw0KGgo')||value.data.length<32||value.data.length>10_000_000)return blocked();

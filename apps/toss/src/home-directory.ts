@@ -63,6 +63,7 @@ const rooms:DirectoryItem[]=[
  {title:'연이 · 운명의 찻집',body:'마음과 관계를 다정한 편지로',art:'/assets/yeoni-flower-pig.webp',room:'yeoni'},
  {title:'네오 · 팩폭 전략실',body:'고민을 현실적인 다음 행동으로',keywords:'작전실 전략가',art:'/assets/neo.webp',room:'neo'},
  {title:'연이의 상담 편지',href:'/fortune-tea-house/?counsel=letter'},
+ {title:'연이의 마음 별자리',body:'오늘의 감정과 고민을 담아 읽는 별빛 상담',href:'/yeon-star-hug/'},
  {title:'네오의 상담 편지',href:'/fortune-tea-house/?counsel=letter&persona=neo'},
  {title:'네오 작전 결정서 · 이메일 상담',href:'/neo-consultation/',keywords:'작전실 이메일 메일'},
 ];

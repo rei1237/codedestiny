@@ -220,6 +220,7 @@ export default function serviceCompat(){
    // Otherwise dead catalog entries and navigation URLs copy whole art archives.
    for(const entry of Object.values(bundle)){
     const source=entry.type==='chunk'?entry.code:entry.fileName.endsWith('.css')?String(entry.source):'';
+    if(source.includes('/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90'))references.add('/fuctionassets/연이 캐릭터 스프라이트 시트.webp');
     if(source.includes('/fuctionassets/saju-relationship-temptation-768.webp'))references.add('/fuctionassets/saju-relationship-temptation-768.webp');
     for(const match of source.matchAll(asset)){const ref=match[1];if(isTea640Reference(ref)){tea640=true;continue;}if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}const prefix=ref.split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
    }
@@ -299,11 +300,11 @@ export default function serviceCompat(){
    const collect=async(folder,prefix)=>{
     for(const entry of await readdir(folder,{withFileTypes:true})){
      const path=resolve(folder,entry.name);
+     if(path===resolve(publicRoot,'.'+hatFolder))continue;
      if(entry.isDirectory()){if(path.startsWith(prefix)||prefix.startsWith(path+sep))await collect(path,prefix);}
      else if(path.startsWith(prefix)&&mime[extname(path)]&&!emitted.has(path)){
       if(/^images\/psychotest\/bmovie-v1\/[a-z]+-960\.webp$/.test(path.slice(publicRoot.length+1).split(sep).join('/')))continue;
       if(Object.hasOwn(TOSS_WEBP_ART,'/'+path.slice(publicRoot.length+1).replaceAll('\\','/')))continue;
-     if(path===resolve(publicRoot,'.'+hatFolder))continue;
       emitted.add(path);this.emitFile({type:'asset',fileName:path.slice(publicRoot.length+1).replaceAll('\\','/'),source:await sourceBytes(path)});
      }
     }

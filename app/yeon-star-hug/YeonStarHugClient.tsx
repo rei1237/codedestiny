@@ -2611,10 +2611,23 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url);
 }
 
-export default function YeonStarHugPage() {
+type TossHeartTools = {
+  flowScope: string;
+  saveCard: (svg:string,sprite:string,fileName:string)=>Promise<void>;
+  share: (summary:string)=>Promise<void>;
+};
+export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
   const reduceMotion = useReducedMotion();
   const copy = useYeonStarHugCopy();
-  const today = useMemo(() => new Date(), []);
+  const [saved] = useState(()=>{
+    if(!toss||new URLSearchParams(location.search).get('step')!=='result')return null;
+    try{
+      const entry=JSON.parse(sessionStorage.getItem(toss.flowScope+':result')||'null');
+      if(entry?.version===1&&typeof entry.date==='string'&&Number.isFinite(Date.parse(entry.date))&&entry.consultation&&entry.reading?.displayCard)return entry as {date:string;consultation:ConsultationResult;reading:YeonHeartStarReading};
+    }catch{/* Storage can be unavailable in a webview. */}
+    return null;
+  });
+  const today = useMemo(() => saved?new Date(saved.date):new Date(), [saved]);
   const defaultSign = useMemo(() => getSignByMonthDay(today.getMonth() + 1, today.getDate()), [today]);
 
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionKey>("calm");
@@ -2629,8 +2642,8 @@ export default function YeonStarHugPage() {
   const [profileNameInput, setProfileNameInput] = useState("");
   const [birthDateInput, setBirthDateInput] = useState("");
   const [birthTimeInput, setBirthTimeInput] = useState("");
-  const [consultation, setConsultation] = useState<ConsultationResult | null>(null);
-  const [reading, setReading] = useState<YeonHeartStarReading | null>(null);
+  const [consultation, setConsultation] = useState<ConsultationResult | null>(saved?.consultation??null);
+  const [reading, setReading] = useState<YeonHeartStarReading | null>(saved?.reading??null);
   const [astroSignal, setAstroSignal] = useState<YeonAstroSignal | null>(null);
   const [astroLoading, setAstroLoading] = useState(false);
   const [astroError, setAstroError] = useState("");
@@ -2796,10 +2809,12 @@ export default function YeonStarHugPage() {
     return consultation.warmMessage;
   }, [consultation]);
 
+  const readingTimer=useRef<ReturnType<typeof window.setTimeout>|undefined>(undefined);
+  useEffect(()=>()=>window.clearTimeout(readingTimer.current),[]);
   const runConsultation = () => {
     if (isGenerating) return;
     setIsGenerating(true);
-    window.setTimeout(() => {
+    readingTimer.current=window.setTimeout(() => {
       const swissSign = astroSignal?.sunSign && isYeonZodiacSign(astroSignal.sunSign) ? astroSignal.sunSign as ZodiacSign : null;
       const matchedSign = swissSign || parseSignFromBirthDateInput(birthDateInput) || selectedSign;
       const recipientName = String(profileSeed.name || profileNameInput || "").trim();
@@ -2812,6 +2827,7 @@ export default function YeonStarHugPage() {
       const next = buildConsultation(matchedSign, selectedEmotion, normalizedConcernText, recipientName, new Date(), astroSignal);
       const spriteFrame = getCardSpriteFrame(matchedSign, selectedEmotion, next.concernCategory, next.concernDomain, next.astroSignal);
       const nextReading = buildReadingFromConsultation(next, selectedEmotion, activeEmotion.label, spriteFrame);
+      if(toss)try{sessionStorage.setItem(toss.flowScope+':result',JSON.stringify({version:1,date:today.toISOString(),consultation:next,reading:nextReading}));}catch{/* Reading remains available on screen. */}
       setConsultation(next);
       setReading(nextReading);
       setShareFeedback("연이가 오늘의 마음 별자리 리딩을 따뜻하게 정리했어요.");
@@ -2828,6 +2844,7 @@ export default function YeonStarHugPage() {
     try {
       const svgBlob = new Blob([cardSvg], { type: "image/svg+xml;charset=utf-8" });
       const svgFileName = `yeon-heart-card-${selectedSign}-${selectedEmotion}.svg`;
+      if(toss){await toss.saveCard(cardSvg,SPRITE_SHEET,svgFileName);setShareFeedback('상징 카드 저장을 요청했어요.');return;}
       const svgFile = new File([svgBlob], svgFileName, { type: "image/svg+xml" });
 
       const shareText = `${reading.displayCard.zodiacLabel} · ${reading.displayCard.oneLineMessage}`;
@@ -2930,7 +2947,7 @@ export default function YeonStarHugPage() {
         )}
 
         {YeonStarHugGuided ? (
-          <YeonStarHugGuided
+          <YeonStarHugGuided flowScope={toss?.flowScope}
             emotions={EMOTIONS}
             signs={ZODIAC_SIGNS}
             samples={GENERAL_CONCERN_SAMPLES}
@@ -3245,8 +3262,9 @@ export default function YeonStarHugPage() {
                     className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
-                    {isExporting ? copy.shareButtonLoading : copy.shareButtonIdle}
+                    {isExporting ? copy.shareButtonLoading : toss?"상징 카드 저장하기":copy.shareButtonIdle}
                   </button>
+                  {toss&&reading&&<button type="button" className="mt-2 min-h-11 rounded-xl border px-4" onClick={()=>void toss.share(`${reading.displayCard.zodiacLabel} · ${reading.displayCard.oneLineMessage}`).then(()=>setShareFeedback('별자리 메시지 공유 창을 열었어요.'),()=>setShareFeedback('공유 창을 열지 못했어요. 다시 눌러 주세요.'))}>별자리 메시지 공유하기</button>}
                   <p className="mt-2 min-h-5 text-xs text-slate-500">{shareFeedback}</p>
 
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">

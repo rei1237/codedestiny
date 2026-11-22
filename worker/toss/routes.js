@@ -751,6 +751,11 @@ export async function handleTossRoutes(request,env) {
       const result=await geocodePlace(url.searchParams.get('place'));
       return reply(result.data,result.status);
     }
+    if(path==='/canonical/astro/western-chart'&&request.method==='POST'){
+      await limit(env,auth._id,'yeon-heart-western-chart',6);
+      const {calculateWesternProfileChart}=await import('../routes/astro.js');
+      return forwardServiceResponse(await calculateWesternProfileChart(await bodyOf(request),env,request.url),headers);
+    }
     if(path==='/canonical/yeongnyangi/free/hat'&&request.method==='POST'){
       await limit(env,auth._id,'yeongnyangi-free-hat',6,600000);
       const body=await bodyOf(request,1024);
