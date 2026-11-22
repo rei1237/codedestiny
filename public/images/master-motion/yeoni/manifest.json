@@ -20,9 +20,17 @@
         "cell": {
           "width": 600,
           "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/yeoni/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
         }
       },
-      "sheetBytes": 253022
+      "sheetBytes": 253022,
+      "mobileSheetBytes": 119982
     },
     "avatar": {
       "kind": "avatar",
@@ -35,6 +43,13 @@
         "cell": {
           "width": 112,
           "height": 112
+        },
+        "mobile": {
+          "src": "/images/master-motion/yeoni/avatar-sheet-mobile.webp",
+          "cell": {
+            "width": 112,
+            "height": 112
+          }
         }
       },
       "sheetBytes": 14452,
@@ -42,7 +57,8 @@
         "left": 115,
         "top": 45,
         "size": 280
-      }
+      },
+      "mobileSheetBytes": 6872
     }
   },
   "qa": {

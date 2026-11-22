@@ -1269,7 +1269,7 @@ html.neo-mode .cdh,body.neo-mode .cdh{--cdh-glass-line:color-mix(in srgb,var(--c
 /* 허브 색인: 대표 상담과 경쟁하지 않도록 작고 흐리게, 푸터 바로 위에 둔다. */
 #cdHomeFunnel .cdh-directory{display:flex;flex-wrap:wrap;justify-content:center;gap:0 14px;max-width:640px;margin:28px auto 0;padding:18px 16px 0;border-top:1px solid color-mix(in srgb,var(--cdh-gold) 28%,transparent)}
 #cdHomeFunnel .cdh-directory__title{flex-basis:100%;margin:0 0 4px;color:var(--cdh-muted);font-size:12px;font-weight:700;letter-spacing:.08em;text-align:center}
-#cdHomeFunnel .cdh-directory a{display:inline-flex;align-items:center;min-height:32px;color:var(--cdh-muted);font-size:13px;text-decoration:none}
+#cdHomeFunnel .cdh-directory a{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;color:var(--cdh-muted);font-size:13px;text-decoration:none}
 #cdHomeFunnel .cdh-directory a:hover{color:var(--cdh-accent);text-decoration:underline}
 #cdHomeFunnel .cdh-directory a:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:2px;border-radius:4px}
 /* 하단 내비를 피하는 여백은 푸터 쪽이 갖는다. 홈 본문 끝(#inputPage)에도 두면 링크 줄과 푸터 사이가 200px 넘게 빈다. */

@@ -46,6 +46,27 @@ async function mount(t,request,props={}){
   return {text:()=>document.body.textContent,links:()=>[...document.querySelectorAll('a[href*="/result/"]:not([href$="#image-report"])')].map(a=>a.href),event:async detail=>act(async()=>window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail}))),owner:async scope=>act(async()=>{globalThis.__yn.scope=scope;for(const notify of globalThis.__yn.listeners)notify();})};
 }
 
+test('return to a saved reading restores its owner’s loaded pages and scroll once',async t=>{
+  const calls=[],scrolls=[];
+  const ui=await mount(t,async path=>{
+    calls.push(path);
+    return path.includes('cursor=next')?page(['second']):page(['first'],'next');
+  });
+  const more=[...document.querySelectorAll('button')].find(button=>button.textContent==='더 보기');
+  await act(async()=>more.click());
+  Object.defineProperty(window,'scrollY',{value:600,configurable:true});
+  window.scrollTo=options=>scrolls.push(options.top);
+  const link=document.querySelector('a[href*="id=second"]');
+  document.addEventListener('click',event=>event.preventDefault(),{once:true});
+  await act(async()=>link.click());
+  assert.deepEqual(JSON.parse(window.sessionStorage.getItem('yn-library-position:owner')),{pages:2,y:600});
+  await ui.owner('other');
+  assert.deepEqual(scrolls,[]);
+  await ui.owner('owner');
+  assert.deepEqual(calls.slice(-2),['requests','requests?cursor=next']);
+  assert.deepEqual(scrolls,[600]);
+  assert.equal(window.sessionStorage.getItem('yn-library-position:owner'),null);
+});
 test('same-account refresh failure retains purchased records and shows an error',async t=>{
   let calls=0;const ui=await mount(t,async()=>{if(++calls===1)return page(['old']);throw new ApiError(503);});
   await ui.event({event:'login'});

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { CSSProperties, ElementType, ReactNode } from "react";
 import { MASTER_MOTION_ENABLED } from "@/lib/master-motion/flags.mjs";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -9,7 +10,12 @@ import styles from "./MasterMotion.module.css";
  * 가로 스프라이트 시트(F, 2026-11-22) — scripts/sprites/build-master-motion.mjs 가 만든다.
  * 칸은 재생 순서대로 한 줄(cols === frames)이고, 각 칸은 cell 크기(초상 상자와 같은 비율)다.
  */
-export type MasterMotionSheet = { src: string; frames: number; cols: number; cell: { width: number; height: number } };
+type SheetSource = { src: string; cell: { width: number; height: number } };
+export type MasterMotionSheet = SheetSource & {
+  mobile?: SheetSource;
+  frames: number;
+  cols: number;
+};
 
 /**
  * 후속 그림(대기 루프) 확장 지점. 값이 있으면 영상·시트·프레임 순으로 쓰고, 없으면 CSS 숨쉬기·흔들림으로 대신한다.
@@ -52,13 +58,26 @@ export function MasterPetals({ variant = "ggulggul", density = "md" }: { variant
   );
 }
 
+/** 시트 이미지의 load 이벤트를 사용해 캐시가 꺼져도 한 번만 전송한다. */
+function PortraitSheet({ source, frames, poster }: { source: SheetSource; frames: number; poster: string }) {
+  const [ready, setReady] = useState(false);
+  return (
+    <span className={`${styles.art} ${styles.sheetArt}`} data-mm-sheet="" data-ready={ready ? "" : undefined}
+      style={{ backgroundImage: `url("${poster}")` }} aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className={styles.sheet} src={source.src} alt="" decoding="async"
+        width={source.cell.width * frames} height={source.cell.height} onLoad={() => setReady(true)}
+        style={{ "--mm-n": frames } as CSSProperties} />
+    </span>
+  );
+}
+
 function MasterMotionLive({ children, variant = "ggulggul", density = "md", as: Tag = "span", className, slotClassName, art }: MasterMotionProps) {
-  const gate = useSpritePlaybackGate<HTMLElement>();
+  const gate = useSpritePlaybackGate<HTMLElement>({ rootMargin: "0px" });
   const on = gate.canAnimate;
   const frames = art?.frames?.length ? art.frames : null;
   const sheet = art?.video ? null : usableSheet(art?.sheet);
-  // 시트는 보일 때만 받아 오고, 다 받은 뒤에 포스터 위로 0.3s 페이드한다(받기 실패면 포스터·CSS 모션 그대로).
-  const sheetImage = useLazySpriteSource(sheet?.src ?? "", on && Boolean(sheet));
+  const source = gate.isMobile && sheet?.mobile ? sheet.mobile : sheet;
   return (
     <Tag
       ref={gate.ref}
@@ -70,16 +89,8 @@ function MasterMotionLive({ children, variant = "ggulggul", density = "md", as: 
       {children}
       {on && art?.video ? (
         <video className={styles.art} src={art.video} poster={art.poster} muted playsInline autoPlay loop preload="none" aria-hidden="true" />
-      ) : on && sheet && art ? (
-        <span
-          className={`${styles.art} ${styles.sheetArt}`}
-          data-mm-sheet=""
-          data-ready={sheetImage.isLoaded ? "" : undefined}
-          style={{ backgroundImage: `url("${art.poster}")` }}
-          aria-hidden="true"
-        >
-          <span className={styles.sheet} style={{ "--mm-n": sheet.frames, backgroundImage: `url("${sheet.src}")` } as CSSProperties} />
-        </span>
+      ) : on && sheet && source && art ? (
+        <PortraitSheet key={source.src} source={source} frames={sheet.frames} poster={art.poster} />
       ) : on && frames ? (
         <span className={styles.art} aria-hidden="true">
           <span className={styles.frames} style={{ "--mm-n": frames.length } as CSSProperties}>
@@ -103,7 +114,7 @@ export type MasterMotionPatchArt = {
 const percent = (value: number, total: number) => `${(value / total) * 100}%`;
 
 function MasterMotionPatchLive({ patch, paused }: { patch: MasterMotionPatchArt; paused: boolean }) {
-  const gate = useSpritePlaybackGate<HTMLSpanElement>();
+  const gate = useSpritePlaybackGate<HTMLSpanElement>({ rootMargin: "0px" });
   const sheet = usableSheet(patch.sheet);
   const on = gate.canAnimate && !paused && Boolean(sheet);
   // 보이고 움직여도 될 때만 받아 온다. 다 받기 전·멈춤·움직임 줄이기에서는 줄을 그리지 않아 아래 <img> 만 보인다.

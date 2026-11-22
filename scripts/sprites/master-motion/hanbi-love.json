@@ -144,7 +144,7 @@
     },
     "avatar": {
       "sheet": 84,
-      "poster": 84
+      "poster": 84, "mobileSheet": 43
     }
   },
   "provenance": {

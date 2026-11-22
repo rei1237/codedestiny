@@ -38,7 +38,7 @@ import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
 import { chromium } from "@playwright/test";
-import { closeOverlays, openAllCollections, reachMindscanTile, scrollIntoView } from "./lib/perf-home-reach.mjs";
+import { closeOverlays, COLLECTION_HEADER, HOME_HEADING, openAllCollections, prepareShellControls, reachCollectionHeader, reachMindscanTile, scrollIntoView } from "./lib/perf-home-reach.mjs";
 
 const root = process.cwd();
 const staticRoot = fs.existsSync(path.join(root, "dist", "index.html")) ? path.join(root, "dist") : root;
@@ -62,6 +62,27 @@ const MOBILE_UA =
  *    `a.tarot-tile--mindscan` 1,224ms)이라, 못 잰다는 것은 **가장 중요한 것을 못 잰다**는 뜻이었다.
  */
 const TARGETS = [
+  {
+    name: "하단 보관함 링크",
+    selector: "#cdMobileBottomNav a[data-nav-key='library']:visible",
+    requires: "#cdMobileBottomNav a[data-nav-key='library']",
+    navigates: true,
+  },
+  {
+    name: "대표 상담 배너 다음",
+    selector: "[data-sig-banner-next]",
+    requires: "[data-sig-banner]",
+    state: (page) => page.locator("[data-sig-banner-position]").textContent(),
+    setup: (page) => scrollIntoView(page, "[data-sig-banner-next]"),
+  },
+  {
+    name: "대표 상담 편지 열기",
+    selector: "[data-signature-open]",
+    requires: "[data-signature-letter]",
+    state: (page) => page.locator("[data-signature-letter]").evaluate((el) => el.open),
+    setup: (page) => scrollIntoView(page, "[data-signature-open]"),
+    teardown: closeOverlays,
+  },
   /* 2026-10-17 단순화부터 홈에 검색 입력이 없다. 사용자가 밟는 길 그대로 '모든 운세 보기' 버튼으로
      목록을 연 뒤, 그 목록의 검색 입력을 잰다. */
   {
@@ -70,10 +91,8 @@ const TARGETS = [
     type: "type",
     text: "사주",
     setup: async (page) => {
-      // 412px 에서는 하단 버튼이 숨고 첫 줄 아래 '모든 운세 보기'(.yh-all)만 보인다.
-      await scrollIntoView(page, ".yh-all");
-      await page.click(".yh-all");
-      await page.waitForSelector("#cdAllFortunesSearch", { state: "visible" });
+      await openAllCollections(page);
+      await scrollIntoView(page, "#cdAllFortunesSearch");
     },
     teardown: closeOverlays,
   },
@@ -90,19 +109,8 @@ const TARGETS = [
      첫 헤더(명상 컬렉션)는 /tarot/prompt-maker/ 로 가는 링크라, 펼치는 버튼 헤더만 고른다. */
   {
     name: "컬렉션 펼치기",
-    selector: "button.tarot-collection__header",
-    setup: async (page) => {
-      await page.evaluate(() => window.__cdOpenGarden && window.__cdOpenGarden());
-      await scrollIntoView(page, "button.tarot-collection__header");
-    },
-    /* 🔴 이 대상만 타임아웃을 올린다. UI 가 느려서가 아니다 — 스크롤 뒤 상태를 실측하면
-       rect 는 4프레임 내내 [41, 383.6, 308, 91.8] 로 **완전히 불변**이고, 중앙 좌표의 최상단은
-       자기 자식(`p.tarot-collection__subtitle`)이며 pointer-events 도 auto 다. 즉 가려짐도
-       흔들림도 없고, 1,200ms 로는 CPU 4배 스로틀에서 playwright 자신의 actionability 검사가
-       못 끝날 뿐이다(8,000ms 로는 성공).
-       조용한 구간이 시프트 귀속을 어긋내는 문제는 그대로 막힌다 — 마크를 클릭 **전에** 찍으므로
-       기다리는 동안 도착한 시프트도 이 대상의 구간으로 귀속된다. */
-    clickTimeout: 4000,
+    selector: COLLECTION_HEADER,
+    setup: reachCollectionHeader,
   },
 
   /* 🔴 이 칩이 "요소 없음"이었던 것은 느려서가 아니라 **'모든 운세' 오버레이가 열려야 생기기**
@@ -122,14 +130,19 @@ const TARGETS = [
   /* 필드 INP 1,592ms · 1,224ms. 이동하므로 문서 요청을 취소하고 잰다.
      🔴 navigates 대상은 **입력 대기·처리만 신뢰하고 렌더 성분은 신뢰하지 않는다** —
         취소가 확정되기 전까지 크로미움이 페인트를 미룰 수 있다(보고서에도 그렇게 적는다). */
-  { name: "하단 내비 탭", selector: "#cdMobileBottomNav [data-nav-key='consult']", navigates: true },
+  {
+    name: "하단 내비 탭",
+    selector: "#cdMobileBottomNav [data-nav-key='consult']:visible",
+    navigates: true,
+    retired: "#cdMobileBottomNav .cd-mobile-bottom-nav__chip[data-nav-key='consult'][data-cd-mobile-scroll]",
+  },
 
   /* 🔴 이 타일은 settle 만으로는 DOM 에 **없다**(실측: settle 직후 `.tarot-tile` 0개).
      오버레이 → 타로 탭 → 열린 컬렉션 스크롤, 세 단계를 거쳐야 지연 마운트가 끝난다.
      절차는 scripts/lib/perf-home-reach.mjs 에 근거와 함께 있다. */
   {
     name: "타로 타일(mindscan)",
-    selector: "a.tarot-tile--mindscan",
+    selector: "a.tarot-tile--mindscan:visible",
     navigates: true,
     setup: reachMindscanTile,
     teardown: closeOverlays,
@@ -147,13 +160,14 @@ const TARGETS = [
  * 필드는 2,672ms 였다. 그래서 아무 일도 하지 않는 요소를 부팅 도중 여러 시점에 눌러
  * "지금 누르면 몇 ms 만에 답이 오는가"의 바닥값을 잰다.
  */
-const EARLY_TAP_SELECTOR = "#inputPage > header.logo-area";
+const EARLY_TAP_SELECTOR = HOME_HEADING;
 const EARLY_TAP_AT = [800, 1600, 2600, 4000];
 
 const args = parseArgs(process.argv.slice(2));
 const server = await startStaticServer();
 const port = server.address().port;
-const targetUrl = args.url || `http://127.0.0.1:${port}/`;
+const shellPath = fs.existsSync(path.join(staticRoot, "ggulggul", "index.html")) ? "/ggulggul/" : "/index.html";
+const targetUrl = args.url || `http://127.0.0.1:${port}${shellPath}`;
 
 console.log(`[perf:interaction] target ${targetUrl}`);
 console.log(
@@ -229,7 +243,7 @@ async function measureOnce(url) {
      * 쓰므로(mobile-interaction-patch 의 invokeMobileCardLink 등) 덮으면 측정 대상의 동작이 바뀐다.
      * `page.route()` 도 쓰지 않는다 — 모든 요청이 JS 를 거쳐 부팅 네트워크가 통째로 달라진다.
      * 대신 CDP Fetch 를 **Document 리소스에만** 걸어, 필요한 순간에만 문서 요청을 취소한다.
-     * 크로미움은 커밋 전에 취소된 내비게이션에서 현재 문서를 그대로 유지하고 unload 도 쏘지 않는다.
+     * 204 응답은 현재 문서를 유지한다. failRequest는 Chromium에서 오류 문서로 이동할 수 있다.
      *
      * 🔴 활성화는 **부팅 측정이 끝난 뒤**다(아래 armNavigationBlocker). goto 전에 켜면 첫 문서
      *    요청까지 인터셉터를 거쳐 부팅 타이밍이 달라지고, 그러면 이 도구의 1순위 지표인
@@ -240,12 +254,13 @@ async function measureOnce(url) {
     const armNavigationBlocker = async () => {
       if (navigationBlockerArmed) return;
       navigationBlockerArmed = true;
+      await cdp.send("Network.enable");
       await cdp.send("Fetch.enable", {
         patterns: [{ urlPattern: "*", requestStage: "Request", resourceType: "Document" }],
       });
       cdp.on("Fetch.requestPaused", (event) => {
         const done = blockNavigation
-          ? cdp.send("Fetch.failRequest", { requestId: event.requestId, errorReason: "Aborted" })
+          ? cdp.send("Fetch.fulfillRequest", { requestId: event.requestId, responseCode: 204 })
           : cdp.send("Fetch.continueRequest", { requestId: event.requestId });
         done.catch(() => {});
       });
@@ -257,6 +272,7 @@ async function measureOnce(url) {
       try {
         new PerformanceObserver((list) => {
           for (const e of list.getEntries()) {
+            if (!e.interactionId) continue;
             window.__cdPerf.events.push({
               name: e.name,
               startTime: e.startTime,
@@ -335,14 +351,22 @@ async function measureOnce(url) {
     await page.waitForLoadState("load", { timeout: 90000 }).catch(() => {});
     // 여기부터는 부팅이 끝난 뒤의 반응성이다. 위 early 와 섞으면 둘 다 못 읽는다.
     await page.waitForTimeout(args.settle);
+    await prepareShellControls(page);
     const bootMark = await page.evaluate(() => performance.now());
-
     await armNavigationBlocker();
     const baselineUrl = page.url();
 
     const interactions = [];
     for (const target of TARGETS) {
       // 프로필이 있어야만 존재하는 대상은, 시드하지 않은 런에서 "잴 수 없음"이지 "실패"가 아니다.
+      if (target.retired && await page.locator(target.retired).count() && !(await page.locator(target.selector).count())) {
+        interactions.push({ name: target.name, skipped: "상담 탭이 숨은 빠른 메뉴 스크롤 버튼으로 변경됨" });
+        continue;
+      }
+      if (target.requires && !(await page.locator(target.requires).count())) {
+        interactions.push({ name: target.name, skipped: "이 버전의 셸에서 제공하지 않음" });
+        continue;
+      }
       if (target.needsProfile && !args.profile) {
         interactions.push({ name: target.name, skipped: "--profile=1 필요" });
         continue;
@@ -361,22 +385,31 @@ async function measureOnce(url) {
         if (typeof target.teardown === "function") await target.teardown(page).catch(() => {});
         continue;
       }
-      const before = await page.evaluate(() => window.__cdPerf.events.length);
-      const startedAt = await page.evaluate((n) => { window.__cdPerf.marks.push({ name: n, at: performance.now() }); return performance.now(); }, target.name);
-      if (target.navigates) blockNavigation = true;
+      // CPU 제한 중 Playwright의 스크롤·클릭 가능 판정은 입력 지연이 아니다. 마크 전에 준비한다.
       try {
-        // 🔴 타임아웃을 길게 주면 실패한 대상이 수 초의 조용한 구간을 만들고, 그 사이에 도착한
-        //    지연 이미지 시프트가 "입력과 무관한 시프트"로 계상돼 귀속이 통째로 어긋난다.
-        //    그래서 기본은 1,200ms 로 묶어 두고, 올리는 대상은 **왜 올리는지 근거를 그 자리에**
-        //    적는다(측정으로 확인한 것만 — "느린 것 같아서"는 사유가 아니다).
-        const clickTimeout = target.clickTimeout || 1200;
+        await handle.click({ trial: true, timeout: 10000 });
+      } catch (error) {
+        interactions.push({ name: target.name, failed: String(error.message || error).split("\n")[0] });
+        if (target.teardown) await target.teardown(page).catch(() => {});
+        continue;
+      }
+      const priorState = target.state ? await target.state(page) : undefined;
+      const startedAt = await page.evaluate((n) => { window.__cdPerf.marks.push({ name: n, at: performance.now() }); return performance.now(); }, target.name);
+      if (target.navigates) {
+        // 캐시한 문서는 Fetch 인터셉터를 거치지 않는다. 이동을 재는 동안에만 SW를 우회한다.
+        await cdp.send("Network.setBypassServiceWorker", { bypass: true });
+        blockNavigation = true;
+      }
+      try {
+        // 4배 CPU에서 클릭 가능 여부를 다시 확인할 시간을 준다. Event Timing은 실제 입력부터 잰다.
         if (target.type === "type") {
-          await handle.click({ timeout: clickTimeout });
+          await handle.click({ timeout: 4000 });
           await page.keyboard.type(target.text, { delay: 60 });
         } else {
-          await handle.click({ timeout: clickTimeout });
+          await handle.click({ timeout: 4000 });
         }
       } catch (error) {
+        if (target.navigates) await cdp.send("Network.setBypassServiceWorker", { bypass: false });
         blockNavigation = false;
         interactions.push({ name: target.name, failed: String(error.message || error).split("\n")[0] });
         await page.evaluate((n) => window.__cdPerf.marks.push({ name: n, at: performance.now() }), `${target.name} (실패)`);
@@ -384,6 +417,7 @@ async function measureOnce(url) {
         continue;
       }
       await page.waitForTimeout(args.between);
+      if (target.navigates) await cdp.send("Network.setBypassServiceWorker", { bypass: false });
       blockNavigation = false;
 
       // 🔴 통과가 아니라 **실패로 죽인다**. 이동을 못 막았으면 이 대상 뒤의 모든 측정이 다른
@@ -394,7 +428,12 @@ async function measureOnce(url) {
         );
       }
 
-      const fresh = await page.evaluate((n) => window.__cdPerf.events.slice(n), before);
+      if (target.state && (await target.state(page)) === priorState) {
+        interactions.push({ name: target.name, failed: "클릭 후 화면 상태가 바뀌지 않음" });
+        if (target.teardown) await target.teardown(page).catch(() => {});
+        continue;
+      }
+      const fresh = await page.evaluate((at) => window.__cdPerf.events.filter((event) => event.startTime >= at), startedAt);
       const worst = fresh.reduce((best, e) => (!best || e.duration > best.duration ? e : best), null);
       interactions.push(
         worst
@@ -412,7 +451,6 @@ async function measureOnce(url) {
           : { name: target.name, duration: 0, inputDelay: 0, processing: 0, presentation: 0, events: 0, navigationBlocked: !!target.navigates },
       );
       if (typeof target.teardown === "function") await target.teardown(page).catch(() => {});
-      void startedAt;
     }
 
     // ── 스크롤 ──

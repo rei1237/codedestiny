@@ -131,6 +131,43 @@ test('actual Next consent UI: regional default, reject/accept/revoke, persistenc
   }
 });
 
+test('desktop home uses its inline consent slot, restores the settings button and releases mobile clearance', async () => {
+  const dom = new JSDOM('<div id="root"></div><div id="home-consent-slot"></div><button data-cd-cookie-settings>쿠키 설정</button>', { url: 'https://code-destiny.com/' });
+  const w = dom.window;
+  const desktop = new w.EventTarget();
+  desktop.matches = true;
+  w.matchMedia = () => desktop;
+  globalThis.window = w; globalThis.document = w.document; globalThis.location = w.location;
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+  const root = createRoot(w.document.getElementById('root'));
+  const slot = w.document.getElementById('home-consent-slot');
+  const settings = w.document.querySelector('[data-cd-cookie-settings]');
+  try {
+    await act(async () => root.render(React.createElement(Consent)));
+    assert.ok(slot.querySelector('section'));
+    assert.equal(w.document.body.style.paddingBottom, '');
+    await act(async () => slot.querySelector('button').click());
+    assert.equal(slot.childElementCount, 0);
+    await act(async () => settings.click());
+    assert.equal(w.document.activeElement, slot.querySelector('section'));
+    await act(async () => slot.querySelector('button').click());
+    assert.equal(w.document.activeElement, settings);
+    await act(async () => settings.click());
+    await act(async () => { desktop.matches = false; desktop.dispatchEvent(new w.Event('change')); });
+    assert.equal(slot.childElementCount, 0);
+    assert.equal(w.document.activeElement, w.document.querySelector('#root section'));
+    assert.ok(w.document.documentElement.classList.contains('cd-consent-open'));
+    await act(async () => { desktop.matches = true; desktop.dispatchEvent(new w.Event('change')); });
+    assert.equal(w.document.activeElement, slot.querySelector('section'));
+    assert.equal(w.document.body.style.paddingBottom, '');
+    assert.equal(w.document.documentElement.classList.contains('cd-consent-open'), false);
+  } finally {
+    await act(async () => root.unmount()); w.close();
+    delete globalThis.window; delete globalThis.document; delete globalThis.location;
+    delete globalThis.IS_REACT_ACT_ENVIRONMENT;
+  }
+});
+
 test('cookie write failure cannot grant consent or hide the choice; excluded surfaces stay untouched', async () => {
   for (const path of ['/', '/admin/', '/gift/example', '/ggulggul/']) {
     const dom = new JSDOM('<div id="root"></div>', { url: `https://code-destiny.com${path}`, runScripts: 'outside-only' });

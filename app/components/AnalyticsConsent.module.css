@@ -30,8 +30,12 @@
   background: var(--cd-yehwa-line);
   mask: var(--cd-button-sprig-mask) center / contain no-repeat;
 }
-.banner h2 { margin: 0; font: 700 20px/1.6 var(--font-serif, serif); color: var(--ac-ink); word-break: keep-all; text-wrap: balance; }
+.banner h2 { margin: 0; font: 400 20px/1.6 var(--font-display, sans-serif); color: var(--ac-ink); word-break: keep-all; text-wrap: balance; }
 .banner p { margin: 0 0 20px; font-size: 14px; line-height: 1.8; color: var(--ac-muted); word-break: keep-all; }
+.details { margin-bottom: 8px; font-size: .875rem; }
+.details summary { width: fit-content; min-height: 44px; align-content: center; cursor: pointer; color: var(--ac-muted); }
+.details[open] p { margin-block: 4px; }
+:global(html.cd-consent-open):has(.banner) { scroll-padding-bottom: calc(var(--cd-consent-offset) + var(--cd-home-nav-height, 0px)); }
 .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .actions button {
   min-height: 48px;
@@ -44,17 +48,21 @@
   cursor: pointer;
   transition: background-color 180ms ease, border-color 180ms ease;
 }
-.actions a { grid-column: 1 / -1; justify-self: center; display: inline-flex; align-items: center; min-height: 44px; padding: 6px 4px; color: var(--ac-muted); text-decoration: underline; text-underline-offset: 4px; font-size: 12px; }
-.actions :focus-visible, .banner:focus-visible { outline: 2px solid var(--ac-gold, var(--cd-neo-letter-gold)); outline-offset: 3px; }
+.details a { display: inline-flex; align-items: center; min-height: 44px; padding: 6px 4px; color: var(--ac-muted); text-decoration: underline; text-underline-offset: 4px; font-size: 12px; }
+.banner :focus-visible, .banner:focus-visible { outline: 2px solid var(--ac-gold, var(--cd-neo-letter-gold)); outline-offset: 3px; }
 .banner .error { margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--ac-line); color: var(--ac-ink); }
 .banner ::selection { background: var(--ac-gold); color: var(--ac-night); }
 @media (hover: hover) {
   .actions button:hover { background: var(--cd-neo-letter-blue); }
-  .actions a:hover { color: var(--ac-ink); }
+  .details a:hover { color: var(--ac-ink); }
 }
 .actions button:active { background: var(--cd-neo-letter-blue-hover); }
 @media (max-width: 768px) {
-  .banner { padding: 16px; }
+  .banner { padding: 12px 16px; }
+  .banner[data-entry] { bottom: max(8px, env(safe-area-inset-bottom, 0px)); }
+  .banner:not(.inPage) .heading { margin-bottom: 4px; }
+  .banner:not(.inPage) p { margin-bottom: 0; }
+  .details { margin-bottom: 4px; }
   .heading { gap: 8px; margin-bottom: 8px; }
   .ornament { flex-basis: 24px; width: 24px; height: 24px; }
   .banner h2 { font-size: 16px; line-height: 1.45; }
@@ -62,9 +70,12 @@
   .actions { gap: 4px 8px; }
   .actions button { padding-inline: 8px; }
 }
+@media (max-width:699px) and (min-height:641px) {
+  .banner[data-entry] { bottom: calc(var(--cd-home-nav-height, 0px) + 8px); }
+}
 @media (min-width: 769px) {
   .banner { inset-inline: auto 24px; }
-  .banner { bottom: 24px; }
+  .banner { bottom: var(--yn-room-dock-clearance, 24px); }
 }
 @media (prefers-reduced-motion: reduce) {
   .actions button { transition: none; }

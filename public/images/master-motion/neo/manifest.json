@@ -20,9 +20,17 @@
         "cell": {
           "width": 600,
           "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/neo/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
         }
       },
-      "sheetBytes": 275828
+      "sheetBytes": 275828,
+      "mobileSheetBytes": 120962
     },
     "avatar": {
       "kind": "avatar",
