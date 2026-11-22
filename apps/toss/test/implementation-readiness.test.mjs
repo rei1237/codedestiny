@@ -8,8 +8,8 @@ test('current audit separates recorded code gaps from historical partial ports',
  const result=implementationReadiness(inventory,audit);
  assert.equal(result.total,112);
  assert.deepEqual(result.codeGaps.map(row=>row.id),['heukwol-consult','music']);
- assert.equal(result.noRecordedCodeGaps.length,109);
- assert.deepEqual(result.evidencePending,[{id:'saju-compat-premium',reviewState:'verification-pending'}]);
+ assert.equal(result.noRecordedCodeGaps.length,110);
+ assert.deepEqual(result.evidencePending,[]);
  assert.match(result.codeGaps.find(row=>row.id==='music').gaps[0],/32MiB/);
 });
 test('missing, duplicate and foreign audit rows fail closed',()=>{

@@ -762,7 +762,8 @@
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다.",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈 → 질문 작성 → 앱 재진입과 도입 웹툰 왕복 후 초안 복원 → mock 구매 → 생성 이탈 → 구매 기록 → 저장 원문 → 계정 B 거부. 주문·완료 각 1회. 최신 일반 Linux AIT 및 실기기 별도"
     },
     {
       "id": "heukwol-story",
@@ -2049,9 +2050,9 @@
         "두 사람의 출생정보·성별·관계 유형으로 서버 계산",
         "장별 원본 생성·구매한 결과 재열람"
       ],
-      "reviewState": "verification-pending",
+      "reviewState": "original-contract-reviewed",
       "codeGaps": [],
-      "archiveEvidence": "전용 경로와 원본 Worker 연결. Linux AIT 신규 E2E 미검증",
+      "archiveEvidence": "2026-11-22 Windows 비공개 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈에서 시작해 생성 중 이탈·저장 원문·다른 계정 거절, 단일 주문·생성 확인. Linux 일반 AIT·실기기 미검증",
       "deviceState": "not-verified",
       "operations": "전용 SKU·가격 및 소유 주문 관련 실기기 검증 필요"
     },

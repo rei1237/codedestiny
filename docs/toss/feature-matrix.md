@@ -211,7 +211,7 @@
 | 관계 경계 상담 | /relationship-boundary-test/ | /relationship-boundary-test/ | 홈 버튼 · 관계 경계 리포트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영국 홍차점 | openRoyalTeaOracle | /oracle/royal-tea | 홈 버튼 · 영국 홍차점 | 이미 동작 | tea |
 | 사주 | /?action=cdOneStepFreeSajuEntry | /saju/basic/play | 홈 버튼 · 기본 사주 | 콘솔·운영 설정 필요 | sections, dashboard |
-| 사주 고급 궁합 | /saju/compatibility/premium/ | /saju/compatibility/premium/ | 일반 홈의 진입 코드 확인 | 검증 대기 | 상품별 로컬 근거는 JSON 참조 |
+| 사주 고급 궁합 | /saju/compatibility/premium/ | /saju/compatibility/premium/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 기본 사주 궁합 | js/saju-engine.js:runCompat | /saju/compatibility/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 FPTI | /saju-fpti/ | /saju-fpti/ | 홈 버튼 · 사주 FPTI | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 가디언 아트 | /saju-guardian | /saju-guardian/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |

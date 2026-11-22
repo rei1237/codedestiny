@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "9326ace5a5157f56ab723a13179172139f2e8742",
+  "sourceCommit": "213c6730905bba7d2db7d3f08c6d5e73231e7592",
   "sourceCounts": {
     "home": 64,
     "react": 18,
@@ -5079,7 +5079,8 @@
       },
       "implementationStage": "확인된 코드/모의 연결 누락 있음",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈 → 질문 작성 → 앱 재진입과 도입 웹툰 왕복 후 초안 복원 → mock 구매 → 생성 이탈 → 구매 기록 → 저장 원문 → 계정 B 거부. 주문·완료 각 1회. 최신 일반 Linux AIT 및 실기기 별도"
     },
     {
       "id": "heukwol-story",
@@ -8486,7 +8487,7 @@
       "inputContract": "두 사람의 출생정보·성별·관계 유형. normalizeSajuCompatPremiumInput 및 calculateSajuCompatPremiumFacts",
       "resultRenderer": "apps/toss/service/TossPremiumCompat.tsx 및 웹 원본 SajuCompatPremiumResultClient.tsx",
       "storageContract": "토스 전용 고급 궁합 소유 주문·저장 원문. 기본 궁합 구매와 별도",
-      "verification": "native-compat-premium.test.mjs 원본 서버 계산·4장, 중단/재개·경쟁·계정/환불 경계 mock 검증. Linux AIT·실기기 검증 필요",
+      "verification": "native-compat-premium.test.mjs 원본 서버 계산·4장, 경쟁·환불 경계 검사. 2026-11-22 Windows 모의 AIT에서 홈·입력·mock 로그인·구매·생성 중 이탈·구매 기록 재열람·계정 B 차단 확인. 최신 일반 Linux AIT 및 실기기 별도",
       "webEntries": [
         "/saju/compatibility/premium/",
         "/saju/compatibility/"
@@ -8502,7 +8503,7 @@
         "saju-compat-premium"
       ],
       "freeCalculation": false,
-      "portStatus": "검증 대기",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -8516,14 +8517,14 @@
       "archiveHomeButtons": [],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
-        "reviewState": "verification-pending",
+        "reviewState": "original-contract-reviewed",
         "reviewedModes": [
           "두 사람의 출생정보·성별·관계 유형으로 서버 계산",
           "장별 원본 생성·구매한 결과 재열람"
         ],
         "codeGaps": []
       },
-      "implementationStage": "원본 연결 후 독립 흐름 검증 대기",
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
