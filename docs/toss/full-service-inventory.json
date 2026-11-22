@@ -1,7 +1,7 @@
 {
-  "sourceCommit": "2055bc8c7aa878d2a359c874912544ced64d9dfd",
+  "sourceCommit": "9326ace5a5157f56ab723a13179172139f2e8742",
   "sourceCounts": {
-    "home": 63,
+    "home": 64,
     "react": 18,
     "visual": 85
   },
@@ -786,6 +786,33 @@
         "canonicalRoute": "/saju/sections",
         "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
         "bundleVerification": "공개 사주·자미 11절 원본 계산, 사주 그림 13가지와 여행 기록 복원. 시크릿 하우스는 독립 검사 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증"
+      }
+    },
+    {
+      "id": "heukwol",
+      "name": "흑월의 주의 시기",
+      "evidence": [
+        {
+          "source": "home-registry",
+          "id": "heukwol",
+          "name": "흑월의 주의 시기",
+          "entry": "/heukwol/",
+          "featureKey": "heukwol-warning-consultation",
+          "accessEvidence": "50,000원"
+        }
+      ],
+      "toss": {
+        "screen": "not-independently-verified",
+        "login": "구매·기록에 토스 계정 필요",
+        "iapSku": null,
+        "result": "apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx",
+        "library": "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
+        "device": "not-tested",
+        "canonicalId": "heukwol-consult",
+        "candidateStatus": "local-partial",
+        "canonicalRoute": "/heukwol/?consult=1",
+        "saleStatus": "유료 상품 콘솔·운영 설정 필요",
+        "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증"
       }
     },
     {
@@ -1932,12 +1959,12 @@
     },
     {
       "id": "points",
-      "name": "달빛 이용권",
+      "name": "꿀단지 이용권",
       "evidence": [
         {
           "source": "home-registry",
           "id": "points",
-          "name": "달빛 이용권",
+          "name": "꿀단지 이용권",
           "entry": "/points/",
           "featureKey": null,
           "accessEvidence": "이용권"
@@ -2153,28 +2180,28 @@
     },
     {
       "id": "saju-compatibility",
-      "name": "사주 궁합",
+      "name": "사주 고급 궁합",
       "evidence": [
         {
           "source": "home-registry",
           "id": "saju-compatibility",
-          "name": "사주 궁합",
+          "name": "사주 고급 궁합",
           "entry": "/saju/compatibility/",
-          "featureKey": "compat-saju-compatibility",
-          "accessEvidence": "5,000원"
+          "featureKey": "saju-compat-premium",
+          "accessEvidence": "10,000원"
         }
       ],
       "toss": {
         "screen": "not-independently-verified",
-        "login": "입력은 공개, 구매 및 원문은 토스 계정 필요",
+        "login": "구매·저장 결과 조회에 토스 계정 필요",
         "iapSku": null,
-        "result": "js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js",
-        "library": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
+        "result": "apps/toss/service/TossPremiumCompat.tsx 및 웹 원본 SajuCompatPremiumResultClient.tsx",
+        "library": "토스 전용 고급 궁합 소유 주문·저장 원문. 기본 궁합 구매와 별도",
         "device": "not-tested",
-        "canonicalId": "saju-compatibility",
+        "canonicalId": "saju-compat-premium",
         "candidateStatus": "local-partial",
-        "canonicalRoute": "/saju/compatibility/",
-        "saleStatus": "콘솔·운영 설정 필요",
+        "canonicalRoute": "/saju/compatibility/premium/",
+        "saleStatus": "전용 SKU 미등록 · 신규 판매 닫힘",
         "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증"
       }
     },
@@ -3258,7 +3285,7 @@
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --animal-destiny PASS; 360/390/430px, 원본 CSS 카드/애니메이션 표시 확인. Linux/실기기 별도"
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --animal-destiny PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증."
     },
     {
       "id": "animal-totem",
@@ -3412,7 +3439,7 @@
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "66080e7c9 + b5de20414. actual Windows AIT01a1d9c9에서 두 궁합 guest·원본문장·3폭·0주문 PASS; 옛 가격배지 수정은 후속번들 재검증 필요."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --astro-synastry PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증."
     },
     {
       "id": "astrology-ai",
@@ -4526,7 +4553,7 @@
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→로그인→4원문/SVGdecode·3폭·B초기화·0주문 PASS. 원본정책대로보관함저장없음."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --free-originals PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증."
     },
     {
       "id": "fortune-chat",
@@ -4992,12 +5019,22 @@
     },
     {
       "id": "heukwol-consult",
-      "discoveryIds": [],
+      "discoveryIds": [
+        "heukwol"
+      ],
       "evidence": [
         {
-          "name": "흑월의 경고 상담",
+          "name": "흑월의 주의 시기 상담",
           "entry": "/heukwol/",
           "implementation": "app/heukwol/HeukwolClient.tsx"
+        },
+        {
+          "source": "home-registry",
+          "id": "heukwol",
+          "name": "흑월의 주의 시기",
+          "entry": "/heukwol/",
+          "featureKey": "heukwol-warning-consultation",
+          "accessEvidence": "50,000원"
         }
       ],
       "aliasEvidence": [],
@@ -5017,7 +5054,7 @@
       ],
       "webProductIds": [],
       "freeCalculation": false,
-      "portStatus": "콘솔·운영 설정 필요",
+      "portStatus": "일부만 이식",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "Linux AIT 일반 홈 → 꿀꿀운세 → 흑월의 경고 상담 · 상위 화면 진입 확인",
       "bundleVerification": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
@@ -5036,9 +5073,11 @@
           "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
           "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록"
         ],
-        "codeGaps": []
+        "codeGaps": [
+          "웹의 종결 실패 후 재시도·정산 처리와 토스 IAP의 운영 처리 경로 대조 필요. 토스 화면은 실패를 안내하고 구매 기록·고객지원으로 연결"
+        ]
       },
-      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "implementationStage": "확인된 코드/모의 연결 누락 있음",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
@@ -6451,7 +6490,7 @@
       "implementationStage": "확인된 코드/모의 연결 누락 있음",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --music-download PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증."
     },
     {
       "id": "nakshatra",
@@ -7031,7 +7070,7 @@
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "ab355fbc0 + e587ad595. actual Windows AIT01a1d9c9 홈→질문복원→모의구매1→접수→새탭보관함→취소요청→재진입→B같은URL거절·3폭 PASS. 취소요청은 환불완료가 아님."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --neo-email PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증."
     },
     {
       "id": "neo-letter",
@@ -7858,7 +7897,7 @@
         {
           "source": "home-registry",
           "id": "points",
-          "name": "달빛 이용권",
+          "name": "꿀단지 이용권",
           "entry": "/points/",
           "featureKey": null,
           "accessEvidence": "이용권"
@@ -8426,7 +8465,7 @@
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
     },
     {
-      "id": "saju-compatibility",
+      "id": "saju-compat-premium",
       "discoveryIds": [
         "saju-compatibility"
       ],
@@ -8434,10 +8473,68 @@
         {
           "source": "home-registry",
           "id": "saju-compatibility",
-          "name": "사주 궁합",
+          "name": "사주 고급 궁합",
           "entry": "/saju/compatibility/",
-          "featureKey": "compat-saju-compatibility",
-          "accessEvidence": "5,000원"
+          "featureKey": "saju-compat-premium",
+          "accessEvidence": "10,000원"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/saju/compatibility/premium/",
+      "sku": null,
+      "inputContract": "두 사람의 출생정보·성별·관계 유형. normalizeSajuCompatPremiumInput 및 calculateSajuCompatPremiumFacts",
+      "resultRenderer": "apps/toss/service/TossPremiumCompat.tsx 및 웹 원본 SajuCompatPremiumResultClient.tsx",
+      "storageContract": "토스 전용 고급 궁합 소유 주문·저장 원문. 기본 궁합 구매와 별도",
+      "verification": "native-compat-premium.test.mjs 원본 서버 계산·4장, 중단/재개·경쟁·계정/환불 경계 mock 검증. Linux AIT·실기기 검증 필요",
+      "webEntries": [
+        "/saju/compatibility/premium/",
+        "/saju/compatibility/"
+      ],
+      "webSources": [
+        "app/saju/compatibility/premium/SajuCompatPremiumClient.tsx",
+        "worker/lib/saju-compat-premium-facts.js",
+        "worker/lib/saju-compat-premium-prompt.js",
+        "worker/routes/saju-compat-premium.js",
+        "app/saju/compatibility/premium/result/SajuCompatPremiumResultClient.tsx"
+      ],
+      "webProductIds": [
+        "saju-compat-premium"
+      ],
+      "freeCalculation": false,
+      "portStatus": "검증 대기",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "구매·저장 결과 조회에 토스 계정 필요",
+      "tossResult": "apps/toss/service/TossPremiumCompat.tsx 및 웹 원본 SajuCompatPremiumResultClient.tsx",
+      "reread": "토스 전용 고급 궁합 소유 주문·저장 원문. 기본 궁합 구매와 별도",
+      "webRegistryPriceKRW": 10000,
+      "saleStatus": "전용 SKU 미등록 · 신규 판매 닫힘",
+      "webGenerator": "worker/toss/native-compat-premium.js → worker/routes/saju-compat-premium.js:generateSajuCompatPremiumGroup",
+      "archiveTests": [],
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "verification-pending",
+        "reviewedModes": [
+          "두 사람의 출생정보·성별·관계 유형으로 서버 계산",
+          "장별 원본 생성·구매한 결과 재열람"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "원본 연결 후 독립 흐름 검증 대기",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+    },
+    {
+      "id": "saju-compatibility",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "기본 사주 궁합",
+          "entry": "js/saju-engine.js:runCompat",
+          "implementation": "js/saju-compat-flow.mjs"
         }
       ],
       "aliasEvidence": [],
@@ -8449,14 +8546,11 @@
       "storageContract": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
       "verification": "saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건",
       "webEntries": [
-        "/saju/compatibility/"
+        "js/saju-engine.js:runCompat"
       ],
       "webSources": [
-        "app/saju/compatibility/page.js",
-        "js/saju-compat-render.mjs renderSajuCompat",
-        "worker/lib/saju-compat-schema.js SAJU_COMPAT_GROUPS",
-        "js/saju-engine.js",
         "js/saju-compat-flow.mjs",
+        "js/saju-engine.js",
         "worker/routes/saju-compat-basic.js",
         "worker/lib/saju-compat-schema.js"
       ],
@@ -8471,6 +8565,7 @@
       "tossLogin": "입력은 공개, 구매 및 원문은 토스 계정 필요",
       "tossResult": "js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js",
       "reread": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
+      "webRegistryPriceKRW": 5000,
       "saleStatus": "콘솔·운영 설정 필요",
       "archiveTests": [],
       "archiveHomeButtons": [],
@@ -10112,7 +10207,7 @@
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "f857266dd. actual Windows AIT01a1d9c9 홈→로그인→궁합원문·출생재입력·Prashna차트/프롬프트완전동일·nativeback·3폭·0주문 PASS."
+      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --free-originals PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증."
     },
     {
       "id": "vedic-ai",
@@ -10273,6 +10368,55 @@
         "reviewedModes": [
           "worker/toss/daily.js",
           "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면"
+        ],
+        "codeGaps": []
+      },
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
+      "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+    },
+    {
+      "id": "yeongnyangi-faq",
+      "discoveryIds": [],
+      "evidence": [
+        {
+          "name": "영냥이 상담 전 자주 묻는 질문",
+          "entry": "/yeongnyangi/faq/",
+          "implementation": "app/yeongnyangi/faq/page.tsx"
+        }
+      ],
+      "aliasEvidence": [],
+      "status": "local-partial",
+      "tossRoute": "/yeongnyangi/faq/",
+      "sku": null,
+      "inputContract": "영냥이 상담 안내와 질문 선택. 출생정보 없음",
+      "resultRenderer": "apps/toss/src/YeongnyangiFaq.tsx · 웹 원본 YeongnyangiFaqToon",
+      "storageContract": "공개 설명 화면. 상담 생성·지급·저장 없음",
+      "verification": "UnifiedHome에서 원본 FAQ 컷 열람 경로를 연결. Linux AIT·실기기 미검증",
+      "webEntries": [
+        "/yeongnyangi/faq/"
+      ],
+      "webSources": [
+        "app/yeongnyangi/faq/page.tsx"
+      ],
+      "webProductIds": [],
+      "freeCalculation": false,
+      "portStatus": "이미 동작",
+      "reducedBundle": "구현은 있으나 진입 차단",
+      "currentEntry": "일반 홈의 진입 코드 확인",
+      "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
+      "tossLogin": "공개 진입",
+      "tossResult": "apps/toss/src/YeongnyangiFaq.tsx · 웹 원본 YeongnyangiFaqToon",
+      "reread": "공개 설명 화면. 상담 생성·지급·저장 없음",
+      "saleStatus": "현재 기능에 신규 구매 버튼 없음",
+      "archiveTests": [],
+      "archiveHomeButtons": [],
+      "sourceAudit": {
+        "path": "docs/toss/original-mode-audit-20261114.json",
+        "reviewState": "original-contract-reviewed",
+        "reviewedModes": [
+          "탭에서 질문을 골라 상담 전 안내 웹툰 읽기",
+          "플랫폼별 구매·보관함 안내"
         ],
         "codeGaps": []
       },
@@ -17963,17 +18107,5 @@
       "approvedPriceKRW": 29700
     }
   ],
-  "newPurchasesAvailable": false,
-  "latestArchiveEvidence": {
-    "run": "43607109624",
-    "commit": "14685e048b046f324f461a2fa855f9c9aaf6dd95",
-    "consoleVersion": "20261115-16",
-    "verification": "docs/toss/ait-verification-20261114.json",
-    "developmentStatusCounts": {
-      "alreadyWorking": 16,
-      "requiresOperations": 93,
-      "partial": 1
-    },
-    "deviceState": "not-verified"
-  }
+  "newPurchasesAvailable": false
 }

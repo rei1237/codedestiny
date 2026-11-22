@@ -32,3 +32,17 @@ test('public Ziwei exploration is independent of closed owner-only AI rereads',(
  assert.equal(island.freeCalculation,true);assert.equal(island.tossRoute,'/ziwei/sections?reading=island');assert.equal(island.sku,null);
  assert.equal(history.tossRoute,'/ziwei/sections#island-history');assert.equal(history.sku,null);assert.ok(history.webProductIds.includes('ziwei-island-deep-report'));assert.match(history.verification,/410 ISLAND_NOW_FREE/);assert.ok(history.webProductIds.includes('ziwei-island-palace-consult'));
 });
+
+test('changed web aliases keep their original result and order boundaries',()=>{
+ const idFor=id=>inventory.entries.find(row=>row.id===id)?.toss.canonicalId;
+ const get=id=>inventory.canonicalCandidates.find(row=>row.id===id);
+ assert.equal(idFor('heukwol'),'heukwol-consult');
+ assert.notEqual(get('heukwol-consult').tossRoute,get('heukwol-story').tossRoute);
+ assert.equal(idFor('saju-compatibility'),'saju-compat-premium');
+ assert.deepEqual(get('saju-compatibility').webProductIds,['compat-saju-compatibility']);
+ assert.deepEqual(get('saju-compat-premium').webProductIds,['saju-compat-premium']);
+ assert.equal(get('saju-compat-premium').sku,null);
+ assert.ok(get('saju-compat-premium').webRegistryPriceKRW>0);
+ assert.ok(get('saju-compatibility').webRegistryPriceKRW>0);
+ assert.equal(get('yeongnyangi-faq').tossLogin,'공개 진입');
+});

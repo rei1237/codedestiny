@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-15",
+  "updated": "2026-11-22",
   "scopeSource": "docs/toss/full-service-inventory.json",
-  "scopeCount": 110,
-  "rule": "기존 110개 행의 하위 모드만 추가한다. prior-evidence-to-reconcile은 코드 누락 판정이 아니라 기존 담당 증거와 원본 하위 모드 경계 대조 대기다. 한 번 대조하여 확인된 누락과 완료 근거를 고정하고, 근거 없는 전체 재탐색을 반복하지 않는다.",
+  "scopeCount": 112,
+  "rule": "입력·계산·생성·구매 권리가 다른 상담은 별도 행으로 관리한다. 기존 검증은 실행 당시 소스와 경로에만 적용한다.",
   "completionCriteria": [
     "각 행의 원본 진입·선택 모드·입력 경계·계산/본문·저장/재열람·유무료 정책을 기록하고 기존 근거와 대조",
     "확인된 codeGaps를 구현하거나 실제 외부/플랫폼 의존 근거로 구분; 추측으로 제외하지 않음",
@@ -756,7 +756,9 @@
         "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록"
       ],
       "reviewState": "prior-contract-evidence-reconciled",
-      "codeGaps": [],
+      "codeGaps": [
+        "웹의 종결 실패 후 재시도·정산 처리와 토스 IAP의 운영 처리 경로 대조 필요. 토스 화면은 실패를 안내하고 구매 기록·고객지원으로 연결"
+      ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
@@ -2031,6 +2033,29 @@
       "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
+      "id": "saju-compat-premium",
+      "webSources": [
+        "app/saju/compatibility/premium/SajuCompatPremiumClient.tsx",
+        "worker/lib/saju-compat-premium-facts.js",
+        "worker/lib/saju-compat-premium-prompt.js",
+        "worker/routes/saju-compat-premium.js",
+        "app/saju/compatibility/premium/result/SajuCompatPremiumResultClient.tsx"
+      ],
+      "webEntries": [
+        "/saju/compatibility/premium/"
+      ],
+      "tossRoute": "/saju/compatibility/premium/",
+      "reviewedModes": [
+        "두 사람의 출생정보·성별·관계 유형으로 서버 계산",
+        "장별 원본 생성·구매한 결과 재열람"
+      ],
+      "reviewState": "verification-pending",
+      "codeGaps": [],
+      "archiveEvidence": "전용 경로와 원본 Worker 연결. Linux AIT 신규 E2E 미검증",
+      "deviceState": "not-verified",
+      "operations": "전용 SKU·가격 및 소유 주문 관련 실기기 검증 필요"
+    },
+    {
       "id": "saju-compatibility",
       "webSources": [
         "app/saju/compatibility/page.js",
@@ -2947,6 +2972,25 @@
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
       "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
+    },
+    {
+      "id": "yeongnyangi-faq",
+      "webSources": [
+        "app/yeongnyangi/faq/page.tsx"
+      ],
+      "webEntries": [
+        "/yeongnyangi/faq/"
+      ],
+      "tossRoute": "/yeongnyangi/faq/",
+      "reviewedModes": [
+        "탭에서 질문을 골라 상담 전 안내 웹툰 읽기",
+        "플랫폼별 구매·보관함 안내"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "새 Linux AIT 검증 전",
+      "deviceState": "not-verified",
+      "operations": "계정·주문·생성 없이 공개 설명을 읽는 경로"
     }
   ],
   "reconciliationMethod": {

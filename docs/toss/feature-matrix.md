@@ -2,7 +2,7 @@
 
 2026-11-22 QR21 콘솔 상태는 출시 준비됨이다. 종전 부분 출시 승인은 철회되었다. 전체 이식·실기기·운영 검증 및 최종 승인이 필요하다. [제출 이력](./launch-candidate-20261116.md).
 
-2026-11-16 달빛 예화 하단 버튼 개선판 **QR `20261116-21` 등록 완료**(검토 미제출, source `324b95f47`, 전체 Linux CI `43746082025` SUCCESS). **모의 archive 120행**(기본76+등급/복구/무료44), 실제 일반 Linux AIT의 홈/입력 복원·저장 원문/재시도·계정 B 차단·웹툰19편도 PASS다. [결제 후 제공 경로 검증](./paid-launch-validation-2026-11-16.md)과 [출시 후보 점검](./launch-candidate-20261116.md)을 참고한다. 120은 중복 흐름이 있는 테스트 행 수이며 전체110기능의 실결제·운영 생성 완료 수가 아니다. 콘솔 상품5개는 모두 미노출이고 신규판매는 닫혀 있다.
+2026-11-16 달빛 예화 하단 버튼 개선판 **QR `20261116-21` 등록 및 검토 제출 완료**(source `324b95f47`, 전체 Linux CI `43746082025` SUCCESS). **모의 archive 120행**(기본76+등급/복구/무료44), 실제 일반 Linux AIT의 홈/입력 복원·저장 원문/재시도·계정 B 차단·웹툰19편도 PASS다. [결제 후 제공 경로 검증](./paid-launch-validation-2026-11-16.md)과 [출시 후보 점검](./launch-candidate-20261116.md)을 참고한다. 120은 중복 흐름이 있는 테스트 행 수이며 전체110기능의 실결제·운영 생성 완료 수가 아니다. 콘솔 상품5개는 모두 미노출이고 신규판매는 닫혀 있다.
 
 2026-11-16 **웹툰 포함 QR `20261116-20`** 등록 완료(검토 미제출). source `3102ddaeb`, 전체 Linux CI `43731375338` SUCCESS. 원본 안내5편+기존 상담14편의 그림·대사·상담 진입·뒤로가기, 실제 일반 AIT의 결과 소유권을 검증했다. [웹툰 이식·검증·산출물](./webtoon-guide-20261116.md)을 참고한다. QR19의 간편 입력 개선을 포함하며 실제 휴대폰 검수는 별도다.
 
@@ -12,11 +12,11 @@
 
 2026-11-15 기준. 새 비공개 QR 20261115-16은 커밋 `14685e048b046f324f461a2fa855f9c9aaf6dd95`의 공식 Linux 실행 43607109624에서 생성했다. 모의 AIT `01a1da96-cd8d-734f-82d5-b3c44273984c`, 압축 해제 99,986,143바이트. CI required와 실제 AIT 모의 경로 검사가 통과했다. 번들·QR·휴대폰 안내는 `C:/Users/user/Downloads/CodeDestiny/43607109624`에 보관한다. 실제 기기·운영 출시는 별도 미검증이다.
 
-최신 판정은 자동 생성 110개 목록과 원본 하위 모드 대조표를 기준으로 한다: 개발 범위 이미 동작 16개, 콘솔·운영 설정 필요 93개, 일부만 이식 1개(음악 32MiB 초과 원곡 저장 미완료). 32MiB는 현재 어댑터 메모리 상한이며 SDK 공식 제한이나 구매 정책이 아니다. 아래 수동 상세 표의 과거 일부 이식 문구는 당시 검증 이력이다. 모의 검사 성공을 실기기 확인이나 출시 완료로 해석하지 않는다.
+2026-11-22 웹 원본에서 흑월 상담의 새 레지스트리 이름과 기존 상담을 연결했다. 도입 웹툰은 별도 행으로 유지했다. 사주 고급 궁합은 기본형과 입력·계산·원장·결과가 달라 독립 행으로 추가했고, 영냥이 FAQ는 공개 설명으로 구분했다. 현재 범위는 112개이며 과거 AIT 증거는 해당 소스 및 검사 항목에만 적용한다.
 
 전체 행은 [기능별 원장](./full-service-inventory.json)에 있다. `canonicalCandidates`는 홈 별칭을 합친 기능별 목록이다. 각 행에 웹 진입·원본·상품 키, 축소판 진입, 새 홈 연결, 토스 로그인·결과·저장 계약과 검증 한계를 기록한다. `consultationProducts`는 같은 상품 안에서도 질문·궁합·대운처럼 입력과 챕터가 달라지는 모드를 나눈다. `productContracts`의 179개 행에는 판매 종료·옛 별칭도 포함된다. 현재 웹에서 179개 상품을 판매한다는 뜻으로 사용할 수 없다.
 
-[110개 원본 하위 모드 대조표](./original-mode-audit-20261114.json)는 같은 110개 행 안에서 대조한 원본 범위, 확인된 코드 누락, 기존 담당 증거의 대조 대기, AIT·실기기·운영 단계를 구분한다. `prior-evidence-to-reconcile`은 새로운 코드 누락 판정이 아니다. 기존 증거와 원본 선택지를 한 번 대조해 상태를 확정하며, 확인한 항목을 근거 없이 전체 재탐색하지 않는다.
+[원본 하위 모드 대조표](./original-mode-audit-20261114.json)에 확인한 코드 누락과 운영·실기기 단계를 구분한다. 아래의 과거 수치는 당시 구현 및 증빙 범위이다.
 
 | 기능 | 웹 원본과 입력·생성 | 일반 토스 홈에서의 경로 | 로그인·상품·재열람 | 판정과 증거 |
 |---|---|---|---|---|
@@ -132,7 +132,7 @@
 
 <!-- generated-service-index -->
 <details>
-<summary>웹·토스 전체 기능 110개 펼치기</summary>
+<summary>웹·토스 전체 기능 112개 펼치기</summary>
 
 | 기능 | 웹 진입 | 토스 진입 | 일반 홈 검증 | 이식 | 배포 AIT 세부 검사 |
 |---|---|---|---|---|---|
@@ -142,7 +142,7 @@
 | 점성술 전문가 상담 | /astrology-ai | /astrology-ai/ | 홈 버튼 · 점성술 전문가 상담 | 콘솔·운영 설정 필요 | experts |
 | 최애운명 | /saju/destiny-bias | /bias | 홈 버튼 · 최애운명 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 나의 일 스타일 | /saju/career-style/ | /saju/career-style/ | 홈 버튼 · 나의 일 스타일 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
-| 상담 세계관 웹툰·이용 안내 | /consultations/ · ServiceGuide | /consultations/stories | 홈 이용 안내 → 원본19편 → 상담 입력 | 이미 동작 · QR20 실제 AIT 검증 | stories |
+| 상담 세계관 웹툰 | /consultations/ | /consultations/stories | 홈 버튼 · 달빛 상담 웹툰 서가 | 이미 동작 | stories |
 | 코스믹 소울 명상 | /cosmic-soul-meditation.html | /meditation/cosmic | 홈 버튼 · 코스믹 소울 명상 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 운명의 나침반 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 운명의 갈림길 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
@@ -161,7 +161,7 @@
 | 초융합 심층 리딩 | /fusion-fortune/ | /fusion-fortune/ | 홈 버튼 · 초융합 운세 | 콘솔·운영 설정 필요 | experts |
 | 지오맨시 흙점 | openGeomancyOracle | /geomancy/ | 홈 버튼 · 지오맨시 흙점 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 명리 헬스 리포트 | js/core/saju/reportDashboard.js healthReportCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
-| 흑월의 경고 상담 | /heukwol/ | /heukwol/?consult=1 | 홈 버튼 · 흑월의 경고 상담 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 흑월의 주의 시기 상담 | /heukwol/ | /heukwol/?consult=1 | 홈 버튼 · 흑월의 경고 상담 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 흑월 이야기 | /heukwol/#heukwol-story | /consultations/stories?story=heukwol | 일반 홈의 진입 코드 확인 | 이미 동작 | stories |
 | 홈 화면 꾸미기 | /app/home-widget/ | /app/home-widget | 홈 버튼 · 연이의 달빛 홈 화면 | 이미 동작 | widget |
 | 휴먼 디자인 | /human-design/ | /human-design | 홈 버튼 · 휴먼 디자인 차트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
@@ -204,14 +204,15 @@
 | 나의 매력 클래스 | js/core/saju/reportDashboard.js:meryok -> specialCharmCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
 | 반려동물 사주 | /pet-saju.html | /pet-saju/ | 홈 버튼 · 반려동물 사주 | 콘솔·운영 설정 필요 | guests |
 | 관상 | /physiognomy/ | /animal/physio/ | 홈 버튼 · 전문가 동물 관상 | 콘솔·운영 설정 필요 | face |
-| 달빛 이용권 | /points/ | /settings#web-history | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 꿀단지 이용권 | /points/ | /settings#web-history | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 심리테스트 | /psychotest/ | /psychotest/ | 홈 버튼 · 심리테스트 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 퀀텀 명리 엔진 | js/core/saju/reportDashboard.js:quantum -> quantumCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
 | 빌런 블랙리스트 | js/core/saju/reportDashboard.js:vilun -> villainCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
 | 관계 경계 상담 | /relationship-boundary-test/ | /relationship-boundary-test/ | 홈 버튼 · 관계 경계 리포트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영국 홍차점 | openRoyalTeaOracle | /oracle/royal-tea | 홈 버튼 · 영국 홍차점 | 이미 동작 | tea |
 | 사주 | /?action=cdOneStepFreeSajuEntry | /saju/basic/play | 홈 버튼 · 기본 사주 | 콘솔·운영 설정 필요 | sections, dashboard |
-| 사주 궁합 | /saju/compatibility/ | /saju/compatibility/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 사주 고급 궁합 | /saju/compatibility/premium/ | /saju/compatibility/premium/ | 일반 홈의 진입 코드 확인 | 검증 대기 | 상품별 로컬 근거는 JSON 참조 |
+| 기본 사주 궁합 | js/saju-engine.js:runCompat | /saju/compatibility/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 FPTI | /saju-fpti/ | /saju-fpti/ | 홈 버튼 · 사주 FPTI | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 가디언 아트 | /saju-guardian | /saju-guardian/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 그림 프롬프트 | index.html:사주 리포트 | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections, dashboard |
@@ -238,6 +239,7 @@
 | 윤달의 베다점 상담 | /vedic-ai | /vedic-ai/ | 홈 버튼 · 베다 전문가 상담 | 콘솔·운영 설정 필요 | experts |
 | 운세보는 영냥이 | /yeongnyangi/ | /yeongnyangi/fortune/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | mobile-owner, mock-catalog |
 | 영냥이 출석과 오늘의 운세 | /yeongnyangi/free-fortune/ | /daily | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 영냥이 상담 전 자주 묻는 질문 | /yeongnyangi/faq/ | /yeongnyangi/faq/ | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 호라리 질문 차트 | /yeongnyangi/fortune/?mode=horary | /yeongnyangi/fortune/?mode=horary | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
 | 프라쉬나 질문 상담 | /yeongnyangi/fortune/?mode=prashna | /yeongnyangi/fortune/?mode=spirit | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
 | 영냥이 시즌 연재 | /yeongnyangi/season-1/ | /moonlight/season-1 | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
