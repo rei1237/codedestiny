@@ -10,6 +10,7 @@ import FreeFortune from '../_components/FreeFortune';
 import SortingHat from '../_components/SortingHat';
 import DailyTarotCard from '../_components/DailyTarotCard';
 import PetMascot from '../_components/PetMascot';
+import NightBloomMotion from '../_components/NightBloomMotion';
 import './original.css';
 import './room.css';
 import './room-story.css';
@@ -54,6 +55,8 @@ export default function Room(){
   <div className={`room-layout ${styles.content}`}>
    <section className="room-presence" aria-label="달빛 아래 영냥이의 점술방">
     <img className="room-scenery" src={asset('room-1440')} srcSet={`${asset('room-780')} 780w, ${asset('room-1440')} 1440w`} sizes="(min-width: 900px) 58vw, 100vw" width={1440} height={810} alt="" fetchPriority="high"/>
+    <span className="room-garden" aria-hidden="true"><span className="room-garden-lotus" data-yn-bloom="lotus"/></span>
+    <NightBloomMotion className="room-bloom-motion"/>
     <div className="room-welcome"><Moon size={14}/>잠깐, 여기서 쉬어가.</div>
     <div className="room-cat-speech" aria-live="polite" aria-atomic="true">{speech[0]}<br/>{speech[1]}</div>
     <PetMascot className="room-resident" alt="방석 위에서 이야기를 기다리는 영냥이" onReact={setReaction}/>
