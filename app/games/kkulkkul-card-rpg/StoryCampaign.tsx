@@ -184,7 +184,9 @@ export default function StoryCampaign(p: Props) {
   const [state, setState] = useState<CampaignProgress | null>(null),
     [message, setMessage] = useState(""),
     [request, refresh] = useState(0);
-  const [practice, setPractice] = useState<NonNullable<Collection["battleHistory"]>>([]);
+  const [practice, setPractice] = useState<
+    NonNullable<Collection["battleHistory"]>
+  >([]);
   const [busy, setBusy] = useState(false),
     locked = useRef(false);
   const [quest, setQuest] = useState(""),
@@ -325,7 +327,9 @@ export default function StoryCampaign(p: Props) {
           <p>본편이나 의뢰의 전투를 마치면 이곳에 기록됩니다.</p>
         )}
         {practice.map((r) => (
-          <p key={r.id}>자유 전투 · {r.name} · {r.won ? "승리" : "패배"} · {r.turns}턴</p>
+          <p key={r.id}>
+            자유 전투 · {r.name} · {r.won ? "승리" : "패배"} · {r.turns}턴
+          </p>
         ))}
         {receipts.map(([id, r]) => (
           <details key={id}>

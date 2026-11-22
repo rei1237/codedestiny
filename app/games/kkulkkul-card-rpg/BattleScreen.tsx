@@ -58,14 +58,26 @@ function errorText(e: unknown) {
 function point(b: Battle) {
   return b.enemies.find((e) => e.hp > 0)?.id ?? "";
 }
-function chime(event: BattleEvent) {
+const characterPitch: Partial<Record<string, number>> = {
+  yeon: 587,
+  neo: 440,
+  moka: 294,
+  yun: 392,
+  pje: 330,
+  ln: 659,
+};
+function chime(ctx: AudioContext, event: BattleEvent, voice?: string) {
   try {
-    const ctx = new AudioContext(),
-      gain = ctx.createGain(),
+    if (ctx.state !== "running" || document.hidden) return;
+    const pitch = characterPitch[voice ?? ""] ?? 494;
+    const gain = ctx.createGain(),
       tone = ctx.createOscillator();
     tone.type = event.kind === "hit" ? "triangle" : "sine";
     tone.frequency.setValueAtTime(
-      event.kind === "hit" ? 170 : event.type === "Buster" ? 247 : 554,
+      event.kind === "hit"
+        ? 170
+        : pitch *
+            (event.type === "Buster" ? 0.5 : event.type === "Quick" ? 1.5 : 1),
       ctx.currentTime,
     );
     tone.frequency.exponentialRampToValueAtTime(
@@ -77,7 +89,8 @@ function chime(event: BattleEvent) {
     tone.connect(gain);
     gain.connect(ctx.destination);
     tone.onended = () => {
-      void ctx.close();
+      tone.disconnect();
+      gain.disconnect();
     };
     tone.start();
     tone.stop(ctx.currentTime + 0.17);
@@ -110,6 +123,35 @@ export default function BattleScreen({
     [error, fail] = useState(""),
     [askExit, retreat] = useState(false);
   const latch = useRef(false);
+  const audio = useRef<AudioContext | null>(null);
+  const lastCue = useRef<BattleEvent | null>(null);
+  useEffect(() => {
+    if (!sound) return;
+    const unlock = () => {
+      if (document.hidden) return;
+      try {
+        const ctx = (audio.current ??= new AudioContext());
+        if (ctx.state === "suspended") void ctx.resume().catch(() => {});
+      } catch {
+        /* Audio output is optional. */
+      }
+    };
+    const suspend = () => {
+      if (document.hidden && audio.current?.state === "running")
+        void audio.current.suspend().catch(() => {});
+    };
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+    document.addEventListener("visibilitychange", suspend);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+      document.removeEventListener("visibilitychange", suspend);
+      const ctx = audio.current;
+      audio.current = null;
+      if (ctx && ctx.state !== "closed") void ctx.close().catch(() => {});
+    };
+  }, [sound]);
   const minimal = simple || osReduce;
   const [entering, enter] = useState(false);
   useEffect(() => {
@@ -166,10 +208,17 @@ export default function BattleScreen({
     }
     if (
       sound &&
+      audio.current &&
       event &&
+      event !== lastCue.current &&
       ["attack", "ultimate", "extra", "hit"].includes(event.kind)
-    )
-      chime(event);
+    ) {
+      lastCue.current = event;
+      const caster = play.before.allies.find(
+        (a) => a.combatantId === event.actorId,
+      );
+      chime(audio.current, event, caster?.baseCharacterId);
+    }
     const timer = setTimeout(
       () =>
         animate(
