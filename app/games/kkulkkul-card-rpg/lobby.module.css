@@ -1,5 +1,5 @@
 .game {
-  --gold: #f1d6a5;
+  --gold: #ffe3df;
   --edge: rgba(225, 207, 178, 0.28);
   box-sizing: border-box;
   isolation: isolate;
@@ -52,7 +52,7 @@
   display: flex;
   align-items: center;
   z-index: 1;
-  background: linear-gradient(110deg, #242331, #141521 75%);
+  background: linear-gradient(110deg, #713651, #432c47 75%);
   border-color: var(--edge);
   border-style: solid;
   border-width: 0 0 1px;
@@ -110,7 +110,7 @@
 .event small,
 .panel p,
 .panel small {
-  color: #d1cbd6;
+  color: #f4e2e9;
 }
 .player small {
   font-size: 11px;
@@ -125,8 +125,8 @@
   min-height: 0;
   isolation: isolate;
   background:
-    linear-gradient(90deg, #19152840, transparent 38%, #15152ab8 84%),
-    url("/images/novel/mobile/room.webp") center 55% / cover;
+    linear-gradient(90deg, #f9c0cf45, #f0a5bf18 38%, #78405685 84%),
+    url("/images/novel/mobile/roomNight.webp") center 55% / cover;
 }
 .stage:after {
   content: "";
@@ -134,7 +134,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: linear-gradient(0deg, #12121bd9, transparent 36%);
+  background: linear-gradient(0deg, #4b233ade, transparent 36%);
 }
 .portrait {
   position: absolute;
@@ -146,7 +146,7 @@
   place-items: end center;
   pointer-events: none;
 }
-.portrait img {
+.portrait > svg {
   position: absolute;
   inset: 0;
   display: block;
@@ -169,7 +169,7 @@
   left: 5%;
   width: 43%;
   padding: 5px 15px 7px;
-  background: linear-gradient(100deg, #1b1928f5, #282431e6);
+  background: linear-gradient(100deg, #603449f5, #744057f2);
   border-left: 2px solid var(--gold);
   box-shadow: 0 5px 20px #1114;
 }
@@ -205,10 +205,13 @@
 .storyCard {
   position: relative;
   padding: clamp(15px, 2.6vw, 44px);
-  color: #fcf5e7;
+  color: #4d2a3d;
   border: 1px solid #cdb89499;
   box-shadow: 0 14px 38px #0a071959;
-  background: linear-gradient(100deg, #222032f7, #323047e6 65%, #4b3f53ed);
+  border-radius: 3px 24px 3px 24px;
+  background:
+    url("/icons/yehwa-branch.svg") top 10px right 14px / 54px auto no-repeat,
+    linear-gradient(100deg, #fff2f1fa, #f8dde6f7 65%, #e8c4d4fa);
 }
 .storyCard:before,
 .storyCard:after {
@@ -230,7 +233,7 @@
   border-width: 0 1px 1px 0;
 }
 .kicker {
-  color: var(--gold);
+  color: #81455c;
   font:
     600 10px/1.2 Georgia,
     serif;
@@ -238,7 +241,7 @@
 }
 .storyCard small {
   margin-top: clamp(10px, 2.8vh, 26px);
-  color: #d7cbd7;
+  color: #704257;
   font-size: 13px;
 }
 .storyCard h1 {
@@ -250,8 +253,8 @@
   margin: 7px 0 clamp(10px, 2.6vh, 28px);
 }
 .game .gold {
-  background: linear-gradient(100deg, #f4e4c2, #d5bc8c);
-  color: #282331;
+  background: linear-gradient(100deg, #904364, #713952);
+  color: #fff8f8;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -260,7 +263,7 @@
   font-weight: 750;
 }
 .game .event {
-  background: #211f30eb;
+  background: #63394ff5;
   border: 1px solid var(--edge);
   padding: 8px 16px;
   text-align: left;
@@ -309,7 +312,7 @@
   max-height: 100%;
   overflow: auto;
   padding: clamp(16px, 3vw, 34px);
-  background: #1e1c2af5;
+  background: #4f3046f7;
   border: 1px solid var(--edge);
   box-shadow: 0 15px 45px #17131d80;
 }
@@ -342,7 +345,7 @@
 .row b {
   color: var(--gold);
 }
-.row img {
+.row > svg {
   width: 42px;
   height: 46px;
   object-fit: cover;
@@ -372,11 +375,11 @@
 .game[data-large="true"] blockquote {
   font-size: 1.35em;
 }
-.game[data-still="true"] .portrait img {
+.game[data-still="true"] .portrait > svg {
   animation: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .portrait img {
+  .portrait > svg {
     animation: none;
   }
 }
@@ -502,5 +505,45 @@
   }
   .panel {
     max-height: none;
+  }
+}
+
+.panel[data-screen="summon"] {
+  width: min(100%, 960px);
+}
+.panel[data-screen="summon"] > h1 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+@media (max-height: 480px) and (orientation: landscape) {
+  .sub:has(.panel[data-screen="summon"]) {
+    padding: 4px 12px;
+  }
+}
+
+.novelLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 100px;
+  margin-block: 12px;
+  padding: 12px;
+  border-left: 2px solid #e3a7bf;
+  background: #714357;
+}
+.novelLine > svg {
+  flex: none;
+  width: clamp(80px, 16vw, 160px);
+  height: auto;
+}
+.novelLine button {
+  color: #ffe0ed;
+  text-decoration: underline;
+}
+
+@media (orientation: landscape) {
+  .portrait[data-low-face="true"] {
+    height: 84%;
+    bottom: 15%;
   }
 }
