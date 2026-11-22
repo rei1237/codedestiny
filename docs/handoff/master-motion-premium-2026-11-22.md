@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: F3 — 윤달 스프라이트(F2 연이와 같은 절차 — Codex 편집 생성 → spec → build --report → visual-checker → 배선)
+next: F5 — 서한비 스프라이트(F2~F4와 같은 절차 — Codex 편집 생성 → spec → build --report(모든 칸 수치 기록) → visual-checker(정지 칸 + 실제 화면) → 배선)
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -89,8 +89,8 @@ next: F3 — 윤달 스프라이트(F2 연이와 같은 절차 — Codex 편집 
 - [x] E 대표 상담 자동 배너 — 구현, 테스트, check:fast, 커밋, 화면 확인(visual-checker, 390px·데스크톱)
 - [x] F1 스프라이트 빌드 스크립트 + MasterMotion `sheet` 지원 + 자산 테스트(에셋 없이 빈 매니페스트로 통과)
 - [x] F2 연이 스프라이트 생성·검수·배선
-- [ ] F3 윤달
-- [ ] F4 무성
+- [x] F3 윤달 — d20687016·88ba0c4ea
+- [x] F4 무성 — d36e382314
 - [ ] F5 서한비
 - [ ] F6 네오
 - [ ] F7 영냥이 고양이
@@ -237,3 +237,76 @@ next: F3 — 윤달 스프라이트(F2 연이와 같은 절차 — Codex 편집 
   - 기울어진 얼굴은 영역을 타원 두 개(눈마다 하나)로 준다.
   - 포스터가 80KB 를 넘으면 spec `webp.default.poster` 품질을 낮춘다.
   - 저장소 밖 스크래치 스크립트는 sharp 를 못 찾는다. 워크트리 `.tmp/` 에서 돌린다.
+
+### F3 윤달·F4 무성 스프라이트 (2026-11-22)
+표기: [실측]은 명령·스크립트로 잰 값, [추정]은 측정 없이 판단한 것.
+
+- 커밋(워크트리 `wt/master-motion-f3f4-20261122-074712`, 기준 573b3e35f)
+  - d20687016 F3 윤달(`yun` 점성술 정본·`yun-life-book` 인생의 책 정본, 정본 그림이 달라 id 를 둘로 나눴다)
+  - 88ba0c4ea 인생의 책 윤달 포스터 품질 76→86 (spec `webp.default.poster`, 시트는 바이트 동일)
+  - d36e382314 F4 무성 (+ master-profiles 변경으로 sitemap lastmod 26건 재생성)
+- 생성: F2 와 같은 Codex CLI 0.156.1 OAuth(gpt-image-2, `-m gpt-5.6-terra`), 과금 API 0회. 편집은 half·closed 두 종만(F2 에서 mouth·breeze 는 쓰지 못했다). 원본 `D:\CodeDestiny-Build\master-motion\<id>\`, 해시는 각 `provenance.json`.
+- 1차 픽셀 검수 [실측] — 모든 칸, 문턱 guard ≤ 5 / region ≥ 8. 등록은 전부 스케일 1, 이동 0(무성 half 만 dx1·dy1).
+
+  | id | 칸 | guard(영역 밖) | region(영역 안) | 전체 차이 |
+  |---|---|---|---|---|
+  | yun | half | 3.01 | 26.66 | 2.97 |
+  | yun | closed | 3.45 | 41.71 | 2.62 |
+  | yun-life-book | half | 2.32 | 18.00 | 3.51 |
+  | yun-life-book | closed | 3.70 | 27.36 | 4.48 |
+  | musung | half | 3.01 | 32.08 | 3.49 |
+  | musung | closed | 3.49 | 43.45 | 4.00 |
+
+  - 문턱 근처 칸 없음(guard 최대 3.70, region 최소 18.00). 버린 칸 없음. 시퀀스는 셋 다 `["half","closed","half"]` 3칸.
+  - 무성: 처음엔 두 눈을 합성했으나 visual-checker 가 불합격 — 정본에서 화면 왼쪽 눈은 머리카락에 가려 있는데 그 자리에 새 눈이 생겼다. 화면 오른쪽 눈 타원 하나(cx318·cy246·rx38·ry28)만 합성해 다시 통과.
+- 크기 [실측] (상한: 소개장 시트 400KB·포스터 80KB, 아바타 시트 80KB·포스터 12KB)
+
+  | id | portrait-sheet | portrait-poster | avatar-sheet | avatar-poster |
+  |---|---|---|---|---|
+  | yun | 199,770 | 53,932 (q76) | 14,032 | 4,870 |
+  | yun-life-book | 189,672 | 68,874 (q86) | 12,798 | 4,350 |
+  | musung | 219,980 | 58,668 (q76) | 13,064 | 4,486 |
+
+- 선명도 [실측] 라플라시안 분산(정본 / 포스터 / 칸 3장)
+  - yun 소개장 1002 / 1014 / 1045·1053·1044
+  - yun-life-book 소개장 1578 / 1534(q86, q76 은 1473 이라 올렸다) / 1667·1647·1668
+  - musung 소개장 1118 / 1148 / 1167·1165·1168
+  - 아바타(포스터 / 칸): yun 4165 / 4139·4236·4149, yun-life-book 3402 / 3359·3415·3363, musung 4021 / 4030·4062·4037
+  - yun·musung 포스터를 q86 으로 올리면 80KB 를 넘는다(yun 85,584B). q76 도 이미 정본 이상이라 76 유지.
+- 2차 visual-checker(정지 칸) — 셋 다 출시 합격. 질문을 나눠 받았다.
+  - 경계 색 번짐: 페더 고리 평균 ±0.5 이내. yun 오른눈 두 구역은 새 속눈썹 선이 고리를 가로지른 것이며 색 패치가 아니다.
+  - 얼굴 윤곽 어긋남: 근접 띠 평균 2.4~3.6(포스터 대 정본과 같은 수준), 25 초과 픽셀 0. 경미: yun-life-book 왼눈 눈썹 조각이 약 1px 아래로 다시 그려짐(화면에서 약 0.9 기기 px).
+  - 포스터 대 시트 선명도: 최대 대비 정본/포스터/칸 = yun 36.0/34.9/35.2, yun-life-book 41.5/40.8(q86)/41.7, musung 37.0/36.0/36.4. q86 포스터는 정본과 오프셋 (0,0), 평균 차 1.18.
+- 실제 화면 [실측] (dev 3131, Playwright DPR2, 390·1280·390 reduced-motion, 쿠키 `cd_cookie_consent=essential` 로 배너 제거)
+  - 12회 실행 모두 pageerror 0, 가로 넘침 0(scrollWidth = 뷰포트).
+  - 배선된 모든 요소: 시트 레이어와 img 의 dx·dy·dw·dh 0, `data-ready`, 애니메이션 mmSheet 3.6s steps(3). 둥글림 소개장 20px·dossier 12px·아바타 50% 가 그대로 이어진다.
+  - reduced-motion: 시트 레이어 0개, master-motion 요청 0건.
+  - 재생 허용 때만 시트를 받는다: 화면 밖에서 시작한 소개장(점성술 y4770/3294, 인생의 책 y4400/3322, 자미두수 y2679/2857)은 스크롤 전 요청 0건. 처음부터 화면 안에 있는 아바타는 로드 때 받는다.
+  - visual-checker(화면 크롭): 전부 합격. 초융합 무성 1280 크롭은 처음에 판정 불가였고 요소 전체로 다시 찍어 합격.
+- 배선
+  - `/astrology-ai/` MasterProfile 윤달 소개장(`masterProfiles.yun`)
+  - `/life-book-ai/` ProductMasterStrip 윤달 아바타(`yun-life-book`) + dossier 초상 `#life-book-master`
+  - `/fusion-fortune/` 윤달·무성 아바타
+  - `/ziwei-ai/` MasterProfile 무성 소개장(`masterProfiles.musung`)
+  - `productMasters.vedic[0]` 에 motion 을 넣었지만 쓰는 곳은 story-masters(일반 `<Image>`)뿐이라 지금은 화면 효과가 없다.
+- 연결하지 않은 곳과 이유
+  - yehwa-home `.yh-basic-masters` 카드: 정본 초상이 아니라 `/images/home/illustrated/method-*-160.webp` 삽화를 쓴다.
+  - fortune-consultation-ui.js `entry()`: 정적 셸 vanilla JS, 16/9 object-fit cover 크롭이라 MasterMotion 이 없다.
+  - app/consultations/[slug](story-masters): 일반 `<Image>`.
+  - VedicAiClient·LifeBookAiClient `counselor={{src}}`: MasterMotion 이 아니다.
+  - 초융합 연이: 다른 초상을 쓴다(F2 시트와 그림이 다르다).
+- 관찰(결함 아님) [추정]
+  - 속눈썹·쌍꺼풀 선이 정본보다 약간 덜 붉다(yun 어두운 5% (36,12,12)→(41,28,24), 이 값은 [실측]).
+  - 꽃잎 입자가 가끔 얼굴 위를 지나가지만 눈을 가리지 않는다(기존 CSS 층).
+  - half 칸이 홍채를 절반보다 약간 더 덮는다.
+- 남은 위험·미검증
+  - 실제 120ms 재생을 사람이 눈으로 본 확인은 없다. visual-checker 는 정지 칸과 화면 크롭만 봤다.
+  - 360×432 변형이 없어 모바일도 600×720 시트(190~220KB)를 받는다(게이트가 열릴 때만).
+  - 문턱(guard 5 / region 8)은 F2 수치를 보고 정한 값이다.
+- F5(서한비)에서 피할 함정
+  - sheets.mjs·flags.mjs 는 작업 트리에서 CRLF 다. node 정규식 삽입은 조용히 실패한다 — Edit 도구로 고친다.
+  - 화면 밖 요소 스크린샷은 숨쉬기 애니메이션 때문에 `scrollIntoViewIfNeeded` 가 시간 초과한다. JS `scrollIntoView({block:"center"})` 뒤 page.screenshot clip(뷰포트 안으로 자름).
+  - /ziwei-ai/ 는 로컬 인증 API(8791) ECONNREFUSED 로 networkidle 에 닿지 않는다. `waitUntil:"load"` + 6초.
+  - Git Bash 에서 `/astrology-ai/` 같은 인자는 Windows 경로로 바뀐다. 앞 `/` 없이 넘긴다.
+  - check:fast 를 `timeout` 으로 감싸지 않는다(유료 게이트 스위트가 약 17분, 잘리면 엉뚱한 verify 가 실패한 것처럼 보인다).
+  - 머리카락에 가린 눈은 합성하지 않는다(무성 불합격 사례).
