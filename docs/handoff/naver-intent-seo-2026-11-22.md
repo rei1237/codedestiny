@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 3단계 — SignFortuneView.tsx 에 년생별 한 줄 섹션 연결(모듈·테스트는 작성 완료, 미커밋)
+next: 4b단계 — 신살 허브 app/saju/sinsal/page.js + 개별 글 5쪽(양인·상문·도화·역마·화개), lib/saju/sinsal-rules.mjs 의 renderRuleTableHtml 사용
 ---
 
 # 네이버 검색 의도 SEO 라운드 인수인계
@@ -13,8 +13,9 @@ next: 3단계 — SignFortuneView.tsx 에 년생별 한 줄 섹션 연결(모듈
 
 ## 지금 상태
 - 워크트리: `D:\Development\codedestiny-worktrees\naver-intent-seo-20261122-003824`, 브랜치 `wt/naver-intent-seo-20261122-003824`, base `7b0a35ce1`
-- 커밋: 1bf2e5d24(0 IndexNow) · 78f23a78d(1) · 12478b130(sitemap ledger) · b54a8d36b(aliasKo 순서) · d3fb7956e(2 계산형 4종)
-- 미커밋(내 것, 3단계): `lib/fortune/birth-year-line.mjs`, `__tests__/fortune/birth-year-line.test.mjs`(3 테스트 통과), `scripts/lib/mock-test-config.mjs`(NODE_TEST_PATTERNS 에 위 테스트 추가)
+- 커밋: 1bf2e5d24(0 IndexNow) · 78f23a78d(1) · 12478b130(sitemap ledger) · b54a8d36b(aliasKo 순서) · d3fb7956e(2 계산형 4종) · b17a75a3b(tsc) · 6cd8d6325(ledger) · c877f5d71(3 년생별 한 줄+ledger) · 09c0ab099(4a sinsal-rules) · 4d83ea6eb(2단계 '무료 사주' 가드 수정) · 25cbbbf77(jest 수집 제외)
+- 미커밋 없음(25cbbbf77 기준 clean). `npm run check:fast -- --base=7b0a35ce1` 25cbbbf77 에서 exit=0(paid-gate 78/0, test:node fail 0, jest 490 passed).
+- 3단계 실측: build:cf exit=0, dist/fortune/today/rat·tomorrow/rat·today/tiger 에 `birth-year-heading` 1개·년생 7줄 SSR, en/ja rat·aries 에는 없음, weekly 는 sky 없어 미표시(설계대로).
 - 2단계 검증 실측: build:cf exit=0, verify:internal-link-depth OK(1092), 새 4쪽 dist H1=1·noindex 0, sitemap/llms/hub-shell --check OK
 - `node scripts/verify-seo-entity-registry.mjs --built` 는 FAIL 2건 "Fusion Fortune Service JSON-LD/Visible FAQ is missing from the hub" — 이번 변경과 무관(범위 밖, 최종 보고에 후속 과제로)
 - main 은 7b0a35ce1 이후 다른 세션 커밋 169개 이상 전진(11/22 fetch). 머지 시 충돌 주의.
@@ -32,7 +33,9 @@ next: 3단계 — SignFortuneView.tsx 에 년생별 한 줄 섹션 연결(모듈
 - build:cf 가 rss.xml·insights/rss.xml(+public) 를 다른 세션 글 변경으로 재생성한다 → 내 변경이 아니면 `git checkout --` 로 되돌리고, 5단계에서 rss:generate 로 함께 커밋.
 - 줄끝: SignFortuneView.tsx·entity-registry.mjs·generate-llms-txt.mjs·build-fortune-hub-shell.mjs 는 CRLF(Edit 도구는 보존). 새 파일은 LF.
 - build-fortune-hub-shell.mjs 추출기는 sign-profiles.ts 에서 nameKo→nameEn→symbol→rangeLabel 연속 순서를 요구.
-- 노드 테스트는 scripts/lib/mock-test-config.mjs NODE_TEST_PATTERNS 에 명시해야 CI 가 돈다. TS 로드는 scripts/lib/load-ts-module.mjs `loadTsModule`.
+- 노드 테스트는 scripts/lib/mock-test-config.mjs NODE_TEST_PATTERNS 에 명시해야 CI 가 돈다. 🔴 `__tests__/ui`·`release` 밖의 node:test 파일은 jest.config.cjs testPathIgnorePatterns 에도 넣어야 한다(안 넣으면 jest "must contain at least one test" 실패, 25cbbbf77).
+- `__tests__/ui/saju-bundle-copy.static.test.js` 가 고객 노출 "무료 사주" 문구를 막는다 → 새 글·허브에 쓰지 말 것.
+- check:fast 실행 중에 app/** 를 고치면 sitemap-drift 가 헛실패한다(서명이 작업 트리 기준). 실행 중에는 트리를 건드리지 않는다. TS 로드는 scripts/lib/load-ts-module.mjs `loadTsModule`.
 - 금지: 엔진(localSajuCalculator·manse-shinsal.js·KASI·normalizeSaju) 수정, 새 FAQ/HowTo JSON-LD, seo-title.mjs 페이지 제목 변경(D+30), 새 CI 스텝, 키워드 반복, 과금 LLM, .env*/package-lock/dist 수정. 미추적 `.claude/skills/fire-your-seo-agency/`·다른 세션 파일 손대지 않음.
 - web-fetch 로 네이버 SERP 조회는 거부됨 — 재시도 금지.
 - 기존 /saju/natal-chart 레지스트리가 primary "사주 12신살", secondary "사주 명식","12신살","별신살","사주 신살 보기" 를 점유 → 신살 허브는 이 키워드를 쓰지 말 것(예: primary "신살 종류", secondary "신살 뜻","신살표").
@@ -69,9 +72,9 @@ next: 3단계 — SignFortuneView.tsx 에 년생별 한 줄 섹션 연결(모듈
 ## 단계
 - [x] 0 IndexNow (1bf2e5d24)
 - [x] 1 정확도 (78f23a78d, b54a8d36b)
-- [x] 2 계산형 4종 (d3fb7956e) — check:fast --base=7b0a35ce1 결과 확인 필요
-- [ ] 3 년생별 한 줄
-- [ ] 4a sinsal-rules + 대조 테스트
+- [x] 2 계산형 4종 (d3fb7956e, 4d83ea6eb) — check:fast --base=7b0a35ce1 exit=0 (25cbbbf77)
+- [x] 3 년생별 한 줄 (c877f5d71)
+- [x] 4a sinsal-rules + 대조 테스트 (09c0ab099, 25cbbbf77) — 만세력 엔진 1440케이스·12신살 144칸·공망 60일주 전수 + 사주 엔진 상수 고정 대조, 변이 시 실패 확인
 - [ ] 4b 허브 + 5쪽
 - [ ] 4c 8쪽
 - [ ] 5 생성물
