@@ -9732,6 +9732,9 @@
   var _dpProfileSaveInFlight = false;
   window.dpSaveProfile = function() {
     if (_dpProfileSaveInFlight) return;
+    var nameField = document.getElementById('nameInput');
+    if (nameField && !nameField.value.trim()) { nameField.focus(); nameField.setCustomValidity(_dpBirthFieldText('nameSaveError', '프로필에 저장할 이름을 적어 주세요.')); nameField.reportValidity(); nameField.setCustomValidity(''); return; }
+    if (!window.cdValidateBirthFields()) return;
     _dpSyncBirthTimeSelectsFromText(_DP_BIRTH_TIME_FIELDSETS[0]);
     var data = readFormData();
     if (!data) {
@@ -12101,6 +12104,7 @@
     var m = parseInt(els.minute.value, 10);
     if (!isFinite(h) || !isFinite(m)) return;
     els.text.value = _dpPad2(h) + ':' + _dpPad2(m);
+    if (els.text.id === 'birthTimeText') _dpShowBirthFieldError(els.text, 'birthTimeError', '');
   }
 
   /** 텍스트 입력 → select. 해석 못 하면 select 를 건드리지 않고 텍스트도 되돌린다. */
@@ -12108,6 +12112,7 @@
     var els = _dpBirthTimeEls(fieldset);
     if (!els.text || !els.hour || !els.minute) return;
     var normalized = _dpNormalizeBirthTimeText(els.text.value);
+    if (els.text.id === 'birthTimeText' && !_dpValidateBirthTime(els.text)) return;
     if (!normalized) { _dpSyncBirthTimeTextFromSelects(fieldset); return; }
     var parts = normalized.split(':');
     var typedHour = parseInt(parts[0], 10);
@@ -12120,6 +12125,64 @@
       els.minute.dispatchEvent(new Event('change', { bubbles: true }));
     } catch (_) {}
   }
+
+  function _dpBirthFieldText(key, fallback, vars) {
+    return typeof window.cdTranslate === 'function'
+      ? window.cdTranslate('home.input.' + key, vars || {}, fallback)
+      : _dpInterpolateText(fallback, vars || {});
+  }
+
+  function _dpBirthDateError(field) {
+    var match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(_dpMaskBirthDateText(field.value));
+    if (!match) return _dpBirthFieldText('dateFormatError', '연도 네 자리, 월과 일 두 자리씩 입력해 주세요.');
+    var year = Number(match[1]), month = Number(match[2]), day = Number(match[3]);
+    var calendar = document.querySelector('input[name="calType"]:checked');
+    var solar = {year: year, month: month, day: day};
+    if (calendar && calendar.value !== 'solar') {
+      var engine = window.KasiEngine || window.KoreanCalendar;
+      if (engine && typeof engine.lunarToSolar === 'function') {
+        solar = engine.lunarToSolar(year, month, day, calendar.value === 'lunar_leap');
+      } else {
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 30) return '';
+        solar = null;
+      }
+    }
+    if (!solar || !_dpHasValidProfileDate(Number(solar.year), Number(solar.month), Number(solar.day))) {
+      return _dpBirthFieldText('dateInvalidError', '달력 종류와 날짜를 확인해 주세요.');
+    }
+    var today = new Date();
+    if (new Date(solar.year, solar.month - 1, solar.day) > today) {
+      return _dpBirthFieldText('dateFutureError', '오늘까지의 날짜를 입력해 주세요.');
+    }
+    return '';
+  }
+
+  function _dpShowBirthFieldError(field, errorId, message) {
+    var output = document.getElementById(errorId);
+    if (output) output.textContent = message;
+    if (message) field.setAttribute('aria-invalid', 'true');
+    else field.removeAttribute('aria-invalid');
+    return !message;
+  }
+
+  function _dpValidateBirthTime(field) {
+    var error = _dpNormalizeBirthTimeText(field.value) ? '' : _dpBirthFieldText('timeFormatError', '00:00부터 23:59 사이의 시각을 적거나 시간 모름을 선택해 주세요.');
+    return _dpShowBirthFieldError(field, 'birthTimeError', error);
+  }
+
+  window.cdValidateBirthFields = function () {
+    var date = document.getElementById('birthDate'), time = document.getElementById('birthTimeText');
+    if (date && !_dpShowBirthFieldError(date, 'birthDateError', _dpBirthDateError(date))) { date.focus(); return false; }
+    // The optional time can be populated after this form opens. Reuse its existing select defaults.
+    if (time && !time.value.trim()) _dpSyncBirthTimeTextFromSelects(_DP_BIRTH_TIME_FIELDSETS[0]);
+    if (time && !_dpValidateBirthTime(time)) {
+      var more = document.getElementById('cdMobileSajuDetailToggle');
+      if (!time.getClientRects().length && more && more.getAttribute('aria-expanded') === 'false') more.click();
+      time.focus();
+      return false;
+    }
+    return true;
+  };
 
   function _dpBindTypedBirthInputs() {
     if (window.__cdTypedBirthInputsBound) return;
@@ -12134,6 +12197,7 @@
            #birthDate.value 를 읽는 곳이 8곳이라 필드 자체를 YYYY-MM-DD 로 만들어 둔다.
            속성 기반이라 data-cd-birth-date 를 단 새 필드도 이 스크립트를 다시 안 고치고
            같은 규칙을 상속한다(#compatBirthDate 포함). */
+        if (el.id === 'birthDate') _dpShowBirthFieldError(el, 'birthDateError', _dpBirthDateError(el));
         var normalizedDate = _dpNormalizeBirthDateInputValue(el.value);
         if (normalizedDate && normalizedDate !== el.value) {
           el.value = normalizedDate;
@@ -12149,6 +12213,7 @@
        커서가 끝으로 튀어 이어서 입력할 수 없다. */
     document.addEventListener('input', function (event) {
       var el = event.target;
+      if (el && el.id === 'birthTimeText' && /^\d{4}$/.test(el.value) && el.selectionStart === 4) el.value = el.value.slice(0, 2) + ':' + el.value.slice(2);
       if (!el || !el.hasAttribute || !el.hasAttribute('data-cd-birth-date')) return;
       var caretAtEnd = true;
       try { caretAtEnd = el.selectionStart == null || el.selectionStart === String(el.value).length; } catch (_) {}
@@ -12159,6 +12224,10 @@
 
     document.addEventListener('change', function (event) {
       var el = event.target;
+      if (el && el.name === 'calType') {
+        var date = document.getElementById('birthDate');
+        if (date && date.value) _dpShowBirthFieldError(date, 'birthDateError', _dpBirthDateError(date));
+      }
       if (!el || !el.id) return;
       var selectFieldset = _dpFindBirthTimeFieldsetBySelectId(el.id);
       if (selectFieldset) _dpSyncBirthTimeTextFromSelects(selectFieldset);
@@ -12235,6 +12304,8 @@
     var listbox = document.getElementById('birthCountryListbox');
     var input = document.getElementById('birthCountryInput');
     if (!listbox || !input) return;
+    var status = document.getElementById('birthCountryStatus');
+    if (status) status.textContent = matches.length ? _dpBirthFieldText('placesShown', '표시된 출생지 {count}곳', { count: matches.length }) : _dpBirthFieldText('placesEmpty', '검색 결과가 없어요. 다른 지명을 입력해 주세요.');
     _cdBirthCountryMatches = matches;
     _cdBirthCountryActiveIndex = -1;
     if (!matches.length) { _cdCloseBirthCountryListbox(); return; }
@@ -12275,6 +12346,8 @@
     sel.selectedIndex = optIndex;
     try { sel.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
     window._cdSyncBirthCountryDisplay();
+    var status = document.getElementById('birthCountryStatus');
+    if (status) status.textContent = '';
     _cdCloseBirthCountryListbox();
   }
 
@@ -12305,7 +12378,10 @@
           _cdApplyBirthCountrySelection(_cdBirthCountryMatches[_cdBirthCountryActiveIndex].optIndex);
         }
       } else if (event.key === 'Escape') {
-        if (isOpen) { event.preventDefault(); _cdCloseBirthCountryListbox(); }
+        if (isOpen) { event.preventDefault(); event.stopPropagation(); _cdCloseBirthCountryListbox(); }
+        window._cdSyncBirthCountryDisplay();
+        var status = document.getElementById('birthCountryStatus');
+        if (status) status.textContent = '';
       }
     });
     /* mousedown에서 선택을 반영해야(preventDefault) 클릭이 input의 blur보다 먼저 처리된다. */
