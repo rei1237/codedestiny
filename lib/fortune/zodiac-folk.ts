@@ -166,7 +166,8 @@ export type SonMonth = { year: number; month: number; days: SonDay[] };
 
 export function sonEomneunMonths(range = SON_EOMNEUN_RANGE): SonMonth[] {
   const out: SonMonth[] = [];
-  let { year, month } = range.from;
+  let year: number = range.from.year;
+  let month: number = range.from.month;
   while (year < range.to.year || (year === range.to.year && month <= range.to.month)) {
     const days: SonDay[] = [];
     const length = new Date(Date.UTC(year, month, 0)).getUTCDate();
