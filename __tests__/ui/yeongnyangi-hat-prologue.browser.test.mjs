@@ -5,6 +5,7 @@ import {createServer} from 'node:http';
 import {readFileSync,mkdirSync} from 'node:fs';
 import {resolve,join} from 'node:path';
 import {chromium} from '@playwright/test';
+import {APP_VERIFIED_DEAD_IMAGES} from '../../scripts/build-mobile-app.mjs';
 
 // Render the actual SortingHat + Prologue; replace only framework image and external dependencies.
 const entry=`import React from 'react';import{createRoot}from'react-dom/client';import SortingHat from './app/yeongnyangi/_components/SortingHat';
@@ -18,10 +19,22 @@ const mocks={
  './ProfilePicker':`import React from 'react';export default function Picker(){return <button onClick={()=>window.changeProfile('b')}>테스트 프로필 변경</button>}`,
 };
 test('hat story: six houses, reveal, skip, errors, stale requests, keyboard and mobile',async()=>{
- const built=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,outdir:'hat-mock',jsx:'automatic',plugins:[{name:'hat-mocks',setup(b){b.onResolve({filter:/.*/},a=>mocks[a.path]?{path:a.path,namespace:'mock'}:undefined);b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:mocks[a.path],loader:'tsx',resolveDir:process.cwd()}));}}]});
+ const appBuild=process.env.NEXT_PUBLIC_RUNTIME_TARGET==='mobile-app';
+ const built=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,outdir:'hat-mock',jsx:'automatic',define:{'process.env.NEXT_PUBLIC_RUNTIME_TARGET':JSON.stringify(appBuild?'mobile-app':'web')},plugins:[{name:'hat-mocks',setup(b){b.onResolve({filter:/.*/},a=>mocks[a.path]?{path:a.path,namespace:'mock'}:undefined);b.onLoad({filter:/.*/,namespace:'mock'},a=>({contents:mocks[a.path],loader:'tsx',resolveDir:process.cwd()}));}}]});
  const js=built.outputFiles.find(f=>f.path.endsWith('.js')).text,css=built.outputFiles.find(f=>f.path.endsWith('.css')).text;
  const tokens=`:root{--yn-ivory:#f8efe4;--yn-deep:#17121e;--yn-surface:#251c2d;--yn-gold:#e5c788;--yn-muted:#c8b8ce;--yn-line:#67516b;--yn-radius:18px;--font-body:Arial,sans-serif}body{margin:0;background:#17121e}*{box-sizing:border-box}`;
- const server=createServer((req,res)=>{if(req.url==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(js);}else if(req.url.startsWith('/assets/yeongnyangi/hat/')){res.setHeader('Content-Type',req.url.endsWith('.png')?'image/png':'image/webp');res.end(readFileSync(resolve('public',req.url.slice(1))));}else{res.setHeader('Content-Type','text/html; charset=utf-8');res.end(`<html lang="ko"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${tokens}${css}</style><div id="root"></div><script src="/app.js"></script></html>`);}});
+ const server=createServer((req,res)=>{
+  if(req.url==='/app.js'){res.setHeader('Content-Type','text/javascript');res.end(js);return;}
+  if(req.url.startsWith('/assets/yeongnyangi/hat/')){
+   const file=req.url.slice(1);
+   if(appBuild&&APP_VERIFIED_DEAD_IMAGES.some(([pattern])=>pattern.test(file))){res.writeHead(404).end();return;}
+   const format=file.slice(file.lastIndexOf('.')+1);
+   res.setHeader('Content-Type',`image/${format}`);
+   res.end(readFileSync(resolve('public',file)));return;
+  }
+  res.setHeader('Content-Type','text/html; charset=utf-8');
+  res.end(`<html lang="ko"><meta name="viewport" content="width=device-width, initial-scale=1"><style>${tokens}${css}</style><div id="root"></div><script src="/app.js"></script></html>`);
+ });
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  const origin=`http://127.0.0.1:${server.address().port}`;let browser;
  try{
@@ -56,6 +69,7 @@ test('hat story: six houses, reveal, skip, errors, stale requests, keyboard and 
    await page.locator('#hat-result-title').waitFor();assert.equal(await page.locator('#hat-result-title').innerText(),names[i]);
    assert.equal(await page.evaluate(()=>document.activeElement.id),'hat-result-title');
    const result=page.getByRole('article',{name:names[i],exact:true});
+   if(appBuild)assert.equal(await result.locator('picture source').count(),0);
    await result.getByText('모자가 읽은, 타고난 마음의 결',{exact:true}).waitFor();
    assert.ok(await result.locator('figure img').evaluate(async img=>{await img.decode();return img.complete&&img.naturalWidth>0;}));
    const secret=result.locator('details').filter({hasText:'모자의 비밀 쪽지 펼치기'});

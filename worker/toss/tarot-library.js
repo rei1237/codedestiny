@@ -4,7 +4,7 @@ import {resolveOracleConsultationTier} from '../../lib/tarot/oracle-consultation
 import {selectDeckSlots} from '../../lib/tarot/committed-deck.mjs';
 import {TOPIC_LABELS} from '../../lib/tarot/numerology-tarot.mjs';
 import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
-import {checkOrder,TossError} from './policy.js';
+import {assertPurchaser,checkOrder,TossError} from './policy.js';
 import {TOSS_TAROT_LIBRARY_FLOWS,tossTarotLibraryFlow} from '../../lib/tarot/toss-library-flows.mjs';
 import {getTarotCardByAnyId} from '../../lib/tarot/tarot-cards.mjs';
 import {generateTarotLibraryResult} from './tarot-library-generator.js';
@@ -103,17 +103,17 @@ function assertExistingExecution(execution,auth,product,orderId){
  * atomically before the SDK grant is acknowledged. Delivery workers later claim the
  * same execution; neither the callback nor a library reread invokes an LLM.
  */
-export async function grantTarotLibraryOrder({store,auth,order,product,input}){
+export async function grantTarotLibraryOrder({store,auth,order,product,input,closedRestore=false}){
   checkOrder(order,{orderId:order.orderId,sku:product.sku});
   const receipt=await store.transaction(async tx=>{
     await tx.assertIdentity(auth);
     let purchase=await tx.purchase(order.orderId);
-    if(!purchase&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
+    if(!purchase&&!NEW_PURCHASES_AVAILABLE&&!(closedRestore===true&&order.purchaserMatched===true))throw new TossError('TOSS_PURCHASES_DISABLED',503);
     let execution=await tx.execution(order.orderId);
     if(purchase)assertExistingPurchase(purchase,auth,product,order.orderId);
     if(execution)assertExistingExecution(execution,auth,product,order.orderId);
     if(!purchase){
-      purchase={_id:order.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,
+      purchase={_id:order.orderId,buyerVerification:assertPurchaser(order),identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,
         sku:product.sku,productId:product.productId,tarotFlowId:product.flow.id,featureKey:product.featureKey,
         approvedPriceKRW:product.approvedPriceKRW,priceEvidence:product.priceEvidence,status:order.status,
         requestId:tarotLibraryRequestId(order.orderId),executionId:tarotLibraryExecutionId(order.orderId),verifiedAt:new Date(),grantedAt:new Date()};

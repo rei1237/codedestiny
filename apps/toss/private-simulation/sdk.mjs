@@ -9,6 +9,13 @@ const disabled=new Proxy({},{get:()=>blocked});
 export const Accuracy={Balanced:'balanced'};
 export const Clipboard=disabled,Device=disabled,Share=disabled;
 export const File={saveBase64:supported(async value=>{
+ if(value?.mimeType==='image/png'&&/^destiny-anatomy-(feed|story)\.png$/.test(value.fileName)&&typeof value.data==='string'&&value.data.startsWith('iVBORw0KGgo')&&value.data.length>=32){
+   const head=atob(value.data.slice(0,32)),bytes=Uint8Array.from(head,c=>c.charCodeAt(0)),header=new DataView(bytes.buffer);
+   const width=header.getUint32(16),height=header.getUint32(20);
+   if(width!==1080||height!==(value.fileName.includes('-feed')?1350:1920))return blocked();
+   const saves=JSON.parse(localStorage.getItem('private-file-saves')||'[]');
+   saves.push({fileName:value.fileName,mimeType:value.mimeType,width,height,simulated:true});localStorage.setItem('private-file-saves',JSON.stringify(saves));return;
+ }
  if(value?.data!=='SUQzBAAAAAAAAA=='||value?.mimeType!=='audio/mpeg'||value?.fileName!=='모의-음악-저장-검증.mp3')return blocked();
  const saves=JSON.parse(localStorage.getItem('private-file-saves')||'[]');saves.push({...value,simulated:true});localStorage.setItem('private-file-saves',JSON.stringify(saves));
 })};

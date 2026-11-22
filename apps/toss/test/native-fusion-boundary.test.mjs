@@ -8,7 +8,7 @@ const require=createRequire(import.meta.url),Module=require('node:module');
 const auth={_id:'identity',ownerId:'owner',userId:'owner',revision:1,userKey:'123',environment:'SANDBOX'};
 const product={approved:true,nativeService:'fusion',sku:'offline-fusion',featureKey:'fusion-fortune-consultation',productId:'native:fusion:fusion-fortune-consultation',approvedPriceKRW:50000,priceEvidence:'offline fixture'};
 const input={requestId:'original-fusion',birthDate:'1990-01-01',birthTime:'08:00',topic:'삶의 흐름',concern:'진로 질문'};
-const order={orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+const order={orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED',purchaserMatched:true};
 const state={rows:[],purchases:[],catalog:[product],order,doc:null,identity:true,generated:0,web:0,failSave:false,refundAtDelivery:false};
 const matches=(row,q)=>Object.entries(q).every(([k,v])=>{
  if(k==='$or')return v.some(item=>matches(row,item));

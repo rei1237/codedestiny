@@ -77,6 +77,52 @@ video.art { width: calc(100% - 2 * var(--mm-art-inset, 0px)); height: calc(100% 
 }
 .frames img { display: block; width: calc(100% / var(--mm-n)); height: 100%; object-fit: cover; }
 
+/* 스프라이트 시트(F): 포스터(=기본 칸)를 배경으로 깔고, 시트를 다 받으면 0.3s 페이드로 드러낸다.
+   시트 줄은 칸 수 × 100% 너비이고 transform 만 steps() 로 옮긴다(design-canon: transform·opacity 만).
+   주기의 앞 10% 동안 칸마다 120ms 씩 재생하고, 나머지 90% 는 줄이 상자 밖(-100%)에 있어 포스터가 대기 화면이 된다. */
+.sheetArt {
+  background: transparent center / 100% 100% no-repeat;
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.sheetArt[data-ready] { opacity: 1; }
+.sheet {
+  /* 단위 없는 기본값 — 실제 칸 수는 인라인 style 의 --mm-n. */
+  --mm-n: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--mm-n) * 100%);
+  height: 100%;
+  background-position: 0 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  animation: mmSheet calc(var(--mm-n) * 1200ms) steps(var(--mm-n)) infinite;
+}
+
+/* 부분 시트(patch, F7 영냥이): 정본 <img> 위 사각형 하나만 덮는다. 칸 알파가 눈 타원 무게라 눈 밖은 <img> 가 그대로 보인다.
+   주기는 .sheet 와 같고(앞 10% 재생, 나머지 줄은 상자 밖), 첫 깜빡임은 1.6s 뒤 — 지연 동안은 기본값 translateX(-100%) 로 숨는다. */
+.patch {
+  position: absolute;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+.patchRow {
+  /* 단위 없는 기본값 — 실제 칸 수는 인라인 style 의 --mm-n. */
+  --mm-n: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--mm-n) * 100%);
+  height: 100%;
+  background-position: 0 0;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  transform: translateX(-100%);
+  animation: mmSheet calc(var(--mm-n) * 1200ms) steps(var(--mm-n)) 1.6s infinite;
+}
+
 @keyframes mmBreathe {
   0%, 100% { transform: translateY(0) rotate(0); }
   25% { transform: translateY(-1.5px) rotate(.4deg); }
@@ -98,8 +144,12 @@ video.art { width: calc(100% - 2 * var(--mm-art-inset, 0px)); height: calc(100% 
   to { transform: scale(1) rotate(45deg); opacity: 1; }
 }
 @keyframes mmFrames { to { transform: translateX(-100%); } }
+@keyframes mmSheet {
+  0% { transform: translateX(0); }
+  10%, 100% { transform: translateX(-100%); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .petals, .art { display: none; }
+  .petals, .art, .patch { display: none; }
   .root > * { animation: none !important; }
 }

@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {requireTossOrigin, checkOrder, validateLoginInput, analyticsEvent, assertGrantReceipt} from '../../../worker/toss/policy.js';
+import {requireTossOrigin, checkOrder, validateLoginInput, analyticsEvent, assertGrantReceipt, assertPurchaser} from '../../../worker/toss/policy.js';
 import {partnerRequest,loginIdentity,lookupOrder} from '../../../worker/toss/partner.js';
 import {seal,unseal,identityId,callbackAuthorized} from '../../../worker/toss/crypto.js';
 const orderId='01900000-1111-7111-8111-000000000001';
@@ -27,8 +27,14 @@ test('login without email works; only verified userKey survives',async()=>{
   assert.equal(calls[1][1].headers.Authorization,'Bearer private');
   assert.equal(calls[0][1].redirect,'manual');
 });
-test('order status requires a local identity but never claims the endpoint verifies its owner',async()=>{
+test('order status sends the user key only for a first-grant buyer check',async()=>{
   await assert.rejects(lookupOrder({...env,TOSS_MTLS:{fetch:()=>assert.fail()}},'',orderId));
+  await assert.rejects(lookupOrder({...env,TOSS_MTLS:{fetch:()=>assert.fail()}},'',orderId,{buyerCheck:true}));
+  for(const [options,expected] of [[undefined,undefined],[{},undefined],[{buyerCheck:'true'},undefined],[{buyerCheck:true},'123']])await lookupOrder({...env,TOSS_MTLS:{fetch:async(url,init)=>{
+    assert.equal(init.headers['x-toss-user-key'],expected);
+    assert.equal(init.headers['x-anon-key'],undefined);
+    return Response.json({resultType:'SUCCESS',success:{orderId}});
+  }}},'123',orderId,options);
   await lookupOrder({...env,TOSS_MTLS:{fetch:async(url,init)=>{
     assert.equal(init.headers['x-toss-user-key'],undefined);
     assert.equal(init.headers['x-anon-key'],undefined);
@@ -38,6 +44,10 @@ test('order status requires a local identity but never claims the endpoint verif
 });
 for(const status of ['REFUNDED','FAILED','ORDER_IN_PROGRESS','NOT_FOUND','MINIAPP_MISMATCH','ERROR']) test(`no grant on ${status}`,()=>{
   assert.throws(()=>checkOrder({orderId,sku:'real',status},{orderId,sku:'real'}));
+});
+test('first ledger insert requires purchaserMatched === true (null/false/absent fail closed)',()=>{
+  for(const purchaserMatched of [undefined,null,false,'true',1])assert.throws(()=>assertPurchaser({orderId,sku:'real',status:'PURCHASED',purchaserMatched}),e=>e.code==='ORDER_BUYER_UNVERIFIED'&&e.status===403);
+  assert.equal(assertPurchaser({orderId,sku:'real',status:'PURCHASED',purchaserMatched:true}),'PURCHASER_MATCHED');
 });
 test('order and SKU must both match',()=>{
   assert.throws(()=>checkOrder({orderId,sku:'other',status:'PURCHASED'},{orderId,sku:'real'}));

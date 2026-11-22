@@ -1,6 +1,6 @@
 // Terminal refunds for saved consultations. Reservation precedes PG calls; a
 // missing/uncertain PG response never clears it or reopens the paid request.
-import { NewYearAiConsultation, LifeBookAiConsultation, SajuCompatPremiumConsultation, FusionFortuneConsultation, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from './models.js';
+import { NewYearAiConsultation, LifeBookAiConsultation, SajuCompatPremiumConsultation, FusionFortuneConsultation, KarmaDestinyAiConsultation, PaidExecutionRecord, Payment, PointHistory, MonthlyCreditLedger } from './models.js';
 import { withPaymentDb, createPaymentContext, toObjectId } from '../payments/db.js';
 import { claimRefund, settleRefund } from '../payments/orders.js';
 import { revokePurchaseEntitlement } from '../payments/executions.js';
@@ -18,6 +18,11 @@ const SERVICES = Object.freeze({
   'life-book-ai': { model: LifeBookAiConsultation, feature: 'life-book-ai-consultation',
     features: ['life-book-ai-consultation', 'life-fortune-ai-consultation'] },
   'fusion-fortune': { model: FusionFortuneConsultation, feature: 'fusion-fortune-consultation' },
+});
+// 2026-11-22 F1: 카르마는 다시 시도 보류(R10) 뒤 자체 정산에서 현금·월정석 건만 이 함수로 환불한다.
+// 대기 환불 순회(runPendingConsultationRefunds)는 SERVICES 만 돌고, 카르마는 자기 크론(settleDueKarmaRetryRefunds)이 다시 부른다.
+const RETRY_SETTLED_SERVICES = Object.freeze({
+  'karma-destiny-ai': { model: KarmaDestinyAiConsultation, feature: 'karma-destiny-ai-consultation' },
 });
 const PAID = ['paid', 'success', 'fulfilled'];
 const LOCK_MS = 120000;
@@ -53,7 +58,7 @@ async function assertNoCompletedDelivery(db, doc, payment, deps) {
   if (linked.some(row => clean(row.requestId) !== clean(doc.idempotencyKey)
     && ['paid_pending_generation', 'generating', 'partial', 'delivery_pending'].includes(row.status))) throw error('REFUND_ACTIVE_EVIDENCE_REVIEW');
   const tokens = [...new Set([...keys, ...linked.flatMap(row => [row._id, row.executionId, row.requestId, row.resultId]).map(clean)].filter(Boolean))];
-  for (const service of Object.keys(SERVICES)) {
+  for (const service of [...Object.keys(SERVICES), ...Object.keys(RETRY_SETTLED_SERVICES)]) {
     const model = configured(service, deps).model;
     const completed = await db.findOne(model, { userId: owner, status: { $in: ['completed', 'delivery_pending', 'generating', 'partial'] },
       $or: [{ paymentId: { $in: tokens } }, { idempotencyKey: { $in: tokens } }, { id: { $in: tokens } }] });
@@ -68,7 +73,7 @@ function currentLease(doc, now) {
 }
 
 function configured(service, deps) {
-  const spec = SERVICES[service];
+  const spec = SERVICES[service] || RETRY_SETTLED_SERVICES[service];
   return spec && { ...spec, model: deps.models?.[service] || spec.model };
 }
 

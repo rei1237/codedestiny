@@ -10,6 +10,7 @@ import {resolve,dirname,sep,extname} from 'node:path';
 import sharp from 'sharp';
 import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
+import {execFileSync} from 'node:child_process';
 import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
 import {TOSS_WEBP_ART} from './bundle-art.mjs';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
@@ -73,21 +74,34 @@ export function isYeongnyangi640Reference(ref){return /^\/images\/service-introd
 
 // Encode the same 600×900 screen artwork at high quality; never resize or
 // replace the shared source. Retain original bytes if recompression is larger.
-export async function screenTarotBytes(source){
- const encoded=await sharp(source).webp({quality:90,effort:6,alphaQuality:100}).toBuffer();
+export async function screenTarotBytes(source,quality=90){
+ const encoded=await sharp(source).webp({quality,effort:6,alphaQuality:100}).toBuffer();
  return encoded.length<source.length?encoded:source;
 }
 
+// Settings shows this so a reviewer can match the running bundle to its commit.
+// CI passes GITHUB_SHA; local builds ask git; the date is the KST build day.
+export function tossBuildId(sha=process.env.GITHUB_SHA,now=Date.now()){
+ let short=String(sha||'').trim().slice(0,7);
+ if(!short){try{short=execFileSync('git',['rev-parse','--short=7','HEAD'],{cwd:fileURLToPath(new URL('.',import.meta.url)),encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();}catch{short='';}}
+ return (short||'unknown')+' · '+new Date(now+9*3600e3).toISOString().slice(0,10);
+}
 export default function serviceCompat(){
  const references=new Set(['/fuctionassets/rune.webp']);
  let privateArt=false;
- const storyAssets=new Set();
+ const storyAssets=new Map();
  const storySource=src=>privateArt?'/__story-art'+src:'https://code-destiny.com'+src;
  const projectCuts=cuts=>cuts.map(cut=>{
-  if(privateArt&&cut.src){for(const width of cut.widths)storyAssets.add(cut.src+'-'+width+'.avif');storyAssets.add(cut.src+'-'+cut.fallback+'.webp');}
+  if(privateArt&&cut.src){
+   // Pack one mobile illustration per cut for the offline reader.
+   const width=Math.min(480,cut.fallback);
+   storyAssets.set(cut.src+'-'+width+'.webp',{original:cut.src+'-'+cut.fallback+'.webp',width});
+   return {...cut,src:storySource(cut.src),widths:[],fallback:width};
+  }
   return {...cut,src:cut.src?storySource(cut.src):''};
  });
  return {name:'canonical-service-runtime',enforce:'pre',
+  config(){return {define:{__TOSS_BUILD_ID__:JSON.stringify(tossBuildId())}};},
   configResolved(config){privateArt=config.mode==='private-simulation';},
   transform(code,id){
    if(id.includes('node_modules'))return;
@@ -104,6 +118,9 @@ export default function serviceCompat(){
     if(!code.includes(widths))throw new Error('Sample responsive artwork contract changed');
     code=code.replace(widths,'?[320,480,640,960]:[960]');
    }
+   // Toss sells only through its in-app purchase. The shared pass preview names the
+   // web PG on its card path; no Toss code reads that label, so the bundle omits it.
+   if(id.replaceAll('\\','/').split('?')[0].endsWith('/app/_lib/billing-client.ts')){const label=/(["'`])PORTONE_V2_KG_INICIS\1/g;if((code.match(label)||[]).length!==4)throw new Error('Billing provider label contract changed');code=code.replace(label,'""');}
    if(id.replaceAll('\\','/').endsWith('/app/neo-consultation/NeoConsultationClient.tsx'))code=code.replace(/["'](\/(?:assets|images)\/[^"']+\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/app/palm-reading/PalmDestinyMain.tsx'))code=code.replace(/["'](\/images\/(?:service-introductions\/palm-reading-960|expert-characters\/yeoni\/shooting-guide)\.webp)["']/g,'"https://code-destiny.com$1"');
    if(id.replaceAll('\\','/').endsWith('/lib/palm/palm-ui-state.js'))return code.replace('module.exports = {','export default {');
@@ -138,6 +155,8 @@ export default function serviceCompat(){
    if(normalized.endsWith('/app/hooks/usePayment'))return fileURLToPath(new URL('./payment-state.jsx',import.meta.url));
    if(/\/app\/_lib\/auth-client(?:\.[jt]s)?$/.test(normalized)&&!importer?.split('?')[0].replaceAll('\\','/').endsWith('/apps/toss/service/auth-client.jsx'))return fileURLToPath(new URL('./auth-client.jsx',import.meta.url));
    if(normalized.endsWith('/app/_lib/billing-client'))return fileURLToPath(new URL('./billing.jsx',import.meta.url));
+   // The web direct-payment runtime is excluded from the review bundle; see web-checkout-entry.js.
+   if(/\/js\/core\/checkout-entry(?:\.js)?$/.test(normalized))return fileURLToPath(new URL('./web-checkout-entry.js',import.meta.url));
    if(id.replaceAll('\\','/').endsWith('/app/checkout/CheckoutClient'))return fileURLToPath(new URL('./Checkout.jsx',import.meta.url));
    if(id==='next/navigation'||defaults[id])return '\0toss-service:'+id;
   },
@@ -155,7 +174,10 @@ export default function serviceCompat(){
     const stories=Object.fromEntries(Object.entries(consultationWebtoons).map(([key,story])=>[key,{
      ...story,cuts:projectCuts(story.cuts),
     }]));
-    if(privateArt)for(const key of Object.keys(stories))storyAssets.add('/images/consultation-webtoons/covers/mobile/'+key+'.webp');
+    if(privateArt)for(const key of Object.keys(stories)){
+     const original='/images/consultation-webtoons/covers/mobile/'+key+'.webp';
+     storyAssets.set(original,{original,width:320});
+    }
     return 'export const coverDirectory='+JSON.stringify(storySource('/images/consultation-webtoons/covers/mobile/'))+';export default '+JSON.stringify(stories);
    }
    if(id==='\0toss-destiny-island'){
@@ -188,8 +210,10 @@ export default function serviceCompat(){
    try{const bytes=await readFile(path);res.setHeader('Content-Type',mime[extname(path)]);res.end(bytes);}catch{next();}
   });},
   async generateBundle(_options,bundle){
-   // Only the offline simulation embeds exact original panels. The release streams them.
-   for(const ref of storyAssets)this.emitFile({type:'asset',fileName:'__story-art'+ref,source:await readFile(resolve(publicRoot,'.'+ref))});
+   for(const [name,{original,width}] of storyAssets){
+    const source=await sharp(resolve(publicRoot,'.'+original)).resize({width,withoutEnlargement:true}).webp({quality:78}).toBuffer();
+    this.emitFile({type:'asset',fileName:'__story-art'+name,source});
+   }
    let tea640=false,yeongnyangi640=false;
    // Inspect the emitted chunks, not every imported module before tree shaking.
    // Otherwise dead catalog entries and navigation URLs copy whole art archives.
@@ -229,20 +253,32 @@ export default function serviceCompat(){
    const emitted=new Set();
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
+    // Keep the tea room sprite coordinates and every animation frame in the offline archive.
+    if(privateArt&&/^images\/fortune-tea-house\/[^/]+\.webp$/.test(ref)){
+     const source=await readFile(path);
+     const mobile=await sharp(source,{animated:true}).webp({quality:76,alphaQuality:92}).toBuffer();
+     return mobile.length<source.length?mobile:source;
+    }
+    // Portraits and service thumbnails occupy a phone-width card.
+    if(/^images\/(?:service-introductions|master-profiles|expert-characters|consultation-editorial)\/.+\.webp$/.test(ref)){
+     const source=await readFile(path);
+     const mobile=await sharp(source).resize({width:640,withoutEnlargement:true}).webp({quality:76,alphaQuality:96}).toBuffer();
+     return mobile.length<source.length?mobile:source;
+    }
     if(ref.startsWith('fuctionassets/러브 코드/'))return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     if(ref==='fuctionassets/love code.webp')return sharp(path).resize({width:800,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     if(ref.startsWith('images/compat-story/'))return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     // Guardians occupy a 72px reading portrait; the map also supports pinch zoom.
     if(/^images\/destiny-island\/guardians\/[^/]+-v1\.webp$/.test(ref))return sharp(path).resize({width:240,withoutEnlargement:true}).webp({quality:85}).toBuffer();
     if(ref==='images/destiny-island/exploration-map-v3.webp')return sharp(path).resize({width:1200,withoutEnlargement:true}).webp({quality:84}).toBuffer();
-    if(/^assets\/yeongnyangi\/tarot\/v1\/[A-Z]\d{2}-600\.webp$/.test(ref))return screenTarotBytes(await readFile(path));
+    if(/^assets\/yeongnyangi\/tarot\/v1\/[A-Z]\d{2}-600\.webp$/.test(ref))return screenTarotBytes(await readFile(path),privateArt?82:90);
     if(ref==='assets/yeongnyangi/tarot/v1/back-600.webp')return sharp(path).webp({quality:88,effort:6}).toBuffer();
     // Keep the three animation frames aligned on mobile, including transparent edges.
     if(/^assets\/yeongnyangi\/readings\/[^/]+-loading-sprite-v1\.webp$/.test(ref))return sharp(path).resize({width:1536,withoutEnlargement:true}).webp({quality:87,alphaQuality:100}).toBuffer();
     // The web waiting scene is displayed at most 416 CSS pixels wide.
     if(ref==='images/consultation-webtoons/heukwol/portraits/moon-library.webp')return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:84}).toBuffer();
     // These portraits and scene covers fill at most the miniapp content width.
-    if(/^images\/(master-profiles|consultation-editorial|service-introductions|fusion-fortune)\/[^/]+\.webp$/.test(ref)){
+    if(/^images\/fusion-fortune\/[^/]+\.webp$/.test(ref)){
      const source=await readFile(path);
      const {width}=await sharp(source).metadata();
      if(width>800)return sharp(source).resize({width:800}).webp({quality:88,alphaQuality:100}).toBuffer();

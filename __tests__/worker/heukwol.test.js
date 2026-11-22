@@ -62,6 +62,15 @@ describe('delivery plan v2 (new sessions only)',()=>{
   const v2=await (await post('start')).json();expect(rows.get('owner:'+v2.id).metadata.deliveryPlanVersion).toBe(2);
   rows.clear();testEnv=V1;const v1=await (await post('start')).json();expect(rows.get('owner:'+v1.id).metadata.deliveryPlanVersion).toBeUndefined();
  });
+ test('Trait-First is pinned at start; sessions without the key stay off and still complete',async()=>{
+  const old=await (await post('start')).json();expect(rows.get('owner:'+old.id).metadata).not.toHaveProperty('traitFirst');
+  testEnv={TRAIT_FIRST_SAJU:'true'};
+  expect((await drive(old.id)).status).toBe('completed');expect(seenOptions.some(o=>'traitFirst' in o)).toBe(false);
+  rows.clear();seenOptions=[];
+  const fresh=await (await post('start',{...input,question:input.question+' 새'})).json();expect(rows.get('owner:'+fresh.id).metadata.traitFirst).toBe('v1');
+  testEnv={};expect((await drive(fresh.id)).status).toBe('completed');expect(refunds).toBe(0);
+  expect(seenOptions).toHaveLength(27);expect(seenOptions.every(o=>o.traitFirst==='v1'&&o.traitSeed==='owner|heukwol')).toBe(true);
+ });
  test('short but valid chapters reach completed without the 40,000-char gate or a refund',async()=>{
   chapterChars=900;const data=await drive((await (await post('start')).json()).id);
   expect(data.status).toBe('completed');expect(data.report.totalChars).toBe(900*27);expect(refunds).toBe(0);

@@ -8,6 +8,7 @@ import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { continueOracleDelivery, registerPaidNarrativeIntent, type OracleDeliveryResponse } from "@/app/_lib/oracle-delivery";
+import PaidNarrativeRetryPanel, { paidNarrativeHoldOf } from "@/app/components/PaidNarrativeRetryPanel";
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "../../hooks/usePaidResume";
 import { fetchPaymentEligibility } from "@/app/_lib/billing-client";
@@ -2821,6 +2822,13 @@ export default function TarotPromptMakerPage() {
     }
   }
 
+  // 생성 한도에 걸려 보류된 건: 미완성 본문 대신 무료 다시 시도·환불 요청 패널만 보인다.
+  const oracleHold = paidNarrativeHoldOf(delivery);
+  function resumeHeldOracle(resumeBody: { resumeResultId: string }) {
+    if (recovery.current) recovery.current.resultId = resumeBody.resumeResultId;
+    if (consultationRequestId) void requestOracleConsultation(consultationRequestId);
+  }
+
   async function handleRetryOracleConsultation() {
     if (consultationLoading || !consultationRequestId) return;
     setConsultationRetries(prev => prev + 1);
@@ -3772,7 +3780,13 @@ export default function TarotPromptMakerPage() {
                           </div>
                         )}
 
-                        {!consultationLoading && consultationSource?.startsWith("failed") && (
+                        {!consultationLoading && oracleHold && (
+                          <PaidNarrativeRetryPanel hold={oracleHold} onResume={resumeHeldOracle}
+                            className="mb-4 grid gap-3 rounded-2xl border border-[#c084fc]/40 p-4 text-sm leading-7 text-violet-50 [&_h3]:font-bold"
+                            primaryClassName="min-h-12 w-full rounded-xl border border-[#c084fc]/60 bg-violet-900 px-4 py-3 font-semibold text-white disabled:opacity-60"
+                            secondaryClassName="min-h-12 w-full rounded-xl border border-violet-200/40 px-4 py-3 text-violet-100 disabled:opacity-60" />
+                        )}
+                        {!consultationLoading && !oracleHold && consultationSource?.startsWith("failed") && (
                           <div className="space-y-3">
                             <p className="text-amber-200/80 text-xs leading-6">
                               {delivery ? (locale === "ko" ? "저장된 상담을 이어서 받을 수 있습니다. 아래에서 이어서 생성해 주세요." : "Your saved consultation can be continued below.") : consultationFailureMessage}
@@ -3790,15 +3804,15 @@ export default function TarotPromptMakerPage() {
 
                           </div>
                         )}
-                        {delivery && !delivery.saved && <div className="mb-4 text-sm text-violet-100" role="status">
+                        {delivery && !delivery.saved && !oracleHold && <div className="mb-4 text-sm text-violet-100" role="status">
                           {locale === 'ko' ? '상담 본문 저장' : 'Saved sections'} {delivery.completedParts?.length || 0} / {delivery.totalParts || '…'}
                           {delivery.retryable === false && <p>{locale === 'ko' ? '생성 한도에 도달했습니다. 저장된 내용을 보존했으며 결제 내역으로 문의해 주세요.' : 'Generation limit reached. Saved sections are retained; contact support with your payment record.'}</p>}
                         </div>}
                         {readingPosition && <a href={`#${readingPosition}`} className="mb-4 block text-sm text-violet-100">{locale === 'ko' ? '읽던 위치로 이동' : 'Continue reading'}</a>}
-                        {!!delivery?.sections?.length && <nav aria-label={locale === 'ko' ? '상담 목차' : 'Contents'} className="mb-5 flex flex-wrap gap-2 text-xs">
+                        {!oracleHold && !!delivery?.sections?.length && <nav aria-label={locale === 'ko' ? '상담 목차' : 'Contents'} className="mb-5 flex flex-wrap gap-2 text-xs">
                           {delivery.sections.map(section => <a className="rounded-lg border border-violet-300/30 p-2 text-violet-100" key={section.key} href={`#oracle-${section.key}`}>{section.title}</a>)}
                         </nav>}
-                        {!!delivery?.sections?.length && <div className="space-y-5 break-words text-sm leading-7 text-violet-50">
+                        {!oracleHold && !!delivery?.sections?.length && <div className="space-y-5 break-words text-sm leading-7 text-violet-50">
                           {delivery.sections.map(section => <section id={`oracle-${section.key}`} key={section.key} className="scroll-mt-24" >
                             <h3 className="mb-3 font-bold">{section.title}</h3>
                             <div className="whitespace-pre-wrap [overflow-wrap:anywhere]">{section.body}</div>

@@ -1,7 +1,7 @@
 ---
-status: in-progress
-updated: 2026-11-21
-next: "C2-UI: 서술형 10종 결과 화면에 무료 다시 시도(POST /api/paid-narrative/retry → resumeBody 재호출)·환불 요청 버튼. 목록은 C2 절의 C2-UI 갭"
+status: done
+updated: 2026-11-22
+next: "없음 — D2·토스 CI 수정 push 완료(main cdb1b8bb4c, PR CI 45022219611 success). 후속은 남은 위험 절"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -100,11 +100,18 @@ next: "C2-UI: 서술형 10종 결과 화면에 무료 다시 시도(POST /api/pa
 - [x] C·D 실측: 아래 "C·D 실측 (2026-11-21)"
 - [x] C1 가드 판정 정정(서술형 includeResumable 게이트·소진/창 경과 종결, 코인 복원 경로 확인 선행) — ef3b6b83e (held 종결, 환불은 C2)
 - [x] C2 서술형 엔진 다시 시도 우선 — 서버(빠진 장만 재개·7일·요청 환불·cron 배선·검증기 10종 이동). 실측은 아래 C2 절
-- [ ] C2-UI 제품 10종 결과 화면에 다시 시도·환불 요청 버튼(아래 C2-UI 갭 목록)
-- [ ] C3 과금 후 레코드 전 4xx 실패(감사 5) — 범위 밖, 별도
-- [ ] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 범위 밖, 별도
-- [ ] D 서비스별 stuck settle(KNOWN_STUCK_SETTLE_GAPS 12) — 범위 밖, 별도
-- [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
+- [x] C2-UI 제품 10종 보류 화면에 다시 시도·환불 요청 버튼 — fe089da75·7bb121d14·0fe7a4f78·01812dbe3, main b28bd771e (아래 "C2-UI 완료"). 항목4 보관함 표식은 갭으로 남김
+- [x] C3 과금 후 레코드 전 4xx 실패(감사 5) — 7d8f2e8f4·b517a51cc·88fcfa0f6·cb8867ece·93fd5a25c·3e7109b12 (아래 "C3·C3b·C4")
+- [x] C3b 환불(요청·승인·정산) 뒤 재개 거절, 무료 재생성 없음 — 41ec5e085
+- [x] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 9e98190d0·e82fef6fa(사전)·01d5c639a(sitemap 원장)
+- [x] D 서비스별 stuck settle — **10/12 자동 확정, 2종은 근거와 함께 경보 유지**(D2 2026-11-22, push 대기 — 머지 13b7e0e68 기준 verify:paid-llm-delivery ok·jest 8 suite 317 pass·check:pre-push EXIT 0; check-changed fast 는 로컬 메모리 고갈(vips out of memory·native crash)로 __tests__/ui 19건 헛실패, 변경과 무관). D1(2026-11-22). 공용 헬퍼 `settleStuckRetryFirst`(worker/lib/paid-delivery-stuck.js): 창 안은 generation_failed+retryable(저장 장 보존·빠진 장만 재생성·환불 없음), 생성+7일 뒤엔 서비스 기존 보류 환불(settle<Svc>RetryRefund). 커밋 1d13afe7f(헬퍼·크론 unsettled 이어쓰기), 7bfd2cadd vedic, e7a4bf0f3 astrology, 1989484d2 ziwei, 916d65316 sukuyo(읽기 전용 증빙 — resolveStartAccess 는 이용권 차감 가능해 쓰지 않음), 0658bee74 karma, 37cad9969 감사 B2(증빙 조회 실패 pending 도 이어쓰기·회전 — 안 하면 가장 오래된 1건이 서비스 크론을 막음), 4cba2f230·bfec7eddc·3e62fa12d 감사 B1(이용권 재판정 거절 시 `{}` 저장 → 7일 뒤 이용권 환불 누락; 서비스별 pass 모양으로 대체, refundId 멱등). paid-gate-auditor B1 재감사 PASS·verify-payment-freeze exit 0.
+  - 실측: verify:paid-llm-delivery ok(정체 자동 확정 12개·경보만 7개, 변이 37/37, 100/100). jest ziwei 59·vedic 54·astrology 56·sukuyo+karma+stuck+recovery 159 pass.
+  - D2 커밋(워크트리, push 안 함 — main 이 남의 커밋으로 빨강): 051c5855a naming-prompt(settleStuckRetryFirst idKey executionId·metaKey result.namingPrompt, 환불 settleNamingRetryRefund; 크론 투영에 result.namingPrompt.tossIntentId·retryable.reopenedAt 추가 — 이전엔 토스 작명이 크론에서 handleGenerate 로 오배선, stuckAgeStart 가 작명 재개방 시각을 읽음), 76c6c7dd7+cccb82cd1 nakshatra-ai, 3716a8ef3+8b9b3fe64 human-design-report, fd13dbab0 destiny-compass-ai, a3bc7e763 relationship-boundary-test(4종 모두 기존 즉시 환불: CAS generation_failed 를 환불 앞에 — checkpoint-refund-guard 가 partial 을 recoverable 로 보고 admin review 로 돌리는 것 회피, 결제 회수 확인 선행으로 이중 환불 방지, 토스 unsettled, 완성 delivery_pending 은 서비스 완성 검사가 있을 때만 구제).
+  - 경보 유지(KNOWN_STUCK_SETTLE_GAPS 2): celestial-harmony — 결제 증빙(sourceTransactionId·paymentRef·metadata.billing)을 실패 시점 요청 access 로 쓰고 insert 에 저장하지 않아 크론에선 이용권 외(코인·월정석·카드) 환불 증빙이 없음 → 증빙 재구성 리팩터 필요. fortune — 환불이 요청 범위 consumePayload(미저장)에 의존하고 코인 환불은 Request 필요, 기존 stale 처리(markSajuAIPromptStaleExecutionFailed)는 결제 보존(환불 없음) → 리팩터 없이 자동 확정 불가.
+  - D2 실측: jest naming 5종 129 pass, 4종 각 98·199·208·142 pass; verify:paid-llm-delivery ok(정체 자동 확정 17개·경보만 2개, 변이 37/37·100/100); verify:naming-prompt PASS, verify:human-design-report·destiny-compass·nakshatra-ai-flow PASS; verify-payment-freeze 통과; paid-gate-auditor BLOCKING 은 human-design B1(회수 건 이중 환불) 1건 → 8b9b3fe64 로 수정.
+  - D2 남은 위험(보고만): relationship refundExecution 반환값 항상 false(relationship-boundary-test.js:243, `result?.refundStatus` → 실제 형태는 settlement.status) → 정체 확정이 refundStatus pending·거짓 경보, 환불 자체는 됨. naming settleNamingRetryRefund 는 access 가 비면 not_required 로 닫음(fail-open, 2026-09-15 이후 문서는 access 저장). STE 없는 건(월정석 원장·실행 시작 실패)은 pending 경보만. unsupported 결과가 크론 회전 없이 continue(레거시 문서 큐 정체 가능). paid-flow-gates 트리거에 라우트·paid-delivery-stuck.js 없음. 실 Mongo CAS 미검증.
+  - D1 남은 위험(보고만): delivery_pending 정체 건은 구조 대신 retryable 로 감(가정), 크론 동시 실행 경합 미검증, paid-flow-gates.yml 이 paid-delivery-stuck.js 변경에 트리거 안 됨, ziwei Payment 확인이 CAS 전에 돌 수 있음(경미), vedic 은 증빙 없을 때 refundStatus 가 not_required 대신 requested 로 기록(금액 영향 없음).
+- [x] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다. (2026-11-22: D2 + 토스 세션 수정 cherry-pick 0612e3438d·87a1a6c955·060d0d1bc4 → main cdb1b8bb4c, CI success. 후속: celestial·fortune 증빙 리팩터, relationship refundExecution 반환값 오판(:243), 자미 이용권 환불 누락(:661-664), paid-flow-gates 트리거 공백)
 
 ## 실측 (단계마다 추가)
 
@@ -382,3 +389,106 @@ Base `58ed3c39d` (= origin/main). Worktree `D:\Development\codedestiny-worktrees
 - geomancy-oracle → `worker/routes/oracle.js`
 - animal-totem → `worker/routes/animal-totem.js`
 - guardian-fortune → `worker/lib/guardian-paid-delivery.js`
+
+**C2-UI 진행 (2026-11-22, 워크트리 커밋 fe089da75, push 안 함)**
+- 항목 2. 120분 창 402 위험은 실측으로 확인했고 수정했다. resume 때 paidNarrativeProof 가 없으면 verify(requirePremiumReportAccess)를 다시 불렀다. 그래서 토큰(30분)이나 최근 결제 창(120분)이 지나면 402 가 나고, 이용권 settle 이 다시 돌 수 있었다. 고친 내용: `metadata.paidNarrativeRetry.reopenedAt` 이 있는 resume 은 verify 를 건너뛴다(`worker/lib/paid-narrative-delivery.js` 약 141행). revoked 검사는 그대로 둔다. 테스트는 `__tests__/worker/paid-narrative-intent.test.js` 'a run reopened by the free retry resumes without a second payment check' 이다. 먼저 402 로 빨간불을 확인한 뒤 녹색이 됐다.
+  - 검증: paid-gate-auditor ok(blocking 0), verify-payment-freeze 통과, verify-paid-llm-delivery-contract exit 0(37/37·100/100), cron-mongo-op-coverage 통과, jest 서술형 5스위트 205 pass.
+- 항목 3. pet-saju-ai 환불 근거 캡처는 실측으로 정상이다(코드 변경 없음). 회귀 테스트 'pet report and pet compatibility keep the coin proof the route verifier returned' 를 `__tests__/worker/pet-paid-delivery.test.js` 에 추가했다(67 pass).
+- auditor 후속(보고만, 미수정):
+  - (a) `paid-narrative-delivery.js` 가 `.github/workflows/paid-flow-gates.yml` 의 paths 에 없다. change-risk 도 deepRequired=false 다.
+  - (b) resume 진입 때 refundApprovedAt·heldAt 이 있어도 막지 않는다(기존 경쟁). 409 로 막는 후속을 권한다.
+  - (c) 새 테스트의 변이 검사는 하지 않았다.
+- 항목 1(UI)은 미착수다. 설계와 지도:
+  - App 공용: `app/components/ExpertRetryPanel.tsx` 를 재사용한다. CRLF 파일이고, `__tests__/ui/expert-retry-panel.test.mjs` 가 `postSession(`/retry`, hold.sessionId)`·`JSON.stringify({ sessionId })`·ko 라벨·숫자 없음·5개 로케일을 글자 그대로 단언한다. 그래서 형제 컴포넌트를 만들거나 선택 props(endpoint·idKey resultId·onRetried·onResultReady·서술형 문구)로 하위호환을 지키며 확장한다.
+  - 레거시 공용: UMD 헬퍼(예: `js/core/paid-narrative-retry.js`)를 만든다. `CDPaidNarrativeReader.run` 이 202 retryable===false 에서 persist 뒤 throw 하므로, 저장된 resultId 로 패널을 붙인다. 다시 시도가 성공하면 resumeBody 로 reader 를 다시 돌린다.
+  - 클라이언트 지도:
+    - tarot-oracle: `app/tarot/prompt-maker/TarotPromptMakerClient.tsx` ~2805(continueOracleDelivery)
+    - love-tarot: `app/components/LoveRelationshipTarot.tsx` ~465, 레거시 `js/tarot-love-experience.js` ~1442
+    - mindscan: `app/components/MindScanTarot.tsx` ~1582
+    - guardian: `app/saju-guardian/SajuGuardianClient.tsx`
+    - dream: `js/psycho-dream-analyzer-freuds-study.js` ~745-778
+    - yoga: `yoga-guru.html` ~2083-2090(runSavedYoga, yogaSaved.resultId)
+    - geomancy: `geomancy-oracle-v4.html` ~770-800(geomancySaved.resultId)
+    - pet: `pet-saju.html`
+    - animal-totem: `js/animal-totem-experience.js` ~1047-1091
+    - saju-compat-basic: `js/saju-compat-flow.mjs`:126, `js/core/index-inline-runtime.js`:2449-2462. 레거시 LLM 파일은 템플릿으로 쓰거나 지우지 않는다. 버튼 추가만 한다.
+  - HTML 정적 셸을 건드리면 sync:public 을 돌리고 미러도 커밋한다.
+- 항목 4(보관함 `/records/` 다시 시도 표식)는 미착수다.
+- 함정: PowerShell `[IO.File]` 의 상대 경로는 프로세스 cwd(루트 `D:\Development\code-destiny`)로 풀린다. 워크트리가 아닌 루트 파일을 고친 사고가 있었다(`git apply -R` 로 복구했다). 반드시 절대 경로를 쓴다. `>` 리디렉션은 UTF-16 이 되므로 패치는 `git diff --output=` 로 만든다.
+
+**C2-UI 완료 (2026-11-22, main b28bd771e, PR CI run 44929631159 success)**
+- 커밋
+  - 7bb121d14: App 4종에 형제 컴포넌트 `app/components/PaidNarrativeRetryPanel.tsx` 를 붙였다. tarot-oracle(TarotPromptMaker), love-tarot, mindscan, guardian(FortuneChatClient)이다. 공용 판정은 `app/_lib/oracle-delivery.ts` 에 있다. ExpertRetryPanel 은 건드리지 않았다.
+  - 0fe7a4f78: 레거시 6종에 UMD 헬퍼 `js/core/paid-narrative-retry.js`(+.d.ts, `mount(host, opts)`)를 붙였다. yoga-guru.html, geomancy-oracle-v4.html, dream(`js/psycho-dream-analyzer-freuds-study.js`), animal-totem(`js/animal-totem-experience.js`), pet-saju.html, saju-compat-basic(`js/saju-engine.js`)이다. sync:public 미러도 함께 넣었다.
+  - 01812dbe3: next.config 의 HMR 제외 목록을 고치고, 한글 줄바꿈을 keep-all 로 바꿨다.
+- 동작
+  - 202 보류(`retryable:false`·`reviewRequired`)가 오면 미완성 결과 대신 패널만 보인다.
+  - 패널 버튼은 두 개다.
+    - "무료로 다시 시도 · 추가 결제·차감 없음": `/api/paid-narrative/retry` 를 부르고, 응답의 resumeBody 로 각 제품 라우트를 다시 부른다.
+    - "다시 시도 대신 환불 요청": `/api/paid-narrative/refund-request` 를 부른다.
+  - 응답 코드별 처리는 다음과 같다.
+
+    | 응답 | 처리 |
+    |---|---|
+    | 409 RESULT_READY | 결과를 연다 |
+    | RETRY_WINDOW_CLOSED | 다시 시도 버튼만 숨기고 환불 버튼은 남긴다 |
+    | 환불 요청 접수 | 두 버튼을 모두 숨기고 상태 문구를 남긴다 |
+- 검증
+  - `__tests__/ui/paid-narrative-retry.test.mjs` 8 tests. jsdom mount 테스트와 레거시 6종 배선 테스트가 들어 있다.
+  - fortune-chat.static 과 함께 node --test 로 돌려 24 pass 였다.
+  - `npm run verify:paid-llm-delivery` ok(37, 37/37·100/100). check:fast EXIT 0(jest 8487 pass, 1 skip). check:pre-push EXIT 0.
+  - headed Chrome 화면 검증을 했다. 대상은 레거시 3종(yoga·geomancy·pet) held/retry-closed 와 /fortune-chat/ 실제 흐름 held→환불 요청이고, 둘 다 mock API 를 썼다. visual-checker 는 10장을 모두 PASS 로 판정했다. 버튼 높이는 48 CSS px 이상이었고 대비는 5.8:1 이상이었다. 미완성 본문은 노출되지 않았다.
+- SEO: 결제 뒤 보류 상태는 비공개 화면이라 영향 없음. 공개 URL 의 title·description·H1·canonical·robots·sitemap 은 바꾸지 않았다. 원장은 App 파일 서명 3건(/fortune-tea-house/·/tarot/mindscan/·/tarot/prompt-maker/)만 갱신했다.
+- 항목 4 보관함 `/records/` 표식은 갭으로 남겼다. 싸지 않다.
+  - 보류 서술형 실행은 `status:'pending'` 에 reasonCode·`paidNarrativeRecovery.reviewRequired` 가 붙은 상태다. 그런데 `worker/lib/record-library.js` 의 `retryHeld` 에는 이 분기가 없어서 'partial/generating' 으로 보인다.
+  - executions 원천에는 resultPath 가 없어서 recoveryHref 가 `/points/history/` 다.
+  - 레거시 페이지는 URL 이 아니라 localStorage 로만 재개한다.
+  - 서버 복구 태스크는 생성 후 24시간 안, SERVER_RESUME 기능만 재개한다.
+  - 그래서 보관함에서 retry 를 불러도 생성까지 끝나지 않는다.
+  - 하려면 세 가지가 필요하다. (1) record-library 에 held 분기, (2) 제품별 재개 URL(`?resume=<resultId>`) 수신, (3) 패널 재사용.
+  - 관찰(보고만): `/records/view` 가 executions 의 저장된 부분 장을 보여 준다. 기존 동작이다.
+- 함정
+  - App 이 import 하는 `js/core/*.js` UMD 는 `next.config.mjs` 의 `LEGACY_SHARED_BROWSER_MODULE` 정규식에 넣어야 한다. 빠지면 dev React Refresh 가 `import.meta` 를 주입해 dev 500 이 난다(빌드·테스트는 통과해서 놓치기 쉽다).
+  - App 파일을 고치면 sitemap 원장 서명이 바뀐다. `sitemap:generate` 는 KST 날짜 드리프트로 수백 항목을 바꾼다. 서명이 바뀐 항목만 원장에 반영하고 xml 은 되돌린다. 그다음 `generate-sitemap.mjs --check` OK 를 확인한다.
+  - jest 는 `node scripts/run-mock-tests.mjs jest <이름 패턴>` 으로 돌린다. 윈도우 경로 패턴은 0건이 된다. `__tests__/ui/*.test.mjs` 일부는 node --test 다.
+  - Playwright 번들 chromium 이 없다. `channel:'chrome'` 을 쓴다.
+  - yoga-guru.html 픽스처는 인증 mock 이 없으면 /login 으로 간다. `**/api/**` 를 `{ok:true,user:{...}}` 로 mock 한다. pet-saju 는 자체 오류 모달·blur 를 걷어 낸다.
+  - check:fast 의 esbuild "The service was stopped" 는 환경 플레이크다. 다시 돌린다.
+- 남은 것(보고만)
+  - `verify:paid-llm-delivery` 는 KNOWN_REFUND_GAPS 13개(서술형 10종 포함)를 그대로 나열한다. 검증기 인벤토리 정리는 별도 작업이다.
+  - 레거시 `js/tarot-love-experience.js` 에는 붙이지 않았다. App love-tarot 이 대체한다.
+  - impeccable gradient-text 는 기존 코드다(MindScanTarot L383, TarotPromptMaker L3172/3179).
+  - geomancy 버튼은 픽스처에서 회색 기본 버튼으로 보였다. 실제 페이지 테마 클래스를 확인하지 않았다(미검증).
+  - auditor 후속 (a)(b)(c)는 위와 같다.
+
+### C3·C3b·C4 (2026-11-22, 서브에이전트, mock 만)
+- 감사 5 재확인 판정(현재 코드)
+  | 제품 | 이전 | 판정 | 커밋 | 근거 |
+  |---|---|---|---|---|
+  | saju-compat-basic | 미해결 | 고침: 시간 모름 + 빈 시주를 허용. 검증은 결제 확인 전(`saju-compat-basic.js:134`) | 7d8f2e8f4 | `saju-compat-schema.js` pillarsOf |
+  | pet | 미해결 | 고침: 새 POST 는 verify 전에 seedPetNarrativePlan 으로 검증 → 400 | b517a51cc | `pet-saju-ai.js` handlePetDelivery |
+  | feature-question | 미해결 | 고침: seed 의 4xx(proof 있음)에서 route refund 를 호출한다. 환불이 실패하면 retryable·paymentRetainedForRetry 로 남긴다 | 88fcfa0f6·cb8867ece | `feature-question-delivery.js` |
+  | ziwei 계산 실패(:765) | 미해결 | 고침: startRefundableExecution + refundExecution → 422 {CALCULATION_FAILED, refunded} | 93fd5a25c | `ziwei-deep-report.js` |
+  | love-secret 근거 불일치(:1799) | 미해결 | 고침: 409 전에 restoreBillingGateAccessOnFailure. 기존 테스트 계약(손상 pin 은 환불 없음)을 바꿨다 | 3e7109b12 | `love-secret-ai.js` |
+  | yoga-guru·oracle·animal-totem·dream | — | 해당 없음: 검증이 verify 전(yoga-guru.js:82, oracle.js:152, animal-totem.js:681, dream.js:799-803) | — | animal-totem seed 의 resolveSystemPrompt 가 던질 수 있는지는 미검증 |
+- C3b `paid-narrative-delivery.js`: 원본 조회 직후 GET 이 아니고, 미완료이고, 소진 청구가 아닌 문서는 거른다. refunded·cancelled → 403 PAYMENT_REVOKED. refundStatus≠none 또는 refundApprovedAt → 409 REFUND_IN_PROGRESS. 둘 다 provider 를 호출하지 않는다.
+- C4 `js/saju-compat-flow.mjs` classifyFailure: 400/422 → INPUT_INVALID(재시도 없음, 대기 기록 지움). 새 문구 키 `sajuCompat.flow.inputInvalid`(SAJU_COMPAT_KO + authored 12개 언어): 입력 거절은 결제되지 않고, 이미 결제된 건은 보존·환불·복구한다. 같은 계열 `paid-narrative-reader.js`(4xx 는 서버 문구를 던지고 재시도 안 함)와 `oracle-delivery.ts`(<500 즉시 반환)는 이미 재시도하지 않아 손대지 않았다. sync:public 미러 커밋 포함.
+- 실측
+  - jest(run-mock-tests) 9 스위트 291 pass. paid-narrative-retry.test.mjs 8 pass. saju-compat-flow.test.mjs 12 pass.
+  - verify:paid-llm-delivery EXIT 0(계약 37, 변이 37/37·100/100). verify:paid-gate-ui PASS. llm-generation-resilience·audit-ai-locale-calls --check EXIT 0.
+  - paid-gate-auditor PASS: love-secret·ziwei-deep-report·saju-ai-consultation-recovery·pet-saju(180)·payment-choice-parity·payment-freeze 검증기 모두 통과.
+  - check:fast(--base=ae356190a) EXIT 0: node --test 5733 pass·0 fail, jest 490 스위트 8497 pass(1 skip). 처음 두 번은 아래 함정 두 개로 막혔다
+- 함정
+  - 커밋을 끝낸 뒤의 `npm run check:fast` 는 "변경 없음" 으로 끝난다(기본 베이스 HEAD). `node scripts/check-changed.mjs --profile=fast --skip-build --base=<기점>` 으로 돌린다.
+  - 새 `sajuCompat.*` 문구 키는 authored JSON 만으로 끝나지 않는다. `node scripts/i18n-merge-authored.mjs --core --file sajuCompat-02.json` 으로 `public/i18n/<lang>.json` 12개에 병합해야 한다(saju-compat-render.test.mjs:130). `--namespace` 를 쓰면 엉뚱한 `public/i18n/<lang>/sajuCompat.json` 이 생긴다. e82fef6fa
+  - 코어 사전을 바꾸면 sitemap 원장 서명 480개가 바뀐다(verify:sitemap-drift). `sitemap:generate` 를 돌린 뒤 서명이 바뀐 항목만 원장에 남기고 xml 은 되돌린다. 그다음 `--check` OK 를 확인한다. 01d5c639a
+  - love-secret vm 하니스 ctx 에는 factDigest 가 없다. 불일치를 재현하려면 실제 헬퍼를 import 하는 기존 corrupt-pin 테스트를 쓴다.
+  - KNOWN_REFUND_GAPS 13개는 "소진 시 자동 환불" 축이라 이번 수정과 축이 다르다. 검증기가 통과하므로 바꾸지 않았다.
+- 남은 위험(보고만)
+  - ziwei 의 `refunded` 가 과대 보고될 수 있다. failServiceExecution 이 비대기 실행에 ok:true 를 돌려준다(service-execution-task.js:1367, 1432-1438). 읽는 클라이언트는 없다.
+  - ziwei 이용권 경로는 resolveGenerateAccess 가 settle transactionId 를 버려서 환불이 없다(:661-664). 기존 결함이다.
+  - love-secret 은 기존 부분 기록도 환불한다. 부분 장은 계속 읽힌다.
+  - 이 라우트들은 deepRequired·paid-flow-gates 에 없다. CI 변경은 RED 라 사용자 결정이 필요하다.
+  - 크론(paid-narrative-recovery-task.js:72-75)이 환불 상태 문서를 reviewRequired(REFUND_IN_PROGRESS)로 표시한다. checkpoint-refund-guard.js:79-80 덕분에 정산에는 해가 없다. buildRecoverableNarrativeFilter 제외는 하지 않았다.
+  - 409 REFUND_IN_PROGRESS 의 클라이언트 문구는 일반 문구다(paid-narrative-reader.js:16, LoveRelationshipTarot.tsx:475). Toss 클라이언트 처리는 미검증이다.
+  - love-secret 이 readRepresentativeFacts 를 recompute 없이 불러서, v1 로 고정된 저장 기록은 항상 불일치가 된다. 기존 결함이다.

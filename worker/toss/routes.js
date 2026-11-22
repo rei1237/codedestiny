@@ -1,3 +1,4 @@
+import {tossPromptLibraryScope} from '../../lib/fortune/toss-prompt-library.mjs';
 import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {CHAT_PRODUCT_IDS} from '../../lib/fortune/chat-products.js';
 import {checkedConsultationInput,consultationSafetyMessages} from './consultation-safety.js';
@@ -22,7 +23,7 @@ import {prepareFortune,presentFortune,drawTarotSpread,experienceCheckFortune} fr
 import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
-import {canonicalProducts,canonicalSale,canonicalProfiles,prepareCanonicalFortune,drawCanonicalFortune,canonicalLibraryPage} from './canonical-yeongnyangi.js';
+import {canonicalProducts,canonicalSale,canonicalProfiles,updateCanonicalProfile,prepareCanonicalFortune,drawCanonicalFortune,canonicalLibraryPage} from './canonical-yeongnyangi.js';
 import {forwardServiceResponse} from './service-response.js';
 import {freeTarotReading,attachTarotLibraryInput,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
 
@@ -42,6 +43,7 @@ async function readNativeLibraryItem(env,auth,row){
   if(['totem-basic','totem-deep'].includes(row.nativeService))return (await import('./native-totem.js')).totemFor(row.featureKey).libraryItem(env,auth,row);
   if(row.nativeService==='geomancy')return (await import('./native-geomancy.js')).geomancyLibraryItem(env,auth,row);
   if(['guardian','sibyl'].includes(row.nativeService))return (await import('./birth-readings.js')).birthLibraryItem(env,auth,row);
+  if(row.nativeService==='saju-compat-premium')return (await import('./native-compat-premium.js')).premiumCompatLibraryItem(env,auth,row);
   if(row.nativeService==='saju-compat')return (await import('./native-saju-compat.js')).compatLibraryItem(env,auth,row);
   if(row.nativeService==='dream')return (await import('./native-dream.js')).dreamLibraryItem(env,auth,row);
   if(row.nativeService==='heukwol')return (await import('./native-heukwol.js')).heukwolLibraryItem(env,auth,row);
@@ -618,6 +620,17 @@ export async function handleTossRoutes(request,env) {
         return reply(result.body,result.status);
       }
     }
+    if(path==='/native/saju-compat-premium/prepare'&&request.method==='POST'){
+      await limit(env,auth._id,'native-compat-premium-prepare',6);
+      const body=await bodyOf(request);
+      return reply(await (await import('./native-compat-premium.js')).preparePremiumCompat(env,auth,body.input,body.orderId));
+    }
+    const premiumCompat=path.match(/^\/native\/saju-compat-premium\/results\/([a-f0-9]{64})$/);
+    if(premiumCompat&&['GET','POST'].includes(request.method)){
+      const advance=request.method==='POST';
+      if(advance)await limit(env,auth._id,'native-compat-premium-generate',30);
+      return reply(await (await import('./native-compat-premium.js')).readPremiumCompat(env,auth,premiumCompat[1],advance));
+    }
     if(path==='/native/saju-compat/prepare'&&request.method==='POST'){
       await limit(env,auth._id,'native-saju-compat-prepare',6);
       const body=await bodyOf(request);
@@ -643,12 +656,18 @@ export async function handleTossRoutes(request,env) {
       const body=await bodyOf(request);
       return reply(await (await import('./native-heukwol.js')).prepareHeukwol(env,auth,body.input,body.orderId));
     }
+    const retryHeukwol=path.match(/^\/native\/heukwol\/results\/([a-f0-9]{64})\/retry$/);
+    if(retryHeukwol&&request.method==='POST'){
+      await limit(env,auth._id,'native-heukwol-retry',6);
+      const body=await bodyOf(request);
+      return reply(await (await import('./native-heukwol.js')).retryHeukwolGeneration(env,auth,retryHeukwol[1],body.failure));
+    }
     const heukwol=path.match(/^\/native\/heukwol\/results\/([a-f0-9]{64})$/);
     if(heukwol&&['GET','POST'].includes(request.method)){
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
       return reply(await (await import('./native-heukwol.js')).heukwolWave(env,auth,heukwol[1],request.method==='POST'));
     }
-    const nativeIntent=path.match(/^\/native\/(music|ziwei-deep|compass|guardian|sibyl|tea|yoga|saju-compat|human-design|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
+    const nativeIntent=path.match(/^\/native\/(music|ziwei-deep|compass|guardian|sibyl|tea|yoga|saju-compat|saju-compat-premium|human-design|codex|palm|geomancy|totem-basic|totem-deep|nakshatra|neo|naming|dream|heukwol|fusion|life-book|love-secret|astrology|vedic|ziwei|new-year|karma|maya|sukuyo|relationship|pet)\/intents\/([a-f0-9]{64})$/);
     if(nativeIntent&&request.method==='GET'){
       const {readNativeTeaIntent}=await import('./native-tea.js');
       return reply(await readNativeTeaIntent(env,auth,nativeIntent[2],nativeIntent[1]));
@@ -710,6 +729,22 @@ export async function handleTossRoutes(request,env) {
       try{return reply({ok:true,...await readOwnedCareerStyle(env,{userId:auth.userId,profileId:profileId.trim(),statusOnly})});}
       catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||'INVALID_PROFILE',error.status);throw error;}
     }
+    if(path==='/canonical/fortune/prompt-hub/session'&&request.method==='GET')return reply({owner:auth.userId,scope:tossPromptLibraryScope(auth.userId,auth.revision,auth.environment)});
+    if(path==='/canonical/fortune/prompt-hub/generate'&&request.method==='POST'){
+      await limit(env,auth._id,'prompt-hub-generate',20);
+      const {generateFreeTossPrompt}=await import('../routes/prompt-hub.js');
+      try{return reply(await generateFreeTossPrompt(env,await bodyOf(request,64000)));}
+      catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||error.code||'INVALID_INPUT',error.status);throw error;}
+    }
+    if(request.method==='POST'&&['/canonical/astrology/basic','/canonical/sukuyo/astronomy','/canonical/nakshatra/resolve'].includes(path)){
+      await limit(env,auth._id,path,20);
+      const target=new URL('/api'+path.slice('/canonical'.length),request.url);
+      const outbound=new Request(target,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(await bodyOf(request)),signal:request.signal});
+      const handler=path.endsWith('/basic')?(await import('../routes/astro.js')).handleAstrologyRoutes
+        :path.endsWith('/astronomy')?(await import('../routes/sukuyo.js')).handleSukuyoRoutes
+        :(await import('../routes/nakshatra.js')).handleNakshatraRoutes;
+      return forwardServiceResponse(await handler(outbound,env),headers);
+    }
     if(path==='/canonical/geocode'&&request.method==='GET'){
       await limit(env,auth._id,'geocode',10);
       const {geocodePlace}=await import('../lib/geocode.js');
@@ -720,6 +755,7 @@ export async function handleTossRoutes(request,env) {
       await limit(env,auth._id,'experience-check',6);
       return reply({ok:true,...await experienceCheckFortune(env,auth.userId,await bodyOf(request))});
     }
+    if(path==='/canonical/yeongnyangi/profiles/update'&&request.method==='POST')return reply(await updateCanonicalProfile(auth,await bodyOf(request)));
     if(path==='/canonical/yeongnyangi/profiles'&&['GET','POST'].includes(request.method))return reply(await canonicalProfiles(auth,request.method==='POST'?await bodyOf(request):undefined));
     if(path==='/canonical/yeongnyangi/requests'&&request.method==='POST'){
       await limit(env,auth._id,'prepare',6);
@@ -751,7 +787,7 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment,storageScope:await hash('local-progress:'+auth.environment+':'+auth._id)});
     if(path==='/logout'&&request.method==='POST') {await TossSession.deleteOne({_id:auth.sessionId});return reply({ok:true});}
-    if(path==='/unlink'&&request.method==='POST')return reply(await disconnectIdentity(env,auth));
+    if(path==='/unlink'&&request.method==='POST')return reply({...await disconnectIdentity(env,auth),promptLibraryOwner:auth.userId});
     if(path.startsWith('/daily/')){
       const daily=await import('./daily.js');
       if(path==='/daily/status'&&request.method==='GET')return reply(await daily.attendanceStatus(env,auth.userId));
@@ -847,23 +883,27 @@ export async function handleTossRoutes(request,env) {
     if((path==='/orders/grant'||path==='/orders/restore')&&request.method==='POST') {
       const input=await bodyOf(request);
       const stored=await TossPurchase.findOne({_id:input.orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment}).lean();
-      if(!stored&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
+      // While new sales are closed, only a restore whose partner lookup proves this buyer
+      // (purchaserMatched===true) may create the first row, so paid pending orders stay recoverable.
+      const closedRestore=!stored&&!NEW_PURCHASES_AVAILABLE&&path==='/orders/restore';
+      if(!stored&&!NEW_PURCHASES_AVAILABLE&&!closedRestore)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(!stored)assertUniqueApprovedSaleSkus();
       // A durable purchase keeps its original product and price after a sale ends.
       const tarotProduct=path==='/orders/restore'&&(stored?(stored.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:null):currentTarotSale(input.sku));
       const native=stored?!!stored.nativeService:APPROVED_TOSS_NATIVE_PRODUCTS.some(item=>item.sku===input.sku);
       if(stored&&stored.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
       const product=stored?.nativeService?(await import('./native-consultation.js')).retainedNativeProduct(stored,auth):native?(await import('./native-tea.js')).approvedNativeTeaProduct(input.sku):tarotProduct?tarotLibraryProduct(tarotProduct):stored||approvedProduct(input.sku);
-      const order=await lookupOrder(env,auth.userKey,input.orderId);
+      const order=await lookupOrder(env,auth.userKey,input.orderId,{buyerCheck:!stored});
       if(order.orderId!==input.orderId||order.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
+      if(closedRestore&&order.purchaserMatched!==true)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
-      if(tarotProduct)return reply(await grantTarotLibraryOrder({store:purchaseStore,auth,order,product}));
+      if(tarotProduct)return reply(await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,closedRestore}));
       if(input.requestId!==undefined&&!/^[a-f0-9]{64}$/.test(input.requestId))throw new TossError('REQUEST_ID_INVALID');
       if(native){
         const {grantNativeOrder}=await import('./native-consultation.js');
-        return reply(await grantNativeOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null}));
+        return reply(await grantNativeOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,closedRestore}));
       }
-      return reply(await grantVerifiedOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,
+      return reply(await grantVerifiedOrder({store:purchaseStore,auth,order,product,requestId:input.requestId||null,closedRestore,
         enqueue:async id=>enqueueConsultation(env,await readRequest(env,auth.userId,id))}));
     }
     if(path==='/tarot-library/orders/grant'&&request.method==='POST') {
@@ -872,7 +912,7 @@ export async function handleTossRoutes(request,env) {
       if(!stored&&!NEW_PURCHASES_AVAILABLE)throw new TossError('TOSS_PURCHASES_DISABLED',503);
       if(!stored)assertUniqueApprovedSaleSkus();
       const product=tarotLibraryProduct(stored?.tarotFlowId?{...stored,kind:'tarot-library',approved:true}:currentTarotSale(input.sku));
-      const order=await lookupOrder(env,auth.userKey,input.orderId);
+      const order=await lookupOrder(env,auth.userKey,input.orderId,{buyerCheck:!stored});
       if(order.orderId!==input.orderId||order.sku!==input.sku)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}
       const receipt=await grantTarotLibraryOrder({store:purchaseStore,auth,order,product,input:input.input});
@@ -887,6 +927,8 @@ export async function handleTossRoutes(request,env) {
     if(tarotResultMatch&&request.method==='POST') {
       const orderId=tarotResultMatch[1],purchase=await TossPurchase.findOne({_id:orderId,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,tarotFlowId:{$type:'string',$ne:''}}).lean();
       if(!purchase)throw new TossError('RESULT_NOT_FOUND',404);
+      // 생성 재시도는 사용자 버튼으로만 오지만 실패한 주문의 반복 POST 가 유료 LLM 을 무한히 다시 부르지 않게 묶는다.
+      await limit(env,auth._id,'tarot-library-deliver',6,600000);
       const order=await lookupOrder(env,auth.userKey,orderId);
       if(order.sku!==purchase.sku||order.orderId!==orderId)throw new TossError('ORDER_MISMATCH',403);
       if(order.status==='REFUNDED'){await recordTossRefund(auth,order);throw new TossError('ORDER_REFUNDED',409);}

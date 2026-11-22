@@ -15,7 +15,7 @@ const EMOJI = /\p{Extended_Pictographic}/u;
 
 test('모든 마스터 문구는 60자 이하·2문장 이하이고 금지어·이모지가 없으며 교정되지 않는다', () => {
   const rows = allMasterSayLines();
-  assert.ok(rows.length >= 15 + 12);
+  assert.ok(rows.length >= 15 + 12 + 17);
   for (const row of rows) {
     assert.ok(row.text.length <= 60, `${row.domain}.${row.key} ${row.text.length}자`);
     assert.equal(BANNED.test(row.text) || EMOJI.test(row.text), false, `${row.domain}.${row.key}`);
@@ -33,7 +33,7 @@ test('숙요 문구는 궁합 AI 의 장 키 전부를 덮는다(장이 늘면 �
 });
 
 test('마스터 매핑은 숙요=서한비, 점성술·베다=윤달이고 지원 밖 분야는 null', () => {
-  assert.deepEqual(MASTER_BY_DOMAIN, { sukuyo: 'hanbi', astrology: 'yun', vedic: 'yun', nakshatra: 'yun' });
+  assert.deepEqual(MASTER_BY_DOMAIN, { sukuyo: 'hanbi', astrology: 'yun', vedic: 'yun', nakshatra: 'yun', saju: 'yeoni', humanDesign: 'yeoni', healingTarot: 'yeoni', mingriTarot: 'yeoni', numerology: 'yeoni' });
   for (const sectionKey of ['intro', 'unified', 'closing']) {
     assert.equal(masterSayFor({ domain: 'nakshatra', sectionKey }).character, 'yun', `나크샤트라 ${sectionKey}`);
   }
@@ -58,4 +58,12 @@ test('점성술·베다는 처음·중간·끝 위치로 고르고 같은 입력
   const a = masterSayFor({ domain: 'astrology', index: 0, total: 5 }).text;
   const v = masterSayFor({ domain: 'vedic', index: 0, total: 5 }).text;
   assert.notEqual(a, v);
+});
+
+test('꿀꿀 무료 결과는 연이가 장 키로 말하고, 화면에서 쓰는 키는 모두 문구가 있다', () => {
+  const used = ['app/saju/free/FreeSajuGuided.tsx', 'app/components/SunHealingTarot.tsx', 'app/human-design/HumanDesignClient.tsx', 'app/tarot/mingri/MingriTarotGuided.tsx', 'app/tarot/numerology/NumerologyTarotClient.tsx']
+    .flatMap((file) => [...read(file).matchAll(/<YeoniSay domain="(\w+)" sectionKey="(\w+)"/g)].map((m) => [m[1], m[2]]));
+  assert.ok(used.length >= 19, `연이 말풍선 ${used.length}곳`);
+  for (const [domain, sectionKey] of used) assert.equal(masterSayFor({ domain, sectionKey })?.character, 'yeoni', `${domain}.${sectionKey}`);
+  assert.equal(masterSayFor({ domain: 'saju', sectionKey: 'unknown' }), null);
 });

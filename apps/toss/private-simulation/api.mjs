@@ -1,3 +1,6 @@
+import {tossPromptLibraryScope} from '../../../lib/fortune/toss-prompt-library.mjs';
+import {mockPromptHubRequest} from './prompt-hub.mjs';
+import {saveFixtureProfile} from '../test/offline/profile-mutation.mjs';
 import {createMusicSimulation} from './music-download.mjs';
 import {privateFreeOriginal} from './free-originals.mjs';
 import {privateAstroSynastry} from './astro-synastry.mjs';
@@ -74,26 +77,25 @@ export function createSimulationApi(storage,person,musicTracks=[]){
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
     const publicCalculation=await privatePublicCalculation(request.clone(),url,path);if(publicCalculation)return publicCalculation;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
+    if(path==='/canonical/fortune/prompt-hub/session'&&method==='GET')return replies({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
+    const prompt=await mockPromptHubRequest(request,path);if(prompt)return prompt;
     if(path==='/sukuyo/past-life'&&method==='POST')return privateSukuyoPastLife(await request.json());
     const ownedCalculation=await privateOwnedCalculation(request.clone(),url,path,state);if(ownedCalculation)return ownedCalculation;
     if(path.startsWith('/native/neo-email'))return neoEmailFixture(storage,owner).handle(request,path);
     if(['/vedic/compatibility','/vedic/prashna','/flower/match'].includes(path)&&method==='POST')return privateFreeOriginal(path,await request.json());
     if(path==='/session'&&method==='GET')return replies({authenticated:true,environment:'SANDBOX'});
+    if(path==='/unlink'&&method==='POST'){
+      const key='prompt-hub-unlink-revision:'+owner;
+      state.loggedIn=false;
+      storage?.setItem(key,String(Number(storage.getItem(key)||0)+1));
+      save();return replies({remoteUnlink:'completed',promptLibraryOwner:owner});
+    }
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
     if(path==='/canonical/auth/me'&&method==='GET')return replies({ok:true,authenticated:true,user:{id:owner,name:'모의 계정 '+person,role:'user'}});
     if(path==='/canonical/geocode'&&method==='GET')return url.searchParams.get('place')==='서울'?replies({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false}):replies({error:'PLACE_NOT_FOUND'},404);
     if(path==='/canonical/profile'&&method==='GET')return replies({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
-    if(path==='/canonical/yeongnyangi/profiles'){
-      if(method==='GET')return replies({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
-      if(method==='POST'){
-        const {profile}=await request.json();
-        if(!profile?.profileId||!profile.birth?.year)return replies({error:'BIRTH_INVALID'},400);
-        const row={...sample,id:profile.profileId,profileId:profile.profileId};
-        if(profile.birth.timeUnknown===false){row.timeUnknown=false;row.birth={...sample.birth,timeUnknown:false,hour:8,minute:35};}
-        if(!state.profiles.some(item=>item.id===row.id))state.profiles.push(row);
-        return save()?replies({ok:true,profile:row}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
-      }
-    }
+    if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return replies({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
+    if(method==='POST'&&['/canonical/yeongnyangi/profiles','/canonical/yeongnyangi/profiles/update'].includes(path))return saveFixtureProfile(state,await request.json(),path.endsWith('/update'),save);
     if(path==='/human-design/chart'&&method==='POST')return privateHumanDesign((await request.json()).birth);
     if(path==='/sukuyo/yearly'&&method==='POST')return privateSukuyoYearly(person,state.profiles,await request.json());
     if(path==='/events'&&method==='POST')return replies({ok:true});

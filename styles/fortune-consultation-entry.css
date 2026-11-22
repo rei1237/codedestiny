@@ -8,6 +8,10 @@
   --fc-field: #fffdfb;
   --fc-dark: #2e1021;
   --fc-light: #fff3ec;
+  /* 고급화(G): 밝은 테마의 장면은 크림 판 위 잉크 글자. 데스크톱에서 판이 글 칸 높이로 늘어나므로 그라데이션 대신
+     한 가지 톤으로 둔다(위아래 색이 갈리지 않게). 어두운 팔레트(네오·베다)는 아래에서 기존 밤색을 그대로 쓴다. */
+  --fc-scene-bg: color-mix(in srgb, var(--fc-line) 32%, var(--fc-paper));
+  --fc-scene-ink: var(--fc-muted);
   color: var(--fc-ink);
   background: var(--fc-paper);
   border: 1px solid var(--fc-line);
@@ -30,17 +34,20 @@
   --fc-field: #241b30;
   --fc-dark: #ead6ad;
   --fc-light: #261a31;
+  --fc-scene-bg: #171222;
+  --fc-scene-ink: #fff3ec;
 }
 .fortune-consultation *, .fortune-consultation *::before, .fortune-consultation *::after { box-sizing: border-box; }
 .fortune-consultation .fc-entry { display: grid; grid-template-columns: 1fr; }
 /* The scenes are 16:9 artwork; the frame keeps that ratio at every width so nothing is cropped,
    and the caption sits in a band under the picture instead of over it. */
-.fortune-consultation .fc-entry__scene { position:relative; display:block; margin:0; min-width:0; overflow:hidden; background:#171222; }
+.fortune-consultation .fc-entry__scene { position:relative; display:block; margin:0; min-width:0; overflow:hidden; background:var(--fc-scene-bg); }
 .fortune-consultation .fc-entry__scene img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: center; }
-.fortune-consultation .fc-entry__scene figcaption {padding:10px 22px 12px;background:#171222;color:#fff3ec;font-size:.8rem;line-height:1.7;}
+.fortune-consultation .fc-entry__scene figcaption {padding:10px 22px 12px;background:transparent;color:var(--fc-scene-ink);font-size:.8rem;line-height:1.7;}
 .fortune-consultation .fc-entry__copy { padding: 25px 22px 28px; min-width: 0; }
-.fortune-consultation .fc-entry h3 { margin: 0; color: var(--fc-ink); font: 700 clamp(1.55rem, 4.5vw, 2.4rem)/1.45 'MaruBuri', 'Noto Serif KR', serif; letter-spacing: -.035em; word-break: keep-all; }
-.fortune-consultation .fc-entry__name { margin: 12px 0 16px; font-size: .8rem; color: var(--fc-accent); font-weight: 800; }
+.fortune-consultation .fc-entry h3 { margin: 0; color: var(--fc-ink); font: 400 clamp(1.55rem, 4.5vw, 2.4rem)/1.45 var(--font-display); letter-spacing: -.01em; word-break: keep-all; }
+.fortune-consultation .fc-entry__name { display: flex; align-items: center; gap: 10px; margin: 12px 0 16px; font-size: .8rem; color: var(--fc-accent); font-weight: 800; }
+.fortune-consultation .fc-entry__name::before { content: ""; flex: none; width: 28px; height: 1px; background: var(--cd-yehwa-line); }
 .fortune-consultation .fc-entry__lead { margin: 0; color: var(--fc-muted); font-size: .95rem; line-height: 1.85; word-break: keep-all; }
 .fortune-consultation .fc-entry__topics { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 18px 0 24px; padding: 0; list-style: none; color: var(--fc-ink); font-size: .8rem; }
 .fortune-consultation .fc-entry__topics li + li::before { content: '·'; margin-right: 14px; color: var(--fc-muted); }
@@ -48,6 +55,9 @@
 .fortune-consultation .fc-entry__price strong { margin-left: 5px; color: var(--fc-ink); font-size: 1.15rem; font-variant-numeric: tabular-nums; }
 .fortune-consultation .fc-entry__price span { display: block; margin-top: 6px; font-size: .75rem; }
 .fortune-consultation .fc-primary { min-height: 48px; width: 100%; border: 1px solid var(--fc-dark); border-radius: 10px; padding: 12px 18px; background: var(--fc-dark); color: var(--fc-light); font: inherit; font-size: .95rem; font-weight: 800; cursor: pointer; }
+/* 고급화(G): 진입 주 버튼만 이중 금테(테두리 + 3px 띄운 1px 금선). 상담 생성·결제 버튼(.fc-primary 공용)은 그대로. */
+.fortune-consultation .fc-entry .fc-primary { border-color: color-mix(in srgb, var(--cd-yehwa-line) 70%, var(--fc-dark)); outline: 1px solid color-mix(in srgb, var(--cd-yehwa-line) 75%, transparent); outline-offset: 3px; }
+.fortune-consultation .fc-entry .fc-primary:focus-visible { outline: 3px solid var(--fc-accent); outline-offset: 4px; }
 .fortune-consultation .fc-primary:hover { filter: brightness(1.12); }
 .fortune-consultation .fc-entry__note { margin: 12px 0 0; color: var(--fc-muted); font-size: .73rem; line-height: 1.65; }
 .fortune-consultation .fc-form { margin: 0; border-top: 1px solid var(--fc-line); scroll-margin-top: 100px; }
@@ -102,4 +112,42 @@
 @media(max-width:480px) {
   .fc-master-reading {grid-template-columns:56px minmax(0,1fr);gap:12px;}
   .fc-master-reading__portrait {width:56px;height:56px;}
+}
+
+/* 마스터 말풍선 웹툰 컷(2026-11-22) — 기본 자미두수·숙요·점성술·베다 결과의 장 머리. js/core/fortune-consultation-ui.js say() 가 그린다.
+   결과 면이 밝든 어둡든 읽히도록 말풍선은 마스터마다 자기 면·글자 색을 가진다: 무성=먹·청, 서한비=장부 크림, 윤달=밤하늘 금빛. */
+.cd-say {--say-ink:#2a2235;--say-bg:#fffaf0;--say-text:#2a2235;--say-accent:#8a5a2b;--say-line:#2a2235;display:flex;align-items:flex-end;gap:12px;margin:14px 0 18px;padding:0;max-width:640px;}
+.cd-say--right {flex-direction:row-reverse;margin-inline-start:auto;}
+.cd-say__cut {position:relative;flex:none;width:72px;height:72px;overflow:hidden;border:2px solid var(--say-line);border-radius:6px;background:var(--say-cut,#f3e9d6);box-shadow:3px 3px 0 var(--say-line);transform:rotate(-1.5deg);}
+.cd-say--right .cd-say__cut {transform:rotate(1.5deg);box-shadow:-3px 3px 0 var(--say-line);}
+.cd-say__face {display:block;width:100%;height:100%;object-fit:cover;object-position:50% 12%;}
+.cd-say__bubble {position:relative;min-width:0;flex:0 1 auto;margin:0;padding:12px 16px 13px;background:var(--say-bg);color:var(--say-text);border:2px solid var(--say-line);border-radius:18px 18px 18px 6px;box-shadow:3px 3px 0 color-mix(in srgb,var(--say-line) 35%,transparent);}
+.cd-say--right .cd-say__bubble {border-radius:18px 18px 6px 18px;box-shadow:-3px 3px 0 color-mix(in srgb,var(--say-line) 35%,transparent);}
+.cd-say__bubble::before,.cd-say__bubble::after {content:"";position:absolute;bottom:10px;width:0;height:0;border-style:solid;}
+.cd-say__bubble::before {left:-12px;border-width:7px 12px 7px 0;border-color:transparent var(--say-line) transparent transparent;}
+.cd-say__bubble::after {left:-8px;bottom:12px;border-width:5px 9px 5px 0;border-color:transparent var(--say-bg) transparent transparent;}
+.cd-say--right .cd-say__bubble::before {left:auto;right:-12px;border-width:7px 0 7px 12px;border-color:transparent transparent transparent var(--say-line);}
+.cd-say--right .cd-say__bubble::after {left:auto;right:-8px;border-width:5px 0 5px 9px;border-color:transparent transparent transparent var(--say-bg);}
+.cd-say__name {display:inline-block;margin:0 0 4px;padding:1px 9px;border-radius:999px;background:var(--say-line);color:var(--say-bg);font-size:.75rem;font-weight:800;letter-spacing:.04em;line-height:1.6;}
+.cd-say__text {display:block;font-size:.97rem;line-height:1.75;word-break:keep-all;overflow-wrap:anywhere;}
+.cd-say__text strong {color:var(--say-accent);font-weight:800;}
+.cd-say--musung {--say-bg:#1b2638;--say-text:#edf1f5;--say-accent:#fde68a;--say-line:#0f1724;--say-cut:#26344b;}
+.cd-say--musung .cd-say__name {background:#fde68a;color:#1b2638;}
+.cd-say--hanbi {--say-bg:#fbf5e6;--say-text:#3b2a1e;--say-accent:#8a4b22;--say-line:#5a3d27;--say-cut:#efe2c6;}
+.cd-say--yun {--say-bg:#141a33;--say-text:#eef2ff;--say-accent:#f7d98a;--say-line:#070a18;--say-cut:#222a4d;}
+.cd-say--yun .cd-say__name {background:#f7d98a;color:#141a33;}
+.cd-say--yun .cd-say__face {object-position:50% 6%;}
+html:not([lang|=ko]) .cd-say {display:none !important;}
+@media (prefers-reduced-motion:no-preference) {
+  @supports (animation-timeline:view()) {
+    .cd-say {animation:cd-say-in linear both;animation-timeline:view();animation-range:entry 0% entry 70%;}
+    .cd-say--right {animation-name:cd-say-in-right;}
+  }
+  @keyframes cd-say-in {from {opacity:0;transform:translateX(-14px);} to {opacity:1;transform:none;}}
+  @keyframes cd-say-in-right {from {opacity:0;transform:translateX(14px);} to {opacity:1;transform:none;}}
+}
+@media (max-width:480px) {
+  .cd-say {gap:10px;}
+  .cd-say__cut {width:58px;height:58px;}
+  .cd-say__text {font-size:.94rem;}
 }

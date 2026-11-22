@@ -6,6 +6,7 @@ export type DestinyProfileCard = {
   id?: string;
   profileId?: string;
   userId?: string;
+  updatedAt?: string | null;
   name?: string;
   gender?: string;
   birthDate?: string;

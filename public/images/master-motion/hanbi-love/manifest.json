@@ -1,0 +1,84 @@
+{
+  "id": "hanbi-love",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/hanbi-love-portrait.webp",
+  "baseSha256": "b6fd19940284c50f9b2b3d1219bc98418073efd670001ca90a52b1258b42534c",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/hanbi-love/portrait-poster.webp",
+      "posterBytes": 79190,
+      "sheet": {
+        "src": "/images/master-motion/hanbi-love/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        }
+      },
+      "sheetBytes": 241662
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/hanbi-love/avatar-poster.webp",
+      "posterBytes": 4100,
+      "sheet": {
+        "src": "/images/master-motion/hanbi-love/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 12012,
+      "crop": {
+        "left": 130,
+        "top": 45,
+        "size": 280
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 3.39,
+      "wholeDiff": 3.26,
+      "regionDiff": 26.5,
+      "colorShift": [
+        0.43,
+        0.74,
+        2.64
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 8.29
+      }
+    },
+    "closed": {
+      "guardDiff": 3.31,
+      "wholeDiff": 2.87,
+      "regionDiff": 22.34,
+      "colorShift": [
+        -1.45,
+        -1.31,
+        -0.57
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 7.12
+      }
+    }
+  }
+}

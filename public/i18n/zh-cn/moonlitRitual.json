@@ -1,0 +1,135 @@
+{
+  "moonlitRitual": {
+    "title": "月光莲花堂参拜",
+    "progress": "参拜 {current} / {total}",
+    "steps": {
+      "enter": "入堂",
+      "breathe": "呼吸",
+      "incense": "上香",
+      "bow": "三拜",
+      "wish": "许愿灯",
+      "dedication": "回向"
+    },
+    "exit": "离开",
+    "browse": "逛逛莲花堂",
+    "home": "返回首页",
+    "fast": "加快进度",
+    "skip": "跳过",
+    "showLine": "显示完整台词",
+    "enter": {
+      "cta": "开始参拜",
+      "hint": "一个画面只做一件事，慢慢为您引导。"
+    },
+    "breathe": {
+      "inhale": "吸气",
+      "hold": "屏息",
+      "exhale": "呼气",
+      "count": "第 {current} / {total} 次呼吸"
+    },
+    "incense": {
+      "hold": "长按点香",
+      "tap": "点一下点香",
+      "lit": "香烟袅袅升起"
+    },
+    "bow": {
+      "cta": "礼拜（{current}/{total}）",
+      "running": "正在礼拜…",
+      "done": "三拜已完成",
+      "saveFailed": "记录未能保存，但礼拜已完成。"
+    },
+    "wish": {
+      "label": "一个心愿",
+      "placeholder": "请用一句话写下心中的愿望",
+      "send": "放飞许愿灯",
+      "swipe": "把灯向上滑也能放飞。",
+      "lantern": "许愿灯",
+      "saveFailed": "心愿未能保存，但许愿灯已经放飞。"
+    },
+    "dedication": {
+      "title": "今天的参拜结束了"
+    },
+    "speaker": {
+      "yeoni": "妍伊",
+      "cat": "英喵",
+      "friend": "同行的朋友"
+    },
+    "speech": {
+      "yeoni": {
+        "enter": "欢迎光临。今天由我陪在您身边，慢慢为您引导。",
+        "breathe": "请跟着光，数四下吸气，屏息四下，再数六下呼气。",
+        "incense": "请长按香，为心里点亮一盏灯。",
+        "incenseLit": "香已经点好了。我们来礼拜吧？",
+        "bow": "每按一次，就和我一起拜一次。三次就足够了。",
+        "bowDone": "这是诚心诚意的三拜。",
+        "wish": "请把心中的一个愿望放进许愿灯里。",
+        "wishSent": "许愿灯正顺着月光缓缓升起。",
+        "dedication": "愿今天献上的心意，平安地传到您和您珍视的人身边。"
+      },
+      "cat": {
+        "enter": "你来啦！今天我陪着你。",
+        "breathe": "跟着光呼吸。吸四下，停四下，呼六下。",
+        "incense": "按住香，把它点着吧。",
+        "incenseLit": "点着了喵！",
+        "bow": "每按一下，我们就一起拜一次。一共三次。",
+        "bowDone": "做得好喵！",
+        "wish": "在许愿灯上写一个愿望就好。",
+        "wishSent": "许愿灯飞走了喵。",
+        "dedication": "今天的心意，一定会传到你和你珍惜的人那里。"
+      },
+      "neutral": {
+        "enter": "欢迎。今天我会在旁边，慢慢陪你一起。",
+        "breathe": "跟着光，数四下吸气，屏息四下，数六下呼气。",
+        "incense": "请长按香，把它点亮。",
+        "incenseLit": "香烟升起来了。现在来礼拜吧。",
+        "bow": "每按一次，就一起拜一次。一共三次。",
+        "bowDone": "你诚心完成了三拜。",
+        "wish": "把一个愿望放进许愿灯里吧。",
+        "wishSent": "许愿灯朝着月光飘了上去。",
+        "dedication": "愿今天的心意，传到你和你在乎的人身边。"
+      }
+    },
+    "audio": {
+      "open": "打开音乐",
+      "title": "冥想音乐",
+      "close": "关闭",
+      "prev": "上一首",
+      "next": "下一首",
+      "play": "播放音乐",
+      "pause": "暂停音乐",
+      "volume": "音乐音量",
+      "volumeFixed": "在此设备上，请用机身按键调节音量。",
+      "sfx": "音效",
+      "on": "开",
+      "off": "关",
+      "list": "曲目列表",
+      "soundOn": "打开声音",
+      "status": {
+        "playing": "正在播放",
+        "loading": "正在准备音乐",
+        "paused": "已选曲目",
+        "error": "这首曲子无法播放，请换一首。"
+      },
+      "mood": {
+        "calm": "宁静",
+        "dawn": "黎明",
+        "warm": "温暖",
+        "focus": "专注",
+        "night": "月夜",
+        "water": "水波",
+        "stars": "星光",
+        "renew": "新气象"
+      }
+    },
+    "companion": {
+      "idle": "在一旁休息",
+      "greet": "正在开心地打招呼",
+      "guide": "正在提示下一步",
+      "breathe": "正在一起调整呼吸",
+      "bow": "正在一起礼拜",
+      "pray": "正在双手合十祈祷",
+      "bless": "正在送上祝福",
+      "react": "正在开心地回应",
+      "rest": "正在打瞌睡"
+    }
+  }
+}

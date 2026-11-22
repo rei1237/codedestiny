@@ -73,7 +73,7 @@ export async function runConsultationRecovery(env, options = {}) {
       const adapter = options.loadAdapter ? await options.loadAdapter(route) : await loadAdapters[route]();
       const model = (options.models || models)[modelName];
       const docs = !modelName ? await adapter.findRecoverableConsultations(env, consultationRecoveryFilter(now, extra)) : await withMongoRetry(env, () => model.find(consultationRecoveryFilter(now, extra))
-        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId status createdAt updatedAt deliveryWatch llmMeta.retryable.reopenedAt metadata.retryReopenedAt locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale').lean());
+        .sort({ updatedAt: 1, _id: 1 }).limit(1).select('id executionId executionKey userId status createdAt updatedAt deliveryWatch llmMeta.retryable.reopenedAt metadata.retryReopenedAt locale llmMeta.locale llmMeta.resumeBody.locale llmMeta.delivery.resumeBody.locale result.resumeBody.locale result.namingPrompt.tossIntentId result.namingPrompt.retryable.reopenedAt').lean());
       if (adapter.recoverUnstartedNativeConsultations) outcomes.push(...await adapter.recoverUnstartedNativeConsultations(env, {now,deadline}));
       for (const doc of docs) {
         if (!doc.userId || !(doc.id || doc._id || doc.resultId)) continue;
@@ -87,7 +87,9 @@ export async function runConsultationRecovery(env, options = {}) {
               : await settleStuckConsultation(env, { service: route, model, doc, now, refund: options.settleRefund,
                 isComplete: typeof adapter.isStuckDeliveryComplete === 'function' ? adapter.isStuckDeliveryComplete : undefined });
             outcomes.push({ service: route, stuck: settled.outcome, ...(settled.refundStatus ? { refundStatus: settled.refundStatus } : {}) });
-            if (settled.outcome !== 'leased') continue;
+            // unsettled: 설정자가 확정하지 않은 건(토스 네이티브 등) — 기존처럼 이어쓴다.
+            // pending: 증빙 조회 실패 — 이어쓰기·회전을 건너뛰면 가장 오래된 한 건이 서비스 크론을 막는다(2026-11-22 감사 B2).
+            if (!['leased', 'unsettled', 'pending'].includes(settled.outcome)) continue;
           } else logStuckUnsettled(route, doc);
         }
         try {

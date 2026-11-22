@@ -1788,7 +1788,14 @@ function formatPromptHubPrice(locale: LoadingLocale) {
   return locale === "ko" ? `${krw.toLocaleString("ko-KR")}원` : `₩${krw.toLocaleString("en-US")}`;
 }
 
-export default function ComprehensivePromptHubPage() {
+type TossPromptActions = {
+  heroSrc: string;
+  openAI: (url: string) => Promise<void>;
+  libraryOwner: (userId?: string) => string;
+  login: () => Promise<void>;
+  copy: (value: string) => Promise<void>;
+};
+export default function ComprehensivePromptHubPage({ toss }: { toss?: TossPromptActions } = {}) {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = getPromptHubCopy(locale);
   const tx = useCallback((value: string | undefined) => translatePromptHubText(value, locale), [locale]);
@@ -1825,7 +1832,7 @@ export default function ComprehensivePromptHubPage() {
   // 같은 URL 이라 브라우저는 한 번만 내려받는다.
   const heroMascot = (
     <img
-      src="/images/fortune-tea-house/%EB%A7%90%ED%95%98%EB%8A%94%20%EA%BD%83%EB%8F%BC%EC%A7%80%20%EC%97%B0%EC%9D%B43-Photoroom.webp"
+      src={toss?.heroSrc || "/images/fortune-tea-house/%EB%A7%90%ED%95%98%EB%8A%94%20%EA%BD%83%EB%8F%BC%EC%A7%80%20%EC%97%B0%EC%9D%B43-Photoroom.webp"}
       alt={copy.heroMascotAlt}
       className="yeon-hero-sprite-sheet"
       decoding="async"
@@ -1842,7 +1849,8 @@ export default function ComprehensivePromptHubPage() {
   const [isFormCardInView, setIsFormCardInView] = useState(true);
   const auth = useAuthStore();
   // 저장 키를 사용자별로 갈라 두면 계정을 바꿔도 남의 보관함이 보일 수 없다. 게스트는 빈 문자열.
-  const libraryOwnerKey = resolveLibraryOwnerKey(auth.user);
+  const ownerKeyFor = (user: typeof auth.user) => toss ? toss.libraryOwner(user?.id) : resolveLibraryOwnerKey(user);
+  const libraryOwnerKey = ownerKeyFor(auth.user);
   const [loginGateOpen, setLoginGateOpen] = useState(false);
   const [libraryItems, setLibraryItems] = useState<PromptLibraryItem[]>([]);
   const [savedToolId, setSavedToolId] = useState<ToolId | null>(null);
@@ -1858,7 +1866,7 @@ export default function ComprehensivePromptHubPage() {
   const [honeyShortfall, setHoneyShortfall] = useState<{ toolId: ToolId; draft: ToolDraft } | null>(null);
 
   useEffect(() => {
-    if (!auth.isAuthenticated) {
+    if (!auth.isAuthenticated || PROMPT_HUB_GENERATE_IS_FREE) {
       setHoney(null);
       return undefined;
     }
@@ -1875,7 +1883,7 @@ export default function ComprehensivePromptHubPage() {
 
   /* 결제 후 자동 재개 — 모바일 PG 복귀는 새 문서라 입력이 비어 있다. 서술자에 실은 입력과 처음 결제한
      requestId 그대로 생성한다. 🔴 게이트를 다시 타지 않는다(재과금 방지). */
-  const buildPaidResume = usePaidResume(PROMPT_HUB_GENERATE_FEATURE_KEY, async (args, grant) => {
+  const buildPaidResume = usePaidResume(toss ? "" : PROMPT_HUB_GENERATE_FEATURE_KEY, async (args, grant) => {
     const toolId = String(args.toolId || "") as ToolId;
     const draft = unpackPaidResumeArg<ToolDraft>(args.draft);
     const requestId = String(grant?.requestId || args.requestId || "");
@@ -2005,7 +2013,7 @@ export default function ComprehensivePromptHubPage() {
       if (!entry) return;
       // 저장하려다 로그인하러 갔던 것이라면, 다시 누르게 하지 않고 저장까지 끝낸다.
       if (resuming?.intent === "save") {
-        persistResultToLibrary(resolveLibraryOwnerKey(getAuthState().user), restored.toolId, entry);
+        persistResultToLibrary(ownerKeyFor(getAuthState().user), restored.toolId, entry);
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -2094,6 +2102,10 @@ export default function ComprehensivePromptHubPage() {
    */
   async function runPromptGeneration(toolId: ToolId, draft: ToolDraft, paymentRequestId = "") {
     setGenerationError('');
+    const owner = ownerKeyFor(getAuthState().user);
+    const verifyOwner = () => {
+      if (toss && (!owner || owner !== ownerKeyFor(getAuthState().user))) throw new Error("계정이 바뀌었어요. 다시 시도해 주세요.");
+    };
     const config = toolConfigById[toolId];
     const isHorary = config.id === 'horary';
     // 산출값은 사용자 입력으로 여기서 계산하고, 프롬프트 틀은 서버가 조립한다(번들에 틀을 싣지 않는다).
@@ -2106,6 +2118,7 @@ export default function ComprehensivePromptHubPage() {
       computedFacts: isHorary ? '' : await buildComputedFactsFor(config.id, draft),
       ...(isHorary ? { horary: await buildHoraryRequest(draft) } : {}),
     };
+    verifyOwner();
     const response = await fetch(getApiUrl('/api/fortune/prompt-hub/generate'), {
       method: 'POST',
       credentials: 'include',
@@ -2128,6 +2141,7 @@ export default function ComprehensivePromptHubPage() {
     if (!response.ok || !data?.ok || typeof data.prompt !== 'string') {
       throw new Error(String(data?.message || getPromptHubCopy(localeRef.current).generateFailed));
     }
+    verifyOwner();
     if (data.honey) setHoney(data.honey as HoneyState);
     setHoneyShortfall(null);
     const entry = {
@@ -2281,10 +2295,10 @@ export default function ComprehensivePromptHubPage() {
       toolLabel: translatePromptHubText(toolConfigById[toolId].shortLabel, localeRef.current),
       prompt: entry.prompt,
       generatedAt: entry.generatedAt,
-    });
+    }, Boolean(toss));
     setLibraryItems(next);
     // saveToLibrary 가 실제로 저장한 형태(길이 절단 포함)와 대조해야 거짓 성공을 걸러낼 수 있다.
-    const storedPrompt = entry.prompt.slice(0, PROMPT_HUB_LIBRARY_MAX_PROMPT_CHARS);
+    const storedPrompt = toss ? entry.prompt : entry.prompt.slice(0, PROMPT_HUB_LIBRARY_MAX_PROMPT_CHARS);
     const stored = next.some((item) => item.toolId === toolId && item.prompt === storedPrompt);
     setSaveFailedToolId(stored ? null : toolId);
     if (!stored) return;
@@ -2302,7 +2316,7 @@ export default function ComprehensivePromptHubPage() {
         setLoginGateOpen(true);
         return;
       }
-      persistResultToLibrary(resolveLibraryOwnerKey(getAuthState().user), activeToolId, result);
+      persistResultToLibrary(ownerKeyFor(getAuthState().user), activeToolId, result);
       return;
     }
     persistResultToLibrary(libraryOwnerKey, activeToolId, result);
@@ -2321,7 +2335,7 @@ export default function ComprehensivePromptHubPage() {
       setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: true }));
       return;
     }
-    try{await copyTextToClipboard(withContinuation(currentResult.prompt));setContinuationCopyError('');}catch{setContinuationCopyError('자동 복사를 하지 못했어요. 아래 프롬프트를 직접 선택해 복사해 주세요.');setExpandedResultsByToolId(prev=>({...prev,[activeToolId]:true}));return;}
+    try{await (toss?.copy || copyTextToClipboard)(withContinuation(currentResult.prompt));setContinuationCopyError('');}catch{setContinuationCopyError('자동 복사를 하지 못했어요. 아래 프롬프트를 직접 선택해 복사해 주세요.');setExpandedResultsByToolId(prev=>({...prev,[activeToolId]:true}));return;}
     setCopiedToolId(activeToolId);
     window.setTimeout(() => setCopiedToolId(null), 1600);
   }
@@ -2715,7 +2729,7 @@ export default function ComprehensivePromptHubPage() {
         .prompt-hub-cta {
           /* 하단 네비(.cd-mnav) 위로 올라온다. 네비가 없으면 --cd-mnav-offset 이 0 이라 바닥에 붙는다. */
           bottom: var(--cd-mnav-offset, 0px);
-          padding-bottom: calc(12px + max(0px, env(safe-area-inset-bottom, 0px) - var(--cd-mnav-offset, 0px)));
+          padding-bottom: calc(12px + max(0px, var(--toss-service-bottom, env(safe-area-inset-bottom, 0px)) - var(--cd-mnav-offset, 0px)));
           transition: transform 260ms cubic-bezier(.22,1,.36,1), opacity 200ms ease-out;
         }
         .prompt-hub-cta[data-visible="false"] {
@@ -2986,7 +3000,7 @@ export default function ComprehensivePromptHubPage() {
                   </p>
                 ) : null}
 
-                {!PROMPT_HUB_GENERATE_IS_FREE && auth.isAuthenticated && honey ? (
+                {!toss && !PROMPT_HUB_GENERATE_IS_FREE && auth.isAuthenticated && honey ? (
                   <div className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 py-2 text-sm text-[color:var(--ink-2)]" aria-live="polite">
                     <span className="font-black">🍯 {copy.honeyBalance.replace("{count}", String(honey.balance))}</span>
                     <span>{honey.attended ? copy.honeyNextReward.replace("{count}", String(honey.nextRewardIn)) : copy.honeyRule}</span>
@@ -3001,7 +3015,7 @@ export default function ComprehensivePromptHubPage() {
                   </div>
                 ) : null}
 
-                {!PROMPT_HUB_GENERATE_IS_FREE && honeyShortfall ? (
+                {!toss && !PROMPT_HUB_GENERATE_IS_FREE && honeyShortfall ? (
                   <div role="alert" className="mt-3 rounded-xl border border-[color:var(--danger-line)] bg-[color:var(--danger-glow)] px-3 py-3 text-sm text-[color:var(--danger-ink)]">
                     <p className="font-black">{copy.honeyShortTitle}</p>
                     <p className="mt-1">{copy.honeyShortBody.replace("{price}", formatPromptHubPrice(locale))}</p>
@@ -3099,6 +3113,11 @@ export default function ComprehensivePromptHubPage() {
                       <a
                         key={target.id}
                         href={target.url} target="_blank" rel="noopener noreferrer"
+                        onClick={toss ? event => {
+                          event.preventDefault();
+                          setContinuationCopyError("");
+                          void toss.openAI(target.url).catch(() => setContinuationCopyError("외부 AI를 열지 못했어요. 복사한 문장을 원하는 AI에 붙여넣어 주세요."));
+                        } : undefined}
                         className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[color:var(--tool-accent)] px-3 text-sm font-black text-[color:var(--tool-accent-strong)] transition hover:bg-[color:var(--tool-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                       >
                         <ExternalLink size={16} />
@@ -3239,7 +3258,7 @@ export default function ComprehensivePromptHubPage() {
           {/* 결과 패널(aria-live) 바깥의 형제로 둔다. 안에 넣으면 프롬프트를 생성할 때마다
               스크린리더가 업셀 전체를 다시 읽는다. 결과가 나온 뒤에만 노출해 무료 도구를
               먼저 써 보는 흐름을 막지 않는다. */}
-          {currentResult?.prompt
+          {!toss && currentResult?.prompt
             ? (() => {
                 const upsell = TOOL_UPSELL_MAP[activeToolId];
                 const [primaryId, secondaryId] = upsell.pair;
@@ -3339,7 +3358,25 @@ export default function ComprehensivePromptHubPage() {
 
       <PromptHubLoginGateModal
         open={loginGateOpen}
-        copy={copy.gate}
+        copy={toss ? {...copy.gate, title:"토스 계정으로 이어가기",lead:"로그인하면 입력한 내용으로 무료 프롬프트를 만들고 이 기기에 보관할 수 있어요.",benefits:[],note:"",login:"토스로 로그인하기"} : copy.gate}
+        onTossLogin={toss ? async () => {
+          if (generatingRef.current) return;
+          generatingRef.current = true;
+          setIsGenerating(true);
+          try {
+            await toss.login();
+            setLoginGateOpen(false);
+            const entry = await runPromptGeneration(activeToolId, currentDraft);
+            if (entry && gateIntentRef.current === "save") persistResultToLibrary(ownerKeyFor(getAuthState().user), activeToolId, entry);
+          } catch {
+            setLoginGateOpen(false);
+            setGenerationError("상담을 이어가지 못했어요. 입력한 내용을 확인하고 다시 시도해 주세요.");
+          } finally {
+            generatingRef.current = false;
+            setIsGenerating(false);
+          }
+        } : undefined}
+        busy={isGenerating}
         signupHref={buildPromptHubAuthPath("signup")}
         loginHref={buildPromptHubAuthPath("login")}
         onDismiss={() => setLoginGateOpen(false)}

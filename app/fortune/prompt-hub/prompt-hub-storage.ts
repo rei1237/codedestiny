@@ -146,9 +146,10 @@ function persistLibrary(ownerKey: string, items: PromptLibraryItem[]): PromptLib
 export function saveToLibrary(
   ownerKey: string,
   item: Omit<PromptLibraryItem, "id" | "savedAt">,
+  keepFullText = false,
 ): PromptLibraryItem[] {
   if (!ownerKey) return [];
-  const prompt = item.prompt.slice(0, PROMPT_HUB_LIBRARY_MAX_PROMPT_CHARS);
+  const prompt = keepFullText ? item.prompt : item.prompt.slice(0, PROMPT_HUB_LIBRARY_MAX_PROMPT_CHARS);
   const existing = readLibrary(ownerKey);
   const savedAt = Date.now();
   // 같은 도구에서 같은 문장을 다시 저장하면 새 항목을 쌓지 않고 맨 앞으로 올리기만 한다.

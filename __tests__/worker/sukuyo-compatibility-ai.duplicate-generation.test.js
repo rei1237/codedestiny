@@ -40,7 +40,7 @@ let revokedAt = -1;
 let paidMode = "pass";
 let blockedFetch;
 let legacyRefund, monthlyRefund, restoreAllowed;
-let passRefund, cardRefund, cardPayment = null, settleDue;
+let passRefund, cardRefund, cardPayment = null, settleDue, settleStuck;
 
 /** 24-hex ObjectId 모양. 라우트가 /^[0-9a-f]{24}$/ 로 검사한다. */
 let objectIdCounter = 0;
@@ -238,7 +238,7 @@ beforeAll(async () => {
   const mod = await import("../../worker/routes/sukuyo-compatibility-ai.js");
   handleSukuyoCompatibilityAiRoutes = mod.handleSukuyoCompatibilityAiRoutes;
   testUtils = mod.__sukuyoCompatibilityAiTestUtils;
-  settleDue = mod.settleDueSukuyoRetryRefunds;
+  settleDue = mod.settleDueSukuyoRetryRefunds; settleStuck = mod.settleStuckDelivery;
 });
 
 beforeEach(() => {
@@ -770,5 +770,39 @@ describe("판 2 개인 상담", () => {
     callGeminiTextMock.mockResolvedValue({ ok: true, provider: "gemini", text: "두 분의 별은 서로 다른 속도로 빛납니다." });
     await expect(testUtils.createPersonalAnswer({}, input, calculation)).rejects.toBeTruthy();
     expect(callGeminiTextMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// 2026-11-22 D: 복구 크론의 정체 확정. 창 안은 다시 시도 가능(묶음 보존·환불 없음), 창이 지나면 기존 보류 환불(settleSukuyoRetryRefund).
+describe("settleStuckDelivery", () => {
+  const stuckDoc = () => ({ _id: store.docs[0]._id, userId: store.docs[0].userId });
+  const quiet = async work => { const warn = jest.spyOn(console, "warn").mockImplementation(() => {}); try { return await work(); } finally { warn.mockRestore(); } };
+  const saved = () => JSON.parse(JSON.stringify({ messages: store.docs[0].messages, sections: store.docs[0].llmMeta?.sections, raw: store.docs[0].llmMeta?.rawResponses }));
+  async function stalled() { mockSectionsResolvedImmediately(); expect((await runWave()).status).toBe(202); store.docs[0].updatedAt = new Date(Date.now() - 300000); return saved(); }
+  test("멈춘 이용권 상담은 저장된 묶음을 지킨 채 다시 시도 가능으로 두고 환불하지 않는다", async () => {
+    const before = await stalled(); expect(JSON.stringify(before).length).toBeGreaterThan(200);
+    expect((await quiet(() => settleStuck(ENV, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("retryable");
+    expect(store.docs[0]).toMatchObject({ status: "generation_failed", generationError: { code: "DELIVERY_STUCK" }, llmMeta: { retryable: { access: { accessType: "pass" } } } });
+    expect(saved()).toEqual(before);
+    expect(passRefund).not.toHaveBeenCalled(); expect(cardRefund).not.toHaveBeenCalled();
+    expect((await postSession("/retry", store.docs[0]._id)).status).toBe(202);
+  });
+  test("창이 지난 정체는 기존 보류 환불로 한 번만 정산한다", async () => {
+    passRefund.mockImplementation(async () => ({ refunded: true }));
+    await stalled();
+    expect(await quiet(() => settleStuck(ENV, { doc: stuckDoc(), now: Date.now() + 8 * 86400000 }))).toEqual({ outcome: "generation_failed", refundStatus: "refunded" });
+    expect(passRefund).toHaveBeenCalledTimes(1); expect(passRefund.mock.calls[0][0]).toMatchObject({ requestId: KEY });
+    await settleDue(ENV, { model: store.model, now: Date.now() + 8 * 86400000 }); expect(passRefund).toHaveBeenCalledTimes(1);
+  });
+  test("살아 있는 생성·토스 네이티브·증빙 없는 선결제·완료본은 건드리지 않는다", async () => {
+    mockSectionsResolvedImmediately(); expect((await runWave()).status).toBe(202);
+    expect((await settleStuck(ENV, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
+    store.docs[0].updatedAt = new Date(Date.now() - 300000); store.docs[0].accessSource = "toss";
+    expect((await quiet(() => settleStuck(ENV, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("unsettled");
+    store.docs[0].accessSource = ""; store.docs[0].accessType = "subscription";
+    expect((await settleStuck(ENV, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("pending");
+    store.docs[0].status = "completed";
+    expect((await settleStuck(ENV, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("progressed");
+    expect(passRefund).not.toHaveBeenCalled(); expect(cardRefund).not.toHaveBeenCalled();
   });
 });

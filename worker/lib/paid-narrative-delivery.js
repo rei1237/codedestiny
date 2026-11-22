@@ -133,13 +133,23 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   };
   await verifyNativeRecovery();
   const original = doc?.metadata?.paidNarrative?.body || body;
+  // C3b: once a refund is requested, approved or settled, a POST must not re-verify (re-settle a pass) or
+  // generate missing parts for free. GET, a completed result and a held (exhausted) partial still deliver.
+  if (request.method !== "GET" && doc && doc.premiumStatus !== "completed" && !doc.metadata?.paidNarrative?.exhaustionClaimed) {
+    if (doc.status === "refunded" || doc.status === "cancelled") return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
+    if ((doc.refundStatus && doc.refundStatus !== "none") || doc.metadata?.paidNarrativeRetry?.refundApprovedAt) return json({ ok: false, retryable: false, reason: "REFUND_IN_PROGRESS" }, { status: 409 });
+  }
   // A record the intent task created stores its server proof of this exact
   // purchase, and its body predates the checkout evidence the route verifier
   // reads. revoked() below still blocks a refunded or cancelled payment.
   if (nativeOrigin) await verify(original, doc);
   // A route verifier may return its access proof; a new record keeps the restorable part (C2 retry-first refund).
   let refundEvidence = null;
-  if (!nativeOrigin && !doc?.metadata?.paidNarrativeProof) refundEvidence = paidNarrativeRefundEvidence(await verify(original));
+  // C2-UI: a run the owner reopened through /api/paid-narrative/retry (paid-narrative-retry.js) was verified when it was
+  // created, so a free retry days later does not re-check a lapsed proof (recent-payment window, 30-minute token) or settle
+  // a pass again. The lookup above already binds userId, featureKey and executionKey; revoked() below still applies.
+  const reopenedRetry = Boolean(resumeId && doc?.metadata?.paidNarrativeRetry?.reopenedAt);
+  if (!nativeOrigin && !doc?.metadata?.paidNarrativeProof && !reopenedRetry) refundEvidence = paidNarrativeRefundEvidence(await verify(original));
   if (await revoked(env, doc || { userId, executionKey }, featureKey, original)) return json({ ok: false, retryable: false, reason: "PAYMENT_REVOKED" }, { status: 403 });
   if (doc && !resumeId && request.method !== "GET" && paidNarrativeInputHash(body) !== paidNarrativeInputHash(original)) return json({ ok: false, reason: "INPUT_MISMATCH" }, { status: 409 });
   const deliver = async (busy = false) => {

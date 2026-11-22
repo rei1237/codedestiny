@@ -666,3 +666,37 @@ it('R7 a Toss native session keeps the immediate settlement path', async () => {
   expect(docs[0].deliveryMeta.reviewReason).toBe('DELIVERY_FAILED');
   expect(docs[0].deliveryMeta.retryable).toBeUndefined();
 });
+
+// Trait-First(2026-11-22 게이트 B): 세션에 저장된 값만 따르고, 개인판 1장(gate)에 사실만 넣는다.
+describe('Trait-First (TRAIT_FIRST_SAJU)', () => {
+  it('old sessions without the key stay off; a pinned session forwards v1 and a per-user seed', async () => {
+    expect((await generate()).status).toBe(202);
+    expect(provider.mock.calls.length).toBeGreaterThan(0);
+    expect(provider.mock.calls.every(([, input]) => !('traitFirst' in input))).toBe(true);
+    provider.mockClear();
+    Object.assign(docs[0], { chapters: [], status: 'generating', deliveryMeta: { traitFirst: 'v1' } });
+    expect((await generate()).status).toBe(202);
+    expect(provider.mock.calls.every(([, input]) => input.traitFirst === 'v1' && input.traitSeed === `${uid}|master-love-codex`)).toBe(true);
+  });
+  it('fact lines go to the solo gate chapter only, without the usage-rule line, and never for approved saju or other locales', async () => {
+    const { codexTraitFacts } = await import('../../worker/routes/master-love-codex.js');
+    const solo = await import('../../worker/lib/master-love-codex-prompt.mjs');
+    const { calculateLifeBookAiSaju } = await import('../../worker/lib/life-book-ai-saju.js');
+    const saju = calculateLifeBookAiSaju({ birthDate: '1990-05-12', birthTime: '09:30', gender: 'female', calendarType: 'solar' }, { year: 2026 });
+    const on = { traitFirst: 'v1', traitSeed: 'u|master-love-codex', locale: 'ko' };
+    for (const chapter of solo.MASTER_LOVE_CODEX_CHAPTERS_V2) {
+      const base = solo.buildMasterLoveCodexChapterPrompt({ saju, ziweiChart: {}, birthInfo: {}, chapter, evidenceProvided: true });
+      expect(solo.buildMasterLoveCodexChapterPrompt({ saju, ziweiChart: {}, birthInfo: {}, chapter, evidenceProvided: true, traitFacts: [] })).toBe(base);
+      const facts = codexTraitFacts(saju, chapter, on);
+      if (chapter.id !== 'gate') { expect(facts).toEqual([]); continue; }
+      expect(facts[0]).toBe('[타고난 성향 핵심 근거]');
+      expect(facts.some(line => line.startsWith('사용 규칙:'))).toBe(false);
+      const withFacts = solo.buildMasterLoveCodexChapterPrompt({ saju, ziweiChart: {}, birthInfo: {}, chapter, evidenceProvided: true, traitFacts: facts });
+      expect(withFacts.replace(`\n${facts.filter(Boolean).join('\n')}`, '')).toBe(base);
+    }
+    const gate = solo.MASTER_LOVE_CODEX_CHAPTERS_V2.find(chapter => chapter.id === 'gate');
+    expect(codexTraitFacts(saju, gate, { ...on, traitFirst: null })).toEqual([]);
+    expect(codexTraitFacts(saju, gate, { ...on, locale: 'en' })).toEqual([]);
+    expect(codexTraitFacts({ ...saju, approvedSaju: { gyeokguk: '정관격' } }, gate, on)).toEqual([]);
+  });
+});

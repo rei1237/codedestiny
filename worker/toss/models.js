@@ -19,12 +19,14 @@ export const TossPurchase = model('TossPurchase', {
   _id: String, identityId: {type:String,required:true}, ownerId: {type:mongoose.Schema.Types.ObjectId,required:true},
   sku: {type:String,required:true}, productId: {type:String,required:true},
   tarotFlowId: {type:String,default:''}, featureKey: {type:String,default:''}, executionId: {type:String,default:''},
-  nativeService: {type:String,enum:['','guardian','sibyl','music','tea','nakshatra','geomancy','totem-basic','totem-deep','ziwei-deep','compass','yoga','human-design','codex','saju-compat','neo','palm','naming','dream','heukwol','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship','pet'],default:''},
+  nativeService: {type:String,enum:['','guardian','sibyl','music','tea','nakshatra','geomancy','totem-basic','totem-deep','ziwei-deep','compass','yoga','human-design','codex','saju-compat','saju-compat-premium','neo','palm','naming','dream','heukwol','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship','pet'],default:''},
   serviceId: {type:String,enum:['yeongnyangi','yeoni','neo'],default:'yeongnyangi'},
   approvedPriceKRW: {type:Number,required:true}, priceEvidence: {type:String,required:true},
   status: {type:String,enum:['PAYMENT_COMPLETED','PURCHASED','REFUNDED'],required:true},
   requestId: {type:String,default:null}, verifiedAt: {type:Date,required:true}, grantedAt: Date,
   reconcileAfter: Date, reconcileState: {type:String,enum:['checking','verified','retry','inactive']},
+  // Forward-only: absent on legacy rows. Set once at first insert from purchaserMatched===true.
+  buyerVerification: {type:String,enum:['PURCHASER_MATCHED']},
   commitMarker: String, environment: {type:String,enum:['DEFAULT','SANDBOX'],required:true},
 }, {collection:'toss_purchases'});
 // Each consultation is locked to at most one order using its existing unique request _id.
@@ -35,7 +37,7 @@ export const TossPurchase = model('TossPurchase', {
 export const TossNativeConsultation = model('TossNativeConsultation', {
   _id:String,identityId:{type:String,required:true},ownerId:{type:mongoose.Schema.Types.ObjectId,required:true},
   environment:{type:String,enum:['DEFAULT','SANDBOX'],required:true},
-  nativeService:{type:String,enum:['guardian','sibyl','music','tea','nakshatra','geomancy','totem-basic','totem-deep','ziwei-deep','compass','yoga','human-design','codex','saju-compat','neo','palm','naming','dream','heukwol','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship','pet'],required:true},
+  nativeService:{type:String,enum:['guardian','sibyl','music','tea','nakshatra','geomancy','totem-basic','totem-deep','ziwei-deep','compass','yoga','human-design','codex','saju-compat','saju-compat-premium','neo','palm','naming','dream','heukwol','fusion','life-book','love-secret','astrology','vedic','ziwei','new-year','karma','maya','sukuyo','relationship','pet'],required:true},
   requestId:{type:String,required:true},resultId:{type:String,required:true},
   featureKey:{type:String,required:true},inputHash:{type:String,required:true},
   input:{type:mongoose.Schema.Types.Mixed,required:true},

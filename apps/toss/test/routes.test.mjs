@@ -16,12 +16,17 @@ const mocks={
  purchase:()=>({lean:async()=>null}),followup:async()=>{calls.followups++;return {};}
 };
 globalThis.__tossRouteMocks=mocks;
+const forwardedCalculation=name=>`export const ${name}=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});`;
 const stubMap={
- 'lib/toss-release.mjs':'export const NEW_PURCHASES_AVAILABLE=true;',
+ 'worker/routes/prompt-hub.js':"export const generateFreeTossPrompt=async(_env,input)=>({ok:true,input,paidWith:'public'});",
+ 'worker/routes/astro.js':forwardedCalculation('handleAstrologyRoutes'),
+ 'worker/routes/sukuyo.js':forwardedCalculation('handleSukuyoRoutes'),
+ 'lib/toss-release.mjs':'export let NEW_PURCHASES_AVAILABLE=true;globalThis.__tossRouteMocks.setSales=v=>{NEW_PURCHASES_AVAILABLE=v;};',
  'worker/toss/music-download.js':"import {TossError} from './policy.js';const call=(kind,...args)=>{const state=globalThis.__tossRouteMocks;(state.musicCalls??=[]).push([kind,...args]);if(state.nativeFailure)throw new TossError(state.nativeFailure.code,state.nativeFailure.status);return {owner:args[1].ownerId};};export const prepareNativeMusic=(...args)=>call('prepare',...args),readNativeMusic=(...args)=>call('read',...args),downloadNativeMusic=(...args)=>call('file',...args);",
  'worker/toss/vedic-compatibility.js':"export const tossVedicCompatibility=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public',stored:false});",
  'worker/toss/vedic-prashna.js':"export const tossVedicPrashna=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public'});",
  'worker/toss/astro-synastry.js':"export const tossAstroSynastry=async(body)=>Response.json({accessSource:'public',input:body}),tossAstroSynastryPeople=()=>({people:[],categories:[],countries:{},css:''});",
+ 'worker/toss/native-compat-premium.js':"export const preparePremiumCompat=async(_env,auth)=>({owner:auth.ownerId}),readPremiumCompat=async(_env,auth,id,advance)=>({owner:auth.ownerId,id,advance}),premiumCompatLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-human-design.js':"export const prepareNativeHumanDesign=async(_env,owner)=>({owner:owner.ownerId}),readNativeHumanDesign=async(_env,owner,id)=>Response.json({owner:owner.ownerId,id}),nativeHumanDesignLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/sukuyo-past-life.js':"export const tossSukuyoPastLife=async(_env,auth)=>({owner:auth.ownerId,source:'public',stored:false});",
  'worker/toss/sukuyo-yearly.js':"export const tossSukuyoYearly=async(_env,owner)=>({owner:owner.ownerId,stored:false});",
@@ -38,7 +43,7 @@ const stubMap={
  'worker/lib/sukuyo-astronomy.js':"export const calculateSukuyoForMoment=async()=>({ok:true});",
  'worker/routes/destiny-compass.js':"export const handleDestinyCompassRoutes=async()=>Response.json({ok:true});",
  'worker/toss/native-palm.js':"export const prepareNativePalm=async()=>Response.json({paid:false}),readNativePalm=async()=>({saved:true}),palmLibraryItem=async()=>({state:'COMPLETED'});",
- 'worker/routes/nakshatra.js':"export const resolveTodayMoon=async()=>Response.json({ok:true}),resolveNatal=async()=>Response.json({ok:true}),resolveCompat=async()=>Response.json({ok:true});",
+ 'worker/routes/nakshatra.js':forwardedCalculation('handleNakshatraRoutes')+"export const resolveTodayMoon=async()=>Response.json({ok:true}),resolveNatal=async()=>Response.json({ok:true}),resolveCompat=async()=>Response.json({ok:true});",
  'worker/toss/mansion-reports.js':"export const readOwnedMansionReport=async()=>({ok:true});",
  'worker/routes/kasi.js':"export const handleKasiRoutes=async request=>Response.json({path:new URL(request.url).pathname,input:await request.json()});",
  'worker/routes/rpg.js':"export const readOwnedQuestProgress=async(_env,owner)=>({scope:owner});export const completeOwnedQuest=async(_env,owner,key)=>Response.json({owner,key});export const adoptOwnedQuestProgress=async(_env,owner)=>Response.json({owner});",
@@ -91,7 +96,7 @@ const stubMap={
  'worker/toss/grant.js':"export const grantVerifiedOrder=(...args)=>globalThis.__tossRouteMocks.genericGrant(...args);",
  'worker/toss/purchases.js':"export const purchaseStore={};export const recordTossRefund=()=>{};",
  'worker/lib/models.js':"export const ProfileCard={updateOne:globalThis.__tossRouteMocks.profile};export const PaidExecutionRecord={findOne:()=>({lean:async()=>null})};",
- 'worker/lib/rate-limit.js':"export const incrementRateLimit=async args=>{const s=globalThis.__tossRouteMocks;(s.limits||=[]).push(args);return {count:args.endpoint==='toss:human-design-chart'&&s.humanDesignLimited?21:1};};",
+ 'worker/lib/rate-limit.js':"export const incrementRateLimit=async args=>{const s=globalThis.__tossRouteMocks;(s.limits||=[]).push(args);if(s.tarotDeliverCounts&&args.endpoint==='toss:tarot-library-deliver'){const k=args.subjectHash;s.tarotDeliverCounts[k]=(s.tarotDeliverCounts[k]||0)+1;return {count:s.tarotDeliverCounts[k]};}return {count:args.endpoint==='toss:human-design-chart'&&s.humanDesignLimited?21:1};};",
  'worker/yeongnyangi/service.ts':"export const submitQuestionSkyFollowup=(...args)=>globalThis.__tossRouteMocks.skyFollowup(...args);export const experienceCheckFortune=async()=>({check:null});export const prepareFortune=globalThis.__tossRouteMocks.prepare;export const presentFortune=x=>x;export const drawTarotSpread=(...args)=>globalThis.__tossRouteMocks.draw(...args);",
  'worker/yeongnyangi/repository.js':"export const readRequest=(...args)=>globalThis.__tossRouteMocks.read(...args);export const resumeRequest=()=>{};",
  'worker/yeongnyangi/queue.js':"export const enqueueConsultation=()=>{};",
@@ -110,6 +115,20 @@ const {handleTossRoutes}=loaded.exports;
 const birth={gender:'F',date:{year:1990,month:1,day:1,calType:'solar',timeUnknown:true},location:{label:'서울',lat:37.5665,lng:126.978,tz:'Asia/Seoul'}};
 const decision={version:'question-consultation-20261007',category:'self',target:'self',horizon:'current',situation:'대화할 때 내 경계를 말하고 싶어요',options:'',period:'',constraints:'',confirmed:true};
 const input=()=>({attemptId:crypto.randomUUID(),sku:'saju_mackerel',question:'어떻게 내 경계를 표현할까?',birth:structuredClone(birth),questionDecision:{...decision}});
+test('prompt generation and its three calculation adapters forward the original input only for an authenticated session',async()=>{
+ const body={toolId:'saju',requestId:'offline-prompt',fields:[]};
+ const generate='/canonical/fortune/prompt-hub/generate';
+ const calculations=['/astrology/basic','/sukuyo/astronomy','/nakshatra/resolve'];
+ mocks.denyAuth=true;
+ try{
+  for(const endpoint of [generate,...calculations.map(path=>'/canonical'+path)])assert.equal((await request(body,endpoint)).status,401);
+ }finally{mocks.denyAuth=false;}
+ assert.deepEqual(await (await request(body,generate)).json(),{ok:true,input:body,paidWith:'public'});
+ for(const path of calculations){
+  const input={date:'1990-01-01'};
+  assert.deepEqual(await (await request(input,'/canonical'+path)).json(),{path:'/api'+path,input});
+ }
+});
 test('meeting place uses the authenticated Korean calendar for lunar conversion and yearly terms',async()=>{
  const endpoint='/canonical/kasi/calendar';
  mocks.denyAuth=true;
@@ -484,6 +503,66 @@ test('tarot resume rejects an unpaid or cancelled partner order before attaching
  }finally{mocks.purchase=previous;}
 });
 
+test('tarot result POST is rate limited per identity before partner lookup or generation',async()=>{
+ const previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder,auth:mocks.auth},orderId='01900000-1111-7111-8111-000000000077';
+ let owner=auth,lookups=0;
+ mocks.purchase=filter=>({lean:async()=>filter._id===orderId&&filter.identityId===owner._id?{_id:orderId,sku:'owned-sku',tarotFlowId:'tarot-mindscan'}:null});
+ mocks.lookupOrder=async()=>{lookups++;return {orderId,sku:'owned-sku',status:'PAYMENT_PENDING'};};
+ mocks.tarotDeliverCounts={};mocks.deliveries=0;
+ try{
+  for(let i=0;i<6;i++)assert.equal((await request({},'/tarot-library/results/'+orderId)).status,409);
+  assert.equal(lookups,6);
+  const limited=await request({},'/tarot-library/results/'+orderId);
+  assert.equal(limited.status,429);assert.equal((await limited.json()).error,'TOO_MANY_REQUESTS');
+  assert.equal(lookups,6);assert.equal(mocks.deliveries,0);
+  const foreign=await request({},'/tarot-library/results/01900000-1111-7111-8111-000000000078');
+  assert.equal(foreign.status,404);
+  owner={...auth,_id:'other-identity'};mocks.auth=async()=>owner;
+  assert.equal((await request({},'/tarot-library/results/'+orderId)).status,409);assert.equal(lookups,7);
+  assert.equal(Object.values(mocks.tarotDeliverCounts).reduce((a,b)=>a+b,0),8);
+ }finally{Object.assign(mocks,previous);delete mocks.tarotDeliverCounts;}
+});
+
+test('closed sales: only a buyer-proven restore creates a first row, and only first-grant lookups send the user key',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000079',sku='saju_tuna';
+ const previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder,genericGrant:mocks.genericGrant,product:mocks.product};
+ const lookups=[],grants=[];let matched=true,stored=null;
+ mocks.purchase=()=>({lean:async()=>stored});
+ mocks.product=sku=>({productId:sku,serviceId:'yeongnyangi',sku,approvedPriceKRW:1,approved:true});
+ mocks.lookupOrder=async(...args)=>{lookups.push(args);return {orderId,sku,status:'PURCHASED',purchaserMatched:matched};};
+ mocks.genericGrant=async args=>{grants.push(args);return {orderId,requestId:null,entitlement:'granted',durable:true};};
+ mocks.setSales(false);
+ try{
+  for(const path of ['/orders/grant','/tarot-library/orders/grant'])assert.equal((await request({orderId,sku},path)).status,503);
+  assert.equal(lookups.length,0);
+  const ok=await request({orderId,sku},'/orders/restore');
+  assert.equal(ok.status,200);assert.equal(grants.length,1);assert.equal(grants[0].closedRestore,true);
+  assert.deepEqual(lookups.at(-1).slice(1),[auth.userKey,orderId,{buyerCheck:true}]);
+  for(const value of [false,null,undefined,'true']){
+   matched=value;const r=await request({orderId,sku},'/orders/restore');
+   assert.equal(r.status,503);assert.equal((await r.json()).error,'TOSS_PURCHASES_DISABLED');
+  }
+  assert.equal(grants.length,1);
+  stored={_id:orderId,sku,productId:sku,serviceId:'yeongnyangi',approvedPriceKRW:1,priceEvidence:'fixture',identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment};
+  matched=undefined;
+  assert.equal((await request({orderId,sku},'/orders/restore')).status,200);
+  assert.deepEqual(lookups.at(-1).slice(1),[auth.userKey,orderId,{buyerCheck:false}]);
+  assert.equal(grants.at(-1).closedRestore,false);
+  mocks.setSales(true);stored=null;matched=true;
+  assert.equal((await request({orderId,sku},'/orders/grant')).status,200);
+  assert.deepEqual(lookups.at(-1).slice(1),[auth.userKey,orderId,{buyerCheck:true}]);
+  assert.equal(grants.at(-1).closedRestore,false);
+ }finally{mocks.setSales(true);Object.assign(mocks,previous);}
+});
+test('owned tarot rereads never send the buyer-check option to the partner lookup',async()=>{
+ const orderId='01900000-1111-7111-8111-000000000080',previous={purchase:mocks.purchase,lookupOrder:mocks.lookupOrder};const lookups=[];
+ mocks.purchase=()=>({lean:async()=>({_id:orderId,sku:'owned-sku',tarotFlowId:'tarot-mindscan'})});
+ mocks.lookupOrder=async(...args)=>{lookups.push(args);return {orderId,sku:'owned-sku',status:'PAYMENT_PENDING'};};
+ try{
+  assert.equal((await request({},'/tarot-library/results/'+orderId)).status,409);
+  assert.equal(lookups.length,1);assert.equal(lookups[0].length,3);
+ }finally{Object.assign(mocks,previous);}
+});
 test('guest manse works independently of release readiness and never creates a profile or purchase',async()=>{
  assert.equal((await request({birth},'/manse/calculate',{})).status,200);
  mocks.denyAuth=true;
@@ -740,8 +819,11 @@ test('production sales policy closes public catalogs and rejects raw prepare bef
  const previousPurchase=mocks.purchase,previousOrder=mocks.lookupOrder;
  mocks.purchase=()=>({lean:async()=>null});mocks.lookupOrder=()=>assert.fail('partner lookup must not happen for an unattributed order');
  try{for(const endpoint of ['/orders/grant','/orders/restore','/tarot-library/orders/grant']){
+  // A closed restore may ask the partner, but only purchaserMatched===true may pass (false here).
   const denied=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss'+endpoint,{method:'POST',headers:{Origin:'https://ai-saju-studio.apps.tossmini.com','Content-Type':'application/json',Authorization:'Bearer mock'},body:JSON.stringify({orderId:'01900000-1111-7111-8111-000000000042',sku:'known-paid-sku'})}),{TOSS_RELEASE_READY:'true'});
   assert.equal(denied.status,503);assert.equal((await denied.json()).error,'TOSS_PURCHASES_DISABLED');
+  if(endpoint==='/orders/grant')mocks.lookupOrder=async()=>({orderId:'01900000-1111-7111-8111-000000000042',sku:'known-paid-sku',status:'PURCHASED',purchaserMatched:false});
+  if(endpoint==='/orders/restore')mocks.lookupOrder=()=>assert.fail('partner lookup must not happen for an unattributed order');
  }}finally{mocks.purchase=previousPurchase;mocks.lookupOrder=previousOrder;}
  const response=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss/prepare',{method:'POST',headers:{Origin:'https://ai-saju-studio.apps.tossmini.com','Content-Type':'application/json',Authorization:'Bearer mock'},body:JSON.stringify(input())}),{TOSS_RELEASE_READY:'true'});
  assert.equal(response.status,503);assert.equal((await response.json()).error,'TOSS_PURCHASES_DISABLED');
@@ -751,4 +833,15 @@ test('production sales policy closes public catalogs and rejects raw prepare bef
   const catalog=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss/catalog',{headers:{Origin:'https://ai-saju-studio.apps.tossmini.com'}}),{});
   assert.equal(catalog.status,200);const products=(await catalog.json()).products;assert.ok(products.length);assert.ok(products.every(p=>p.available===false));
  }finally{mocks.approvedProducts.pop();}
+});
+
+test('premium compatibility routes keep the two-person report behind the Toss account and release gate',async()=>{
+  const base='/native/saju-compat-premium',path=base+'/results/'+'a'.repeat(64);
+  assert.equal((await request({input:{}},base+'/prepare',{TOSS_RELEASE_READY:'false'})).status,503);
+  mocks.denyAuth=true;
+  try{assert.equal((await request({},path)).status,401);}finally{mocks.denyAuth=false;}
+  assert.equal((await (await request({input:{}},base+'/prepare')).json()).owner,auth.ownerId);
+  const response=await request({},path);
+  assert.equal(response.status,200);
+  assert.deepEqual(await response.json(),{owner:auth.ownerId,id:'a'.repeat(64),advance:true});
 });

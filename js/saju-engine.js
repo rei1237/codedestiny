@@ -23818,10 +23818,36 @@ async function _seSajuCompatLlmDeliver(llm, ctx) {
     outcome = { ok: false, code: 'REVIEW_REQUIRED', retryable: false, clearPending: false };
   }
   if (outcome.clearPending) store.clear(llm.inputKey);
+  // 생성 한도에 걸려 보류된 건: 무료 다시 시도·환불 요청 패널(js/core/paid-narrative-retry.js). 다시 시도가 열리면
+  // 이어받기 본문을 대기 기록에 넣고 같은 runCompat 으로 다시 들어간다(_seSajuCompatLegacyPending 이 결제 없이 잇는다).
+  if (outcome.code === 'REVIEW_REQUIRED' && outcome.resultId && Number(outcome.status) === 202) {
+    var heldId = String(outcome.resultId);
+    setTimeout(function() { _seSajuCompatMountRetry(heldId, llm.inputKey, store); }, 0);
+    return { rendered: false, noticeHtml: '<div class="cd-compat-flow-notice" data-saju-compat-retry-host></div><button type="button" hidden data-action="runCompat" data-saju-compat-resume></button>' };
+  }
   var retry = outcome.retryable
     ? '<button type="button" class="cd-compat-flow-retry" data-action="runCompat">' + esc(t('sajuCompat.flow.retry')) + '</button>'
     : '';
   return { rendered: false, noticeHtml: '<div class="cd-compat-flow-notice" role="status"><p>' + esc(t(kit.flow.sajuCompatFailureKey(outcome.code))) + '</p>' + retry + '</div>' };
+}
+
+var _seSajuCompatRetryLoad = null;
+function _seSajuCompatMountRetry(resultId, inputKey, store) {
+  if (!_seSajuCompatRetryLoad) _seSajuCompatRetryLoad = window.CDPaidNarrativeRetry ? Promise.resolve(window.CDPaidNarrativeRetry) : new Promise(function(resolve, reject) {
+    var script = document.createElement('script'); script.src = '/js/core/paid-narrative-retry.js';
+    script.onload = function() { resolve(window.CDPaidNarrativeRetry); };
+    script.onerror = function() { _seSajuCompatRetryLoad = null; reject(new Error('paid-narrative-retry-missing')); };
+    document.head.appendChild(script);
+  });
+  _seSajuCompatRetryLoad.then(function(retry) {
+    var host = document.querySelector('[data-saju-compat-retry-host]');
+    if (!host) return;
+    retry.mount(host, { resultId: resultId, request: function(path, body) { return _seSajuCompatSend('POST', path, body); }, onResume: function(next) {
+      store.update(inputKey, { resumeBody: next, resultId: String(next.resumeResultId || resultId) });
+      var again = document.querySelector('[data-saju-compat-resume]');
+      if (again) again.click();
+    } });
+  }).catch(function() {});
 }
 
 /* ─── 무료 결과 아래 사주 고급 궁합 진입(달빛 예화) ─────────────────────────────

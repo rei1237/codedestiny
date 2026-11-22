@@ -19,6 +19,8 @@ export type PromptHubGateCopy = {
 type PromptHubLoginGateModalProps = {
   open: boolean;
   copy: PromptHubGateCopy;
+  onTossLogin?: () => Promise<void>;
+  busy?: boolean;
   signupHref: string;
   loginHref: string;
   onDismiss: () => void;
@@ -33,6 +35,8 @@ const BACKDROP_CLOSE_GUARD_MS = 400;
 export function PromptHubLoginGateModal({
   open,
   copy,
+  onTossLogin,
+  busy,
   signupHref,
   loginHref,
   onDismiss,
@@ -49,7 +53,7 @@ export function PromptHubLoginGateModal({
     if (!open) return;
     openedAtRef.current = Date.now();
     restoreFocusRef.current = document.activeElement as HTMLElement | null;
-    primaryRef.current?.focus();
+    (primaryRef.current || cardRef.current?.querySelector<HTMLElement>("[data-toss-login]"))?.focus();
     return () => {
       restoreFocusRef.current?.focus?.();
     };
@@ -81,6 +85,13 @@ export function PromptHubLoginGateModal({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onDismiss]);
+
+  useEffect(() => {
+    if (!open || !onTossLogin) return;
+    const back = (event: Event) => { event.preventDefault(); if (!busy) onDismiss(); };
+    window.addEventListener("code-destiny:toss-overlay-back", back);
+    return () => window.removeEventListener("code-destiny:toss-overlay-back", back);
+  }, [open, onTossLogin, onDismiss, busy]);
 
   const closeFromBackdrop = useCallback(() => {
     if (Date.now() - openedAtRef.current < BACKDROP_CLOSE_GUARD_MS) return;
@@ -137,7 +148,12 @@ export function PromptHubLoginGateModal({
           </ul>
 
           <div className="mt-5 grid gap-2">
-            <Link
+            {onTossLogin ? (
+              <button type="button" data-toss-login disabled={busy} onClick={onTossLogin}
+                className="min-h-[48px] rounded-2xl bg-[color:var(--tool-accent-strong)] px-5 text-sm font-black text-[color:var(--on-accent-strong)]">
+                {copy.login}
+              </button>
+            ) : <><Link
               ref={primaryRef}
               href={signupHref}
               onClick={onNavigate}
@@ -151,7 +167,7 @@ export function PromptHubLoginGateModal({
               className="inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-[color:var(--tool-accent)] px-5 text-sm font-black text-[color:var(--tool-accent-strong)] transition hover:bg-[color:var(--tool-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
             >
               {copy.login}
-            </Link>
+            </Link></>}
             <button
               type="button"
               onClick={onDismiss}

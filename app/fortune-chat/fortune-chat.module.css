@@ -293,6 +293,12 @@
 .input button { border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); background: var(--bubble); color: var(--ink); box-shadow: 0 10px 20px -16px var(--halo); transition: transform 150ms cubic-bezier(.22, 1, .36, 1), box-shadow 150ms cubic-bezier(.22, 1, .36, 1), border-color 150ms cubic-bezier(.22, 1, .36, 1); }
 .input button:not(:disabled):hover { border-color: var(--rose); box-shadow: 0 13px 24px -16px var(--halo); transform: translateY(-1px); }
 .error { color: color-mix(in srgb, var(--rose) 76%, #ff4d6d); }
+/* 보류된 유료 상담: 무료 다시 시도·환불 요청. 버튼은 48px 이상. */
+.retryPanel { display: grid; gap: 10px; padding: 16px; border: 1px solid color-mix(in srgb, var(--ink) 22%, transparent); border-radius: 14px; background: var(--bubble); color: var(--ink); }
+.retryPanel h3 { margin: 0; font-size: 1rem; }
+.retryPanel p { margin: 0; line-height: 1.6; }
+.retryPanel button { min-height: 48px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--ink) 30%, transparent); background: transparent; color: var(--ink); font-weight: 600; }
+.retryPanel button:first-of-type { border-color: var(--rose); }
 
 /* 남은 무료 횟수와 유료 전환 가격을 한 줄에서 읽히게 한다. */
 .policyRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; }

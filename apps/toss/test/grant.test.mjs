@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {mockSaleModule} from './mock-sale-module.mjs';
 const {grantVerifiedOrder}=await mockSaleModule('worker/toss/grant.js');
-const order={orderId:'01900000-1111-7111-8111-000000000001',sku:'approved-test-sku',status:'PAYMENT_COMPLETED'};
+const order={orderId:'01900000-1111-7111-8111-000000000001',sku:'approved-test-sku',status:'PAYMENT_COMPLETED',purchaserMatched:true};
 const product={sku:order.sku,productId:'saju_tuna',approvedPriceKRW:30000,priceEvidence:'mock-console-evidence'};
 const auth={_id:'toss-identity',ownerId:'internal-owner',revision:0,environment:'SANDBOX'};
 function fixture() {
@@ -77,6 +77,25 @@ test('chat order cannot fund the other persona even with identical product and o
 });
 
 
+test('first attribution requires purchaserMatched true; false, null and absent never create a ledger row',async()=>{
+ for(const purchaserMatched of [false,null,undefined]){const f=fixture();
+  await assert.rejects(grantVerifiedOrder({store:f.store,auth,order:{...order,purchaserMatched},product,enqueue:async()=>{}}),/ORDER_BUYER_UNVERIFIED/);
+  assert.equal(Object.keys(f.get().purchases).length,0);}
+ const f=fixture();const receipt=await grantVerifiedOrder({store:f.store,auth,order,product,enqueue:async()=>{}});assert.equal(receipt.durable,true);
+ assert.equal(Object.values(f.get().purchases)[0].buyerVerification,'PURCHASER_MATCHED');
+ // An already owned row is not re-gated: rereads stay available even if a later lookup omits the field.
+ assert.equal((await grantVerifiedOrder({store:f.store,auth,order:{...order,purchaserMatched:undefined},product,enqueue:async()=>{}})).durable,true);
+});
+test('closed policy allows a first row only for a buyer-proven restore',async()=>{
+ const {grantVerifiedOrder:closedGrant}=await import('../../../worker/toss/grant.js');
+ for(const purchaserMatched of [false,null,undefined]){const f=fixture();
+  await assert.rejects(closedGrant({store:f.store,auth,order:{...order,purchaserMatched},product,enqueue:async()=>{},closedRestore:true}),/TOSS_PURCHASES_DISABLED/);
+  assert.equal(Object.keys(f.get().purchases).length,0);}
+ const f=fixture();
+ await assert.rejects(closedGrant({store:f.store,auth,order,product,enqueue:async()=>{},closedRestore:'true'}),/TOSS_PURCHASES_DISABLED/);
+ assert.equal((await closedGrant({store:f.store,auth,order,product,enqueue:async()=>{},closedRestore:true})).durable,true);
+ assert.equal(Object.values(f.get().purchases)[0].buyerVerification,'PURCHASER_MATCHED');
+});
 test('closed policy rejects first attribution but preserves an already owned order',async()=>{
  const {grantVerifiedOrder:closedGrant}=await import('../../../worker/toss/grant.js');const f=fixture();
  const args={store:f.store,auth,order,product,enqueue:async()=>{}};

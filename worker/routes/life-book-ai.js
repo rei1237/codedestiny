@@ -28,6 +28,7 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 import { callGeminiText } from "../lib/gemini.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
+import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, softenTraitDoubleHedges, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
@@ -1474,7 +1475,12 @@ function lifeBookLuckJudgement(sajuSlice, section, lifeFortune) {
   return { natal, ...(rows.length ? { periods: rows } : {}) };
 }
 
-function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf = "" } = {}) {
+// Trait-First 대상: 인생의 책 1장(타고난 사주의 원형)만. 인생 총운(lifeFortune)과 승인 명식(sajuAuthority)은 제외(게이트 B).
+function isLifeBookTraitSection(input, section, sajuSlice) {
+  return !isLifeFortuneInput(input) && section?.kind === "chapter" && section.index === 0 && !sajuSlice?.sajuAuthority;
+}
+
+function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf = "", traitFirst = null, traitSeed = "" } = {}) {
   const lifeFortune = isLifeFortuneInput(input);
   const luckJudgement = lifeBookLuckJudgement(sajuSlice, section, lifeFortune);
   const birth = input.birthInfo || {};
@@ -1494,6 +1500,8 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf 
     "[계산 가능한 사주 명리 데이터]",
     JSON.stringify(sajuSlice),
     ...(sajuSlice?.sajuAuthority ? SAJU_AUTHORITY_PROMPT_RULES : sajuTemperamentPromptLines(sajuSlice)),
+    // OFF·옛 세션은 빈 배열이라 프롬프트가 바이트 단위로 같다.
+    ...(traitFirst && isLifeBookTraitSection(input, section, sajuSlice) ? sajuTraitFirstLines(sajuSlice, { traitFirst, seed: traitSeed }) : []),
     ...(luckJudgement ? ["[운 판정 — luckJudgement: 최종 용신·조후·십간 짝과 이 조각이 다루는 시기의 판정. 설명 근거로 쓰고 evidenceRefs 경로로는 적지 않는다]",
       JSON.stringify(luckJudgement), SAJU_LUCK_JUDGEMENT_RULE] : []),
     "",
@@ -3340,6 +3348,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         sections: {},
         // 장마다 문체가 섞이지 않게 생성 시작 시점 값을 고정한다(consultation-answer-contract.js).
         answerVoice: selectAnswerVoice(env),
+        // Trait-First: 새 세션만 생성 시작 때 고정. 키 없는 기존 세션은 끝까지 OFF.
+        ...(selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
         // 결제창이 사용자에게 보여준 금액. applyUsageOnce 가 현재가 대신 이 값을 쓰므로
         // SKU 가격이 바뀌어도 진행 중 세션이 안내와 다른 금액으로 차감되지 않는다.
         pricingSnapshot: {
@@ -3474,8 +3484,9 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
               ? { ...section, targetChars: Math.round(section.targetChars * 1.25) }
               : section;
             const digest = buildSectionDigest(plan, sections, section.id);
+            const traitFirst = pinTraitFirst(lock.doc?.llmMeta ?? {}, env), traitSeed = `${clean(auth.userId)}|life-book-ai`;
             const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest, {
-              priorHalf: buildPriorHalfExcerpt(plan, sections, section),
+              priorHalf: buildPriorHalfExcerpt(plan, sections, section), traitFirst, traitSeed,
             });
             const result = await runWithAiLocale(storedAiLocale(lock.doc), async () => generateSectionOnce(env, boosted, prompt, {
               consultationType,
@@ -3502,6 +3513,20 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             const priorValid = stored?.ok && lifeBookSectionValid(section, stored.body, normalized.input);
             const keepPrior = priorValid && (!valid(result) || sectionBodyChars(section, stored.body) >= sectionBodyChars(section, result.body));
             result.ok = Boolean(valid(result));
+            // Trait-First shadow 검증: 기록만 한다. ok·재시도·전달 판정에 쓰지 않는다(게이트 B 설계 제약 4).
+            if (traitFirst && result.ok && isLifeBookTraitSection(normalized.input, section, pickSajuSlice(sajuResult, section.evidenceRefs))) {
+              // 겹친 완곡만 한 겹으로 줄이는 결정적 교정. ok 판정 뒤라 길이·재시도·전달에 영향이 없고, 실패해도 원문 그대로 간다.
+              try {
+                const content = result.body?.content;
+                const softened = softenTraitDoubleHedges(content);
+                if (typeof content === "string" && softened !== content) {
+                  result.body = { ...result.body, content: softened };
+                  result.chars = sectionBodyChars(section, result.body);
+                }
+              } catch { /* 원문 유지 */ }
+              const shadow = traitFirstShadowCheck(pickSajuSlice(sajuResult, section.evidenceRefs), clean(result.body?.content, 20000), { traitFirst, seed: traitSeed });
+              if (shadow) logLifeBookAi("Trait First Shadow", { sessionId, ok: shadow.ok, issues: shadow.issues, headline: shadow.headline }, shadow.ok ? "info" : "warn");
+            }
             // L1: 결정적 공급자 오류(400·401·403·404·한도 등)는 같은 공급자로 남은 시도를 쓰지 않고 곧장 마지막 시도
             // (보조 공급자 폴백 허용)로 넘긴다. 지원 복구는 폴백을 끄므로 건너뛰지 않는다. 마지막 시도도 실패하면 아래 throw.
             const fastForward = Boolean(result.failure && result.failure.retryable === false && !lastChance && !recovery && !keepPrior);

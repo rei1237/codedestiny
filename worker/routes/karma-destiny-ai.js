@@ -1,6 +1,7 @@
 import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
+import { sajuTraitFirstLines, selectTraitFirst, traitFirstShadowCheck } from '../lib/trait-profile/index.js';
 import { sajuAuthorityOn } from '../lib/saju-authority-consumer.js';
 import { createHash } from "node:crypto";
 import {lunarToSolar} from "../../lib/korean-calendar/index.js";
@@ -55,7 +56,8 @@ import {
 } from "../lib/karma-destiny-ai-calculations.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody, releaseRequestBillingEvidence } from "../lib/billing-evidence-claim.js";
-import { STUCK_LIVE_LEASE_MS, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
+import { settleFailedConsultationRefund } from "../lib/consultation-delivery-refund.js";
+import { STUCK_LIVE_LEASE_MS, settleStuckRetryFirst, logStuckSettled, retryableFailureMeta, publicRetryState, reopenRetryableConsultation, markRetryableRefundDue, expireRetryableConsultations } from "../lib/paid-delivery-stuck.js";
 
 const SERVICE_KEY = "karma-destiny-ai";
 const FEATURE_KEY = "karma-destiny-ai-consultation";
@@ -2168,6 +2170,8 @@ function buildChapterPrompt(consultation, definition, context = {}) {
     // (후속 질문 경로는 장 개념이 없어 #224 의 직렬화기를 그대로 쓴다.)
     "[계산 근거 · 다섯 렌즈]",
     buildLensDigest(consultation.integratedResult, definition),
+    // 성향 장(chapter-00, 장 구성 판 2)에만 핵심 근거를 덧붙인다. OFF·옛 문서는 빈 배열이라 프롬프트가 바이트 단위로 같다.
+    ...(definition.id === KARMA_DISPOSITION_CHAPTER.id ? sajuTraitFirstLines(lensesForChapter.saju?.data, { traitFirst: consultation.llmMeta?.traitFirst, seed: `${clean(consultation.userId)}|karma-destiny-ai` }) : []),
     buildRelationshipPrompt(consultation.integratedResult?.relationshipAnalysis, definition.id),
     "",
     "[이 장의 렌즈 구성]",
@@ -2285,6 +2289,11 @@ async function generateOneChapter(env, consultation, definition, context = {}) {
     if (context.singleAttempt && !context.lastAttempt && safeArray(raw?.keyTakeaways).filter(Boolean).length < 3) return { ok: false, definition, reason: "CHAPTER_TAKEAWAYS_MISSING" };
     if (!clean(raw?.content)) {
       return { ok: false, definition, reason: "EMPTY_CHAPTER_CONTENT" };
+    }
+    // Trait-First shadow 검증: 기록만 한다. 판정·재생성·전달에 쓰지 않는다(게이트 B 설계 제약 4).
+    if (definition.id === KARMA_DISPOSITION_CHAPTER.id && consultation.llmMeta?.traitFirst) {
+      const shadow = traitFirstShadowCheck(consultation.integratedResult?.lenses?.saju?.data, clean(raw.content), { traitFirst: consultation.llmMeta.traitFirst, seed: `${clean(consultation.userId)}|karma-destiny-ai` });
+      if (shadow) logKarmaAi("Trait First Shadow", { sessionId: clean(consultation.id), ok: shadow.ok, issues: shadow.issues, headline: shadow.headline }, shadow.ok ? "info" : "warn");
     }
     return {
       ok: true,
@@ -2781,6 +2790,8 @@ async function handleStart(request, env, recoveryAuth = null, options = {}) {
   const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
   const seed = {
     llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody, ...(!existing?.llmMeta && selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
+      // Trait-First(TRAIT_FIRST_SAJU): 새 세션만 생성 시작 때 고정한다. 기존·진행 중 문서는 키가 없어 끝까지 OFF.
+      ...(!existing?.llmMeta && selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
       // 장 구성 판: 이미 쓴 장이 있는 문서는 그 판 그대로(저장값이 없으면 1), 장이 하나도 없으면 새 판(2)으로 시작한다.
       chapterPlanVersion: resumedChapters.length ? karmaPlanVersion(existing) : KARMA_CHAPTER_PLAN_VERSION },
     id: sessionId,
@@ -3317,6 +3328,20 @@ async function settleKarmaRetryRefund(env, { id, userId }, model = KarmaDestinyA
   if (meta.retryable.refundSettledAt) return { refundStatus: clean(meta.retryable.refundStatus) || "requested" };
   const requestId = clean(fresh.idempotencyKey, 180);
   const reason = clean(meta.retryable.refundReason || "RETRY_REFUND", 80);
+  // 2026-11-22 F1: 이미 청구된 현금·월정석 건은 공용 환불(PG 취소·월정석 복원·실행 기록 refunded)로 돌려준다.
+  // 보류 차감(deferredUsage)은 아직 청구 전이라 아래 기존 취소 경로를 그대로 탄다. pending 은 표시하지 않아 크론이 다시 부른다.
+  const billed = asObject(fresh.billingState);
+  if (["paid", "monthly_credit"].includes(clean(fresh.accessType)) && !(billed.deferredUsage && !fresh.usageAppliedAt)) {
+    const shared = await settleFailedConsultationRefund(env, { service: "karma-destiny-ai", id: owner.id, userId: owner.userId });
+    const sharedStatus = clean(shared?.refundStatus);
+    if (sharedStatus !== "refunded" && sharedStatus !== "manual_review") return { refundStatus: "pending" };
+    await releaseRequestBillingEvidence(env, { userId: owner.userId, requestId, evidenceIds: startEvidenceIds(fresh) })
+      .catch(releaseError => logKarmaAi("Retry evidence release failed", { message: clean(releaseError?.message || releaseError, 300) }, "warn"));
+    await model.updateOne({ ...owner, status: "generation_failed" }, { $set: {
+      "llmMeta.retryable.refundSettledAt": new Date(now).toISOString(), "llmMeta.retryable.refundStatus": sharedStatus } });
+    logStuckSettled({ service: "karma-destiny-ai", sessionId: owner.id, outcome: "retry_refund", refundStatus: sharedStatus });
+    return { refundStatus: sharedStatus };
+  }
   const pass = requestId ? await refundPassUseEvidence({ userId: owner.userId, featureKey: FEATURE_KEY, requestId, refundId: `karma-destiny-ai:${requestId}` }) : null;
   let usageCancelled = false;
   const billingState = asObject(fresh.billingState);
@@ -3354,6 +3379,20 @@ export async function settleDueKarmaRetryRefunds(env, { now = Date.now(), model 
     catch { outcomes.push({ service: "karma-destiny-ai", refundStatus: "pending" }); }
   }
   return outcomes;
+}
+
+// 2026-11-22 D: 복구 크론의 정체 확정(다시 시도 우선). 창 안은 다시 시도 가능 상태로 두고(장 보존), 창이 지나면 기존 보류 환불로 1회 정산.
+// 카르마의 보류 환불은 문서의 accessType·billingState·요청 키로 정산하므로 접근 증빙 스냅숏이 필요 없다.
+// 생성 중 표시는 generationProgress.lockedAt(120초) + updatedAt 이다.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  await connectDb(env);
+  const target = model || KarmaDestinyAiConsultation;
+  return settleStuckRetryFirst({ service: "karma-destiny-ai", model: target, doc, now,
+    failedFields: { "generationProgress.lockToken": "", "generationProgress.lockedAt": null },
+    isLive: (fresh, at) => at - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS
+      || at - new Date(fresh.generationProgress?.lockedAt || 0).getTime() < PREMIUM_BATCH_LOCK_TTL_MS,
+    hold: fresh => fresh.accessSource !== "toss",
+    settleRefund: owner => settleKarmaRetryRefund(env, owner, target, now) });
 }
 
 export async function handleKarmaDestinyAiRoutes(request, env = {}) {

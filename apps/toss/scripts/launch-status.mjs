@@ -65,7 +65,8 @@ const report={
  duplicateApprovedSkus:[...skuCounts].filter(([,count])=>count>1).map(([sku,count])=>({sku,count})),
  releaseConfiguration:releaseSource.match(/SERVICE_AVAILABLE\s*=\s*(true|false)/)?.[1]||'unknown',
  newPurchasesConfiguration:releaseSource.match(/NEW_PURCHASES_AVAILABLE\s*=\s*(true|false)/)?.[1]||'unknown',
- nextSteps:'docs/toss/feature-matrix.md',
+ publicReleaseAuthorization:'requires_final_approval_after_full_service_validation',
+ nextSteps:'docs/toss/release-preparation-20261122.md',
  limitation:'로컬 코드 목록입니다. 콘솔 승인, 실기기, CI, 업로드 및 출시 상태를 증명하지 않습니다.',
 };
 console.log(JSON.stringify(report,null,2));

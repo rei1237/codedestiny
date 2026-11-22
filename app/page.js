@@ -1,7 +1,9 @@
 import HomeQuestionGuide from './components/HomeQuestionGuide';
 import HomeInstallEntry from './components/HomeInstallEntry';
 import StoryDiscovery from './consultations/StoryDiscovery';
+import Image from 'next/image';
 import Link from 'next/link';
+import { productMasters } from '../components/fortune/master-profiles';
 import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import { buildServiceJsonLd, buildWebPageJsonLd, buildAuthorPersonJsonLd } from "../lib/structured-data";
 import { serializeJsonLd } from "../lib/seo/json-ld.mjs";
@@ -19,6 +21,7 @@ import HomeMoonlitEntry from "./components/HomeMoonlitEntry";
 import PopularTop5 from "./components/PopularTop5";
 import { POPULAR_TOP5_ENABLED } from "../js/core/popular-top5.mjs";
 import TrustRecordLine from "./components/conversion/TrustRecordLine";
+import { trustRecordCopy } from "../lib/marketing/trust-record.mjs";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
@@ -114,13 +117,15 @@ export default function HomePage() {
         <HomeCardDeck className={styles.deck} interactive={!IS_APP_BUILD} labelledBy={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>
           {CARDS.map((card, index) => {
             const linkProps = { href: card.href, className: styles.cardLink, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
-            return <li key={card.key} data-home-card={card.key} className={`${styles.card} ${styles[card.className]}`} data-yn-night={card.night ? "" : undefined}>
+            const art = IS_APP_BUILD ? `${ART}/app-library-${card.art}` : `${ART}/root-card-${card.art}`;
+            const revision = IS_APP_BUILD ? "" : CARD_ART_REV;
+            return <li key={card.key} data-home-card={card.key} className={`${styles.card} ${styles[card.className]}${IS_APP_BUILD ? ` ${styles.nativeCard}` : ""}`} data-yn-night={card.night ? "" : undefined}>
 
               {!IS_APP_BUILD && <span className={styles.cardNumeral} aria-hidden="true">{index === 0 ? "I" : "II"}</span>}
               <picture className={styles.cardArt}>
-                <source type="image/avif" srcSet={`${ART}/root-card-${card.art}-360.avif${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.avif${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} />
+                {!IS_APP_BUILD && <source type="image/avif" srcSet={`${art}-360.avif${revision} 360w, ${art}-600.avif${revision} 600w`} sizes={CARD_ART_SIZES} />}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={`${ART}/root-card-${card.art}-360.webp${CARD_ART_REV}`} srcSet={`${ART}/root-card-${card.art}-360.webp${CARD_ART_REV} 360w, ${ART}/root-card-${card.art}-600.webp${CARD_ART_REV} 600w`} sizes={CARD_ART_SIZES} width={360} height={480} alt="" decoding="async" fetchPriority={index === 0 ? "high" : undefined} />
+                <img src={`${art}-360.webp${revision}`} srcSet={`${art}-360.webp${revision} 360w, ${art}-600.webp${revision} 600w`} sizes={CARD_ART_SIZES} width={360} height={480} alt="" decoding="async" fetchPriority={index === 0 ? "high" : undefined} />
               </picture>
               <div className={styles.cardCopy}><h2 className={styles.cardName}>
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
@@ -133,6 +138,24 @@ export default function HomePage() {
             </li>;
           })}
         </HomeCardDeck>
+        {IS_APP_BUILD && <section className={styles.nativeMasters} aria-labelledby="nativeMastersTitle">
+          <Image src="/images/home/fusion-signature-masters-600.webp" alt="" width={600} height={400} />
+          <div className={styles.nativeMastersCopy}>
+            <h2 id="nativeMastersTitle"><NativeHomeText>다섯 마스터가 읽는 여섯 가지 운세</NativeHomeText></h2>
+            <p><NativeHomeText>사주·자미두수·숙요점·베다점·서양 점성술·타로의 근거를 각각 살핀 뒤, AI가 고민에 맞는 해석을 풀어 드려요.</NativeHomeText></p>
+            <ul className={styles.nativeMasterList}>
+              {productMasters.fusion.map(({ name, role }) => <li key={name}>
+                <strong><NativeHomeText>{name}</NativeHomeText></strong>
+                <span><NativeHomeText>{role}</NativeHomeText></span>
+              </li>)}
+            </ul>
+            <p><NativeHomeText>{trustRecordCopy.full}</NativeHomeText></p>
+            <div className={styles.nativeMasterActions}>
+              <Link href="/consultations/" prefetch={false}><NativeHomeText>마스터 상담 둘러보기</NativeHomeText></Link>
+              <Link href={trustRecordCopy.href} prefetch={false}><NativeHomeText>공개 원문과 실제 사건 비교하기</NativeHomeText></Link>
+            </div>
+          </div>
+        </section>}
         {/* 실제 인기 순위 TOP5(최근 30일 구매, 2026-11-21 사용자 요청). 끄기: js/core/popular-top5.mjs 의 POPULAR_TOP5_ENABLED */}
         {!IS_APP_BUILD && POPULAR_TOP5_ENABLED && <PopularTop5 />}
         <HomeMoonlitEntry />

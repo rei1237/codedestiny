@@ -22264,7 +22264,8 @@
       "review": "No se pudo terminar la lectura de IA. Se conservan el pago y el contenido guardado para revisión de soporte. Abajo aparece la lectura básica.",
       "revoked": "No se puede continuar un resultado con pago cancelado o reembolsado. Abajo aparece la lectura básica.",
       "retry": "Continuar la lectura de IA",
-      "moduleFail": "No se pudo cargar la pantalla de IA. No se efectuó ningún pago. Inténtalo de nuevo en breve."
+      "moduleFail": "No se pudo cargar la pantalla de IA. No se efectuó ningún pago. Inténtalo de nuevo en breve.",
+      "inputInvalid": "Revisa la fecha y la hora de nacimiento introducidas. Una solicitud detenida en la validación no se cobra; si ya pagaste, el pago se conserva y soporte lo reembolsará o restaurará. Abajo aparece la lectura básica."
     },
     "archive": {
       "title": "Historial de compatibilidad Saju",

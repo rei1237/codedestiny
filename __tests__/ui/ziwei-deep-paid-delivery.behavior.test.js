@@ -568,3 +568,16 @@ test('토스 주문으로 원본 15장 전달 후 동일 주문과 소유자만 
   assert.equal((await f.post({resumeReportId:f.doc.id})).status,404);
   await assert.rejects(f.ctx.runZiweiDeepReportDeliveryBatch(req,{}, {resumeReportId:f.doc.id},{...auth,assertTossReport:async()=>{throw Error('ORDER_REFUNDED');}}),/ORDER_REFUNDED/);
 });
+
+test('결제 확인 뒤 기록 전에 명반 계산이 실패하면 원래 결제를 되돌리고 422 에 refunded 를 싣는다', async () => {
+  const f = fixture('paid');
+  f.ctx.calculateZiweiConsumerChart = () => { throw new Error('mock chart failure'); };
+  const response = await f.post();
+  assert.equal(response.status, 422);
+  const payload = await response.json();
+  assert.equal(payload.reason, 'CALCULATION_FAILED');
+  assert.equal(payload.refunded, true);
+  assert.equal(f.starts, 1); assert.equal(f.refunds, 1); assert.equal(f.calls, 0); assert.equal(f.doc, null);
+  f.permitted(false);
+  assert.equal((await f.post()).status, 402); assert.equal(f.refunds, 1);
+});

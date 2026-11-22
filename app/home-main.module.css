@@ -80,6 +80,48 @@
 .card::before { content: ''; position: absolute; inset: 4px; z-index: 2; border: 1px solid var(--hm-card-edge); border-radius: calc(var(--cd-r-card) - 4px); pointer-events: none; }
 .yeoniCard { --hm-card-ink: var(--cd-samples-ink); --hm-card-muted: var(--cd-samples-muted); --hm-card-bg: var(--cd-samples-paper); --hm-card-edge: color-mix(in srgb, var(--cd-yehwa-line) 70%, var(--cd-samples-line)); }
 .ynCard { --hm-card-ink: var(--yn-ivory); --hm-card-muted: var(--yn-muted); --hm-card-bg: var(--yn-night); --hm-card-edge: var(--yn-gold); --hm-card-angle: 2deg; }
+.nativeCard {
+  --hm-card-ink: #fff2df;
+  --hm-card-muted: #efcfbf;
+  --hm-card-bg: #351320;
+  --hm-card-edge: #c69b62;
+}
+.nativeMasters {
+  width: min(100%, 720px);
+  overflow: hidden;
+  border: 1px solid #b89262;
+  border-radius: var(--cd-r-card);
+  background: #301320;
+  color: #fff2df;
+}
+.nativeMasters > img { display: block; width: 100%; height: auto; }
+.nativeMastersCopy { display: grid; gap: 12px; padding: clamp(16px, 4vw, 32px); }
+.page .nativeMasters h2 { color: #fff2df; font-size: clamp(1.3rem, 5vw, 2rem); }
+.page .nativeMasters p { color: #f4daca; font-size: .9rem; line-height: 1.65; word-break: keep-all; }
+.nativeMasterList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr));
+  gap: 10px 16px;
+  margin: 0;
+  padding: 12px 0;
+  border-block: 1px solid #8e674f;
+  list-style: none;
+}
+.nativeMasterList li { display: grid; gap: 3px; align-content: start; }
+.nativeMasterList strong { color: #ffe2ad; }
+.nativeMasterList span { color: #f4daca; font-size: .82rem; }
+.nativeMasterActions { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.nativeMasterActions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: #ffe2ad;
+  font-size: .875rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.nativeMasterActions a:focus-visible { outline-color: #ffe2ad; }
 .cardArt { display: block; flex: none; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--hm-card-edge); border-radius: calc(var(--cd-r-card) - 8px); }
 .cardArt img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 40%; transform: translate(var(--hm-px, 0px), var(--hm-py, 0px)) scale(1.04); transition: transform 450ms cubic-bezier(.16,1,.3,1); }
 .cardCopy { display: flex; flex-direction: column; align-items: center; flex: 1; padding: 14px 4px 4px; text-align: center; }
@@ -150,11 +192,12 @@
 @media(max-width:640px) { .cardAction { font-size: .875rem; gap: 4px; } .cardAction svg { display: none; } .cardAction::before { width: 16px; height: 16px; } }
 
 /* Two service doors retain their original flower and moon identities. */
-.yeoniCard .cardAction { background: var(--cd-samples-blush); border-color: var(--cd-samples-line); }
+.yeoniCard:not(.nativeCard) .cardAction { background: var(--cd-samples-blush); border-color: var(--cd-samples-line); }
 .ynCard .cardAction::before { mask-image: var(--yn-yehwa-mask-sparkle); }
 .cardAction { box-shadow: inset 0 0 0 3px var(--hm-card-bg); transition: background-color var(--cd-dur-fast) var(--cd-ease-out), border-color var(--cd-dur-fast) var(--cd-ease-out); }
 .footer { max-width: 1040px; margin-inline: auto; }
 @media(hover:hover) { .card:hover .cardAction { background: color-mix(in oklab, var(--hm-card-ink) 12%, var(--hm-card-bg)); } }
+.yeoniCard.nativeCard .cardAction { background: #f3d493; color: #351320; border-color: #f3d493; }
 @media(max-width:22rem) { .page .deck { grid-template-columns: minmax(0,1fr); max-width: 20rem; } }
 @media(prefers-reduced-motion:reduce) { .cardAction { transition: none; } }
 

@@ -69,6 +69,8 @@ test('재개방한 문서의 정체 나이는 재개방 시각부터 재고, 환
   const heukwol = { createdAt: new Date(START), metadata: { retryReopenedAt: new Date(day6) } };
   expect(stuck.shouldSettleStuck(generic, day6 + 600000)).toBe(false);
   expect(stuck.shouldSettleStuck(heukwol, day6 + 600000)).toBe(false);
+  const naming = { createdAt: new Date(START), result: { namingPrompt: { retryable: { reopenedAt: new Date(day6) } } } };
+  expect(stuck.shouldSettleStuck(naming, day6 + 600000)).toBe(false);
   expect(stuck.shouldSettleStuck({ createdAt: new Date(START) }, day6 + 600000)).toBe(true);
   expect(stuck.shouldSettleStuck({ ...generic, deliveryWatch: { stalls: 6 } }, day6 + 600000)).toBe(true);
   expect(stuck.retryRefundAt(generic, day6).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);
@@ -382,4 +384,74 @@ test('모델이 없는 어댑터는 자기 recordDeliveryWatch 로 진전을 기
       loadAdapter: async () => ({ findRecoverableConsultations: async () => [{ resultId: 'r1', userId: 'owner' }], resumeConsultationOnServer: async () => new Response('{}', { status: 202 }), recordDeliveryWatch }) });
   } finally { log.mockRestore(); }
   expect(recordDeliveryWatch).toHaveBeenCalledWith({}, expect.objectContaining({ resultId: 'r1' }), START);
+});
+
+// 2026-11-22 D: 자체 다시 시도·보류 환불이 있는 라우트(R10)의 정체 확정 공용 헬퍼.
+describe('settleStuckRetryFirst', () => {
+  const quiet = async work => { const warn = jest.spyOn(console, 'warn').mockImplementation(() => {}); try { return await work(); } finally { warn.mockRestore(); } };
+  const settle = (model, now, extra = {}) => quiet(() => stuck.settleStuckRetryFirst({ service: 'svc', model, doc: { id: 'session-1', userId: 'owner' }, now,
+    snapshot: async () => ({ evidenceType: 'direct_payment', paymentDocId: 'p1', prepaid: true }), settleRefund: async () => ({ refundStatus: 'refunded' }), ...extra }));
+
+  test('창 안의 정체는 저장된 장을 두고 다시 시도 가능으로 둔다(환불 없음, 접근 증빙 보존)', async () => {
+    const model = memoryModel(baseDoc('partial'));
+    const settleRefund = jest.fn();
+    expect(await settle(model, START + 3600000, { settleRefund })).toEqual({ outcome: 'retryable', refundAt: new Date(START + 7 * 86400000).toISOString() });
+    expect(model.doc).toMatchObject({ status: 'generation_failed', generationError: { code: 'DELIVERY_STUCK' },
+      llmMeta: { savedSections: ['a'.repeat(3000)], retryable: { code: 'DELIVERY_STUCK', access: { evidenceType: 'direct_payment', paymentDocId: 'p1' } } } });
+    expect(model.doc.llmMeta.refundEligibleAt).toBeUndefined();
+    expect(settleRefund).not.toHaveBeenCalled();
+    expect((await stuck.reopenRetryableConsultation(model, { id: 'session-1', userId: 'owner' }, START + 7200000)).ok).toBe(true);
+  });
+
+  test('창이 지난 정체는 환불 대상으로 넘기고 서비스의 보류 환불을 한 번 부른다', async () => {
+    const model = memoryModel(baseDoc('partial'));
+    const settleRefund = jest.fn(async () => ({ refundStatus: 'refunded' }));
+    expect(await settle(model, START + 8 * 86400000, { settleRefund })).toEqual({ outcome: 'generation_failed', refundStatus: 'refunded' });
+    expect(settleRefund).toHaveBeenCalledWith({ id: 'session-1', userId: 'owner' });
+    expect(model.doc.llmMeta).toMatchObject({ refundEligibleAt: expect.any(String), retryable: { refundReason: 'RETRY_WINDOW_EXPIRED', access: { paymentDocId: 'p1' } } });
+    expect(await settle(model, START + 8 * 86400000, { settleRefund })).toEqual({ outcome: 'progressed' });
+    expect(settleRefund).toHaveBeenCalledTimes(1);
+  });
+
+  test('살아 있는 생성은 leased, 보류 대상이 아닌 문서(토스)는 손대지 않고 unsettled, 증빙 조회 실패는 pending', async () => {
+    const live = memoryModel(baseDoc('partial'));
+    expect(await settle(live, START + 3600000, { isLive: () => true })).toEqual({ outcome: 'leased' });
+    const toss = memoryModel(baseDoc('partial', { accessSource: 'toss' }));
+    expect(await settle(toss, START + 3600000, { hold: doc => doc.accessSource !== 'toss' })).toEqual({ outcome: 'unsettled' });
+    const failing = memoryModel(baseDoc('partial'));
+    expect(await settle(failing, START + 3600000, { snapshot: async () => { throw new Error('db'); } })).toEqual({ outcome: 'pending' });
+    for (const model of [live, toss, failing]) expect(model.doc.status).toBe('partial');
+  });
+
+  test('표지 위치(metaKey)와 소유 키(idKey)를 서비스별로 바꿀 수 있다', async () => {
+    const model = memoryModel({ _id: 'x', executionId: 'exec-1', userId: 'owner', status: 'generating', createdAt: new Date(START), updatedAt: new Date(START), result: { namingPrompt: { body: 'kept' } } });
+    const out = await quiet(() => stuck.settleStuckRetryFirst({ service: 'svc', model, doc: { executionId: 'exec-1', userId: 'owner' }, now: START + 3600000, idKey: 'executionId', metaKey: 'result.namingPrompt' }));
+    expect(out.outcome).toBe('retryable');
+    expect(model.doc.result.namingPrompt).toMatchObject({ body: 'kept', retryable: { code: 'DELIVERY_STUCK' } });
+  });
+});
+
+test('설정자가 unsettled 로 돌려주면 크론은 기존처럼 이어쓴다', async () => {
+  const model = memoryModel(baseDoc('partial', { deliveryWatch: { baseline: 1, stalls: 6 } }));
+  const resume = jest.fn(async () => new Response('{}', { status: 202 }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await runConsultationRecovery({}, { now: START + 3600000, connectDb: async () => {}, adapters: [[stuck.STUCK_SETTLERS[0], 'M', {}]], models: { M: model },
+      loadAdapter: async () => ({ resumeConsultationOnServer: resume, settleStuckDelivery: async () => ({ outcome: 'unsettled' }) }) });
+  } finally { log.mockRestore(); }
+  expect(resume).toHaveBeenCalledTimes(1);
+});
+
+// 2026-11-22 감사 B2: 증빙 조회 실패(pending)도 이어쓰기·회전을 거친다. 건너뛰면 가장 오래된 한 건이 서비스 크론을 7일간 막는다.
+test('설정자가 pending 으로 돌려주면 크론은 이어쓰고 updatedAt 을 회전한다', async () => {
+  const model = memoryModel(baseDoc('partial', { deliveryWatch: { baseline: 1, stalls: 6 } }));
+  const before = model.doc.updatedAt.getTime();
+  const resume = jest.fn(async () => new Response('{}', { status: 202 }));
+  const log = jest.spyOn(console, 'log').mockImplementation(() => {});
+  try {
+    await runConsultationRecovery({}, { now: START + 3600000, connectDb: async () => {}, adapters: [[stuck.STUCK_SETTLERS[0], 'M', {}]], models: { M: model },
+      loadAdapter: async () => ({ resumeConsultationOnServer: resume, settleStuckDelivery: async () => ({ outcome: 'pending' }) }) });
+  } finally { log.mockRestore(); }
+  expect(resume).toHaveBeenCalledTimes(1);
+  expect(model.doc.updatedAt.getTime()).toBeGreaterThan(before);
 });

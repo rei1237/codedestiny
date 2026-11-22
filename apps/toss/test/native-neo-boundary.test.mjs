@@ -9,7 +9,7 @@ const auth={_id:'identity',ownerId:'owner',userId:'owner',revision:1,userKey:'12
 const product={approved:true,nativeService:'neo',sku:'offline-tea',featureKey:'neo-operation-room-consultation',
   productId:'native:neo:neo-operation-room-consultation',approvedPriceKRW:6000,priceEvidence:'offline fixture'};
 const input={idempotencyKey:'original-neo-request',question:'원본 질문'};
-const order={orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED'};
+const order={orderId:'01900000-1111-7111-8111-000000000042',sku:product.sku,status:'PURCHASED',purchaserMatched:true};
 const state={rows:[],purchases:[],catalog:[product],order,doc:null,identity:true,lookups:0,web:0,refunds:0};
 const matches=(row,query)=>Object.entries(query).every(([key,value])=>row?.[key]===value);
 const query=value=>({lean:async()=>value,sort(){return this;},limit(){return this;}});

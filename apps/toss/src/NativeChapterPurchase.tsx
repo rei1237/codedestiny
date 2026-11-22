@@ -3,7 +3,7 @@ import {nativeSaleProducts,paymentRequiresReview,type NativeSaleProduct} from '.
 import {checkoutNativeInput} from './checkoutNativeInput';
 import {Button} from './Button';
 
-type Props={service:'compass'|'ziwei-deep';feature:string;prefix:string;route:string;owner:string;onLogin:()=>void;keyInput:unknown[];makePayload:(id:string)=>unknown;disabled?:boolean};
+type Props={service:'compass'|'ziwei-deep'|'saju-compat-premium';feature:string;prefix:string;route:string;owner:string;onLogin:()=>void;keyInput:unknown[];makePayload:(id:string)=>unknown;disabled?:boolean};
 export default function NativeChapterPurchase({service,feature,prefix,route,owner,onLogin,keyInput,makePayload,disabled=false}:Props){
   const [sale,setSale]=useState<NativeSaleProduct|null>(null),[loaded,setLoaded]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[refresh,setRefresh]=useState(0);
   const version=useRef(0),flight=useRef(false),cancel=useRef<()=>void>(()=>{});

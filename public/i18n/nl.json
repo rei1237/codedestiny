@@ -22264,7 +22264,8 @@
       "review": "De AI-duiding is nog niet afgerond. Betaling en opgeslagen inhoud blijven bewaard voor controle door ondersteuning. De basisduiding staat hieronder.",
       "revoked": "Een resultaat bij een geannuleerde of terugbetaalde betaling kan niet worden voortgezet. De basisduiding staat hieronder.",
       "retry": "AI-duiding voortzetten",
-      "moduleFail": "Het AI-scherm kon niet worden geladen. Er is geen betaling gedaan. Probeer het zo opnieuw."
+      "moduleFail": "Het AI-scherm kon niet worden geladen. Er is geen betaling gedaan. Probeer het zo opnieuw.",
+      "inputInvalid": "Controleer de ingevoerde geboortedatum en geboortetijd. Een verzoek dat bij de invoercontrole stopt, wordt niet in rekening gebracht; een al gedane betaling blijft bewaard en ondersteuning betaalt die terug of herstelt die. De basisduiding staat hieronder."
     },
     "archive": {
       "title": "Saju-compatibiliteitsarchief",

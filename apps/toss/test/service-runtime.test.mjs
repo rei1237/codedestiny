@@ -93,6 +93,7 @@ test('release transport preserves input, query, cancellation and never falls bac
 test('canonical catalog is fail-closed; profiles use owner-scoped immutable retries',async()=>{
  const saved=new Map(),writes=[];
  globalThis.__canonicalProfileStore={findOneAndUpdate(filter,update){writes.push({filter,update});const key=String(filter.userId)+':'+filter.profileId;if(!saved.has(key))saved.set(key,update.$setOnInsert);return {lean:async()=>saved.get(key)};},find(filter){return {sort:()=>({lean:async()=>[...saved.values()].filter(row=>row.userId===filter.userId)})};}};
+ globalThis.__canonicalProfileStore.findOne=filter=>({lean:async()=>saved.get(filter.userId+':'+filter.profileId)});
  const compiled=await build({entryPoints:[fileURLToPath(new URL('../../../worker/toss/canonical-yeongnyangi.js',import.meta.url))],bundle:true,write:false,platform:'node',format:'esm',plugins:[{name:'no-db-or-llm',setup(build){
   build.onResolve({filter:/\/yeongnyangi\/service\.ts$/},()=>({path:'service',namespace:'isolate'}));
   build.onResolve({filter:/\/lib\/models\.js$/},()=>({path:'models',namespace:'isolate'}));
@@ -120,6 +121,18 @@ test('canonical catalog is fail-closed; profiles use owner-scoped immutable retr
   assert.equal((await canonicalModule.canonicalProfiles({ownerId:'owner-a'})).profiles[0].name,'first');
   assert.equal((await canonicalModule.canonicalProfiles({ownerId:'owner-b'})).profiles[0].name,'second');
   assert.ok(writes.every(row=>row.filter.userId&&row.update.$set===undefined));
+  globalThis.__canonicalProfileStore.findOneAndUpdate=(filter,update,options)=>({lean:async()=>{
+    assert.equal(options.upsert,undefined);
+    const key=filter.userId+':'+filter.profileId,card=saved.get(key);
+    if(!card||Number(card.updatedAt)!==Number(filter.updatedAt)&&!(card.updatedAt==null&&filter.updatedAt===null))return null;
+    const next={...card,...update.$set,updatedAt:new Date('2026-11-22T01:00:00Z')};saved.set(key,next);return next;
+  }});
+  const edit={profile:{...profile,name:'edited',gender:'M',location:{lat:0,lng:0},birth:{year:1991}},expectedUpdatedAt:null};
+  await assert.rejects(canonicalModule.updateCanonicalProfile({ownerId:'owner-c'},edit),{code:'PROFILE_NOT_FOUND'});
+  assert.equal((await canonicalModule.updateCanonicalProfile({ownerId:'owner-a'},edit)).profile.name,'edited');
+  assert.equal((await canonicalModule.updateCanonicalProfile({ownerId:'owner-a'},edit)).profile.birth.year,1991,'lost update response can be retried');
+  await assert.rejects(canonicalModule.updateCanonicalProfile({ownerId:'owner-a'},{...edit,profile:{...edit.profile,name:'stale'}}),{code:'PROFILE_CHANGED'});
+  assert.equal((await canonicalModule.canonicalProfiles({ownerId:'owner-b'})).profiles[0].name,'second');
   const row={_id:'01900000-1111-7111-8111-000000000042',requestId:'a'.repeat(64),productId:product.id,approvedPriceKRW:product.priceKRW,serviceId:'yeongnyangi',status:'GRANTED',grantedAt:new Date().toISOString()};
   const original={...product,name:'구매 당시 상품명',priceKRW:1234};
   let reads=0;

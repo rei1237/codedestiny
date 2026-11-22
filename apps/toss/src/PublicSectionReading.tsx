@@ -1,3 +1,4 @@
+import {readChart,NatalPillars} from './NatalPillars';
 import ImagePrompts,{type ImagePrompt} from './SajuImagePrompts';
 import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
 import {TOSS_PUBLIC_SECTIONS,isTossPublicSection} from '../../../lib/fortune/toss-public-sections.mjs';
@@ -98,7 +99,7 @@ function SectionBody({report,input,travel,onLogin}:{report:Report;input:RequestB
 }
 function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   const keys=(Object.keys(TOSS_PUBLIC_SECTIONS) as SectionKey[]).filter(k=>isTossPublicSection(k)&&(kind==='saju'?!k.startsWith('ziwei_'):k.startsWith('ziwei_')));
-  const [key,setKey]=useState(keys.includes('saju_natal_reading')?'saju_natal_reading':keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
+  const [key,setKey]=useState(()=>keys.find(k=>k===new URLSearchParams(location.search).get('reading'))||(keys.includes('saju_natal_reading')?'saju_natal_reading':keys[0])),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
   const [result,setResult]=useState<{report:Report;input:RequestBody;travel:TravelHistory}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [island,setIsland]=useState(kind==='ziwei'&&new URLSearchParams(location.search).get('reading')==='island');
   const [house,setHouse]=useState(kind==='saju'&&new URLSearchParams(location.search).get('reading')==='house');
@@ -137,6 +138,7 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   if(house)return <Suspense fallback={<p>합숙소를 열고 있어요.</p>}><SecretHouseReading onBack={()=>setHouse(false)}/></Suspense>;
   if(result)return <section><h1 tabIndex={-1} ref={title}>{TOSS_PUBLIC_SECTIONS[result.input.featureKey]}</h1>
     {birth.unknown&&<p>출생 시각을 몰라 정오를 기준으로 계산했어요.</p>}
+    {result.input.featureKey==='saju_natal_reading'&&<NatalPillars chart={readChart(birth)} unknown={birth.unknown}/>}
     <SectionBody {...result} onLogin={onLogin}/>{result.report.imagePrompts&&<ImagePrompts items={result.report.imagePrompts}/>}<Button variant="weak" display="block" onClick={()=>setResult(null)}>다른 풀이 보기</Button></section>;
   return <section><h1>{kind==='saju'?'사주 리포트':'자미두수 상세 풀이'}</h1>
     {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju/love-simulation/')}>러브 코드 · 사주 연애 시뮬레이션</Button>}

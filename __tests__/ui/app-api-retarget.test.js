@@ -38,7 +38,7 @@ const APP_ORIGIN = "https://localhost";
 const API_ORIGIN = "https://code-destiny.com";
 
 /** 앱 웹뷰를 흉내 낸 컨텍스트에서 리타게팅을 설치하고, 실제 나간 인자를 기록한다. */
-function installInFakeApp({ apiBase = API_ORIGIN, origin = APP_ORIGIN } = {}) {
+function installInFakeApp({ apiBase = API_ORIGIN, origin = APP_ORIGIN, stagingApiBase = "" } = {}) {
   const calls = [];
   const win = {
     CODE_DESTINY_API_BASE_URL: apiBase,
@@ -48,7 +48,7 @@ function installInFakeApp({ apiBase = API_ORIGIN, origin = APP_ORIGIN } = {}) {
       return Promise.resolve({ ok: true });
     },
   };
-  const context = vm.createContext({ window: win, Headers, Request, URL, console });
+  const context = vm.createContext({ window: win, Headers, Request, URL, console, stagingApiBase });
   vm.runInContext(RETARGET_SOURCE, context);
   return { win, calls };
 }
@@ -68,6 +68,22 @@ test("상대 /api/* 는 앱 API 출처로 옮겨지고 런타임 헤더·자격�
   assert.equal(calls[0].input, `${API_ORIGIN}/api/version`);
   assert.equal(headerMap(calls[0].init)["x-code-destiny-runtime"], "mobile-app");
   assert.equal(calls[0].init.credentials, "include");
+});
+
+test("내부 테스트는 앱의 상대·절대 API 요청을 스테이징으로 보내고 다른 환경으로 폴백하지 않는다", async () => {
+  const stagingApiBase = "https://staging.code-destiny.com";
+  const { win, calls } = installInFakeApp({ stagingApiBase });
+
+  await win.fetch("/api/auth/me");
+  win.CODE_DESTINY_API_BASE_URL = API_ORIGIN;
+  await win.fetch(API_ORIGIN + "/api/app-store/google/verify", { method: "POST", body: "{}" });
+  await assert.rejects(win.fetch(new Request(API_ORIGIN + "/api/records")), /staging origin/);
+  assert.deepEqual(calls.map(({ input }) => input), [
+    stagingApiBase + "/api/auth/me",
+    stagingApiBase + "/api/app-store/google/verify",
+  ]);
+  assert.equal(headerMap(calls[1].init)["x-code-destiny-runtime"], "mobile-app");
+  assert.equal(calls[1].init.body, "{}");
 });
 
 test("쿼리스트링과 호출자 헤더·옵션을 보존한다", async () => {

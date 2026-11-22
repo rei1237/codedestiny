@@ -13,7 +13,7 @@ function inputFor(product){
   if(service==='guardian'||service==='sibyl')return {...base,profileId:'mock-profile',year:2026};
   if(service==='palm')return {...base,reading:{rightPalmImage:'data:image/png;base64,c3ludGhldGlj',dominantHand:'right',analysisPurpose:'general'}};
   if(service.startsWith('totem-'))return {...base,mode:service==='totem-deep'?'five':'three',animalIds:service==='totem-deep'?['lion','wolf','owl','fox','bear']:['lion','wolf','owl'],question:'어떤 선택을 할까요?'};
-  if(service==='saju-compat')return {...base,compatType:'friend',partnerName:'상대',self:{pillars:['a','b','c','d']},partner:{pillars:['a','b','c','d']},facts:{score:55}};
+  if(service==='saju-compat-premium')return {...base,relationType:'reunion',self:{birthDate:'1990-01-01',gender:'female'},partner:{birthDate:'1992-08-11',gender:'male'}};
   if(service==='geomancy')return {...base,question:'어떤 선택을 할까요?',counts:Array(16).fill(2)};
   if(service==='codex')return {...base,mode:product.featureKey.endsWith('-compat')?'compat':'solo',reading:{birthInfo,...(product.featureKey.endsWith('-compat')?{partnerInfo:{...birthInfo,birthDate:'1992-02-02'}}:{})}};
   if(service==='naming')return {...base,input:{familyName:'김',birthDate:'1990-01-01',gender:'F'}};
@@ -26,7 +26,17 @@ const call=async(s,path,body)=>{
   return nativeReportRequest(req,url,path,s,()=>true,now);
 };
 
+test('old compatibility orders restore only for their owner while new sales stay closed',async()=>{
+ const s=state(),id='a'.repeat(64),sku='mock-unregistered-room-saju-compat',orderId='private-order-A-old';
+ assert.equal((await call(s,'/native/saju-compat/prepare',{input:{requestId:'new'}})).status,409);
+ assert.equal((await call(s,'/orders/grant',{sku,orderId,requestId:id})),null);
+ s.intents.set(id,{id,sku,orderId,paid:true,service:'saju-compat'});s.orders.set(orderId,id);
+ assert.equal((await call(s,'/orders/restore',{sku,orderId})).status,200);
+ assert.equal((await call(state(),'/orders/restore',{sku,orderId})).status,403);
+});
+
 test('native simulation catalog is separate from tea, Neo and production SKU',()=>{
+  assert.equal(nativeReportProducts.some(p=>p.featureKey==='compat-saju-compatibility'),false);
   assert.equal(nativeReportProducts.length,14);
   assert.equal(new Set(nativeReportProducts.map(p=>p.sku)).size,14);
   for(const p of nativeReportProducts){assert.equal(p.approvedPriceKRW,1);assert.match(p.sku,/^mock-/);assert.doesNotMatch(p.id,/^native:(tea|neo):/);}
@@ -56,7 +66,8 @@ for(const product of nativeReportProducts)test(product.featureKey+' keeps one in
   if(['guardian','sibyl'].includes(service))return;
   const resultPath=service==='life-book'?'/canonical/life-book-ai/generate':'/native/'+service+'/results/'+id;
   if(service==='life-book')assert.equal((await call(s,resultPath,{...input,topic:'Changed after payment'})).status,409);
-  for(let i=0;i<2;i++)assert.ok((await call(s,resultPath,service==='palm'?undefined:service==='life-book'?input:{})).ok);
+  const partCount=service==='saju-compat-premium'?4:2;
+  for(let i=0;i<partCount;i++)assert.ok((await call(s,resultPath,service==='palm'?undefined:service==='life-book'?input:{})).ok);
   const result=structuredClone(s.intents.get(id).result);assert.ok(result);
   const generations=s.intents.get(id).generationCount??s.intents.get(id).generations;
   assert.equal(generations,1);

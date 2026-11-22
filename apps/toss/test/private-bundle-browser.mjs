@@ -30,7 +30,7 @@ try{
   browser=await chromium.launch({channel:'chrome'});
   const page=await browser.newPage({viewport:{width:360,height:740},serviceWorkers:'block'});
   await page.addInitScript(()=>{
-    window.__appsInTossConstants={operationalEnvironment:'sandbox',safeAreaInsets:{top:0,bottom:12,left:0,right:0},schemeUri:'intoss://ai-saju-studio',locale:'ko-KR',platformOS:'android',tossAppVersion:'5.300.0'};
+    window.__appsInTossConstants={operationalEnvironment:'toss',safeAreaInsets:{top:0,bottom:12,left:0,right:0},schemeUri:'intoss://ai-saju-studio',locale:'ko-KR',platformOS:'android',tossAppVersion:'5.300.0'};
     const handlers={__subscribeAppEvent:()=>null,__unsubscribeAppEvent:()=>null,getStorageItem:()=>null,getPendingOrders:()=>({orders:[]})};
     window.__bridgeMethods__=Object.keys(handlers);
     window.ReactNativeWebView={postMessage(raw){
@@ -44,7 +44,14 @@ try{
   async function capture(name){
     if(!evidence)return;
     await mkdir(evidence,{recursive:true});
-    await page.evaluate(async()=>{await document.fonts.ready;await Promise.all([...document.images].map(img=>img.decode().catch(()=>{})));});
+    await page.evaluate(async()=>{
+      await document.fonts.ready;
+      const visible=[...document.images].filter(image=>{
+        const bounds=image.getBoundingClientRect();
+        return bounds.width>0&&bounds.height>0&&bounds.top<innerHeight&&bounds.bottom>0;
+      });
+      await Promise.all(visible.map(image=>image.decode().catch(()=>{})));
+    });
     await page.screenshot({path:join(evidence,name+'-360.png')});
   }
   await page.goto(origin);
@@ -76,6 +83,20 @@ try{
   await page.reload();
   await field.waitFor();
   assert.equal(await field.inputValue(),draft);
+  await page.goto(origin);
+  await page.locator('.world-entry-yeongnyangi').click();
+  await page.getByRole('button',{name:'토스 로그인',exact:true}).click();
+  await page.getByRole('button',{name:'지금은 둘러보기'}).click();
+  await page.getByRole('heading',{name:/달빛 점술방/}).waitFor();
+  await page.getByRole('button',{name:/상담 전 자주 묻는 질문/}).click();
+  await page.getByRole('heading',{name:'상담 전 자주 묻는 질문'}).waitFor();
+  await page.getByText('상담을 새로 구매할 수 있나요?',{exact:true}).click();
+  await page.getByText(/지금은 새 상담 판매를 준비 중/).waitFor();
+  await page.evaluate(()=>{document.documentElement.style.fontSize='24px';});
+  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.getByRole('button',{name:'영냥이 보관함 보기'}).click();
+  await page.waitForURL(url=>url.pathname==='/yeongnyangi/library/'||url.pathname==='/login/');
+  console.log('PASS release home, cancelled login returns to the same room, FAQ and scoped library');
   console.log('PASS Linux AIT, normal home → original character art → question search → prefilled original consultation at 360px',bundle.deploymentId);
   console.log('PASS edited question restored after reload and next button in the focused 360 × 420 viewport');
 }finally{

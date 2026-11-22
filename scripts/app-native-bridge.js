@@ -42,7 +42,10 @@
   } catch (e) { /* noop */ }
 
   // Set the app API origin before any page or payment script runs.
-  window.CODE_DESTINY_API_BASE_URL = window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
+  var stagingMeta = typeof document.querySelector === "function"
+    ? document.querySelector('meta[name="cd-mobile-staging-api"]') : null;
+  var stagingApiBase = stagingMeta ? stagingMeta.getAttribute("content") : "";
+  window.CODE_DESTINY_API_BASE_URL = stagingApiBase || window.CODE_DESTINY_API_BASE_URL || "https://code-destiny.com";
 
   // Capture the pre-hydration choice; page initialization may write a route default.
   var previousAppLanguage = "";
@@ -221,16 +224,23 @@
     }
 
     window.fetch = function (input, init) {
-      var base = retargetBase();
-      // Request 객체는 본문이 스트림이라 URL 만 바꿔 옮길 수 없다 — 손대지 않고 통과시킨다.
-      if (!base || (typeof Request !== "undefined" && input instanceof Request)) {
+      var base = stagingApiBase || retargetBase();
+      var isRequest = typeof Request !== "undefined" && input instanceof Request;
+      if (!base || (isRequest && !stagingApiBase)) {
         return passthroughFetch(input, init);
       }
       var url;
       try {
-        url = new URL(String(input == null ? "" : input), window.location.href);
+        url = new URL(isRequest ? input.url : String(input == null ? "" : input), window.location.href);
       } catch (e) { return passthroughFetch(input, init); }
-      if (url.origin !== window.location.origin || url.pathname.indexOf("/api/") !== 0) {
+      var sameSiteApi = url.origin === window.location.origin;
+      var stagingFirstPartyApi = stagingApiBase && (url.hostname === "code-destiny.com" || url.hostname.endsWith(".code-destiny.com"));
+      if ((!sameSiteApi && !stagingFirstPartyApi) || url.pathname.indexOf("/api/") !== 0) {
+        return passthroughFetch(input, init);
+      }
+      // Request 본문은 스트림이다. 내부 테스트에서는 다른 환경으로 보내지 않는다.
+      if (isRequest) {
+        if (url.origin !== base) return Promise.reject(new TypeError("Internal test API requires the staging origin."));
         return passthroughFetch(input, init);
       }
       var nextInit = (init && typeof init === "object") ? Object.assign({}, init) : {};
@@ -252,9 +262,13 @@
       //    🔴 고칠 지점이 호출부가 아니라 여기인 이유는 이 파일 위쪽 리타게팅 주석과 같다 —
       //    호출부는 웹과 공유하는 파일이고, 이 브릿지는 앱 HTML 에만 주입돼 웹 blast radius 가 0이다.
       //    이미 Authorization 을 단 호출(구독 조회·리프레시)은 그대로 존중한다.
-      if (!headers.has("Authorization")) {
-        var accessToken = readStoredToken("fortune_auth_token");
-        if (accessToken) headers.set("Authorization", "Bearer " + accessToken);
+      var accessToken = readStoredToken("fortune_auth_token");
+      var hasAuthorization = headers.has("Authorization");
+      // 레거시 셸이 같은 계정의 Bearer 를 먼저 붙인 Play 요청도 세션 폴백을 쓴다.
+      var isStoredPlaySession = url.pathname.indexOf("/api/app-store/") === 0
+        && headers.get("Authorization") === "Bearer " + accessToken;
+      if (!hasAuthorization || isStoredPlaySession) {
+        if (!hasAuthorization && accessToken) headers.set("Authorization", "Bearer " + accessToken);
         // access 만료 뒤에도 세션이 살아 있게 한다. 웹은 refresh **쿠키**로 워커의 리프레시 폴백
         // (worker/lib/auth.js verifyRefreshSessionToAuth)을 타는데 앱엔 그 쿠키가 없어 액세스 TTL
         // (기본 30분)마다 로그아웃됐다. 상시 싣지 않고 부재·만료 임박일 때만 싣는다.
@@ -512,7 +526,7 @@
   }
 
   function apiBase() {
-    return String(window.CODE_DESTINY_API_BASE_URL || "").replace(/\/+$/, "");
+    return stagingApiBase || String(window.CODE_DESTINY_API_BASE_URL || "").replace(/\/+$/, "");
   }
 
   // 플러그인은 호출 시점에 읽는다 — Capacitor 런타임 주입이 이 스크립트보다 늦을 수 있다.
@@ -656,7 +670,7 @@
     var opts = options || {};
     var init = {
       method: "POST",
-      headers: authHeaders(),
+      headers: opts.appSession ? { "Content-Type": "application/json" } : authHeaders(),
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify(body || {}),
@@ -671,7 +685,7 @@
     if (opts.timeoutMs > 0 && typeof AbortSignal !== "undefined" && typeof AbortSignal.timeout === "function") {
       init.signal = AbortSignal.timeout(opts.timeoutMs);
     }
-    var response = await fetch(apiBase() + path, init);
+    var response = opts.appSession ? await fetch(path, init) : await fetch(apiBase() + path, init);
     var payload = await response.json().catch(function () { return {}; });
     return { ok: response.ok && payload && payload.ok !== false, status: response.status, payload: payload };
   }
@@ -987,7 +1001,7 @@
   async function runPurchaseRecovery() {
     if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") return;
     if (recoveryRunning) return;
-    if (!readLocal("fortune_auth_token")) return;
+    if (!readLocal("fortune_auth_token") && !readLocal("fortune_auth_refresh_token")) return;
     var plugin = billingPlugin();
     if (!plugin || !plugin.restore) return;
     recoveryRunning = true;
@@ -1006,7 +1020,7 @@
       });
       if (!settled.length) return;
 
-      var result = await postJson("/api/app-store/google/restore", { purchases: settled });
+      var result = await postJson("/api/app-store/google/restore", { purchases: settled }, { appSession: true });
       if (!result.ok) return;
 
       var data = result.payload.data || {};

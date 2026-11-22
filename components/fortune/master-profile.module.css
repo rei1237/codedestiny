@@ -70,11 +70,12 @@
 /* 소개장(dossier) — 대표 상담 마스터. 권위는 꾸민 이력이 아니라 칭호·근거표·상담 원칙에서 나온다. 애니메이션 없음. */
 .profile[data-variant="dossier"] { --profile-accent-ink: var(--pe-accent-ink, var(--cd-cta-primary-bg, #1b1420)); --profile-serif: var(--font-serif, var(--font-display, var(--font-body))); }
 .profile[data-variant="dossier"] .introduction { align-items: start; }
-.frame { position: relative; padding: 10px; border: 1px solid color-mix(in srgb, var(--profile-accent) 60%, transparent); border-radius: var(--cd-r-card); }
+.frame { --mm-art-inset: 10px; position: relative; padding: 10px; border: 1px solid color-mix(in srgb, var(--profile-accent) 60%, transparent); border-radius: var(--cd-r-card); }
 .frame::before { content: ""; position: absolute; inset: 6px; border: 1px solid color-mix(in srgb, var(--profile-accent) 28%, transparent); border-radius: calc(var(--cd-r-card) - 6px); pointer-events: none; }
+.frame [data-mm-sheet] { border-radius: calc(var(--cd-r-card) - 8px); }
 .frame .portrait { display: block; border-radius: calc(var(--cd-r-card) - 8px); background: color-mix(in srgb, var(--profile-accent) 10%, transparent); }
 .seal {
-  position: absolute; right: 18px; bottom: 18px;
+  position: absolute; right: 18px; bottom: 18px; z-index: 2;
   display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%;
   background: var(--profile-accent); color: var(--profile-accent-ink);
   outline: 1px solid var(--profile-accent); outline-offset: 3px;

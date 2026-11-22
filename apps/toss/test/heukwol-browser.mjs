@@ -6,7 +6,7 @@ const context=await browser.newContext({viewport:{width:360,height:740},isMobile
 context.setDefaultTimeout(90000);
 await context.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
 const home=async p=>{await p.goto(origin);await p.locator('.world-entry-ggulggul').click();await p.getByRole('button',{name:'전체 펼치기',exact:true}).click();};
-const enter=async p=>{await home(p);await p.getByRole('button',{name:'흑월의 경고 상담'}).click();};
+const enter=async p=>{await home(p);await p.getByRole('button',{name:'흑월의 주의 시기 상담'}).click();};
 try{
   const page=await context.newPage();
   page.on('pageerror',error=>console.error(error.message));
@@ -36,7 +36,7 @@ try{
   await reopen.getByText(text,{exact:true}).first().waitFor();
   assert.deepEqual(await reopen.evaluate(()=>{const s=JSON.parse(localStorage.getItem('toss-offline-fixture'));return [s.orders.length,s.intents.length,s.intents[0][1].generationCount];}),[1,1,1]);
   await reopen.goto(origin);
-  await reopen.getByRole('button',{name:'내 정보',exact:true}).click();
+  await reopen.getByRole('button',{name:'설정·고객지원',exact:true}).click();
   await reopen.getByRole('button',{name:'로그아웃',exact:true}).click();
   await reopen.getByText('로그아웃했어요.').waitFor();
   await reopen.evaluate(()=>localStorage.setItem('toss-offline-login-person','second'));

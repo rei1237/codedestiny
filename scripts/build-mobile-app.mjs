@@ -39,6 +39,8 @@ const BRIDGE_PUBLIC_PATH = "/js/app-native-bridge.js";
 // 이 meta 는 앱 번들 후처리에서만 주입되므로 웹(code-destiny.com Referer 유지)엔 영향 없다.
 // 앱은 Referer 의존 로직이 없다(API=Bearer 헤더, OAuth=딥링크).
 const REFERRER_META = `<meta name="referrer" content="no-referrer">`;
+const STAGING_TEST_ORIGIN = "https://staging.code-destiny.com";
+const STAGING_TEST_META = `<meta name="cd-mobile-staging-api" content="${STAGING_TEST_ORIGIN}"><meta http-equiv="Content-Security-Policy" content="connect-src 'self' ${STAGING_TEST_ORIGIN}">`;
 // 브릿지가 가드보다 먼저다 — 브릿지가 런타임 타깃 플래그를 심고 window.CodeDestinyNative를
 // 설치한다. (가드는 결제 시점에 지연 조회하므로 순서에 엄격하진 않지만, 명시적으로 둔다.)
 const GUARD_TAG = `${REFERRER_META}<script src="${BRIDGE_PUBLIC_PATH}"></script><script src="${GUARD_PUBLIC_PATH}"></script>`;
@@ -96,25 +98,26 @@ async function installGuardAsset() {
   return targets;
 }
 
-export function injectGuardTag(html) {
+export function injectGuardTag(html, { stagingTest = process.env.CODE_DESTINY_MOBILE_STAGING_TEST === "1" } = {}) {
   if (html.includes(GUARD_PUBLIC_PATH)) return { html, changed: false };
+  const guardTag = stagingTest ? STAGING_TEST_META + GUARD_TAG : GUARD_TAG;
 
   // 다른 스크립트(특히 destiny-profile.js)보다 먼저 실행돼야 결제 경로를 가로챌 수 있다.
   // 단 <meta charset>보다는 뒤에 둔다 — charset이 밀리면 문서 인코딩 판정이 흔들린다.
   const charsetMatch = html.match(/<meta[^>]+charset[^>]*>/i);
   if (charsetMatch) {
     const at = charsetMatch.index + charsetMatch[0].length;
-    return { html: `${html.slice(0, at)}${GUARD_TAG}${html.slice(at)}`, changed: true };
+    return { html: `${html.slice(0, at)}${guardTag}${html.slice(at)}`, changed: true };
   }
 
   const headMatch = html.match(/<head[^>]*>/i);
   if (headMatch) {
     const at = headMatch.index + headMatch[0].length;
-    return { html: `${html.slice(0, at)}${GUARD_TAG}${html.slice(at)}`, changed: true };
+    return { html: `${html.slice(0, at)}${guardTag}${html.slice(at)}`, changed: true };
   }
 
   // <head>가 없는 조각 문서는 맨 앞에 붙인다.
-  return { html: `${GUARD_TAG}${html}`, changed: true };
+  return { html: `${guardTag}${html}`, changed: true };
 }
 
 // 루트 단독 HTML(예: destiny-island.html)은 확장자 없는 링크(`/destiny-island`)로도 참조된다.
@@ -308,7 +311,7 @@ export const APP_VERIFIED_DEAD_IMAGES = [
   [/^assets\/yeongnyangi\/companion\/[a-z-]+-original\.png$/, "잠금화면 동행 그림의 webp 이전 원본"],
   [/^assets\/yeongnyangi\/service-packs\/[a-z]+-gift-set-v1\.webp$/, "선물 세트 그림은 v2만 사용"],
   [/^assets\/yeongnyangi\/mv\/heaven-light-(?:v[456]-ch\d-320|(?:v5-)?poster-\d+)\.webp$/, "HEAVEN LIGHT는 v7 포스터·v72 컷만 사용"],
-  [/^assets\/yeongnyangi\/hat\/[a-z-]+-v1\.webp$/, "모자 기숙사는 아이콘 엠블럼과 spirit-hat-v2만 사용"],
+  [/^assets\/yeongnyangi\/hat\/[a-z-]+-v\d+-(?:\d+\.avif|(?:640|960|1536)\.webp)$/, "앱 모자 화면은 초대장·기숙사별 기준 WebP만 사용"],
   [/^images\/destiny-island\/gate-hero-(?:mobile|desktop)(?:-v2)?\.webp$/, "운명섬 첫 그림 교체 전 사본"],
   [/^images\/destiny-bias\/stage\/idol-[fm]\d\.webp$/, "최애 무대는 배경 그림만 사용"],
   [/^assets\/sharing\/[a-z]+-letter-v1\.jpg$/, "OG 카드는 웹 서버가 사이트에서 직접 가져감"],
@@ -1072,6 +1075,9 @@ export async function stripSameOriginImageResizing(dist = DIST) {
 }
 
 async function main() {
+  if (process.env.CODE_DESTINY_MOBILE_STAGING_TEST === "1" && process.env.NEXT_PUBLIC_API_URL !== STAGING_TEST_ORIGIN) {
+    throw new Error(`Set NEXT_PUBLIC_API_URL=${STAGING_TEST_ORIGIN} for the staging test bundle.`);
+  }
   if (!(await exists(DIST))) {
     console.error(`❌ dist를 찾을 수 없습니다: ${DIST}\n   먼저 \`npm run build:mobile\`을 실행하세요.`);
     process.exit(1);

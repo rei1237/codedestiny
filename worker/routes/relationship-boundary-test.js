@@ -14,6 +14,10 @@ import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/lo
 
 import { completeServiceExecution, failServiceExecution, startServiceExecution } from "../lib/service-execution-task.js";
 import { runRelationshipDelivery, findRelationshipResult, relationshipPending, relationshipPublicResult, relationshipRevoked } from "../lib/relationship-delivery-store.js";
+import { relationshipDeliveryComplete } from "../lib/relationship-report-delivery.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, logStuckUnsettled } from "../lib/paid-delivery-stuck.js";
+import { connectDb } from "../lib/db.js";
+import { RelationshipBoundaryTest } from "../lib/models.js";
 
 
 const FEATURE_KEY = "relationship-boundary-test";
@@ -298,6 +302,48 @@ export async function handleRelationshipBoundaryTestRoutes(request, env = {}) {
 }
 
 export const __relationshipBoundaryTestTestUtils = { normalize, scoreBoundary, storyDirectionFor, prompt, buildSectionPrompt, SECTION_SPECS, SECTION_TITLES, paymentPayload };
+
+// 복구 크론의 정체 자동 확정. 결제 회수 건·검토된 무환불 복구(recoveryNoRefund)는 쓰지 않고 경보만 남긴다.
+// delivery_pending 은 경로와 같은 완성 판정(relationshipDeliveryComplete)을 통과하면 완료로 구제한다. 나머지는 생성 실패로
+// 먼저 CAS 한 뒤(체크포인트 가드가 generation_failed 만 환불 대상으로 본다) 기존 즉시 환불 경로(refundExecution)를 한 번 부른다.
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  if (!doc?.id || !doc?.userId) return { outcome: "unsupported" };
+  await connectDb(env);
+  const target = model || RelationshipBoundaryTest;
+  const owner = { id: String(doc.id), userId: String(doc.userId) };
+  const fresh = await target.findOne(owner).lean();
+  if (!fresh || !["generating", "partial", "delivery_pending"].includes(fresh.status)) return { outcome: "progressed" };
+  if (now - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS
+    || (fresh.llmMeta?.lease?.token && new Date(fresh.llmMeta.lease.until || 0).getTime() > now)) return { outcome: "leased" };
+  if (fresh.accessType === "toss") { logStuckUnsettled(SERVICE_KEY, fresh); return { outcome: "unsettled" }; }
+  const idempotencyKey = clean(fresh.idempotencyKey, 180);
+  if (!idempotencyKey) return { outcome: "unsupported" };
+  let revoked;
+  try { revoked = await relationshipRevoked(fresh); } catch { return { outcome: "pending" }; } // 판단 보류 — 이어쓰기로 둔다.
+  if (revoked || fresh.llmMeta?.recoveryNoRefund === true) { logStuckUnsettled(SERVICE_KEY, fresh); return { outcome: "unsettled" }; }
+  const stalls = Number(fresh.deliveryWatch?.stalls || 0);
+  const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
+  const unlock = fresh.llmMeta ? { "llmMeta.lease": { token: "", until: null } } : {};
+  const passRefund = fresh.llmMeta?.passRefund || null;
+  if (fresh.status === "delivery_pending" && relationshipDeliveryComplete(fresh.llmMeta?.delivery || {})) {
+    const done = await target.updateOne(cas, { $set: { status: "completed", generationError: null, ...unlock } });
+    if (!done?.modifiedCount) return { outcome: "progressed" };
+    await closeExecution(env, owner.userId, idempotencyKey, owner.id, fresh.paymentId, passRefund);
+    logStuckSettled({ service: SERVICE_KEY, sessionId: owner.id, outcome: "rescued", stalls });
+    return { outcome: "rescued" };
+  }
+  const result = await target.updateOne(cas, { $set: { status: "generation_failed",
+    generationError: { reason: "DELIVERY_STUCK", code: "DELIVERY_STUCK", message: "recovery made no progress", at: new Date(now).toISOString() }, ...unlock } });
+  if (!result?.modifiedCount) return { outcome: "progressed" };
+  let refundStatus = "pending";
+  try {
+    if (await refundExecution(env, owner.userId, idempotencyKey, owner.id, "DELIVERY_STUCK", fresh.paymentId, passRefund)) refundStatus = "refunded";
+  } catch { refundStatus = "pending"; }
+  // 실행 기록이 pending 이면 타임아웃 스위프가 생성 실패 문서를 보고 환불한다. 실행 기록이 없는 건은 재시도 경로가 없다 — 경보로 남긴다.
+  if (refundStatus === "pending") logStuckUnsettled(SERVICE_KEY, fresh);
+  logStuckSettled({ service: SERVICE_KEY, sessionId: owner.id, outcome: "generation_failed", refundStatus, stalls });
+  return { outcome: "generation_failed", refundStatus };
+}
 
 export async function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.id) throw new Error("RECOVERY_doc.id_REQUIRED");

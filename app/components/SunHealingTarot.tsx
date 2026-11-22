@@ -14,6 +14,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSunHealingTarotCopy, type SunHealingTarotCopy } from "./_lib/sun-healing-tarot-copy";
 import { SHELL_HOME_PATH } from "@/lib/navigation/shellHome";
 import { computeSunHealingReading, loadSunHealingEngine } from "./_lib/sun-healing-local-reading";
+import YeoniSay from "@/components/fortune/YeoniSay";
 
 
 // ─── Design Token ───────────────────────────────────────────────────────────
@@ -520,6 +521,7 @@ export function SunHealingResultBody({ reading, cards, copy }: { reading: Healin
       <section className="rounded-lg border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(254,243,199,0.82),rgba(255,237,213,0.68),rgba(204,251,241,0.4))] p-5 shadow-inner">
         <p className="text-xs font-semibold tracking-normal text-amber-700/78">{copy.adviceEyebrow}</p>
         <h3 className="mt-2 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.adviceHeading}</h3>
+        <YeoniSay domain="healingTarot" sectionKey="advice" />
         <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.opening || copy.adviceFallback}</p>
       </section>
       {resultStory ? (
@@ -530,6 +532,7 @@ export function SunHealingResultBody({ reading, cards, copy }: { reading: Healin
           <p className="text-xs font-semibold text-teal-700">{copy.cardDetailEyebrow}</p>
           <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.cardDetailHeading}</h3>
         </div>
+        <YeoniSay domain="healingTarot" sectionKey="cards" />
         {resultCards.map((item, idx) => (
           <ResultCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} card={cards[idx]} copy={copy} />
         ))}
@@ -538,6 +541,7 @@ export function SunHealingResultBody({ reading, cards, copy }: { reading: Healin
         <section>
           <p className="text-xs font-semibold text-teal-700">{copy.routineEyebrow}</p>
           <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.routineHeading}</h3>
+          <YeoniSay domain="healingTarot" sectionKey="routine" />
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             {resultRoutines.map((item, idx) => (
               <RoutineCard key={`${item.title}-${idx}`} item={item} />

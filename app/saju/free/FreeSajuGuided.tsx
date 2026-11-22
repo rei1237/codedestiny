@@ -16,6 +16,7 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { normalizeBirthDateInput } from "@/lib/birthDateInput";
 import { elementBalanceLine } from "@/lib/free-saju/copy";
 import { trackEvent } from "@/lib/analytics";
+import YeoniSay from "@/components/fortune/YeoniSay";
 import { GUIDED_BIRTH_FREE_SAJU_ENABLED } from "@/lib/guided-flow/flags.mjs";
 import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedBirthTitles } from "@/app/components/guided-flow/birth/GuidedBirthSteps";
 import { BIRTH_CONFIRM, birthSteps, isBirthField } from "@/app/components/guided-flow/birth/birth-steps";
@@ -166,8 +167,11 @@ export default function FreeSajuGuided() {
     if (current.id === "computing") return <p className={tarot.note} aria-live="polite">{t("freeSaju.computingBody")}</p>;
     return <div aria-live="polite">
       {reading ? <>
+        <YeoniSay domain="saju" sectionKey="pillars" />
         <p className={gf.reading}><b>년주 {reading.pillars.year} · 월주 {reading.pillars.month} · 일주 {reading.pillars.day} · 시주 {reading.pillars.hour || "미상"}</b></p>
+        <YeoniSay domain="saju" sectionKey="elements" />
         <p className={gf.reading}>{elementBalanceLine(reading.elements)}</p>
+        <YeoniSay domain="saju" sectionKey="close" />
       </> : null}
       <button type="button" className="cd-btn cd-btn--secondary" onClick={restart}>{t("freeSaju.restart")}</button>
     </div>;

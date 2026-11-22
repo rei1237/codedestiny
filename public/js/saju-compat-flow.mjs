@@ -131,6 +131,8 @@ function classifyFailure(last, resultId) {
   if (status === 403) return out("REVOKED", false, true);
   if ((status === 202 || status === 503) && payload.retryable === false) return out("REVIEW_REQUIRED", false, false);
   if (status === 409) return out("INPUT_MISMATCH", false, true);
+  // 400/422 는 입력 검증 거절 — 같은 본문을 다시 보내도 같으므로 전송 재시도가 아니다. 서버는 결제 확인 전에 검증한다(saju-compat-basic.js).
+  if (status === 400 || status === 422) return out("INPUT_INVALID", false, true);
   if (status === 404) return out("NOT_FOUND", false, true);
   if (status === 402) return out("PAYMENT_UNCONFIRMED", true, false);
   if (status === 401) return out("AUTH", true, false);
@@ -140,6 +142,7 @@ function classifyFailure(last, resultId) {
 /** 실패 코드 → 안내 문구 키(i18n). 결제·결과는 서버가 보존하며, 재시도 가능 여부는 호출부가 retryable 로 정한다. */
 export function sajuCompatFailureKey(code) {
   if (code === "REVOKED") return "sajuCompat.flow.revoked";
+  if (code === "INPUT_INVALID") return "sajuCompat.flow.inputInvalid";
   if (code === "REVIEW_REQUIRED" || code === "INPUT_MISMATCH" || code === "NOT_FOUND") return "sajuCompat.flow.review";
   return "sajuCompat.flow.fallback";
 }

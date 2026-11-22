@@ -7,6 +7,7 @@
 <title>Geomancy Oracle — Codex Alchemicus</title>
 <script src="/js/services/geomancy-chart.js"></script>
 <script src="/js/core/paid-narrative-reader.js"></script>
+<script src="/js/core/paid-narrative-retry.js"></script>
 <script src="/js/core/standalone-ai-locale.js?v=20260909-1"></script>
 <script src="/js/core/pass-verdict.js?v=build-7244122e56ff"></script>
 <script src="/js/core/checkout-entry.js?v=build-7244122e56ff"></script>
@@ -762,6 +763,8 @@ function syncGeomancyOwner(){const owner=geomancyAccount();if(owner!==geomancyOw
   document.getElementById('rs-ai-txt').textContent='';document.getElementById('rs-advice-txt').textContent='';document.getElementById('rs-q-txt').textContent='';document.getElementById('q-input').value='';document.getElementById('geomancyDeliveryProgress')?.remove();document.getElementById('start-screen').style.display='flex';document.getElementById('cards-grid').textContent='';document.getElementById('result-screen').classList.remove('open');
 }return owner;}
 function geomancyProgress(text,retry){let p=document.getElementById('geomancyDeliveryProgress');if(!p){p=document.createElement('div');p.id='geomancyDeliveryProgress';document.getElementById('rs-ai-txt').before(p);}p.textContent='';
+ // 생성 한도에 걸려 보류된 건: 미완성 신탁은 지우고 무료 다시 시도·환불 요청 패널만 보인다.
+ const hold=window.CDPaidNarrativeRetry?.holdOf(geomancyLatest);if(hold){document.getElementById('rs-ai-txt').textContent='';window.CDPaidNarrativeRetry.mount(p,{resultId:hold.resultId,onResume:resumeHeldGeomancy});return;}
  const label=document.createElement('p');label.setAttribute('role','status');label.textContent=text;p.appendChild(label);
  if(retry){const button=document.createElement('button');button.textContent='이어서 생성하기';button.type='button';button.onclick=recoverGeomancy;p.appendChild(button);}}
 async function geomancyRequest(body){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),body?90000:22000);
@@ -786,6 +789,7 @@ function showGeomancyDelivery(data){geomancyLatest=data;geomancySaved={...geoman
  document.getElementById('rs-ai-loading').classList.remove('show');
  geomancyProgress(data.status==='completed'?'저장된 신탁입니다.':(data.completedParts||[]).length+'/'+data.totalParts+' 부분 저장 · 나머지를 생성하고 있어요.',false);
 }
+function resumeHeldGeomancy(body){geomancyLatest=null;geomancySaved={...geomancySaved,body,resultId:body.resumeResultId};storeGeomancy();return runSavedGeomancy(body);}
 function runSavedGeomancy(body){if(geomancyFlight)return geomancyFlight;const owner=geomancyOwner,epoch=geomancyEpoch;
  const active=()=>Boolean(owner)&&owner===geomancyAccount()&&epoch===geomancyEpoch;if(!active())return Promise.resolve(false);
  const flight=(async()=>{try{return await window.CDPaidNarrativeReader.run(body,{active,visible:()=>document.visibilityState!=='hidden'&&navigator.onLine!==false,

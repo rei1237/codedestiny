@@ -10,6 +10,7 @@ import { startServiceExecution, completeServiceExecution, failServiceExecution }
 import { buildHeukwolAnalysis, heukwolProfileBirth } from '../lib/heukwol-analysis.js';
 import { HEUKWOL_FEATURE_KEY, HEUKWOL_CHAPTERS, HEUKWOL_MIN_CHARS, HEUKWOL_DELIVERY_PLAN_VERSION, HEUKWOL_TRANSIENT_ATTEMPTS, heukwolDeliveryV2Enabled, generateHeukwolChapter, isHeukwolTransientError } from "../lib/heukwol-report.js";
 import { json, readJson, handleRouteError } from '../lib/http.js';
+import { selectTraitFirst, TRAIT_FIRST_META } from '../lib/trait-profile/index.js';
 import { logStuckSettled, retryRefundAt } from '../lib/paid-delivery-stuck.js';
 
 const digest = value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -117,10 +118,12 @@ export async function advanceHeukwol(env,userId,id) {
     const next=v2?pendingChapters(meta)[0]:HEUKWOL_CHAPTERS.find(c=>!meta.chapters.some(done=>done.key===c.key));
     let chapters=meta.chapters;
     if(next) {
+      // Trait-First 는 시작 때 저장한 값만 따른다. 키가 없는 옛 세션은 꺼진 채로 끝난다.
+      const trait=meta.traitFirst===TRAIT_FIRST_META?{traitFirst:TRAIT_FIRST_META,traitSeed:`${userId}|heukwol`}:{};
       const chapter=v2
         ?await generateHeukwolChapter(env,meta.analysis,next,meta.input.question,chapters,undefined,{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,
-          relaxed:(meta.attempts||0)>=1,finalAttempt:(meta.attempts||0)>=HEUKWOL_V2_ATTEMPTS_PER_ROUND-1,repairIssue:meta.lastIssue||''})
-        :await generateHeukwolChapter(env,meta.analysis,next,meta.input.question,chapters);
+          relaxed:(meta.attempts||0)>=1,finalAttempt:(meta.attempts||0)>=HEUKWOL_V2_ATTEMPTS_PER_ROUND-1,repairIssue:meta.lastIssue||'',...trait})
+        :await generateHeukwolChapter(env,meta.analysis,next,meta.input.question,chapters,undefined,trait);
       chapters=[...chapters.filter(c=>c.key!==next.key),chapter];
       const checkpoint=await ServiceExecutionTransaction.updateOne(owned,{$set:{'metadata.chapters':chapters,'metadata.attempts':0,'metadata.transientAttempts':0,...(v2?{'metadata.lastIssue':''}:{}),heartbeatAt:new Date()}});
       if(checkpoint.modifiedCount!==1)throw new Error('HEUKWOL_SAVE_UNCONFIRMED');
@@ -344,6 +347,7 @@ export async function handleHeukwolRoutes(request,env) {
       timeoutSeconds:3600,metadata:{input,inputHash,analysis,chapters:[],attempts:0,accessType:proof.source,
         // 새 세션만 2판. 진행 중인 1판 세션은 옛 동작으로 끝난다. 되돌리기: HEUKWOL_DELIVERY_V2_ENABLED=false
         ...(heukwolDeliveryV2Enabled(env)?{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,chapterRounds:{},lastIssue:''}:{}),
+        ...(selectTraitFirst(env)?{traitFirst:TRAIT_FIRST_META}:{}),
         archive:{title:`${input.year} 흑월의 주의 시기`,year:input.year,reportId:id,status:'generating'},
         ...(passEvidence?{passRefund:{cycleKey:passEvidence.metadata?.passCycleKey,cost:passEvidence.metadata?.coinCost||0}}:{})}});
     if(!started.ok)return error(503,'RESULT_STORAGE_UNAVAILABLE','상담 저장을 확인하지 못했어요. 같은 요청으로 다시 시도해 주세요.');
