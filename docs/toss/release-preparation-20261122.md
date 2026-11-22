@@ -9,6 +9,7 @@
 | 운영 웹·Worker | Pages와 Worker가 같은 커밋 `74b09ef7bbe2ce8a93b0b456a7cb21183c66103d`를 반환했다. | [Pages](https://code-destiny.com/version.json), [Worker](https://code-destiny.com/api/version) |
 | 원격 main 비교 기준 | `d04c6e4181626e21948e3575e55108706587c722` | [CI 44967809982](https://github.com/rei1237/codedestiny/actions/runs/44967809982) |
 | 제출된 QR21 | 콘솔 버전 20261116-21, 출시 준비됨. 제출 소스 `324b95f47757b158b702b628f7683441fb941f46`. 약관 동의와 공개는 별도 사업자 조작이다. | [제출 이력](./launch-candidate-20261116.md) |
+| 토스 로그인·인증서 | 제공 권한은 이름이다. 콘솔에는 간편 로그인 이용약관, 개인정보 제3자 제공, 서비스 이용약관, 개인정보 수집·이용, 국외 이전 등 필수 동의 5개와 `/api/toss/callbacks/unlink` 콜백이 표시됐다. mTLS 인증서 만료일 표시는 2027-12-03이다. | `D:/tmp/toss-release/full-parity-20261122/console-login-certificate.json`. 인증서 발급·복호화 키 조회·콜백 호출 없이 열람했다. |
 | 등록 상품 | 연이 사주 상담 편지 4,950원. 영냥이 사주 상담 고등어·연어·광어·참치 각 9,900·14,850·19,800·29,700원. 콘솔의 다섯 SKU·가격은 서버 원장과 일치하고 모두 미노출이다. | 콘솔 조회 기록 `D:/tmp/toss-release/console-20261122.json`, [서버 원장](../../worker/toss/catalog.js) |
 
 ## 웹과 미니앱에서 확인한 흐름
@@ -26,7 +27,9 @@
 
 통합 Windows 모의판 `01a200e2-0f0e-70b7-a158-00d25d2af59e`에서 무료 카드 23개를 각각 눌러 대상 화면에 도달했다. 프롬프트 도구 16개는 계정 A에서 생성한 원문을 재실행 후 다시 열고 계정 B 기록과 구분했다. 뇌구조의 휴먼 디자인·베다 추가 풀이와 1080×1920 PNG 모의 저장도 확인했다. 이 archive는 86,032,013바이트, 압축 해제 98,355,985바이트이며 Windows 경로를 사용하므로 콘솔 업로드 대상에서 제외했다.
 
-가상 모바일은 [이 PC의 미리보기](http://127.0.0.1:4346/preview)에서 조작할 수 있다. 화면 너비 360·390·430, 기본 글씨 150%, 키보드 공간 420px, 뒤로가기 및 앱 다시 열기를 지원한다. Linux 모의 AIT를 직접 여는 명령은 `node apps/toss/scripts/preview-private.mjs <모의-archive의-절대경로>`다. 기본 주소는 http://127.0.0.1:4330/preview이며 포트는 `TOSS_PREVIEW_PORT`로 지정할 수 있다.
+후속 Windows 모의 AIT `01a200eb-5cdb-7a02-bab9-a739f9b06bef`는 86,878,777바이트, 압축 해제 99,204,394바이트다. 설정에서 연결 해제 후 같은 계정으로 재연결했을 때 이전 로컬 프롬프트는 열리지 않고 새로 쓴 원문만 남는 것을 검증했다. 그 실행의 주문과 외부 요청은 모두 0건이다. 산출물과 로그는 `D:/tmp/toss-release/full-parity-20261122/windows-01a200eb/`에 보관했다.
+
+가상 모바일은 [이 PC의 미리보기](http://127.0.0.1:4346/preview)에서 조작할 수 있다. 후속 모의판과 같은 자원으로 화면 너비 360·390·430, 기본 글씨 150%, 키보드 공간 420px, 뒤로가기 및 앱 다시 열기를 지원한다. Linux 모의 AIT를 직접 여는 명령은 `node apps/toss/scripts/preview-private.mjs <모의-archive의-절대경로>`다. 기본 주소는 http://127.0.0.1:4330/preview이며 포트는 `TOSS_PREVIEW_PORT`로 지정할 수 있다.
 
 ## 테스트 기기에서 누를 순서
 

@@ -47,5 +47,6 @@ node docs/toss/build-service-inventory.mjs가 발견한 ID와 11월 14일 감사
 
 - 최신 원격 변경 29550bf9e8을 4c2d4b53c1에서 병합했다. 기능 원장 a83996b6f6, 프롬프트 허브 11e69cba0b, 뇌구조 f1e2f347ed, 흑월 재개 5261e80547. 원본 대조 116행, 운영 구매 또는 실기기 검증 실적으로 합산 금지. 웹 정상 음원 122곡은 모두 32MiB 이하다. 미복구 neo-15와 환불·SDK 등 운영 게이트가 있다.
 - Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e에서 무료 23개 및 프롬프트 16종, PNG·프로필·고급궁합·흑월·음원 종합 증거를 docs/toss/mock-service-flow-20261122.json에 연결했다. 최신 AIT 01a200eb-5cdb-7a02-bab9-a739f9b06bef는 압축 해제 99,204,394바이트이며 프롬프트 16개, 계정 B 차단, 연결 해제 및 재연결 후 원문 삭제까지 확인했다. D:/tmp/toss-release/full-parity-20261122/windows-01a200eb. 최신 모의 AIT 둘 다 Windows 경로로 구성되므로 업로드 금지.
-- 현재 가상 모바일 4346은 01a200e2와 같은 격리 자원으로 동작한다. 최신 공식 Linux archive로 교체할 때 archive 전용 로컬 미리보기 명령을 사용할 수 있다. 실기기용 로컬 Android 브리지에 연결된 휴대폰은 0개.
+- 현재 가상 모바일 4346은 01a200eb와 같은 격리 자원으로 동작한다. 최신 공식 Linux archive로 교체할 때 archive 전용 로컬 미리보기 명령을 사용할 수 있다. 실기기용 로컬 Android 브리지에 연결된 휴대폰은 0개.
 - 남은 첫 작업은 생성된 공개 미러 8개 및 sitemap 검증을 마치고 커밋, check:pre-push와 전체 targeted gate 로그 확인 후 병합·main 푸시·Linux 일반과 모의 AIT의 보관·미제출 비공개 QR 검증이다. 검증 프로세스 출력은 D:/Development/Temp/toss-parity-gate-final3.log. 이전 시간 제한 케이스는 단독 3/3 통과했다. 운영 배포·공개·환불 약속·약관 조작 금지.
+- 미러·sitemap cfedf06452 및 pre-push 통과. 작성 시점 기존 origin/main(29550bf9e8) CI 44972161006이 데스크톱 웹 사주 카드 노출 검사에서 실패했다. 동일 소스의 실패한 검사만 재실행했다. 이 실패가 유지되는 동안 다른 사람의 빨간 커밋 위에 push하지 않는다. 현재 작업의 로컬 모의 Node 검사 5,795건 통과, 최신 콘솔 로그인 설정 및 mTLS 만료일은 출시 준비 점검 문서 참조.
