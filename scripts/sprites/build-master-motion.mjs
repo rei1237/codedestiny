@@ -330,34 +330,47 @@ for (const [variantName, variant] of Object.entries(spec.variants)) {
   const budget = MASTER_MOTION_BUDGETS[variant.kind];
   if (!budget) fail(`알 수 없는 kind: ${variant.kind}`);
   if (variant.kind === "patch") { await buildPatch(variantName, variant, budget); continue; }
-  const toCell = (rgb) => {
+  const toCell = (rgb, width = budget.width, height = budget.height) => {
     let img = sharp(rgb, { raw: { width: W, height: H, channels: 3 } });
     if (variant.kind === "avatar") {
       const { left, top, size } = variant.crop;
       img = img.extract({ left, top, width: size, height: size });
     }
-    return img.resize(budget.width, budget.height, { kernel: "lanczos3" }).raw().toBuffer();
+    return img.resize(width, height, { kernel: "lanczos3" }).raw().toBuffer();
   };
-  const cellBuffers = await Promise.all(cells.map(toCell));
   const posterBuffer = await toCell(baseRgb);
-  const composites = await Promise.all(cellBuffers.map(async (buffer, index) => ({
-    input: await sharp(buffer, { raw: { width: budget.width, height: budget.height, channels: 3 } }).png().toBuffer(),
-    left: index * budget.width, top: 0,
-  })));
   const sheetFile = `${variantName}-sheet.webp`, posterFile = `${variantName}-poster.webp`;
   const quality = spec.webp[variant.kind] ?? spec.webp.default;
-  const sheet = await sharp({ create: { width: budget.width * cells.length, height: budget.height, channels: 3, background: { r: 0, g: 0, b: 0 } } })
-    .composite(composites).webp({ quality: quality.sheet, effort: 6, smartSubsample: true }).toBuffer();
+  async function encodeSheet(width, height, sheetQuality) {
+    const composites = await Promise.all(cells.map(async (rgb, index) => ({
+      input: await sharp(await toCell(rgb, width, height), { raw: { width, height, channels: 3 } }).png().toBuffer(),
+      left: index * width, top: 0,
+    })));
+    return sharp({ create: { width: width * cells.length, height, channels: 3, background: { r: 0, g: 0, b: 0 } } })
+      .composite(composites).webp({ quality: sheetQuality, effort: 6, smartSubsample: true }).toBuffer();
+  }
+  const sheet = await encodeSheet(budget.width, budget.height, quality.sheet);
   const poster = await sharp(posterBuffer, { raw: { width: budget.width, height: budget.height, channels: 3 } })
     .webp({ quality: quality.poster, effort: 6, smartSubsample: true }).toBuffer();
   if (sheet.length > budget.sheetBytes) fail(`${variantName} 시트 ${sheet.length}B > 상한 ${budget.sheetBytes}B`);
   if (poster.length > budget.posterBytes) fail(`${variantName} 포스터 ${poster.length}B > 상한 ${budget.posterBytes}B`);
+  let mobile;
+  if (variant.kind === "portrait") {
+    const { width, height } = budget.mobileCell;
+    const buffer = await encodeSheet(width, height, Math.min(quality.sheet, 76));
+    if (buffer.length > sheet.length / 2) fail(`${variantName} 모바일 시트 ${buffer.length}B > 기본 시트 ${sheet.length}B의 50%`);
+    const filename = `${variantName}-sheet-${width}.webp`;
+    mobile = { buffer, filename, src: publicUrl(filename), cell: { width, height } };
+  }
   await writeFile(join(spec.out, sheetFile), sheet);
   await writeFile(join(spec.out, posterFile), poster);
+  if (mobile) await writeFile(join(spec.out, mobile.filename), mobile.buffer);
   manifest.variants[variantName] = {
     kind: variant.kind,
     poster: publicUrl(posterFile), posterBytes: poster.length,
-    sheet: { src: publicUrl(sheetFile), frames: cells.length, cols: cells.length, cell: { width: budget.width, height: budget.height } },
+    sheet: { src: publicUrl(sheetFile), frames: cells.length, cols: cells.length, cell: { width: budget.width, height: budget.height },
+      ...(mobile ? { mobile: { src: mobile.src, cell: mobile.cell } } : {}) },
+    ...(mobile ? { mobileSheetBytes: mobile.buffer.length } : {}),
     sheetBytes: sheet.length,
     ...(variant.crop ? { crop: variant.crop } : {}),
   };
@@ -373,6 +386,11 @@ const provenance = {
   spec: specPath.replaceAll("\\", "/"),
   base: { path: spec.base, sha256: manifest.baseSha256 },
   sources: Object.fromEntries(sequence.filter((n) => n !== "base").map((n) => [n, { file: results[n].file.replaceAll("\\", "/"), sha256: results[n].sourceSha256, region: spec.frames[n].region, ...(spec.frames[n].keep ? { keep: spec.frames[n].keep } : {}), prompt: spec.frames[n].prompt }])),
+  ...(manifest.variants.portrait?.sheet.mobile ? { mobilePortrait: {
+    src: manifest.variants.portrait.sheet.mobile.src,
+    cell: manifest.variants.portrait.sheet.mobile.cell,
+    operation: "동일한 합성 원본을 칸별로 축소해 같은 순서로 묶었다.",
+  } } : {}),
   operation: spec.provenance?.operation ?? "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다.",
 };
 await writeFile(join(spec.out, "provenance.json"), JSON.stringify(provenance, null, 2) + "\n");

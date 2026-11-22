@@ -22,7 +22,7 @@
 3. `--report` 없이 돌리면 `public/images/master-motion/<id>/`에 `<변형>-sheet.webp`·`<변형>-poster.webp`·`manifest.json`·`provenance.json`을 쓴다. 1차 검수 불합격 프레임이 있거나 아래 용량 상한(`lib/master-motion/sheets.mjs`의 `MASTER_MOTION_BUDGETS`)을 넘으면 파일을 쓰지 않고 실패한다.
 4. `lib/master-motion/sheets.mjs`의 `MASTER_MOTION_SHEETS`에 매니페스트 값을 옮기고, `lib/master-motion/flags.mjs`의 `MASTER_SPRITE_SHEETS.<id>`를 켠다. 화면 연결은 `motion: masterMotionArt("<id>", "<변형>")`이다. `__tests__/ui/master-motion-assets.test.mjs`가 매니페스트·용량·크기·플래그·CSS 계약을 확인한다.
 
-재생: 포스터(=기본 칸)를 먼저 깔고 시트를 다 받으면 0.3s 페이드로 드러낸다. 시트 줄은 `transform`만 `steps()`로 옮긴다(design-canon의 transform·opacity 예외 안). 주기는 칸 수 × 1200ms이고, 앞 10% 동안 칸마다 120ms씩 재생한 뒤 나머지 90%는 포스터가 대기 화면이다. 화면 밖·탭 숨김·움직임 줄이기면 그리지 않는다(`useSpritePlaybackGate`). 시트는 600×720 한 크기만 만든다(360×432 변형 없음).
+재생: 포스터(=기본 칸)를 먼저 깔고 시트를 다 받으면 0.3s 페이드로 드러낸다. 시트 줄은 `transform`만 `steps()`로 옮긴다(design-canon의 transform·opacity 예외 안). 주기는 칸 수 × 1200ms이고, 앞 10% 동안 칸마다 120ms씩 재생한 뒤 나머지 90%는 포스터가 대기 화면이다. 화면 밖·탭 숨김·움직임 줄이기면 그리지 않는다(`useSpritePlaybackGate`). 소개장 시트는 같은 합성 원본에서 칸별 600×720과 360×432를 만든다. 768px 이하 화면은 작은 시트만 쓰고, 작은 시트 바이트는 기본 시트의 절반 이하여야 한다. 아바타와 부분 시트는 전용 크기를 쓴다.
 
 부분 시트(`kind: "patch"`, F7 영냥이): 정본 `<img>` 위의 사각형 하나(`area`, 정본 좌표·정본 배율)만 덮는다. 포스터가 없고 기본 칸은 완전 투명이다. 편집 칸의 알파는 눈 타원 무게 × 정본 알파라서 눈 밖에서는 아래 `<img>`(hero-480·hero-800)가 그대로 보이고, 페더 띠는 브라우저가 섞는다. 사각형을 불투명하게 덮지 않는 이유가 있다. hero-480이 hero-800을 줄인 것보다 선명하므로(라플라시안 3390 대 2382), 불투명하게 덮으면 상자 경계에 이음매가 생긴다. 연결은 `masterMotionPatch("<id>", "<변형>")` → `<MasterMotionPatch patch={…} />`이고, 정본 `<img>`와 같은 정사각 캔버스 안에 넣는다. 첫 깜빡임은 1.6s 뒤다. 용량 상한은 `MASTER_MOTION_BUDGETS.patch`다. spec 프레임에 `keep`을 쓰면 빌드가 실패한다. 꼬리처럼 투명 윤곽 가장자리에 걸친 움직임은 겹치기로 원래 모양을 가릴 수 없으므로 만들지 않는다.
 

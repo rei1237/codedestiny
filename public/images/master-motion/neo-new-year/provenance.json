@@ -85,5 +85,13 @@
       "prompt": "eyes fully closed in a gentle natural blink (upper eyelids fully lowered, lashes resting down); eyebrows, mouth and expression otherwise unchanged"
     }
   },
-  "operation": "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다."
+  "operation": "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다.",
+  "mobilePortrait": {
+    "src": "/images/master-motion/neo-new-year/portrait-sheet-360.webp",
+    "cell": {
+      "width": 360,
+      "height": 432
+    },
+    "operation": "동일한 합성 원본을 칸별로 축소해 같은 순서로 묶었다."
+  }
 }

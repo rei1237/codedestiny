@@ -50,6 +50,14 @@ test('sheets and posters stay within budget and match the declared cell grid', a
       assert.ok(statSync(posterFile).size <= budget.posterBytes, `${posterFile} ${statSync(posterFile).size}B > ${budget.posterBytes}B`);
       const sheetMeta = await sharp(sheetFile).metadata();
       assert.deepEqual([sheetMeta.width, sheetMeta.height], [sheet.cols * budget.width, budget.height], sheetFile);
+      if (variant.kind === 'portrait') {
+        assert.deepEqual(sheet.mobile.cell, budget.mobileCell);
+        const smallFile = fileOf(sheet.mobile.src);
+        const smallMeta = await sharp(smallFile).metadata();
+        assert.deepEqual([smallMeta.width, smallMeta.height], [sheet.cols * budget.mobileCell.width, budget.mobileCell.height], smallFile);
+        assert.equal(variant.mobileSheetBytes, statSync(smallFile).size);
+        assert.ok(variant.mobileSheetBytes <= statSync(sheetFile).size / 2, smallFile);
+      }
       const posterMeta = await sharp(posterFile).metadata();
       assert.deepEqual([posterMeta.width, posterMeta.height], [budget.width, budget.height], posterFile);
     }
@@ -85,7 +93,8 @@ test('sheet playback CSS animates transform only, uses steps(), fades .3s and hi
   const reduced = css.match(/@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n\}/)?.[1] ?? '';
   assert.match(reduced, /\.art\b[^{]*\{\s*display:\s*none/);
   const tsx = readFileSync('app/components/master-motion/MasterMotion.tsx', 'utf8');
-  assert.match(tsx, /useLazySpriteSource\(sheet\?\.src \?\? "", on && Boolean\(sheet\)\)/, 'sheet loads only while the playback gate is open');
+  assert.match(tsx, /on && sheet && source && art \? \([\s\S]*?<PortraitSheet key=\{source.src\}/, 'the image mounts only when playback is allowed');
+  assert.match(tsx, /className=\{styles.sheet\} src=\{source.src\}/, 'the selected file is rendered by one image');
   // 부분 시트(patch): 같은 mmSheet·steps, 움직임 줄이기에서 숨김, 재생 허용(on)일 때만 받는다.
   assert.match(css.match(/\.patchRow\s*\{([\s\S]*?)\}/)?.[1] ?? '', /animation:\s*mmSheet[^;]*steps\(var\(--mm-n\)\)/);
   assert.match(reduced, /\.patch\b[^{]*\{\s*display:\s*none/);

@@ -20,9 +20,17 @@
         "cell": {
           "width": 600,
           "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/hanbi-love/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
         }
       },
-      "sheetBytes": 241662
+      "sheetBytes": 241662,
+      "mobileSheetBytes": 106334
     },
     "avatar": {
       "kind": "avatar",
