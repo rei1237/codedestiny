@@ -30,6 +30,7 @@ import SummonPreview from "./SummonPreview";
 import { Dialogue, Portrait, NovelLine } from "./Dialogue";
 import { usePlayer } from "./usePlayer";
 import s from "./lobby.module.css";
+import book from "./story-entry.module.css";
 
 const dock = [
   { id: "team", Icon: Shield },
@@ -240,6 +241,66 @@ export default function Lobby({
             </button>
           </div>
         </section>
+      ) : screen === "story" ? (
+        <section className={book.spread} aria-labelledby="story-entry-title">
+          <figure className={book.coverScene}>
+            <div className={book.cover}>
+              <img
+                src="/images/novel/yeoni-youngyangi-hero-v1.webp"
+                width="1024"
+                height="1536"
+                alt="꽃 사이에서 별빛 도시를 바라보는 연이와 영냥이의 소설 표지"
+              />
+              <span className={book.coverTitle}>운명의 연대기</span>
+            </div>
+          </figure>
+          <article className={book.paper}>
+            <header className={book.chapter}>
+              <small>
+                <MoonStar size={16} aria-hidden="true" /> 프롤로그
+              </small>
+              <h1 id="story-entry-title" tabIndex={-1} ref={title}>
+                이상한 앱이 깔렸다
+              </h1>
+            </header>
+            <div
+              key={opening[beat].id}
+              className={book.passage}
+              tabIndex={0}
+              aria-label="현재 문장"
+            >
+              <NovelLine {...opening[beat]} still={prefs.still} />
+            </div>
+            <footer className={book.controls}>
+              <span
+                aria-label={`도입부 미리보기 ${beat + 1} / ${opening.length}문장`}
+              >
+                <BookOpen size={16} aria-hidden="true" />{" "}
+                {String(beat + 1).padStart(2, "0")} /{" "}
+                {String(opening.length).padStart(2, "0")}
+              </span>
+              <button
+                disabled={!beat}
+                onClick={() => turnPage(beat - 1)}
+                aria-label="이전 문장"
+              >
+                <ArrowLeft size={18} />
+              </button>
+              {beat + 1 < opening.length ? (
+                <button
+                  className={book.forward}
+                  onClick={() => turnPage(beat + 1)}
+                >
+                  다음 문장 <ArrowRight size={16} />
+                </button>
+              ) : (
+                <a className={book.forward} href="/codedestiny-novel.html">
+                  원작 뷰어 열기 <ArrowRight size={16} />
+                </a>
+              )}
+            </footer>
+          </article>
+        </section>
       ) : (
         <section className={s.sub} key={screen}>
           <div className={s.panel} data-screen={screen}>
@@ -264,31 +325,6 @@ export default function Lobby({
                   </button>
                 ))}
                 <p>캐릭터 성장 레벨은 강화 기능에서 열립니다.</p>
-              </>
-            )}
-            {screen === "story" && (
-              <>
-                <small>프롤로그 · 이상한 앱이 깔렸다</small>
-                <NovelLine
-                  key={opening[beat].id}
-                  {...opening[beat]}
-                  still={prefs.still}
-                />
-                <p>
-                  도입부 미리보기 · {beat + 1} / {opening.length}
-                </p>
-                <div className={s.actions}>
-                  <button disabled={!beat} onClick={() => turnPage(beat - 1)}>
-                    이전 문장
-                  </button>
-                  {beat + 1 < opening.length ? (
-                    <button onClick={() => turnPage(beat + 1)}>
-                      다음 문장
-                    </button>
-                  ) : (
-                    <a href="/codedestiny-novel.html">원작 뷰어 열기</a>
-                  )}
-                </div>
               </>
             )}
             {screen === "summon" && (

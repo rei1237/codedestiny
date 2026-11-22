@@ -521,23 +521,32 @@
   }
 }
 
+/* Text and speaker portraits inside the illustrated prologue. */
 .novelLine {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  min-height: 100px;
-  margin-block: 12px;
-  padding: 12px;
-  border-left: 2px solid #e3a7bf;
-  background: #714357;
 }
 .novelLine > svg {
   flex: none;
-  width: clamp(80px, 16vw, 160px);
+  width: clamp(60px, 8vw, 125px);
   height: auto;
 }
+.novelLine small {
+  color: #84425b;
+  font-weight: 650;
+  font-size: 12px;
+}
+.novelLine blockquote {
+  margin: 6px 0;
+  font:
+    500 clamp(16px, 1.6vw, 24px) / 1.7 Georgia,
+    "Batang",
+    serif;
+}
 .novelLine button {
-  color: #ffe0ed;
+  color: #884661;
+  font-size: 13px;
   text-decoration: underline;
 }
 
