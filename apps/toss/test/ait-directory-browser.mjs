@@ -8,11 +8,26 @@ const browser=await chromium.launch({channel:'chrome'});
 try{
  const context=await browser.newContext({viewport:{width:360,height:740},serviceWorkers:'block',reducedMotion:'reduce'});
  await context.route('**/*',r=>new URL(r.request().url()).origin===origin?r.continue():r.abort());
+ await context.addInitScript(()=>{
+  window.__appsInTossConstants={operationalEnvironment:'toss',safeAreaInsets:{top:0,bottom:12,left:0,right:0},schemeUri:'intoss://ai-saju-studio',locale:'ko-KR',platformOS:'android',tossAppVersion:'5.300.0'};
+  const handlers={__subscribeAppEvent:()=>null,__unsubscribeAppEvent:()=>null,getStorageItem:()=>null,getPendingOrders:()=>({orders:[]})};
+  window.__bridgeMethods__=Object.keys(handlers);
+  window.ReactNativeWebView={postMessage(raw){
+   const {type,body,bridgeId}=JSON.parse(raw);if(type!=='bridge')return;
+   const {method,eventId}=body;
+   if(!Object.hasOwn(handlers,method))throw Error('Unexpected native action '+method);
+   queueMicrotask(()=>window.nativeEmitterMap[bridgeId].emit(method+'-'+eventId,handlers[method]()));
+  }};
+ });
  const page=await context.newPage();page.setDefaultTimeout(45000);
  const failures=[],evidence=[];
  async function openHome(){await page.goto(origin,{waitUntil:'domcontentloaded'});await page.locator('.world-entry-ggulggul').click();await page.getByRole('searchbox').waitFor();}
  await openHome();
- const titles=await page.locator('.directory-list button strong').allTextContents();
+ await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();
+ const titles=await page.locator('.directory-list button:visible strong').allTextContents();
+ const counts=await page.locator('.directory-group-count').allTextContents();
+ assert.ok(titles.length>0,'the release directory must contain destinations');
+ assert.equal(titles.length,counts.reduce((sum,label)=>sum+Number.parseInt(label,10),0),'every destination on screen must be exercised');
  assert.equal(new Set(titles).size,titles.length);
  for(const title of titles){
   try{

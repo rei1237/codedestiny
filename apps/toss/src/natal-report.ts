@@ -13,7 +13,7 @@ export function renderNatalReport(doc:Document,parts:NatalParts,fragment:Fragmen
     heading.textContent=title;
     chapter.className='natal-chapter';
     chapter.dataset.chapter=group;
-    chapter.open=group==='ilju';
+    chapter.open=group===(new URLSearchParams(location.search).get('chapter')==='terms'?'terms':'ilju');
     chapter.append(heading);
     for(const template of part.content.querySelectorAll<HTMLTemplateElement>('template[data-natal-slot]')){
       const id=template.getAttribute('data-natal-slot')!;

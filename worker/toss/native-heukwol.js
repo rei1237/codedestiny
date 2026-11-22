@@ -6,6 +6,7 @@ import {TossNativeConsultation} from './models.js';
 import {nativeOwnerFilter,prepareNativeConsultation,verifiedIntent} from './native-tea.js';
 import {TossError} from './policy.js';
 import {hash} from './crypto.js';
+import {retryRefundAt} from '../lib/paid-delivery-stuck.js';
 
 const owner=auth=>nativeOwnerFilter(auth,'heukwol');
 export async function prepareHeukwol(env,auth,body,orderId){
@@ -28,7 +29,21 @@ export function heukwolView(row){
   const report=progress.completedAt?{reportId:row._id,title:row.input.year+' 흑월의 경고',year:row.input.year,question:row.input.question,
     analysis:row.input.analysis,totalChars:chapters.reduce((sum,c)=>sum+c.totalChars,0),chapters,generatedAt:progress.completedAt}:null;
   return {ok:true,id:row._id,year:row.input.year,status:report?'completed':progress.failed?'failed':'generating',
-    completedChapters:chapters.length,totalChapters:HEUKWOL_CHAPTERS.length,...(report?{report}:{})};
+    completedChapters:chapters.length,totalChapters:HEUKWOL_CHAPTERS.length,...(report?{report}:{}),
+    ...(progress.failed&&progress.failedAt&&Date.parse(progress.retryUntil)>Date.now()?{retryGeneration:progress.failedAt}:{})};
+}
+// Only an explicit owner action reopens a terminal wave. A replay of the same action
+// cannot reset a later failure or discard work written by a concurrent reader.
+export async function retryHeukwolGeneration(env,auth,id,failure){
+  const filter={...owner(auth),_id:id};
+  const row=await verifiedIntent(env,auth,await TossNativeConsultation.findOne(filter).lean());
+  const current=heukwolView(row);
+  if(!current.retryGeneration||failure!==current.retryGeneration)return current;
+  const savedResult={...row.savedResult,failed:false,failedAt:null,rounds:{},attempts:0,transient:0};
+  const reopened=await TossNativeConsultation.findOneAndUpdate({...filter,status:'paid',generationStartedAt:null,savedResult:row.savedResult},
+    {$set:{savedResult}},{new:true}).lean();
+  const verified=await verifiedIntent(env,auth,reopened||await TossNativeConsultation.findOne(filter).lean());
+  return heukwolView(verified);
 }
 export async function heukwolLibraryItem(env,auth,purchase){
   if(!purchase.requestId)return {state:'UNASSIGNED',href:'/heukwol/?consult=1&orderId='+encodeURIComponent(purchase._id)};
@@ -71,7 +86,11 @@ export async function heukwolWave(env,auth,id,advance){
       else failed=true;
     }
   }
-  const savedResult={chapters,rounds,attempts,transient,lastIssue,failed};
+  // Reopening keeps the original delivery window. Older, ongoing orders use their
+  // original intent timestamp when no first-wave checkpoint exists.
+  const retryUntil=progress.retryUntil||retryRefundAt({createdAt:row.savedResult&&row.createdAt||started}).toISOString();
+  const savedResult={chapters,rounds,attempts,transient,lastIssue,failed,retryUntil};
+  if(failed&&next)savedResult.failedAt=new Date().toISOString();
   if(!failed&&chapters.length===HEUKWOL_CHAPTERS.length){
     const totalChars=chapters.reduce((sum,c)=>sum+c.totalChars,0);
     if(!v2&&totalChars<HEUKWOL_MIN_CHARS)savedResult.failed=true;

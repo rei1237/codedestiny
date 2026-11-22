@@ -324,8 +324,8 @@ export function toClientProfile(doc) {
     location: {
       label: String(doc?.location?.label || ""),
       tz: String(doc?.location?.tz || "Asia/Seoul"),
-      lng: Number(doc?.location?.lng || 127.0),
-      lat: Number(doc?.location?.lat || 37.5),
+      lng: Number(doc?.location?.lng ?? 127.0),
+      lat: Number(doc?.location?.lat ?? 37.5),
     },
     createdAt: doc.createdAt || null,
     updatedAt: doc.updatedAt || null,

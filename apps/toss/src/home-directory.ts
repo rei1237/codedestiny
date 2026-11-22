@@ -73,6 +73,7 @@ const books:DirectoryItem[]=[
  {id:'novel',title:'연이의 운명 노벨',body:'꽃돼지 연이와 함께 읽는 연재소설'},
 ];
 const reports:DirectoryItem[]=[
+  {title:"사주 고급 궁합", href:"/saju/compatibility/premium/",body:"두 사람의 원국으로 읽는 끌림·소통과 관계의 흐름"},
   {title:"내 손금 리포트", href:"/palm-reading/"},
   {title:"전문가 동물 관상", href:"/animal/physio/"},
   {title:"전생 관상", href:"/past-life-face/"},
