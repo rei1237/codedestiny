@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 
 export async function verifyGuidedProfile(origin,context){
  const page=await context.newPage();page.setDefaultTimeout(30000);
- const openForm=async()=>{const section=page.locator('details').filter({has:page.locator('summary').filter({hasText:'상담 프로필'})});await section.waitFor();if(!await section.evaluate(el=>el.open))await section.locator('summary').click();const add=page.getByRole('button',{name:'다른 사람 출생정보 입력',exact:true});await page.locator('input[name=name]').or(add).first().waitFor();if(await add.isVisible())await add.click();};
+ const section=page.locator('details').filter({has:page.locator('summary').filter({hasText:'상담 프로필'})});
+ const expandProfiles=async()=>{await section.waitFor();if(!await section.evaluate(el=>el.open))await section.locator('summary').click();};
+ const openForm=async()=>{await expandProfiles();const add=page.getByRole('button',{name:'다른 사람 출생정보 입력',exact:true});await page.locator('input[name=name]').or(add).first().waitFor();if(await add.isVisible())await add.click();};
  const enter=async()=>{
   await page.goto(origin);await page.locator('.world-entry-yeongnyangi').click();
   for(const section of await page.locator('.world-disclosure>summary').all())await section.click();
@@ -37,15 +39,15 @@ export async function verifyGuidedProfile(origin,context){
   assert.equal(await page.locator('input[name=name]').inputValue(),'모의 계정 A 작성 중');
   await page.getByRole('button',{name:'다음',exact:true}).click();
   await page.getByRole('button',{name:'저장하고 계속',exact:true}).click();
+  await section.locator('summary').filter({hasText:'모의 계정 A 작성 중'}).waitFor();await expandProfiles();
   const edit=page.getByRole('button',{name:'선택한 프로필 수정',exact:true});await edit.click();
   assert.equal(await page.locator('input[name=name]').inputValue(),'모의 계정 A 작성 중');
   await page.locator('input[name=name]').fill('모의 계정 A 수정');
   for(let step=0;step<3;step++)await page.getByRole('button',{name:'다음',exact:true}).click();
   await page.getByRole('button',{name:'저장하고 계속',exact:true}).click();
-  await page.getByRole('button',{name:/모의 계정 A 수정/}).waitFor();
+  await section.locator('summary').filter({hasText:'모의 계정 A 수정'}).waitFor();
   await page.reload();
-  const profileSection=page.locator('details').filter({has:page.locator('summary').filter({hasText:'상담 프로필'})});
-  await profileSection.waitFor();if(!await profileSection.evaluate(el=>el.open))await profileSection.locator('summary').click();
+  await expandProfiles();await page.getByRole('button',{name:/모의 계정 A 수정/}).waitFor();
   assert.equal(await page.getByRole('button',{name:/모의 계정 A 수정/}).count(),1);
   assert.equal(await page.getByRole('button',{name:/모의 계정 A 작성 중/}).count(),0);
   console.log('PASS selected owner profile creation, selection, correction and saved list after relaunch');
