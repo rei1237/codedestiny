@@ -16,6 +16,10 @@
 .yh-home .yh-free-start{gap:10px;min-height:52px;margin-top:20px;padding:12px 43px 12px 19px;color:var(--cd-cta-primary-ink);font-family:var(--font-body);font-size:.9375rem;font-weight:600;line-height:1.45;letter-spacing:-.01em;white-space:normal;text-decoration:none}
 .yh-free-start::before{content:"";position:absolute;inset:3px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 38%,transparent);border-radius:calc(var(--cd-r-control) - 4px);pointer-events:none}
 .yh-free-start__label{min-width:0}
+/* 고급화(G 2026-11-22): 바깥 1px 금선(3px 띄움)으로 안쪽 금선과 이중 금테를 만든다. 포커스는 별도 굵은 고리라 금테와 구분된다. */
+.yh-home .yh-free-start{outline:1px solid color-mix(in srgb,var(--cd-yehwa-line) 75%,transparent);outline-offset:3px}
+.yh-home .yh-free-start:focus-visible{outline:3px solid var(--cd-focus-ring);outline-offset:4px}
+@media(forced-colors:active){.yh-home .yh-free-start{outline-color:ButtonText}}
 /* 2026-11-15 한 줄 신뢰 띠: 원문 날짜 비교로만 연결. 한국어 화면에만 보인다. */
 .yh-entry-scene .yh-greeting .yh-trust{max-width:46ch;margin-top:14px;color:var(--cd-text-muted);font-size:.875rem;line-height:1.6}
 .yh-trust a{font-weight:600;white-space:nowrap;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
