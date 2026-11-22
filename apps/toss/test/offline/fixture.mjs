@@ -126,7 +126,7 @@ function createAccountFixture(storage,owner,token,now){
    return respond({ok:true,date:[target.year,target.month,target.day].map(n=>String(n).padStart(2,'0')).join('-'),personalized:!!profileId,
     systems:{saju:demo('saju','사주 일진'),sukuyo:demo('sukuyo','숙요 27수'),vedic:demo('vedic','베다 판창가'),number}});
   }
-  if(path==='/canonical/fortune/prompt-hub/session'&&method==='GET')return respond({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
+  if((path==='/flower/session'||path==='/canonical/moonlit-lotus/session'||path==='/canonical/fortune/prompt-hub/session')&&method==='GET')return respond({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
   const prompt=await mockPromptHubRequest(request,path);if(prompt)return prompt;
   if(path==='/canonical/geocode'&&method==='GET'){
    return url.searchParams.get('place')==='서울'

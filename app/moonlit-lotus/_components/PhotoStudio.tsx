@@ -1,5 +1,6 @@
 "use client";
-import {useEffect,useRef,useState,type PointerEvent} from 'react';
+import {useContext,useEffect,useRef,useState,type PointerEvent} from 'react';
+import {SpacePlatformContext} from '../_lib/space-platform';
 import {Camera,Download,Share2,Pencil,Undo2,X} from 'lucide-react';
 import {constrainTransform,transformGesture,hitTransform,type PhotoTransform,type PhotoPoint} from '../_lib/photo-transform';
 import styles from '../space.module.css';
@@ -13,6 +14,7 @@ type Point={x:number;y:number};
 type Mark=({type:'pen';points:Point[];color:string;width:number}|{type:Sticker;x:number;y:number;color:string;size:number}|{type:'caption';text:string;x:number;y:number;color:string;size:number}) & {rotation?:number};
 export default function PhotoStudio({target,onPrepare,poseDrawing,disabled=false}:{poseDrawing:(pose:PhotoPose)=>{url:string;frame:number;standalone?:boolean};disabled?:boolean;target:()=>HTMLElement|null;onPrepare:()=>void}){
  const[base,setBase]=useState<HTMLCanvasElement|null>(null),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[marks,setMarks]=useState<Mark[]>([]),[tool,setTool]=useState<'move'|'pen'|Sticker|Caption>('move'),[color,setColor]=useState('#d65d86');
+ const platform=useContext(SpacePlatformContext);
  const [pose,setPose]=useState<PhotoPose>('cheek'),[size,setSize]=useState(.06),[stickerReady,setStickerReady]=useState(false),[stickerError,setStickerError]=useState(false);
  const [character,setCharacter]=useState<PhotoTransform>({x:.5,y:.4,size:.25,rotation:0}),[selected,setSelected]=useState(-1),[history,setHistory]=useState<{marks:Mark[];character:PhotoTransform}[]>([]);
  const characterImage=useRef<{image:HTMLImageElement;frame:number;standalone?:boolean}|null>(null),initialCharacter=useRef(character);
@@ -24,7 +26,7 @@ export default function PhotoStudio({target,onPrepare,poseDrawing,disabled=false
  const bounds=(index:number,t:PhotoTransform)=>{const m=current.current.marks[index];if(m?.type==='caption'){const ctx=canvas.current?.getContext('2d');if(ctx&&canvas.current){const font=t.size*.18;ctx.font=`600 ${font*canvas.current.width}px ${getComputedStyle(canvas.current).fontFamily}`;return {width:ctx.measureText(m.text).width/canvas.current.width+font*1.3,height:font*2.125};}}return {width:t.size,height:t.size};};
  const stopGesture=()=>{pointers.current.clear();gesture.current=null;drawing.current=false;};
  const stickers=useRef<Record<string,HTMLImageElement>>({});
- useEffect(()=>{let live=true;Promise.all(STICKERS.map(async([id])=>{const img=new Image();img.src=STICKER_BASE+id+'.svg';await img.decode();return [id,img] as const;})).then(items=>{if(live){stickers.current=Object.fromEntries(items);setStickerReady(true);}}).catch(()=>{if(live){setStickerError(true);setTool('pen');}});return()=>{live=false;};},[]);
+ useEffect(()=>{let live=true;Promise.all(STICKERS.map(async([id])=>{const img=new Image();img.crossOrigin='anonymous';img.src=STICKER_BASE+id+'.svg';await img.decode();return [id,img] as const;})).then(items=>{if(live){stickers.current=Object.fromEntries(items);setStickerReady(true);}}).catch(()=>{if(live){setStickerError(true);setTool('pen');}});return()=>{live=false;};},[]);
  const dialog=useRef<HTMLDialogElement>(null),canvas=useRef<HTMLCanvasElement>(null),drawing=useRef(false),alive=useRef(true),button=useRef<HTMLButtonElement>(null),working=useRef(false);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  useEffect(()=>{if(base&&!dialog.current?.open)dialog.current?.showModal();},[base]);
@@ -39,7 +41,7 @@ export default function PhotoStudio({target,onPrepare,poseDrawing,disabled=false
   }else{const img=stickers.current[mark.type];if(img){const side=mark.size*c.width*2;ctx.save();ctx.translate(mark.x*c.width,mark.y*c.height);ctx.rotate((mark.rotation||0)*Math.PI/180);ctx.drawImage(img,-side/2,-side/2,side,side);ctx.restore();}}}
  },[base,marks,stickerReady,character,pose]);
  const capture=async(nextPose:PhotoPose=pose)=>{if(working.current)return;const node=target();if(!node){setNotice('풍경을 준비한 뒤 다시 눌러 주세요.');return;}working.current=true;setBusy(true);setNotice('');stopGesture();
-  try{onPrepare();const drawing=poseDrawing(nextPose);const decoded=new Image();decoded.src=drawing.url;await decoded.decode();if(base){characterImage.current={image:decoded,...drawing};setPose(nextPose);return;}await document.fonts.ready;await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));const{default:html2canvas}=await import('html2canvas');const shot=await html2canvas(node,{scale:Math.min(2,1536/node.clientWidth),backgroundColor:'#fffaf7',useCORS:true,logging:false,ignoreElements:el=>el.hasAttribute('data-photo-hide'),onclone:doc=>{const figure=doc.querySelector<HTMLElement>('[data-photo-character]');if(figure)figure.style.visibility='hidden';const world=doc.querySelector<HTMLElement>('[data-scene]');if(world){world.style.left='0';world.style.transform='none';if(world.parentElement)world.parentElement.style.overflow='visible';}}});if(alive.current){const figure=node.querySelector<HTMLElement>('[data-photo-character]'),r=node.getBoundingClientRect(),f=figure?.getBoundingClientRect();const t={x:f?(f.left-r.left+f.width/2)/r.width:.5,y:f?(f.top-r.top+f.height/2)/r.width:.4,size:f?f.width/r.width:.25,rotation:0};initialCharacter.current=t;setCharacter(t);characterImage.current={image:decoded,...drawing};setSelected(-1);setTool('move');setHistory([]);setPose(nextPose);setBase(shot);}}
+  try{onPrepare();const drawing=poseDrawing(nextPose);const decoded=new Image();decoded.crossOrigin='anonymous';decoded.src=drawing.url;await decoded.decode();if(base){characterImage.current={image:decoded,...drawing};setPose(nextPose);return;}await document.fonts.ready;await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));const{default:html2canvas}=await import('html2canvas');const shot=await html2canvas(node,{scale:Math.min(2,1536/node.clientWidth),backgroundColor:'#fffaf7',useCORS:true,logging:false,ignoreElements:el=>el.hasAttribute('data-photo-hide'),onclone:doc=>{const figure=doc.querySelector<HTMLElement>('[data-photo-character]');if(figure)figure.style.visibility='hidden';const world=doc.querySelector<HTMLElement>('[data-scene]');if(world){world.style.left='0';world.style.transform='none';if(world.parentElement)world.parentElement.style.overflow='visible';}}});if(alive.current){const figure=node.querySelector<HTMLElement>('[data-photo-character]'),r=node.getBoundingClientRect(),f=figure?.getBoundingClientRect();const t={x:f?(f.left-r.left+f.width/2)/r.width:.5,y:f?(f.top-r.top+f.height/2)/r.width:.4,size:f?f.width/r.width:.25,rotation:0};initialCharacter.current=t;setCharacter(t);characterImage.current={image:decoded,...drawing};setSelected(-1);setTool('move');setHistory([]);setPose(nextPose);setBase(shot);}}
   catch{if(alive.current)setNotice('사진을 만들지 못했어요. 풍경과 캐릭터가 보이는지 확인하고 다시 시도해 주세요.');}finally{working.current=false;if(alive.current)setBusy(false);}
  };
  const close=()=>{if(working.current)return;dialog.current?.close();setBase(null);setMarks([]);setHistory([]);setNotice('');stopGesture();characterImage.current=null;button.current?.focus();};
@@ -69,13 +71,13 @@ export default function PhotoStudio({target,onPrepare,poseDrawing,disabled=false
  const save=async(share=false)=>{
   if(working.current||!canvas.current)return;working.current=true;setBusy(true);setNotice('');stopGesture();
   try{
-   const blob=await new Promise<Blob|null>(resolve=>canvas.current!.toBlob(resolve,'image/png'));if(!blob)throw Error('empty');
+   const blob=await new Promise<Blob|null>(resolve=>canvas.current!.toBlob(resolve,'image/png'));if(!blob||!alive.current)throw Error('empty');
    const filename='달빛-연화당-'+new Date().toISOString().slice(0,10)+'.png',file=new File([blob],filename,{type:'image/png'});
    let supported=false;if(share&&typeof navigator.share==='function'&&typeof navigator.canShare==='function'){try{supported=navigator.canShare({files:[file]});}catch{/* PNG fallback. */}}
    if(supported){
     try{await navigator.share({files:[file]});if(alive.current)setNotice('기기의 공유 메뉴로 사진을 전달했어요.');}
     catch(error){if(alive.current)setNotice(error instanceof Error&&error.name==='AbortError'?'공유를 취소했어요. 사진은 그대로 남아 있어요.':'공유하지 못했어요. PNG로 저장한 뒤 다시 공유해 주세요.');}
-   }else{download(blob,filename);if(alive.current)setNotice(share?'이 기기에서는 파일 공유를 지원하지 않아 PNG 저장을 요청했어요. 다운로드를 확인해 주세요.':'인증샷 파일 저장을 요청했어요. 기기의 다운로드를 확인해 주세요.');}
+   }else{if(platform)await platform.savePhoto(blob,filename);else download(blob,filename);if(alive.current)setNotice(share?'이 기기에서는 파일 공유를 지원하지 않아 PNG 저장을 요청했어요. 다운로드를 확인해 주세요.':'인증샷 파일 저장을 요청했어요. 기기의 다운로드를 확인해 주세요.');}
   }catch{if(alive.current)setNotice('저장하지 못했어요. 다시 시도해 주세요.');}finally{working.current=false;if(alive.current)setBusy(false);}
  };
  return <><button ref={button} onClick={()=>void capture()} disabled={busy||disabled}><Camera size={17}/>{busy?'사진 준비 중':'인증샷 꾸미기'}</button>{notice&&!base&&<p role="status">{notice}</p>}<dialog ref={dialog} className={styles.photoDialog} onCancel={e=>{e.preventDefault();close();}} aria-labelledby="photo-title" aria-busy={busy}>

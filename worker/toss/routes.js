@@ -729,7 +729,7 @@ export async function handleTossRoutes(request,env) {
       try{return reply({ok:true,...await readOwnedCareerStyle(env,{userId:auth.userId,profileId:profileId.trim(),statusOnly})});}
       catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||'INVALID_PROFILE',error.status);throw error;}
     }
-    if(path==='/canonical/fortune/prompt-hub/session'&&request.method==='GET')return reply({owner:auth.userId,scope:tossPromptLibraryScope(auth.userId,auth.revision,auth.environment)});
+    if((path==='/flower/session'||path==='/canonical/moonlit-lotus/session'||path==='/canonical/fortune/prompt-hub/session')&&request.method==='GET')return reply({owner:auth.userId,scope:tossPromptLibraryScope(auth.userId,auth.revision,auth.environment)});
     if(path==='/canonical/fortune/prompt-hub/generate'&&request.method==='POST'){
       await limit(env,auth._id,'prompt-hub-generate',20);
       const {generateFreeTossPrompt}=await import('../routes/prompt-hub.js');

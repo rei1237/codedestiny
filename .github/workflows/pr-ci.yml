@@ -1238,6 +1238,14 @@ jobs:
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --all-products
           node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --guided-profile
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --yeongnyangi-room
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --sorting-hat
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --room-daily-tarot
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --recipe-comics
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --yeon-star-hug
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --mini-games
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --moonlit-lotus
+          node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --flower-studio
           for domain in saju ziwei sukuyo vedic astrology tarot; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms letter --letter-domain "$domain"
           done

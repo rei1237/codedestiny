@@ -28,6 +28,7 @@ import '@/styles/moonlit-birth-form.css';
 import '@/styles/feature-marketing-detail.css';
 import '@/app/yeongnyangi/night-tokens.css';
 
+const MoonlitLotus=lazy(()=>import('./TossMoonlitLotus'));
 const PromptHub=lazy(()=>import('./TossPromptHub'));
 const BirthReading=lazy(()=>import('./TossBirthReading'));
 const prashnaAmount=async()=>(await saleProducts()).find(item=>item.id==='prashna-v1')?.displayAmount;
@@ -160,6 +161,7 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
   return()=>{live=false;offSession();window.removeEventListener('code-destiny:toss-auth-denied',invalidate);};
  },[]);
  const recoveryBanner=recoveryMessage?<div role="status"><p>{recoveryMessage}</p><a href="/recovery">구매 내역 복구하기</a></div>:null;
+ if(/^\/moonlit-lotus(?:\/(?:model-review|story))?\/?$/.test(location.pathname))return ready?<Suspense fallback={<p role="status">연화당을 열고 있어요.</p>}><MoonlitLotus/></Suspense>:<p role="status">계정을 확인하고 있어요.</p>;
  if(/^\/fortune\/prompt-hub\/?$/.test(location.pathname))return ready?<Suspense fallback={<p role="status">프롬프트 도구를 열고 있어요.</p>}><PromptHub/></Suspense>:<p role="status">계정을 확인하고 있어요.</p>;
  if(/^\/saju\/love-simulation\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready?<Suspense fallback={<p role="status">러브 코드를 열고 있어요.</p>}><LoveSimulation onLogin={()=>location.assign('/login/?next=%2Fsaju%2Flove-simulation%2F')}/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
  if(/^\/(?:saju-fpti|fpti)(?:\/result)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}><ToastProvider/>{recoveryBanner}{ready?<Suspense fallback={<p role="status">사주 FPTI를 준비하고 있어요.</p>}><Fpti/></Suspense>:<p role="status">상담실을 준비하고 있어요.</p>}</LazyMotion>;

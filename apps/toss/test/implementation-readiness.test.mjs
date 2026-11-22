@@ -6,10 +6,10 @@ const inventory=JSON.parse(fs.readFileSync(new URL('../../../docs/toss/full-serv
 const audit=JSON.parse(fs.readFileSync(new URL('../../../docs/toss/original-mode-audit-20261114.json',import.meta.url)));
 test('current audit separates recorded code gaps from historical partial ports',()=>{
  const result=implementationReadiness(inventory,audit);
- assert.equal(result.total,121);
- assert.deepEqual(result.codeGaps.map(row=>row.id),['music']);
- assert.equal(result.noRecordedCodeGaps.length,119);
- assert.deepEqual(result.evidencePending.map(row=>row.id),['yeon-star-hug']);
+ assert.equal(result.total,127);
+ assert.deepEqual(result.codeGaps.map(row=>row.id),['flower','music']);
+ assert.equal(result.noRecordedCodeGaps.length,124);
+ assert.deepEqual(result.evidencePending.map(row=>row.id),['moonlit-lotus']);
  assert.match(result.codeGaps.find(row=>row.id==='music').gaps[0],/32MiB/);
 });
 test('missing, duplicate and foreign audit rows fail closed',()=>{

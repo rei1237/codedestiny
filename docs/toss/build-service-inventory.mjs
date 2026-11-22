@@ -595,6 +595,7 @@ for(const group of canonicalCandidates){
    saleStatus:'신규 구매 없음',verification:audit.priorEvidence,bundleVerification:audit.archiveEvidence});
  }
  if(group.id==='yeongnyangi-daily'){group.webSources=audit.webSources;group.currentEntry='영냥이 → 오늘의 운세와 출석 또는 영냥이의 방 → 오늘의 무료 운세';group.tossAliases=['/yeongnyangi/room/#daily'];}
+ if(audit.regularDiscovery){group.regularDiscovery=audit.regularDiscovery;group.currentEntry=audit.regularDiscovery;}
  if(audit.currentArchiveEvidence)group.currentArchiveEvidence=audit.currentArchiveEvidence;
 }
 for(const row of rows){
@@ -623,7 +624,7 @@ const cell=value=>String(value||'—').replaceAll('|','\\|').replace(/\s+/g,' ')
 const standaloneTitles={'lenormand-six':'르노르망 6장','pet-saju':'반려동물 사주','relationship-boundary-test':'관계 경계 상담','saju-image-prompts':'사주 그림 프롬프트','tarot-healing':'태양 회복 타로','tarot-self-esteem':'자기 기준 타로','tin-oracle':'핀란드 주석점',yeongnyangi:'운세보는 영냥이','ziwei-island':'자미두수 운명의 섬'};
 const indexRows=canonicalCandidates.map(group=>{
  const name=group.evidence.find(item=>item.name)?.name||standaloneTitles[group.id]||group.id;
- const home=group.archiveHomeButtons.length?'홈 버튼 · '+group.archiveHomeButtons.join(', '):group.currentEntry;
+ const home=group.regularDiscovery||(group.archiveHomeButtons.length?'홈 버튼 · '+group.archiveHomeButtons.join(', '):group.currentEntry);
  return [name,group.webEntries[0],group.tossRoute,home,group.portStatus,group.archiveTests.join(', ')||'상품별 로컬 근거는 JSON 참조']
   .map(cell).join(' | ');
 });

@@ -7,10 +7,17 @@ const supported=fn=>Object.assign(fn,{isSupported:()=>true});
 const blocked=()=>{throw Error('PRIVATE_SIMULATION_UNAVAILABLE');};
 const disabled=new Proxy({},{get:()=>blocked});
 export const Accuracy={Balanced:'balanced'};
-export const Clipboard=disabled,Device=disabled;
+export const Device=disabled;
+export const Clipboard={setText:supported(async value=>{
+ if(typeof value!=='string'||value.length>18000||!(value.startsWith('Korean premium floral editorial illustration,')||value.startsWith('[Main Prompt]\nKorean premium floral editorial illustration,')))return blocked();
+ localStorage.setItem('private-flower-copy',value.startsWith('[Main Prompt]')?'pack':'main');
+})};
 export const Share={createLink:blocked,sendMessage:supported(async({message})=>{
  if(typeof message==='string'&&/^(?:데스티니 포커|혈액형 테스트|화투 인생 패) · /.test(message)&&message.length<=1650){
   localStorage.setItem('private-mini-game-share','opened');return;
+ }
+ if(typeof message==='string'&&message.startsWith('🌸 내 운명의 꽃은')&&message.includes('https://code-destiny.com/ggulggul/?action=openDestinyFlowerStudio&fl=')&&message.length<=1400){
+  localStorage.setItem('private-flower-share','opened');return;
  }
  const {hatHouses}=await import('../../../lib/yeongnyangi/hat-houses.ts');
  if(typeof message==='string'&&message.startsWith('연이의 마음 별자리 · ')&&message.length<=160&&!/[\r\n]/.test(message)){
@@ -24,6 +31,13 @@ export const File={saveBase64:supported(async value=>{
   const svg=atob(value.data);
   if(!svg.includes('<svg')||!svg.includes('width="1080"')||!svg.includes('height="1350"')||!svg.includes('href="data:image/webp;base64,')||svg.includes('<script'))return blocked();
   localStorage.setItem('private-star-hug-save',value.fileName);return;
+ }
+ if(value?.mimeType==='image/png'&&/^달빛-연화당-\d{4}-\d{2}-\d{2}\.png$/.test(value.fileName)){
+  if(typeof value.data!=='string'||!value.data.startsWith('iVBORw0KGgo')||value.data.length<32||value.data.length>12_000_000)return blocked();
+  const bytes=Uint8Array.from(atob(value.data.slice(0,32)),c=>c.charCodeAt(0)),header=new DataView(bytes.buffer);
+  const width=header.getUint32(16),height=header.getUint32(20);
+  if(width<1||width>4096||height<1||height>4096)return blocked();
+  sessionStorage.setItem('private-lotus-save',JSON.stringify({width,height}));return;
  }
  if(value?.mimeType==='image/png'&&value.fileName?.startsWith('영냥이의-모자-')){
    const {hatHouses}=await import('../../../lib/yeongnyangi/hat-houses.ts');

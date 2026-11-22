@@ -1,0 +1,19 @@
+.flower-atelier{margin:24px 0;display:grid;gap:14px;color:inherit;overflow-wrap:anywhere}
+.flower-atelier h2,.flower-atelier button,.flower-atelier summary,.flower-palette,.flower-palette span{display:flex;align-items:center;gap:8px}
+.flower-atelier svg{width:19px;height:19px;flex-shrink:0}
+.flower-atelier label,.flower-studio-reader dl{display:grid;gap:8px}
+.flower-atelier :is(select,button,summary){min-height:44px;font:inherit}
+.flower-atelier :is(select,button){border:1px solid #dcccb8;color:#40342f;background:#fffcf5;border-radius:12px;padding:9px 12px}
+.flower-atelier :is(button,summary){cursor:pointer}
+.flower-atelier .flower-save{background:#493b4b;color:white;justify-content:center}
+.flower-atelier details{padding:8px 2px;border-top:1px solid #ddcfc4}
+.flower-atelier summary{font-weight:700}
+.flower-studio-reader dt{font-weight:700;margin-top:6px}
+.flower-studio-reader dd{margin:0}
+.flower-palette{flex-wrap:wrap;font-size:.9em}
+.flower-palette i{width:22px;height:22px;border:1px solid #85756b;border-radius:50%}
+.flower-prompt{white-space:pre-wrap;font-size:.94em}
+.flower-atelier details button+button{margin-top:5px}
+.flower-record{display:flex;align-items:center;gap:6px;margin-block:6px}
+.flower-record button:first-child{flex:1;flex-wrap:wrap}
+.flower-record small{font-size:.8em}

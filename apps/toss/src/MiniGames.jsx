@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {Share,Clipboard} from '@apps-in-toss/web-framework';
 import {GAMES} from '../../../app/mini-games/games';
-import {miniGameRoutes,gameStorageKeys} from '../canonical/mini-games.mjs';
+import {miniGameRoutes,gameStorageKeys,fullGameShelf,publicMiniGameSlugs} from '../canonical/mini-games.mjs';
 import TossSessionScope from './TossSessionScope';
 import {api,hasTossSession} from './platform';
 
@@ -25,7 +25,7 @@ function Game({slug,name}){
   async function message(event){
    if(!active||!frame.current||!key||event.origin!=='null'||event.source!==frame.current.contentWindow)return;
    const m=event.data;if(!m||m.type!=='code-destiny:mini-game'||m.game!==slug)return;
-   if(m.action==='back'){location.assign('/mini-games/');return;}
+   if(m.action==='back'){location.assign(fullGameShelf?'/mini-games/':'/?world=ggulggul');return;}
    try{
     if(m.action==='store'&&m.payload&&typeof m.payload==='object'){
      const clean=Object.fromEntries(allowed.filter(k=>typeof m.payload[k]==='string'&&m.payload[k].length<=160).map(k=>[k,m.payload[k]]));
@@ -42,13 +42,14 @@ function Game({slug,name}){
   window.addEventListener('message',message);
   return()=>{active=false;window.removeEventListener('message',message);};
  },[slug,attempt,name]);
- return <><a className="daily-entry" href="/mini-games/">미니 운세 게임 목록으로</a><h1>{name}</h1>
+ return <><a className="daily-entry" href={fullGameShelf?"/mini-games/":"/?world=ggulggul"}>{fullGameShelf?"미니 운세 게임 목록으로":"꿀꿀운세로 돌아가기"}</a><h1>{name}</h1>
   {issue&&<p role="alert">{issue} <button onClick={()=>retry(n=>n+1)}>다시 시도하기</button></p>}
   {content?<iframe ref={frame} sandbox="allow-scripts" title={name} name={content.initialState} src={content.source} style={{width:'100%',height:'82svh',border:0,borderRadius:14}}/>:<p role="status">게임을 여는 중이에요.</p>}</>;
 }
 export default function MiniGames(){
  const slug=new URLSearchParams(location.search).get('play');
  const game=GAMES.find(item=>item.slug===slug&&Object.hasOwn(documents,item.slug));
+ if(!fullGameShelf&&!publicMiniGameSlugs.includes(slug))return <section><h1>미니 운세 게임</h1><p>현재 이용할 수 있는 운세를 홈에서 살펴보세요.</p><a className="daily-entry" href="/?world=ggulggul">꿀꿀운세로 돌아가기</a></section>;
  if(game)return <TossSessionScope><Game name={game.name} slug={game.slug}/></TossSessionScope>;
  return <section><h1>미니 운세 게임</h1><div className="menu">{GAMES.map(game=><a className="daily-entry" key={game.slug} href={miniGameRoutes[game.slug]}>
  <img width="72" height="45" style={{objectFit:'cover',borderRadius:8}} src={'/__mini-game-covers/'+game.slug+'.webp'} alt=""/><span><strong>{game.name}</strong><small>{game.desc}</small></span></a>)}</div></section>;

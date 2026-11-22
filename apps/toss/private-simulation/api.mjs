@@ -77,7 +77,7 @@ export function createSimulationApi(storage,person,musicTracks=[]){
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
     const publicCalculation=await privatePublicCalculation(request.clone(),url,path);if(publicCalculation)return publicCalculation;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
-    if(path==='/canonical/fortune/prompt-hub/session'&&method==='GET')return replies({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
+    if((path==='/flower/session'||path==='/canonical/moonlit-lotus/session'||path==='/canonical/fortune/prompt-hub/session')&&method==='GET')return replies({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
     const prompt=await mockPromptHubRequest(request,path);if(prompt)return prompt;
     if(path==='/sukuyo/past-life'&&method==='POST')return privateSukuyoPastLife(await request.json());
     const ownedCalculation=await privateOwnedCalculation(request.clone(),url,path,state);if(ownedCalculation)return ownedCalculation;
