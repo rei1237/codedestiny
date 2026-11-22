@@ -1,5 +1,12 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import {
   ArrowLeft,
   Check,
@@ -13,7 +20,7 @@ import {
   Target,
 } from "lucide-react";
 import { loadCollection, type Collection } from "./collection";
-import { costumeArt, definitions } from "./formation";
+import { definitions } from "./formation";
 import {
   encounters,
   getActions,
@@ -34,7 +41,18 @@ import {
   restoreBattle,
   type BattleSave,
 } from "./battle-session";
-import BattleActor, { BattleCutIn, battleActorSheet } from "./BattleActor";
+import {
+  choreography,
+  isStrike,
+  positionStrike,
+  usesProjectile,
+} from "./battle-choreography";
+import BattleActor, {
+  BattleCutIn,
+  BattleEmblem,
+  FinisherImpact,
+  battleActorSheet,
+} from "./BattleActor";
 import { finishCampaignBattle, isStorySupportQuest } from "./campaign";
 import s from "./battle.module.css";
 
@@ -124,7 +142,6 @@ export default function BattleScreen({
     [askExit, retreat] = useState(false);
   const latch = useRef(false);
   const audio = useRef<AudioContext | null>(null);
-  const lastCue = useRef<BattleEvent | null>(null);
   useEffect(() => {
     if (!sound) return;
     const unlock = () => {
@@ -199,26 +216,44 @@ export default function BattleScreen({
     q.addEventListener("change", sync);
     return () => q.removeEventListener("change", sync);
   }, []);
+  const fieldRef = useRef<HTMLDivElement>(null);
+  const [contact, setContact] = useState<{
+    event: BattleEvent;
+    count: number;
+  } | null>(null);
   const event = play?.events[play.index];
+  const caster = play?.before.allies.find(
+    (a) => a.combatantId === event?.actorId,
+  );
+  const ranged =
+    !!event && usesProjectile(caster?.baseCharacterId ?? "", event);
+  const timing = event && choreography(event, fast);
+  const landed = event && contact?.event === event ? contact.count : 0;
+  const hit = landed ? timing?.contacts[landed - 1] : undefined;
+  useLayoutEffect(() => {
+    const field = fieldRef.current;
+    if (!field || !event || !isStrike(event) || minimal) return;
+    const place = () => positionStrike(field, event, ranged);
+    place();
+    const observer = new ResizeObserver(place);
+    observer.observe(field);
+    return () => observer.disconnect();
+  }, [event, ranged, minimal]);
   useEffect(() => {
     if (!play) return;
     if (minimal) {
       animate(null);
       return;
     }
-    if (
-      sound &&
-      audio.current &&
-      event &&
-      event !== lastCue.current &&
-      ["attack", "ultimate", "extra", "hit"].includes(event.kind)
-    ) {
-      lastCue.current = event;
-      const caster = play.before.allies.find(
-        (a) => a.combatantId === event.actorId,
-      );
-      chime(audio.current, event, caster?.baseCharacterId);
-    }
+    if (!event) return;
+    const { duration, contacts } = choreography(event, fast);
+    const cues = contacts.map(({ at }, i) =>
+      setTimeout(() => {
+        setContact({ event, count: i + 1 });
+        if (sound && audio.current)
+          chime(audio.current, event, caster?.baseCharacterId);
+      }, at),
+    );
     const timer = setTimeout(
       () =>
         animate(
@@ -226,10 +261,13 @@ export default function BattleScreen({
             ? { ...play, index: play.index + 1 }
             : null,
         ),
-      fast ? 270 : 570,
+      duration,
     );
-    return () => clearTimeout(timer);
-  }, [play, fast, minimal, sound, event]);
+    return () => {
+      clearTimeout(timer);
+      cues.forEach(clearTimeout);
+    };
+  }, [play, fast, minimal, sound, event, caster]);
   async function run(fn: () => Promise<void>) {
     if (latch.current) return;
     latch.current = true;
@@ -370,11 +408,12 @@ export default function BattleScreen({
               출전
             </button>
             <button onClick={team}>편성 열기</button>
-            {issue && (enc === "tutorial" || !!quest) && (
-              <button disabled={busy} onClick={() => launch(true)}>
-                모카와 임시 지원으로 연습
-              </button>
-            )}
+            {issue &&
+              (enc === "tutorial" || enc === "rehearsal" || !!quest) && (
+                <button disabled={busy} onClick={() => launch(true)}>
+                  모카와 임시 지원으로 연습
+                </button>
+              )}
           </div>
           {alert}
           {save && error && <button onClick={finish}>이 연습 종료</button>}
@@ -392,14 +431,30 @@ export default function BattleScreen({
           0,
           hp -
             play.events
-              .slice(0, play.index + 1)
+              .slice(0, play.index)
               .filter(
                 (e) =>
                   e.targetId === id &&
                   ["attack", "extra", "ultimate", "hit"].includes(e.kind),
               )
-              .reduce((sum, e) => sum + e.amount, 0),
+              .reduce((sum, e) => sum + e.amount, 0) -
+            (event?.targetId === id
+              ? (timing?.contacts
+                  .slice(0, landed)
+                  .reduce((sum, c) => sum + c.amount, 0) ?? 0)
+              : 0),
         );
+  }
+  function displayGauge(id: string, initial: number) {
+    if (!play) return initial;
+    const through =
+      play.index + Number(landed > 0 && landed === timing?.contacts.length);
+    return play.events
+      .slice(0, through)
+      .reduce(
+        (g, e) => (e.actorId === id ? (e.actorGaugeAfter ?? g) : g),
+        initial,
+      );
   }
   const shown = play?.before ?? b,
     field = shown.allies
@@ -412,8 +467,35 @@ export default function BattleScreen({
       : [...b.hand, ...action.filter((c) => c.ultimate)];
   const selected = picked.flatMap((id) => cards.filter((c) => c.id === id)),
     chain = previewChain(selected);
+  const specials = (play ? getActions(shown) : action).filter(
+    (c) => c.ultimate,
+  );
   const fighter = front.find((a) => a.combatantId === actor) ?? front[0];
   const locked = busy || !!play;
+  const markedTarget =
+    event && shown.enemies.some((e) => e.id === event.targetId)
+      ? event.targetId
+      : target;
+  const castName =
+    caster && event?.kind === "ultimate"
+      ? definitions[caster.battleVariantId].ultimate
+      : undefined;
+  const playbackCaption = !event
+    ? ""
+    : !isStrike(event) || landed === timing?.contacts.length
+      ? event.text
+      : [
+          caster?.name ??
+            shown.enemies.find((e) => e.id === event.actorId)?.name,
+          castName ??
+            (event.kind === "hit"
+              ? "공격"
+              : event.kind === "extra"
+                ? "추가 공격"
+                : event.type),
+        ]
+          .filter(Boolean)
+          .join(" · ");
   function toggle(id: string) {
     pick((old) =>
       old.includes(id)
@@ -437,7 +519,9 @@ export default function BattleScreen({
         <button aria-label="전투 기록" onClick={() => openLog(!log)}>
           <Layers size={18} />
         </button>
-        <button onClick={() => speed(!fast)}>{fast ? "2×" : "1×"}</button>
+        <button disabled={!!play} onClick={() => speed(!fast)}>
+          {fast ? "2×" : "1×"}
+        </button>
         <button onClick={() => simplify(!simple)} aria-pressed={minimal}>
           간소
         </button>
@@ -445,7 +529,24 @@ export default function BattleScreen({
           <ArrowLeft size={18} />
         </button>
       </header>
-      <div className={s.field}>
+      <div
+        className={s.field}
+        ref={fieldRef}
+        data-finisher={event?.kind === "ultimate"}
+        style={
+          { "--action-time": (timing?.duration ?? 540) + "ms" } as CSSProperties
+        }
+      >
+        {ranged && caster && event && isStrike(event) && !minimal && (
+          <div
+            key={play?.index}
+            className={s.flight}
+            data-person={caster.baseCharacterId}
+            aria-hidden="true"
+          >
+            <BattleEmblem person={caster.baseCharacterId} />
+          </div>
+        )}
         {event?.kind === "ultimate" &&
           !minimal &&
           field
@@ -460,7 +561,7 @@ export default function BattleScreen({
               .slice(0, play.index + 1)
               .some((e) => e.kind === "down" && e.targetId === id)
               ? "down"
-              : event?.kind === "hit" && event.targetId === id
+              : event?.kind === "hit" && event.targetId === id && landed > 0
                 ? event.heavy
                   ? "heavy"
                   : "hit"
@@ -469,24 +570,40 @@ export default function BattleScreen({
                     ? "skill"
                     : event.kind === "ultimate"
                       ? "ultimate"
-                      : (event.type ?? "Buster")
+                      : isStrike(event)
+                        ? (event.type ?? "Buster")
+                        : "idle"
                   : b.status === "victory" && !play
                     ? "victory"
                     : entering
                       ? "enter"
                       : "idle";
             return (
-              <div key={id} className={s.unit}>
+              <div
+                key={id}
+                className={s.unit}
+                data-fighter={id}
+                data-striking={event?.actorId === id && isStrike(event)}
+              >
                 <BattleActor
-                  key={play ? b.inputs.length + "-" + play.index : id}
+                  key={
+                    event?.actorId === id || event?.targetId === id
+                      ? b.inputs.length + "-" + play?.index
+                      : id
+                  }
                   unit={a}
+                  duration={
+                    event?.actorId === id ? timing?.duration : undefined
+                  }
                   hits={event?.actorId === id ? event.hits : undefined}
                   motion={motion}
                   still={minimal}
                   fast={fast}
                 />
-                {event?.targetId === id && event.amount > 0 && (
-                  <b className={s.damage}>−{event.amount}</b>
+                {event?.targetId === id && hit && hit.amount > 0 && (
+                  <b className={s.damage} key={landed}>
+                    −{hit.amount}
+                  </b>
                 )}
               </div>
             );
@@ -494,28 +611,38 @@ export default function BattleScreen({
         </div>
         <div className={s.foes}>
           {shown.enemies.map((e, i) => {
-            const struck = event?.targetId === e.id;
+            const struck = event?.targetId === e.id && !!hit;
             return (
               <button
                 key={e.id}
+                data-fighter={e.id}
+                data-attacking={event?.actorId === e.id && event.kind === "hit"}
                 data-struck={struck}
                 className={s.enemy}
                 disabled={locked || !e.hp}
-                aria-pressed={target === e.id}
+                aria-pressed={markedTarget === e.id}
                 aria-label={"표적 " + e.name}
                 onClick={() => aim(e.id)}
               >
                 <div className={s.gauge}>
                   <b>
-                    {target === e.id && <Target size={12} />} {e.name}
+                    {markedTarget === e.id && <Target size={12} />} {e.name}
                   </b>
                   <meter max={e.maxHp} value={displayHp(e.id, e.hp)} />
                   <small>
+                    {e.exposed > 0 && "약점 노출 · "}
                     {displayHp(e.id, e.hp)} HP ·{" "}
                     {e.charge >= 2 ? "강공격 예고" : "차지 " + e.charge + "/2"}
                   </small>
                 </div>
                 <img
+                  key={
+                    event?.actorId === e.id
+                      ? "attack-" + play?.index
+                      : struck
+                        ? "impact-image-" + play?.index + "-" + landed
+                        : e.id
+                  }
                   alt=""
                   src={
                     "/images/card-rpg/crane-" +
@@ -527,10 +654,17 @@ export default function BattleScreen({
                     ".webp"
                   }
                 />
-                {struck && event.amount > 0 && (
-                  <b className={s.damage} key={play?.index}>
+                {struck && event?.kind === "ultimate" && caster && !minimal && (
+                  <FinisherImpact
+                    key={play?.index + "-burst-" + landed}
+                    unit={caster}
+                    fast={fast}
+                  />
+                )}
+                {struck && hit && hit.amount > 0 && (
+                  <b className={s.damage} key={play?.index + "-" + landed}>
                     {event.critical ? "✦ " : ""}
-                    {event.amount}
+                    {hit.amount}
                   </b>
                 )}
               </button>
@@ -550,7 +684,8 @@ export default function BattleScreen({
           >
             <b>{a.name} · 스킬</b>{" "}
             <small>
-              HP {displayHp(a.combatantId, a.hp)}/{a.maxHp} · 운명 {a.gauge}%
+              HP {displayHp(a.combatantId, a.hp)}/{a.maxHp} · 운명{" "}
+              {displayGauge(a.combatantId, a.gauge)}%
             </small>
             <i
               style={{
@@ -562,57 +697,94 @@ export default function BattleScreen({
       </div>
       {b.status === "playing" || play ? (
         <div className={s.command}>
+          {specials.length > 0 && (
+            <div
+              className={s.specials}
+              role="group"
+              aria-label="사용 가능한 운명해방"
+            >
+              {specials.map((c) => {
+                const unit = field.find((a) => a.combatantId === c.actorId)!;
+                const name = definitions[unit.battleVariantId].ultimate;
+                const I = icons[c.type];
+                const order = picked.indexOf(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    aria-pressed={order >= 0}
+                    disabled={locked || (order < 0 && picked.length >= 3)}
+                    onClick={() => toggle(c.id)}
+                    aria-label={unit.name + " 운명해방 " + name + " " + c.type}
+                  >
+                    <I size={16} />
+                    <span>
+                      <small>
+                        {unit.name} · {c.type} 해방
+                      </small>
+                      <strong>{name}</strong>
+                    </span>
+                    {order >= 0 && <b>{order + 1}</b>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <div className={s.cards}>
-            {cards.map((c) => {
-              const a = b.allies.find((a) => a.combatantId === c.actorId)!;
-              const I = icons[c.type],
-                idx = picked.indexOf(c.id);
-              return (
-                <button
-                  key={c.id}
-                  className={s.card}
-                  data-type={c.type}
-                  aria-pressed={idx >= 0}
-                  disabled={
-                    locked ||
-                    !available.has(c.id) ||
-                    (idx < 0 && picked.length >= 3)
-                  }
-                  aria-label={
-                    a.name +
-                    " " +
-                    c.type +
-                    (c.ultimate ? " 운명해방" : "") +
-                    " · 치명 " +
-                    c.chance +
-                    "%"
-                  }
-                  onClick={() => toggle(c.id)}
-                >
-                  <span
-                    className={s.cardPortrait}
-                    style={{
-                      backgroundImage: "url(" + battleActorSheet(a) + ")",
-                    }}
-                  />
-                  <small>
-                    {a.name} · {c.ultimate ? "운명해방" : c.chance + "%"}
-                  </small>
-                  <b>
-                    <I />
-                    {c.type}
-                  </b>
-                  {idx >= 0 && <em>{idx + 1}</em>}
-                </button>
-              );
-            })}
+            {cards
+              .filter((c) => !c.ultimate)
+              .map((c) => {
+                const a = b.allies.find((a) => a.combatantId === c.actorId)!;
+                const I = icons[c.type],
+                  idx = picked.indexOf(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    className={s.card}
+                    data-type={c.type}
+                    aria-pressed={idx >= 0}
+                    disabled={
+                      locked ||
+                      !available.has(c.id) ||
+                      (idx < 0 && picked.length >= 3)
+                    }
+                    aria-label={
+                      a.name + " " + c.type + " · 치명 " + c.chance + "%"
+                    }
+                    onClick={() => toggle(c.id)}
+                  >
+                    <span
+                      className={s.cardPortrait}
+                      style={{
+                        backgroundImage: "url(" + battleActorSheet(a) + ")",
+                      }}
+                    />
+                    <small>
+                      {a.name} · {c.chance}%
+                    </small>
+                    <b>
+                      <I />
+                      {c.type}
+                    </b>
+                    {idx >= 0 && <em>{idx + 1}</em>}
+                  </button>
+                );
+              })}
           </div>
           <div className={s.order}>
             <span aria-live="polite">
               {play
-                ? event?.text
+                ? playbackCaption
                 : chain.join(" · ") ||
-                  selected.map((c) => c.type).join(" → ") ||
+                  selected
+                    .map((c) =>
+                      c.ultimate
+                        ? definitions[
+                            b.allies.find((a) => a.combatantId === c.actorId)!
+                              .battleVariantId
+                          ].ultimate
+                        : c.type,
+                    )
+                    .join(" → ") ||
                   (b.turn === 1
                     ? "퀵은 치명타, 아츠는 게이지, 버스터는 피해"
                     : "행동 순서대로 선택")}

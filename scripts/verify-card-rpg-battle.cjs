@@ -22,6 +22,7 @@ new Function("module", "exports", "require", code)(
   require,
 );
 const {
+  definitions,
   buildBattleSnapshot,
   createBattle,
   resolveTurn,
@@ -117,6 +118,32 @@ test("전투불능 후 후열 충원은 한 번만, 1인 편성은 5장만 순�
       .sort(),
   );
 });
+test("일곱 전투 버전의 기명 해방은 연습 전열에서만 준비되며 실제 타격과 재생 기록이 일치한다", () => {
+  const titles = new Set();
+  for (const v of Object.values(definitions)) {
+    const team = snapshot([v.baseCharacterId, "neo", "ln", "yeon"]);
+    team[0].battleVariantId = v.battleVariantId;
+    team[0].deck = v.deck;
+    const b = createBattle(team, "rehearsal", 941);
+    assert.equal(b.hand.length, 5);
+    assert.equal(b.allies[3].gauge, 0);
+    assert.equal(getActions(b).filter((c) => c.ultimate).length, 3);
+    assert.ok(
+      !getActions(createBattle(team, "single", 941)).some((c) => c.ultimate),
+    );
+    const next = resolveTurn(b, ["u0:ultimate"], b.enemies[0].id);
+    const hit = next.events.find((e) => e.kind === "ultimate");
+    assert.ok(hit.text.includes(v.ultimate));
+    assert.equal(
+      hit.hitAmounts.reduce((a, n) => a + n, 0),
+      hit.amount,
+    );
+    assert.deepEqual(replayBattle(team, "rehearsal", 941, next.inputs), next);
+    titles.add(v.ultimate);
+  }
+  assert.equal(titles.size, Object.keys(definitions).length);
+});
+
 test("치명타 확률은 손패 확정 시 생성되며 스킬, 조회, 직렬화로 재추첨되지 않는다", () => {
   const b = start(["moka"]);
   assert.ok(b.hand.every((c) => c.chance === 0));
