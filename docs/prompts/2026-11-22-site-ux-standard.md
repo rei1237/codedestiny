@@ -7,7 +7,7 @@
 > 이 문서는 구현 지시서다. 실행 주체는 Claude Code 또는 Codex 이고, 사용자는 결과 화면만 검수한다.
 > 이 문서를 받은 에이전트는 먼저 아래 "0. 시작 전"을 실행하고, Phase 0 감사 결과를 근거로 방향과 성공 기준을 사용자에게 한 번 공유한 뒤(CLAUDE.md 코딩 원칙 16) 승인을 기다리지 않고 자율 구현한다. 사용자가 목업 승인을 명시적으로 요구한 경우에만 멈춘다.
 
-2026-11-23 실행 결과와 재현 출발점은 [여정 감사표](../ux-audit/2026-11-22-site-ux-phase0.md)에 있다. 후속 작업은 표에 남은 실기기·필드 항목과 현재 main에서 재현되는 문제부터 시작한다.
+2026-11-23 실행 결과와 재현 출발점은 [여정 감사표](../ux-audit/2026-11-22-site-ux-phase0.md)에 있다. 후속 작업에서는 같은 출시 빌드 조건으로 저속 모바일의 CSS·폰트가 LCP에 기여하는 시간과 꿀꿀 편지를 열고 닫을 때 레이아웃 계산에 걸리는 시간을 먼저 재현한다. 입력까지의 탭 수, 계정별 보관함, 구매 복귀, 모션 줄이기를 함께 검증한다.
 
 ## 0. 시작 전
 
@@ -91,7 +91,7 @@
 
 1. 로컬 mock 서버로 J1~J8 을 360·390·430px 와 1280px 에서 따라간다. playwright 스크립트는 `.tmp/` 에 두고 작업이 끝나면 지운다. 스크린샷 판정은 `visual-checker` 에이전트에 맡긴다.
 2. 기준선을 잰다.
-   - 성능: `npm run perf:home`(dist 기준이므로 측정 전 빌드 상태를 확인), `npm run perf:app-route`, `npm run perf:interaction`, `npm run perf:lcp-budget`. 홈 측정은 `cd-boot-gate` 가 끝난 뒤의 값이다.
+   - 성능: `npm run perf:home`(dist 기준이므로 측정 전 빌드 상태를 확인), `npm run perf:app-route`, `npm run perf:interaction`, `npm run perf:lcp-budget`. 출시 정적 빌드의 `/`, `/ggulggul/`, `/yeongnyangi/`는 각각 `perf:home -- --url=<로컬 URL>`로 잰다. `perf:app-route`는 찻집·네오 시나리오의 프레임을 측정한다. 진입 선택자가 바뀌어 샘플이 없으면 원인과 경로를 기록한다. 셸 상호작용은 `cd-boot-gate`가 끝난 뒤 표시 중인 컨트롤로 검사한다. 관측 LCP, 제한망 시뮬레이션 LCP, CrUX 모바일 p75는 따로 적는다.
    - 터치·모바일: `npm run measure:touch-targets`, `npm run measure:mobile-routes`, `npm run measure:locale-text-fit`.
    - 대비: `npm run verify:hero-contrast`. 반투명 표면은 합성색으로 잰다. 색 판정은 sharp 픽셀 값으로 한다.
    - 키보드: 각 여정을 Tab 만으로 끝까지 갈 수 있는지, 포커스 링이 보이는지, 모달에서 Esc·뒤로가기로 닫히는지.
@@ -122,7 +122,7 @@
 ### B. 성능 — Core Web Vitals (모바일 p75 기준)
 - LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1. 실험실 값은 `perf:home`·`perf:app-route`·`perf:interaction` 으로, 필드 값은 `perf:crux` 로 확인한다(필드 값이 없으면 "필드 데이터 없음"으로 적는다).
 - 이미지: LCP 후보 하나만 `fetchpriority="high"`(현재 `/` 첫 카드가 그렇다, `app/page.js:128`). 나머지는 `loading="lazy"`·`decoding="async"`, `width`·`height` 또는 `aspect-ratio` 로 자리를 확보한다.
-- 스프라이트(K7): 모바일에는 360×432 시트, 데스크톱에는 600×720 을 `srcset`/`image-set` 이나 매니페스트 분기로 내린다. 크기는 각 프레임 기준이다. 첫 화면 시트가 0B면 그대로 기록하고, 소개장이 처음 들어올 때 수신한 바이트를 별도로 대조한다. 화면 밖에서는 시트를 받지 않고 포스터만 보인다. 합격선: 390px 첫 화면 전송량에서 시트 바이트가 현재 대비 50% 이상 줄어든다. 에셋 예산은 `docs/design/master-motion-assets.md`(소개장 프레임 합계 400KB 이하, 포스터 80KB 이하, 아바타 80KB 이하)를 따른다. 원본은 `D:\CodeDestiny-Build`, 최적화본과 `provenance.json` 은 `public/images/master-motion/<id>/`.
+- 스프라이트(K7): 모바일에는 360×432 시트, 데스크톱에는 600×720 을 `srcset`/`image-set` 이나 매니페스트 분기로 내린다. 크기는 각 프레임 기준이다. 390px의 실제 `/love-secret-ai/`를 새 브라우저 컨텍스트로 연다. 스크롤 전 아바타와 소개장 시트 응답의 본문 바이트를 합산하고 첫 소개장 노출 뒤 추가 바이트를 따로 적는다. 중복 요청도 포함한다. HTTP 헤더 포함 전송량은 별도로 기록한다. 화면 밖에서는 시트를 받지 않고 포스터만 보인다. 합격선: 390px 첫 화면 전송량에서 시트 바이트가 현재 대비 50% 이상 줄어든다. 에셋 예산은 `docs/design/master-motion-assets.md`(소개장 프레임 합계 400KB 이하, 포스터 80KB 이하, 아바타 80KB 이하)를 따른다. 원본은 `D:\CodeDestiny-Build`, 최적화본과 `provenance.json` 은 `public/images/master-motion/<id>/`.
 - CLS: 비동기로 채우는 영역(TOP5, 가격, 배너, 쿠키 배너)은 최종 높이를 미리 잡는다. 줄바꿈으로 높이가 달라지면(K1) 최소 높이나 고정 줄 수로 막는다.
 - 늦게 붙는 CSS 는 CLS 원인이다. 홈 셸 CSS 는 `npm run measure:shell-css` 로 확인한다.
 
@@ -140,6 +140,7 @@
 - 저장된 프로필이 있으면 재사용을 먼저 제안한다. 기존 저장 장치를 찾아 쓰고 새 저장소를 만들지 않는다(코딩 원칙 6).
 
 ### E. 내비게이션과 길 찾기
+- 영냥이 방에서는 실제 콘텐츠 ‘잡담’ 또는 ‘오늘의 무료 운세 → 호라리’를 Tab·Enter로 선택한다. 로그인 상태에서는 ‘보관함 → 저장 주문 → 보관함’도 검사한다. 360·390·430·1280px에서 쿠키 선택 전후 각각 하단 도크와 현재 포커스 요소의 상단·중앙·하단을 실제로 누를 수 있는지 잰다.
 - 모든 하위 화면에 "뒤로"가 있고, 브라우저 뒤로가기와 결과가 같다. 모달과 시트는 history 와 연동해서 뒤로가기로 닫히고 페이지를 떠나지 않는다.
 - 꿀꿀 화면에서는 `/records/`, 영냥이 화면에서는 `/yeongnyangi/library/` 로 가는 고정 진입점이 1탭 거리에 있다. 서로의 보관함으로 연결하지 않는다.
 - 서비스 경계를 분명히 한다. `/` 에서 고른 서비스 안에서는 그 서비스의 이름·색·화자가 일관되고, 다른 서비스로 넘어갈 때는 명시적인 링크로만 넘어간다.
