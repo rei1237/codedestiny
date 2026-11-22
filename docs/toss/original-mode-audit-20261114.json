@@ -1,7 +1,7 @@
 {
   "updated": "2026-11-22",
   "scopeSource": "docs/toss/full-service-inventory.json",
-  "scopeCount": 112,
+  "scopeCount": 116,
   "rule": "입력·계산·생성·구매 권리가 다른 상담은 별도 행으로 관리한다. 기존 검증은 실행 당시 소스와 경로에만 적용한다.",
   "completionCriteria": [
     "각 행의 원본 진입·선택 모드·입력 경계·계산/본문·저장/재열람·유무료 정책을 기록하고 기존 근거와 대조",
@@ -750,18 +750,17 @@
       "renderer": "apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx",
       "recordedContract": "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
       "recordedStorage": "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
-      "priorEvidence": "360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증",
+      "priorEvidence": "360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증 · native-heukwol.test.mjs 세 검사에서 장별 재시도·소유권·종결 시점의 중복 재개 차단",
       "reviewedModes": [
         "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
-        "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록"
+        "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
+        "27장 중 종결 실패한 장은 원본 7일 창 안에서 구매한 소유 계정이 추가 결제 없이 수동으로 이어 쓰기"
       ],
-      "reviewState": "prior-contract-evidence-reconciled",
-      "codeGaps": [
-        "웹의 종결 실패 후 재시도·정산 처리와 토스 IAP의 운영 처리 경로 대조 필요. 토스 화면은 실패를 안내하고 구매 기록·고객지원으로 연결"
-      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "operations": "생성 종결 후 실제 토스 IAP 환불·정산, 전용 상품 등록, 운영 배포와 기기 PDF 확인 필요",
       "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다.",
       "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈 → 질문 작성 → 앱 재진입과 도입 웹툰 왕복 후 초안 복원 → mock 구매 → 생성 이탈 → 구매 기록 → 저장 원문 → 계정 B 거부. 주문·완료 각 1회. 최신 일반 Linux AIT 및 실기기 별도"
     },
@@ -2068,23 +2067,23 @@
         "worker/lib/saju-compat-schema.js"
       ],
       "webEntries": [
-        "/saju/compatibility/"
+        "js/saju-compat-archive.js:openSajuCompatArchive"
       ],
-      "tossRoute": "/saju/compatibility/",
+      "tossRoute": "/saju/compatibility/?orderId=<소유 주문 ID>",
       "renderer": "js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js",
       "recordedContract": "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
       "recordedStorage": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
-      "priorEvidence": "saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건",
+      "priorEvidence": "saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건 · 9bc9fc9a7b 기존 소유 주문 복구·환불 차단과 신규 주문 접수 거부",
       "reviewedModes": [
-        "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
-        "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람"
+        "구매 기록에서 기존 소유 주문의 생성 이어쓰기 및 저장 원문 열기",
+        "신규 주문은 닫힘. 무료 정적 궁합과 고급 궁합은 별도 기능"
       ],
       "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
+      "reconciliationBasis": "2026-11-20 웹 무료 정책과 2026-11-22 토스 신규 주문 차단·소유 주문 복구 경로를 대조했다. 구버전 신규 구매 테스트는 과거 증거다."
     },
     {
       "id": "saju-fpti",
@@ -2992,6 +2991,96 @@
       "archiveEvidence": "새 Linux AIT 검증 전",
       "deviceState": "not-verified",
       "operations": "계정·주문·생성 없이 공개 설명을 읽는 경로"
+    },
+    {
+      "id": "free-fortune-index",
+      "webSources": [
+        "app/free/page.tsx",
+        "lib/marketing/free-promo.mjs",
+        "lib/payment/free-fortune-policy.mjs"
+      ],
+      "webEntries": [
+        "/free/"
+      ],
+      "tossRoute": "/free/",
+      "reviewedModes": [
+        "FREE_PROMO_GROUPS 주제별 23개 카드의 원본 주소·토스 주소·무료 정책",
+        "각 연결 화면의 로그인·결과·구매는 개별 검증"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "배포 소스와 토스 실기기에서 별도 검증",
+      "priorEvidence": "9bc9fc9a7b targeted. 23개 원본 정책 키·토스 23개 고유 목적지 매핑·유료 키 거부"
+    },
+    {
+      "id": "saju-compat-basic-free",
+      "webSources": [
+        "js/saju-engine.js",
+        "js/saju-compat-render.mjs",
+        "lib/payment/free-fortune-policy.mjs"
+      ],
+      "webEntries": [
+        "/ggulggul/?action=cdOneStepFreeSajuEntry&section=compatCard"
+      ],
+      "tossRoute": "/saju/compatibility/",
+      "reviewedModes": [
+        "두 사람 명식의 원본 궁합 및 전생 인연 계산",
+        "section_compat 무료·비회원, 기존 소유 유료 주문과 독립"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "배포 소스와 토스 실기기에서 별도 검증",
+      "priorEvidence": "9bc9fc9a7b targeted. 두 사람 정적 궁합과 전생 인연 HTML, 게스트·주문 0건 계약"
+    },
+    {
+      "id": "saju-brain",
+      "webSources": [
+        "js/core/saju/destiny-anatomy/engine.js",
+        "js/core/saju/destiny-anatomy/copy.js",
+        "js/core/saju/destiny-anatomy/render.js"
+      ],
+      "webEntries": [
+        "/ggulggul/?action=cdOneStepFreeSajuEntry&section=destinyAnatomyCard"
+      ],
+      "tossRoute": "/saju/basic/play/?reading=brain",
+      "reviewedModes": [
+        "게스트 생일·시각·도시 → 원본 명식 기반 뇌구조와 각 영역 본문",
+        "유료 보고서 또는 주문 없이 무료 재계산"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [
+        "웹 뇌구조의 로그인 후 HD·베다 추가 계산 및 이미지 저장·공유는 현재 토스 게스트 명식의 정적 렌더 경로에 미연결"
+      ],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "배포 소스와 토스 실기기에서 별도 검증",
+      "priorEvidence": "9bc9fc9a7b targeted. 시간 있음·모름의 개인별 원본 사고축 5종 검사"
+    },
+    {
+      "id": "fortune-prompt-hub",
+      "webSources": [
+        "app/fortune/prompt-hub/PromptHubClient.tsx",
+        "lib/fortune/prompt-hub-template.js",
+        "worker/routes/prompt-hub.js",
+        "app/fortune/prompt-hub/prompt-hub-storage.ts"
+      ],
+      "webEntries": [
+        "/fortune/prompt-hub/"
+      ],
+      "tossRoute": "/fortune/prompt-hub/",
+      "reviewedModes": [
+        "도구별 입력·원본 계산으로 외부 AI에 사용할 프롬프트 구성",
+        "로그인 뒤 무료 생성·소유 계정별 프롬프트 보관"
+      ],
+      "reviewState": "source-wired-mock-evidence-pending",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "배포 소스와 토스 실기기에서 별도 검증"
     }
   ],
   "reconciliationMethod": {

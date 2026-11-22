@@ -46,3 +46,22 @@ test('changed web aliases keep their original result and order boundaries',()=>{
  assert.ok(get('saju-compatibility').webRegistryPriceKRW>0);
  assert.equal(get('yeongnyangi-faq').tossLogin,'공개 진입');
 });
+
+test('free directory preserves every original card and distinguishes free and historical compatibility',async()=>{
+ const {FREE_PROMO_GROUPS,freePromoItemHref}=await import('../../../lib/marketing/free-promo.mjs');
+ const {freeFortuneHref}=await import('../src/free-fortune-routes.mjs');
+ const {PROMPT_HUB_TOOL_IDS}=await import('../../../lib/fortune/prompt-hub-template.js');
+ const get=id=>inventory.canonicalCandidates.find(row=>row.id===id);
+ const cards=get('free-fortune-index').freeDirectoryItems;
+ const original=FREE_PROMO_GROUPS.flatMap(group=>group.items);
+ assert.deepEqual(cards.map(row=>row.id),original.map(item=>item.id));
+ for(const [i,item] of original.entries()){
+  assert.equal(cards[i].webEntry,freePromoItemHref(item));assert.equal(cards[i].tossRoute,freeFortuneHref(item));
+ }
+ const basic=get('saju-compat-basic-free'),legacy=get('saju-compatibility'),premium=get('saju-compat-premium');
+ assert.equal(basic.tossRoute,cards.find(row=>row.id==='compat').tossRoute);assert.equal(basic.freeCalculation,true);assert.deepEqual(basic.webProductIds,['section_compat']);
+ assert.equal(legacy.freeCalculation,false);assert.match(legacy.tossRoute,/orderId=/);assert.match(legacy.saleStatus,/기존 주문/);
+ assert.notEqual(premium.tossRoute,basic.tossRoute);assert.equal(premium.webRegistryPriceKRW,10000);assert.equal(legacy.webRegistryPriceKRW,5000);
+ assert.equal(get('saju-brain').tossRoute,cards.find(row=>row.id==='brain').tossRoute);
+ assert.deepEqual(get('fortune-prompt-hub').webModes,PROMPT_HUB_TOOL_IDS);
+});
