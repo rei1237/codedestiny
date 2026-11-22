@@ -51,7 +51,7 @@ export default function Layout({children}:{children:ReactNode}){
  if(['/yeongnyangi','/yeongnyangi/','/yeongnyangi/room','/yeongnyangi/room/','/yeongnyangi/season-1/prologue','/yeongnyangi/season-1/prologue/'].includes(pagePath))return <>{resume}{children}</>;
  const readingResult=/^\/yeongnyangi\/result\/?$/.test(pagePath);
  const libraryLink=<a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{copy.library}</a>;
- return <main className={styles.page} data-yn-night data-reading-result={readingResult || undefined} lang={siteLocale}>{resume}<nav className={styles.nav} aria-label={copy.home}><a href={`/yeongnyangi/?lang=${siteLocale}`}>{copy.home}</a><div>{!readingResult && libraryLink}<a href={`/?lang=${siteLocale}`}>꿀꿀운세</a><LocaleSwitcher preservePath locale={siteLocale}/></div></nav>
+ return <main className={styles.page} data-reading-result={readingResult || undefined} data-yn-night lang={siteLocale}>{resume}<nav className={styles.nav} aria-label={copy.home}><a href={`/yeongnyangi/?lang=${siteLocale}`}>{copy.home}</a><div>{!readingResult && libraryLink}<a href={`/?lang=${siteLocale}`}>꿀꿀운세</a><LocaleSwitcher preservePath locale={siteLocale}/></div></nav>
   {readingResult && <div className={styles.readingReturn}>{libraryLink}</div>}
   {children}<footer className={styles.footer}><p>Yeongnyangi · 꿀꿀운세</p><a href={`/terms/?lang=${siteLocale}`}>{copy.terms}</a> · <a href={`/privacy-policy/?lang=${siteLocale}`}>{copy.privacy}</a> · <a href={`/refund-policy/?lang=${siteLocale}`}>{copy.refund}</a> · <a href={`/contact/?lang=${siteLocale}`}>{copy.contact}</a></footer></main>;
 }
