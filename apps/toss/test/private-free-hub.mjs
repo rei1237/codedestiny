@@ -34,7 +34,7 @@ export async function verifyFreeHub(origin,context){
    const area=page.getByRole('group',{name:label});await area.getByLabel('태어난 날짜').fill(date);await area.getByLabel('출생 도시').selectOption('서울');await area.getByRole('checkbox').check();
   }
   await page.getByLabel('상대의 이름이나 호칭').fill('달빛');await page.getByLabel('관계 유형').selectOption('friend');
-  await page.getByRole('button',{name:'무료 사주 궁합 보기'}).click();
+  await page.getByRole('button',{name:'기본 궁합 보기'}).click();
   await page.locator('.compat-grade-label').filter({hasText:'달빛'}).waitFor();await page.locator('.pastlife-cross-title').first().waitFor();
   assert.equal(await page.getByText('토스로 궁합 열기').count(),0);
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')||'{}').orders?.length||0),0);

@@ -111,6 +111,6 @@ function Form({owner}){
  {orderId&&!owner&&<a href={'/login/?next='+encodeURIComponent(page)} onClick={e=>{
    const token=crypto.randomUUID();localStorage.setItem('toss:compat:handoff',token);e.currentTarget.href='/login/?next='+encodeURIComponent(page+'?orderId='+encodeURIComponent(orderId)+'&restoreCompat='+token);
  }}>토스로 로그인하기</a>}
- {(!orderId||owner)&&<Button type="submit" disabled={busy}>{orderId?'구매한 궁합 이어서 열기':'무료 사주 궁합 보기'}</Button>}
+ {(!orderId||owner)&&<Button type="submit" disabled={busy}>{orderId?'구매한 궁합 이어서 열기':'기본 궁합 보기'}</Button>}
  {error&&<p role="alert">{error}</p>}</form></section>;
 }
