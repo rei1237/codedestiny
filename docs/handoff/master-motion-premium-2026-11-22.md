@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: F5 — 서한비 스프라이트(F2~F4와 같은 절차 — Codex 편집 생성 → spec → build --report(모든 칸 수치 기록) → visual-checker(정지 칸 + 실제 화면) → 배선)
+next: F7 — 영냥이 고양이 스프라이트(F2~F6 와 같은 절차 — Codex 편집 생성 → spec → build --report(모든 칸 수치 기록) → visual-checker(정지 칸 + 실제 화면) → 배선, variant yeongnyangi)
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -91,8 +91,8 @@ next: F5 — 서한비 스프라이트(F2~F4와 같은 절차 — Codex 편집 �
 - [x] F2 연이 스프라이트 생성·검수·배선
 - [x] F3 윤달 — d20687016·88ba0c4ea
 - [x] F4 무성 — d36e382314
-- [ ] F5 서한비
-- [ ] F6 네오
+- [x] F5 서한비 — 4559d30e31
+- [x] F6 네오 — 45c0c758ea
 - [ ] F7 영냥이 고양이
 - [ ] G 꿀꿀 고급화
 - [ ] H 영냥이 꽃 배경·동적 효과
@@ -312,3 +312,78 @@ next: F5 — 서한비 스프라이트(F2~F4와 같은 절차 — Codex 편집 �
   - Git Bash 에서 `/astrology-ai/` 같은 인자는 Windows 경로로 바뀐다. 앞 `/` 없이 넘긴다.
   - check:fast 를 `timeout` 으로 감싸지 않는다(유료 게이트 스위트가 약 17분, 잘리면 엉뚱한 verify 가 실패한 것처럼 보인다).
   - 머리카락에 가린 눈은 합성하지 않는다(무성 불합격 사례).
+
+### F5 서한비·F6 네오 스프라이트 (2026-11-22)
+표기: [실측]은 명령·스크립트로 잰 값, [추정]은 측정 없이 판단한 것.
+
+- 커밋(워크트리 `wt/master-motion-f5f6-20261122-104247`, 기준 29550bf9e8)
+  - 4559d30e31 F5 서한비(`hanbi` 숙요점 정본·`hanbi-love` 연애 비책 전용 초상) + 빌드 스크립트 `keep` 기능
+  - 45c0c758ea F6 네오(`neo` 운명 전략 정본·`neo-new-year` 신년운세 전용 초상)
+- 새 기능 `keep`(F5): 프레임 영역 안이지만 생성물이 다르게 다시 그린 작은 무늬(점·머리카락 가닥)를 정본 무늬로 되돌리는 타원. 밝기는 keep 바깥 3px 고리의 톤 차에 맞춘다. QA 의 region 수치는 keep 핵심과 닿는 블록을 빼고 잰다. 서한비: 오른쪽 눈 아래 점(hanbi), 두 눈 사이 머리카락 가닥(hanbi-love). provenance 에 keep 이 기록된다.
+- 생성: Codex CLI OAuth(gpt-image-2, `-m gpt-5.6-terra`), 과금 API 0회. half·closed 두 종. 원본 `D:\CodeDestiny-Build\master-motion\<id>\`(raw·input·report·log), 해시는 각 `provenance.json`.
+- 1차 픽셀 검수 [실측] — 모든 칸, 문턱 guard ≤ 5 / region ≥ 8. 문턱 근처 칸 없음(guard 최대 4.35, region 최소 22.34), 버린 칸 없음. 시퀀스는 넷 다 `["half","closed","half"]`.
+
+  | id | 칸 | guard | region |
+  |---|---|---|---|
+  | hanbi | half | 2.50 | 26.12 |
+  | hanbi | closed | 3.26 | 33.33 |
+  | hanbi-love | half | 3.39 | 26.50 |
+  | hanbi-love | closed | 3.31 | 22.34 |
+  | neo | half | 3.18 | 44.42 |
+  | neo | closed | 3.61 | 52.25 |
+  | neo-new-year | half | 3.37 | 26.37 |
+  | neo-new-year | closed | 4.35 | 35.80 |
+
+  - neo-new-year closed guard 4.35 는 톤 차를 빼도 같고, 상자 가장자리(머리카락·왼쪽 아래 뺨) 블록에서 나온다. 그 자리는 합성에서 정본 픽셀이다(영역 밖). 톤 차를 뺀 guard: nny half 2.46, neo half 2.77 / closed 2.56.
+  - 영역: hanbi·hanbi-love·neo 는 눈마다 타원 하나. neo-new-year 는 눈이 기울어(안쪽 눈꼬리가 아래) 눈마다 큰 타원 + 안쪽 아래 작은 타원. 작은 타원이 없을 때 감은 눈 속눈썹 선이 안쪽 절반에서 끊겼다(visual-checker 불합격 → 고친 뒤 합격).
+- 크기 [실측] (상한: 소개장 시트 400KB·포스터 80KB, 아바타 시트 80KB·포스터 12KB)
+
+  | id | portrait-sheet | portrait-poster | avatar-sheet | avatar-poster |
+  |---|---|---|---|---|
+  | hanbi | 199,314 | 52,294 (q76) | 11,890 | 4,112 |
+  | hanbi-love | 241,662 | 79,190 (q84) | 12,012 | 4,100 |
+  | neo | 275,828 | 76,466 (q76) | 14,928 | 5,142 |
+  | neo-new-year | 313,328 | 78,522 (q40) | 14,942 | 5,124 |
+
+  - neo-new-year 포스터: 정본 파일 자체가 90,676B 라 q50 에서도 85,122B 로 상한을 넘었다(preset drawing·picture·photo 도 84~85KB). q40 으로 낮췄다(MAE 3.99, neo q76 은 3.26). visual-checker: 1x 에서 정본과 구분 불가(PSNR 32.4~34.2dB, 24 초과 픽셀 0.38%), 색 이동 < 0.3. 3배 확대에서만 화면 왼쪽 눈 홍채 하이라이트 번짐(RMSE 8.0). 포스터는 시트를 받는 동안만 보이고 시트(q80)가 0.3s 페이드로 덮는다. 상한(공유 정책 상수)은 올리지 않았다.
+- 선명도 [실측] 라플라시안 분산(정본 / 포스터 / 칸 3장)
+  - hanbi 소개장 826 / 849 / 865·873·865, 아바타 2775 / 2653 / 2663·2651·2663
+  - hanbi-love 소개장 2759 / 2693 / 2919·2860·2920, 아바타 2870 / 2753 / 2769·2801·2797
+  - neo 소개장 1998 / 2067 / 2059·2063·2060, 아바타 5135 / 4907 / 4946·4906·4936
+  - neo-new-year 소개장 4141 / 4440(q40 잡음으로 올라감) / 4327·4275·4333, 아바타 4417 / 4250 / 4288·4390·4326
+- 2차 visual-checker(정지 칸, 질문 분리: 번짐·윤곽·가린 부위 새 그림·포스터 대 칸 선명도) — 넷 다 출시 합격.
+  - hanbi: 눈 아래 점이 정본과 같다(keep), 원반 얼룩 없음(고리 밝기 +1.8/+1.4, 정본 +0.8).
+  - neo: 화면 왼쪽 눈을 가로지르는 머리카락 가닥이 반감·감음 칸에서도 이어진다(눈꺼풀 위 대비만 약함). 감음 칸 오른쪽 눈꺼풀 1~2px 밝은 점(약 293,218, +15~20 휘도)은 7배 확대에서만 보여 두었다.
+  - neo-new-year: 안쪽 눈꼬리 작은 점(235~236,142)이 칸마다 58→102→71 로 깜빡인다. half 칸이 약간 부드럽다(선 선명도 60.6 대 66.9). closed 칸은 정본과 같다.
+- 실제 화면 [실측] (dev 3140, Playwright DPR2, 390·1280·390 reduced-motion, 쿠키 `cd_cookie_consent=essential`)
+  - F5: /sukuyo-compatibility-ai/·/love-secret-ai/·/fusion-fortune/, F6: /new-year-ai-consultation/·/fusion-fortune/·/neo-operation-room/
+  - 모든 실행 pageerror 0, 가로 넘침 0. 배선된 모든 요소 시트 레이어와 img 의 dx·dy·dw·dh 0, `data-ready`, mmSheet 3.6s steps(3). 둥글림 소개장 20px·dossier/신년 소개장 12px·아바타 50% 그대로.
+  - reduced-motion: 시트 레이어 0개, master-motion 요청 0건.
+  - 재생 허용 때만 받는다: 화면 밖 소개장(숙요 y2756/1990, 신년 y3364/2668, 상황실 1280 y1077)은 스크롤 전 요청 0건. 상황실 390(y953)은 뷰포트 844 + 게이트 rootMargin 160px 안이라 로드 때 받는다(정상).
+  - visual-checker(화면 크롭): F5·F6 모두 합격. NOTE — sukuyo 1280 이 가장 부드럽다(약 1.07배 확대), love 아바타 눈꼬리 복숭아색 점은 CSS 꽃잎 층(스프라이트 픽셀 최대 (183,140,127)), 카드 0.33° 기울기는 기존 W4 숨쉬기(rotate ±0.4deg)로 그림과 오버레이가 함께 기운다.
+  - 첫 sukuyo 390 로드에서 pageerror 1건("Invalid or unexpected token")·루트 없음 → 재실행 0건. dev 첫 컴파일 산물로 판단[추정].
+- 네오 중복 판단: 겹치지 않는다.
+  - NeoSpriteActor·NeoTalkingPortrait 는 전쟁 상황실 히어로·커맨드 덱에서 투명 말하기 시트(neo-talk-v1, 2×2, 자체 깜빡임)를 쓴다. MasterProfile·ProductMasterStrip 은 MasterMotion 으로 neo-strategy·neo-new-year 초상을 쓴다. 둘 다 useSpritePlaybackGate 를 공유한다.
+  - /neo-operation-room/ 에서는 둘이 같은 페이지에 있다(MasterProfile 은 `!hasActiveWarRoomEntry && !showCommandDeck && …` 일 때만). 위치 [실측]: 390 말하기 y426~652 / 소개장 y953~1289, 1280 말하기 y298~746 / 소개장 y1077~. 겹침 없음, 스크롤 중 둘 다 보일 수 있다(F3 점성술 윤달과 같은 선례).
+- 배선
+  - F5: `/sukuyo-compatibility-ai/` MasterProfile 서한비(`masterProfiles.hanbi`), `/love-secret-ai/` 띠 아바타(`hanbi-love`) + MasterProfileGroup 소개장, `/fusion-fortune/` 서한비 아바타(`hanbi`)
+  - F6: `/neo-operation-room/` MasterProfile 네오(`masterProfiles.neo`), `/new-year-ai-consultation/` 띠 아바타 + MasterProfile `#new-year-master`(`neo-new-year`), `/fusion-fortune/` 네오 아바타(`neo`)
+- 연결하지 않은 곳과 이유
+  - `productMasters.karma` 네오·서한비: 쓰는 곳이 story-masters·ConsultationMasterIntro(일반 `<Image>`/`<img>`)뿐
+  - FusionSectionBody·ConsultationReading·ConsultationIllustration: 일반 이미지
+  - CraftedProductDetail: html 문자열 렌더
+  - NewYearAiClient `counselor={{src}}`(약 679줄): MasterMotion 이 아니다
+  - yehwa-home 카드: 정본 초상이 아닌 삽화
+- 검증 [실측]
+  - F5·F6 check:fast 모두 BLOCKED 는 verify:sitemap-drift 하나 → sitemap:generate 뒤 OK, 막힌 뒤 단계 직접 실행 전부 통과.
+  - F5: test:node 의 sky-and-range ENOENT 1건 → `npm run fortune:build-data` 뒤 통과. verify 24종·build:worker·entry-encoding ok, test:jest 490 suites / 8553 pass / 1 skipped.
+  - F6: typecheck ok, test:node 5795/5795, verify 23종·build:worker·entry-encoding ok, test:jest(변경 기반) 38 suites / 1950 pass / 1 skipped. 자산 테스트 4/4.
+- 남은 위험·미검증
+  - 실제 120ms 재생을 사람이 눈으로 본 확인은 없다(정지 칸·화면 크롭만).
+  - neo-new-year 포스터 q40: 시트가 늦게 오는 느린 망에서 1초 넘게 보이면 화면 왼쪽 눈 하이라이트가 약간 뭉개져 보일 수 있다[추정]. 페이드 중 눈 위치 차이는 측정하지 않았다.
+  - 360×432 변형이 없어 모바일도 600×720 시트(200~313KB)를 받는다(게이트가 열릴 때만).
+- F7(영냥이)에서 피할 함정
+  - 정본 파일이 80KB 를 넘으면 포스터는 품질만으로 맞추기 어렵다. 먼저 정본 크기와 q 별 바이트를 재고 결정한다.
+  - 기운 눈은 축 정렬 타원 하나로 덮이지 않는다. 감은 칸 속눈썹 선이 생성물 끝까지 닿는지 확인하고 작은 타원을 덧댄다.
+  - dev 서버를 오래 켜 두면 `ERR_MEMORY_ALLOCATION_FAILED` 로 컴파일이 멈춘다(F6 에서 /neo-operation-room/ 120초 시간 초과). `NODE_OPTIONS=--max-old-space-size=8192` 로 다시 켜고 페이지를 curl 로 미리 데운다. TaskStop 뒤에도 next 자식 프로세스가 3140 을 잡고 남아 PID 로 끝냈다.
+  - 영냥이는 variant `yeongnyangi`(금빛 별가루, 분홍 없음)다.
