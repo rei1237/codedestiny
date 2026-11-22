@@ -603,11 +603,11 @@
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="retry">' + esc(ui.retry) + '</button></div>';
   }
 
-  // The Toss guest entry has the natal chart only. Use the same result sections as the web guest.
-  function renderSajuSections(container, model) {
-    var t = model.text;
+  // Embedded readers reuse the same natal, Human Design and Vedic sections.
+  function renderSajuSections(container, model, options) {
+    var t = model.text, state = options || {view:'chakra', layer:model.timeUnknown ? 'timeUnknown' : 'login'};
     container.innerHTML = brainHtml(model, t, {}) + circuitHtml(model, t) + enginesHtml(model, t) +
-      elementsHtml(model, t) + insightsHtml(t) + habitsHtml(t);
+      elementsHtml(model, t) + decisionHtml(model, t, state) + insightsHtml(t) + habitsHtml(t) + bodyHtml(model, t, state) + vedicHtml(t);
     fitMeme(container);
   }
   var api = {renderSajuSections: renderSajuSections, render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, petalPath: petalPath, MEME_FLOWERS: MEME_FLOWERS, CTA_TARGET: CTA_TARGET, AI_TARGETS: AI_TARGETS};

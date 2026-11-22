@@ -1,13 +1,24 @@
 import SajuDashboard from './SajuDashboard';
 import {NatalPillars,readChart} from './NatalPillars';
-import {useEffect,useRef,useState,type FormEvent} from 'react';
-import {BirthFields,emptyBirth} from './BirthFields';
+import {useEffect,useRef,useState,useSyncExternalStore,type FormEvent} from 'react';
+import {BirthFields,emptyBirth,type BirthInput} from './BirthFields';
 import {Button} from './Button';
-import TossSessionScope from './TossSessionScope';
+import {getTossSessionRevision,hasTossSession,login,onTossSessionRevisionChanged} from './platform';
 
-export default function BasicSajuReading(){return <TossSessionScope><Reading/></TossSessionScope>;}
-function Reading(){
-  const [birth,setBirth]=useState(emptyBirth),[chart,setChart]=useState<ReturnType<typeof readChart>|null>(null),[error,setError]=useState('');
+export default function BasicSajuReading(){
+  const revision=useSyncExternalStore(onTossSessionRevisionChanged,getTossSessionRevision,getTossSessionRevision);
+  const [resume,setResume]=useState<{revision:number;birth:BirthInput}|null>(null);
+  const initial=resume?.revision===revision?resume.birth:null;
+  useEffect(()=>{if(resume&&resume.revision!==revision)setResume(null);},[resume,revision]);
+  async function loginWithBirth(birth:BirthInput){
+    if(hasTossSession())return;
+    await login();
+    setResume({revision:getTossSessionRevision(),birth});
+  }
+  return <Reading key={revision+(initial?'-resume':'-new')} initial={initial} loginWithBirth={loginWithBirth}/>;
+}
+function Reading({initial,loginWithBirth}:{initial:BirthInput|null;loginWithBirth:(birth:BirthInput)=>Promise<void>}){
+  const [birth,setBirth]=useState(()=>initial||emptyBirth()),[chart,setChart]=useState<ReturnType<typeof readChart>|null>(()=>initial?readChart(initial):null),[error,setError]=useState('');
   const title=useRef<HTMLHeadingElement>(null);
   useEffect(()=>{
     if(!chart)return;
@@ -26,7 +37,7 @@ function Reading(){
     {error&&<p role="alert">{error}</p>}<Button type="submit" display="block">나의 명식 보기</Button></form></section>;
   return <section className="manse-result"><h1 ref={title} tabIndex={-1}>나의 기본 사주</h1>
     <NatalPillars chart={chart} unknown={birth.unknown}/>
-    <SajuDashboard pillars={chart.dashboard} lotto={chart.lotto}/>
+    <SajuDashboard pillars={chart.dashboard} lotto={chart.lotto} layerBirth={chart.layerBirth} onBrainLogin={()=>loginWithBirth(birth)} initialBrain={!!initial}/>
     <Button variant="weak" display="block" onClick={()=>setChart(null)}>출생정보 다시 보기</Button>
   </section>;
 }

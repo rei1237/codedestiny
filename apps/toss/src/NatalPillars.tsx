@@ -22,11 +22,15 @@ export function readChart(birth:BirthInput){
     return {key,hanja,korean,relation:key==='day'?'일간':tenGodOfStem(dayStem,korean[0])};
   });
   const pillar=(value:string|null|undefined)=>({g:value?.[0]||'',j:value?.[1]||''});
-  return {rows,elements,lotto:{termClock:calculationMeta.termClock,civilYear:calculationMeta.civil.year},dashboard:{y:pillar(pillars.year),m:pillar(pillars.month),d:pillar(pillars.day),h:pillar(pillars.hour)}};
+  const civil=calculationMeta.civil;
+  const layerBirth=birth.unknown?null:{birthDate:[civil.year,String(civil.month).padStart(2,'0'),String(civil.day).padStart(2,'0')].join('-'),
+    birthTime:birth.time,timezone:location.tz,latitude:location.lat,longitude:location.lng};
+  return {rows,elements,layerBirth,lotto:{termClock:calculationMeta.termClock,civilYear:calculationMeta.civil.year},dashboard:{y:pillar(pillars.year),m:pillar(pillars.month),d:pillar(pillars.day),h:pillar(pillars.hour)}};
 }
 type Stars={basis:string;twelve:{key:string;label:string;name:string}[];extras:{name:string;positions:string[]}[]};
+declare global {interface Window {CdManseShinsal:{build:(pillars:ReturnType<typeof readChart>['dashboard'])=>Stars}}}
 export function NatalPillars({chart,unknown}:{chart:ReturnType<typeof readChart>;unknown:boolean}){
- const stars=(window as Window & {CdManseShinsal:{build:(pillars:typeof chart.dashboard)=>Stars}}).CdManseShinsal.build(chart.dashboard);
+ const stars=window.CdManseShinsal.build(chart.dashboard);
  return <><PillarAlmanac pillars={chart.rows.map(r=>({key:r.key,ganji:r.hanja,tenGod:r.relation}))} counts={chart.elements} basis="surface"
    unknownNote={unknown?'태어난 시각을 몰라 시주는 비워 두었어요. 절기가 바뀌는 날에는 정오 기준으로 본 연주와 월주가 실제와 다를 수 있어요.':undefined}/>
    <section><h2>명식의 신살</h2><p>{stars.basis}</p><dl>{stars.twelve.map(row=><div key={row.key}><dt>{row.label}</dt><dd>{row.name}</dd></div>)}</dl>

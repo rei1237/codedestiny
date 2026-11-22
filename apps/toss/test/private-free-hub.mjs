@@ -44,5 +44,18 @@ export async function verifyFreeHub(origin,context){
   await page.getByLabel('태어난 날짜').fill('1992-05-07');await page.getByLabel('출생 도시').selectOption('서울');await page.getByRole('checkbox').check();await page.getByRole('button',{name:'나의 명식 보기'}).click();
   await page.locator('#daBrainTitle').waitFor();assert.equal(await page.locator('[data-da-engine]').count(),5);
   await page.locator('[data-da-engine] summary').first().click();assert.equal(await page.locator('[data-da-engine][open]').count(),1);
+  assert.equal(await page.locator('[data-da-act=login]').count(),0);
+  await page.getByRole('button',{name:'출생정보 다시 보기'}).click();await page.getByRole('checkbox').uncheck();
+  await page.getByLabel('태어난 시각',{exact:true}).fill('08:30');await page.getByRole('button',{name:'나의 명식 보기'}).click();
+  await page.locator('[data-da-act=login]').first().click();
+  await page.getByLabel('베다 차트의 출생 성별').selectOption('female');
+  await page.getByRole('button',{name:'휴먼 디자인·베다 함께 보기'}).click();
+  await page.locator('#daVedicTitle').waitFor();await page.locator('[data-da-view=both]').click();
+  assert.equal(await page.locator('[data-da-view=both]').getAttribute('aria-pressed'),'true');
+  await page.getByLabel('결과 이미지 형식').selectOption('story');
+  await page.getByRole('button',{name:'뇌구조 이미지 저장'}).click();
+  await page.getByText('뇌구조 이미지를 저장했어요.').waitFor();
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('private-file-saves')||'[]').at(-1)?.height),1920);
+  assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('consultations')||'{}').orders?.length||0),0);
  }finally{await page.close();}
 }

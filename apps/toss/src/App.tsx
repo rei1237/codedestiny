@@ -144,7 +144,7 @@ export default function App({reviewHome,reviewRoute,consultationHref,verifiedRec
   useLayoutEffect(()=>{
     if(acceptedRevision!==sessionRevision){
       if(previousAuthenticated.current){purchaseEpoch.current++;const needsReview=stopPurchase();setPurchasing(false);authEpoch.current++;libraryEpoch.current++;busyRef.current=null;setBusy(false);setRecoveryVerified(false);if(needsReview||paymentRequiresReview())setRecoveryBlocked(true);setResult(null);setLibrary([]);setLibraryCursor(null);setLibraryState('loading');setDraft(null);setRestoredOrder(null);setQuestion('');setTopic('self');setBirth(emptyBirth());setPartner(emptyBirth());setScope({situation:'',options:'',period:'',constraints:'',relationshipType:''});setSpreadId(yeongnyangiSpreads[0].id);setTarotOptions({a:'',b:'',period:'week',relationStatus:'dating'});setAgreed(false);attempt.current=crypto.randomUUID();setMessage('로그인 상태가 바뀌어 기록을 다시 확인해 주세요.');}
-      if(previousAuthenticated.current&&!hasTossSession())setLoggedIn(false);
+      setLoggedIn(hasTossSession());
       setProducts([]);setTarotProducts([]);setCatalogReload(value=>value+1);setAcceptedRevision(sessionRevision);
     }
     previousAuthenticated.current=loggedIn;

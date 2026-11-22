@@ -10,6 +10,7 @@ import {extractSajuCompatClosure} from '../../../scripts/lib/saju-compat-closure
 const root=new URL('../../../',import.meta.url);
 const sources=['js/saju-engine.js','js/core/saju/reportDashboard.js','js/core/saju/dopamineResult.js','js/core/saju/extremeTResult.js','styles/fortune-ui.css','js/entertain-engine.js','js/saju-engine-tarot-sukuyo-quantum.js','worker/lib/saju-section/paid-extreme-t.src.js','scripts/extract-saju-section-runtime.mjs'];
 const virtual='virtual:saju-dashboard';
+const anatomyArt=["images/destiny-anatomy/moonlit-hd-v1-384.webp","images/destiny-anatomy/moonlit-hd-v1-768.webp","images/destiny-anatomy/moonlit-vedic-v1-384.webp","images/destiny-anatomy/moonlit-vedic-v1-768.webp","images/yeoni/welcome/yeoni-mark-v1-192.webp"];
 const art=['도파민 중독','극T테스트','테토VS에겐','사주 네컷','사주 로또','사주 프롬프트'];
 
 function declarations(source,names){
@@ -143,11 +144,12 @@ export default function sajuDashboard(){
       server.middlewares.use(async(req,res,next)=>{
         let path;try{path=decodeURI((req.url||'').split('?')[0]);}catch{return next();}
         const name=art.find(item=>path==='/fuctionassets/'+item+'.webp');
-        if(!name)return next();
+        if(!name&&!anatomyArt.includes(path.slice(1)))return next();
         res.setHeader('Content-Type','image/webp');res.end(await readFile(new URL('public'+path,root)));
       });
     },
     async generateBundle(){
+      for(const path of anatomyArt)this.emitFile({type:'asset',fileName:path,source:await readFile(new URL('public/'+path,root))});
       for(const name of art){
         const path='fuctionassets/'+name+'.webp';
         const source=fileURLToPath(new URL('public/'+path,root));

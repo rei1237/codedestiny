@@ -1,4 +1,4 @@
-import {useEffect,useRef,useState} from 'react';
+import {lazy,Suspense,useEffect,useRef,useState} from 'react';
 import './saju-dashboard.css';
 import ImagePrompts,{type ImagePrompt} from './SajuImagePrompts';
 import {Button} from './Button';
@@ -6,6 +6,7 @@ import {File,Share} from '@apps-in-toss/web-framework';
 import {APP_NAME,api,hasTossSession,isToss} from './platform';
 import {SERVICE_AVAILABLE} from './release';
 
+const BrainReading=lazy(()=>import('./BrainReading.jsx'));
 const readings=[
   {id:'brain',art:'',title:'나의 뇌구조'},
   {id:'extreme',art:'극T테스트',title:'극T 테스트'},
@@ -20,8 +21,10 @@ type Pillar={g:string;j:string};
 export type Pillars=Record<'y'|'m'|'d'|'h',Pillar>;
 
 type LottoBirth={civilYear:number;termClock:{year:number;month:number;day:number;hour:number;minute:number}};
-export default function SajuDashboard({pillars,lotto}:{pillars:Pillars;lotto:LottoBirth}){
-  const [active,setActive]=useState<Reading|null>(()=>readings.find(item=>item.id===new URLSearchParams(location.search).get('reading'))?.id||null),[notice,setNotice]=useState('');
+type LayerBirth={birthDate:string;birthTime:string;timezone:string;latitude:number;longitude:number};
+export default function SajuDashboard({pillars,lotto,layerBirth,onBrainLogin,initialBrain}:{pillars:Pillars;lotto:LottoBirth;layerBirth:LayerBirth|null;onBrainLogin:()=>Promise<void>;initialBrain:boolean}){
+  const [brainScope,setBrainScope]=useState<object|null>(null);
+  const [active,setActive]=useState<Reading|null>(()=>initialBrain?'brain':readings.find(item=>item.id===new URLSearchParams(location.search).get('reading'))?.id||null),[notice,setNotice]=useState('');
   const [gender,setGender]=useState(''),[prompts,setPrompts]=useState<ImagePrompt[]>([]);
   const host=useRef<HTMLDivElement>(null),heading=useRef<HTMLHeadingElement>(null),trigger=useRef<Reading|null>(null);
   useEffect(()=>{
@@ -53,7 +56,7 @@ export default function SajuDashboard({pillars,lotto}:{pillars:Pillars;lotto:Lot
       const root=host.current;
       const style=document.createElement('style');style.textContent=styles;root.prepend(style);
       const report=prepareDashboard(pillars,document,{save,share});
-      if(active==='brain'){const {showBrainReading}=await import('./brain-reading.js');if(current)showBrainReading(root,report.brainScope());return;}
+      if(active==='brain'){setBrainScope(report.brainScope());return;}
       if(active==='prompts'){setPrompts(gender?report.prompts(gender):[]);return;}
       if(active!=='lotto'){report[active]();return;}
       if(!gender)return;
@@ -75,13 +78,14 @@ export default function SajuDashboard({pillars,lotto}:{pillars:Pillars;lotto:Lot
     }}><img src={item.art?'/fuctionassets/'+item.art+'.webp':'/assets/yeoni-flower-pig.webp'} alt="" width={64} height={64}/><span>{item.title}</span><i aria-hidden="true">›</i></button>)}</div>:<>
       <h3 tabIndex={-1} ref={heading}>{readings.find(item=>item.id===active)?.title}</h3>
       {(active==='lotto'||active==='prompts')&&<label>{active==='lotto'?'대운 계산에 사용하는 성별':'그림 프롬프트에 사용하는 성별'}<select value={gender} onChange={e=>setGender(e.target.value)}><option value="">선택해 주세요</option><option value="M">남성</option><option value="F">여성</option></select></label>}
-      <div ref={host} id={active==='brain'?'destinyAnatomyCard':undefined} key={active+gender}>
+      <div ref={host} key={active+gender}>
         {active==='lotto'&&<div id="lottoCard"><div id="lottoSaved"/><div id="lottoSection"/></div>}
         {active==='extreme'&&<div id="tTestCard" className="t-test-card"><div id="tTestResult"/></div>}
         {active==='hormone'&&<div id="hormone-vibe-section"><div id="hormoneVibeResult"/></div>}
         {active==='fourCut'&&<div id="reportDashboardCard"><div id="sajuFourCutResult"/></div>}
         {active==='dopamine'&&<div id="dopamineCard"><div id="dopamineResult"/></div>}
       </div>
+      {active==='brain'&&brainScope&&<Suspense fallback={<p role="status">뇌구조를 펼치고 있어요.</p>}><BrainReading scope={brainScope} birth={layerBirth} onLogin={onBrainLogin}/></Suspense>}
       {active==='prompts'&&prompts.length>0&&<ImagePrompts items={prompts}/>}
       {notice&&<p role="status">{notice}</p>}
       <Button variant="weak" display="block" onClick={()=>{setActive(null);setNotice('');requestAnimationFrame(()=>document.getElementById('dashboard-'+trigger.current)?.focus());}}>다른 사주 풀이 보기</Button>
