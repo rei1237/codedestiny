@@ -269,7 +269,7 @@ export default function SamjaePage() {
           <Link href="/fortune/tti-age" className="cd-chip">띠별 나이표</Link>
           <Link href="/compatibility/tti" className="cd-chip">띠궁합 표</Link>
           <Link href="/fortune/son-eomneun-nal" className="cd-chip">손없는날 달력</Link>
-          <Link href="/saju" className="cd-chip">무료 사주</Link>
+          <Link href="/saju" className="cd-chip">사주 보기</Link>
         </nav>
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">

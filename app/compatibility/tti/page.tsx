@@ -173,7 +173,7 @@ export default function TtiCompatibilityPage() {
             </Link>
             을 이용해 보세요. 내 사주의 바탕부터 알고 싶다면{" "}
             <Link href="/saju" className={LINK}>
-              무료 사주
+              내 사주 원국
             </Link>
             에서 시작할 수 있습니다.
           </p>
