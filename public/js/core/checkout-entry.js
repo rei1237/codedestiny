@@ -1481,6 +1481,36 @@
     if (!win || !token) return false;
     if (win[CHOICE_LOCK_KEY] !== token) return false;
     token.node = node || null;
+    if (node && node.ownerDocument && typeof node.addEventListener === "function") {
+      var doc = node.ownerDocument;
+      var previousFocus = doc.activeElement;
+      var dialog = node.querySelector(".cd-direct-payment-dialog") || node;
+      dialog.tabIndex = -1;
+      function onChoiceKey(event) {
+        if (event.defaultPrevented) return;
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          stepBackOpenPaymentChoice(node);
+        } else if (event.key === "Tab") {
+          var controls = Array.prototype.filter.call(dialog.querySelectorAll("a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), [tabindex='0']"), function (item) {
+            return item.tabIndex >= 0 && item.getClientRects().length > 0 && !item.closest("[hidden],[inert]");
+          });
+          var first = controls[0], last = controls[controls.length - 1];
+          if (!first) event.preventDefault();
+          else if (event.shiftKey && (doc.activeElement === dialog || doc.activeElement === first)) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && doc.activeElement === last) { event.preventDefault(); first.focus(); }
+        }
+      }
+      node.addEventListener("keydown", onChoiceKey);
+      Promise.resolve().then(function () {
+        if (token.node === node && win[CHOICE_LOCK_KEY] === token && node.isConnected && !node.contains(doc.activeElement)) dialog.focus({ preventScroll: true });
+      });
+      token.restoreChoiceFocus = function () {
+        node.removeEventListener("keydown", onChoiceKey);
+        if (previousFocus && previousFocus.isConnected && (doc.activeElement === doc.body || node.contains(doc.activeElement))) previousFocus.focus({ preventScroll: true });
+      };
+    }
     return true;
   }
 
@@ -1489,6 +1519,7 @@
     if (!win || !token) return false;
     if (win[CHOICE_LOCK_KEY] !== token) return false;
     win[CHOICE_LOCK_KEY] = null;
+    if (token.restoreChoiceFocus) token.restoreChoiceFocus();
     return true;
   }
 
