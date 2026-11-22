@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 4b단계 — 신살 허브 app/saju/sinsal/page.js + 개별 글 5쪽(양인·상문·도화·역마·화개), lib/saju/sinsal-rules.mjs 의 renderRuleTableHtml 사용
+next: 4c단계 — 개별 글 8쪽(홍염·천을귀인·괴강·백호·공망·귀문관살·원진·상충)을 app/insights/sinsal-articles.mjs 에 추가하고 허브 /saju/sinsal "그 밖의 신살" 줄에 링크를 단다
 ---
 
 # 네이버 검색 의도 SEO 라운드 인수인계
@@ -38,6 +38,9 @@ next: 4b단계 — 신살 허브 app/saju/sinsal/page.js + 개별 글 5쪽(양�
 - check:fast 실행 중에 app/** 를 고치면 sitemap-drift 가 헛실패한다(서명이 작업 트리 기준). 실행 중에는 트리를 건드리지 않는다. TS 로드는 scripts/lib/load-ts-module.mjs `loadTsModule`.
 - 금지: 엔진(localSajuCalculator·manse-shinsal.js·KASI·normalizeSaju) 수정, 새 FAQ/HowTo JSON-LD, seo-title.mjs 페이지 제목 변경(D+30), 새 CI 스텝, 키워드 반복, 과금 LLM, .env*/package-lock/dist 수정. 미추적 `.claude/skills/fire-your-seo-agency/`·다른 세션 파일 손대지 않음.
 - web-fetch 로 네이버 SERP 조회는 거부됨 — 재시도 금지.
+- 🔴 `__tests__/ui/phase3-insight-content.test.mjs` 는 모든 insights 글의 50자 이상 `<p>` 문단 완전 중복을 막는다 → 글마다 끝맺는 고지문을 따로 쓴다(공용 NOTE 상수로 실패, e72c0b160). renderRuleTableHtml 의 basis 줄도 `<p>` 이므로 4c 에서 같은 basis(괴강·백호, 귀문·원진)가 50자를 넘지 않는지 확인.
+- 글 본문을 고친 뒤에는 sitemap-lastmod 서명이 바뀐다 → `npm run sitemap:generate` 결과(config/sitemap-lastmod.json)를 함께 커밋(85e2abd1f).
+- insights 글의 `faq` 필드는 4개 고정 슬러그에서만 FAQPage 가 되고 화면에는 안 보인다 → 4b 는 faq 필드 없이 본문 h2/h3 로 질문을 둔다. 4c 도 같게.
 - 기존 /saju/natal-chart 레지스트리가 primary "사주 12신살", secondary "사주 명식","12신살","별신살","사주 신살 보기" 를 점유 → 신살 허브는 이 키워드를 쓰지 말 것(예: primary "신살 종류", secondary "신살 뜻","신살표").
 
 ## 설계
@@ -75,7 +78,7 @@ next: 4b단계 — 신살 허브 app/saju/sinsal/page.js + 개별 글 5쪽(양�
 - [x] 2 계산형 4종 (d3fb7956e, 4d83ea6eb) — check:fast --base=7b0a35ce1 exit=0 (25cbbbf77)
 - [x] 3 년생별 한 줄 (c877f5d71)
 - [x] 4a sinsal-rules + 대조 테스트 (09c0ab099, 25cbbbf77) — 만세력 엔진 1440케이스·12신살 144칸·공망 60일주 전수 + 사주 엔진 상수 고정 대조, 변이 시 실패 확인
-- [ ] 4b 허브 + 5쪽
+- [x] 4b 허브 + 5쪽 (b40b85fa5 글 5쪽, 4307fe6d7 허브·레지스트리·sitemap·llms·/saju·/manse 링크, e72c0b160 고지문 중복 수정, 85e2abd1f 원장) — build:cf exit=0, verify:internal-link-depth OK, dist 6쪽 H1=1·noindex 0·직답 확인, check:fast --base=7b0a35ce1 통과. 슬러그: yangin-sal-meaning·sangmun-sal-meaning·dohwa-sal-saju·yeokma-sal-meaning·hwagae-sal-meaning. 허브 레지스트리 primary "신살 종류"(natal-chart 와 비충돌). 허브는 AdSense 목록 밖(2단계와 동일 정책)
 - [ ] 4c 8쪽
 - [ ] 5 생성물
 - [ ] 6 머지·push·CI·운영(재확인 후)
