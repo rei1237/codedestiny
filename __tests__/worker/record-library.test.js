@@ -244,6 +244,8 @@ test('new consultation snapshots remain read-only and partial chapter counts sta
   expect(library.recordStatus({state:'COMPLETED',manifestCount:3,completedChapters:1},source)).toBe('partial');
   expect(library.recordStatus({state:'FORTUNE_FAILED'},source)).toBe('failed');
   expect(library.recordStatus({state:'PAID'},source)).toBe('generating');
+  // 끊긴 연이·네오 상담의 복구 진입은 결제 내역이 아니라 그 상담실이다(상담실의 이어서 쓰기 버튼이 재시도를 맡는다).
+  expect(library.recordMetadata(source,{_id:'c'.repeat(64),state:'FORTUNE_FAILED'}).recoveryHref).toBe('/fortune-chat/?consultation='+'c'.repeat(64));
 });
 
 test('shared Codex and life-book stores retain the actual billing variant and display identity',async()=>{

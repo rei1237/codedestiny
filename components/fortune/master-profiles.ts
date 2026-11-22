@@ -16,7 +16,7 @@ const dedicated = (key: string) => ({
 
 /**
  * 마스터 모션(W4): 각 항목에 선택 필드 `motion: { frames?, video?, poster }` 를 넣으면 MasterMotion 이 CSS 숨쉬기 대신
- * 그 그림을 돌린다(productMasters 의 항목도 같다). 스프라이트 시트는 masterMotionArt(id, 변형)로 넣고 lib/master-motion/flags.mjs 가 켠다(지금은 연이·윤달·무성). 규격·빠진 그림: docs/design/master-motion-assets.md
+ * 그 그림을 돌린다(productMasters 의 항목도 같다). 스프라이트 시트는 masterMotionArt(id, 변형)로 넣고 lib/master-motion/flags.mjs 가 켠다(지금은 연이·윤달·무성·서한비·네오). 규격·빠진 그림: docs/design/master-motion-assets.md
  */
 export const masterProfiles = {
   master: {
@@ -32,6 +32,7 @@ export const masterProfiles = {
     approach: "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
     portrait: `${base}/neo-strategy-portrait.webp`, portraitAlt: "남색 제복과 흰 망토를 입은 백사자의 운명 마스터 네오",
     sheet: `${base}/neo-strategy-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "neo",
+    motion: masterMotionArt("neo", "portrait"),
   },
   yeoni: {
     name: "연이", role: "운명 찻집 마스터 · 근거부터 짚는 따뜻한 상담",
@@ -70,6 +71,7 @@ export const masterProfiles = {
     approach: "쌓인 엇갈림을 장부처럼 하나씩 셈하고, 두 분이 함께 갚아 갈 수 있는 작은 약속을 찾아요. 서두르지 않고, 두 분 사이의 거리를 차분히 재어 드립니다.",
     portrait: `${base}/hanbi-sukuyo-portrait.webp`, portraitAlt: "빗빛 인디고 코트 드레스를 입고 덮인 장부를 든 숙요점 상담가 서한비",
     sheet: `${base}/hanbi-sukuyo-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "hanbi",
+    motion: masterMotionArt("hanbi", "portrait"),
   },
   // 대표 상담 마스터 — 정본 의상은 그대로, 장면·소품만 상품 전용으로 새로 그린 초상·시트(provenance.json).
   // 소개장의 "읽는 근거"와 "맡는 부분"은 실제 생성 프롬프트(worker/lib/love-secret-ai-prompt.js,
@@ -98,6 +100,7 @@ export const masterProfiles = {
     ],
     principles: ["상대의 마음을 단정하지 않고, 조건으로 말씀드립니다", "계산되지 않은 날짜는 쓰지 않습니다", "지켜야 할 선과 물러설 자리를 먼저 정해 드립니다"],
     ...dedicated("hanbi-love"), portraitAlt: "빗빛 인디고 코트 드레스 차림으로 비 내리는 달밤의 돌다리에서 관계 장부를 펼친 연애 비책 공동 마스터 서한비", theme: "hanbi",
+    motion: masterMotionArt("hanbi-love", "portrait"),
   },
   neoNewYear: {
     name: "네오", epithet: "신년운세 마스터", role: "한 해의 판세를 짜는 운명 사령관",
@@ -110,6 +113,7 @@ export const masterProfiles = {
     ],
     principles: ["듣기 좋은 말보다 쓸 수 있는 말", "단정 대신 조건으로 말한다", "깎아내리지 않는다"],
     ...dedicated("neo-new-year"), portraitAlt: "새해 첫 해가 드는 작전실에서 열두 달 작전 지도에 손을 얹은 신년운세 마스터 네오", theme: "neo",
+    motion: masterMotionArt("neo-new-year", "portrait"),
   },
   yunLifeBook: {
     name: "윤달", epithet: "인생의 책 화자", role: "인생 소설을 읽어 주는 화자",
@@ -152,19 +156,19 @@ export const productMasters = {
   ],
   love: [
     { name: "연이", role: "마음을 먼저 듣는 연애 상담가", avatar: masterAvatars.yeoniLove, line: "설레는 마음도, 서운한 마음도 먼저 들려주세요. 끝까지 들을게요.", motion: masterMotionArt("yeoni", "avatar") },
-    { name: "서한비", role: "두 사람 사이의 거리를 재는 사람", avatar: masterAvatars.hanbiLove, line: "두 분 사이의 거리는 제가 재어 드릴게요. 서두르지 않되, 흐려 두지도 않겠습니다." },
+    { name: "서한비", role: "두 사람 사이의 거리를 재는 사람", avatar: masterAvatars.hanbiLove, line: "두 분 사이의 거리는 제가 재어 드릴게요. 서두르지 않되, 흐려 두지도 않겠습니다.", motion: masterMotionArt("hanbi-love", "avatar") },
   ],
   newYear: [
-    { name: "네오", role: "한 해의 판세를 짜는 운명 사령관", avatar: masterAvatars.neoNewYear, line: "올해 판세는 내가 먼저 읽는다. 너는 밀 때와 멈출 때만 기억하면 된다." },
+    { name: "네오", role: "한 해의 판세를 짜는 운명 사령관", avatar: masterAvatars.neoNewYear, line: "올해 판세는 내가 먼저 읽는다. 너는 밀 때와 멈출 때만 기억하면 된다.", motion: masterMotionArt("neo-new-year", "avatar") },
   ],
   lifeBook: [
     { name: "윤달", role: "인생 소설을 읽어 주는 화자", avatar: masterAvatars.yunLifeBook, line: "당신의 인생, 첫 장부터 읽어 드릴게요. 다음 장은 같이 써 보고요.", motion: masterMotionArt("yun-life-book", "avatar") },
   ],
   // 초융합 v2 — 체계 장과 영역별 장을 나눠 맡는 다섯 화자(lib/fusion-premium-report.js FUSION_NARRATOR_BY_KEY).
   fusion: [
-    { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "돈이랑 일은 흐름부터 본다. 무리수는 내가 먼저 말릴게." },
+    { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "돈이랑 일은 흐름부터 본다. 무리수는 내가 먼저 말릴게.", motion: masterMotionArt("neo", "avatar") },
     { name: "연이", role: "타로 · 연애", avatar: masterAvatars.yeoni, line: "마음이 먼저 움직이는 자리부터 같이 볼게요." },
-    { name: "서한비", role: "숙요 · 결혼 · 인간관계", avatar: masterAvatars.hanbi, line: "사람 사이에 쌓이는 것과 갚는 법을 차분히 짚어 드리겠습니다." },
+    { name: "서한비", role: "숙요 · 결혼 · 인간관계", avatar: masterAvatars.hanbi, line: "사람 사이에 쌓이는 것과 갚는 법을 차분히 짚어 드리겠습니다.", motion: masterMotionArt("hanbi", "avatar") },
     { name: "윤달", role: "베다 · 점성술 · 시기 · 생활 리듬", avatar: masterAvatars.yun, line: "별길이 바뀌는 계절을 같이 짚어 볼게요.", motion: masterMotionArt("yun", "avatar") },
     { name: "무성", role: "자미두수 · 타고난 성향", avatar: masterAvatars.musung, line: "명반이 말하는 대로 판결합니다. 꾸미지 않을게요.", motion: masterMotionArt("musung", "avatar") },
   ],

@@ -1,6 +1,6 @@
 .hero{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;gap:24px;min-height:480px;padding:40px max(32px,calc((100% - 1080px)/2));overflow:hidden;background:var(--yn-deep)}
 .room{position:absolute;inset:0;z-index:-2}.room img{width:100%;height:100%;object-fit:cover;object-position:center}
-.hero::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(0deg,var(--yn-deep),transparent 30%),linear-gradient(90deg,#0b122033,transparent 75%)}
+.hero::after{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(0deg,var(--yn-deep),transparent 30%),linear-gradient(90deg,#0b122033,transparent 75%)}
 .hero::before{content:"";position:absolute;top:0;right:0;z-index:-1;width:160px;height:120px;background:var(--yn-gold);opacity:.35;pointer-events:none;-webkit-mask:var(--yn-yehwa-mask-branch-spray) top right/contain no-repeat;mask:var(--yn-yehwa-mask-branch-spray) top right/contain no-repeat}
 @media(max-width:699px){.hero::before{width:110px;height:84px}}
 .copy{min-width:0}.copy h1{font-family:var(--font-display);font-size:clamp(2rem,3.6vw,3.3rem);line-height:1.45;letter-spacing:-.035em;margin:0 0 16px;color:var(--yn-ivory);text-wrap:balance}.copy h1 span{color:var(--yn-gold)}
@@ -61,3 +61,24 @@
 @media(min-width:700px){.homeFold>summary{display:none}}
 
 @media(max-width:699px){.homeBrand{min-height:44px}}
+
+/* H 밤꽃(2026-11-22) — 연꽃 라인아트(--yn-yehwa-mask-lotus*, 생성기 renderYnNight)와 배경 모션.
+   층: .room(사진, z-2) → .hero::after(스크림, z-2·트리 순서상 사진 위) → 꽃·모션(z-1) → 본문·고양이(흐름 안, z auto).
+   그래서 장식은 언제나 글·고양이 **뒤**에 있고, 자리도 글자 사각형과 겹치지 않게 잡는다(H 성공 기준 2).
+   목련은 두지 않는다 — 세 번 그려 모두 튤립·풍선으로 읽혔다(생성기 주석). */
+.garden{position:absolute;inset:0;z-index:-1;pointer-events:none}
+/* 🔴 선 색은 진한 금 잉크(--yn-gold 70% + 갈색)를 높은 opacity 로 — 밝은 금·아이보리를 낮은 opacity 로 얹으면 남색 위에선 회색,
+   보라 그림 위에선 모브로 물든다(2026-11-22 실화면 판정 2회). 대비는 약 3~4:1(글자 4.5:1 축과 별개, 장식은 글자보다 약하게). */
+.garden>span{position:absolute;background:var(--yn-gold);background:color-mix(in srgb,var(--yn-gold) 70%,#5a3a0a);opacity:.7;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:100% 100%;mask-size:100% 100%}
+/* 연꽃은 고양이 쪽 오른쪽 아래 모서리 **안쪽**에 둔다 — 화면·섹션 가장자리에 붙이면 수면선이 잘린 것처럼 보인다(실화면 판정) */
+.lotus{right:18px;bottom:12px;width:150px;height:100px;-webkit-mask-image:var(--yn-yehwa-mask-lotus);mask-image:var(--yn-yehwa-mask-lotus)}
+/* --yn-bloom-tempo = 상자 높이 / 약 200px — 낙하 속도를 화면 폭과 무관하게 초당 약 20px 이하로 맞춘다 */
+.bloomMotion{position:absolute;top:0;right:0;bottom:96px;width:46%;z-index:-1;--yn-bloom-tempo:2}
+@media(max-width:1099px){.lotus{right:10px;width:120px;height:80px}}
+@media(max-width:899px){.lotus{right:8px;bottom:10px;width:90px;height:60px;-webkit-mask-image:var(--yn-yehwa-mask-lotus-sm);mask-image:var(--yn-yehwa-mask-lotus-sm)}}
+@media(max-width:699px){
+ .garden,.bloomMotion{inset:12px 18px auto;width:auto;height:198px;overflow:hidden;border-radius:24px;--yn-bloom-tempo:1}
+ /* 모바일 사진(consultation-room-mobile)에는 창살 위 금빛 매화 가지·꽃이 이미 그려져 있다 — 연꽃을 얹으면 꽃 어휘가 겹쳐
+    어수선해진다(실화면 판정 2회). 모바일 히어로의 꽃은 사진의 매화 + 떨어지는 꽃잎·별가루(모션)가 맡는다. */
+ .lotus{display:none}
+}

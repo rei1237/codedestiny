@@ -18,6 +18,19 @@
 import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../lib/seo/public-record-copy.mjs';
 
 export const INSIGHT_SEO_TITLES = {
+  'yangin-sal-meaning': '양인살 뜻과 일간별 자리 | 꿀꿀 운세',
+  'sangmun-sal-meaning': '상문살 뜻과 띠별 계산법 | 꿀꿀 운세',
+  'dohwa-sal-saju': '도화살 뜻과 사주 특징 | 꿀꿀 운세',
+  'yeokma-sal-meaning': '역마살 뜻과 있는 사주 찾는 법 | 꿀꿀 운세',
+  'hwagae-sal-meaning': '화개살 뜻과 예술·고독의 기운 | 꿀꿀 운세',
+  'hongyeom-sal-meaning': '홍염살 뜻과 도화살과의 차이 | 꿀꿀 운세',
+  'cheoneul-gwiin-meaning': '천을귀인 뜻과 일간별 귀인 지지 | 꿀꿀 운세',
+  'goegang-sal-meaning': '괴강살 뜻과 괴강 일주 네 간지 | 꿀꿀 운세',
+  'baekho-sal-meaning': '백호살 뜻과 일곱 간지 기준표 | 꿀꿀 운세',
+  'gongmang-meaning': '공망 뜻과 일주별 공망 찾는 법 | 꿀꿀 운세',
+  'gwimun-gwan-sal-meaning': '귀문관살 뜻과 여섯 지지 쌍 | 꿀꿀 운세',
+  'wonjin-sal-meaning': '원진살 뜻과 띠별 원진 관계 | 꿀꿀 운세',
+  'sangchung-yukchung': '상충 뜻과 띠별 육충 관계 | 꿀꿀 운세',
   'gyeokguk-vs-yongshin': '격국과 용신의 차이 | 꿀꿀 운세',
   'jonggyeok-gajonggyeok': '종격·가종격과 정격의 차이 | 꿀꿀 운세',
   'vedic-vs-western-astrology': '베다점과 서양 점성술 비교 | 꿀꿀 운세',

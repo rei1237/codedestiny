@@ -9,7 +9,7 @@ jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...tim
 
 const uid = "64b7f2a1c3d4e5f601234567";
 const body = { idempotencyKey: "original-paid-request", birthInfo: { year:1993,month:7,day:21,hour:9,minute:0,timezone:9,lat:37.5665,lon:126.978,gender:"female" }, question: "나의 관계와 선택을 자세히 살펴보고 싶어요." };
-let utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume, accessQueue, passOrder, withdrawn;
+let settleStuck, utils, route, docs, provider, chart, fault, blocked, mode, userId, usage, refund, fetchBlock, lostConfirmation, passReceipt, passRefund, consume, accessQueue, passOrder, withdrawn;
 const clone = value => value == null ? value : structuredClone(value);
 function query(value) { const result = Promise.resolve(value); result.lean = async () => clone(value); result.select = result.sort = () => result; return result; }
 const get = (doc, key) => key.split(".").reduce((value, field) => value?.[field], doc);
@@ -90,7 +90,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/service-execution-task.js", () => ({ startServiceExecution: async () => ({}), completeServiceExecution: async () => ({}), failServiceExecution: (...args) => refund(...args) }));
   jest.unstable_mockModule("../../worker/lib/llm-cache-store.js", () => ({ createLlmCacheStore: () => null }));
   ({ NAKSHATRA_SECTIONS: definitions } = await import("../../worker/lib/nakshatra-ai-prompt.js"));
-  ({ handleNakshatraAiRoutes: route, __nakshatraAiTestUtils: utils } = await import("../../worker/routes/nakshatra-ai.js"));
+  ({ handleNakshatraAiRoutes: route, __nakshatraAiTestUtils: utils, settleStuckDelivery: settleStuck } = await import("../../worker/routes/nakshatra-ai.js"));
 });
 
 beforeEach(()=>{
@@ -243,4 +243,51 @@ it('reuses the original nine chapters for an authenticated Toss order and keeps 
   expect((await call('result?id='+docs[0].id)).status).toBe(404);
   expect(provider).toHaveBeenCalledTimes(count);
   expect(usage).not.toHaveBeenCalled();expect(refund).not.toHaveBeenCalled();
+});
+
+// 2026-11-22 D2: 복구 크론의 정체 확정. 낙샤트라는 즉시 환불 서비스라 기존 실패 경로(증빙 해제 → 실행 환불 → 결제 화면 이용권 환불)를 그대로 쓴다.
+describe("settleStuckDelivery", () => {
+  const stuckDoc = () => ({ id: docs[0].id, userId: docs[0].userId });
+  const quiet = async work => { const warn = jest.spyOn(console, "warn").mockImplementation(() => {}); try { return await work(); } finally { warn.mockRestore(); } };
+  async function stalled() { await start(); expect(docs[0].status).toBe("generating"); docs[0].updatedAt = new Date(Date.now() - 300000); return clone(docs[0].sections); }
+  it("revoked payment is only alerted and never refunded again", async () => {
+    await stalled(); blocked = 0;
+    expect(await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).toEqual({ outcome: "unsettled" });
+    expect(docs[0].status).toBe("generating");
+    expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  });
+  it("fails a stalled report and refunds it once through the existing execution refund", async () => {
+    refund.mockResolvedValue({ ok: true, execution: { refundStatus: "refunded" } });
+    const sections = await stalled();
+    expect(await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).toEqual({ outcome: "generation_failed", refundStatus: "refunded" });
+    expect(docs[0]).toMatchObject({ status: "generation_failed", generationError: { code: "DELIVERY_STUCK" }, sections, generationProgress: { lockedAt: null, lockToken: "" } });
+    expect(refund).toHaveBeenCalledTimes(1);
+    expect(refund.mock.calls[0][1]).toBe(uid);
+    expect(refund.mock.calls[0][2]).toMatchObject({ executionKey: "nakshatra-ai-consultation:original-paid-request", sessionId: docs[0].id, forceRefundOnClose: true });
+    expect(passRefund).not.toHaveBeenCalled(); expect(consume).not.toHaveBeenCalled();
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("progressed");
+    expect(refund).toHaveBeenCalledTimes(1);
+  });
+  it("restores a checkout pass and reports pending when the execution refund throws", async () => {
+    refund.mockRejectedValue(new Error("mock refund down"));
+    await stalled(); docs[0].accessSource = "pass-receipt"; passRefund.mockRejectedValue(new Error("mock pass down"));
+    const error = jest.spyOn(console, "error").mockImplementation(() => {});
+    try { expect(await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).toEqual({ outcome: "generation_failed", refundStatus: "pending" }); }
+    finally { error.mockRestore(); }
+    expect(passRefund).toHaveBeenCalledTimes(1);
+    expect(passRefund.mock.calls[0][0]).toMatchObject({ featureKey: "nakshatra-ai-consultation", requestId: "original-paid-request", refundId: "nakshatra-ai:original-paid-request" });
+    expect(docs[0].status).toBe("generation_failed");
+  });
+  it("leaves a live generation, a Toss native session and a finished result alone", async () => {
+    await start();
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
+    docs[0].updatedAt = new Date(Date.now() - 300000); docs[0].generationProgress.lockedAt = new Date();
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("leased");
+    docs[0].generationProgress.lockedAt = null; docs[0].accessSource = "toss";
+    expect((await quiet(() => settleStuck({}, { doc: stuckDoc(), now: Date.now() }))).outcome).toBe("unsettled");
+    docs[0].accessSource = ""; docs[0].status = "completed";
+    expect((await settleStuck({}, { doc: stuckDoc(), now: Date.now() })).outcome).toBe("progressed");
+    expect((await settleStuck({}, { doc: {}, now: Date.now() })).outcome).toBe("unsupported");
+    expect(refund).not.toHaveBeenCalled(); expect(passRefund).not.toHaveBeenCalled();
+  });
 });

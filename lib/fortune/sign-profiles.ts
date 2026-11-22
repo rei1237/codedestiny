@@ -25,6 +25,8 @@ export interface SignProfile {
   id: string;
   kind: SignKind;
   nameKo: string;
+  /** 검색에서 더 흔히 쓰는 다른 이름(예: 범띠 → 호랑이띠). 한국어 히어로 줄에만 보인다. */
+  aliasKo?: string;
   nameEn: string;
   symbol: string;
   /** 별자리는 날짜 구간, 띠는 해당 연도 */
@@ -547,6 +549,8 @@ const ANIMAL_PROFILES: SignProfile[] = [
     nameEn: "Tiger",
     symbol: "🐯",
     rangeLabel: "1950 · 1962 · 1974 · 1986 · 1998 · 2010 · 2022년생",
+    // build-fortune-hub-shell.mjs 추출기가 nameKo→nameEn→symbol→rangeLabel 연속 순서를 읽는다. 그 사이에 끼우지 않는다.
+    aliasKo: "호랑이띠",
     element: "목(木)",
     ruler: "인오술 화국(火局)",
     keywords: ["기개", "돌파", "정의"],

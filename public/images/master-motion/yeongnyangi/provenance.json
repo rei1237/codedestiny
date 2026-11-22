@@ -1,0 +1,61 @@
+{
+  "purpose": "운세보는 영냥이 홈 히어로·영냥이의 방의 쓰다듬기 마스코트(정본 hero-800) 위에 겹치는 대기 모션(눈 깜빡임) 부분 시트",
+  "generationTool": "Codex CLI 0.156.1 (ChatGPT OAuth) built-in image_gen = gpt-image-2, 이미지 편집 입력",
+  "references": [
+    "public/assets/yeongnyangi/original/hero-800.webp"
+  ],
+  "promptRules": "정본과 같은 고양이·얼굴·털·귀·모자·의상·소품·구도·조명·배경을 유지하고 눈만 바꾼다. 텍스트·글자·숫자·워터마크·로고·서명·테두리·꽃잎·반짝이 금지. 물체 추가·이동·삭제 금지.",
+  "operation": "정본(투명 배경)을 기본으로, 편집 생성물을 정본에 위치·배율 맞춤 뒤 눈 영역(타원·페더)만 합성했다. 눈 언저리 부분 사각형만 정본 배율·정본 알파 그대로 잘라 한 줄 WebP 시트로 내보냈다(포스터 없음, 정본 <img> 위에 겹친다).",
+  "id": "yeongnyangi",
+  "built": "2026-11-22",
+  "builder": "scripts/sprites/build-master-motion.mjs",
+  "spec": "scripts/sprites/master-motion/yeongnyangi.json",
+  "base": {
+    "path": "public/assets/yeongnyangi/original/hero-800.webp",
+    "sha256": "1e7691f8810ad7c2c94fd63d9beaa3176b7fb0724a81103fd3222e7bd12eabab"
+  },
+  "sources": {
+    "half": {
+      "file": "D:/CodeDestiny-Build/master-motion/yeongnyangi/raw-half.png",
+      "sha256": "b792c314b39d5ad336d54f0dc02efcf77222ccb6fdcffccc1267fe624f945809",
+      "region": [
+        {
+          "cx": 340,
+          "cy": 317,
+          "rx": 68,
+          "ry": 33,
+          "feather": 8
+        },
+        {
+          "cx": 503,
+          "cy": 258,
+          "rx": 60,
+          "ry": 48,
+          "feather": 8
+        }
+      ],
+      "prompt": "the cat's eyes half-closed mid-blink (upper eyelids lowered about halfway over the irises, same eye shape, tilt and eyelash tails); whiskers, nose, mouth, blush and expression otherwise unchanged."
+    },
+    "closed": {
+      "file": "D:/CodeDestiny-Build/master-motion/yeongnyangi/raw-closed.png",
+      "sha256": "22cc452a798f854bc4e9ea51d513bef42e9b6bfd74d53e42a327ca04024024fa",
+      "region": [
+        {
+          "cx": 340,
+          "cy": 317,
+          "rx": 68,
+          "ry": 33,
+          "feather": 8
+        },
+        {
+          "cx": 503,
+          "cy": 258,
+          "rx": 60,
+          "ry": 48,
+          "feather": 8
+        }
+      ],
+      "prompt": "the cat's eyes fully closed in a gentle natural blink (upper eyelids fully lowered into a soft curved lash line following the same eye shape and tilt, eyelash tails unchanged); whiskers, nose, mouth, blush and expression otherwise unchanged."
+    }
+  }
+}

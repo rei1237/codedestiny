@@ -23,6 +23,7 @@ import { FORTUNE_PERIOD_IDS, PERIOD_LABEL, PERIOD_TITLE, isFortunePeriodId } fro
 import { SIGN_PROFILES, getSignProfile } from "@/lib/fortune/sign-profiles";
 import { buildFortuneTitle, titleVariantFor } from "@/lib/fortune/seo-title.mjs";
 import { fortuneArticleDates } from "@/lib/fortune/article-dates.mjs";
+import { koreanDailyText } from "@/lib/fortune/daily-copy";
 import KakaoChannelInvite from '@/app/components/KakaoChannelInvite';
 import SignFortuneView from "./SignFortuneView";
 
@@ -52,11 +53,13 @@ function buildSignDescription(
   nameKo: string,
   periodTitle: string,
 ): string {
-  const keyword = vm.entry.keyword?.kr?.trim();
+  // 내일 페이지는 오늘 문구 풀을 그대로 쓰므로 본문(SignFortuneView)과 같이 "오늘"을 "내일"로 바꾼다.
+  const daily = (text: string | undefined) => (text ? koreanDailyText(text, vm.period) : text);
+  const keyword = daily(vm.entry.keyword?.kr?.trim());
   const head = keyword
     ? `${vm.rangeLabel} ${nameKo} ${periodTitle} 운세 — ${keyword}. `
     : `${vm.rangeLabel} ${nameKo} ${periodTitle} 운세. `;
-  const tail = vm.entry.sections.overall?.kr?.trim()
+  const tail = daily(vm.entry.sections.overall?.kr?.trim())
     || `총운 ${vm.score.overall}점, 애정운·재물운·건강운·직장운과 행운의 색 ${vm.entry.lucky.color_kr}까지 함께 봅니다.`;
   const full = head + tail;
   if (full.length <= DESCRIPTION_MAX) return full;

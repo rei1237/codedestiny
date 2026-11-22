@@ -5,6 +5,7 @@ const approaches = [
   { name: "숙요점 궁합", input: "두 사람의 출생정보와 계산 방식 확인", scope: "본명숙 사이의 관계와 대화·거리감에서 점검할 질문", href: "/sukuyo/", label: "본명숙과 궁합 기준 보기" },
   { name: "별자리 궁합", input: "생일로 찾는 별자리부터 확인", scope: "별자리의 기본 성향 비교. 태양 별자리만으로 개인 관계를 확정하지 않아요.", href: "/astrology/", label: "출생차트와 별자리 차이 보기" },
   { name: "관계 타로", input: "지금 고민하는 상황과 구체적인 질문", scope: "카드의 상징으로 감정과 선택지를 정리. 상대의 속마음을 사실로 확인하는 검사는 아니에요.", href: "/tarot/", label: "질문에 맞는 타로 고르기" },
+  { name: "띠궁합", input: "두 사람이 태어난 해", scope: "태어난 해 지지끼리의 삼합·육합·충·원진만 보는 민속 궁합. 생일과 시각은 보지 않아요.", href: "/compatibility/tti/", label: "12띠 궁합표 보기" },
 ];
 
 export default function CompatibilityGuide() {

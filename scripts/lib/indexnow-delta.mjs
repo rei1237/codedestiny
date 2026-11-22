@@ -9,7 +9,16 @@ const PUBLIC_SERVICE_PAGES = new Set([
   '/yeongnyangi/season-1/',
   // 1화(프롤로그)는 항상 공개·색인 대상이라 사이트맵에 있다. 2화부터의 회차는 noindex 라 넣지 않는다.
   '/yeongnyangi/season-1/prologue/',
+  // 0139351c3(11/14)에서 사이트맵에 들어갔지만 여기 빠져, 그 뒤 모든 운영 제출이 29행 throw 로 0건이었다.
+  '/yeongnyangi/faq/',
 ]);
+
+// 사이트맵 <url> 블록의 loc 중 공개 알림 정책이 거부하는 것을 돌려준다. indexnow-submit.mjs 와 같은 파싱이다.
+// 하나라도 있으면 buildSubmissionState 가 throw 해 그 릴리스의 제출 전체가 0건이 된다.
+export function sitemapLocsRejectedByPolicy(xml, host) {
+  const locs=[...String(xml).matchAll(/<url>[\s\S]*?<\/url>/g)].map(match=>/<loc>([^<]+)<\/loc>/.exec(match[0])?.[1]?.trim()).filter(Boolean);
+  return {total:locs.length,rejected:locs.filter(loc=>!publicNotificationUrl(loc,host))};
+}
 
 export function publicNotificationUrl(value, host) {
   try {

@@ -34,6 +34,7 @@ import { TOMORROW_PREPARATION_DETAILS } from "@/lib/i18n/search-reading-paths.mj
 import tomorrowStyles from "../tomorrow.module.css";
 import DailyFortuneWebtoon from "../DailyFortuneWebtoon";
 import { TOMORROW_DISCLOSURE_KO, tomorrowAdviceIntroKo, tomorrowCompatibilityIntroKo, tomorrowPersonalCopyKo, tomorrowPreparationMarker, tomorrowRelationPreparation } from "@/lib/fortune/tomorrow-sign-copy";
+import { BIRTH_YEAR_LINE_LABEL, birthYearLines } from "@/lib/fortune/birth-year-line.mjs";
 
 const SCORE_AXES = [
   { key: "love", label: "애정운", section: "love" },
@@ -143,6 +144,9 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
   const koTomorrow = locale === "ko" && period === "tomorrow";
   const tomorrowPersonal = koTomorrow ? tomorrowPersonalCopyKo(profile.nameKo, kindLabel) : null;
   const relationPreparation = koTomorrow ? tomorrowRelationPreparation(profile, vm.relation) : null;
+  const yearLines = locale === "ko" && profile.kind === "animal" && sourceVm.sky
+    ? birthYearLines({ rangeLabel: profile.rangeLabel, ilchin: sourceVm.sky.ilchin, dateKey: vm.dateKey })
+    : [];
 
   return (
     <main
@@ -168,7 +172,7 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
               {`${profile.nameKo} ${locale === "ko" ? PERIOD_TITLE[period] : currentPeriodLabel} ${copy.fortune}`}
             </h1>
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
-              {`${profile.rangeLabel} · ${profile.element} · ${profile.ruler}`}
+              {`${locale === "ko" && profile.aliasKo ? `${profile.nameKo}(${profile.aliasKo}) · ` : ""}${profile.rangeLabel} · ${profile.element} · ${profile.ruler}`}
             </p>
             {locale === "ko" ? (
               <p className={`mt-2 break-keep text-xs leading-6 ${MUTED}`}>
@@ -271,6 +275,28 @@ export default function SignFortuneView({ vm: sourceVm, locale = "ko" }: { vm: S
                 <strong className={ACCENT}>{tomorrowPreparationMarker(vm.dateKey)}</strong>{" "}{relationPreparation}
               </p>
             )}
+          </section>
+        )}
+
+        {yearLines.length > 0 && (
+          <section lang="ko" data-cd-no-trans aria-labelledby="birth-year-heading" className={`mt-4 p-5 ${CARD}`}>
+            <h2 id="birth-year-heading" className="break-keep text-lg font-extrabold">
+              {`${profile.nameKo} 년생별 ${currentPeriodLabel} 한 줄`}
+            </h2>
+            <p className={`mt-1 break-keep text-xs leading-6 ${MUTED}`}>
+              {`${BIRTH_YEAR_LINE_LABEL} · 일진 ${sourceVm.sky?.ilchin ?? ""}`}
+            </p>
+            <ul className="mt-3 space-y-2">
+              {yearLines.map((line) => (
+                <li key={line.year} className="break-keep text-sm leading-7">
+                  <strong className={ACCENT}>{`${line.year}년생(${line.pillarKo}) · ${line.tenGod}`}</strong>{` — ${line.text}`}
+                </li>
+              ))}
+            </ul>
+            <p className={`mt-3 break-keep text-xs leading-6 ${MUTED}`}>
+              1월부터 입춘 전에 태어났다면 앞 해의 띠로 봅니다.{" "}
+              <Link href="/fortune/tti-age/" className={`font-bold underline ${ACCENT}`}>띠 나이표에서 확인하기</Link>
+            </p>
           </section>
         )}
 

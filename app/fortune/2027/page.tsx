@@ -224,6 +224,10 @@ export default function NewYearHubPage() {
             같은 시각부터 {names(samjaeNext)}는 2028~2030년 삼재에 들어갑니다. 삼재는 민속에서 조심할 시기를 일러 주는 해석이고,
             개인 사주의 길흉을 그대로 정하지는 않습니다. 각 띠 페이지에서 삼재 연도와 함께 그해 실제로 겹치는 관계를 확인해 보세요.
           </p>
+          <p className={BODY}>
+            12띠 전체의 삼재 연도와 들·눌·날삼재 순서는{" "}
+            <Link href="/fortune/samjae" className="underline decoration-[rgba(232,213,163,0.5)] underline-offset-4">삼재띠 계산표</Link>에 년생과 함께 정리했습니다.
+          </p>
         </section>
 
         <section className="mt-8" aria-labelledby="relation-heading">

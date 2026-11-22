@@ -30,6 +30,13 @@ test('one unavailable adapter does not prevent another stored service from resum
  expect(result.outcomes).toEqual(expect.arrayContaining([{service:'bad',code:'RECOVERY_PENDING'},{service:'good',status:200}]));expect(JSON.stringify(result)).not.toContain('private body');
 });
 
+// 작명은 토스 분기와 재개방 나이를 result.namingPrompt 아래에 둔다 — 크론 문서가 이 두 경로를 실어야 토스 이어쓰기·정체 나이가 맞다.
+test('recovery projects naming toss intent and reopen time',async()=>{
+ let fields='';const model={find:()=>({sort(){return this},limit(){return this},select(f){fields=f;return this},lean:async()=>[]})};
+ await runConsultationRecovery({}, {now,connectDb:async()=>{},adapters:[['test','Test',{}]],models:{Test:model},loadAdapter:async()=>({resumeConsultationOnServer:async()=>new Response('{}')})});
+ expect(fields.split(' ')).toEqual(expect.arrayContaining(['result.namingPrompt.tossIntentId','result.namingPrompt.retryable.reopenedAt']));
+});
+
 test.each(['llmMeta.locale','llmMeta.resumeBody.locale','llmMeta.delivery.resumeBody.locale','result.resumeBody.locale'])('recovery projects and preserves %s for all result languages',async(path)=>{
  for(const locale of AI_OUTPUT_LOCALES){
   const doc={id:'saved',userId:'owner'};let at=doc;

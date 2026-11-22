@@ -45,7 +45,21 @@ const SECTIONS = [
   },
   {
     heading: "주제별 해석",
-    paths: ["/compatibility", "/saju/compatibility", "/love", "/today", "/fortune/2027", "/dream", "/psychotest", "/animal/mbti"],
+    paths: [
+      "/compatibility",
+      "/saju/compatibility",
+      "/compatibility/tti",
+      "/saju/sinsal",
+      "/love",
+      "/today",
+      "/fortune/2027",
+      "/fortune/samjae",
+      "/fortune/son-eomneun-nal",
+      "/fortune/tti-age",
+      "/dream",
+      "/psychotest",
+      "/animal/mbti",
+    ],
   },
   {
     heading: "통합 리포트",
