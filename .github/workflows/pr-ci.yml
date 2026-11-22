@@ -1248,7 +1248,7 @@ jobs:
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method"
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --character-rooms neo --neo-method "$method" --neo-partner
           done
-          for report in life-book life-fortune dream naming heukwol codex codex-compat saju-compat geomancy totem-basic totem-deep guardian sibyl palm; do
+          for report in life-book life-fortune dream naming heukwol codex codex-compat saju-compat saju-compat-premium geomancy totem-basic totem-deep guardian sibyl palm; do
             node test/private-simulation-archive.mjs private-simulation/ai-saju-studio.ait --native-report "$report"
           done
           for expert in vedic ziwei astrology new-year karma fusion love-secret; do

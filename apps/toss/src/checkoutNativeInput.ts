@@ -1,6 +1,6 @@
 import {api,nativeSaleProducts,purchase,type NativeSaleProduct} from './platform';
 type Intent={id:string;paid:boolean;sku:string;orderId:string;amountKRW:number};
-type Options={service:'nakshatra'|'yoga'|'compass'|'ziwei-deep';feature:string;input:unknown;orderId:string;displayed:NativeSaleProduct|null;isCurrent:()=>boolean;onCancel:(cleanup:()=>void)=>void};
+type Options={service:'nakshatra'|'yoga'|'compass'|'ziwei-deep'|'saju-compat-premium';feature:string;input:unknown;orderId:string;displayed:NativeSaleProduct|null;isCurrent:()=>boolean;onCancel:(cleanup:()=>void)=>void};
 export async function checkoutNativeInput({service,feature,input,orderId,displayed,isCurrent,onCancel}:Options){
   const intent=await api<Intent>('/native/'+service+'/prepare',{input,...(orderId?{orderId}:{})});
   if(!isCurrent())return;

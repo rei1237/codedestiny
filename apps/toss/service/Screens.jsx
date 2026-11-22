@@ -77,6 +77,7 @@ function ZiweiProfile(props){return <AstrologyProfile {...props} calendarMode="n
 function NewYearProfile(props){return <AstrologyProfile {...props} calendarMode="lunar"/>;}
 const LoveSimulation=lazy(()=>import('./LoveSimulation.jsx'));
 const Sibyl=lazy(()=>import('./TossSibyl.jsx'));
+const PremiumCompat=lazy(()=>import('./TossPremiumCompat'));
 const SajuCompat=lazy(()=>import('./TossSajuCompat.jsx'));
 const releaseAvailability={title:'출시 준비 중',message:'상품 등록과 검수가 완료되면 토스에서 상담 결과를 생성하고 보관할 수 있어요.',action:{href:'/neo-operation-room/',label:'전략실 둘러보기'}};
 let installed=false;
@@ -167,6 +168,7 @@ export default function ServiceScreens({reviewOnly=false,verifiedReceipt=false,i
  if(location.pathname.startsWith('/saju-guardian')||location.pathname.startsWith('/saju/sibyl')&&['intentId','orderId','deep'].some(key=>new URLSearchParams(location.search).has(key)))return <Suspense fallback={<p role="status">저장한 프로필을 확인하고 있어요.</p>}>{ready?<BirthReading service={location.pathname.startsWith('/saju-guardian')?'guardian':'sibyl'}/>:<p>계정을 확인하고 있어요.</p>}</Suspense>;
  if(/^\/saju\/sibyl\/?$/.test(location.pathname))return <Suspense fallback={<p role="status">시빌라를 열고 있어요.</p>}><Sibyl/></Suspense>;
  if(/^\/saju\/compatibility\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready?<Suspense fallback={<p role="status">궁합을 열고 있어요.</p>}><SajuCompat/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</LazyMotion>;
+ if(/^\/saju\/compatibility\/premium(?:\/result)?\/?$/.test(location.pathname))return <>{recoveryBanner}{ready?<Suspense fallback={<p role="status">궁합을 열고 있어요.</p>}><PremiumCompat/></Suspense>:<p role="status">로그인 상태를 확인하고 있어요.</p>}</>;
  if(/^\/neo-consultation\/?$/.test(location.pathname))return <>{recoveryBanner}{ready&&<Suspense fallback={<p>작전 결정서를 열고 있어요.</p>}><NeoEmail/></Suspense>}</>;
  if(/^\/palm-reading\/?$/.test(location.pathname))return <>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">손금 리포트를 열고 있어요.</p>}><Palm/></Suspense>}</>;
  if(/^\/naming-ai(?:\/result)?\/?$/.test(location.pathname))return <LazyMotion features={domAnimation}>{recoveryBanner}{ready&&<Suspense fallback={<p role="status">작명첩을 열고 있어요.</p>}><Naming/></Suspense>}</LazyMotion>;
