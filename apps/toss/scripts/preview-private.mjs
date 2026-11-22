@@ -12,11 +12,19 @@ async function openArchive(file){
  const sdk=createRequire(require.resolve('@apps-in-toss/cli/package.json'));
  const archive=sdk('@apps-in-toss/ait-format').AppsInTossBundle.reader(await readFile(file));
  if(archive.appName!=='ai-saju-studio'||archive.bundle.index.some(item=>item.name.includes('\\')))throw Error('Expected a Linux ai-saju-studio archive');
- return archive;
+ // The SDK rescans the ZIP for each readEntry call. Unpack once so a screen with
+ // many font and image requests can render without repeatedly decoding the archive.
+ const {unzipSync}=require('fflate');
+ const files=unzipSync(archive.readZipBlob(),{filter:item=>item.name.startsWith('sources/')});
+ return {deploymentId:archive.deploymentId,files};
 }
 const archive=archivePath?await openArchive(archivePath):null;
 async function readAsset(name){
- if(archive)return Buffer.from(await archive.readEntry('sources/'+name));
+ if(archive){
+  const entry=archive.files['sources/'+name];
+  if(!entry)throw Error('Asset unavailable');
+  return Buffer.from(entry.buffer,entry.byteOffset,entry.byteLength);
+ }
  const file=resolve(root,name);
  const inside=relative(root,file);
  if(isAbsolute(inside)||inside.startsWith('..')||!(await stat(file)).isFile())throw Error('Asset unavailable');
