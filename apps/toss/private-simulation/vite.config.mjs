@@ -1,3 +1,4 @@
+import {privateRecipeArt} from './recipe-art.mjs';
 import compressedNamingData from './compressed-naming-data.mjs';
 import privateYogaReader from './yoga-reader.mjs';
 import privateSecretHouseDocument from './secret-house-document.mjs';
@@ -55,5 +56,5 @@ function privateSimulation(){
 export default async env=>{
   if(env.command!=='build'||env.mode!=='private-simulation')throw Error('Use build:private-simulation for the isolated private archive');
   const config=await base(env);
-  return {...config,root:shell,plugins:[privateSimulation(),privateSectionMetadata(),privateYogaReader(),privateSecretHouseDocument(),compressedNamingData(),...config.plugins],build:{...config.build,outDir:resolve(here,'dist')}};
+  return {...config,root:shell,plugins:[privateRecipeArt(),privateSimulation(),privateSectionMetadata(),privateYogaReader(),privateSecretHouseDocument(),compressedNamingData(),...config.plugins],build:{...config.build,outDir:resolve(here,'dist')}};
 };

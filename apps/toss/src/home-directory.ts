@@ -1,4 +1,4 @@
-export type Destination='diary'|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'nakshatra/ai'|'yoga-guru'|'destiny-compass'|'dream/tarot'|'oracle/sikojen-povailu'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
+export type Destination='recipes'|'diary'|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'nakshatra/ai'|'yoga-guru'|'destiny-compass'|'dream/tarot'|'oracle/sikojen-povailu'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
 const fortuneServices = [
   {id:'diary' as const,title:'운기 다이어리',body:'오늘의 마음과 계획을 기록하고 날짜별로 다시 읽기'},
   {id:'meditation/cosmic' as const,title:'코스믹 소울 명상',body:'네 가지 의도로 떠나는 30분·60분 명상과 저널'},
@@ -68,6 +68,8 @@ const rooms:DirectoryItem[]=[
  {title:'네오 작전 결정서 · 이메일 상담',href:'/neo-consultation/',keywords:'작전실 이메일 메일'},
 ];
 const books:DirectoryItem[]=[
+ {href:'/mini-games/',title:'미니 운세 게임',body:'카드와 질문으로 만나는 아홉 가지 운세 게임'},
+ {id:'recipes',title:'사주 요리 웹툰',body:'연이와 영냥이의 오행 요리와 조리 순서'},
  {id:'app/home-widget',title:'연이의 달빛 홈 화면',body:'연이와 영냥이의 그림·꽃말·오늘 운세 미리보기'},
  {id:'consultations/stories',title:'달빛 상담 웹툰 서가',body:'연이와 네오, 흑월의 이야기를 컷으로 읽어요'},
  {id:'music',title:'꿀꿀운세 음악실',body:'곡과 아티스트를 찾아 음악 듣기'},

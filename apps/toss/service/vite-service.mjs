@@ -222,7 +222,10 @@ export default function serviceCompat(){
     const source=entry.type==='chunk'?entry.code:entry.fileName.endsWith('.css')?String(entry.source):'';
     if(source.includes('/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90'))references.add('/fuctionassets/연이 캐릭터 스프라이트 시트.webp');
     if(source.includes('/fuctionassets/saju-relationship-temptation-768.webp'))references.add('/fuctionassets/saju-relationship-temptation-768.webp');
-    for(const match of source.matchAll(asset)){const ref=match[1];if(isTea640Reference(ref)){tea640=true;continue;}if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}const prefix=ref.split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
+    // Recipe cards render public originals or separately packaged private mobile copies.
+    // The shared recipe data builds these URLs dynamically. A directory prefix is not a file request.
+    const recipeReader=entry.type==='chunk'&&Object.keys(entry.modules).some(id=>id.replaceAll('\\','/').endsWith('/src/RecipeReader.jsx'));
+    for(const match of source.matchAll(asset)){const ref=match[1];if(recipeReader&&ref.startsWith('/images/five-elements/'))continue;if(isTea640Reference(ref)){tea640=true;continue;}if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}const prefix=ref.split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
    }
    // Original named LOVE CODE character portraits (including Korean spaces) are used by the web engine.
    if(Object.values(bundle).some(entry=>entry.type==='chunk'&&entry.code.includes('/fuctionassets/러브 코드/'))){
@@ -282,7 +285,11 @@ export default function serviceCompat(){
     // Guardians occupy a 72px reading portrait; the map also supports pinch zoom.
     if(/^images\/destiny-island\/guardians\/[^/]+-v1\.webp$/.test(ref))return sharp(path).resize({width:240,withoutEnlargement:true}).webp({quality:85}).toBuffer();
     if(ref==='images/destiny-island/exploration-map-v3.webp')return sharp(path).resize({width:1200,withoutEnlargement:true}).webp({quality:84}).toBuffer();
-    if(/^assets\/yeongnyangi\/tarot\/v1\/[A-Z]\d{2}-600\.webp$/.test(ref))return screenTarotBytes(await readFile(path),privateArt?82:90);
+    if(/^assets\/yeongnyangi\/tarot\/v1\/[A-Z]\d{2}-600\.webp$/.test(ref)){
+     // The private phone preview keeps every card face at mobile display size.
+     if(privateArt)return sharp(path).resize({width:480,withoutEnlargement:true}).webp({quality:78,effort:6}).toBuffer();
+     return screenTarotBytes(await readFile(path));
+    }
     if(ref==='assets/yeongnyangi/tarot/v1/back-600.webp')return sharp(path).webp({quality:88,effort:6}).toBuffer();
     // Keep the three animation frames aligned on mobile, including transparent edges.
     if(/^assets\/yeongnyangi\/readings\/[^/]+-loading-sprite-v1\.webp$/.test(ref))return sharp(path).resize({width:1536,withoutEnlargement:true}).webp({quality:87,alphaQuality:100}).toBuffer();
