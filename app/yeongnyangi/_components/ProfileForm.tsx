@@ -19,11 +19,17 @@ import chatStyles from './intake-chat.module.css';
 import type {VoiceStyle} from '../_lib/voice-style-copy';
 type EntryDraft={name?:string;date?:string;time?:string;gender?:string;calendar?:string;place?:string;unknown?:boolean;step?:number;currentLocation?:CurrentLocation|null};
 export function profileEntryDraftScope(){return {featureKey:'toss-profile-entry',profileId:'account:'+readDestinyProfileAccountId(),route:typeof window==='undefined'?'':window.location.pathname+window.location.search};}
-export default function ProfileForm({onSaved,locale,conversational=false,guided=false,voice='banmal',surface='night',accountLabel,onLogin=loginForCurrentPage}:{onSaved:(profile:DestinyProfileCard)=>void;locale?:ReadingLocale;conversational?:boolean;guided?:boolean;voice?:VoiceStyle;surface?:'night'|'paper';accountLabel?:string;onLogin?:()=>void}) {
+export default function ProfileForm({onSaved,editProfile,locale,conversational=false,guided=false,voice='banmal',surface='night',accountLabel,onLogin=loginForCurrentPage}:{onSaved:(profile:DestinyProfileCard)=>void;editProfile?:DestinyProfileCard;locale?:ReadingLocale;conversational?:boolean;guided?:boolean;voice?:VoiceStyle;surface?:'night'|'paper';accountLabel?:string;onLogin?:()=>void}) {
  const copy=consultationInputCopy(locale);
  const calculationCopy=birthCalculationCopy(locale);
  const [draftScope]=useState(profileEntryDraftScope);
- const [draft]=useState(()=>guided?readFeatureSessionDraft<EntryDraft>(draftScope)?.value:undefined);
+ const [editVersion]=useState(editProfile?.updatedAt??null);
+ const mounted=useRef(true);
+ useEffect(()=>{mounted.current=true;return ()=>{mounted.current=false;};},[]);
+ const [draft]=useState<EntryDraft|undefined>(()=>editProfile?{
+  name:editProfile.name,date:editProfile.birthDate,time:editProfile.birthTime,
+  gender:editProfile.gender,calendar:editProfile.calendarType,place:editProfile.location?.label,unknown:editProfile.timeUnknown
+ }:guided?readFeatureSessionDraft<EntryDraft>(draftScope)?.value:undefined);
  const draftText=(key:keyof EntryDraft,max=120)=>typeof draft?.[key]==='string'?String(draft[key]).slice(0,max):'';
  const [currentLocation,setCurrentLocation]=useState<CurrentLocation|null>(()=>{
   const value=draft?.currentLocation;
@@ -35,7 +41,7 @@ export default function ProfileForm({onSaved,locale,conversational=false,guided=
  const guidedForm=useRef<HTMLFormElement>(null),stepHeading=useRef<HTMLHeadingElement>(null);
  const stepNames=['이름과 성별','태어난 날짜','태어난 시간','태어난 곳'];
  function keepDraft(){
-  if(!guided||!guidedForm.current||draftScope.profileId!=='account:'+readDestinyProfileAccountId())return;
+  if(editProfile||!guided||!guidedForm.current||draftScope.profileId!=='account:'+readDestinyProfileAccountId())return;
   const form=new FormData(guidedForm.current),text=(key:string)=>String(form.get(key)||'');
   writeFeatureSessionDraft(draftScope,{name:text('name'),date:text('date'),time:text('time'),gender:text('gender'),calendar:text('calendar'),place:text('place'),unknown,step,currentLocation});
  }
@@ -52,7 +58,7 @@ export default function ProfileForm({onSaved,locale,conversational=false,guided=
   keepDraft();if(step<3)setStep(step+1);else void save(event);
  }
  const [gender,setGender]=useState('F'),[calendar,setCalendar]=useState('solar'),formId=useId();
- const profileId=useRef(''),lock=useRef(false);
+ const profileId=useRef(editProfile?.profileId||editProfile?.id||''),lock=useRef(false);
  async function save(event:FormEvent<HTMLFormElement>){
   event.preventDefault();if(lock.current)return;lock.current=true;
   if(!profileId.current)profileId.current=`yn_${crypto.randomUUID()}`;
@@ -61,7 +67,10 @@ export default function ProfileForm({onSaved,locale,conversational=false,guided=
   try{
    const place=String(form.get('place')||'').trim();
    let location=currentLocation?{label:currentLocation.name,tz:currentLocation.timezone,lat:currentLocation.latitude,lng:currentLocation.longitude}:undefined;
-   if(place&&!currentLocation){
+   const original=editProfile?.location;
+   if(!currentLocation&&original&&place===(original.label||'')&&typeof original.lat==='number'&&typeof original.lng==='number'){
+    location={label:place,tz:original.tz||'Asia/Seoul',lat:original.lat,lng:original.lng};
+   }else if(place&&!currentLocation){
     const response=await authFetch(`/api/geocode?place=${encodeURIComponent(place)}`);
     const found=await response.json();
     if(!response.ok||found.fallback||!Number.isFinite(found.lat)||!Number.isFinite(found.lng))throw new Error(copy.geocodeError);
@@ -69,19 +78,21 @@ export default function ProfileForm({onSaved,locale,conversational=false,guided=
    }
    const [year,month,day]=String(form.get('date')).split('-').map(Number);
    const [hour,minute]=String(form.get('time')||'').split(':').map(Number);
-   if(account!==readDestinyProfileAccountId())return;
-   const response=await authFetch('/api/yeongnyangi/profiles',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:{profileId:profileId.current,name:form.get('name'),gender:form.get('gender'),birth:{year,month,day,hour:unknown?null:hour,minute:unknown?null:minute,timeUnknown:unknown,calType:form.get('calendar')},...(location?{location}:{})}})});
+   if(!mounted.current||account!==readDestinyProfileAccountId()||(editProfile&&draftScope.profileId!=='account:'+account))return;
+   const endpoint=editProfile?'/api/yeongnyangi/profiles/update':'/api/yeongnyangi/profiles';
+   const response=await authFetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...(editProfile?{expectedUpdatedAt:editVersion}:{}),profile:{profileId:profileId.current,name:form.get('name'),gender:form.get('gender'),birth:{year,month,day,hour:unknown?null:hour,minute:unknown?null:minute,timeUnknown:unknown,calType:form.get('calendar')},...(location?{location}:{})}})});
    if(response.status===401){onLogin();return;}
+   if(editProfile&&response.status===409)throw new Error('프로필 정보가 달라졌어요. 수정을 닫고 프로필을 다시 확인해 주세요.');
    const data=await response.json();if(!response.ok)throw new Error(locale==='ko'&&data.message?data.message:copy.saveError);
-   if(account!==readDestinyProfileAccountId())return;
+   if(!mounted.current||account!==readDestinyProfileAccountId())return;
    invalidateProfileCache('yeongnyangi-profile-created');
-   if(guided)clearFeatureSessionDraft(draftScope);
+   if(guided&&!editProfile)clearFeatureSessionDraft(draftScope);
    onSaved(data.profile);
   }catch(e){setError(e instanceof Error?e.message:copy.saveError);}finally{lock.current=false;setBusy(false);}
  }
  const fields=[
   {id:'name',prompt:voice==='honorific'?'어떻게 불러드릴까요?':'어떻게 불러줄까?',content:<label>{copy.name}<input name="name" required maxLength={40} autoComplete="nickname" defaultValue={draftText('name',40)} /></label>},
-  {id:'gender',prompt:voice==='honorific'?'계산에 사용할 성별을 알려주세요.':'계산에 사용할 성별을 알려줘.',content:<label>{copy.gender}<select name="gender" defaultValue={draftText('gender')==='M'?'M':'F'}><option value="F">{copy.female}</option><option value="M">{copy.male}</option></select></label>},
+  {id:'gender',prompt:voice==='honorific'?'계산에 사용할 성별을 알려주세요.':'계산에 사용할 성별을 알려줘.',content:<label>{copy.gender}<select name="gender" defaultValue={editProfile?.gender==='OTHER'?'OTHER':draftText('gender')==='M'?'M':'F'}>{editProfile?.gender==='OTHER'&&<option value="OTHER">미지정</option>}<option value="F">{copy.female}</option><option value="M">{copy.male}</option></select></label>},
   {id:'date',prompt:voice==='honorific'?'태어난 날짜와 달력을 알려주세요.':'태어난 날짜와 달력을 알려줘.',content:<><label>{copy.birthDate}<input name="date" required {...birthDateTextInputProps(birthDate,setBirthDate)} /></label><label>{copy.calendar}<select name="calendar" defaultValue={['solar','lunar','lunar_leap'].includes(draftText('calendar'))?draftText('calendar'):'solar'}><option value="solar">{copy.solar}</option><option value="lunar">{copy.lunar}</option><option value="lunar_leap">{copy.leap}</option></select></label><p>{calculationCopy.calendarHint}</p></>},
   {id:'time',prompt:voice==='honorific'?'태어난 시간을 알고 계세요?':'태어난 시간을 알고 있어?',content:<><label>{copy.birthTime}<BirthTimeInput name="time" defaultValue={draftText('time',5)} required={!unknown} disabled={unknown} /></label><label><input type="checkbox" checked={unknown} onChange={e=>setUnknown(e.target.checked)} /> {copy.unknown}</label><p>{copy.unknownHint}</p></>},
   {id:'place',prompt:voice==='honorific'?'태어난 곳도 알려주실래요?':'태어난 곳도 알려줄래?',content:<><label>{copy.birthPlace}<input name="place" value={place} onChange={e=>{setPlace(e.target.value);setCurrentLocation(null);}} placeholder={copy.placeExample} maxLength={120} /></label><CurrentLocationButton locale={locale} translation={readingLocationCopy(locale||'ko')} disabled={busy} onLocation={value=>{setCurrentLocation(value);setPlace(value.name);}}/>{currentLocation&&<p role="status">{copy.locationUsed} {currentLocation.timezone}</p>}<p>{copy.placeHint}</p><p>{calculationCopy.placeHint}</p></>},
@@ -97,7 +108,7 @@ export default function ProfileForm({onSaved,locale,conversational=false,guided=
   {id:'place',prompt:fields[4].prompt,note:<><div className={chatStyles.locate}><CurrentLocationButton locale={locale} translation={readingLocationCopy(locale||'ko')} disabled={busy} onLocation={value=>{setCurrentLocation(value);setPlace(value.name);}}/></div>{currentLocation&&<p role="status">{copy.locationUsed} {currentLocation.timezone}</p>}<p>{copy.placeHint}</p><p>{calculationCopy.placeHint}</p></>,input:<input name="place" form={formId} aria-label={copy.birthPlace} value={place} onChange={e=>{setPlace(e.target.value);setCurrentLocation(null);}} placeholder={copy.placeExample} maxLength={120}/>},
  ];
  if(guided)return <form ref={guidedForm} onChange={keepDraft} onSubmit={nextStep} noValidate className={`${styles.profileForm} ${styles.guided}`} lang={locale||'ko'}>
-  <p className={styles.stepCount} role="status">출생정보 · {step+1} / {stepNames.length}</p><h3 ref={stepHeading} tabIndex={-1}>{stepNames[step]}</h3>
+  <p className={styles.stepCount} role="status">{editProfile?'출생정보 수정':'출생정보'} · {step+1} / {stepNames.length}</p><h3 ref={stepHeading} tabIndex={-1}>{stepNames[step]}</h3>
   {[[0,1],[2],[3],[4]].map((indices,index)=><div key={index} data-profile-step={index} hidden={index!==step}>{indices.map(i=><div key={fields[i].id}>{fields[i].content}</div>)}</div>)}
   <div className={styles.stepActions}>{step>0&&<button type="button" disabled={busy} onClick={()=>setStep(step-1)}>이전</button>}<button disabled={busy} type="submit">{busy?copy.saving:step===3?'저장하고 계속':'다음'}</button></div>
   {error&&<p role="alert">{error}</p>}

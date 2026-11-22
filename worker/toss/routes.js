@@ -22,7 +22,7 @@ import {prepareFortune,presentFortune,drawTarotSpread,experienceCheckFortune} fr
 import {publicTarotSpread} from '../yeongnyangi/fortune/tarot/spread-v3.ts';
 import {readRequest,resumeRequest} from '../yeongnyangi/repository.js';
 import {enqueueConsultation} from '../yeongnyangi/queue.js';
-import {canonicalProducts,canonicalSale,canonicalProfiles,prepareCanonicalFortune,drawCanonicalFortune,canonicalLibraryPage} from './canonical-yeongnyangi.js';
+import {canonicalProducts,canonicalSale,canonicalProfiles,updateCanonicalProfile,prepareCanonicalFortune,drawCanonicalFortune,canonicalLibraryPage} from './canonical-yeongnyangi.js';
 import {forwardServiceResponse} from './service-response.js';
 import {freeTarotReading,attachTarotLibraryInput,deliverTarotLibraryOrder,grantTarotLibraryOrder,tarotLibraryFlow,tarotLibraryProduct,tarotLibraryResult} from './tarot-library.js';
 
@@ -720,6 +720,7 @@ export async function handleTossRoutes(request,env) {
       await limit(env,auth._id,'experience-check',6);
       return reply({ok:true,...await experienceCheckFortune(env,auth.userId,await bodyOf(request))});
     }
+    if(path==='/canonical/yeongnyangi/profiles/update'&&request.method==='POST')return reply(await updateCanonicalProfile(auth,await bodyOf(request)));
     if(path==='/canonical/yeongnyangi/profiles'&&['GET','POST'].includes(request.method))return reply(await canonicalProfiles(auth,request.method==='POST'?await bodyOf(request):undefined));
     if(path==='/canonical/yeongnyangi/requests'&&request.method==='POST'){
       await limit(env,auth._id,'prepare',6);

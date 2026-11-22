@@ -1,3 +1,4 @@
+import {saveFixtureProfile} from './profile-mutation.mjs';
 import {sukuyoProduct,relationshipProduct,relationshipSukuyoRequest} from './relationship-sukuyo.mjs';
 import {expertProducts,mockExpertRequest} from './experts.mjs';
 import {syntheticZiweiDeep,mockZiweiDeepRequest} from './ziwei-deep.mjs';
@@ -142,13 +143,7 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[...expertProducts,product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});
   if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
-  if(path==='/canonical/yeongnyangi/profiles'&&method==='POST'){
-   const {profile}=await request.json();if(!profile?.profileId||!profile.birth?.year)return respond({error:'BIRTH_INVALID'},400);
-   // Persist only a synthetic profile associated with the generated ID.
-   const row={...state.profiles[0],id:profile.profileId,profileId:profile.profileId};
-   if(profile.birth.timeUnknown===false){row.timeUnknown=false;row.birth={...row.birth,timeUnknown:false,hour:8,minute:35};}
-   if(!state.profiles.some(p=>p.id===row.id))state.profiles.push(row);save();return respond({ok:true,profile:row});
-  }
+  if(method==='POST'&&['/canonical/yeongnyangi/profiles','/canonical/yeongnyangi/profiles/update'].includes(path))return saveFixtureProfile(state,await request.json(),path.endsWith('/update'),()=>!storage||save());
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
   if(path==='/canonical/fpti/deep-report/free'&&method==='POST'){
     const {profileId,birthInput}=await request.json(),profile=state.profiles.find(row=>row.profileId===profileId);
