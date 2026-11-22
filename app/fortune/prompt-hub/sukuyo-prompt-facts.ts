@@ -5,7 +5,7 @@ import {
   buildSukuyoAiCompatibility,
   describeSukuyoDirectionalRelation,
 } from "@/worker/lib/sukuyo-ai-calculation.js";
-import { buildSukuyoFromMoonLongitude } from "@/worker/lib/sukuyo-astronomy.js";
+import { buildSukuyoFromMoonLongitude } from "@/worker/lib/sukuyo-coordinate.js";
 import type { SukuyoPromptAstronomy } from "./sukuyo-prompt-astronomy";
 
 // 프롬프트 허브 숙요점 도구 전용 — 이미 계산된 Swiss Ephemeris 달 황경을

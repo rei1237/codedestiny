@@ -56,6 +56,15 @@ async function assemblePrompt(env, input) {
   return result.prompt;
 }
 
+// Called only after the Toss route authenticates the session. This path never settles a payment.
+export async function generateFreeTossPrompt(env, body) {
+  if (!isFreeFortuneFeatureKey(PROMPT_HUB_GENERATE_FEATURE_KEY) || body?.paymentRequestId) {
+    throw fail(409, "PAYMENT_REQUIRED");
+  }
+  const input = parseGenerateBody(body);
+  return { ok: true, toolId: input.toolId, prompt: await assemblePrompt(env, input), paidWith: "public" };
+}
+
 async function settle(env, userId, input) {
   if (!input.paymentRequestId) {
     const honey = await spendPromptHubHoney(env, userId, input);

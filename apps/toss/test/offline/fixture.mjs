@@ -1,3 +1,5 @@
+import {tossPromptLibraryScope} from '../../../../lib/fortune/toss-prompt-library.mjs';
+import {mockPromptHubRequest} from '../../private-simulation/prompt-hub.mjs';
 import {saveFixtureProfile} from './profile-mutation.mjs';
 import {sukuyoProduct,relationshipProduct,relationshipSukuyoRequest} from './relationship-sukuyo.mjs';
 import {expertProducts,mockExpertRequest} from './experts.mjs';
@@ -95,6 +97,12 @@ function createAccountFixture(storage,owner,token,now){
   }
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path.startsWith('/tarot-library/'))return mockTarotRequest(request,path,state,save);
+  if(path==='/unlink'&&method==='POST'){
+    const key='prompt-hub-unlink-revision:'+owner;
+    state.loggedIn=false;
+    storage?.setItem(key,String(Number(storage.getItem(key)||0)+1));
+    save();return respond({remoteUnlink:'completed',promptLibraryOwner:owner});
+  }
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
   if(path==='/nakshatra/compat'&&method==='POST'){
@@ -118,6 +126,8 @@ function createAccountFixture(storage,owner,token,now){
    return respond({ok:true,date:[target.year,target.month,target.day].map(n=>String(n).padStart(2,'0')).join('-'),personalized:!!profileId,
     systems:{saju:demo('saju','사주 일진'),sukuyo:demo('sukuyo','숙요 27수'),vedic:demo('vedic','베다 판창가'),number}});
   }
+  if(path==='/canonical/fortune/prompt-hub/session'&&method==='GET')return respond({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
+  const prompt=await mockPromptHubRequest(request,path);if(prompt)return prompt;
   if(path==='/canonical/geocode'&&method==='GET'){
    return url.searchParams.get('place')==='서울'
     ?respond({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false})

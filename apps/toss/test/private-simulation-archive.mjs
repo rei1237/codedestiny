@@ -66,6 +66,7 @@ try{
     await page.waitForURL(/yeongnyangi\/fortune/);
   };
   if(process.argv.includes('--guided-profile')){const {verifyGuidedProfile}=await import('./private-guided-profile.mjs');await verifyGuidedProfile(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private guided profile',reader.deploymentId);
+  }else if(process.argv.includes('--prompt-hub')){const {verifyPromptHub}=await import('./private-prompt-hub.mjs');await verifyPromptHub(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT prompt hub',reader.deploymentId);
   }else if(process.argv.includes('--animal-destiny')){const {verifyPrivateAnimal}=await import('./private-animal-destiny.mjs');await verifyPrivateAnimal(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private animal destiny',reader.deploymentId);
   }else if(process.argv.includes('--music-download')){const {verifyPrivateMusic}=await import('./private-music.mjs');await verifyPrivateMusic(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private music',reader.deploymentId);
   }else if(process.argv.includes('--free-hub')){const {verifyFreeHub}=await import('./private-free-hub.mjs');await verifyFreeHub(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT free hub',reader.deploymentId);

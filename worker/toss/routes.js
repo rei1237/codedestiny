@@ -1,3 +1,4 @@
+import {tossPromptLibraryScope} from '../../lib/fortune/toss-prompt-library.mjs';
 import {NEW_PURCHASES_AVAILABLE} from '../../lib/toss-release.mjs';
 import {CHAT_PRODUCT_IDS} from '../../lib/fortune/chat-products.js';
 import {checkedConsultationInput,consultationSafetyMessages} from './consultation-safety.js';
@@ -728,6 +729,22 @@ export async function handleTossRoutes(request,env) {
       try{return reply({ok:true,...await readOwnedCareerStyle(env,{userId:auth.userId,profileId:profileId.trim(),statusOnly})});}
       catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||'INVALID_PROFILE',error.status);throw error;}
     }
+    if(path==='/canonical/fortune/prompt-hub/session'&&request.method==='GET')return reply({owner:auth.userId,scope:tossPromptLibraryScope(auth.userId,auth.revision,auth.environment)});
+    if(path==='/canonical/fortune/prompt-hub/generate'&&request.method==='POST'){
+      await limit(env,auth._id,'prompt-hub-generate',20);
+      const {generateFreeTossPrompt}=await import('../routes/prompt-hub.js');
+      try{return reply(await generateFreeTossPrompt(env,await bodyOf(request,64000)));}
+      catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||error.code||'INVALID_INPUT',error.status);throw error;}
+    }
+    if(request.method==='POST'&&['/canonical/astrology/basic','/canonical/sukuyo/astronomy','/canonical/nakshatra/resolve'].includes(path)){
+      await limit(env,auth._id,path,20);
+      const target=new URL('/api'+path.slice('/canonical'.length),request.url);
+      const outbound=new Request(target,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(await bodyOf(request)),signal:request.signal});
+      const handler=path.endsWith('/basic')?(await import('../routes/astro.js')).handleAstrologyRoutes
+        :path.endsWith('/astronomy')?(await import('../routes/sukuyo.js')).handleSukuyoRoutes
+        :(await import('../routes/nakshatra.js')).handleNakshatraRoutes;
+      return forwardServiceResponse(await handler(outbound,env),headers);
+    }
     if(path==='/canonical/geocode'&&request.method==='GET'){
       await limit(env,auth._id,'geocode',10);
       const {geocodePlace}=await import('../lib/geocode.js');
@@ -770,7 +787,7 @@ export async function handleTossRoutes(request,env) {
     }
     if(path==='/session'&&request.method==='GET')return reply({authenticated:true,environment:auth.environment,storageScope:await hash('local-progress:'+auth.environment+':'+auth._id)});
     if(path==='/logout'&&request.method==='POST') {await TossSession.deleteOne({_id:auth.sessionId});return reply({ok:true});}
-    if(path==='/unlink'&&request.method==='POST')return reply(await disconnectIdentity(env,auth));
+    if(path==='/unlink'&&request.method==='POST')return reply({...await disconnectIdentity(env,auth),promptLibraryOwner:auth.userId});
     if(path.startsWith('/daily/')){
       const daily=await import('./daily.js');
       if(path==='/daily/status'&&request.method==='GET')return reply(await daily.attendanceStatus(env,auth.userId));
