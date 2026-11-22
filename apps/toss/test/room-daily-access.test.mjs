@@ -44,11 +44,11 @@ test('a KST day change resets the pass, attendance and saved readings without ca
 test('only the private device draw seed is shared across simulated people',()=>{
  const raw=()=>{const values={};return new Proxy({getItem:key=>values[key]??null,setItem:(key,value)=>{values[key]=value;},removeItem:key=>{delete values[key];}},{ownKeys:()=>Object.keys(values),getOwnPropertyDescriptor:()=>({configurable:true,enumerable:true})});};
  const local=raw(),session=raw(),seed='cd:yn:daily-tarot-device:v1';
- const module=readFileSync(new URL('../private-simulation/storage.mjs',import.meta.url),'utf8').replaceAll('export ','');
+ const storageSource=readFileSync(new URL('../private-simulation/storage.mjs',import.meta.url),'utf8').replaceAll('export ','');
  function visit(person){
   local.setItem('ai-saju-studio:private-simulation:v1:selected-person',person);
   const window={localStorage:local,sessionStorage:session};
-  vm.runInNewContext(module,{window});return window.localStorage;
+  vm.runInNewContext(storageSource,{window});return window.localStorage;
  }
  local.setItem(seed,'ordinary-app');const a=visit('A');assert.equal(a.getItem(seed),null);
  a.setItem(seed,'private-device');a.setItem('consultations','owner-A');
