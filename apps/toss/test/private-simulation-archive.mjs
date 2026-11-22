@@ -16,7 +16,7 @@ assert.equal(reader.appName,'ai-saju-studio');
 const entries=new Map(reader.bundle.index.map(entry=>[entry.name.replaceAll('\\','/'),entry.name]));
 if(!process.argv.includes('--local-windows'))assert.ok([...entries].every(([name,original])=>name===original),'Linux AIT paths required');
 const files=unzipSync(reader.readZipBlob());
-const mime={'.js':'text/javascript','.css':'text/css','.html':'text/html','.webp':'image/webp','.woff2':'font/woff2','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.avif':'image/avif'};
+const mime={'.wav':'audio/wav','.js':'text/javascript','.css':'text/css','.html':'text/html','.webp':'image/webp','.woff2':'font/woff2','.json':'application/json','.png':'image/png','.svg':'image/svg+xml','.avif':'image/avif'};
 const server=createServer((req,res)=>{
   const path=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
   const name=entries.get('sources'+path)||(!extname(path)&&entries.get('sources/index.html'));
@@ -70,6 +70,7 @@ try{
   }else if(process.argv.includes('--prompt-hub')){const {verifyPromptHub}=await import('./private-prompt-hub.mjs');await verifyPromptHub(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT prompt hub',reader.deploymentId);
   }else if(process.argv.includes('--animal-destiny')){const {verifyPrivateAnimal}=await import('./private-animal-destiny.mjs');await verifyPrivateAnimal(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private animal destiny',reader.deploymentId);
   }else if(process.argv.includes('--music-download')){const {verifyPrivateMusic}=await import('./private-music.mjs');await verifyPrivateMusic(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private music',reader.deploymentId);
+  }else if(process.argv.includes('--yeongnyangi-room')){const {verifyYeongnyangiRoom}=await import('./private-yeongnyangi-room.mjs');await verifyYeongnyangiRoom(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT Yeongnyangi room',reader.deploymentId);
   }else if(process.argv.includes('--free-hub')){const {verifyFreeHub}=await import('./private-free-hub.mjs');await verifyFreeHub(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private AIT free hub',reader.deploymentId);
   }else if(process.argv.includes('--free-originals')){const {verifyPrivateFreeOriginals}=await import('./private-free-originals.mjs');await verifyPrivateFreeOriginals(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private original free modes',reader.deploymentId);
   }else if(process.argv.includes('--astro-synastry')){const {verifyPrivateSynastry}=await import('./private-astro-synastry.mjs');await verifyPrivateSynastry(origin,context);assert.deepEqual(unexpected,[]);console.log('PASS private synastry',reader.deploymentId);

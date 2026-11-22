@@ -1,0 +1,22 @@
+.toss-yn-room {
+  --yn-night: #191228;
+  --yn-deep: #20172f;
+  --yn-raised: #342442;
+  --yn-gold: #d7b77e;
+  --yn-gold-hover: #f4d8a4;
+  --yn-ivory: #faf3e7;
+  --yn-muted: #d9ccda;
+  --yn-line: #6d5777;
+  --yn-violet: #ac8dc1;
+  --yn-btn-radius: 14px;
+  --yn-t-caption: .85rem;
+  --gold: var(--yn-gold);
+  --ivory: var(--yn-ivory);
+  --serif: "Noto Serif KR", Georgia, serif;
+}
+.toss-yn-room .room-header { justify-content:flex-start;gap:14px;height:auto;min-height:58px }
+.toss-yn-room .room-header h1 { margin:0 }
+.toss-yn-room .room-layout { padding-bottom:max(20px,env(safe-area-inset-bottom)) }
+.toss-yn-room .room-listening { padding-inline:16px }
+.toss-yn-room .room-layout button { white-space:normal;word-break:keep-all }
+.toss-yn-room button.room-resident { border:none;background:transparent;box-shadow:none }
