@@ -56,7 +56,8 @@ export default function DiaryFlowCard() {
   return (
     <section className={`${styles.card} ${styles.cardLead}`} aria-label={copy.title}>
       <header className={styles.cardHead}>
-        <h2 className={styles.cardTitle}>{copy.title}</h2><time dateTime={ymd}>{ymd}</time>
+        <img className={styles.guidePortrait} src="/assets/yeongnyangi/report/v1/choices/neo-profile.webp" alt="" width={48} height={48} />
+        <h2 className={styles.cardTitle}><span className={styles.guideName}>영냥이가 짚어주는</span>{copy.title}</h2><time dateTime={ymd}>{ymd}</time>
       </header>
 
       {!hydrated ? <p className={styles.empty}>{copy.loading}</p> : null}

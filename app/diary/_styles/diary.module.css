@@ -349,6 +349,20 @@ html[data-cd-theme="neo"] .shell {
   border-color: var(--dy-line-ui);
 }
 
+.cardLead .cardHead { align-items: center; flex-wrap: wrap; }
+.guidePortrait {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 50% 50% 42% 45%;
+  border: 2px solid var(--dy-line-ui);
+}
+.guideName {
+  display: block;
+  color: var(--dy-muted);
+  font: 500 .8rem/1.6 var(--font-body, sans-serif);
+}
+
 .cardHead {
   display: flex;
   align-items: baseline;
