@@ -28,7 +28,7 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 import { callGeminiText } from "../lib/gemini.js";
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
-import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
+import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, softenTraitDoubleHedges, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
@@ -3515,6 +3515,15 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             result.ok = Boolean(valid(result));
             // Trait-First shadow 검증: 기록만 한다. ok·재시도·전달 판정에 쓰지 않는다(게이트 B 설계 제약 4).
             if (traitFirst && result.ok && isLifeBookTraitSection(normalized.input, section, pickSajuSlice(sajuResult, section.evidenceRefs))) {
+              // 겹친 완곡만 한 겹으로 줄이는 결정적 교정. ok 판정 뒤라 길이·재시도·전달에 영향이 없고, 실패해도 원문 그대로 간다.
+              try {
+                const content = result.body?.content;
+                const softened = softenTraitDoubleHedges(content);
+                if (typeof content === "string" && softened !== content) {
+                  result.body = { ...result.body, content: softened };
+                  result.chars = sectionBodyChars(section, result.body);
+                }
+              } catch { /* 원문 유지 */ }
               const shadow = traitFirstShadowCheck(pickSajuSlice(sajuResult, section.evidenceRefs), clean(result.body?.content, 20000), { traitFirst, seed: traitSeed });
               if (shadow) logLifeBookAi("Trait First Shadow", { sessionId, ok: shadow.ok, issues: shadow.issues, headline: shadow.headline }, shadow.ok ? "info" : "warn");
             }
