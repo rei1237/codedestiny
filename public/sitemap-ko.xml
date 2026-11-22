@@ -113,6 +113,12 @@
     <priority>0.96</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/compatibility/tti/</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/consultation-samples/</loc>
     <lastmod>2026-11-20</lastmod>
     <changefreq>monthly</changefreq>
@@ -686,6 +692,18 @@
     <lastmod>2026-11-21</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fortune/samjae/</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fortune/son-eomneun-nal/</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/today/</loc>
@@ -1438,6 +1456,12 @@
     <priority>0.82</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/fortune/tti-age/</loc>
+    <lastmod>2026-11-21</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.78</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/fortune/weekly/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="ja" href="https://code-destiny.com/ja/fortune/weekly/" />
@@ -1931,7 +1955,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/insights/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/" />
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -1985,7 +2009,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/astrology/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -2009,7 +2033,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/compatibility/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -2021,7 +2045,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/dream/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -2507,7 +2531,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/fusion/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -2657,7 +2681,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/saju/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
   </url>
@@ -2840,7 +2864,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/sukuyo/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -2924,7 +2948,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/tarot/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -3008,7 +3032,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/vedic/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -3197,7 +3221,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ziwei/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
