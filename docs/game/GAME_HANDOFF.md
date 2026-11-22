@@ -1,10 +1,63 @@
 ---
 status: done
 updated: 2026-11-22
-next: 4단계 요청을 받으면 저장된 편성을 validateFormation으로 확인하고 buildBattleSnapshot을 전투 시작 상태로 사용한다.
+next: 실제 모바일에서 조작·발열을 확인하고 운영 전 서버 소유권 및 책갈피 동기화를 연결한다.
 ---
 
-# 꿀꿀운세 카드 RPG · 3단계 인수인계
+# 꿀꿀운세 카드 RPG · 4–10단계 인수인계
+
+## 바로 플레이하기
+
+[편성](http://127.0.0.1:3485/games/kkulkkul-card-rpg/#team)에서 모카를 전열에 배치하고 ‘세 번째 알람’을 장착한다. 의상은 [동료](http://127.0.0.1:3485/games/kkulkkul-card-rpg/#cast)에서 먼저 고를 수 있다. ‘저장하고 출전’으로 이동한 뒤 ‘출전’을 누른다. 새 계정은 [달빛 전장](http://127.0.0.1:3485/games/kkulkkul-card-rpg/#battle)에서 ‘모카와 임시 지원으로 연습’으로 바로 시작할 수 있다.
+
+1. 적을 터치해 표적을 지정한다. 손패에서 최대 세 장을 차례로 누른다. 선택한 카드를 다시 누르면 해당 순번이 빠지고 나머지 순번이 당겨진다.
+2. 전열 아래 이름을 눌러 스킬을 쓴다. 게이지를 채우면 일반 손패 옆에서 운명해방을 고를 수 있다. 동료 행동 창에서 후열과 교대하고 상단 기록 버튼에서 로그를 연다.
+3. 현재 턴의 선택을 확정하면 타격 순서대로 연출한다. 간소 모션·배속·건너뛰기는 같은 판정을 재생한다. 새로고침하면 확정한 입력까지 복원한다.
+4. [본편](http://127.0.0.1:3485/games/kkulkkul-card-rpg/#campaign)에서 제1장과 두 필수 전투를 마치면 선착장 의뢰가 열린다. 성장 → 예장 → 교류 → 스킬·이벤트, 보스 도전, 다음 장 도입까지 이어진다. [전투 수첩](http://127.0.0.1:3485/games/kkulkkul-card-rpg/#history)에 자유 전투 결과와 의뢰 보상을 기록한다.
+
+## 단계별 구현과 정본
+
+| 단계 | 구현과 변경 파일 | 검증 |
+|---|---|---|
+| 04 전투 | `battle.ts`, `battle-data.ts`, `battle-session.ts`, `BattleScreen.tsx`. 각자 일반 카드 5장, 생존 전열 3명 기준 15장, 매 턴 5장을 공개한다. 궁극기는 덱 밖에서 한 행동을 사용한다. 계산식과 턴 순서는 [BATTLE_RULES.md](BATTLE_RULES.md)에 있다. | 손패 순환·전투불능·교대·체인·동시 전멸·웨이브·결과 재생 및 편성 복원. |
+| 05 전투 원화 | `BattleActor.tsx`, `battle-appearance.ts`, `CharacterCard.tsx`, `public/images/card-rpg/`. 동료 6장의 700×1050 원화와 의상·전투 버전을 포함한 11가지 전투 외형. 소품별 실루엣·포즈와 제작 경로는 [BATTLE_ART.md](BATTLE_ART.md)에 있다. | 88포즈, 외형·동작 121개 조합, 간소 모션, 소장 카드 이미지 디코딩. |
+| 06 본편 | `campaign-data.ts`, `campaign.ts`, `StoryCampaign.tsx`. 원작 장면 ID, 선택지, 읽은 대사·책갈피·서고와 원작 출처는 [CAMPAIGN.md](CAMPAIGN.md)에 있다. | 원문 해시·장면 순서, 제1장 끝과 다음 장 도입까지 진행. |
+| 07 소환 정산 | `WalletSummon.tsx`, `scripts/fixtures/mock-card-rpg.mjs`, `scripts/mock-dev-api.mjs`. 개발 로그인과 격리된 기존 월정석 원장 로직, 버전별 가격·보장·응답 유실 복구. [ECONOMY_SPEC.md](ECONOMY_SPEC.md) | 개발 10회 캐릭터 600→200, 10회 예장 200→0. 응답 유실 뒤에도 영수증 2건·획득 슬롯 20건. 로그아웃·다른 세션 접근 거부, 운영 환경에서 테스트 소환 비활성. |
+| 08 성장 | `growth.ts`, `GrowthScreen.tsx`, `collection.ts`, `formation.ts`. 캐릭터·스킬·예장 강화, 소재 보호, 의상과 성능 버전 구분. | 성장 전후 수치, 재시도·경합, 소유 인벤토리, 장착·보호, 브라우저 복원. |
+| 09 의뢰 | `scripts/fixtures/mock-card-rpg-battles.mjs`와 캠페인 정의. 로컬 서버가 출전 티켓·시드를 발급하고 동일 전투 엔진으로 입력을 재생해 영수증을 한 번 발행한다. 등불 이벤트의 세 칸에는 선택한 카드 박자를 표시한다. 결과와 보상은 선택한 전투 행동으로 결정한다. | 필수 전투 포함 의뢰 9개 끝까지 진행. 교류·스킬·성장 보상, 보스, 이벤트 해금과 재정산 차단. |
+| 10 검증 | `scripts/verify-card-rpg-*`, [BALANCE.md](BALANCE.md). | 고정 시드 216전, 가로 5개 크기와 세로 1개, 실제 UI에서 소환→편성→전투→저장·복원→의뢰·강화. |
+
+## 재현과 측정
+
+게임 코드는 `app/games/kkulkkul-card-rpg/` 안에 있고 이미지·모듈 CSS도 게임 전용이다. 4–10단계 기능 기준 커밋은 `7e9d61e009`이다. 로컬 미리보기에서 아래 검사를 실행했다. 브라우저 검사는 Playwright 설치 Chromium 또는 `CHROMIUM_PATH`를 사용한다.
+
+```powershell
+npm run typecheck
+node --test scripts/verify-card-rpg-battle.cjs
+node scripts/verify-card-rpg-campaign.cjs
+node scripts/verify-card-rpg-battle-receipts.cjs
+node scripts/verify-card-rpg-growth.cjs
+node scripts/verify-card-rpg-wallet.mjs
+node scripts/verify-card-rpg-preview.cjs
+node scripts/verify-card-rpg-collection.cjs
+node scripts/verify-card-rpg-play.cjs
+node scripts/verify-card-rpg-art.cjs --browser
+node scripts/verify-card-rpg-growth-ui.cjs
+node scripts/verify-card-rpg-wallet-ui.cjs
+node scripts/verify-card-rpg-frame.cjs
+```
+
+Windows, 로컬 Next 개발 서버, headless Chromium 149.0.7827.55, 844×390, 일반 모션·효과음을 켠 한 턴에서 프레임 간격 131개를 측정했다. 평균 16.79ms, 95백분위 16.8ms, 최대 33.3ms였다. 출전 버튼부터 첫 손패까지 405ms, 새로고침 탐색 시작부터 복원 손패까지 1,567ms였다. JS 힙 관측값은 약 99MiB이며 한 시점의 표본이다. 전투 중 오디오 컨텍스트는 한 개였고 로비 복귀 때 닫혔다. 800×360·844×390·915×412·1024×768·1280×720 및 세로 390×844에서 주요 카드 터치 영역과 화면 경계를 검사했다.
+
+캡처와 원자료는 저장소 밖에 보관한다. [작은 가로 전장](D:/Development/captures/card-rpg-step04-10/battle-844.png) · [전체 전장](D:/Development/captures/card-rpg-step04-10/battle-1280.png) · [소장 카드 6장](D:/Development/captures/card-rpg-stage4/collectible-illustrations.png) · [의뢰 수첩](D:/Development/captures/card-rpg-step04-10/quest-records.png) · [성장](D:/Development/captures/card-rpg-step4-10/growth.png) · [개발 지갑 정산](D:/Development/captures/card-rpg-step04-10/settled-summon.png) · [측정 JSON](D:/Development/captures/card-rpg-step04-10/frame-sample.json)
+
+## 현재 플레이 범위와 다음 확인
+
+- 저장 편성 자유 전투는 성장·예장·의상·전후열 상태를 그대로 사용한다. 서버 영수증을 발행하는 본편은 임시 지원, 본편 이후 의뢰는 서버 대여 편성을 사용한다. 서버 소유권·성장 저장을 연동한 이후에 보상 의뢰에도 개인 편성을 개방하는 것이 다음 작업이다.
+- 본편 제작 범위는 원작 EP.02 기반 제1장과 다음 장 도입까지다. 개인 이야기·게임 전투·축제는 각색으로 표시했다. 전투 보상은 개발 성장 조각이며 공통 계정 XP와 운영 월정석을 지급하지 않는다.
+- 실제 iOS·Android 기기의 터치, 장시간 발열·메모리, 기기 간 책갈피, 신규 사용자의 체감 난도는 미검증이다. 출시 가격·배너·운영 원장·다중 프로세스 운영 정산은 별도 검증과 승인이 필요하다. 운영 배포 및 운영 계정 차감은 수행하지 않았다.
+
+## 이전 단계 기록
 
 ## 3단계에서 바로 열어볼 화면
 
