@@ -167,6 +167,18 @@
     return "cancel";
   }
 
+  async function verifyPlayReceipt(receipt) {
+    // A lost response can follow a saved order. Replay the same receipt without reopening Play.
+    for (var attempt = 0; attempt < 2; attempt += 1) {
+      var verified = await postJson(APP_STORE_BASE + "/google/verify", receipt).catch(function () { return null; });
+      if (verified && verified.ok && verified.payload.ok === true && verified.payload.data) return verified;
+      if (verified && verified.status >= 400 && verified.status < 500 && verified.status !== 429) break;
+    }
+    throw failure("APP_STORE_VERIFY_FAILED", document.documentElement.lang === "ja"
+      ? "購入の確認を保留しています。再購入せず、アプリの購入履歴を確認してください。"
+      : "결제 확인을 마치지 못했어요. 다시 결제하기 전에 앱의 결제 내역을 확인해 주세요.");
+  }
+
   async function runPlayBillingCheckoutCore(options) {
     var opts = options || {};
     if (isIosApp()) return runIosCheckout(opts);
@@ -230,7 +242,7 @@
         : "결제 완료를 확인하지 못했어요. 앱의 구매 내역을 확인해 주세요.");
     }
 
-    var verify = await postJson(APP_STORE_BASE + "/google/verify", Object.assign({}, intentBody, {
+    var receipt = Object.assign({}, intentBody, {
       productId: product.productId,
       productType: product.productType || "inapp",
       purchaseToken: purchaseResult.purchaseToken,
@@ -239,10 +251,8 @@
       purchaseState: purchaseResult.purchaseState,
       acknowledged: purchaseResult.acknowledged,
       provider: "GOOGLE_PLAY",
-    }));
-    if (!verify.ok) {
-      throw failure("APP_STORE_VERIFY_FAILED", String((verify.payload && verify.payload.message) || "결제 검증에 실패했습니다."));
-    }
+    });
+    var verify = await verifyPlayReceipt(receipt);
 
     // 회당 결제는 소비해야 재구매가 열린다. 실패해도 지급은 되돌리지 않는다
     // (서버가 이미 승인해 자동 환불은 없고, 앱 재시작 시 복구 경로가 다시 소비한다).

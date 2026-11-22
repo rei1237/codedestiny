@@ -367,6 +367,35 @@ describe("verify — 회당 결제(PER_USE)", () => {
     expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
   });
 
+  test("확정한 회당 결제는 Play 후속 승인 오류가 나도 원래 상담으로 돌아간다", async () => {
+    const playFetch = global.fetch.getMockImplementation();
+    global.fetch.mockImplementation(async (url, options) => {
+      if (!String(url).includes(":acknowledge")) return playFetch(url, options);
+      return { ok: false, status: 503, json: async () => ({ error: { message: "unavailable" } }) };
+    });
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const { status, payload } = await callRoute(postJson("/google/verify", {
+        featureKey: perUse.key,
+        productId: perUse.tier.productId,
+        purchaseToken: "test-paid-token",
+        requestId: "original-consultation",
+      }));
+
+      expect(status).toBe(200);
+      expect(mockPaymentCreate).toHaveBeenCalledTimes(1);
+      expect(payload.data.accessGrant).toMatchObject({
+        requestId: "original-consultation",
+        paymentMethod: "GOOGLE_PLAY",
+        purchaseId: "pay-new",
+      });
+      expect(payload.data.payment.acknowledged).toBe(false);
+      expect(payload.data.appPurchase.shouldConsume).toBe(true);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   test("이미 acknowledge된 영수증에는 다시 acknowledge를 보내지 않는다", async () => {
     googlePurchasePayload.acknowledgementState = 1;
     const { status, payload } = await callRoute(postJson("/google/verify", {

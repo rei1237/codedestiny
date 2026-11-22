@@ -1,7 +1,9 @@
 import { TRUST_DOCUMENT_COPY } from "../../../lib/i18n/public-trust-copy.mjs";
 export type SocialProvider='google'|'naver'|'kakao';
 function returnPath(value:string){return value.startsWith('/')&&!value.startsWith('//')&&!value.includes('\\')?value:'/yeongnyangi/';}
-export function loginHref(returnTo:string){const next=returnPath(returnTo);return '/login/?'+new URLSearchParams({returnTo:next,next,redirect:next});}
+function accountHref(mode:'login'|'signup',returnTo:string){const next=returnPath(returnTo);return '/'+mode+'/?'+new URLSearchParams({returnTo:next,next,redirect:next});}
+export function loginHref(returnTo:string){return accountHref('login',returnTo);}
+export function signupHref(returnTo:string){return accountHref('signup',returnTo);}
 export function socialLoginHref(provider:SocialProvider,returnTo:string,flow:'login'|'signup'='login'){
  return `/api/auth/oauth/${provider}/start?${new URLSearchParams({flow,next:returnPath(returnTo)})}`;
 }

@@ -269,15 +269,17 @@
       }
       if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll(lockKey);
       document.documentElement.removeAttribute('data-signature-popup-open');
-      if (restore !== false && previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
+      if (restore !== false && previousFocus && document.activeElement !== previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
       previousFocus = null;
     }
     function openLetter(manual) {
-      if (letter.open || blocked(manual)) return;
+      if (letter.open) return;
       if (!manual) {
         if (returnDocument || explicitEntry || !/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko')) return;
         if (memorySeen === dayKey() || read('sessionStorage', seenKey) === dayKey() || Math.max(memoryHidden, Number(read('localStorage', hideKey)) || 0) > Date.now()) return;
       }
+      // A seen automatic letter must not force layout on every shell mutation.
+      if (blocked(manual)) return;
       previousFocus = document.activeElement;
       memorySeen = dayKey();
       write('sessionStorage', seenKey, memorySeen);
@@ -288,7 +290,7 @@
         try { history.pushState(Object.assign({}, history.state, { cdSignatureLetter: true }), ''); desktopLetterEntry = true; } catch (_) {}
       }
       document.documentElement.setAttribute('data-signature-popup-open', '');
-      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(lockKey);
+      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(lockKey, 'viewport');
       closeButton.focus({ preventScroll: true });
     }
     function schedule() {
@@ -384,6 +386,11 @@
   var authCard = move('#authQuickLinks', 'cdAccountSheetCard');
   // 헤더 계정 버튼 글자(로그인/내 계정)는 시트 안 로그인 카드가 회원 카드인지로 정한다.
   var accountBtn = document.getElementById('cdhAccountBtn');
+  var guestAuthLinks = home.querySelectorAll('[data-cd-guest-auth]');
+  var shellReturn = location.pathname === '/index.html' || location.pathname === '/' ? '/ggulggul/' : location.pathname;
+  guestAuthLinks.forEach(function (link) {
+    link.href = '/' + link.dataset.cdGuestAuth + '/?next=' + encodeURIComponent(shellReturn + location.search + location.hash);
+  });
   function syncAccountState() {
     if (!accountBtn || !authCard) return;
     accountBtn.setAttribute('data-auth', authCard.querySelector('.cd-user-card') ? 'member' : 'guest');

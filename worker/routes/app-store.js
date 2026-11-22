@@ -712,6 +712,21 @@ async function acknowledgeGooglePurchase(env, { packageName, productId, productT
   throw error;
 }
 
+async function acknowledgeVerifiedGooglePurchase(env, product, purchase) {
+  try {
+    return await acknowledgeGooglePurchase(env, purchase);
+  } catch (error) {
+    // Consuming a consumable on the app also acknowledges it in Play.
+    if (!shouldConsumePurchase(product)) throw error;
+    console.warn("Google Play acknowledgement deferred to consumption", {
+      productId: product.productId,
+      code: cleanText(error?.code),
+      status: Number(error?.status || 0),
+    });
+    return false;
+  }
+}
+
 async function handleProducts(request, env) {
   const url = new URL(request.url);
 
@@ -1188,7 +1203,7 @@ async function handleGoogleVerify(request, env) {
     intent: receiptIntent,
   });
   await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken), receiptIntent?._id);
-  const acknowledged = await acknowledgeGooglePurchase(env, {
+  const acknowledged = await acknowledgeVerifiedGooglePurchase(env, product, {
     packageName,
     productId: product.productId,
     productType: product.productType,
@@ -1324,7 +1339,7 @@ async function handleGoogleRestore(request, env) {
           googlePurchase,
           intent,
         });
-        const acknowledged = await acknowledgeGooglePurchase(env, {
+        const acknowledged = await acknowledgeVerifiedGooglePurchase(env, product, {
           packageName,
           productId: product.productId,
           productType: product.productType,

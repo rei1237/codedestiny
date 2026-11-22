@@ -68,6 +68,8 @@ const schema = new mongoose.Schema({
   completionMailSkipped: { type: String, enum: ['watching','no_email','config'], default: undefined },
 }, { timestamps: true, collection: 'yeongnyangi_requests' });
 schema.index({ userId: 1, createdAt: -1, _id: -1 });
+// Completion-mail sweep (completion-mail.js sendPendingCompletionMails): equality on state + unsent marker, range/sort on completedAt.
+schema.index({ state: 1, completionMailSentAt: 1, completedAt: 1 }, { name: "completion_mail_sweep" });
 export const YeongnyangiRequest = scopedModel(mongoose.models.YeongnyangiRequest || mongoose.model('YeongnyangiRequest', schema));
 
 const anchovyAccountSchema = new mongoose.Schema({

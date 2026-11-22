@@ -81,7 +81,7 @@ export default memo(function ReadingBook({row}:{row:FortuneRecord}){
    })}</nav>
   </details>{saved&&row.manifest.some(c=>`chapter-${c.id}`===saved)&&<a className={styles.resume} href={`#${saved}`}>{copy.resume}</a>}</aside>
   <div className={styles.body}>
-   {row.chapters.length>0&&<ReportIllustration scene="cover"/>}
+   {row.chapters.length>0&&row.state!=='COMPLETED'&&<ReportIllustration scene="cover"/>}
    {rich&&<details className={styles.reference}><summary>{visualCopy(row.locale).glance}</summary><AtAGlance manifest={row.manifest} chapters={row.chapters} title={title} locale={row.locale}/></details>}
    {!!row.charts?.length&&<details className={styles.reference} data-reading-evidence onToggle={event=>{if(event.currentTarget.open)setEvidenceMounted(true);}}><summary>{chartCopy(row.locale).section}</summary>{evidenceMounted&&<ReadingCharts charts={row.charts} available={available} titles={Object.fromEntries(row.manifest.map((c,i)=>[c.id,title(i)]))} locale={row.locale}/>}</details>}
    {row.chapters.map((chapter,index)=><Fragment key={row.manifest[index].id}><article data-reading-chapter id={`chapter-${row.manifest[index].id}`} className={styles.chapter} tabIndex={-1}>

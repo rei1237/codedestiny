@@ -175,6 +175,12 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 .yh-links{width:100%;margin:6px 0 18px}
 .yh-links summary{background:var(--cd-surface);color:var(--cd-text)}
 #cdHomeFunnel .cdh-top:has(.yh-menu){display:flex;justify-content:space-between;align-items:center;gap:8px;position:relative;z-index:5}
+#cdHomeFunnel .yh-account-entry{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-inline-start:auto;flex-wrap:wrap}
+#cdHomeFunnel .yh-account-entry>a,#cdHomeFunnel .yh-account-entry>button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:4px 9px;border:0;background:transparent;color:var(--cd-text);font:600 .9375rem/1.3 var(--font-body);text-align:center;text-decoration:none}
+#cdHomeFunnel .yh-account-entry>[data-cd-guest-auth="signup"],#cdHomeFunnel .yh-account-entry>button{border:1px solid var(--cd-cta-hairline);border-radius:var(--cd-r-control);background:var(--cd-cta-primary-bg);color:var(--cd-cta-primary-ink)}
+#cdHomeFunnel .yh-account-entry>button[data-auth="guest"],#cdHomeFunnel .yh-account-entry:has([data-auth="member"])>a,#cdHomeFunnel .cdh-top:has(#cdhAccountBtn[data-auth="member"]) .yh-guest-garden{display:none}
+#cdHomeFunnel .yh-account-entry>:focus-visible{outline:2px solid var(--cd-focus-ring);outline-offset:2px}
+#cdHomeFunnel .yh-account-entry>a:hover{text-decoration:underline}
 .yh-menu>summary{display:flex;gap:8px;align-items:center;min-height:44px;padding:0 12px;cursor:pointer;list-style:none;font-size:14px;font-weight:700}
 .yh-menu-panel{position:absolute;inset-inline-end:0;top:100%;width:min(100%,22rem);padding:14px;border:1px solid var(--cd-line);border-radius:var(--cd-r-card);background:var(--cd-surface);box-shadow:0 10px 24px -14px var(--cd-text)}
 #cdHomeFunnel .yh-menu-panel :is(.cdh-tools,.cdh-nav){display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}

@@ -22,6 +22,53 @@
 .cd-review-invite--result[data-review-character="yeongnyangi"] .cd-review-invite__action:focus-visible{outline-color:var(--yn-gold)}
 @media(max-width:540px){.cd-review-invite--result{grid-template-columns:minmax(0,1fr);padding:20px 18px}.cd-review-invite--result h2{padding-right:0}.cd-review-invite--result .cd-review-invite__image{width:240px;height:auto;object-fit:contain}.cd-review-invite--result .cd-review-invite__action{box-sizing:border-box;min-height:48px}}
 
+
+/* The flower pig's result letter uses the same rose and paper palette as the archive. */
+.cd-review-invite--result[data-review-character="ggulggul"] {
+  --cd-bg: #fff7f5;
+  --cd-surface: #fffdfb;
+  --cd-text: #3c1830;
+  --cd-text-muted: #70445c;
+  --cd-accent: #92234f;
+  --cd-primary: #92234f;
+  --cd-primary-ink: #fffaf7;
+  --cd-border: #d4a7ba;
+  --cd-line-strong: #9b5875;
+  position: relative;
+  isolation: isolate;
+  padding: clamp(16px, 4vw, 28px);
+  color-scheme: light;
+  background: var(--cd-bg);
+  color: var(--cd-text);
+  border-color: var(--cd-border);
+}
+.cd-review-invite--result[data-review-character="ggulggul"]::before {
+  content: "";
+  position: absolute;
+  inset: 8px 14px auto auto;
+  width: 100px;
+  height: 22px;
+  background: #a17646;
+  mask: url("/icons/yehwa-branch.svg") center / contain no-repeat;
+  opacity: .58;
+  pointer-events: none;
+}
+.cd-review-invite--result[data-review-character="ggulggul"] :is(h2, h3) { color: var(--cd-text); }
+.cd-review-invite--result[data-review-character="ggulggul"] :is(.cd-review-invite__detail, .cd-quick-review__privacy, .cd-quick-review__comment span, .cd-quick-review__tag-group > span) {
+  color: var(--cd-text-muted);
+  opacity: 1;
+}
+.cd-review-invite--result[data-review-character="ggulggul"] .cd-quick-review__stars button.is-active { color: var(--cd-accent); }
+.cd-review-invite--result[data-review-character="ggulggul"] .cd-quick-review__comment textarea::placeholder { color: var(--cd-text-muted); opacity: 1; }
+.cd-review-invite--result[data-review-character="ggulggul"] .cd-quick-review__submit:disabled { background: #f0dbe4; color: #70445c; opacity: 1; }
+.cd-review-invite--result[data-review-character="ggulggul"] .cd-review-invite__image { border-radius: var(--cd-r-control); }
+@media (max-width: 540px) {
+  .cd-review-invite--result[data-review-character="ggulggul"] .cd-review-invite__image {
+    max-width: 176px;
+    grid-row: auto;
+  }
+}
+
 /* Shared review composer; inherits the service's existing theme. */
 .cd-review-social,.cd-review-history{color:var(--cd-text);font-size:var(--cd-t-body);line-height:1.7;min-width:0}
 .cd-review-social{border-top:1px solid var(--cd-border);padding-top:24px;margin-top:24px}

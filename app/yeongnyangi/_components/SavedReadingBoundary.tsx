@@ -10,5 +10,5 @@ export default function SavedReadingBoundary({children}:{children:ReactNode}){
  const [mounted,setMounted]=useState(false);
  const {siteLocale}=useReadingLanguage();
  useEffect(()=>setMounted(true),[]);
- return <div className={styles.experience}>{mounted?children:<p role="status" className={styles.loading}>{chromeCopy(siteLocale).loading}</p>}</div>;
+ return <div className={styles.experience}>{mounted?children:<p role="status" className={styles.readingPending}>{chromeCopy(siteLocale).loading}</p>}</div>;
 }

@@ -6,6 +6,7 @@ import { getAuthState, refreshAuth, useAuthStore } from '@/app/_lib/auth-store';
 import { useLocale } from '@/lib/i18n/useT';
 import { recordsCopy } from '@/lib/records/copy';
 import RecordFrame, { recordButton } from '../RecordFrame';
+import { reviewWriteHref } from '@/app/components/review/review-ui';
 import type { SavedRecord } from '../RecordsClient';
 import StoredReading from './StoredReading';
 import AiResultReportLink from '@/components/fortune/AiResultReportLink';
@@ -60,7 +61,7 @@ export default function SavedRecordClient() {
   }, [detail, source, id]);
   const complete = Boolean(detail && isCompleteRecord(detail.record));
   const freeFeature = detail && locale === 'ko' ? savedRecordFreeFeature(detail.record) : null;
-  return <RecordFrame title={detail?.record.title || c.result} lead={detail?.record.serviceName} view="result" reading={readingView(source, detail?.record.serviceId || "").family}>
+  return <RecordFrame title={detail?.record.title || c.result} lead={detail?.record.serviceName} view="result" cover={detail && !error ? (detail.record.character === 'neo' || source === 'neo' ? 'neo' : 'garden') : undefined} reading={readingView(source, detail?.record.serviceId || "").family}>
     {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3"><h2 className="text-xl font-semibold">{c.error}</h2><button className={recordButton} onClick={() => void refreshAuth({silent:true}).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href={`/login/?next=${encodeURIComponent(`/records/view/?source=${encodeURIComponent(source)}&id=${encodeURIComponent(id)}`)}`}>{c.login}</a></section> : <>
       {loading && <p role="status">{c.loading}</p>}
       {error && <section role="alert" className="space-y-3"><h2 className="text-xl font-semibold">{error}</h2><button className={recordButton} onClick={() => setRetry(old => old + 1)}>{c.retry}</button></section>}
@@ -69,7 +70,7 @@ export default function SavedRecordClient() {
         {!['completed', 'saved', 'conversation'].includes(detail.record.status) && <section role="status" className="mb-6 space-y-3 rounded-[var(--cd-r-card)] border border-[var(--cd-border)] p-4"><p className="font-semibold">{(c as Record<string,string>)[detail.record.status] || c.saved}</p><p>{detail.record.status==='refund_pending'?c.refundLead:detail.record.status==='retry_available'?c.retryLead:c.partialLead}</p><a className={recordButton} href={detail.record.recoveryHref || '/points/history/'}>{detail.record.status==='retry_available'?c.retryAction:c.recover}</a></section>}
         <StoredReading source={source} serviceId={detail.record.serviceId} status={detail.record.status} value={detail.content} />
         <AiResultReportLink />
-        <div className={styles.readingActions}><a className={recordButton} href="/records/">{c.back}</a>{complete && <a className={recordButton} href="/reviews/?write=1">{c.review}</a>}<a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
+        <div className={styles.readingActions}><a className={recordButton} href="/records/">{c.back}</a>{complete && <a className={recordButton} href={reviewWriteHref(detail.record.reviewProductId)}>{c.review}</a>}<a className={recordButton} href={detail.record.startHref}>{c.newConsult}</a></div>
         {complete && <section className={styles.readingNext} data-cd-cross-sell="/records/view/"><p>{c.reopenNote}</p>{freeFeature && <a className={recordButton} href={freeFeature.href} data-cd-cta-placement="free_result" data-cd-target-service={freeFeature.service} aria-label={`${c.freeNext}: ${freeFeature.label}`}>{freeFeature.label}</a>}</section>}
         {recommendation && <RecommendationResult key={`${source}:${id}`} {...recommendation} />}
       </>}

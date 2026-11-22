@@ -35,6 +35,14 @@
 .page :where(a, summary):focus-visible { outline: 2px solid var(--cd-focus-ring); outline-offset: 4px; border-radius: var(--cd-r-sm); }
 .page ::selection { background: var(--cd-text); color: var(--cd-bg); }
 .brandRow { display: flex; align-items: center; gap: 8px; justify-content: center; min-height: 44px; padding-block: 16px 8px; max-width:1120px; margin-inline:auto; }
+.accountEntry { position: relative; margin-inline-start: auto; }
+.accountEntry:not(details) { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.accountEntry > a, .accountEntry > summary, .accountMenu a { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 5px 12px; color: var(--cd-text); font-size: .875rem; font-weight: 650; line-height: 1.35; text-decoration: none; }
+.accountEntry > a:last-child, .accountEntry > summary { cursor: pointer; list-style: none; border: 1px solid var(--cd-cta-hairline); border-radius: var(--cd-r-control); background: var(--cd-cta-primary-bg); color: var(--cd-cta-primary-ink); }
+.accountEntry > summary::-webkit-details-marker { display: none; }
+.accountMenu { position: absolute; z-index: 4; inset-inline-end: 0; top: calc(100% + 4px); display: grid; width: max-content; max-width: 80vw; padding: 4px; background: var(--cd-surface); border: 1px solid var(--cd-border); border-radius: var(--cd-r-control); }
+.accountMenu a { justify-content: start; }
+.accountEntry a:hover { text-decoration: underline; }
 .brandMark { width: 28px; height: 28px; flex: none; }
 .wordmark { font-family: var(--font-display); font-size: 1rem; font-weight: 400; letter-spacing: 0; }
 .consentSlot { width: min(100%, var(--cd-w-prose)); }
@@ -215,7 +223,7 @@
  :global(html):has(.mobileNav){scroll-padding-bottom:var(--cd-home-nav-height,0px)}
  .page:has(.mobileNav){padding-bottom:var(--cd-home-nav-height,0px)}
  .page:has(.mobileNav) .brandRow{justify-content:space-between}
- .page:has(.mobileNav) .brandRow a{display:none}
+ .page:has(.mobileNav) .brandGuide{display:none}
  .page:has(.mobileNav) .brandRow .wordmark{margin-right:auto}
  .page:has(.mobileNav) .stage{gap:16px;padding-top:10px}
  .page:has(.mobileNav) .title{font-size:clamp(1.55rem,6.4vw,2rem);line-height:1.32}

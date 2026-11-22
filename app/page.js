@@ -13,6 +13,7 @@ import { FOOTER_BYLINE, FOOTER_LINKS, FOOTER_NOTICE, FOOTER_TRUST_LINKS } from "
 import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
+import HomeAccountEntry from "./components/HomeAccountEntry";
 import MobileHomeNav from './components/MobileHomeNav';
 import HomeCardDeck from "./components/HomeCardDeck";
 import FreePromoBanner from "./components/FreePromoBanner";
@@ -97,9 +98,10 @@ export default function HomePage() {
     <NativeHomeRoot className={styles.page}>
       <header className={styles.brandRow}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
+        <img className={styles.brandMark} src={IS_APP_BUILD ? "/fuctionassets/%EC%97%B0%EC%9D%B4.webp" : "/images/home/illustrated/yeoni-brand-96.webp"} width={96} height={96} alt="" decoding="async" />
         <span className={styles.wordmark}>{service.name}</span>
-        {!IS_APP_BUILD && <a href="#homeCardTitle">상담 추천</a>}
+        {!IS_APP_BUILD && <a className={styles.brandGuide} href="#homeCardTitle">상담 추천</a>}
+        <HomeAccountEntry />
       </header>
 
       <main className={styles.stage}>
@@ -152,7 +154,6 @@ export default function HomePage() {
             </ul>
             <p><NativeHomeText>{trustRecordCopy.full}</NativeHomeText></p>
             <div className={styles.nativeMasterActions}>
-              <Link href="/consultations/" prefetch={false}><NativeHomeText>마스터 상담 둘러보기</NativeHomeText></Link>
               <Link href={trustRecordCopy.href} prefetch={false}><NativeHomeText>공개 원문과 실제 사건 비교하기</NativeHomeText></Link>
             </div>
           </div>

@@ -103,7 +103,7 @@ test('결제 시트에서 세션이 만료돼도 같은 영수증을 검증하�
     requests.push([url, new win.Headers(init.headers), JSON.parse(init.body)]);
     return url.endsWith('/intent')
       ? { ok: true, status: 200, json: async () => ({ data: { product: { productId: 'sku' } } }) }
-      : { ok: true, status: 200, json: async () => ({ data: { appPurchase: { shouldConsume: true } } }) };
+      : { ok: true, status: 200, json: async () => ({ ok: true, data: { appPurchase: { shouldConsume: true } } }) };
   };
   try {
     win.eval(bridgeSource);
@@ -138,6 +138,51 @@ test('결제 시트에서 세션이 만료돼도 같은 영수증을 검증하�
     assert.equal(verifyBody.purchaseToken, 'same-receipt');
   } finally { win.close(); }
 });
+
+for (const terminalFailure of [false, true]) {
+  test('결제 승인 뒤 응답 오류에도 같은 영수증만 확인한다: ' + terminalFailure, async () => {
+    const dom = new JSDOM('<!doctype html><html lang="ko"></html>', { url: 'https://localhost/', runScripts: 'outside-only' });
+    const win = dom.window;
+    const receipts = [];
+    const consumed = [];
+    let sheets = 0;
+    win.fetch = async (url, init) => {
+      const path = String(url);
+      if (path.endsWith('/intent')) {
+        return { ok: true, status: 200, json: async () => ({ ok: true, data: { product: { productId: 'sku' } } }) };
+      }
+      assert.ok(path.endsWith('/google/verify'));
+      receipts.push(JSON.parse(init.body));
+      if (receipts.length === 1 || terminalFailure) throw new Error('connection lost after approval');
+      return { ok: true, status: 200, json: async () => ({
+        ok: true,
+        data: { accessGrant: { requestId: 'original-consultation' }, appPurchase: { shouldConsume: true } },
+      }) };
+    };
+    win.CodeDestinyNative = {
+      purchase: async () => {
+        sheets += 1;
+        return { ok: true, purchaseState: 1, purchaseToken: 'original-receipt' };
+      },
+      consume: async ({ purchaseToken }) => consumed.push(purchaseToken),
+    };
+    try {
+      win.eval(guardSource);
+      const checkout = win.__cdAppPaymentGuard.runPlayBillingCheckout({ featureKey: 'tea', requestId: 'original-consultation' });
+      if (terminalFailure) {
+        await assert.rejects(checkout, { code: 'APP_STORE_VERIFY_FAILED', message: /다시 결제하기 전에/ });
+      } else {
+        assert.equal((await checkout).data.accessGrant.requestId, 'original-consultation');
+      }
+      assert.equal(sheets, 1);
+      assert.equal(receipts.length, 2);
+      assert.equal(receipts[0].requestId, 'original-consultation');
+      assert.equal(receipts[0].purchaseToken, 'original-receipt');
+      assert.deepEqual(receipts[0], receipts[1]);
+      assert.deepEqual(consumed, terminalFailure ? [] : ['original-receipt']);
+    } finally { win.close(); }
+  });
+}
 
 test('복귀 시 PURCHASED만 서버 검증하고 PENDING 상태를 화면에 전달한다', async () => {
   const start = bridgeSource.indexOf('  var recoveryRunning = false;');

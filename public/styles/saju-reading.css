@@ -431,11 +431,43 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 @media(max-width:400px){#resultPage:not([data-compact-reading]) nav.saju-reading-nav.saju-result-guide__nav a{flex-basis:52px;padding-inline:6px}}
 
 /* Classic saju starts with the open natal chart. Introductions follow it. */
-html body #resultPage > .top-hero {padding:12px 16px;margin:0 0 12px;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:12px;text-align:left;align-items:center;}
-html body #resultPage > .top-hero .hero-animal {grid-row:1 / span 2;font-size:32px;margin:0;line-height:1.2;}
-html body #resultPage > .top-hero .hero-animal img {width:48px;height:48px;object-fit:contain;}
-html body #resultPage > .top-hero h2 {font-size:1.25rem;line-height:1.4;margin:0;}
-html body #resultPage > .top-hero .hero-sub {font-size:.875rem;line-height:1.6;margin:0;overflow-wrap:anywhere;}
+/* The result image is requested when the existing hidden reading is opened. */
+html body #resultPage .saju-report-cover {
+  display: grid; margin: 0 0 12px; min-height: 0;
+  grid-template-columns: minmax(0, 1fr) clamp(78px, 29%, 178px);
+  align-items: center;
+  grid-template-areas: "title art" "details art";
+  gap: 8px clamp(12px, 3vw, 32px);
+  padding: clamp(16px, 3vw, 32px);
+  border: 1px solid var(--cd-samples-line);
+  border-radius: var(--cd-r-section);
+  background: var(--cd-samples-paper);
+  color: var(--cd-samples-ink);
+  text-align: start;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+html body #resultPage .saju-report-cover::before {
+  inset: 5px; opacity: .28; animation: none; filter: none;
+  background: none; border: 1px solid currentColor; border-radius: var(--cd-r-card);
+}
+html body #resultPage .saju-report-cover::after { content: none; }
+html body #resultPage .saju-report-cover__text { grid-area: title; min-width: 0; overflow-wrap: anywhere; }
+html body #resultPage .saju-report-cover h2 { font: 500 clamp(1.4rem, 4vw, 2.4rem)/1.4 var(--font-display); letter-spacing: normal; color: inherit; text-shadow: none; animation: none; }
+html body #resultPage .saju-report-cover .hero-animal { margin: 0 0 .3em; font-size: 1.25rem; }
+html body #resultPage .saju-report-cover .hero-sub { grid-area: details; min-width: 0; overflow-wrap: anywhere; color: inherit; text-shadow: none; font-size: .875rem; line-height: 1.6; margin: 0; }
+html body #resultPage .saju-report-cover__art {
+  grid-area: art;
+  width: 100%; aspect-ratio: 4/3; max-height: 164px;
+  border-radius: var(--cd-r-card);
+  background: center / cover no-repeat url('/images/yeoni/garden/yeoni-library-moonlight-v1-640.webp');
+}
+html body.neo-mode #resultPage .saju-report-cover { background: var(--cd-neo-letter-night); color: var(--cd-neo-letter-paper); border-color: var(--cd-neo-letter-line); }
+html body.neo-mode #resultPage .saju-report-cover__art { background-image: url('/images/records/neo-reading-320.webp'); background-size: contain; }
+html body #resultPage .saju-report-cover .hero-animal img {width:48px;height:48px;object-fit:contain;}
+@media (max-width: 600px) {
+  html body #resultPage .saju-report-cover { grid-template-areas: "title art" "details details"; }
+}
 html body #resultPage #sajuReadingHeader {gap:16px;padding:20px;margin:20px 0;}
 html body #resultPage #sajuReadingHeader > div {min-width:0;flex:1;}
 html body #resultPage #sajuReadingHeader > img {width:56px;height:56px;}
