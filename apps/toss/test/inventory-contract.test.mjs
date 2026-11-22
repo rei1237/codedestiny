@@ -69,9 +69,12 @@ test('free directory preserves every original card and distinguishes free and hi
 test('recorded mock archive checks resolve to individual services and all tested Yeongnyangi products',async()=>{
  const record=JSON.parse(await readFile(path.join(root,inventory.mockServiceFlowEvidence.path),'utf8'));
  assert.equal(record.deploymentId,inventory.mockServiceFlowEvidence.deploymentId);assert.match(record.sha256,/^[a-f0-9]{64}$/);
- for(const check of record.checks){
-  assert.equal(check.exitCode,0);assert.ok(check.checked.length,check.case);
-  for(const id of check.canonicalIds)assert.ok(inventory.canonicalCandidates.find(row=>row.id===id)?.mockArchiveCases.includes(check.case),id);
+ for(const archive of [record,...(record.followups||[])]){
+  assert.match(archive.sha256,/^[a-f0-9]{64}$/);
+  for(const check of archive.checks){
+   assert.equal(check.exitCode,0);assert.ok(check.checked.length,check.case);
+   for(const id of check.canonicalIds)assert.ok(inventory.canonicalCandidates.find(row=>row.id===id)?.mockArchiveCases.some(run=>run.deploymentId===archive.deploymentId&&run.case===check.case),id);
+  }
  }
  const products=record.checks.find(row=>row.args.includes('--all-products')).checked.map(line=>line.split(' ')[0]);
  assert.deepEqual(products.sort(),inventory.consultationProducts.map(item=>item.productId).sort());

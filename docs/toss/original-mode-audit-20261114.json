@@ -762,7 +762,7 @@
       "deviceState": "not-verified",
       "operations": "생성 종결 후 실제 토스 IAP 환불·정산, 전용 상품 등록, 운영 배포와 기기 PDF 확인 필요",
       "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다.",
-      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈 → 질문 작성 → 앱 재진입과 도입 웹툰 왕복 후 초안 복원 → mock 구매 → 생성 이탈 → 구매 기록 → 저장 원문 → 계정 B 거부. 주문·완료 각 1회. 최신 일반 Linux AIT 및 실기기 별도"
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --native-report heukwol 홈에서 질문 초안·도입 웹툰 왕복, mock 주문·생성 중 종료·보관 원문·계정 B 거부. 실패한 장의 7일 재개는 별도 Worker 검사"
     },
     {
       "id": "heukwol-story",
@@ -1304,7 +1304,7 @@
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "123개 고유 키 중 neo-15(비겁다자의 우정 지옥, music-track-1x0675y)는 404였다. 이 상품의 원본 파일 복구와 기기 저장 확인 필요. 증거는 docs/toss/launch-operational-evidence-20261114.md",
-      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --music-download PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --music-download 홈에서 모의 주문 1회·합성 파일 저장 요청·같은 소유자 구매 기록·계정 B 거부·세 화면 폭. 실제 MP3 다운로드와 실기기 저장 별도",
       "historicalArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
     },
     {
@@ -2053,7 +2053,8 @@
       "codeGaps": [],
       "archiveEvidence": "2026-11-22 Windows 비공개 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈에서 시작해 생성 중 이탈·저장 원문·다른 계정 거절, 단일 주문·생성 확인. Linux 일반 AIT·실기기 미검증",
       "deviceState": "not-verified",
-      "operations": "전용 SKU·가격 및 소유 주문 관련 실기기 검증 필요"
+      "operations": "전용 SKU·가격 및 소유 주문 관련 실기기 검증 필요",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --native-report saju-compat-premium 홈에서 독립 상품 입력·mock 주문·생성 이탈·구매 기록 원문 및 계정 B 거부. 주문·생성 1회"
     },
     {
       "id": "saju-compatibility",
@@ -3012,7 +3013,8 @@
       "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
       "deviceState": "not-verified",
       "operations": "배포 소스와 토스 실기기에서 별도 검증",
-      "priorEvidence": "9bc9fc9a7b targeted. 23개 원본 정책 키·토스 23개 고유 목적지 매핑·유료 키 거부"
+      "priorEvidence": "9bc9fc9a7b targeted. 23개 원본 정책 키·토스 23개 고유 목적지 매핑·유료 키 거부",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 홈에서 원본 목록 23개 카드를 각각 선택해 대응 화면과 주소 도달, 카드 이미지 확인. 하위 상품별 전체 검사는 별도"
     },
     {
       "id": "saju-compat-basic-free",
@@ -3034,14 +3036,17 @@
       "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
       "deviceState": "not-verified",
       "operations": "배포 소스와 토스 실기기에서 별도 검증",
-      "priorEvidence": "9bc9fc9a7b targeted. 두 사람 정적 궁합과 전생 인연 HTML, 게스트·주문 0건 계약"
+      "priorEvidence": "9bc9fc9a7b targeted. 두 사람 정적 궁합과 전생 인연 HTML, 게스트·주문 0건 계약",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 두 사람 출생정보로 무료 정적 궁합·전생 인연 확인, 주문 0건"
     },
     {
       "id": "saju-brain",
       "webSources": [
         "js/core/saju/destiny-anatomy/engine.js",
         "js/core/saju/destiny-anatomy/copy.js",
-        "js/core/saju/destiny-anatomy/render.js"
+        "js/core/saju/destiny-anatomy/render.js",
+        "js/core/saju/destiny-anatomy/share-card.js",
+        "js/core/saju/destiny-anatomy/boot.js"
       ],
       "webEntries": [
         "/ggulggul/?action=cdOneStepFreeSajuEntry&section=destinyAnatomyCard"
@@ -3049,16 +3054,17 @@
       "tossRoute": "/saju/basic/play/?reading=brain",
       "reviewedModes": [
         "게스트 생일·시각·도시 → 원본 명식 기반 뇌구조와 각 영역 본문",
-        "유료 보고서 또는 주문 없이 무료 재계산"
+        "유료 보고서 또는 주문 없이 무료 재계산",
+        "로그인 계정의 HD·베다 추가 차트, 생시 미상·부분 실패 재호출, 뇌센터·차크라 전환",
+        "웹 원본 피드/스토리 PNG 생성과 토스 저장·공유 어댑터"
       ],
       "reviewState": "original-contract-reviewed",
-      "codeGaps": [
-        "웹 뇌구조의 로그인 후 HD·베다 추가 계산 및 이미지 저장·공유는 현재 토스 게스트 명식의 정적 렌더 경로에 미연결"
-      ],
+      "codeGaps": [],
       "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
       "deviceState": "not-verified",
-      "operations": "배포 소스와 토스 실기기에서 별도 검증",
-      "priorEvidence": "9bc9fc9a7b targeted. 시간 있음·모름의 개인별 원본 사고축 5종 검사"
+      "operations": "배포 AIT 원본으로 새 화면 검증, 실기기 외부 공유와 파일 저장 필요",
+      "priorEvidence": "9bc9fc9a7b targeted. 시간 있음·모름의 개인별 원본 사고축 5종 검사 · f1e2f347ed 관련 4개 파일 55개 검사 통과. Chrome에서 원본 PNG 1080×1350·1080×1920 생성 확인",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 비회원 정적 계산, 시간 미상과 생시 입력, mock 로그인 후 HD·베다 추가 레이어, 1080×1920 스토리 PNG 모의 저장 검사. 기기의 외부 공유·저장은 별도"
     },
     {
       "id": "fortune-prompt-hub",
@@ -3076,11 +3082,13 @@
         "도구별 입력·원본 계산으로 외부 AI에 사용할 프롬프트 구성",
         "로그인 뒤 무료 생성·소유 계정별 프롬프트 보관"
       ],
-      "reviewState": "source-wired-mock-evidence-pending",
+      "reviewState": "original-contract-reviewed",
       "codeGaps": [],
       "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
       "deviceState": "not-verified",
-      "operations": "배포 소스와 토스 실기기에서 별도 검증"
+      "operations": "최신 Linux AIT와 기기 로그인·클립보드·계정 연결 해제·외부 AI 열기 검증 필요",
+      "priorEvidence": "prompt-hub.test.mjs의 3개 검사. 일반 15개 원본 역할과 장, 호라리 계산, 무료 게이트와 계정 연결 해제 경계",
+      "currentArchiveEvidence": "Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e --prompt-hub. 홈 → 무료 허브에서 16개 도구 각각 원본 프롬프트 생성·저장. 재실행 16개 원문 일치, B의 1개와 A의 16개 격리, 주문·외부 요청 0건. 후속 저장 키 보강은 이 증거에 미포함"
     }
   ],
   "reconciliationMethod": {

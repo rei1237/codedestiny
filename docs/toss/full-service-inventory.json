@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "6594fede4bb6ce7997a5f3ca0a3690dbd987df90",
+  "sourceCommit": "4c2d4b53c18ce6d2379a2a675488a620ee4f4780",
   "sourceCounts": {
     "home": 64,
     "react": 18,
@@ -3432,7 +3432,10 @@
         "서양 점성술 출생차트"
       ],
       "mockArchiveCases": [
-        "별자리-여정"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "별자리-여정"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -4549,7 +4552,10 @@
         "운명의 꽃"
       ],
       "mockArchiveCases": [
-        "무료-원본"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-원본"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -4655,7 +4661,10 @@
         "연이의 상담 편지"
       ],
       "mockArchiveCases": [
-        "연이-사주편지"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "연이-사주편지"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -4687,7 +4696,7 @@
       "inputContract": "도구별 질문·출생정보·선택과 계산값을 웹 PromptHubClient에서 수집. 호라리는 원본 prepareHoraryPrompt 경유",
       "resultRenderer": "apps/toss/service/TossPromptHub.jsx → app/fortune/prompt-hub/PromptHubClient.tsx 및 worker/routes/prompt-hub.js",
       "storageContract": "같은 기기 내 소유 계정별 프롬프트 보관함. 계정 변경 시 화면의 결과 폐기",
-      "verification": "원본 16개 도구와 무료 게이트 소스 대조. 이전 Windows AIT에는 미포함",
+      "verification": "prompt-hub.test.mjs 및 01a200e2 Windows 모의 AIT --prompt-hub. 원본 16개 도구 저장·재진입·계정 격리, 주문 0건. 후속 저장 키 보강과 실기기 클립보드는 별도",
       "webEntries": [
         "/fortune/prompt-hub/"
       ],
@@ -4702,7 +4711,7 @@
         "fortune-prompt-hub-generate"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
@@ -4730,18 +4739,25 @@
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
       "archiveTests": [],
       "archiveHomeButtons": [],
+      "mockArchiveCases": [
+        {
+          "deploymentId": "01a200e2-0f0e-70b7-a158-00d25d2af59e",
+          "case": "운세-프롬프트-허브"
+        }
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
-        "reviewState": "source-wired-mock-evidence-pending",
+        "reviewState": "original-contract-reviewed",
         "reviewedModes": [
           "도구별 입력·원본 계산으로 외부 AI에 사용할 프롬프트 구성",
           "로그인 뒤 무료 생성·소유 계정별 프롬프트 보관"
         ],
         "codeGaps": []
       },
-      "implementationStage": "원본 연결 이후 개발 검증 근거 대조 중",
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e --prompt-hub. 홈 → 무료 허브에서 16개 도구 각각 원본 프롬프트 생성·저장. 재실행 16개 원문 일치, B의 1개와 A의 16개 격리, 주문·외부 요청 0건. 후속 저장 키 보강은 이 증거에 미포함"
     },
     {
       "id": "fortune-tea-house",
@@ -4863,12 +4879,30 @@
         "연이 · 운명의 찻집"
       ],
       "mockArchiveCases": [
-        "찻집-saju",
-        "찻집-sajuJoint",
-        "찻집-tarot",
-        "찻집-tarotFive",
-        "찻집-sajuCompatibility",
-        "찻집-sukuyo"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "찻집-saju"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "찻집-sajuJoint"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "찻집-tarot"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "찻집-tarotFive"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "찻집-sajuCompatibility"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "찻집-sukuyo"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -5130,6 +5164,12 @@
       "saleStatus": "현재 기능에 신규 구매 버튼 없음",
       "archiveTests": [],
       "archiveHomeButtons": [],
+      "mockArchiveCases": [
+        {
+          "deploymentId": "01a200e2-0f0e-70b7-a158-00d25d2af59e",
+          "case": "무료-허브"
+        }
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -5141,7 +5181,8 @@
       },
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 홈에서 원본 목록 23개 카드를 각각 선택해 대응 화면과 주소 도달, 카드 이미지 확인. 하위 상품별 전체 검사는 별도"
     },
     {
       "id": "fusion-fortune",
@@ -5421,6 +5462,12 @@
       "archiveHomeButtons": [
         "흑월의 경고 상담"
       ],
+      "mockArchiveCases": [
+        {
+          "deploymentId": "01a200e2-0f0e-70b7-a158-00d25d2af59e",
+          "case": "흑월"
+        }
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -5434,7 +5481,7 @@
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈 → 질문 작성 → 앱 재진입과 도입 웹툰 왕복 후 초안 복원 → mock 구매 → 생성 이탈 → 구매 기록 → 저장 원문 → 계정 B 거부. 주문·완료 각 1회. 최신 일반 Linux AIT 및 실기기 별도"
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --native-report heukwol 홈에서 질문 초안·도입 웹툰 왕복, mock 주문·생성 중 종료·보관 원문·계정 B 거부. 실패한 장의 7일 재개는 별도 Worker 검사"
     },
     {
       "id": "heukwol-story",
@@ -6122,7 +6169,10 @@
         "인생 총운"
       ],
       "mockArchiveCases": [
-        "인생총운"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "인생총운"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -6367,7 +6417,10 @@
         "연애 비책"
       ],
       "mockArchiveCases": [
-        "연애비책"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "연애비책"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -6515,7 +6568,10 @@
         "만세력"
       ],
       "mockArchiveCases": [
-        "무료-계산"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-계산"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -6840,7 +6896,14 @@
         "꿀꿀운세 음악실"
       ],
       "mockArchiveCases": [
-        "음원-저장"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "음원-저장"
+        },
+        {
+          "deploymentId": "01a200e2-0f0e-70b7-a158-00d25d2af59e",
+          "case": "음원-저장"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -6857,7 +6920,7 @@
       "implementationStage": "확인된 코드/모의 연결 누락 있음",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
       "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
-      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --music-download PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증."
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --music-download 홈에서 모의 주문 1회·합성 파일 저장 요청·같은 소유자 구매 기록·계정 B 거부·세 화면 폭. 실제 MP3 다운로드와 실기기 저장 별도"
     },
     {
       "id": "nakshatra",
@@ -7479,7 +7542,10 @@
         "네오의 상담 편지"
       ],
       "mockArchiveCases": [
-        "네오-타로편지"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "네오-타로편지"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -7568,8 +7634,14 @@
         "네오 · 팩폭 전략실"
       ],
       "mockArchiveCases": [
-        "네오-베다전략",
-        "서양점성술-전략-상대"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "네오-베다전략"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "서양점성술-전략-상대"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -7774,7 +7846,10 @@
         "연이의 운명 노벨"
       ],
       "mockArchiveCases": [
-        "무료-독서"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-독서"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -8187,7 +8262,10 @@
         "반려동물 사주"
       ],
       "mockArchiveCases": [
-        "무료-계산"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-계산"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -8376,7 +8454,10 @@
         "심리테스트"
       ],
       "mockArchiveCases": [
-        "무료-독서"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-독서"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -8862,8 +8943,9 @@
       "tossRoute": "/saju/basic/play/?reading=brain",
       "sku": null,
       "inputContract": "생일·달력·출생 시각 또는 시간 모름·도시로 만든 원본 명식의 오행·십신·조후·종격",
-      "resultRenderer": "apps/toss/src/brain-reading.js → DestinyAnatomyEngine.buildDestinyAnatomy 및 DestinyAnatomyRender.renderSajuSections",
-      "storageContract": "게스트가 출생정보를 다시 입력하여 계산. 구매·생성 주문 없음",
+      "resultRenderer": "apps/toss/src/BrainReading.jsx → 원본 DestinyAnatomyEngine과 DestinyAnatomyRender, HD·베다 추가 차트와 원본 공유 카드",
+      "storageContract": "출생정보로 재계산. 계정 변경 시 보조 차트 초기화. 사용자가 피드·스토리 이미지를 기기에 저장·공유",
+      "verification": "f1e2f347ed 관련 55개 검사 및 Chrome에서 두 형식의 원본 PNG 생성. 토스 실기기 저장·공유 미검증",
       "webEntries": [
         "/ggulggul/?action=cdOneStepFreeSajuEntry&section=destinyAnatomyCard"
       ],
@@ -8871,37 +8953,44 @@
         "js/core/saju/destiny-anatomy/engine.js",
         "js/core/saju/destiny-anatomy/copy.js",
         "js/core/saju/destiny-anatomy/render.js",
-        "js/core/saju/destiny-anatomy/boot.js"
+        "js/core/saju/destiny-anatomy/boot.js",
+        "js/core/saju/destiny-anatomy/share-card.js"
       ],
       "webProductIds": [
         "saju_brain_reading"
       ],
       "freeCalculation": true,
-      "portStatus": "일부만 이식",
+      "portStatus": "콘솔·운영 설정 필요",
       "reducedBundle": "구현은 있으나 진입 차단",
       "currentEntry": "일반 홈의 진입 코드 확인",
       "bundleVerification": "휴대폰 및 상품별 전체 흐름 미검증",
-      "tossLogin": "게스트 입력과 무료 정적 계산",
-      "tossResult": "apps/toss/src/brain-reading.js → DestinyAnatomyEngine.buildDestinyAnatomy 및 DestinyAnatomyRender.renderSajuSections",
-      "reread": "게스트가 출생정보를 다시 입력하여 계산. 구매·생성 주문 없음",
-      "verification": "입구와 결과 소스 대조. 독립적인 전체 사용자 경로 검증 근거 미기록",
+      "tossLogin": "원본 정적 뇌구조는 게스트. 생시를 입력한 로그인 계정은 HD·베다 보조 차트를 요청할 수 있음",
+      "tossResult": "apps/toss/src/BrainReading.jsx → 원본 DestinyAnatomyEngine과 DestinyAnatomyRender, HD·베다 추가 차트와 원본 공유 카드",
+      "reread": "출생정보로 재계산. 계정 변경 시 보조 차트 초기화. 사용자가 피드·스토리 이미지를 기기에 저장·공유",
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
       "archiveTests": [],
       "archiveHomeButtons": [],
+      "mockArchiveCases": [
+        {
+          "deploymentId": "01a200e2-0f0e-70b7-a158-00d25d2af59e",
+          "case": "무료-허브"
+        }
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
         "reviewedModes": [
           "게스트 생일·시각·도시 → 원본 명식 기반 뇌구조와 각 영역 본문",
-          "유료 보고서 또는 주문 없이 무료 재계산"
+          "유료 보고서 또는 주문 없이 무료 재계산",
+          "로그인 계정의 HD·베다 추가 차트, 생시 미상·부분 실패 재호출, 뇌센터·차크라 전환",
+          "웹 원본 피드/스토리 PNG 생성과 토스 저장·공유 어댑터"
         ],
-        "codeGaps": [
-          "웹 뇌구조의 로그인 후 HD·베다 추가 계산 및 이미지 저장·공유는 현재 토스 게스트 명식의 정적 렌더 경로에 미연결"
-        ]
+        "codeGaps": []
       },
-      "implementationStage": "확인된 코드/모의 연결 누락 있음",
+      "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 비회원 정적 계산, 시간 미상과 생시 입력, mock 로그인 후 HD·베다 추가 레이어, 1080×1920 스토리 PNG 모의 저장 검사. 기기의 외부 공유·저장은 별도"
     },
     {
       "id": "saju-compat-basic-free",
@@ -8943,6 +9032,12 @@
       "saleStatus": "기본 계산은 구매 없음 · 부가 상품은 별도 행 참조",
       "archiveTests": [],
       "archiveHomeButtons": [],
+      "mockArchiveCases": [
+        {
+          "deploymentId": "01a200e2-0f0e-70b7-a158-00d25d2af59e",
+          "case": "무료-허브"
+        }
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -8954,7 +9049,8 @@
       },
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 두 사람 출생정보로 무료 정적 궁합·전생 인연 확인, 주문 0건"
     },
     {
       "id": "saju-compat-premium",
@@ -9006,6 +9102,12 @@
       "webGenerator": "worker/toss/native-compat-premium.js → worker/routes/saju-compat-premium.js:generateSajuCompatPremiumGroup",
       "archiveTests": [],
       "archiveHomeButtons": [],
+      "mockArchiveCases": [
+        {
+          "deploymentId": "01a200e2-0f0e-70b7-a158-00d25d2af59e",
+          "case": "사주-고급궁합"
+        }
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -9017,7 +9119,8 @@
       },
       "implementationStage": "기존 원본 계약 및 개발 검증 근거 대조 완료",
       "deviceStage": "토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료",
-      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음"
+      "portStatusScope": "개발 구현 판정이며 운영 출시 완료를 뜻하지 않음",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --native-report saju-compat-premium 홈에서 독립 상품 입력·mock 주문·생성 이탈·구매 기록 원문 및 계정 B 거부. 주문·생성 1회"
     },
     {
       "id": "saju-compatibility",
@@ -9596,7 +9699,10 @@
         "기본 숙요점"
       ],
       "mockArchiveCases": [
-        "숙요-도구"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "숙요-도구"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -9810,7 +9916,10 @@
         "타로 리딩"
       ],
       "mockArchiveCases": [
-        "유료타로-천상"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "유료타로-천상"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -9883,7 +9992,10 @@
         "타로 리딩"
       ],
       "mockArchiveCases": [
-        "무료-계산"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-계산"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10009,7 +10121,10 @@
         "타로 리딩"
       ],
       "mockArchiveCases": [
-        "무료-계산"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-계산"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10083,7 +10198,10 @@
         "타로 리딩"
       ],
       "mockArchiveCases": [
-        "유료타로-관계"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "유료타로-관계"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10224,7 +10342,10 @@
         "타로 리딩"
       ],
       "mockArchiveCases": [
-        "무료-계산"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-계산"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10369,7 +10490,10 @@
         "타로 리딩"
       ],
       "mockArchiveCases": [
-        "무료-계산"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-계산"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10495,7 +10619,10 @@
         "타로 리딩"
       ],
       "mockArchiveCases": [
-        "무료-계산"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-계산"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10710,8 +10837,14 @@
         "베다점 출생차트"
       ],
       "mockArchiveCases": [
-        "무료-원본",
-        "베다-리딩"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "무료-원본"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "베다-리딩"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10834,8 +10967,14 @@
       ],
       "archiveHomeButtons": [],
       "mockArchiveCases": [
-        "영냥이-전체상품",
-        "영냥이-계정격리"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "영냥이-전체상품"
+        },
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "영냥이-계정격리"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -11424,7 +11563,10 @@
         "자미두수 명반"
       ],
       "mockArchiveCases": [
-        "자미두수-심층"
+        {
+          "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+          "case": "자미두수-심층"
+        }
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",

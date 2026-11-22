@@ -7,9 +7,9 @@ const audit=JSON.parse(fs.readFileSync(new URL('../../../docs/toss/original-mode
 test('current audit separates recorded code gaps from historical partial ports',()=>{
  const result=implementationReadiness(inventory,audit);
  assert.equal(result.total,116);
- assert.deepEqual(result.codeGaps.map(row=>row.id),['music','saju-brain']);
- assert.equal(result.noRecordedCodeGaps.length,113);
- assert.deepEqual(result.evidencePending.map(row=>row.id),['fortune-prompt-hub']);
+ assert.deepEqual(result.codeGaps.map(row=>row.id),['music']);
+ assert.equal(result.noRecordedCodeGaps.length,115);
+ assert.deepEqual(result.evidencePending,[]);
  assert.match(result.codeGaps.find(row=>row.id==='music').gaps[0],/32MiB/);
 });
 test('missing, duplicate and foreign audit rows fail closed',()=>{

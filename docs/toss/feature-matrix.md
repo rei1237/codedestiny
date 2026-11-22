@@ -35,6 +35,8 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 
 실행기는 `apps/toss/test/private-simulation-archive.mjs`이며 Windows 경로 옵션은 `--local-windows`다. 실행 인자·시작/종료·종료 코드와 기능별 로그는 `D:/tmp/toss-release/full-parity-20261122/service-flow-results.json`과 같은 폴더에 있다. 영냥이 28개는 고유 상품 수이며 22개 명령을 직렬 실행했고 자미두수 심층과 영냥이 계정 전환은 각각 별도 로그에 기록했다. 아카이브 SHA-256, 전체 24개 실행 인자, 기능별로 확인한 결과는 [모의 AIT 실행 기록](./mock-service-flow-20261122.json)에 보존했다. 명령 하나가 여러 서비스를 함께 검사하기도 한다. 실제 기기 SDK·실결제·실 LLM·운영 DB는 별도 확인 대상이다.
 
+후속 Windows 모의 AIT `01a200e2-0f0e-70b7-a158-00d25d2af59e`에서 음원·독립 고급 궁합·흑월·네 단계 프로필을 다시 검사했다. 프로필 생성·선택·수정·재실행과 계정별 초안, 구매 뒤 이탈과 원문 재열람이 각 검사 범위에서 통과했다. 무료 허브에서는 원본 카드 23개에서 대상 화면을 각각 열었다. 무료 궁합과 전생 본문, 뇌구조 정적 계산·로그인 후 HD/베다 추가 차트·스토리 PNG 모의 저장까지 확인했다. 같은 아카이브에서 프롬프트 생성기 16개 도구의 원본 생성·저장·재진입, 계정 B 1개와 A 16개 격리, 주문 0건도 확인했다. 후속 저장 키 보강은 새 AIT로 검증해야 한다. 반복 실행은 고유 상품 수에 더하지 않는다.
+
 | 기능 | 웹 원본과 입력·생성 | 일반 토스 홈에서의 경로 | 로그인·상품·재열람 | 판정과 증거 |
 |---|---|---|---|---|
 | 캐릭터 홈 | `app/page.js`의 연이·영냥이 카드, 꽃돼지 홈은 `js/core/service-registry.js`와 `index.html` | 연이 → 꿀꿀운세, 영냥이 → 달빛 점술방. 꿀꿀운세에서 네오 선택 | 탐색은 공개. 구매 결과는 별도 권한 확인 | 축소판은 7개 링크. 새 일반 진입은 `main.tsx → AppEntry → App → UnifiedHome`. 360px 대표 경로 mock 실행 |
@@ -174,7 +176,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 유명인 사주 | /insights/famous-saju/ | /insights/famous-saju | 홈 버튼 · 유명인 사주 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 점성술 꽃 | /index.html?action=openAstrologyFlowerStudio | /flower | 홈 버튼 · 운명의 꽃 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 대화형 운명 상담 | /fortune-chat/ | /fortune-tea-house/?counsel=letter | 홈 버튼 · 연이의 상담 편지 | 콘솔·운영 설정 필요 | character-letter-saju, character-letter-ziwei, character-letter-sukuyo, character-letter-vedic, character-letter-astrology, character-letter-tarot, remaining-letter-saju, remaining-letter-ziwei, remaining-letter-sukuyo, remaining-letter-vedic, remaining-letter-astrology, remaining-letter-tarot, remaining-letter-saju-mackerel, remaining-letter-saju-salmon, remaining-letter-saju-flounder, remaining-letter-saju-tuna, remaining-letter-ziwei-mackerel, remaining-letter-ziwei-salmon, remaining-letter-ziwei-flounder, remaining-letter-ziwei-tuna, remaining-letter-sukuyo-mackerel, remaining-letter-sukuyo-salmon, remaining-letter-sukuyo-flounder, remaining-letter-vedic-mackerel, remaining-letter-vedic-salmon, remaining-letter-vedic-flounder, remaining-letter-vedic-tuna, remaining-letter-astrology-mackerel, remaining-letter-astrology-salmon, remaining-letter-astrology-flounder, remaining-letter-tarot-mackerel, remaining-letter-tarot-salmon, remaining-letter-tarot-flounder |
-| 운세 프롬프트 생성기 | /fortune/prompt-hub/ | /fortune/prompt-hub/ | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 운세 프롬프트 생성기 | /fortune/prompt-hub/ | /fortune/prompt-hub/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 운명의 찻집 | /fortune-tea-house/ | /fortune-tea-house/ | 홈 버튼 · 연이 · 운명의 찻집 | 콘솔·운영 설정 필요 | character-tea-saju, remaining-tea-saju, remaining-tea-sajuJoint, remaining-tea-tarot, remaining-tea-tarotFive, remaining-tea-sajuCompatibility, remaining-tea-sukuyo |
 | 무료 운세 전체 목록 | /free/ | /free/ | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 초융합 심층 리딩 | /fusion-fortune/ | /fusion-fortune/ | 홈 버튼 · 초융합 운세 | 콘솔·운영 설정 필요 | experts |
@@ -230,7 +232,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 관계 경계 상담 | /relationship-boundary-test/ | /relationship-boundary-test/ | 홈 버튼 · 관계 경계 리포트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영국 홍차점 | openRoyalTeaOracle | /oracle/royal-tea | 홈 버튼 · 영국 홍차점 | 이미 동작 | tea |
 | 사주 | /?action=cdOneStepFreeSajuEntry | /saju/basic/play | 홈 버튼 · 기본 사주 | 콘솔·운영 설정 필요 | sections, dashboard |
-| 나의 뇌구조 | /ggulggul/?action=cdOneStepFreeSajuEntry&section=destinyAnatomyCard | /saju/basic/play/?reading=brain | 일반 홈의 진입 코드 확인 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
+| 나의 뇌구조 | /ggulggul/?action=cdOneStepFreeSajuEntry&section=destinyAnatomyCard | /saju/basic/play/?reading=brain | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 무료 기본 사주 궁합 | /ggulggul/?action=cdOneStepFreeSajuEntry&section=compatCard | /saju/compatibility/ | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 고급 궁합 | /saju/compatibility/premium/ | /saju/compatibility/premium/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 기존 구매 · 기본 사주 궁합 상담 | js/saju-compat-archive.js:openSajuCompatArchive | /saju/compatibility/?orderId=<소유 주문 ID> | 꿀꿀운세 구매 기록의 소유 주문 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
