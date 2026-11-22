@@ -284,6 +284,6 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   {error&&!row&&requestId.current?<RecoveryNotice message={locale==='ko'?error:stateCopy.loadFailed} locale={locale} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{locale==='ko'?error:requestId.current?stateCopy.loadFailed:stateCopy.notFound} {stateCopy.paidWarningKnown}</p>}
   {row&&<p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p>}
   {!row&&requestId.current&&<OrderReference id={requestId.current} locale={siteLocale}/>}
-  <a href={'/yeongnyangi/library/?lang='+siteLocale}>{copy.library}</a>
+  <a className={styles.libraryReport} href={'/yeongnyangi/library/?lang='+siteLocale}>{copy.library}</a>
  </section>;
 }
