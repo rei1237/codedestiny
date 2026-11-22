@@ -1,16 +1,16 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 무료 탐색 허브를 통합하고 전체 소스의 local gate·Linux 일반/모의 AIT·비공개 QR·실기기 검증을 이어간다.
+next: 기존 main CI 44972161006 재검증 결과와 로컬 targeted 검사 종료를 확인한 뒤, 통과한 소스를 main에 전달하고 Linux 일반·모의 AIT와 미제출 비공개 QR을 검증한다.
 ---
 
 # ai-saju-studio 전체 이식
 
 ## 첫 행동
-node docs/toss/build-service-inventory.mjs가 발견한 ID와 11월 14일 감사의 차이를 확인한다. 연동은 원본 컴포넌트와 원장을 참조한다.
+기능 원장 116행과 원본 대조·Windows 모의 검증은 완료했다. 아래 통합 아카이브 절의 소스와 로그를 사용한다. 재개 시 `git status -sb`로 작업 위치를 확인하고 frontmatter의 next로 진행한다.
 
 ## 지금 상태
-기준 origin/main 0cb2f18c09ad8945c1082736d41d4164e820a2e8. 워크트리 D:/Development/codedestiny-worktrees/toss-full-parity-20261122-093536, 브랜치 wt/toss-full-parity-20261122-093536. 다른 세션이 main 작업 중.
+최신 통합 기준 origin/main 29550bf9e87f13fc4948147f83ddbce6280b987f, 마지막 검증 스냅샷 0d55c4b127. 워크트리 D:/Development/codedestiny-worktrees/toss-full-parity-20261122-093536, 브랜치 wt/toss-full-parity-20261122-093536. 다른 세션의 로컬 main 미전달 커밋은 별도로 보존한다.
 
 ## 승인 상태
 2026-11-22 사용자 “모든 서비스의 이식과 필요한 운영 검증이 끝나기 전에는 공개 출시하지 마.” 과거 무료 기능·기존 기록 우선 출시 권한은 철회되었다. automation-2를 읽기 전용으로 수정했다. 약관 동의, 새 검토 제출·기존 검토 취소, 실결제, 판매 활성화, 운영 배포, 공개 출시는 별도 결정이다. 검증 소스의 비공개 테스트 QR 준비는 승인 범위다.
@@ -23,8 +23,8 @@ node docs/toss/build-service-inventory.mjs가 발견한 ID와 11월 14일 감사
 
 ## 단계
 - [x] 자동화 수정 및 QR21 상태 재확인
-- [ ] 기능표 갱신과 누락 기능의 원본 이식
-- [ ] UI·인증·구매·생성·결과 모의 검증, 가상 모바일 제공
+- [x] 기능표 갱신, 확인된 입력·생성·재열람 누락 보완 및 음원 잔여 기록
+- [x] UI·인증·구매·생성·결과 모의 검증, 가상 모바일 제공
 - [ ] Linux AIT·비공개 QR 및 소스 CI
 - [ ] 실기기와 별도 운영 검증 후 최종 후보
 
