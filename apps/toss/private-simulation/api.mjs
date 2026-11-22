@@ -38,7 +38,7 @@ function exampleReading(kind,body){
   return replies(skyExample[kind]);
 }
 const unavailable=()=>replies({error:'PRIVATE_SIMULATION_UNAVAILABLE'},404);
-const sample={id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}};
+const sample={location:{tz:'Asia/Seoul',lat:37.5665,lng:126.978,label:'서울'},id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}};
 
 export function createSimulationApi(storage,person,musicTracks=[]){
   const music=createMusicSimulation(musicTracks);
@@ -94,6 +94,10 @@ export function createSimulationApi(storage,person,musicTracks=[]){
     if(path==='/canonical/auth/me'&&method==='GET')return replies({ok:true,authenticated:true,user:{id:owner,name:'모의 계정 '+person,role:'user'}});
     if(path==='/canonical/geocode'&&method==='GET')return url.searchParams.get('place')==='서울'?replies({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false}):replies({error:'PLACE_NOT_FOUND'},404);
     if(path==='/canonical/profile'&&method==='GET')return replies({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
+    if(path==='/canonical/yeongnyangi/free/hat'&&method==='POST'){
+      const {privateHat}=await import('./sorting-hat.mjs');
+      return privateHat(state.profiles,await request.json());
+    }
     if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return replies({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
     if(method==='POST'&&['/canonical/yeongnyangi/profiles','/canonical/yeongnyangi/profiles/update'].includes(path))return saveFixtureProfile(state,await request.json(),path.endsWith('/update'),save);
     if(path==='/human-design/chart'&&method==='POST')return privateHumanDesign((await request.json()).birth);

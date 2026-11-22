@@ -751,6 +751,13 @@ export async function handleTossRoutes(request,env) {
       const result=await geocodePlace(url.searchParams.get('place'));
       return reply(result.data,result.status);
     }
+    if(path==='/canonical/yeongnyangi/free/hat'&&request.method==='POST'){
+      await limit(env,auth._id,'yeongnyangi-free-hat',6,600000);
+      const body=await bodyOf(request,1024);
+      const {prepareHat}=await import('../yeongnyangi/hat/service.ts');
+      try{return reply({ok:true,result:await prepareHat(env,auth.userId,body)});}
+      catch(error){if(Number.isInteger(error?.status))throw new TossError(error.message,error.status);throw error;}
+    }
     if(path==='/canonical/yeongnyangi/saju/experience-check'&&request.method==='POST'){
       await limit(env,auth._id,'experience-check',6);
       return reply({ok:true,...await experienceCheckFortune(env,auth.userId,await bodyOf(request))});

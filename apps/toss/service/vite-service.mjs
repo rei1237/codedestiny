@@ -12,6 +12,7 @@ import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
+import {hatHouses,hatImage} from '../../../lib/yeongnyangi/hat-houses.ts';
 import {TOSS_WEBP_ART} from './bundle-art.mjs';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
 const shim=fileURLToPath(new URL('../canonical/next.jsx',import.meta.url)).replaceAll('\\','/');
@@ -251,6 +252,15 @@ export default function serviceCompat(){
     for(const match of source.matchAll(asset))references.add(match[1]);
    }
    const emitted=new Set();
+   const hatFolder='/assets/yeongnyangi/hat/';
+   if([...references].some(ref=>ref.startsWith(hatFolder))){
+    const pictures=['invitation',...hatHouses.map(house=>house.id)].map(id=>hatImage(id));
+    for(const original of [...pictures,hatFolder+'spirit-hat-v2.png']){
+     const spirit=original.endsWith('.png'),fileName=original.slice(1).replace(/\.png$/,'.webp');
+     const source=await sharp(resolve(publicRoot,'.'+original)).resize({width:spirit?320:480,withoutEnlargement:true}).webp({quality:72}).toBuffer();
+     this.emitFile({type:'asset',fileName,source});
+    }
+   }
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
     // Keep the tea room sprite coordinates and every animation frame in the offline archive.
@@ -293,13 +303,14 @@ export default function serviceCompat(){
      else if(path.startsWith(prefix)&&mime[extname(path)]&&!emitted.has(path)){
       if(/^images\/psychotest\/bmovie-v1\/[a-z]+-960\.webp$/.test(path.slice(publicRoot.length+1).split(sep).join('/')))continue;
       if(Object.hasOwn(TOSS_WEBP_ART,'/'+path.slice(publicRoot.length+1).replaceAll('\\','/')))continue;
+     if(path===resolve(publicRoot,'.'+hatFolder))continue;
       emitted.add(path);this.emitFile({type:'asset',fileName:path.slice(publicRoot.length+1).replaceAll('\\','/'),source:await sourceBytes(path)});
      }
     }
    };
    for(const ref of references){
     const path=resolve(publicRoot,'.'+ref);
-    if(!path.startsWith(publicRoot+sep))continue;
+    if(!path.startsWith(publicRoot+sep)||ref.startsWith(hatFolder))continue;
     if(ref.startsWith('/assets/talismans/originals/')||ref.startsWith('/assets/talismans/widget/'))continue;
     let info;try{info=await stat(path);}catch{/* Dynamic filename prefix. */}
     if(info?.isFile()){if(!Object.hasOwn(TOSS_WEBP_ART,ref)&&!emitted.has(path)){emitted.add(path);this.emitFile({type:'asset',fileName:ref.slice(1),source:await sourceBytes(path)});}continue;}

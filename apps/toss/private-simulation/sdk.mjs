@@ -7,8 +7,21 @@ const supported=fn=>Object.assign(fn,{isSupported:()=>true});
 const blocked=()=>{throw Error('PRIVATE_SIMULATION_UNAVAILABLE');};
 const disabled=new Proxy({},{get:()=>blocked});
 export const Accuracy={Balanced:'balanced'};
-export const Clipboard=disabled,Device=disabled,Share=disabled;
+export const Clipboard=disabled,Device=disabled;
+export const Share={createLink:blocked,sendMessage:supported(async({message})=>{
+ const {hatHouses}=await import('../../../lib/yeongnyangi/hat-houses.ts');
+ if(!hatHouses.some(house=>message===`영냥이의 모자 · ${house.name}\n${house.motto}`))return blocked();
+ localStorage.setItem('private-hat-share',message);
+})};
 export const File={saveBase64:supported(async value=>{
+ if(value?.mimeType==='image/png'&&value.fileName?.startsWith('영냥이의-모자-')){
+   const {hatHouses}=await import('../../../lib/yeongnyangi/hat-houses.ts');
+   if(!hatHouses.some(house=>value.fileName===`영냥이의-모자-${house.name}.png`)||typeof value.data!=='string'||!value.data.startsWith('iVBORw0KGgo')||value.data.length<32||value.data.length>10_000_000)return blocked();
+   const bytes=Uint8Array.from(atob(value.data.slice(0,32)),c=>c.charCodeAt(0)),header=new DataView(bytes.buffer);
+   if(header.getUint32(16)!==1080||header.getUint32(20)!==1400)return blocked();
+   localStorage.setItem('private-hat-save',JSON.stringify({fileName:value.fileName,width:1080,height:1400}));
+   return;
+ }
  if(value?.mimeType==='image/png'&&/^destiny-anatomy-(feed|story)\.png$/.test(value.fileName)&&typeof value.data==='string'&&value.data.startsWith('iVBORw0KGgo')&&value.data.length>=32){
    const head=atob(value.data.slice(0,32)),bytes=Uint8Array.from(head,c=>c.charCodeAt(0)),header=new DataView(bytes.buffer);
    const width=header.getUint32(16),height=header.getUint32(20);

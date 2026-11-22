@@ -38,7 +38,7 @@ function createAccountFixture(storage,owner,token,now){
  const secondary=owner==='offline-test-user-2';
  const key=secondary?'toss-offline-fixture-2':'toss-offline-fixture';
  let saved;try{saved=JSON.parse(storage?.getItem(key)||'null');}catch{saved=null;}
- const state={profiles:saved?.profiles||[{id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),teaDrafts:new Map(saved?.teaDrafts||[]),letters:new Map(saved?.letters||[]),fortunes:new Map(saved?.fortunes||[]),
+ const state={profiles:saved?.profiles||[{location:{tz:'Asia/Seoul',lat:37.5665,lng:126.978,label:'서울'},id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),teaDrafts:new Map(saved?.teaDrafts||[]),letters:new Map(saved?.letters||[]),fortunes:new Map(saved?.fortunes||[]),
   daily:saved?.daily||{day:null,balance:2,attended:false,unlocked:false,readings:{}},orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:(secondary?2**40:0)};
  const save=()=>{try{storage?.setItem(key,JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,intents:[...state.intents],teaDrafts:[...state.teaDrafts],letters:[...state.letters],fortunes:[...state.fortunes],daily:state.daily,orders:[...state.orders],testOrderSkus:[...state.testOrderSkus],sequence:state.sequence}));return Boolean(storage);}catch{return false;}};
  const letterProduct=reviewCatalog.find(p=>p.id==='yeoni:chat_saju');
@@ -152,6 +152,10 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[...expertProducts,product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});
+  if(path==='/canonical/yeongnyangi/free/hat'&&method==='POST'){
+   const {privateHat}=await import('../../private-simulation/sorting-hat.mjs');
+   return privateHat(state.profiles,await request.json());
+  }
   if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
   if(method==='POST'&&['/canonical/yeongnyangi/profiles','/canonical/yeongnyangi/profiles/update'].includes(path))return saveFixtureProfile(state,await request.json(),path.endsWith('/update'),()=>!storage||save());
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
