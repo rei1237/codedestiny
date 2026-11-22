@@ -18,6 +18,11 @@
 import { publicRecordCopy, PUBLIC_RECORD_PATH } from '../../lib/seo/public-record-copy.mjs';
 
 export const INSIGHT_SEO_TITLES = {
+  'yangin-sal-meaning': '양인살 뜻과 일간별 자리 | 꿀꿀 운세',
+  'sangmun-sal-meaning': '상문살 뜻과 띠별 계산법 | 꿀꿀 운세',
+  'dohwa-sal-saju': '도화살 뜻과 사주 특징 | 꿀꿀 운세',
+  'yeokma-sal-meaning': '역마살 뜻과 있는 사주 찾는 법 | 꿀꿀 운세',
+  'hwagae-sal-meaning': '화개살 뜻과 예술·고독의 기운 | 꿀꿀 운세',
   'gyeokguk-vs-yongshin': '격국과 용신의 차이 | 꿀꿀 운세',
   'jonggyeok-gajonggyeok': '종격·가종격과 정격의 차이 | 꿀꿀 운세',
   'vedic-vs-western-astrology': '베다점과 서양 점성술 비교 | 꿀꿀 운세',
