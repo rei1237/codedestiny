@@ -1,0 +1,112 @@
+{
+  "id": "neo",
+  "base": "public/images/master-profiles/neo-strategy-portrait.webp",
+  "sourceDir": "D:/CodeDestiny-Build/master-motion/neo",
+  "reportDir": "D:/CodeDestiny-Build/master-motion/neo/report",
+  "out": "public/images/master-motion/neo",
+  "input": {
+    "paddedSize": 720,
+    "padLeft": 60,
+    "padTop": 0,
+    "note": "정본 600x720 을 좌우 60px 거울 확장해 720x720, 다시 1024x1024(lanczos3)로 키워 input-1024.png 로 첨부했다"
+  },
+  "registration": {
+    "box": {
+      "left": 180,
+      "top": 140,
+      "width": 230,
+      "height": 210
+    },
+    "maxShift": 12,
+    "scales": [
+      0.98,
+      0.99,
+      1,
+      1.01,
+      1.02
+    ]
+  },
+  "qa": {
+    "maxGuardDiff": 5,
+    "minRegionDiff": 8,
+    "note": "8px 블록 평균 밝기 차이. F2 연이와 같은 문턱. 두 눈 모두 정본에서 보이고 얼굴이 기울어 눈마다 타원 하나를 둔다. 화면 왼쪽 눈을 가로지르는 머리카락 가닥은 반감·감음 칸에서도 이어진다(visual-checker 확인, 눈꺼풀 위 대비만 약함). 감음 칸 오른쪽 눈꺼풀의 1~2px 밝은 점(약 293,218)은 확대 7배에서만 보여 두었다"
+  },
+  "frames": {
+    "half": {
+      "file": "raw-half.png",
+      "prompt": "eyes half-closed mid-blink (upper eyelids lowered about halfway over the irises); eyebrows, mouth and expression otherwise unchanged",
+      "region": [
+        {
+          "cx": 216,
+          "cy": 257,
+          "rx": 19,
+          "ry": 10,
+          "feather": 5
+        },
+        {
+          "cx": 292,
+          "cy": 216,
+          "rx": 24,
+          "ry": 12,
+          "feather": 5
+        }
+      ]
+    },
+    "closed": {
+      "file": "raw-closed.png",
+      "prompt": "eyes fully closed in a gentle natural blink (upper eyelids fully lowered, lashes resting down); eyebrows, mouth and expression otherwise unchanged",
+      "region": [
+        {
+          "cx": 216,
+          "cy": 257,
+          "rx": 19,
+          "ry": 10,
+          "feather": 5
+        },
+        {
+          "cx": 292,
+          "cy": 216,
+          "rx": 24,
+          "ry": 12,
+          "feather": 5
+        }
+      ]
+    }
+  },
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "variants": {
+    "portrait": {
+      "kind": "portrait"
+    },
+    "avatar": {
+      "kind": "avatar",
+      "crop": {
+        "left": 90,
+        "top": 0,
+        "size": 420
+      }
+    }
+  },
+  "webp": {
+    "default": {
+      "sheet": 80,
+      "poster": 76
+    },
+    "avatar": {
+      "sheet": 84,
+      "poster": 84
+    }
+  },
+  "provenance": {
+    "purpose": "운명 전략 소개장 초상(네오)·초융합 마스터 띠 아바타의 대기 모션(눈 깜빡임) 스프라이트 시트",
+    "generationTool": "Codex CLI 0.156.1 (ChatGPT OAuth) built-in image_gen = gpt-image-2, 이미지 편집 입력",
+    "references": [
+      "public/images/master-profiles/neo-strategy-portrait.webp"
+    ],
+    "promptRules": "정본과 같은 인물·얼굴·머리·의상·구도·조명·배경을 유지하고 지정 부위만 바꾼다. 텍스트·글자·숫자·워터마크·로고·서명·테두리·꽃잎 금지. 물체 추가·이동·삭제 금지."
+  }
+}

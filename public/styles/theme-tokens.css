@@ -442,6 +442,12 @@ html[data-cd-theme="neo"] {
   --cd-yehwa-line-deep: #a97b3e;
   /* 달 디스크 바탕. 반투명이면 뒤가 비쳐 "흐린 유리 원"이 되므로 두 모드 다 불투명. */
   --cd-yehwa-ivory: #fdf6f0;
+  /* 대표 상담 배너의 밤 표면(2026-11-22 G). 연이는 딥 플럼, 네오는 아래에서 남보라 달빛으로 바꾼다. */
+  --cd-yehwa-night: #3a0e28;
+  --cd-yehwa-night-deep: #24081a;
+  --cd-yehwa-champagne: #f4d69f;
+  --cd-yehwa-pearl: #fffdf8;
+  --cd-yehwa-pearl-muted: #f6e6ee;
 }
 
 html.neo-mode,
@@ -451,6 +457,11 @@ html[data-cd-theme="neo"] {
   --cd-yehwa-line-2: #c4b5fd;
   --cd-yehwa-line-deep: #e8d5a3;
   --cd-yehwa-ivory: #dcc48e;
+  --cd-yehwa-night: #242139;
+  --cd-yehwa-night-deep: #1b1830;
+  --cd-yehwa-champagne: #f4d69f;
+  --cd-yehwa-pearl: #fffdf8;
+  --cd-yehwa-pearl-muted: #ede7f5;
 }
 
 /* Lunar floral controls: ornament stays in its own trailing gutter. */
