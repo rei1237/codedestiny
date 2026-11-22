@@ -67,11 +67,11 @@ function PrivateSpace({profile}:{profile:ReturnType<typeof useSpaceProfile>}){
   try{
    const [{readDiaryTodaySnapshot},{dayGroupOf},{buildDiaryDayDetail}]=await Promise.all([import('@/app/diary/_lib/today-snapshot'),import('@/lib/diary/fortune-adapter'),import('@/app/diary/_lib/day-copy')]);
    if(!mounted.current)return;
-   const snapshot=readDiaryTodaySnapshot(kstTodayYmd()),detail=buildDiaryDayDetail(snapshot.fortune,dayGroupOf(snapshot.chart,snapshot.ymd));
+   const snapshot=readDiaryTodaySnapshot(kstTodayYmd(),undefined,profile.sourceProfile),detail=buildDiaryDayDetail(snapshot.fortune,dayGroupOf(snapshot.chart,snapshot.ymd));
    setFortune(detail?detail.read+' '+detail.suggest:'오늘의 운세는 저장된 생년월일 프로필을 기준으로 확인할 수 있어요.');
   }catch{if(mounted.current)setFortuneError(true);}
   finally{if(mounted.current)setFortuneBusy(false);}
- },[]);
+ },[profile.sourceProfile]);
  useEffect(()=>{
   mounted.current=true;
   const updateDay=()=>{const next=kstTodayYmd();if(currentDay.current!==next){currentDay.current=next;setDay(next);setAffirmation(pickTrainingAffirmation('회복력 강화',-1).text);}};

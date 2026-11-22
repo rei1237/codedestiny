@@ -729,7 +729,7 @@ export async function handleTossRoutes(request,env) {
       try{return reply({ok:true,...await readOwnedCareerStyle(env,{userId:auth.userId,profileId:profileId.trim(),statusOnly})});}
       catch(error){if(error.status>=400&&error.status<500)throw new TossError(error.payload?.code||'INVALID_PROFILE',error.status);throw error;}
     }
-    if(path==='/canonical/fortune/prompt-hub/session'&&request.method==='GET')return reply({owner:auth.userId,scope:tossPromptLibraryScope(auth.userId,auth.revision,auth.environment)});
+    if((path==='/flower/session'||path==='/canonical/moonlit-lotus/session'||path==='/canonical/fortune/prompt-hub/session')&&request.method==='GET')return reply({owner:auth.userId,scope:tossPromptLibraryScope(auth.userId,auth.revision,auth.environment)});
     if(path==='/canonical/fortune/prompt-hub/generate'&&request.method==='POST'){
       await limit(env,auth._id,'prompt-hub-generate',20);
       const {generateFreeTossPrompt}=await import('../routes/prompt-hub.js');
@@ -750,6 +750,18 @@ export async function handleTossRoutes(request,env) {
       const {geocodePlace}=await import('../lib/geocode.js');
       const result=await geocodePlace(url.searchParams.get('place'));
       return reply(result.data,result.status);
+    }
+    if(path==='/canonical/astro/western-chart'&&request.method==='POST'){
+      await limit(env,auth._id,'yeon-heart-western-chart',6);
+      const {calculateWesternProfileChart}=await import('../routes/astro.js');
+      return forwardServiceResponse(await calculateWesternProfileChart(await bodyOf(request),env,request.url),headers);
+    }
+    if(path==='/canonical/yeongnyangi/free/hat'&&request.method==='POST'){
+      await limit(env,auth._id,'yeongnyangi-free-hat',6,600000);
+      const body=await bodyOf(request,1024);
+      const {prepareHat}=await import('../yeongnyangi/hat/service.ts');
+      try{return reply({ok:true,result:await prepareHat(env,auth.userId,body)});}
+      catch(error){if(Number.isInteger(error?.status))throw new TossError(error.message,error.status);throw error;}
     }
     if(path==='/canonical/yeongnyangi/saju/experience-check'&&request.method==='POST'){
       await limit(env,auth._id,'experience-check',6);

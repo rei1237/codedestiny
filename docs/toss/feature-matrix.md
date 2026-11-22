@@ -1,5 +1,7 @@
 # 웹 기능과 앱인토스 이식 현황
 
+11월 22일 웹 원본에서 다시 확인한 기능은 127개다. 미니 운세 게임 허브·포커·포춘 피쉬·혈액형·화투 인생 패와 달빛 연화당을 반영했다. 후속 원본 대조로 영냥이의 방·모자·오늘과 내일 타로, 사주 요리 웹툰, 연이의 마음 별자리를 추가했다. 같은 기능의 홈 별칭과 영냥이의 개별 상품은 별도로 집계했다. 기능별 입력·상품·계산·원문 재열람은 [전체 원장](./full-service-inventory.json), 콘솔 상태와 실제 검수 순서는 [출시 준비 점검](./release-preparation-20261122.md)에서 확인한다.
+
 2026-11-22 QR21 콘솔 상태는 출시 준비됨이다. 종전 부분 출시 승인은 철회되었다. 전체 이식·실기기·운영 검증 및 최종 승인이 필요하다. [제출 이력](./launch-candidate-20261116.md).
 
 2026-11-16 달빛 예화 하단 버튼 개선판 **QR `20261116-21` 등록 및 검토 제출 완료**(source `324b95f47`, 전체 Linux CI `43746082025` SUCCESS). **모의 archive 120행**(기본76+등급/복구/무료44), 실제 일반 Linux AIT의 홈/입력 복원·저장 원문/재시도·계정 B 차단·웹툰19편도 PASS다. [결제 후 제공 경로 검증](./paid-launch-validation-2026-11-16.md)과 [출시 후보 점검](./launch-candidate-20261116.md)을 참고한다. 120은 중복 흐름이 있는 테스트 행 수이며 전체110기능의 실결제·운영 생성 완료 수가 아니다. 콘솔 상품5개는 모두 미노출이고 신규판매는 닫혀 있다.
@@ -151,7 +153,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 
 <!-- generated-service-index -->
 <details>
-<summary>웹·토스 전체 기능 116개 펼치기</summary>
+<summary>웹·토스 전체 기능 127개 펼치기</summary>
 
 | 기능 | 웹 진입 | 토스 진입 | 일반 홈 검증 | 이식 | 배포 AIT 세부 검사 |
 |---|---|---|---|---|---|
@@ -160,6 +162,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 점성술 | /?action=cdHomeAstroEntry | /astrology | 홈 버튼 · 서양 점성술 출생차트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 점성술 전문가 상담 | /astrology-ai | /astrology-ai/ | 홈 버튼 · 점성술 전문가 상담 | 콘솔·운영 설정 필요 | experts |
 | 최애운명 | /saju/destiny-bias | /bias | 홈 버튼 · 최애운명 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 혈액형 테스트 | /blood-type-app | /mini-games/?play=blood-type | 홈 → 꿀꿀운세 → 미니 운세 게임 → 혈액형 테스트 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 나의 일 스타일 | /saju/career-style/ | /saju/career-style/ | 홈 버튼 · 나의 일 스타일 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 상담 세계관 웹툰 | /consultations/ | /consultations/stories | 홈 버튼 · 달빛 상담 웹툰 서가 | 이미 동작 | stories |
 | 코스믹 소울 명상 | /cosmic-soul-meditation.html | /meditation/cosmic | 홈 버튼 · 코스믹 소울 명상 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
@@ -169,13 +172,15 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 미래 시뮬레이션 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 삶의 항로 | /destiny-compass/ | /destiny-compass | 홈 버튼 · 운명의 나침반 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주로 보는 인연의 장소 | /saju/destiny-meeting-place | /saju/destiny-meeting-place/ | 홈 버튼 · 운명의 인연 장소 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 데스티니 포커 | /destiny-poker | /mini-games/?play=destiny-poker | 홈 → 꿀꿀운세 → 미니 운세 게임 → 데스티니 포커 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 꿈해몽 | /dream/ | /dream/tarot | 홈 버튼 · 드림 타로 | 콘솔·운영 설정 필요 | tarot |
 | 정신분석 해몽 | openPsychoDreamModal | /dream/psycho/ | 홈 버튼 · 정신분석 해몽 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주로 보는 여행지 | js/core/saju/reportDashboard.js:trip -> energyCoordCard | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections |
 | 전문가 관상 분석 | /animal/physio | /animal/physio/ | 홈 버튼 · 전문가 동물 관상 | 콘솔·운영 설정 필요 | face |
 | 유명인 사주 | /insights/famous-saju/ | /insights/famous-saju | 홈 버튼 · 유명인 사주 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
-| 점성술 꽃 | /index.html?action=openAstrologyFlowerStudio | /flower | 홈 버튼 · 운명의 꽃 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 점성술 꽃 | /index.html?action=openAstrologyFlowerStudio | /flower | 홈 버튼 · 운명의 꽃 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 대화형 운명 상담 | /fortune-chat/ | /fortune-tea-house/?counsel=letter | 홈 버튼 · 연이의 상담 편지 | 콘솔·운영 설정 필요 | character-letter-saju, character-letter-ziwei, character-letter-sukuyo, character-letter-vedic, character-letter-astrology, character-letter-tarot, remaining-letter-saju, remaining-letter-ziwei, remaining-letter-sukuyo, remaining-letter-vedic, remaining-letter-astrology, remaining-letter-tarot, remaining-letter-saju-mackerel, remaining-letter-saju-salmon, remaining-letter-saju-flounder, remaining-letter-saju-tuna, remaining-letter-ziwei-mackerel, remaining-letter-ziwei-salmon, remaining-letter-ziwei-flounder, remaining-letter-ziwei-tuna, remaining-letter-sukuyo-mackerel, remaining-letter-sukuyo-salmon, remaining-letter-sukuyo-flounder, remaining-letter-vedic-mackerel, remaining-letter-vedic-salmon, remaining-letter-vedic-flounder, remaining-letter-vedic-tuna, remaining-letter-astrology-mackerel, remaining-letter-astrology-salmon, remaining-letter-astrology-flounder, remaining-letter-tarot-mackerel, remaining-letter-tarot-salmon, remaining-letter-tarot-flounder |
+| 포춘 피쉬 | /fortune-teller-fish | /mini-games/?play=fortune-fish | 홈 → 꿀꿀운세 → 미니 운세 게임 → 포춘 피쉬 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 운세 프롬프트 생성기 | /fortune/prompt-hub/ | /fortune/prompt-hub/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 운명의 찻집 | /fortune-tea-house/ | /fortune-tea-house/ | 홈 버튼 · 연이 · 운명의 찻집 | 콘솔·운영 설정 필요 | character-tea-saju, remaining-tea-saju, remaining-tea-sajuJoint, remaining-tea-tarot, remaining-tea-tarotFive, remaining-tea-sajuCompatibility, remaining-tea-sukuyo |
 | 무료 운세 전체 목록 | /free/ | /free/ | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
@@ -186,6 +191,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 흑월 이야기 | /heukwol/#heukwol-story | /consultations/stories?story=heukwol | 일반 홈의 진입 코드 확인 | 이미 동작 | stories |
 | 홈 화면 꾸미기 | /app/home-widget/ | /app/home-widget | 홈 버튼 · 연이의 달빛 홈 화면 | 이미 동작 | widget |
 | 휴먼 디자인 | /human-design/ | /human-design | 홈 버튼 · 휴먼 디자인 차트 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 화투 인생 패 | /oracle/hwatu-life/ | /mini-games/?play=hwatu-life | 홈 → 꿀꿀운세 → 미니 운세 게임 → 화투 인생 패 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | IFÀ 오라클 | /ifa-oracle.html | /oracle/ifa | 홈 버튼 · 이파 오라클 | 이미 동작 | tarot |
 | 자미두수 섬 해설·궁별 상담 | /island-consult/ | /ziwei/sections#island-history | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 주역 거북점 | /oracle/juyuk/ | /oracle/turtle | 홈 버튼 · 주역 거북점 | 이미 동작 | turtle |
@@ -203,6 +209,8 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 마스터 인연의 서 · 궁합편 | /master-love-codex/ | /master-love-codex/ | 홈 버튼 · 마스터 인연의 서 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 마야점 | /maya/ | /maya/ | 홈 버튼 · 마야 달력 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | MBTI 동물 궁합 | openMbtiModal | /mbti/animals | 홈 버튼 · MBTI 동물 궁합 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 미니 운세 게임 | /mini-games/ | /mini-games/ | 홈 → 꿀꿀운세 → 미니 운세 게임 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 달빛 연화당 | /moonlit-lotus/ | /moonlit-lotus/ | 홈 → 꿀꿀운세 → 달빛 연화당 · 소스 연결 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 달빛 음악 플레이어 | /music/ | /music | 홈 버튼 · 꿀꿀운세 음악실 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 나크샤트라 결정판 | /nakshatra/ | /nakshatra/resolve | 홈 버튼 · 나의 나크샤트라 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 숙요·나크샤트라 통합 상담 | /nakshatra/ai/ | /nakshatra/ai | 홈 버튼 · 나크샤트라 개인 심화 상담 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
@@ -239,6 +247,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 사주 FPTI | /saju-fpti/ | /saju-fpti/ | 홈 버튼 · 사주 FPTI | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 가디언 아트 | /saju-guardian | /saju-guardian/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 그림 프롬프트 | index.html:사주 리포트 | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections, dashboard |
+| 사주 요리 웹툰 | /recipes/ | /recipes/ | 홈 → 꿀꿀운세 → 이야기·음악 → 사주 요리 웹툰 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 시빌라 연간 대비 리포트 | /saju/sibyl/ | /saju/sibyl/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sibyl |
 | 시크릿 하우스 | js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | secretHouse |
 | 스톤헨지 룬점 | /index.html?action=openRuneOracle | /oracle/rune | 홈 버튼 · 스톤헨지 룬 | 이미 동작 | tarot |
@@ -260,12 +269,16 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 오늘의 운세 | /today/ | /today | 홈 버튼 · 오늘의 운세 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 베다점 | /?action=cdHomeVedicEntry | /vedic | 홈 버튼 · 베다점 출생차트 | 콘솔·운영 설정 필요 | guests |
 | 윤달의 베다점 상담 | /vedic-ai | /vedic-ai/ | 홈 버튼 · 베다 전문가 상담 | 콘솔·운영 설정 필요 | experts |
+| 연이의 마음 별자리 | /yeon-star-hug/ | /yeon-star-hug/ | 홈 → 꿀꿀운세 → 연이의 마음 별자리 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 운세보는 영냥이 | /yeongnyangi/ | /yeongnyangi/fortune/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | mobile-owner, mock-catalog |
-| 영냥이 출석과 오늘의 운세 | /yeongnyangi/free-fortune/ | /daily | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 영냥이 출석과 오늘의 운세 | /yeongnyangi/room/#daily | /daily | 영냥이 → 오늘의 운세와 출석 또는 영냥이의 방 → 오늘의 무료 운세 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영냥이 상담 전 자주 묻는 질문 | /yeongnyangi/faq/ | /yeongnyangi/faq/ | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 호라리 질문 차트 | /yeongnyangi/fortune/?mode=horary | /yeongnyangi/fortune/?mode=horary | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
 | 프라쉬나 질문 상담 | /yeongnyangi/fortune/?mode=prashna | /yeongnyangi/fortune/?mode=spirit | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
+| 영냥이의 방 | /yeongnyangi/room/ | /yeongnyangi/room/ | 홈 → 영냥이 → 영냥이의 방 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 영냥이의 오늘·내일 타로 | /yeongnyangi/room/#daily-tarot | /yeongnyangi/room/#daily-tarot | 홈 → 영냥이 → 영냥이의 방 → 오늘·내일 타로 · 소스 연결 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영냥이 시즌 연재 | /yeongnyangi/season-1/ | /moonlight/season-1 | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 영냥이의 모자 | /yeongnyangi/room/#sorting-hat | /yeongnyangi/hat/ | 홈 → 영냥이 → 영냥이의 방 → 모자 이야기 · 소스 연결 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | Divya Yoga | /yoga-guru.html | /yoga-guru | 홈 버튼 · 디비야 요가 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 자미두수 | /?action=cdHomeZiweiEntry | /ziwei/chart | 홈 버튼 · 자미두수 명반 | 콘솔·운영 설정 필요 | sections |
 | 자미두수 전문가 상담 | /ziwei-ai | /ziwei-ai/ | 홈 버튼 · 자미두수 전문가 상담 | 콘솔·운영 설정 필요 | experts |

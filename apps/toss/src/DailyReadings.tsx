@@ -4,13 +4,14 @@ import {TextArea,TextField} from '@toss/tds-mobile';
 import {Button} from './Button';
 import {BirthFields,birthPayload,emptyBirth} from './BirthFields';
 import {api} from './platform';
+import {kstDateKey} from '../../../lib/tarot/yeongnyangi-daily-card';
 import TossSessionScope from './TossSessionScope';
 import {freeCategories,birthCategories,type FreeCategoryId,type FreeReading,type AttendanceState} from '../../../worker/yeongnyangi/fortune/free/categories';
 
 const categories=freeCategories.filter(item=>item.id!=='horary');
 const birthKeys=new Set(['birthDate','birthTime','birthPlace','birthTimezone','birthTimeUnknown','calendarType','leapMonth','gender']);
 type Request=<T>(path:string,body?:unknown)=>Promise<T>;
-type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;request?:Request};
+type Props={loggedIn:boolean;onLogin:()=>void;onError:(error:unknown)=>void;onPassChange?:(state:AttendanceState|null)=>void;request?:Request};
 
 export function DailyResult({result}:{result:FreeReading}){
   return <article className="daily-result" aria-label={result.title+' 결과'}>
@@ -24,17 +25,20 @@ export function DailyResult({result}:{result:FreeReading}){
 }
 
 export default function DailyReadings(props:Props){return <TossSessionScope><DailyReadingsContent {...props}/></TossSessionScope>;}
-function DailyReadingsContent({loggedIn,onLogin,onError,request=api}:Props){
+function DailyReadingsContent({loggedIn,onLogin,onError,onPassChange,request=api}:Props){
   const [state,setState]=useState<AttendanceState|null>(null),[category,setCategory]=useState<FreeCategoryId>('basic');
+  const [day,setDay]=useState(()=>kstDateKey());
+  useEffect(()=>{const refresh=()=>setDay(kstDateKey());const clock=setInterval(refresh,15000);window.addEventListener('focus',refresh);return()=>{clearInterval(clock);window.removeEventListener('focus',refresh);};},[]);
   const [birth,setBirth]=useState(emptyBirth),[draft,setDraft]=useState<Record<string,string>>({});
   const [result,setResult]=useState<FreeReading|null>(null),[busy,setBusy]=useState(false),[loading,setLoading]=useState(false),[failed,setFailed]=useState(false);
   const epoch=useRef(0),operation=useRef<object|null>(null);
   useLayoutEffect(()=>()=>{epoch.current++;operation.current=null;},[]);
+  useEffect(()=>{onPassChange?.(state);},[state,onPassChange]);
   const config=categories.find(item=>item.id===category)!;
   useEffect(()=>{let live=true;epoch.current++;setState(null);setResult(null);setFailed(false);if(!loggedIn){operation.current=null;setBusy(false);setLoading(false);setBirth(emptyBirth());setDraft({});}
     if(loggedIn){setLoading(true);request<AttendanceState>('/daily/status').then(data=>{if(live)setState(data);}).catch(error=>{if(live){setFailed(true);onError(error);}}).finally(()=>{if(live)setLoading(false);});}
     return()=>{live=false;epoch.current++;};
-  },[loggedIn,request]);
+  },[loggedIn,request,day]);
   useEffect(()=>{const ticket=++epoch.current;setResult(null);setFailed(false);
     if(!loggedIn||!state?.unlocked)return;
     setLoading(true);request<{result:FreeReading|null}>('/daily/reading?category='+category).then(data=>{if(epoch.current===ticket)setResult(data.result);}).catch(error=>{if(epoch.current===ticket){setFailed(true);onError(error);}}).finally(()=>{if(epoch.current===ticket)setLoading(false);});

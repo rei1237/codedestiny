@@ -33,6 +33,22 @@ function flowerProfile(source,input,context){
   return profile;
 }
 
+// Only authored interpretation fields cross the API. Raw birth data, candidate rankings
+// and full natal charts stay in the calculation service.
+function studioFacts(source,matched,context){
+ const pick=(object,keys)=>Object.fromEntries(keys.filter(key=>object?.[key]!=null).map(key=>[key,object[key]]));
+ const view=pick(matched,['saju_verdict','astro_verdict','jamidusu_verdict','sukuyo_verdict','rationale_points','bloom_story','destiny_flower_language','flower_data']);
+ view.share_hook=pick(matched.share_hook,['rarity_line']);
+ view.chart=pick(matched.chart,['sun_sign','moon_sign','rising_sign']);
+ view.ziwei=pick(matched.ziwei,['primary_stars','primary_stars_label','palace','palace_label','brightness']);
+ view.strong_star=pick(matched.strong_star,['star','brightness','palace','star_label','brightness_label','palace_label']);
+ view.sukuyo=pick(matched.sukuyo,['mansion_name','mansion_label','group','group_label','moon_phase','phase_label','guardian_animal','guardian_label']);
+ view.visual_intensity=pick(matched.visual_intensity,['brightness_label','moon_label']);
+ const facts=factMap(context);
+ const analysis=source==='saju'?{isStrong:facts.strengthHeuristic?.isStrong,yongshin_elements:facts.usefulGod,johu_type:facts.seasonalBalance?.type}:{};
+ return {matched:view,analysis};
+}
+
 // Dependency injection is for offline engine parity tests, never a client-controlled bypass.
 export async function matchTossFlowers(body,env,engines){
   const raw=flowerBirthInput(body?.birth);
@@ -50,7 +66,7 @@ export async function matchTossFlowers(body,env,engines){
       if(!matched?.flower)throw new TossError('FLOWER_CHART_UNAVAILABLE',503);
       // Do not return the matcher's full profile, chart, birth or internal ranking payload.
       sources[source]={state:'ready',flower:matched.flower,narrative:matched.narrative,
-        limitations:context.limitations,engineVersion:context.engineVersion,algorithmVersion:matched.algorithm?.version};
+        limitations:context.limitations,engineVersion:context.engineVersion,algorithmVersion:matched.algorithm?.version,studio:studioFacts(source,matched,context)};
     }catch(error){
       const inputCodes=['BIRTH_TIME_REQUIRED','INVALID_BIRTH','INVALID_BIRTH_DATE','GENDER_REQUIRED','SAJU_KST_REQUIRED','HOUSE_SYSTEM_UNAVAILABLE'];
       sources[source]={state:'unavailable',code:inputCodes.includes(error?.code)?error.code:'FLOWER_CHART_UNAVAILABLE'};

@@ -80,6 +80,12 @@ async function openReading(page, cardId = 'summaryCard', group = 'more') {
 async function assertSummaryVisible(page, label) {
   await openReading(page);
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
+  // 🔴 홈 입구 링크(section=sajuCard)로 들어오면 destiny-profile.js(_dpRevealHomeSection)가 결과
+  // 도착 뒤 8초 동안 #sajuCard 를 붙잡고, #resultPage 의 DOM 변경마다 그 카드로 되돌려 스크롤한다.
+  // 실사용자의 스크롤(wheel·touch·key·pointer)은 그 붙잡기를 바로 놓지만 스크립트 scrollIntoView 는
+  // 사용자 입력이 아니라 놓지 못한다 — 느린 러너에서 단정이 8초 창 안에 걸리면 #summaryCard 가 화면
+  // 밖으로 끌려가 리빌 전 상태로 남았다(실측: scrollY 80 = #sajuCard). 사용자처럼 휠로 스크롤해 놓는다.
+  await page.mouse.wheel(0, 1);
   // The report can exceed 30,000px; scrollIntoViewIfNeeded can consider a
   // sliver of its body visible while the card's reveal threshold is unmet.
   await page.locator('#summaryCard').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));

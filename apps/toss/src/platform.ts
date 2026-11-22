@@ -1,3 +1,5 @@
+import {clearFlowerHistory} from '../service/flower-history.mjs';
+import {clearStarHugSession} from '../service/yeon-star-session.mjs';
 import {clearTossPromptLibrary} from '../../../lib/fortune/toss-prompt-library.mjs';
 import {NEW_PURCHASES_AVAILABLE,SERVICE_AVAILABLE} from './release';
 import {Environment,IAP,TossAuth,Storage,Share,isMinVersionSupported} from '@apps-in-toss/web-framework';
@@ -146,7 +148,13 @@ export async function unlinkCurrentSession(){
   const unlinkEpoch=sessionEpoch,unlinkAttempt=loginAttempt;
   const result=await api<{remoteUnlink:string;promptLibraryOwner?:string}>('/unlink',{});
   let cleanupFailed=false;
-  try{if(result.promptLibraryOwner&&typeof localStorage!=='undefined')clearTossPromptLibrary(localStorage,result.promptLibraryOwner);}
+  if(result.promptLibraryOwner&&typeof localStorage!=='undefined'){
+    try{const {clearTossSpaceOwner}=await import('../../../app/moonlit-lotus/_lib/private-store');await clearTossSpaceOwner(result.promptLibraryOwner);}
+    catch{cleanupFailed=true;}
+  }
+  try{if(result.promptLibraryOwner&&typeof localStorage!=='undefined')clearTossPromptLibrary(localStorage,result.promptLibraryOwner);
+    if(result.promptLibraryOwner&&typeof localStorage!=='undefined')clearFlowerHistory(localStorage,result.promptLibraryOwner);
+    if(result.promptLibraryOwner&&typeof sessionStorage!=='undefined')clearStarHugSession(sessionStorage,result.promptLibraryOwner);}
   catch{cleanupFailed=true;}
   if(sessionEpoch!==unlinkEpoch||loginAttempt!==unlinkAttempt)throw new ApiError('SESSION_CHANGED','',409);
   const cleared=await clearSession();

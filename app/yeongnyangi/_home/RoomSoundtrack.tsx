@@ -12,13 +12,13 @@ const tracks = {
  warm: novelTrack('연이와 네오'),
  gold: 'https://music.code-destiny.com/DestinyWar/Moonlit%20Strategy%20Map.mp3',
 };
-export function useRoomSoundtrack(mood:keyof typeof tracks) {
+export function useRoomSoundtrack(mood:keyof typeof tracks,previewSource?:string) {
  const audio = useRef<HTMLAudioElement|null>(null);
  const [enabled,setEnabled] = useState(false);
  const [playing,setPlaying] = useState(false);
  const [error,setError] = useState('');
  const [volume,setVolume] = useState(.22);
- const source = tracks[mood];
+ const source = previewSource ?? tracks[mood];
  useEffect(() => {
   const player = new Audio();
   player.loop = true;
@@ -34,7 +34,8 @@ export function useRoomSoundtrack(mood:keyof typeof tracks) {
   const failed = () => { if(active){setPlaying(false);setEnabled(false);setError('음악을 불러오지 못했어요. 다시 켜 주세요.');} };
   const started = () => { if(active) setPlaying(true); };
   const paused = () => { if(active) setPlaying(false); };
-  const play = () => { if(enabled && !document.hidden) void player.play().catch(failed); };
+  let suspended=false;
+  const play = () => { if(enabled && !document.hidden && !suspended) void player.play().catch(reason=>{if(reason?.name!=='AbortError')failed();}); };
   const visibility = () => { if(document.hidden) player.pause(); else play(); };
   player.addEventListener('error',failed);
   player.addEventListener('playing',started);
@@ -45,6 +46,10 @@ export function useRoomSoundtrack(mood:keyof typeof tracks) {
    play();
   }else{player.pause();setPlaying(false);}
   document.addEventListener('visibilitychange',visibility);
+  const suspend=()=>{suspended=true;player.pause();};
+  const resume=()=>{suspended=false;visibility();};
+  window.addEventListener('pagehide',suspend);
+  window.addEventListener('pageshow',resume);
   return () => {
    active = false;
    player.pause();
@@ -52,6 +57,8 @@ export function useRoomSoundtrack(mood:keyof typeof tracks) {
    player.removeEventListener('playing',started);
    player.removeEventListener('pause',paused);
    document.removeEventListener('visibilitychange',visibility);
+   window.removeEventListener('pagehide',suspend);
+   window.removeEventListener('pageshow',resume);
   };
  },[enabled,source]);
  return {enabled,playing,error,volume,setVolume,toggle:()=>{setError('');setEnabled(value=>!value);}};

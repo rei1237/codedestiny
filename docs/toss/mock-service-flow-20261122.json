@@ -490,6 +490,65 @@
           ]
         }
       ]
+    },
+    {
+      "deploymentId": "01a2012a-d541-71e7-9838-706dd25b62f1",
+      "sha256": "86128780db02c0d6d2b77e063b1fa3184e8255d27f6fa7cc3985a69de428a7dd",
+      "platform": "Windows 격리 모의판, 압축 해제 104034876바이트로 업로드 제외",
+      "checks": [
+        {
+          "case": "영냥이의 방",
+          "args": [
+            "--yeongnyangi-room"
+          ],
+          "canonicalIds": [
+            "yeongnyangi-room"
+          ],
+          "exitCode": 0,
+          "checked": [
+            "원화 22장 두 분기, 4개 마스코트 반응, 10개 잡담, 행동 쪽지 3종, 모의 음향 켜기·중단·복귀"
+          ]
+        },
+        {
+          "case": "모자 배정",
+          "args": [
+            "--sorting-hat"
+          ],
+          "canonicalIds": [
+            "yeongnyangi-sorting-hat"
+          ],
+          "exitCode": 0,
+          "checked": [
+            "6개 기숙사 원화, 로그인·프로필·시간 미상 참고 배정·근거·1080×1400 PNG 저장·재진입·계정 B 격리"
+          ]
+        },
+        {
+          "case": "오늘·내일 타로",
+          "args": [
+            "--room-daily-tarot"
+          ],
+          "canonicalIds": [
+            "yeongnyangi-room-daily-tarot"
+          ],
+          "exitCode": 0,
+          "checked": [
+            "홈에서 출석·당일권 1회 차감·오늘과 내일의 카드·원문 재진입·다른 계정 차단·주문 0건"
+          ]
+        },
+        {
+          "case": "사주 요리 웹툰",
+          "args": [
+            "--recipe-comics"
+          ],
+          "canonicalIds": [
+            "saju-recipe-comics"
+          ],
+          "exitCode": 0,
+          "checked": [
+            "게스트 홈에서 31개 레시피, 127컷, 원본 재료·단계·조리 보완 대조 및 이미지 decode"
+          ]
+        }
+      ]
     }
   ]
 }

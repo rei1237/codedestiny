@@ -1,0 +1,10 @@
+.recipe-mobile {overflow-wrap: anywhere;}
+.recipe-mobile h1 {margin-block: .75em .5em;}
+.recipe-mobile .recipe-cover {width: 100%; height: auto; border-radius: 12px; margin-top: 1rem;}
+.recipe-mobile details {border-bottom: 1px solid currentColor; padding: .5rem 0;}
+.recipe-mobile summary {cursor: pointer; padding: .75rem 0; font-weight: 700;}
+.recipe-mobile a {display: inline-block; padding-block: .55rem;}
+.recipe-mobile small {display: block; margin-top: .25rem;}
+.recipe-mobile section {margin-block: 2rem;}
+.recipe-mobile section p {margin-block: .6em; line-height: 1.65;}
+.recipe-mobile img {max-width: 100%;}

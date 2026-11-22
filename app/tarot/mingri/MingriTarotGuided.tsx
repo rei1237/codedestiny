@@ -73,7 +73,8 @@ function MingriFlow(){
  const flow=useGuidedFlow({steps:STEPS,featureId:'mingri_tarot',surface:'tarot_mingri',flowId:FLOW_ID});
  const {controller,state,step}=flow;
  const reduced=state.reducedMotion;
- const category=state.answers.topic||'daily';
+ const topic=state.answers.topic;
+ const category=typeof topic==='string'&&topic ? topic : 'daily';
  const categoryLabel=t(`mingriTarot.topics.${category}`);
  const [deck,setDeck]=useState<number[]>([]);
  const [picks,setPicks]=useState<Pick[]>([]);

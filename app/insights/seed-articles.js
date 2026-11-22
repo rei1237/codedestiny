@@ -1,5 +1,6 @@
 import { MOON_LIBRARY_ARTICLES } from './moon-library-articles';
 import { SEARCH_INTENT_ARTICLES } from './search-intent-articles.mjs';
+import { SINSAL_ARTICLES } from './sinsal-articles.mjs';
 import { PUBLIC_RECORD_ARTICLE } from './public-record-article';
 import { actualContentDate } from "../../lib/content/editorial-review.mjs";
 import { INSIGHT_FIRST_PUBLISHED } from "./first-published.mjs";
@@ -960,7 +961,7 @@ function buildSeedArticle(article, index) {
   };
 }
 
-const MERGED_INSIGHT_ARTICLES = [...SEARCH_INTENT_ARTICLES, ...MOON_LIBRARY_ARTICLES, PUBLIC_RECORD_ARTICLE, ...SEO_GROWTH_ARTICLES, ...INSIGHT_ARTICLES];
+const MERGED_INSIGHT_ARTICLES = [...SEARCH_INTENT_ARTICLES, ...SINSAL_ARTICLES, ...MOON_LIBRARY_ARTICLES, PUBLIC_RECORD_ARTICLE, ...SEO_GROWTH_ARTICLES, ...INSIGHT_ARTICLES];
 
 export const INSIGHT_SEED_ARTICLES = Array.from(
   new Map(

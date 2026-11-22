@@ -9,16 +9,24 @@ export function changePerson(value){
 }
 function scoped(storage){
   const prefix=simulationNamespace+person+':';
-  const keys=()=>Object.keys(storage).filter(key=>key.startsWith(prefix)).map(key=>key.slice(prefix.length));
+  // The original daily draw is seeded by this device. Its paid/attendance rights
+  // and every saved result still live exclusively in each simulated account.
+  const deviceKey='cd:yn:daily-tarot-device:v1';
+  const privateKey=key=>key===deviceKey?simulationNamespace+'device:'+deviceKey:prefix+key;
+  const keys=()=>{
+    const owned=Object.keys(storage).filter(key=>key.startsWith(prefix)&&key!==prefix+deviceKey).map(key=>key.slice(prefix.length));
+    if(storage.getItem(privateKey(deviceKey))!==null)owned.push(deviceKey);
+    return owned;
+  };
   const methods={get length(){return keys().length;},key(index){return keys()[index]??null;},
-    getItem(key){return storage.getItem(prefix+key);},setItem(key,value){storage.setItem(prefix+key,value);},
-    removeItem(key){storage.removeItem(prefix+key);},clear(){for(const key of keys())storage.removeItem(prefix+key);}};
+    getItem(key){return storage.getItem(privateKey(key));},setItem(key,value){storage.setItem(privateKey(key),value);},
+    removeItem(key){storage.removeItem(privateKey(key));},clear(){for(const key of keys())storage.removeItem(privateKey(key));}};
   return new Proxy(methods,{
     ownKeys:keys,
-    getOwnPropertyDescriptor(_target,key){return typeof key==='string'&&storage.getItem(prefix+key)!==null?{configurable:true,enumerable:true}:undefined;},
-    get(target,key){return Reflect.has(target,key)?Reflect.get(target,key):typeof key==='string'?storage.getItem(prefix+key)??undefined:undefined;},
-    set(_target,key,value){storage.setItem(prefix+key,value);return true;},
-    deleteProperty(_target,key){storage.removeItem(prefix+key);return true;},
+    getOwnPropertyDescriptor(_target,key){return typeof key==='string'&&storage.getItem(privateKey(key))!==null?{configurable:true,enumerable:true}:undefined;},
+    get(target,key){return Reflect.has(target,key)?Reflect.get(target,key):typeof key==='string'?storage.getItem(privateKey(key))??undefined:undefined;},
+    set(_target,key,value){storage.setItem(privateKey(key),value);return true;},
+    deleteProperty(_target,key){storage.removeItem(privateKey(key));return true;},
   });
 }
 for(const name of ['localStorage','sessionStorage']){
