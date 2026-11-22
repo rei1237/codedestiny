@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-22
-next: 4c단계 — 개별 글 8쪽(홍염·천을귀인·괴강·백호·공망·귀문관살·원진·상충)을 app/insights/sinsal-articles.mjs 에 추가하고 허브 /saju/sinsal "그 밖의 신살" 줄에 링크를 단다
+updated: 2026-11-23
+next: 5단계 — npm run sitemap:generate && npm run llms:generate && npm run rss:generate, diff 검토, 커밋
 ---
 
 # 네이버 검색 의도 SEO 라운드 인수인계
@@ -79,7 +79,7 @@ next: 4c단계 — 개별 글 8쪽(홍염·천을귀인·괴강·백호·공망�
 - [x] 3 년생별 한 줄 (c877f5d71)
 - [x] 4a sinsal-rules + 대조 테스트 (09c0ab099, 25cbbbf77) — 만세력 엔진 1440케이스·12신살 144칸·공망 60일주 전수 + 사주 엔진 상수 고정 대조, 변이 시 실패 확인
 - [x] 4b 허브 + 5쪽 (b40b85fa5 글 5쪽, 4307fe6d7 허브·레지스트리·sitemap·llms·/saju·/manse 링크, e72c0b160 고지문 중복 수정, 85e2abd1f 원장) — build:cf exit=0, verify:internal-link-depth OK, dist 6쪽 H1=1·noindex 0·직답 확인, check:fast --base=7b0a35ce1 통과. 슬러그: yangin-sal-meaning·sangmun-sal-meaning·dohwa-sal-saju·yeokma-sal-meaning·hwagae-sal-meaning. 허브 레지스트리 primary "신살 종류"(natal-chart 와 비충돌). 허브는 AdSense 목록 밖(2단계와 동일 정책)
-- [ ] 4c 8쪽
+- [x] 4c 8쪽 (6d23b276c 글 8쪽·seo-titles·sinsal-rules basis 문구 구분, f666a4979 허브 "그 밖의 신살" 8링크, 8bf6c248c sitemap·원장) — build:cf exit=0, dist 8쪽 H1=1·title·noindex 0·직답 strong·FAQPage 0, 허브 dist 8링크, 원진·상충 /compatibility/tti/ 링크, verify:internal-link-depth OK, verify:sitemap-drift OK, check:fast --base=7b0a35ce1 exit=0. 슬러그: hongyeom-sal-meaning·cheoneul-gwiin-meaning·goegang-sal-meaning·baekho-sal-meaning·gongmang-meaning·gwimun-gwan-sal-meaning·wonjin-sal-meaning·sangchung-yukchung. 비공백 본문 1807~1951자. rss 는 빌드 잡음이라 되돌림(5단계에서 생성). 사이트맵은 KST 날짜 넘김(11-23)으로 daily URL lastmod 가 함께 바뀜
 - [ ] 5 생성물
 - [ ] 6 머지·push·CI·운영(재확인 후)
 - [ ] 7 측정·정리
