@@ -245,6 +245,7 @@ next: F5 — 서한비 스프라이트(F2~F4와 같은 절차 — Codex 편집 �
   - d20687016 F3 윤달(`yun` 점성술 정본·`yun-life-book` 인생의 책 정본, 정본 그림이 달라 id 를 둘로 나눴다)
   - 88ba0c4ea 인생의 책 윤달 포스터 품질 76→86 (spec `webp.default.poster`, 시트는 바이트 동일)
   - d36e382314 F4 무성 (+ master-profiles 변경으로 sitemap lastmod 26건 재생성)
+- 검증 [실측]: F3·F4 check:fast 모두 paid-gate 78/78 통과, BLOCKED 는 verify:sitemap-drift 하나 → sitemap:generate 뒤 OK. F4 는 BLOCKED 때문에 뒤 단계가 안 돌아 직접 실행: typecheck exit 0, test:node pass 5790 / fail 0, test:jest 8542 pass / 1 skipped. check:pre-push 6종 OK(커밋 737964a06).
 - 생성: F2 와 같은 Codex CLI 0.156.1 OAuth(gpt-image-2, `-m gpt-5.6-terra`), 과금 API 0회. 편집은 half·closed 두 종만(F2 에서 mouth·breeze 는 쓰지 못했다). 원본 `D:\CodeDestiny-Build\master-motion\<id>\`, 해시는 각 `provenance.json`.
 - 1차 픽셀 검수 [실측] — 모든 칸, 문턱 guard ≤ 5 / region ≥ 8. 등록은 전부 스케일 1, 이동 0(무성 half 만 dx1·dy1).
 
