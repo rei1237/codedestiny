@@ -16,7 +16,7 @@ const dedicated = (key: string) => ({
 
 /**
  * 마스터 모션(W4): 각 항목에 선택 필드 `motion: { frames?, video?, poster }` 를 넣으면 MasterMotion 이 CSS 숨쉬기 대신
- * 그 그림을 돌린다(productMasters 의 항목도 같다). 스프라이트 시트는 masterMotionArt(id, 변형)로 넣고 lib/master-motion/flags.mjs 가 켠다(지금은 연이·윤달). 규격·빠진 그림: docs/design/master-motion-assets.md
+ * 그 그림을 돌린다(productMasters 의 항목도 같다). 스프라이트 시트는 masterMotionArt(id, 변형)로 넣고 lib/master-motion/flags.mjs 가 켠다(지금은 연이·윤달·무성). 규격·빠진 그림: docs/design/master-motion-assets.md
  */
 export const masterProfiles = {
   master: {
@@ -62,6 +62,7 @@ export const masterProfiles = {
     approach: "짧고 분명한 판결로 시작해, 처방은 오늘 해 볼 수 있는 구체적인 행동으로 이어 드려요. 명궁과 열두 궁, 대운의 근거를 함께 보여 드리고, 미래를 단정하지 않습니다.",
     portrait: `${base}/musung-ziwei-portrait.webp`, portraitAlt: "후드를 내리고 먹색 학자 도포를 입은 채 금빛 깃털을 든 자미두수 판결자 무성",
     sheet: `${base}/musung-ziwei-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "musung",
+    motion: masterMotionArt("musung", "portrait"),
   },
   hanbi: {
     name: "서한비", role: "두 달집 사이의 거리를 재는 사람 · 숙요점 궁합",
@@ -165,7 +166,7 @@ export const productMasters = {
     { name: "연이", role: "타로 · 연애", avatar: masterAvatars.yeoni, line: "마음이 먼저 움직이는 자리부터 같이 볼게요." },
     { name: "서한비", role: "숙요 · 결혼 · 인간관계", avatar: masterAvatars.hanbi, line: "사람 사이에 쌓이는 것과 갚는 법을 차분히 짚어 드리겠습니다." },
     { name: "윤달", role: "베다 · 점성술 · 시기 · 생활 리듬", avatar: masterAvatars.yun, line: "별길이 바뀌는 계절을 같이 짚어 볼게요.", motion: masterMotionArt("yun", "avatar") },
-    { name: "무성", role: "자미두수 · 타고난 성향", avatar: masterAvatars.musung, line: "명반이 말하는 대로 판결합니다. 꾸미지 않을게요." },
+    { name: "무성", role: "자미두수 · 타고난 성향", avatar: masterAvatars.musung, line: "명반이 말하는 대로 판결합니다. 꾸미지 않을게요.", motion: masterMotionArt("musung", "avatar") },
   ],
 } satisfies Record<string, ProductMaster[]>;
 
