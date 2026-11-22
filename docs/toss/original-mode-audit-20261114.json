@@ -1299,11 +1299,11 @@
       ],
       "reviewState": "original-modes-verified-sdk-limit",
       "codeGaps": [
-        "32MiB 초과 원곡 네이티브 저장 미완료: 32MiB는 현재 어댑터의 메모리 상한이며 SDK 공식 용량 한도가 아님. SDK 3.7.0은 스트리밍/URL 파일 API를 제공하지 않음. 기존 구매 권리는 보존"
+        "32MiB 초과 원곡 저장은 네이티브 메모리 방어 상한과 SDK의 파일 단위 호출로 제한된다. 2026-11-22 응답 정상인 현행 MP3 122개는 최대 12,396,644바이트로 모두 상한 안에 있다"
       ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "곡별 승인 SKU·콘솔 가격, 실원곡 크기·실기기 저장, 운영 Worker 필요. 신규 판매 false",
+      "operations": "123개 고유 키 중 neo-15(비겁다자의 우정 지옥, music-track-1x0675y)는 404였다. 이 상품의 원본 파일 복구와 기기 저장 확인 필요. 증거는 docs/toss/launch-operational-evidence-20261114.md",
       "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --music-download PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
       "historicalArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
     },
