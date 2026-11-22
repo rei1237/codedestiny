@@ -57,7 +57,7 @@ export async function buildDashboardModule(){
   const promptList=between(sectionGenerator,'const IMAGE_PROMPTS = [','];');
   const prompts=[...promptList.matchAll(/\["([^"]+)","([^"]+)","(\w+)"\]/g)].map(match=>match.slice(1));
   if(prompts.length!==13)throw Error('Check changed saju prompt manifest');
-  const basis=declarations(engine,['GAN','JI','ANIMAL_EMOJI','calcNatalElement','calcPower','analyzeJohu','getTenGod','cdTwelveStage','_sajuVillainExtractMajorSinsal','_sajuVillainBuildBranchRelations','renderHormoneVibe','detectJong','_coreEightChar','attachKasiDaewunBridge',...prompts.map(row=>row[2])]);
+  const basis=declarations(engine,['GAN','JI','CD_JANGGAN','CD_JANGGAN_WEIGHT','ANIMAL_EMOJI','calcNatalElement','calcPower','analyzeJohu','getTenGod','cdTwelveStage','_sajuVillainExtractMajorSinsal','_sajuVillainBuildBranchRelations','renderHormoneVibe','detectJong','_coreEightChar','attachKasiDaewunBridge',...prompts.map(row=>row[2])]);
   const four=declarations(dashboard,['S4C_TAG_TEXT','_reportDashboardText','renderSajuFourCutContent']);
   // The web Worker serves the relationship panels without reading a profile or payment.
   // Only bundle these two deterministic expansions while their reviewed keys are public.
@@ -102,7 +102,7 @@ export function prepareDashboard(p, document, bridge){
     host.querySelector('.s4c-btn--kakao').onclick=e=>window.shareSajuFourCutKakao(e.currentTarget);
     host.querySelector('.s4c-variant-row').setAttribute('aria-label',_reportDashboardText('rd.aria-label.001'));
   }
-  return {prompts(gender){if(!['M','F'].includes(gender))throw Error('Saju prompt gender required');GENDER=gender;return [${prompts.map(([id,title,fn])=>'{id:'+JSON.stringify(id)+',title:'+JSON.stringify(title)+',prompt:'+fn+'(p,natal)}').join(',')}];},lotto:mountLotto,data:{p,natal,power,johu},extreme(){
+  return {brainScope(){return {GAN,JI,CD_JANGGAN,CD_JANGGAN_WEIGHT,getTenGod,G_PILLARS:p,G_POWER:power,G_NATAL:natal,G_JOHU:johu,G_JONG:detectJong(p),__cdSajuTimeUnknown:!p.h?.g};},prompts(gender){if(!['M','F'].includes(gender))throw Error('Saju prompt gender required');GENDER=gender;return [${prompts.map(([id,title,fn])=>'{id:'+JSON.stringify(id)+',title:'+JSON.stringify(title)+',prompt:'+fn+'(p,natal)}').join(',')}];},lotto:mountLotto,data:{p,natal,power,johu},extreme(){
       const builtResult=window.buildExtremeTResult({p,natal,johu,pw:power});
       const area=document.getElementById('tTestResult');
       ${summary}

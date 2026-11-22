@@ -3,14 +3,14 @@ import {getAuthState,useAuthStore} from '@/app/_lib/auth-store';
 import {calculateNatalSaju} from '../../../lib/korean-calendar/natal.js';
 import {buildSajuCompatBody} from '../../../js/saju-compat-flow.mjs';
 import {renderSajuCompat} from '../../../js/saju-compat-render.mjs';
-import {compatibilityFacts} from 'virtual:saju-compat-basis';
+import {compatibilityFacts,compatibilityHtml} from 'virtual:saju-compat-basis';
 import {BirthFields,birthPayload,emptyBirth} from '../src/BirthFields';
-import {api,purchase,nativeSaleProducts,paymentRequiresReview} from '../src/platform';
+import {api} from '../src/platform';
 import {Button} from '../src/Button';
-import TossTeaPrice from './TossTeaPrice';
+import {isFreeFortuneFeatureKey} from '../../../lib/payment/free-fortune-policy.mjs';
 import './saju-compat.css';
 
-const feature='compat-saju-compatibility',page='/saju/compatibility/';
+const page='/saju/compatibility/';
 const ownerId=()=>String(getAuthState().user?.id||'');
 const empty=()=>({self:emptyBirth(),partner:emptyBirth(),type:'love',name:''});
 function pillars(side){
@@ -58,10 +58,10 @@ export default function TossSajuCompat(){
  return <Form key={owner} owner={owner}/>;
 }
 function Form({owner}){
- const [input,setInput]=useState(()=>readDraft(owner)),[price,setPrice]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
- const active=useRef(true),locked=useRef(false),cancel=useRef(null),orderId=new URLSearchParams(location.search).get('orderId');
+ const [input,setInput]=useState(()=>readDraft(owner)),[html,setHtml]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const active=useRef(true),locked=useRef(false),orderId=new URLSearchParams(location.search).get('orderId');
  const current=()=>active.current&&ownerId()===owner;
- useEffect(()=>{active.current=true;const leave=()=>{active.current=false;cancel.current?.();};window.addEventListener('pagehide',leave);
+ useEffect(()=>{active.current=true;const leave=()=>{active.current=false;};window.addEventListener('pagehide',leave);
    return ()=>{leave();window.removeEventListener('pagehide',leave);};},[]);
  useEffect(()=>{
   try{localStorage.setItem(draftKey(owner||'guest'),JSON.stringify(input));
@@ -70,9 +70,14 @@ function Form({owner}){
   }catch{/* Device storage is optional until checkout. */}
  },[input,owner]);
  async function start(event){
-  event.preventDefault();if(locked.current||!owner)return;
+  event.preventDefault();if(locked.current||(orderId&&!owner))return;
   locked.current=true;setBusy(true);setError('');
   try{
+   if(!orderId){
+     if(!isFreeFortuneFeatureKey('section_compat'))throw Error('FREE_SECTION_UNAVAILABLE');
+     setHtml(compatibilityHtml(pillars(input.self),pillars(input.partner),input.type,input.name.trim()||'상대방'));
+     return;
+   }
    const basis=compatibilityFacts(pillars(input.self),pillars(input.partner),input.type,input.name||'상대');
    const key='toss:compat:request:'+owner;
    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(input)))),b=>b.toString(16).padStart(2,'0')).join('');
@@ -82,14 +87,7 @@ function Form({owner}){
    const body=buildSajuCompatBody({...basis,selfTimeUnknown:input.self.unknown,partnerTimeUnknown:input.partner.unknown,compatType:input.type,partnerName:input.name,requestId});
    const intent=await api('/native/saju-compat/prepare',{input:body,...(orderId?{orderId}:{})});
    if(!current())return;
-   if(orderId&&(!intent.paid||intent.orderId!==orderId))throw Error('ORDER_MISMATCH');
-   if(!intent.paid){
-    const item=(await nativeSaleProducts()).find(p=>p.featureKey===feature&&p.sku===intent.sku&&p.approvedPriceKRW===intent.amountKRW);
-    if(!current())return;
-    if(!item||!price||price.sku!==item.sku||item.displayAmount!==price.displayAmount||paymentRequiresReview())throw Error('PRICE_UNAVAILABLE');
-    await new Promise((done,fail)=>{cancel.current=purchase(item,intent.id,done,fail);});
-   }
-   if(!current())return;
+   if(!intent.paid||intent.orderId!==orderId)throw Error('ORDER_MISMATCH');
    const checked=await api('/native/saju-compat/intents/'+intent.id);
    if(!current())return;
    if(!checked.paid||checked.id!==intent.id)throw Error('ORDER_MISMATCH');
@@ -98,15 +96,21 @@ function Form({owner}){
   }catch{if(current())setError('입력과 연결 상태를 확인하고 다시 시도해 주세요. 구매한 궁합은 구매 기록에서 이어볼 수 있어요.');}
   finally{if(current()){locked.current=false;setBusy(false);}}
  }
+ useEffect(()=>{
+  if(!html)return;
+  const back=e=>{e.preventDefault();setHtml('');};window.addEventListener('code-destiny:toss-back',back);
+  return ()=>window.removeEventListener('code-destiny:toss-back',back);
+ },[html]);
+ if(html)return <section className="toss-compat"><h1>두 사람의 사주 궁합</h1>{(input.self.unknown||input.partner.unknown)&&<p>출생 시각을 모르는 사람은 정오를 기준으로 계산했어요.</p>}<article dangerouslySetInnerHTML={{__html:html}}/><Button onClick={()=>setHtml('')}>출생정보 다시 보기</Button><a href="/free/">무료 운세 목록 보기</a></section>;
  return <section className="toss-compat"><img alt="" src="/images/compat-story/saju-compat-entry.webp" width="640" height="360"/><h1>두 사람의 사주 궁합</h1><p>두 명식의 조화와 차이, 관계를 돌보는 방법과 전생 인연을 읽어요.</p>
  <form className="form" onSubmit={start}>
  <BirthFields title="나의 출생정보" value={input.self} onChange={self=>setInput({...input,self})} showGender={false} disabled={busy}/>
  <label>상대의 이름이나 호칭<input maxLength={20} value={input.name} onChange={e=>setInput({...input,name:e.target.value})}/></label>
  <BirthFields title="상대의 출생정보" value={input.partner} onChange={partner=>setInput({...input,partner})} showGender={false} disabled={busy}/>
  <label>관계 유형<select value={input.type} onChange={e=>setInput({...input,type:e.target.value})}><option value="love">연인</option><option value="business">사업·동료</option><option value="friend">친구</option></select></label>
- {owner?(orderId?<p>구매한 사주 궁합</p>:<TossTeaPrice featureKey={feature} onPrice={setPrice}/>):<a href={'/login/?next='+encodeURIComponent(page)} onClick={e=>{
-   const token=crypto.randomUUID();localStorage.setItem('toss:compat:handoff',token);e.currentTarget.href='/login/?next='+encodeURIComponent(page+'?restoreCompat='+token);
+ {orderId&&!owner&&<a href={'/login/?next='+encodeURIComponent(page)} onClick={e=>{
+   const token=crypto.randomUUID();localStorage.setItem('toss:compat:handoff',token);e.currentTarget.href='/login/?next='+encodeURIComponent(page+'?orderId='+encodeURIComponent(orderId)+'&restoreCompat='+token);
  }}>토스로 로그인하기</a>}
- {owner&&(orderId||price?.owner===owner&&!paymentRequiresReview())&&<Button type="submit" disabled={busy}>{orderId?'구매한 궁합 이어서 열기':'토스로 궁합 열기'}</Button>}
+ {(!orderId||owner)&&<Button type="submit" disabled={busy}>{orderId?'구매한 궁합 이어서 열기':'무료 사주 궁합 보기'}</Button>}
  {error&&<p role="alert">{error}</p>}</form></section>;
 }

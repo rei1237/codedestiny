@@ -36,8 +36,10 @@ const out=await build({entryPoints:[entry],bundle:true,write:false,format:'esm',
 const {readCompat,prepareCompat,compatLibraryItem,verifyCompatRecovery}=await import('data:text/javascript;base64,'+Buffer.from(out.outputFiles[0].contents).toString('base64'));
 test('original Saju compatibility adapter keeps web and Toss executions separate and verifies each archived input and live order',async()=>{
   const input={...requestBody(...samplePairs(32,1)[0], 'friend','하늘'),requestId:'compat-00000000-0000-4000-8000-000000000000'};
-  const prepared=await prepareCompat({},auth,input);
+  await assert.rejects(prepareCompat({},auth,input),error=>error.code==='PRODUCT_UNAVAILABLE');
+  const prepared=await prepareCompat({},auth,input,'order');
   local.row={...prepared.contract,input:prepared.input,_id:id,identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,featureKey:feature,nativeService:'saju-compat',status:'paid',orderId:'order'};
+  await assert.rejects(compatLibraryItem({},auth,{...local.row,status:'REFUNDED'}),error=>error.code==='ORDER_REFUNDED');
   local.calls=0;local.revoked=false;local.doc=null;
   assert.equal((await readCompat({},auth,id,false)).status,202);
   await readCompat({},auth,id,true);

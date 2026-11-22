@@ -603,7 +603,14 @@
       '<button type="button" class="da-btn da-btn--ghost" data-da-act="retry">' + esc(ui.retry) + '</button></div>';
   }
 
-  var api = {render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, petalPath: petalPath, MEME_FLOWERS: MEME_FLOWERS, CTA_TARGET: CTA_TARGET, AI_TARGETS: AI_TARGETS};
+  // The Toss guest entry has the natal chart only. Use the same result sections as the web guest.
+  function renderSajuSections(container, model) {
+    var t = model.text;
+    container.innerHTML = brainHtml(model, t, {}) + circuitHtml(model, t) + enginesHtml(model, t) +
+      elementsHtml(model, t) + insightsHtml(t) + habitsHtml(t);
+    fitMeme(container);
+  }
+  var api = {renderSajuSections: renderSajuSections, render: render, renderSkeleton: renderSkeleton, renderError: renderError, fitMeme: fitMeme, petalPath: petalPath, MEME_FLOWERS: MEME_FLOWERS, CTA_TARGET: CTA_TARGET, AI_TARGETS: AI_TARGETS};
   root.DestinyAnatomyRender = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

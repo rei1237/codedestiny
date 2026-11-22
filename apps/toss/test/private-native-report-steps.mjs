@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-export const nativeReportCases=['life-book','life-fortune','dream','naming','heukwol','codex','codex-compat','saju-compat','saju-compat-premium','geomancy','totem-basic','totem-deep','guardian','sibyl','palm'];
-const titles={'life-book':'인생의 책','life-fortune':'인생 총운',dream:'정신분석 해몽',naming:'사주 작명첩',heukwol:'흑월의 주의 시기 상담',codex:'마스터 인연의 서','codex-compat':'마스터 인연의 서','saju-compat-premium':'사주 고급 궁합','saju-compat':'두 사람의 사주 궁합',geomancy:'지오맨시 흙점','totem-basic':'애니멀 토템','totem-deep':'애니멀 토템',guardian:'사주 가디언',sibyl:'시빌라 연간 대비 리포트',palm:'내 손금 리포트'};
+export const nativeReportCases=['life-book','life-fortune','dream','naming','heukwol','codex','codex-compat','saju-compat-premium','geomancy','totem-basic','totem-deep','guardian','sibyl','palm'];
+const titles={'life-book':'인생의 책','life-fortune':'인생 총운',dream:'정신분석 해몽',naming:'사주 작명첩',heukwol:'흑월의 주의 시기 상담',codex:'마스터 인연의 서','codex-compat':'마스터 인연의 서','saju-compat-premium':'사주 고급 궁합',geomancy:'지오맨시 흙점','totem-basic':'애니멀 토템','totem-deep':'애니멀 토템',guardian:'사주 가디언',sibyl:'시빌라 연간 대비 리포트',palm:'내 손금 리포트'};
 export const nativeReportText=key=>({
  'life-book':'[테스트 전용] 인생의 책에 저장된 상담 원문입니다.',
  'life-fortune':'[테스트 전용] 인생 총운에 저장된 상담 원문입니다.',
@@ -8,14 +8,13 @@ export const nativeReportText=key=>({
  heukwol:'[테스트 전용] 흑월의 저장된 상담 원문입니다.',
  codex:'[테스트 전용] 개인판에 저장된 인연의 서 원문입니다.','codex-compat':'[테스트 전용] 궁합판에 저장된 인연의 서 원문입니다.',
  'saju-compat-premium':'[테스트 전용] 관계 총론의 저장된 원문입니다.',
- 'saju-compat':'[테스트 전용] 두 사람의 관계를 살펴보는 궁합 해석이에요.',
  geomancy:'[테스트 전용] 흙점의 저장된 해석 1입니다.','totem-basic':'[테스트 전용] 저장한 토템 질문 답변입니다.','totem-deep':'[테스트 전용] 저장한 토템 질문 답변입니다.',
  guardian:'[테스트 전용] mock guardian image prompt',sibyl:'모의 상담 10장',palm:'[테스트 전용] 저장된 손금 판독 원문입니다.',
 })[key];
 export async function nativeHome(page,origin){await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();}
 async function enter(page,origin,key){
  await nativeHome(page,origin);
- if(['saju-compat','guardian','sibyl'].includes(key)){
+ if(['guardian','sibyl'].includes(key)){
   await page.getByRole('button',{name:/^사주 리포트/}).click();await page.getByRole('button',{name:titles[key],exact:true}).click();
  }else{
   await page.getByRole('searchbox').fill(titles[key]);await page.locator('.directory-list button').filter({hasText:titles[key]}).first().click();
@@ -65,11 +64,6 @@ export async function startNativeReport(page,origin,key){
    await page.getByLabel('태어난 시각을 모릅니다',{exact:true}).check();await page.locator('#codex-question-0').fill('서로 다른 대화 방식을 어떻게 조율할까요?');
    if(key==='codex-compat'){await page.getByRole('button',{name:'상대와의 궁합으로 읽기'}).click();await page.locator('#codex-partner-birth-date').fill('19920202');}
    await page.getByRole('button',{name:/1원.*결과 보기/}).click();
-  }else if(key==='saju-compat'){
-   for(const [group,date] of [['나의 출생정보','1990-08-20'],['상대의 출생정보','1989-05-06']]){
-    const area=page.getByRole('group',{name:group});await area.getByLabel('태어난 날짜').fill(date);await area.getByLabel('출생 도시').selectOption('서울');await area.getByRole('checkbox').check();
-   }
-   await page.getByLabel('상대의 이름이나 호칭').fill('달빛');await page.getByLabel('관계 유형').selectOption('friend');await page.getByRole('button',{name:'토스로 궁합 열기'}).click();
   }else if(key==='heukwol'){
    await page.getByRole('button',{name:'새 프로필 만들기'}).click();const form=page.locator('form').filter({has:page.locator('input[name=name]')});
    await form.locator('input[name=name]').fill('모의 생시');await form.locator('input[name=date]').fill('19900101');await form.getByPlaceholder('08:35').fill('0835');await form.locator('button[type=submit]').click();await form.waitFor({state:'hidden'});

@@ -23,10 +23,11 @@ const sibyl={service:'sibyl',name:'가상 시빌라 심층 리포트',featureKey
 const lifeBook={service:'life-book',name:'가상 인생의 책',featureKey:'life-book-ai-consultation',path:'/life-book-ai/result/'};
 const lifeFortune={...lifeBook,name:'가상 인생 총운',featureKey:'life-fortune-ai-consultation'};
 const rooms=[lifeBook,lifeFortune,guardian,sibyl,...totems,premiumCompat,sajuCompat,geomancy,...teaModes,neo,heukwol,dream,naming,codex,compat,palm];
-export const roomProducts=rooms.map(room=>({
+export const roomProducts=rooms.filter(room=>room!==sajuCompat).map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
   sku:'mock-unregistered-room-'+(room.service==='tea'&&room!==tea?'tea-'+room.mode:room===compat?'codex-compat':room===lifeFortune?'life-fortune':room.service),available:true,approvedPriceKRW:1,
 }));
+export const retainedCompatSku='mock-unregistered-room-saju-compat';
 export const roomSdkProducts=roomProducts.map(p=>({sku:p.sku,type:'CONSUMABLE',displayName:p.name,displayAmount:'1원',iconUrl:'',description:'오프라인 가상 결제'}));
 const reply=(data,status=200)=>Response.json(data,{status});
 const fail=(error,status)=>reply({ok:false,error,reason:error},status);
@@ -72,6 +73,7 @@ export async function roomOrderRequest(request,url,path,state,save,now){
     }
     if(post&&match[2]==='prepare'){
       let {input,orderId}=await request.json();
+      if(room===sajuCompat&&!orderId)return fail('PRODUCT_UNAVAILABLE',409);
       if(room===guardian||room===sibyl){
         const card=state.profiles.find(p=>p.profileId===input?.profileId);
         if(!card)return fail('PROFILE_REQUIRED',400);
@@ -110,6 +112,10 @@ export async function roomOrderRequest(request,url,path,state,save,now){
   }
   if((path==='/orders/restore'||path==='/orders/grant')&&post){
     const {sku,orderId,requestId}=await request.clone().json();
+    if(path==='/orders/restore'&&sku===retainedCompatSku){
+      const row=state.intents.get(state.orders.get(orderId));
+      return row?.service==='saju-compat'&&row.paid&&row.sku===sku&&row.orderId===orderId?reply({orderId,requestId:row.id,entitlement:'granted',durable:true}):fail('ORDER_MISMATCH',403);
+    }
     if(roomProducts.some(p=>p.sku===sku)){
       if(path==='/orders/grant'){
         const row=state.intents.get(requestId);

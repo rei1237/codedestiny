@@ -25,6 +25,16 @@ for(const known of [true,false])test('public web dashboard renders personal resu
   const shared=[],saved=[];
   const reading=prepare(chart,document,{share:text=>shared.push(text),save:(node,name)=>saved.push([node,name])});
   try{
+    for(const filename of ['engine.js','copy.js','render.js']){
+      vm.runInContext(await original('js/core/saju/destiny-anatomy/'+filename),context);
+    }
+    const brain=context.DestinyAnatomyEngine.buildDestinyAnatomy({scope:reading.brainScope(),lang:'ko'});
+    assert.equal(brain.timeUnknown,!known);
+    const area=document.createElement('div');
+    context.DestinyAnatomyRender.renderSajuSections(area,brain);
+    assert.ok(area.querySelector('#daBrainTitle'));
+    assert.equal(area.querySelectorAll('[data-da-engine]').length,5);
+    assert.equal(area.querySelectorAll('[data-da-act=cta],a[href*="checkout"]').length,0);
     assert.equal(Object.values(reading.data.natal.counts).reduce((a,b)=>a+b),known?9:7);
     assert.equal(reading.prompts('M').length,13);assert.equal(new Set(reading.prompts('M').map(item=>item.prompt)).size,13);
     const webPrompts=buildSajuSectionHtml({...originalInput,featureKey:'saju_natal_reading'}).imagePrompts;

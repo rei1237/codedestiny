@@ -2,6 +2,7 @@ import {lazy,Suspense,useEffect,useState} from 'react';
 import {Button} from './Button';
 import {birthSystems,questions} from './content';
 
+import {FREE_LIST_PAGE_ENABLED} from '../../../lib/guided-flow/flags.mjs';
 import FortuneDirectory from './FortuneDirectory';
 import type {Consultation,Destination} from './home-directory';
 
@@ -33,6 +34,7 @@ export default function UnifiedHome({onOpen,onConsult,loggedIn}:{onOpen:(page:De
    <details className="world-disclosure"><summary>상담 방식으로 고르기<small>사주·자미두수·숙요·베다·점성술·타로</small></summary><div className="world-services">{birthSystems.map(({id,name})=><button key={id} onClick={()=>location.assign('/yeongnyangi/fortune/?domain='+id+'&flow=question')}><strong>{name} 상담</strong><span aria-hidden>→</span></button>)}</div></details><details className="world-disclosure"><summary>분야별·관계 상담<small>두 사람의 관계, 융합 상담과 질문 점성술</small></summary><div className="world-services"><button onClick={()=>location.assign('/yeongnyangi/fortune/?flow=legacy')}><strong>분야별 리포트</strong><small>체계·상담 종류·생선 등급으로 고르기</small></button><button onClick={()=>location.assign("/yeongnyangi/fortune/?flow=relationship")}><strong>두 사람의 관계</strong><small>관계와 두 사람의 정보로 상담 고르기</small></button><button onClick={()=>location.assign("/yeongnyangi/fortune/?flow=legacy&domain=fusion")}><strong>융합 상담</strong><small>여러 체계의 근거 함께 살펴보기</small></button><button onClick={()=>location.assign("/yeongnyangi/fortune/?mode=spirit")}><strong>영냥 신점</strong><small>질문이 떠오른 순간의 프라슈나</small></button><button onClick={()=>location.assign("/yeongnyangi/fortune/?mode=horary")}><strong>영냥 호라리</strong><small>질문 시각의 차트와 해석 프롬프트</small></button></div></details><details className="world-disclosure"><summary>고민에 맞는 질문 찾기<small>연애·이직·돈, 지금의 고민에서 시작해요</small></summary><Suspense fallback={<p role="status">질문을 펼치고 있어요.</p>}><MoonlightQuestions/></Suspense></details><button className="daily-entry" onClick={()=>location.assign('/yeongnyangi/faq/')}><span><strong>상담 전 자주 묻는 질문</strong><small>상담 고르기부터 결과 다시 보기까지</small></span><span aria-hidden>→</span></button><button className="daily-entry" onClick={()=>onOpen('daily')}><span><strong>오늘의 운세와 출석</strong><small>영냥이와 오늘의 흐름 살펴보기</small></span><span aria-hidden>→</span></button><Button onClick={()=>onOpen('moonlight/season-1')}>영냥이의 점술방 시즌 1 읽기</Button><button className="world-crosslink" onClick={()=>setWorld('ggulggul')}>사주·타로·주제별 운세는 꿀꿀운세에서 <span aria-hidden>→</span></button>
   </>:<>
    <section className="world-flower-hero"><div><h1>오늘은 어떤<br/>이야기를 펼칠까요?</h1><p>나를 알아가는 사주,<br/>마음을 비추는 타로와 운세.</p></div><img src="/images/fortune-tea-house/flower-pig-flower.webp" alt="꽃을 든 연이" width={500} height={500}/></section>
+   {FREE_LIST_PAGE_ENABLED&&<button className="daily-entry" onClick={()=>location.assign('/free/')}><span><strong>무료 운세 전체 보기</strong><small>사주·타로·세계 운세 골라보기</small></span><span aria-hidden>→</span></button>}
    <FortuneDirectory onOpen={onOpen} onConsult={onConsult}/>
   </>}
   <footer className="world-footer" aria-label="내 기록과 도움">
