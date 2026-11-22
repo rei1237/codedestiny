@@ -19,6 +19,7 @@ async function compatContract(body){
   return {input,contract:{requestId:input.requestId,resultId:input.requestId,inputHash:await hash(JSON.stringify(input)),featureKey,pricing}};
 }
 export async function prepareCompat(env,auth,body,orderId){
+  if(!orderId)throw new TossError('PRODUCT_UNAVAILABLE',409);
   const {input,contract}=await compatContract(body);
   return prepareNativeConsultation(env,auth,input,orderId,contract,'saju-compat');
 }

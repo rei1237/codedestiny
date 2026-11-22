@@ -10,7 +10,7 @@ export async function verifyHumanDesign(origin,context){
  try{
   await directory('휴먼 디자인');await page.getByRole('button',{name:'토스 로그인하고 살펴보기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();await page.getByRole('button',{name:'차트 살펴보기'}).waitFor();
   // Create a time-known owned profile through the existing profile form.
-  await directory('흑월의 경고 상담');await page.getByRole('button',{name:'새 프로필 만들기'}).click();
+  await directory('흑월의 주의 시기 상담');await page.getByRole('button',{name:'새 프로필 만들기'}).click();
   const form=page.locator('form').filter({has:page.locator('input[name=name]')});
   await form.locator('input[name=name]').fill('모의 생시');await form.locator('input[name=date]').fill('19900101');await form.getByPlaceholder('08:35').fill('0835');await form.locator('button[type=submit]').click();await form.waitFor({state:'hidden'});
   await directory('휴먼 디자인');await page.getByRole('button',{name:'내 프로필 확인하기'}).click();

@@ -47,3 +47,15 @@ test('empty or interrupted streams never return a partial file',async()=>{
  await assert.rejects(api.downloadNativeMusic({},auth,id),/mock network interruption/);
  assert.equal(state.checks,2);assert.equal(state.row.status,'paid');
 });
+
+test('partial originals and truncated lengths never reach the native saver',async()=>{
+ for(const [status,headers] of [[206,{'content-range':'bytes 0-1/8'}],[200,{'content-length':'3'}]]){
+  await reset();state.response=()=>new Response(new Uint8Array([73,68]),{status,headers});
+  await assert.rejects(api.downloadNativeMusic({},auth,id),{code:'MUSIC_DOWNLOAD_UNAVAILABLE'});
+  assert.equal(state.row.orderId,'order');assert.equal(state.checks,2);
+ }
+ await reset();let reads=0;
+ state.response=()=>new Response(new ReadableStream({pull(){reads++;}},{highWaterMark:0}),{headers:{'content-length':String(api.MAX_NATIVE_MUSIC_BYTES+1)}});
+ await assert.rejects(api.downloadNativeMusic({},auth,id),{code:'MUSIC_FILE_TOO_LARGE'});
+ assert.equal(reads,0);
+});

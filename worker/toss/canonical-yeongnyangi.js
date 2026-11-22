@@ -43,6 +43,25 @@ export async function canonicalProfiles(auth,input) {
   const rows=await ProfileCard.find({userId:auth.ownerId}).sort({createdAt:1}).lean();
   return {ok:true,profiles:rows.map(toClientProfile),currentId:rows[0]?.profileId||''};
 }
+// Updating an existing card only changes the input for future preparations.
+export async function updateCanonicalProfile(auth,input) {
+  const raw=input?.profile,expected=input?.expectedUpdatedAt;
+  if(typeof raw?.profileId!=='string'||!raw.profileId||raw.profileId.length>80
+    ||(expected!==null&&(typeof expected!=='string'||!Number.isFinite(Date.parse(expected)))))throw new TossError('INVALID_INPUT');
+  const validation=validateRequiredBirth(raw);
+  if(!validation.ok)throw new TossError('BIRTH_INVALID');
+  const {name,gender,location}=normalizeIncomingProfile(raw,0);
+  const owner={userId:auth.ownerId,profileId:raw.profileId};
+  const saved=await ProfileCard.findOneAndUpdate({...owner,updatedAt:expected===null?null:new Date(expected)},
+    {$set:{name,gender,birth:validation.birth,location}},{new:true,runValidators:true}).lean();
+  if(saved)return {ok:true,profile:toClientProfile(saved)};
+  const current=await ProfileCard.findOne(owner).lean();
+  if(!current)throw new TossError('PROFILE_NOT_FOUND',404);
+  // A retry after a lost response can safely acknowledge the same field values.
+  const same=(left,right)=>Object.entries(right).every(([key,value])=>left?.[key]===value);
+  if(current.name===name&&current.gender===gender&&same(current.birth,validation.birth)&&same(current.location,location))return {ok:true,profile:toClientProfile(current)};
+  throw new TossError('PROFILE_CHANGED',409);
+}
 export async function prepareCanonicalFortune(env,auth,input) {
   // The web reuses a fish tier internally for symbolic readings. A Toss SKU authorizes only its registered consultation.
   if(input.mode||!isReviewSale(input.productId))throw new TossError('TOSS_PRODUCT_NOT_APPROVED',503);

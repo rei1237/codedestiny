@@ -1,10 +1,11 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 단계 1 — 아래 AIT 파일 무결성 확인 후 콘솔 '앱 출시'에서 QR21 상태를 읽고 사용자에게 보고(조작 전)
+next: 후속 정본 toss-full-parity-2026-11-22.md를 따른다
 ---
 
 # 앱인토스 콘솔 작업 인수인계 (Codex 용, 2026-11-22)
+2026-11-22 후속 지시로 아래는 이전 작업 이력이다. QR21 부분 출시 승인은 철회되었다. [현재 작업](./toss-full-parity-2026-11-22.md).
 
 ## 첫 행동
 1. `git pull --ff-only` 후 이 문서와 `docs/toss/launch-candidate-20261116.md`(QR21 기록)를 읽는다.

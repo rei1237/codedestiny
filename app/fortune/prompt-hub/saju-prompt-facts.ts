@@ -154,7 +154,9 @@ function buildManseryeokLines(
   dayStemHangul: string,
 ) {
   const dayStemIndex = stemIndexOf(dayStemHangul);
-  const changShengOffset = dayStemIndex < 0 ? undefined : CHANG_SHENG_OFFSET[STEM_HANJA[dayStemIndex]];
+  const offsets: Readonly<Partial<Record<string, number>>> = CHANG_SHENG_OFFSET;
+  const nayinByPillar: Readonly<Partial<Record<string, string>>> = NAYIN;
+  const changShengOffset = dayStemIndex < 0 ? undefined : offsets[STEM_HANJA[dayStemIndex]];
 
   const rows: string[] = [];
   for (const key of ["year", "month", "day", "hour"]) {
@@ -163,7 +165,7 @@ function buildManseryeokLines(
     if (!hanja) continue;
 
     const parts = [`${PILLAR_KO[key]} ${pillar?.ganji || ""}`.trim()];
-    const nayin = NAYIN[hanja];
+    const nayin = nayinByPillar[hanja];
     if (nayin) parts.push(`납음 ${NAYIN_KO[nayin] || nayin}`);
 
     const branchIndex = branchIndexOf(pillar?.branch);

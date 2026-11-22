@@ -497,7 +497,7 @@ function repairLinesFor(row) {
   });
 }
 
-async function generateGroup(env, facts, group, { deadlineAt, finalAttempt, previous }) {
+export async function generateSajuCompatPremiumGroup(env, facts, group, { deadlineAt, finalAttempt, previous }) {
   const remaining = deadlineAt - deps.now();
   if (!(remaining > 5000)) return { key: group.key, ok: false, reason: "BUDGET_EXHAUSTED", issues: ["BUDGET_EXHAUSTED"] };
   const timeoutMs = clampSyncLlmTimeoutMs(remaining - 4000);
@@ -701,7 +701,7 @@ async function handleStart(request, env, recoveryAuth = null) {
     if (next) {
       attempts[next.key] = Number(attempts[next.key] || 0) + 1;
       await saveState({ id: sessionId, userId: auth.userId, lockToken, values: { "llmMeta.attempts": attempts } });
-      const row = await generateGroup(env, facts, next, { deadlineAt: startedAt + LLM_BUDGET_MS,
+      const row = await generateSajuCompatPremiumGroup(env, facts, next, { deadlineAt: startedAt + LLM_BUDGET_MS,
         finalAttempt: attempts[next.key] >= GROUP_MAX_ATTEMPTS, previous: groups[next.key] });
       groups[next.key] = row;
       await saveState({ id: sessionId, userId: auth.userId, lockToken, values: { [`llmMeta.groups.${next.key}`]: row } });
