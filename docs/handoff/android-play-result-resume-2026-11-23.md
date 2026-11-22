@@ -1,22 +1,26 @@
 ---
 status: in-progress
 updated: 2026-11-23
-next: 최신 main CI 상태와 커밋된 후보의 pre-push를 확인한 뒤 이번 커밋만 main에 푸시한다.
+next: 테스트 기기 잠금이 해제되면 Play 스토어에서 1.0.63으로 업데이트하고 QA63PAY 테스트를 진행한다.
 ---
 
 # Android 내부 테스트 — 결제 후 상담 복귀와 달빛 예화
 
 ## 첫 행동
 
-이 워크트리에서 `git -c core.fsmonitor=false status -sb`, `git log -4 --oneline`을 실행한다. 최신 origin/main과 후보를 대조한다. 공유 main에는 다른 세션의 작업이 있으므로 함께 푸시하지 않는다.
+이 워크트리에서 `git -c core.fsmonitor=false status -sb`, `git log -4 --oneline`을 실행한다. 최신 origin/main과 후보를 대조한다. 이미 출시한 AAB와 스테이징의 SHA를 먼저 확인한다. 공유 main의 다른 세션 변경은 보존한다.
 
 ## 지금 상태
 
 - 워크트리 `D:/Development/code-destiny/.tmp/play-result-work/play-result-resume-20261123-063108`
 - 브랜치 `wt/play-result-resume-20261123-063108`
-- 기준 main `6e951894a6aa7751933314ed796bc12f6b8aff86` (다른 세션도 푸시 중이다. 새 main에 반영할 때도 생성된 사이트맵 원장은 원격판을 바탕으로 실제 소스에서 생성한다.)
-- 결제 `26eee6ffdf`, UI `c50e9337d5`. 이번 인수인계 커밋은 `git log -1 --format=%H -- docs/handoff/android-play-result-resume-2026-11-23.md`로 확인한다.
-- Google Play Console 내부 테스트에서 현행 출시 1.0.62를 확인했다. Ego Lite 공간 9의 p1이 열려 있다. 다음 AAB 후보는 1.0.63이며 업로드 전에 버전 코드 사용 여부와 타깃 트랙을 다시 확인한다.
+- AAB 소스와 main 반영 커밋 `022889e91ce708315273b89e8255818fe8618c60`. 결제 `26eee6ffdf`, UI `a8124d9103`.
+- [필수 CI](https://github.com/rei1237/codedestiny/actions/runs/45075805562/attempts/2) 2차 성공. 1차는 모든 Node 테스트 5,822건과 타입·빌드 및 critical 검사가 통과했고 데스크톱 종합 사주 표시만 시간 초과했다. 같은 검사는 로컬 360·390·430·1280px와 CI 재실행에서 통과했다.
+- [스테이징 배포](https://github.com/rei1237/codedestiny/actions/runs/45079735277)에서 Pages와 Worker 모두 `e9c25b886046dbcfda82c2b5544aa5685a0a4322`를 서비스한다. AAB 소스와 문서 세 개만 다르다. 모의 AI 활성화, Workers AI 비활성화, 실 LLM 허용 목록 없음, Play 검증 자격 등록을 확인했다.
+- Gradle `:app:bundleRelease`, `:app:testReleaseUnitTest` 성공. Android 단위 테스트 11건과 번들 서명·매니페스트·스테이징 내장 설정 검증이 통과했다. AAB `D:/Development/releases/codedestiny/1.0.63/codedestiny-1.0.63-staging.aab`, SHA256 `15c1555427ac9bdcf537fe27ce46cdfd1a1edb0fc84d3823a36a7838824069f3`.
+- [Play 내부 출시 20](https://play.google.com/console/u/0/developers/8929260153073799668/app/4971977067602742831/tracks/4701642016388647854/releases/20/details)은 1.0.63, 버전 코드 63, 내부 테스터에게 제공됨 상태를 확인했다. Ego Lite 공간 12, p1.
+- 실제 스테이징 모바일 보관함에서 기존 QA62PAY를 한 건 찾아 다시 열었다. 상담 고르기와 보관함은 360·390·430px 가로 넘침이 없고 주요 CTA 44px, 후기 제출은 48px와 공개 동의 기본 해제를 확인했다. 검수 그림과 로그는 `D:/Development/releases/codedestiny/1.0.63/verification`.
+- ADB는 연결된 기기에서 Play 설치 1.0.62를 확인했다. 기기 보안 잠금이 걸려 1.0.63 업데이트와 새 결제를 보류했고 사용자에게 잠금 해제를 요청했다. 새 테스트 주문은 아직 없다.
 - 이전 버전, QA62PAY 사건 및 기존 영수증 복구 증거는 `D:/Development/codedestiny-worktrees/android-internal-play-20261122-080050/docs/handoff/android-play-internal-2026-11-22.md`에 있다. 해당 주문은 수동 복구 후 1.0.62를 종료하고 다시 열어 보관함에서 확인했다. 새 버전 검증과 구분한다.
 
 ## 승인 상태
@@ -42,9 +46,10 @@ next: 최신 main CI 상태와 커밋된 후보의 pre-push를 확인한 뒤 이
 
 - [x] 결제 영수증 응답 복귀 수정, Play UI 모의 11건 및 서버 모의 121건 통과.
 - [x] 찻집 복구 33건, 보관함·후기 UI 33건 통과. 디자인 검사 기존 글꼴 권고 확인.
-- [ ] 최신 기준에서 두 로컬 실패 검사 재확인, pre-push, 필요한 범위만 main fast-forward, 정확한 후보 SHA의 GitHub 필수 CI 통과 확인.
-- [ ] main에서 해당 SHA로 Cloudflare staging 수동 배포 후 버전과 모의 AI·Play 스테이징 분리 확인. 같은 SHA로 AAB 서명·검증·Android 단위 테스트 실행.
-- [ ] Play Console 내부 테스트 트랙에만 업로드·출시하고 실제 Play에서 연결 기기에 업데이트한다.
+- [x] 두 로컬 모의 검사 재확인, pre-push, main fast-forward, 정확한 후보 SHA의 GitHub 필수 CI 통과 확인.
+- [x] Cloudflare staging 수동 배포, Pages·Worker SHA, 모의 AI·Play 스테이징 분리 확인. AAB 서명·검증·Android 단위 테스트 통과.
+- [x] Play Console 내부 테스트 트랙 출시 및 테스터 제공 상태 확인.
+- [ ] 실제 Play에서 연결 기기에 1.0.63으로 업데이트한다.
 - [ ] 새 QA 질문으로 Google 로그인 상태 → Play 테스트 결제 1회 → 화면 자동 복귀·모의 결과 → 강제 종료와 콜드 스타트 → 보관함 검색·같은 결과 확인. 후기·보관함·상담 선택의 실화면도 함께 검수.
 - [ ] 증거 정리, 인수인계 종료, 전달되지 않은 다른 세션 작업 보존.
 
