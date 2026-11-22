@@ -655,6 +655,12 @@ export async function handleTossRoutes(request,env) {
       const body=await bodyOf(request);
       return reply(await (await import('./native-heukwol.js')).prepareHeukwol(env,auth,body.input,body.orderId));
     }
+    const retryHeukwol=path.match(/^\/native\/heukwol\/results\/([a-f0-9]{64})\/retry$/);
+    if(retryHeukwol&&request.method==='POST'){
+      await limit(env,auth._id,'native-heukwol-retry',6);
+      const body=await bodyOf(request);
+      return reply(await (await import('./native-heukwol.js')).retryHeukwolGeneration(env,auth,retryHeukwol[1],body.failure));
+    }
     const heukwol=path.match(/^\/native\/heukwol\/results\/([a-f0-9]{64})$/);
     if(heukwol&&['GET','POST'].includes(request.method)){
       if(request.method==='POST')await limit(env,auth._id,'native-heukwol-wave',35);
