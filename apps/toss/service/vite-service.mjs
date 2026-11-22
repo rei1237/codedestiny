@@ -253,6 +253,12 @@ export default function serviceCompat(){
    const emitted=new Set();
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
+    // Keep the tea room sprite coordinates and every animation frame in the offline archive.
+    if(privateArt&&/^images\/fortune-tea-house\/[^/]+\.webp$/.test(ref)){
+     const source=await readFile(path);
+     const mobile=await sharp(source,{animated:true}).webp({quality:76,alphaQuality:92}).toBuffer();
+     return mobile.length<source.length?mobile:source;
+    }
     // Portraits and service thumbnails occupy a phone-width card.
     if(/^images\/(?:service-introductions|master-profiles|expert-characters|consultation-editorial)\/.+\.webp$/.test(ref)){
      const source=await readFile(path);
