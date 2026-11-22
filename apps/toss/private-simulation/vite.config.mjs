@@ -20,6 +20,7 @@ function privateSimulation(){
       if(from.endsWith('/worker/toss/tarot-library.js')&&id==='./tarot-library-generator.js')return resolve(here,'free-tarot-generator.mjs');
       if(!from.endsWith('/private-simulation/tarot-links.mjs')&&id.endsWith('/lib/tarot/toss-library-links.mjs'))return resolve(here,'tarot-links.mjs');
       if(id.startsWith('.')&&resolve(dirname(from),id).replaceAll('\\','/')===release)return '\0private-release';
+      if(id==='@apps-in-toss/web-framework'&&from.endsWith('/apps/toss/src/MiniGames.jsx'))return resolve(here,'mini-game-media.mjs');
       if(id==='@apps-in-toss/web-framework'&&/\/apps\/toss\/(?:src|service)\//.test(from)){
         if(/\/src\/App\.tsx$|\/service\/Screens\.jsx$/.test(from))return;
         return sdk;

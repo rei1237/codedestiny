@@ -9,6 +9,9 @@ const disabled=new Proxy({},{get:()=>blocked});
 export const Accuracy={Balanced:'balanced'};
 export const Clipboard=disabled,Device=disabled;
 export const Share={createLink:blocked,sendMessage:supported(async({message})=>{
+ if(typeof message==='string'&&/^(?:데스티니 포커|혈액형 테스트|화투 인생 패) · /.test(message)&&message.length<=1650){
+  localStorage.setItem('private-mini-game-share','opened');return;
+ }
  const {hatHouses}=await import('../../../lib/yeongnyangi/hat-houses.ts');
  if(typeof message==='string'&&message.startsWith('연이의 마음 별자리 · ')&&message.length<=160&&!/[\r\n]/.test(message)){
   localStorage.setItem('private-star-hug-share','opened');return;
