@@ -72,6 +72,14 @@
 
 음악은 합성 파일의 네이티브 저장 요청·보관함 검증을 마쳤지만, 32MiB 초과 원곡 파일 저장은 현재 어댑터의 메모리 상한으로 미완료다. SDK 공식 용량 한도가 아니며 SDK가 URL·스트림 저장 API를 제공하지 않아 큰 파일 경로는 별도 구현/기기 검증이 필요하다. 이것은 원본 구매 정책에 새 제한을 신설한 것이 아니다. 곡별 실제 크기·실기기 파일 저장과 독립 SKU가 확인되기 전 판매하지 않는다.
 
+### 2026-11-22 원곡 메타데이터
+
+웹 음악 원장 app/music/_data/musicManifest.ts가 확장한 123개 고유 MP3 키를 서비스의 음원 호스트에서 HEAD로 조회했다. 122개가 audio/mpeg·200을 반환했고, 그중 가장 큰 파일은 Kindness의 12,396,644바이트였다. 확인한 파일 중 32MiB 초과는 0개다. 원본 오디오 본문과 구매 기록은 조회하지 않았다.
+
+neo-15 「비겁다자의 우정 지옥」의 현행 MP3는 404였다. 커밋 be05e84c85 전의 동명 WAV는 200·audio/wav·45,335,212바이트다. 판매 전 기존 상품 music-track-1x0675y와 연결된 현재 키에 권리자가 확인한 MP3 복구가 필요하다. 이번 점검에서 운영 음원 객체를 변경하지 않았다.
+
+설치된 Web SDK 3.7.0과 [File.saveBase64 문서](https://developers-apps-in-toss.toss.im/documentation/sdk/domains-api/file/file.savebase64)는 단일 base64 문자열을 전달한다. Worker 쪽 스트리밍만으로 네이티브 브리지의 최종 문자열 할당을 없앨 수 없다. Workers는 동시 요청이 공유하는 isolate당 128MB 제한을 둔다. [Workers 메모리 제한](https://developers.cloudflare.com/workers/platform/limits/#memory). 운영 검증은 복구한 MP3를 포함한 카탈로그 크기 재확인과 최대 파일의 iOS·Android 단말 저장·파일 일치 확인을 포함한다. 새 파일의 길이가 현재 방어 상한을 넘으면 별도 전송 경로의 플랫폼 지원과 기기 검증이 필요하다.
+
 ## 프라슈나 현재 위치: 출시 고지 대조
 
 - `VedicPrashna.tsx`는 위치의 차트 용도를 설명하고 `현재 위치 불러오기`를 누를 때만 `question-location.ts`의 `Device.getLocation`을 호출한다. 가져온 위도·경도는 화면 상태에 채우며, 이 동작만으로 서버에 전송하지 않는다. 권한 거절/오류 시 직접 위도·경도 입력을 안내한다. 별도의 `질문 차트와 프롬프트 만들기`를 누르면 질문과 좌표를 인증된 `/api/toss/vedic/prashna`에 전송한다.
