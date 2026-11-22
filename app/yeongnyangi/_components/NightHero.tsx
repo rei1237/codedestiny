@@ -10,6 +10,7 @@ import TrustRecordLine from '@/app/components/conversion/TrustRecordLine';
 import {launchOffer,plannedPriceFor} from '@/lib/brand/launch-offer';
 import styles from './night-hero.module.css';
 import PetMascot from './PetMascot';
+import NightBloomMotion from './NightBloomMotion';
 
 const starter=products.find(product=>product.id==='saju_mackerel')!;
 const planned=plannedPriceFor(starter.fishId,starter.priceKRW);
@@ -26,6 +27,8 @@ export default function NightHero(){
  const [greeting,setGreeting]=useState(0);
  return <section className={styles.hero} aria-labelledby="hero-title">
   <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
+  <span className={styles.garden} aria-hidden="true"><span className={styles.lotus} data-yn-bloom="lotus"/></span>
+  <NightBloomMotion className={styles.bloomMotion}/>
   <div className={styles.copy}>
    <h1 id="hero-title"><span className={styles.brandPrefix}>{mascotPrefix}</span>{' '}<span className={styles.brandName}>{mascotName}</span></h1>
    <p className={styles.desktopIntro}>간단한 고민 상담은 영냥이에게 물어봐! 답과 근거, 지금 해볼 행동을 함께 살펴봐요.</p>

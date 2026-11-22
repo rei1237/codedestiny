@@ -1,0 +1,65 @@
+/* 영냥이 밤꽃 배경 모션(H, 2026-11-22) — transform·opacity 만 움직인다. 위치·크기·층(z)은 놓는 쪽 className 이 준다.
+   색은 기존 토큰만: 꽃잎 = --yn-ivory → --yn-gold, 별가루 = MasterPetals yeongnyangi(--yn-gold). 분홍 없음.
+   느리게(15~23s) 두어 F7 눈 깜빡임(PetMascot)과 겹쳐도 시선을 끌지 않는다. */
+.root {
+  display: block;
+  overflow: hidden;
+  pointer-events: none;
+}
+.petals {
+  position: absolute;
+  inset: 0;
+}
+/* 별가루(MasterPetals)는 7~10s 에 상자 높이 100% 를 떨어진다 — 높이를 200px 로 묶어 초당 약 30px 이하로 둔다.
+   🔴 데스크톱 428px 상자 그대로면 초당 약 100px 로 불티처럼 시선을 끈다(2026-11-22 연속 프레임 판정). */
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: min(100%, 200px);
+}
+/* 5px 이면 네 갈래 별이 점·빈 원으로 읽힌다 — 6px 로 모양을 살린다(MasterMotion 선택자보다 한 단계 구체적) */
+.stars.stars [data-variant="yeongnyangi"][data-density="sm"] {
+  --mm-size: 6px;
+}
+/* 낙하 길이만 1.4배(초당 약 22px 이하) — 반짝임(mmTwinkle)은 그대로 둔다. --mm-i 는 MasterPetals 가 별마다 인라인으로 준다. */
+.stars.stars [data-variant="yeongnyangi"] > * {
+  animation-duration: calc((7s + var(--mm-i) * 1.3s) * 1.4);
+  animation-delay: calc(var(--mm-i) * -3.2s);
+}
+/* 레인 = 높이 100% 줄 — translateY(100%) 가 곧 상자 높이(MasterPetals 와 같은 방식). */
+.lane {
+  position: absolute;
+  top: 0;
+  width: var(--yn-size);
+  height: 100%;
+  opacity: 0;
+  will-change: transform, opacity;
+  /* --yn-bloom-tempo(놓는 쪽, 상자 높이 / 약 200px)로 길이를 늘려 낙하 속도를 화면 폭과 무관하게 맞춘다 */
+  animation: ynBloomFall calc(var(--yn-fall) * var(--yn-bloom-tempo, 1)) linear calc(var(--yn-delay) * var(--yn-bloom-tempo, 1)) infinite;
+}
+.petal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--yn-size);
+  height: calc(var(--yn-size) * 1.25);
+  background: linear-gradient(180deg, var(--yn-ivory) 30%, var(--yn-gold));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 25'%3E%3Cpath d='M10 1C16.5 6 17.5 14.5 10 24C2.5 14.5 3.5 6 10 1Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 25'%3E%3Cpath d='M10 1C16.5 6 17.5 14.5 10 24C2.5 14.5 3.5 6 10 1Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  animation: ynBloomSway 4.8s ease-in-out infinite alternate;
+}
+@keyframes ynBloomFall {
+  0% { transform: translate3d(0, -18px, 0); opacity: 0; }
+  12% { opacity: .55; }
+  80% { opacity: .55; }
+  100% { transform: translate3d(-20px, 100%, 0); opacity: 0; }
+}
+@keyframes ynBloomSway {
+  from { transform: translateX(-5px) rotate(-26deg); }
+  to { transform: translateX(5px) rotate(30deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .root { display: none; }
+}

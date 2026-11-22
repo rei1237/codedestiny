@@ -1,6 +1,8 @@
 'use client';
 
 import {useEffect,useRef,useState,type CSSProperties} from 'react';
+import {MasterMotionPatch} from '@/app/components/master-motion/MasterMotion';
+import {masterMotionPatch} from '@/lib/master-motion/sheets.mjs';
 import styles from './pet-mascot.module.css';
 
 const ORIGINAL='/assets/yeongnyangi/original/hero-800.webp';
@@ -8,6 +10,8 @@ const ATLAS='/assets/yeongnyangi/original/mascot-reactions.webp';
 const REACTIONS=['눈을 깜빡이며 고개를 갸웃해요.','앞발을 들어 인사해요.','고등어를 꼭 끌어안아요.','별빛 사이로 살짝 뛰어요.'] as const;
 const HOLD_MS=950;
 const LOAD_WINDOW_MS=2600;
+// 대기 깜빡임(F7): 정본 hero-800 좌표의 눈 언저리 부분 시트. 쓰다듬기 반응 중에는 내린다.
+const BLINK=masterMotionPatch('yeongnyangi','mascot');
 type Props={className?:string;alt:string;onReact?:(reaction:number)=>void;priority?:boolean;sizes?:string;variant?:'room'|'landing'};
 type Press={row:number;turn:number};
 type LoadState='idle'|'loading'|'ready'|'failed';
@@ -41,6 +45,7 @@ export default function PetMascot({className,alt,onReact,priority=false,sizes='(
   <button type="button" className={[styles.button,className].filter(Boolean).join(' ')} aria-label="영냥이 쓰다듬기" onClick={pet} data-reaction={press?.row} data-pet-placement={variant}>
    <span className={styles.canvas}>
     <img className={painted?styles.inactive:undefined} src={ORIGINAL} srcSet="/assets/yeongnyangi/original/hero-480.webp 480w, /assets/yeongnyangi/original/hero-800.webp 800w" sizes={sizes} width={800} height={800} alt={alt} {...(priority?{fetchPriority:'high' as const}:{})}/>
+    <MasterMotionPatch patch={BLINK} paused={Boolean(press)}/>
     {(atlas==='loading'||atlas==='ready')&&<span aria-hidden="true" className={styles.spriteWindow} data-pet-sprite={painted?'active':'idle'}>
      <img src={ATLAS} alt="" width={1024} height={1024} className={styles.atlas}
       onLoad={({currentTarget:img})=>settleAtlas(img.naturalWidth===1024&&img.naturalHeight===1024)}
