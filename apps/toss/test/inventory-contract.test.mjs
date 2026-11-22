@@ -79,3 +79,15 @@ test('recorded mock archive checks resolve to individual services and all tested
  const products=record.checks.find(row=>row.args.includes('--all-products')).checked.map(line=>line.split(' ')[0]);
  assert.deepEqual(products.sort(),inventory.consultationProducts.map(item=>item.productId).sort());
 });
+
+test('the room pass, device tarot, sorting hat, room activities and recipe reader have distinct source and entitlement records',()=>{
+ const get=id=>inventory.canonicalCandidates.find(item=>item.id===id);
+ const room=get('yeongnyangi-room'),daily=get('yeongnyangi-daily'),tarot=get('yeongnyangi-room-daily-tarot'),hat=get('yeongnyangi-sorting-hat');
+ assert.match(room.tossLogin,/게스트/);assert.equal(room.webModes.length,5);
+ assert.deepEqual(daily.tossAliases,['/yeongnyangi/room/#daily']);assert.equal(daily.tossRoute,'/daily');
+ assert.equal(tarot.tossRoute,'/yeongnyangi/room/#daily-tarot');assert.match(tarot.tossLogin,/멸치/);assert.match(tarot.storageContract,/같은 기기/);
+ assert.notEqual(tarot.id,get('today-hub').id);assert.deepEqual(tarot.webProductIds,[]);
+ assert.equal(hat.tossRoute,'/yeongnyangi/hat/');assert.match(hat.storageContract,/프로필/);
+ assert.ok(get('saju-recipe-comics').webSources.includes('lib/lifestyle/recipes.mjs'));assert.deepEqual(get('yeon-star-hug').webEntries,['/yeon-star-hug/']);
+ for(const group of [room,tarot,hat,get('saju-recipe-comics'),get('yeon-star-hug')])assert.equal(group.sku,null);
+});

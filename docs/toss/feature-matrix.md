@@ -1,6 +1,6 @@
 # 웹 기능과 앱인토스 이식 현황
 
-11월 22일 웹 원본에서 다시 확인한 기능은 116개다. 같은 기능의 홈 별칭과 영냥이의 개별 상품은 별도로 집계했다. 기능별 입력·상품·계산·원문 재열람은 [전체 원장](./full-service-inventory.json), 콘솔 상태와 실제 검수 순서는 [출시 준비 점검](./release-preparation-20261122.md)에서 확인한다.
+11월 22일 웹 원본에서 다시 확인한 기능은 121개다. 후속 원본 대조로 영냥이의 방·모자·오늘과 내일 타로, 사주 요리 웹툰, 연이의 마음 별자리를 추가했다. 같은 기능의 홈 별칭과 영냥이의 개별 상품은 별도로 집계했다. 기능별 입력·상품·계산·원문 재열람은 [전체 원장](./full-service-inventory.json), 콘솔 상태와 실제 검수 순서는 [출시 준비 점검](./release-preparation-20261122.md)에서 확인한다.
 
 2026-11-22 QR21 콘솔 상태는 출시 준비됨이다. 종전 부분 출시 승인은 철회되었다. 전체 이식·실기기·운영 검증 및 최종 승인이 필요하다. [제출 이력](./launch-candidate-20261116.md).
 
@@ -153,7 +153,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 
 <!-- generated-service-index -->
 <details>
-<summary>웹·토스 전체 기능 116개 펼치기</summary>
+<summary>웹·토스 전체 기능 121개 펼치기</summary>
 
 | 기능 | 웹 진입 | 토스 진입 | 일반 홈 검증 | 이식 | 배포 AIT 세부 검사 |
 |---|---|---|---|---|---|
@@ -241,6 +241,7 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 사주 FPTI | /saju-fpti/ | /saju-fpti/ | 홈 버튼 · 사주 FPTI | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 가디언 아트 | /saju-guardian | /saju-guardian/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 사주 그림 프롬프트 | index.html:사주 리포트 | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | sections, dashboard |
+| 사주 요리 웹툰 | /recipes/ | /recipes/ | 홈 → 꿀꿀운세 → 이야기·음악 → 사주 요리 웹툰 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 시빌라 연간 대비 리포트 | /saju/sibyl/ | /saju/sibyl/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sibyl |
 | 시크릿 하우스 | js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute | /saju/sections | 홈 버튼 · 사주 리포트 | 콘솔·운영 설정 필요 | secretHouse |
 | 스톤헨지 룬점 | /index.html?action=openRuneOracle | /oracle/rune | 홈 버튼 · 스톤헨지 룬 | 이미 동작 | tarot |
@@ -262,12 +263,16 @@ Windows 모의 AIT `01a200c1-7dab-7038-88a9-3f2fac3bfb59`의 번들 파일을 �
 | 오늘의 운세 | /today/ | /today | 홈 버튼 · 오늘의 운세 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 베다점 | /?action=cdHomeVedicEntry | /vedic | 홈 버튼 · 베다점 출생차트 | 콘솔·운영 설정 필요 | guests |
 | 윤달의 베다점 상담 | /vedic-ai | /vedic-ai/ | 홈 버튼 · 베다 전문가 상담 | 콘솔·운영 설정 필요 | experts |
+| 연이의 마음 별자리 | /yeon-star-hug/ | /yeon-star-hug/ | 홈 → 꿀꿀운세 → 연이의 마음 별자리 · 소스 연결 | 일부만 이식 | 상품별 로컬 근거는 JSON 참조 |
 | 운세보는 영냥이 | /yeongnyangi/ | /yeongnyangi/fortune/ | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | mobile-owner, mock-catalog |
-| 영냥이 출석과 오늘의 운세 | /yeongnyangi/free-fortune/ | /daily | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
+| 영냥이 출석과 오늘의 운세 | /yeongnyangi/room/#daily | /daily | 영냥이 → 오늘의 운세와 출석 또는 영냥이의 방 → 오늘의 무료 운세 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영냥이 상담 전 자주 묻는 질문 | /yeongnyangi/faq/ | /yeongnyangi/faq/ | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
 | 호라리 질문 차트 | /yeongnyangi/fortune/?mode=horary | /yeongnyangi/fortune/?mode=horary | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
 | 프라쉬나 질문 상담 | /yeongnyangi/fortune/?mode=prashna | /yeongnyangi/fortune/?mode=spirit | 일반 홈의 진입 코드 확인 | 콘솔·운영 설정 필요 | sky |
+| 영냥이의 방 | /yeongnyangi/room/ | /yeongnyangi/room/ | 홈 → 영냥이 → 영냥이의 방 · 소스 연결 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 영냥이의 오늘·내일 타로 | /yeongnyangi/room/#daily-tarot | /yeongnyangi/room/#daily-tarot | 홈 → 영냥이 → 영냥이의 방 → 오늘·내일 타로 · 소스 연결 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 영냥이 시즌 연재 | /yeongnyangi/season-1/ | /moonlight/season-1 | 일반 홈의 진입 코드 확인 | 이미 동작 | 상품별 로컬 근거는 JSON 참조 |
+| 영냥이의 모자 | /yeongnyangi/room/#sorting-hat | /yeongnyangi/hat/ | 홈 → 영냥이 → 영냥이의 방 → 모자 이야기 · 소스 연결 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | Divya Yoga | /yoga-guru.html | /yoga-guru | 홈 버튼 · 디비야 요가 | 콘솔·운영 설정 필요 | 상품별 로컬 근거는 JSON 참조 |
 | 자미두수 | /?action=cdHomeZiweiEntry | /ziwei/chart | 홈 버튼 · 자미두수 명반 | 콘솔·운영 설정 필요 | sections |
 | 자미두수 전문가 상담 | /ziwei-ai | /ziwei-ai/ | 홈 버튼 · 자미두수 전문가 상담 | 콘솔·운영 설정 필요 | experts |
