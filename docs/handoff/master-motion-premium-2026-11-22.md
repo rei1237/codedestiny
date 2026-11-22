@@ -524,3 +524,26 @@ next: F5·F6·F7·G push 대기 — origin/main 이 녹색이 되면 워크트�
   - 베다 390 캡션 띠는 본문과 같은 어두운 색이라 띠로 구분되지 않는다(G 이전과 같음).
   - `.fc-master-reading` 결과 화면 제목 MaruBuri 는 캐논 위반이지만 G 범위 밖.
 - 미검증: 실제 상담 모달 흐름 안의 entry() 화면(합성 호스트에 실제 entry() HTML·CSS 를 넣어 찍음), 실기기 hover.
+
+#### H 방향·성공 기준 (2026-11-22, 구현 전 기록 — 코딩 원칙 16)
+- 방향
+  - 모티프: 생성기(`scripts/design/gen-yehwa-motifs.mjs`)에 밤꽃 라인아트 두 장을 더한다 — 목련 가지(`magnolia`, 위로 피는 컵 모양 꽃 2·봉오리 1)와 연꽃(`lotus`, 7장 꽃잎·물결·봉오리·연잎). `renderYnNight()` 만 `--yn-yehwa-mask-magnolia(-sm)`·`--yn-yehwa-mask-lotus(-sm)` 로 내보낸다(-sm 은 64~100px 렌더용 굵은 획, 실제 획 ≈1px 규칙). 기존 branch-spray 바이트는 그대로(앱인토스 동기화가 뽑아 쓴다). 색은 `--yn-ivory`(꽃잎) → `--yn-gold`(줄기·물) 그라데이션만, 분홍 없음.
+  - 배치(장식은 글·얼굴·터치를 가리지 않는다 — 전부 본문·고양이 **뒤** 층)
+    - `/yeongnyangi/` 히어로: 데스크톱은 우하단 목련 가지(고양이 뒤로 들어가 오른쪽으로 꽃이 보임)·좌하단 연꽃(카피 아래 빈 띠). 모바일은 198px 방 그림 상자 아래 두 모서리(고양이 x 103~287 밖). 스크림(`.hero::after`)을 사진 바로 위 층으로 내리고 꽃은 그 위·본문 아래(z -1).
+    - `/yeongnyangi/room/` 방 그림(`.room-presence`): 좌하 연꽃·우측 목련, 하단 캡션 위에서 끝낸다.
+    - 금테 카드: 특별 상담 카드 3장(`QuestionSpecialConsultations`, 영냥이 전용)에 안쪽 4px 금 실선(이중 테두리). 선택 상태(금 테두리+raised)와 헷갈리지 않게 바깥 테두리는 그대로 둔다. 고르는 카드(체계 선택 label)는 손대지 않는다.
+  - 모션: 새 `NightBloomMotion`(app/yeongnyangi/_components) — `MasterPetals variant="yeongnyangi" density="sm"`(금빛 별가루 재사용) + 아이보리 목련 꽃잎 3~4장 낙하(전용 CSS Module 키프레임, transform·opacity 만). `useSpritePlaybackGate`(보일 때·탭 활성·reduced-motion 아님) + `MASTER_MOTION_ENABLED` 일 때만 그린다. 범위는 히어로 고양이 칸/방 그림 상자 안, 고양이 뒤 층. 느리게(꽃잎 14~23초 주기) 두어 F7 눈 깜빡임과 겹쳐도 시끄럽지 않게.
+  - 진입 장면(`ServiceEntryScene`): 포스터→모션 페이드는 **넣지 않는다**(아래 근거). 대신 아치 아래 두 모서리에 정적 목련·연꽃 마스크(-sm)만 더한다(밤 변형 `.cd-entry-scene--night` 한정, 추가 요청 0).
+    - 근거 1: 노출이 load+1프레임, 최대 1.8초다. 0.3초 페이드는 노출의 17% 이상이고 대부분의 재방문·빠른 망에서는 장면이 0.5초 안에 닫힌다.
+    - 근거 2: 장면 그림(`cat-reading-entry`)이 next/image priority 로 LCP 후보다. 시트를 받아 위에 겹치면 더 큰 나중 페인트가 LCP 를 다시 잡거나 핵심 경로에 요청이 늘어난다.
+    - 근거 3: reduced-motion·뒤로가기·세션 재방문은 장면 자체를 건너뛴다. 영냥이 전신 스프라이트 시트는 없고(F7 은 눈 부분 시트) 새 시트 생성은 이 단계 범위 밖이다.
+- 성공 기준(측정)
+  1. 분홍 픽셀 0(visual-checker, 새 장식 영역)
+  2. 장식·모션 요소 사각형 ∩ 글자(텍스트 노드 Range 사각형)·고양이 얼굴 = 0 — 390·1024·1280·1440, 두 화면
+  3. 본문 대비 4.5:1 유지(장식이 글 뒤를 지나지 않으므로 기존 값 그대로)
+  4. pageerror 0, 가로 넘침 0(390·1280)
+  5. reduced-motion: 모션 레이어 DOM 없음(별가루·꽃잎 0개), 정적 꽃은 보임, `document.getAnimations()` 중 새 레이어 0
+  6. 화면 밖으로 스크롤하면 모션 레이어가 사라진다(IO 게이트, `data-motion="off"`)
+  7. perf:home `--route=yeongnyangi/`(dist·시뮬 Lighthouse 중앙값 3회) LCP·CLS 가 전 기준선보다 잡음 범위 이상 나빠지지 않는다. 전: 모바일 LCP 13861ms·CLS 0.007(점수 54), 데스크톱 2150ms·0.022(86). LCP 요소는 히어로 방 그림(3/3).
+  8. visual-checker 항목별(분홍·대비·가림·정렬/잘림·고급감/일관성·모션 산만함 연속 프레임) 통과
+  9. 불변: title·H1·canonical·가격·라우트·결제/이용권 게이트·보관함 분리, branch-spray 바이트, `gen-yehwa-motifs --check` 통과
