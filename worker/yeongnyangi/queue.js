@@ -55,6 +55,17 @@ async function deferUntilDue(env, message, id, due) {
   message.retry({delaySeconds});
 }
 
+// Completion mail runs beside generation, never inside it: its failure cannot touch the stored result or the ack.
+// With ctx it outlives this message; without ctx (tests, scripts) it is awaited. The 10-minute sweep retries misses.
+function notifyCompleted(env, row, dependencies) {
+  const task = Promise.resolve().then(async () => {
+    const notify = dependencies.notifyCompleted || (await import('./completion-mail.js')).sendCompletionMail;
+    return notify(env, row);
+  }).catch(() => { console.warn('[yeongnyangi-queue]', JSON.stringify({ outcome: 'completion_mail_failed' })); });
+  if (typeof dependencies.ctx?.waitUntil === 'function') { dependencies.ctx.waitUntil(task); return undefined; }
+  return task;
+}
+
 export async function consumeConsultationQueue(batch, env, dependencies = {}) {
   const service = dependencies.service || await import('./service');
   const read = dependencies.read || (async id => {
@@ -75,6 +86,7 @@ export async function consumeConsultationQueue(batch, env, dependencies = {}) {
       const due = Math.max(new Date(row.nextAttemptAt || 0).getTime(), new Date(row.leaseUntil || 0).getTime());
       if (due > Date.now()) { await deferUntilDue(env, message, id, due); continue; }
       row = await service.generateNextChapter(rowEnv,String(row.userId),id,'queue');
+      if (row?.state === 'COMPLETED') await notifyCompleted(env, row, dependencies);
       if (!terminal(row)) {
         // Requeue after *every* saved chapter. No single invocation owns a book.
         if (!await enqueue(rowEnv,row)) { message.retry({delaySeconds:30}); continue; }
