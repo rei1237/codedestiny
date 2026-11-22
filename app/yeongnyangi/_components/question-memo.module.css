@@ -1,0 +1,14 @@
+/* "내가 남긴 질문" memo: one step below the reading, a single-bordered night-token card (no side tab); .memo .x beats the reading overview's `p` sizes. */
+.memo{box-sizing:border-box;max-width:var(--yn-reading-width);margin:12px 0 20px;padding:14px 18px 10px;background:var(--yn-surface);border:1px solid var(--yn-line);border-radius:12px;color:var(--yn-ivory);overflow-wrap:anywhere}
+.memo .label{margin:0 0 4px;font-family:var(--font-body);font-size:.8125rem;line-height:1.5;font-weight:700;letter-spacing:.02em;color:var(--yn-gold)}
+.memo .text{margin:0;font-family:var(--font-body);font-size:.9375rem;line-height:1.75;color:var(--yn-muted);word-break:keep-all;overflow-wrap:anywhere}
+.memo .text[data-clamped]{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;overflow:hidden}
+.memo .paragraph{display:block}
+.memo .paragraph+.paragraph{margin-top:.5em}
+.memo .toggle{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:0;padding:0 4px 0 0;background:none;border:0;border-radius:8px;color:var(--yn-gold);font:inherit;font-family:var(--font-body);font-size:.875rem;font-weight:700;cursor:pointer}
+.memo .toggle:hover{color:var(--yn-gold-hover)}
+.memo .toggle:focus-visible{outline:3px solid var(--yn-gold);outline-offset:2px}
+.memo .toggle[aria-expanded=true] svg{transform:rotate(180deg)}
+.memo .meta{display:grid;gap:2px;list-style:none;margin:6px 0 2px;padding:8px 0 0;border-top:1px solid var(--yn-line);font-family:var(--font-body);font-size:.8125rem;line-height:1.6;color:var(--yn-muted)}
+.memo .meta li{margin:0}
+@media(min-width:1000px){.memo .text{font-size:1rem}}
