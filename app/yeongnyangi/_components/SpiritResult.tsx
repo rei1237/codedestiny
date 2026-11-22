@@ -42,7 +42,7 @@ export default function SpiritResult({row,onRow,paymentSurface,onFollowupStart,o
   if(!spirit)return null;
   const stageStatus=row.state==='COMPLETED'?copy.complete:row.state==='AWAITING_FOLLOWUP'?copy.awaiting:row.chapters.length<1?copy.saving:copy.deepening;
   return <div lang={locale} className={styles.spirit}>
-    <header className={styles.spiritIntro}><img src={sky?SKY_IMAGE:SPIRIT_IMAGE} width={303} height={320} alt={copy.moodAlt}/><div><h1>{sky&&isTwoStage?copy.title:sky?sky.mode==='prashna-v1'?copy.title:questionSkyCopyFor(locale).input.horaryTitle:copy.title}</h1><p>{primary?.summary||copy.saving}</p></div></header>
+    <header className={styles.spiritIntro} data-complete={row.state==='COMPLETED' || undefined}><img src={sky?SKY_IMAGE:SPIRIT_IMAGE} width={303} height={320} alt={copy.moodAlt}/><div><h1>{sky&&isTwoStage?copy.title:sky?sky.mode==='prashna-v1'?copy.title:questionSkyCopyFor(locale).input.horaryTitle:copy.title}</h1><p>{primary?.summary||copy.saving}</p></div></header>
     {sky&&isTwoStage&&<section className={styles.questionContext}><h2>{copy.questionLabel}</h2><p>{row.consultation?.question}</p></section>}
     <p>{copy.consultedAt}: {new Date(spirit.askedAt).toLocaleString(locale,{timeZone:row.consultation?.timezone||'Asia/Seoul'})} · {row.consultation?.timezone}</p>
     {sky&&<p>{copy.region}: {symbolicCityName(sky.cityName,locale)||copy.regionSuffix} · {copy.regionSuffix}</p>}

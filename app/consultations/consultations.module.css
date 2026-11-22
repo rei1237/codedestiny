@@ -6,7 +6,7 @@
   --hub-card: #ffffff;
   --hub-ink: #402a38;
   --hub-muted: #6b4d5e;
-  --hub-accent: #b53660;
+  --hub-accent: #92234f;
   --hub-line: rgba(181, 54, 96, .18);
   --hub-gold: #7e6028;
   --hub-lilac: #6e5a8e;
@@ -32,11 +32,19 @@
 .frame { max-width: 1120px; margin-inline: auto; }
 .navigation { display: flex; justify-content: space-between; gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--hub-line); }
 .navigation a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--hub-muted); font-size: .875rem; }
-.heading { position: relative; padding-block: 20px 16px; padding-right: 60px; }
+.heading {
+  position: relative;
+  isolation: isolate;
+  margin-block: 14px 10px;
+  padding: 22px 64px 24px 22px;
+  border: 1px solid var(--hub-line);
+  border-radius: var(--cd-r-section);
+  background: var(--hub-surface);
+}
 .heading::after { content: ''; position: absolute; width: 150px; height: 150px; right: 0; top: 0; background: var(--hub-gold); opacity: .15; mask: url("/icons/yehwa-branch.svg") center / contain no-repeat; pointer-events: none; }
 .heading h1 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); line-height: 1.4; letter-spacing: -.035em; }
 .heading p { max-width: 62ch; color: var(--hub-muted); margin-top: 12px; font-size: .95rem; word-break: keep-all; }
-.moon { position: absolute; right: 8px; top: 34px; color: var(--hub-gold); }
+.moon { position: absolute; right: 18px; top: 28px; color: var(--hub-gold); }
 .categories { display: flex; flex-wrap: wrap; gap: 8px 16px; padding-bottom: 8px; border-bottom: 1px solid var(--hub-line); }
 .categories a { min-width: 44px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; color: var(--hub-accent); font-size: .9rem; font-weight: 700; }
 .categories a:hover { text-decoration: underline; text-underline-offset: 6px; }
@@ -101,7 +109,7 @@
   .row img { width: 64px; height: 64px; }
 }
 @media (min-width: 960px) {
-  .heading { padding-block: 20px 12px; }
+  .heading { padding: 28px 80px 28px 28px; }
   .section { margin-top: 48px; }
   .rows { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -113,8 +121,8 @@
 }
 @media (max-width: 380px) {
   .page { padding-inline: 16px; }
-  .heading { padding-right: 32px; }
-  .moon { width: 28px; right: 0; }
+  .heading { padding-right: 46px; }
+  .moon { width: 28px; right: 12px; }
   .categories { gap: 4px 14px; }
   .categories a { font-size: .8rem; gap: 4px; }
   .deck { gap: 10px; }
@@ -150,6 +158,17 @@
 .storyCard h3{font:700 22px/1.5 var(--font-serif);margin:16px 0 8px}.storyConcern{font-size:15px;line-height:1.7;word-break:keep-all}
 .storyBenefits{font-size:14px;line-height:1.8;padding-left:20px;margin:12px 0 20px;color:var(--hub-muted)}
 .storyCard>.prices{margin-top:auto}.storyActions{display:flex;flex-wrap:wrap;gap:0 16px;margin-top:12px;border-top:1px solid var(--hub-line)}
-.storyActions a{display:inline-flex;align-items:center;min-height:48px;font-size:14px;font-weight:700;text-decoration:underline;text-underline-offset:5px;color:var(--hub-accent)}
+.storyActions { align-items: center; justify-content: space-between; padding-top: 10px; }
+.storyActions a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: .875rem; font-weight: 700; }
+.storyActions .storyExplore { color: var(--hub-accent); text-decoration: underline; text-underline-offset: 4px; }
+.storyActions .storyStart {
+  justify-content: center;
+  border: 1px solid var(--hub-line);
+  border-radius: var(--cd-r-control);
+  padding-inline: 14px;
+  background: var(--hub-surface);
+  color: var(--hub-accent);
+}
+.storyActions .storyStart:hover { border-color: var(--hub-accent); background: var(--hub-accent); color: var(--hub-card); }
 @media(max-width:900px){.deck:has(.storyCard),.rows:has(.storyCard){grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:599px){.deck:has(.storyCard),.rows:has(.storyCard){grid-template-columns:1fr;gap:28px}}

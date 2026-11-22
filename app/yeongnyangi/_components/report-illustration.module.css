@@ -1,2 +1,4 @@
 .art { margin: 1.75rem 0; border: 1px solid var(--yn-line); border-radius: var(--yn-radius); overflow: hidden; break-inside: avoid; }
 .art img { display: block; width: 100%; height: auto; }
+.coverArt { margin: 0; overflow: hidden; border-radius: var(--cd-r-card); }
+.coverArt img { display: block; width: 100%; height: clamp(88px, 17vw, 190px); object-fit: cover; object-position: 38% center; }

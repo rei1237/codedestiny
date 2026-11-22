@@ -209,7 +209,16 @@ export default function RootLayout({ children }) {
             문장은 /diary 가 두 벌을 갖게 되면서 더 이상 참이 아니다(docs/context/design-and-ui.md). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
+            __html: `try {
+              if (localStorage.getItem('fortuneThemeModeStateV1') === 'neo') document.documentElement.dataset.cdTheme = 'neo';
+            } catch (e) {}
+            if (location.pathname === '/' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) {
+              var floralPreload = document.createElement('link');
+              floralPreload.rel = 'preload';
+              floralPreload.as = 'image';
+              floralPreload.href = '/images/home/illustrated/moon-floral-' + (document.documentElement.dataset.cdTheme === 'neo' ? 'dark' : 'light') + '-480.webp';
+              document.head.appendChild(floralPreload);
+            }`,
           }}
         />
         {/* 청크 로드 실패 1회 재시도 — 실패한 URL 에 캐시 우회 쿼리를 붙여 다시 받는다.

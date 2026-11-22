@@ -21,11 +21,11 @@ export default function QuestionSpecialConsultations(){
   <p>별도 상담 화면에서 준비해요. 새 탭에서 열어 지금 적은 고민은 이 화면에 남겨요.</p>
   <div className={styles.features}>
    <a className={styles.card} href="/yeongnyangi/fortune/?mode=spirit" target="_blank" rel="noopener">
-    <span className={styles.art}><img src="/assets/yeongnyangi/spirit/eastern-oracle-128.webp" srcSet="/assets/yeongnyangi/spirit/eastern-oracle-128.webp 128w, /assets/yeongnyangi/spirit/eastern-oracle.webp 640w" sizes="(max-width: 599px) 102px, 220px" width={128} height={128} loading="lazy" decoding="async" alt=""/></span>
+    <span className={styles.art}><img src="/assets/yeongnyangi/spirit/eastern-oracle-128.webp" srcSet="/assets/yeongnyangi/spirit/eastern-oracle-128.webp 128w, /assets/yeongnyangi/spirit/eastern-oracle-256.webp 256w, /assets/yeongnyangi/spirit/eastern-oracle.webp 640w" sizes="(max-width: 599px) 102px, 220px" width={128} height={128} loading="lazy" decoding="async" alt=""/></span>
     <span className={styles.copy}><strong>영냥 신점</strong><small>질문한 순간을 기준으로 살펴봐요.</small><span className={styles.action}>새 탭에서 상담 보기 <ArrowUpRight size={14} aria-hidden="true"/></span></span>
    </a>
    {assorted.length>0&&<button type="button" className={styles.card} aria-expanded={open} aria-controls={paneId} onClick={()=>setOpen(!open)}>
-    <span className={styles.art}><img src="/assets/yeongnyangi/fish/reaction-assorted.webp" width={609} height={640} loading="lazy" decoding="async" alt=""/></span>
+    <span className={styles.art}><img src="/assets/yeongnyangi/fish/reaction-assorted-320.webp" srcSet="/assets/yeongnyangi/fish/reaction-assorted-320.webp 320w, /assets/yeongnyangi/fish/reaction-assorted.webp 609w" sizes="(max-width: 599px) calc(32vw - 16px), 150px" width={609} height={640} loading="lazy" decoding="async" alt=""/></span>
     <span className={styles.copy}><strong>{assorted[0].fishName}</strong><small>두 체계를 골라 비교해요.</small><span className={styles.action}>조합 {open?'접기':'보기'} <ChevronDown size={14} aria-hidden="true"/></span></span>
    </button>}
    {omakase&&<a className={styles.card} href={productHref(omakase)} target="_blank" rel="noopener">

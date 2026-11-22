@@ -30,7 +30,7 @@ export default function FreePromoBanner({className='',variant='default',compact=
   <div className={styles.head}>
    {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- legacy shell navigation */}
    <a className={styles.art} href={FREE_PROMO_YEONI.href} aria-label={t('cta')}>
-    <Image src={FREE_PROMO_YEONI.image} width={960} height={640} sizes="(max-width:699px) 92vw, 440px" alt={pick('home.moonlit.gardenAlt','달빛 정원에서 운세책을 펼치는 꽃돼지 연이') || '달빛 정원에서 운세책을 펼치는 꽃돼지 연이'}/>
+    <img src={FREE_PROMO_YEONI.image} srcSet={FREE_PROMO_YEONI.srcset} sizes={FREE_PROMO_YEONI.sizes} width={960} height={640} loading="lazy" decoding="async" alt={pick('home.moonlit.gardenAlt','달빛 정원에서 운세책을 펼치는 꽃돼지 연이') || '달빛 정원에서 운세책을 펼치는 꽃돼지 연이'}/>
     {variant==='yeongnyangi'&&<Image className={styles.companion} src="/assets/yeongnyangi/original/hero-480.webp" width={480} height={480} alt="영냥이"/>}
    </a>
    <div className={styles.lead}><p className={styles.meta}><span className={styles.badge}>{t('badge')}</span>{days!=null&&<span className={styles.dday}>{freePromoDayLabel(days)}</span>}</p>

@@ -2362,6 +2362,11 @@
 /* Shared account status across the SoulCat screens. */
 .ynOriginal .session-controls{position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:#f4e9d3}
 .ynOriginal .session-controls button,.ynOriginal .session-menu a{min-height:44px;padding:8px 12px;border:1px solid #b8975b66;border-radius:14px;background:#30203f;color:#fff5df;font:inherit;cursor:pointer}
+.ynOriginal .session-entry{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.ynOriginal .session-entry>a,.ynOriginal .session-entry>button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:6px 9px;border:1px solid transparent;border-radius:var(--yn-btn-radius);color:var(--yn-ivory);background:transparent;font:600 .875rem/1.35 var(--font-body);text-decoration:none}
+.ynOriginal .session-entry>:nth-child(2){color:var(--yn-gold);border-color:var(--yn-line);background:var(--yn-surface)}
+.ynOriginal .session-entry>:hover{text-decoration:underline}
+.ynOriginal .session-entry>:focus-visible{outline:2px solid var(--yn-gold);outline-offset:2px}
 .ynOriginal .session-account{display:flex;align-items:center;gap:7px;max-width:100%;overflow-wrap:anywhere}.ynOriginal .session-account img{object-fit:contain;flex-shrink:0}
 .ynOriginal .session-menu{position:absolute;right:0;top:100%;z-index:80;display:grid;gap:6px;min-width:160px;padding:10px;background:#24162f;border:1px solid #b8975b;border-radius:16px;box-shadow:0 12px 30px #0006}
 .ynOriginal .session-menu a{display:block;text-decoration:none}.ynOriginal .session-compact{justify-content:flex-end;padding-block:0}.ynOriginal .session-compact .session-account{font-size:12px}

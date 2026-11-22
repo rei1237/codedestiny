@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { IS_APP_BUILD } from "@/lib/app-build-target";
 import HomeDisclosure from "@/app/components/HomeDisclosure";
 import QuestionJourney from "@/app/components/QuestionJourney";
 import NightHero, {NightPriceDetails} from "../_components/NightHero";
@@ -13,7 +14,7 @@ import {LocaleSwitcher} from '@/app/components/LocaleSwitcher';
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowRight, ChevronRight, KeyRound, PawPrint, X } from "lucide-react";
-import { ggulggulFortuneHref, loginHref, socialLoginHref, type SocialProvider } from "./service-links";
+import { ggulggulFortuneHref, loginHref, signupHref, socialLoginHref, type SocialProvider } from "./service-links";
 
 const FirstVisitGuide = dynamic(() => import('../_components/FirstVisitGuide'));
 const HeavenLightCinema = dynamic(() => import('../_components/HeavenLightCinema'));
@@ -70,7 +71,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
   const [activeNav, setActiveNav] = useState<"home" | "questions">("home");
   const dialogRef = useRef<HTMLDialogElement>(null);
   const openerRef = useRef<HTMLElement | null>(null);
-  const returnTo = typeof window === "undefined" ? "/yeongnyangi/fortune/" : window.location.pathname + window.location.search;
+  const returnTo = typeof window === "undefined" ? "/yeongnyangi/" : window.location.pathname + window.location.search + window.location.hash;
   const socialProviders: { id: SocialProvider; label: string }[] = [
     { id: "google", label: "Google" },
     { id: "naver", label: "네이버" },
@@ -137,7 +138,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
           </nav>
           <div className="header-actions">
             <LocaleSwitcher preservePath locale={siteLocale}/>
-            <SessionControls compact onLogin={()=>{setAuthMode("login");setPanel("auth");}} />
+            <SessionControls compact onChoose={IS_APP_BUILD ? undefined : mode=>{setAuthMode(mode);setPanel("auth");}} />
           </div>
         </header>
 
@@ -267,8 +268,8 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
                   로그인 뒤 이 화면으로 돌아와 보관함과 구매 권리를 확인할 수 있어요.
                 </span>
               </div>
-              <a className="primary-cta" href={loginHref(returnTo)}>
-                Code Destiny 로그인 화면 열기
+              <a className="primary-cta" href={authMode === 'signup' ? signupHref(returnTo) : loginHref(returnTo)}>
+                {authMode === 'signup' ? 'Code Destiny 회원가입 화면 열기' : 'Code Destiny 로그인 화면 열기'}
                 <ArrowRight size={18} />
               </a>
             </div>

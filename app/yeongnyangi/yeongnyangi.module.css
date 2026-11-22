@@ -826,3 +826,41 @@
 .pickerRoom .birthTimeOption input[type="checkbox"] { width:20px; height:20px; flex:0 0 auto; margin:0; accent-color:var(--yn-gold); }
 @media(max-width:560px) { .pickerRoom .tabs { grid-template-columns:repeat(2,minmax(0,1fr)); } .pickerSeal { flex-basis:46px; } .pickerRoom .consultationHeader h1 { font-size:clamp(1.55rem,6.1vw,1.8rem); word-break:keep-all; } .pickerRoom .consultationHeader p,.pickerRoom .spiritEntry span { word-break:keep-all; overflow-wrap:anywhere; } .pickerRoom .consultationHeader { gap:12px; } .pickerRoom .spiritEntry { gap:10px; padding:10px; } .pickerRoom .spiritEntry img { width:48px; height:51px; } }
 @media(prefers-reduced-motion:reduce) { .pickerRoom :is(.tabs button,.tabs a,.kindChoices button,.spiritEntry) { transition:none; } }
+.bookCover,
+.spiritIntro[data-complete] {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(6rem, 36%);
+  align-items: center;
+  gap: clamp(12px, 3vw, 36px);
+  margin: 0 0 20px;
+  padding: clamp(14px, 3vw, 32px);
+  border: 1px solid var(--yn-line);
+  border-radius: var(--cd-r-section);
+  background: linear-gradient(115deg, var(--yn-raised), var(--yn-night));
+}
+.bookCover::after, .spiritIntro[data-complete]::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid color-mix(in srgb, var(--yn-gold) 32%, transparent);
+  border-radius: var(--cd-r-card);
+  pointer-events: none;
+}
+.reader .bookCover h1, .spiritIntro[data-complete] h1 {
+  min-width: 0;
+  margin: 0;
+  color: var(--yn-ivory);
+  font-size: clamp(1.4rem, 3.3vw, 2.7rem);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.spiritIntro[data-complete] { grid-template-columns: minmax(5rem, 20%) minmax(0, 1fr); }
+.spiritIntro[data-complete] img { width: 100%; max-height: 145px; }
+.spiritIntro[data-complete] p { color: var(--yn-ivory); margin: .65em 0 0; line-height: 1.8; }
+.spirit progress { display: block; height: 6px; border: 0; border-radius: var(--cd-r-pill); background: var(--yn-raised); overflow: hidden; appearance: none; }
+.spirit progress::-webkit-progress-bar { background: var(--yn-raised); }
+.spirit progress::-webkit-progress-value { background: var(--yn-gold); }
+.spirit progress::-moz-progress-bar { background: var(--yn-gold); }
+@media (forced-colors: active) { .spirit progress { appearance: auto; } }
+.readingPending, .spiritPending { min-block-size: 85svh; color: var(--yn-muted); }
