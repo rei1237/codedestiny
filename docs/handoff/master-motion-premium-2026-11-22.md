@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: push 대기 → P(UX 프롬프트) — F5·F6·F7·G·H 가 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에 미push. origin/main 이 녹색이 되면 "F5~F7 전달 상태" 절의 재개 명령(origin/main 머지 → sync:public → check:pre-push → `git push origin HEAD:main` → main 체크아웃 merge → 워크트리 배수). 그다음 P
+next: push 대기 → 마무리
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -129,7 +129,8 @@ next: push 대기 → P(UX 프롬프트) — F5·F6·F7·G·H 가 워크트리 `
 - [x] F7 영냥이 고양이 — f13075f36d (눈 깜빡임 부분 시트, 꼬리 없음, 미push)
 - [x] G 꿀꿀 고급화 — 워크트리 커밋 198529f859·87bbb3bfc7·c962ebac34·c06c7d5e39·08bf6bb6d4, 미push(결과 기록 "G 결과" 절)
 - [x] H 영냥이 꽃 배경·동적 효과 — 워크트리 0472265e4d·0675c85910·a31b4ab188·f633689175·087c4d8fce·bf637241f7, 미push(결과 기록 "H 결과" 절)
-- [ ] P 사이트 전반 UX 개선 프롬프트 작성(모든 작업 뒤). 사용자 원문(11-22): "내 사이트 진입부터 꿀꿀운세, 영냥이 사이트 전반을 업계 표준에 맞는 사용자가 이용하기 편리한 UI/UX로 개선해줄 프롬프트를 모든 작업 후 작성해줘"
+- [x] P 사이트 전반 UX 개선 프롬프트 작성(모든 작업 뒤). 사용자 원문(11-22): "내 사이트 진입부터 꿀꿀운세, 영냥이 사이트 전반을 업계 표준에 맞는 사용자가 이용하기 편리한 UI/UX로 개선해줄 프롬프트를 모든 작업 후 작성해줘"
+  - 결과: `docs/prompts/2026-11-22-site-ux-standard.md` — 1abce5327a, 미push
   - 산출: `docs/prompts/2026-11-22-site-ux-standard.md`. 기존 형식은 `docs/prompts/2026-11-18-*`(03 UX)를 참고한다.
   - 다른 세션(Claude·Codex)이 그대로 실행할 마스터 프롬프트로 쓴다.
   - 범위: `/` 진입, `/ggulggul/`(상담 탐색·이용권·기록), 영냥이 `/yeongnyangi/`(질문·보관함)
