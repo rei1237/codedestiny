@@ -72,6 +72,8 @@ export default function QuestionJourney({source='home'}:{source?:string}){
   <form className={styles.write} aria-label="내 고민 직접 적기" onSubmit={event=>{event.preventDefault();if(!question.trim())return;if(!saveQuestionEntry(question,domain)){setEntryError('입력한 고민을 이어가지 못했어요. 내용을 복사해 두고 다시 시도해 주세요.');return;}window.location.assign(questionEntryHref(domain));}}>
    <label htmlFor="home-question"><Fish size={25} strokeWidth={1.5} aria-hidden="true"/>내 고민 직접 적기</label>
    <p id="home-question-help">상황과 알고 싶은 점을 적어주세요. 선택한 체계의 풀이 자료를 바탕으로 영냥이가 풀이해요. 상담 범위와 가격은 시작 전에 확인해요.</p>
+   <textarea id="home-question" value={question} onChange={event=>{setQuestion(event.target.value);setEntryError('');}} maxLength={QUESTION_ENTRY_LIMIT} rows={4} placeholder="지금 마음에 남은 고민을 적어주세요." aria-describedby="home-question-help home-question-count" required/>
+   <span id="home-question-count" className={styles.questionCount}>{question.length.toLocaleString('ko-KR')} / {QUESTION_ENTRY_LIMIT.toLocaleString('ko-KR')}</span>
    <fieldset className={styles.systems} aria-describedby="home-question-system-help">
     <legend><Moon size={17} aria-hidden="true"/> 어떤 운세로 볼까요?</legend>
     <p id="home-question-system-help">직접 쓴 고민과 아래 예시 질문에 모두 적용돼요.</p>
@@ -92,8 +94,7 @@ export default function QuestionJourney({source='home'}:{source?:string}){
      </label>)}
     </div>
    </fieldset>
-   <textarea id="home-question" value={question} onChange={event=>{setQuestion(event.target.value);setEntryError('');}} maxLength={QUESTION_ENTRY_LIMIT} rows={4} placeholder="지금 마음에 남은 고민을 적어주세요." aria-describedby="home-question-help home-question-count" required/>
-   <div className={styles.writeFooter}><span id="home-question-count">{question.length.toLocaleString('ko-KR')} / {QUESTION_ENTRY_LIMIT.toLocaleString('ko-KR')}</span><button type="submit" disabled={!question.trim()}>이 고민으로 상담 준비하기<ArrowRight size={18} aria-hidden="true"/></button></div>
+   <div className={styles.writeFooter}><button type="submit" disabled={!question.trim()}>이 고민으로 상담 준비하기<ArrowRight size={18} aria-hidden="true"/></button></div>
    {entryError&&<p className={styles.entryError} role="alert">{entryError}</p>}
   </form>
   <QuestionSpecialConsultations/>

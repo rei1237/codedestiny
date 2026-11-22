@@ -27,8 +27,8 @@ test('모든 줄에 순위 숫자, 추천 자리는 꼬리표와 기간 문구',
   assert.deepEqual(ranks, ['1', '2', '3', '4', '5']);
   const tagged = [...section.querySelectorAll('.cd-pop5__link')].map((link) => Boolean(link.querySelector('.cd-pop5__tag')));
   assert.deepEqual(tagged, [false, false, true, true, true]);
-  assert.match(section.querySelector('.cd-pop5__note').textContent, /추천/);
-  assert.match(section.querySelector('.cd-pop5__period').textContent, /최근 30일 구매 기준 · 11월 21일 기준/);
+  assert.match(section.querySelector('.cd-pop5__period .cd-pop5__detail').textContent, /추천/);
+  assert.match(section.querySelector('.cd-pop5__period').textContent, /최근 30일 구매 순위 · 11월 21일 기준/);
   assert.equal(section.querySelector('a').getAttribute('href'), '/new-year-ai-consultation/');
   section.querySelectorAll('a')[2].dispatchEvent(new window.MouseEvent('click', { bubbles: true, cancelable: true }));
   assert.deepEqual(tracked, [['popular_top5_click', { rank: 3, source: 'curated', service_id: 'life-book-ai', surface: 'home' }]]);

@@ -20,9 +20,17 @@
         "cell": {
           "width": 600,
           "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/yun/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
         }
       },
-      "sheetBytes": 199770
+      "sheetBytes": 199770,
+      "mobileSheetBytes": 86596
     },
     "avatar": {
       "kind": "avatar",

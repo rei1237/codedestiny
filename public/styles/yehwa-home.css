@@ -22,7 +22,7 @@
 @media(forced-colors:active){.yh-home .yh-free-start{outline-color:ButtonText}}
 /* 2026-11-15 한 줄 신뢰 띠: 원문 날짜 비교로만 연결. 한국어 화면에만 보인다. */
 .yh-entry-scene .yh-greeting .yh-trust{max-width:46ch;margin-top:14px;color:var(--cd-text-muted);font-size:.875rem;line-height:1.6}
-.yh-trust a{font-weight:600;white-space:nowrap;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.yh-trust a{display:inline-flex;align-items:center;gap:.25em;min-height:44px;font-weight:600;white-space:nowrap;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
 html:not([lang="ko"]) .yh-trust{display:none}
 /* 2026-11-16 상황형 첫 화면: 질문 1·결과 1·버튼 1, 그림은 작게. 한국어 화면에만 보인다. */
 .yh-situations{margin-top:16px}

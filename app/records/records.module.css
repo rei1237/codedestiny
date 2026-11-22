@@ -57,6 +57,16 @@
 .characterLinks a { justify-content: flex-start; padding: 16px; }
 .characterLinks img { width: 48px; height: 48px; border-radius: var(--cd-r-sm); object-fit: cover; }
 .page[data-record-view='result'] .frame { max-width: 1200px; }
+.page[data-record-view='result'] .navigation {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  align-items: center;
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom: 1px solid var(--cd-border);
+  background: var(--record-bg, var(--cd-bg));
+}
+.page[data-record-view='result'] :is([id], :focus-visible) { scroll-margin-top: calc(4rem + env(safe-area-inset-top, 0px)); }
 .page[data-record-view='result'] .heading { display: block; padding-bottom: 20px; }
 .page[data-record-view='result'] .heading h1 { font-size: clamp(1.5rem, 3vw, 2rem); }
 .readingQuestion { max-width: 72ch; margin: 0 auto 28px; white-space: pre-wrap; line-height: 1.8; }
@@ -229,6 +239,8 @@
 .emptyState { display: grid; justify-items: start; gap: 12px; padding: 28px; border: 1px solid var(--record-border); border-radius: var(--cd-r-card); background: var(--record-surface); }
 .emptyState img { width: 112px; height: 112px; object-fit: contain; border-radius: var(--cd-r-md); }
 .emptyState p { color: var(--record-secondary); }
+.emptyActions { display: flex; flex-wrap: wrap; gap: var(--cd-sp-sm); }
+.emptyActions a { min-height: var(--cd-btn-h); }
 
 /* The archive uses the same cream-and-rose dock as the static home screen. */
 :global(body):has(.lightFrame) :global(.cd-mnav) {

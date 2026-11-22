@@ -20,9 +20,17 @@
         "cell": {
           "width": 600,
           "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/yun-life-book/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
         }
       },
-      "sheetBytes": 189672
+      "sheetBytes": 189672,
+      "mobileSheetBytes": 93110
     },
     "avatar": {
       "kind": "avatar",

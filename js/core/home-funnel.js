@@ -98,7 +98,7 @@
       });
     }
     function bannerIdle() {
-      return !bannerPaused && !bannerMotion.matches && bannerVisible && !bannerHover && !document.hidden && !signatureBanner.contains(document.activeElement) && !bannerBlockingModal();
+      return !bannerPaused && !bannerMotion.matches && bannerVisible && !bannerHover && !document.hidden && !bannerBlockingModal();
     }
     function renderBanner(nextIndex) {
       bannerIndex = (nextIndex + bannerSlides.length) % bannerSlides.length;
@@ -141,8 +141,11 @@
     if (bannerPrevious) bannerPrevious.addEventListener('click', function () { moveBanner(bannerIndex - 1); });
     if (bannerNext) bannerNext.addEventListener('click', function () { moveBanner(bannerIndex + 1); });
     bannerDots.forEach(function (dot) { dot.addEventListener('click', function () { moveBanner(Number(dot.getAttribute('data-sig-banner-dot')) || 0); }); });
-    if (bannerPause) bannerPause.addEventListener('click', function () {
-      bannerPaused = !bannerPaused;
+    var pausedBeforePointer;
+    if (bannerPause) bannerPause.addEventListener('pointerdown', function () { pausedBeforePointer = bannerPaused; });
+    if (bannerPause) bannerPause.addEventListener('click', function (event) {
+      bannerPaused = !(event.detail && pausedBeforePointer !== undefined ? pausedBeforePointer : bannerPaused);
+      pausedBeforePointer = undefined;
       if (!bannerPaused) bannerManualUntil = 0;
       scheduleBanner();
     });
@@ -165,7 +168,10 @@
     }, { passive: true });
     signatureBanner.addEventListener('mouseenter', function () { bannerHover = true; scheduleBanner(); });
     signatureBanner.addEventListener('mouseleave', function () { bannerHover = false; scheduleBanner(); });
-    signatureBanner.addEventListener('focusin', scheduleBanner);
+    signatureBanner.addEventListener('focusin', function (event) {
+      if (!signatureBanner.contains(event.relatedTarget)) bannerPaused = true;
+      scheduleBanner();
+    });
     signatureBanner.addEventListener('focusout', function () { requestAnimationFrame(scheduleBanner); });
     if (typeof bannerMotion.addEventListener === 'function') bannerMotion.addEventListener('change', scheduleBanner);
     else if (typeof bannerMotion.addListener === 'function') bannerMotion.addListener(scheduleBanner);
@@ -248,9 +254,19 @@
       dots.forEach(function (dot, dotIndex) { dot.setAttribute('aria-pressed', String(dotIndex === index)); });
       position.textContent = (index + 1) + ' / ' + slides.length;
     }
+    var desktopLetterEntry = false;
+    window.addEventListener('popstate', function () {
+      if (!desktopLetterEntry) return;
+      desktopLetterEntry = false;
+      closeLetter(true);
+    });
     function closeLetter(restore) {
       if (!letter.open) return;
       letter.close();
+      if (desktopLetterEntry) {
+        desktopLetterEntry = false;
+        if (history.state && history.state.cdSignatureLetter && restore !== false) history.back();
+      }
       if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll(lockKey);
       document.documentElement.removeAttribute('data-signature-popup-open');
       if (restore !== false && previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
@@ -267,6 +283,10 @@
       write('sessionStorage', seenKey, memorySeen);
       render(index);
       letter.showModal();
+      // The mobile shell already owns its history guard. Desktop needs one entry per open letter.
+      if (!window.__cdMobileNav && window.matchMedia && window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)').matches) {
+        try { history.pushState(Object.assign({}, history.state, { cdSignatureLetter: true }), ''); desktopLetterEntry = true; } catch (_) {}
+      }
       document.documentElement.setAttribute('data-signature-popup-open', '');
       if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(lockKey);
       closeButton.focus({ preventScroll: true });

@@ -338,6 +338,13 @@ function installSampler() {
 
 /** 입장 스토리 대사 상자의 진행 상태. 타자기가 실제로 돌았는지 확인하는 데 쓴다. */
 function readDialogue() {
+  const line = document.querySelector('section[data-entry-stage] button[aria-label] [class*="dialogueText"]');
+  if (line) {
+    const button = line.closest("button");
+    const shown = line.textContent || "";
+    const speaker = button.querySelector("strong")?.textContent || "";
+    return { present: true, complete: button.getAttribute("aria-label") === speaker + ": " + shown, chars: shown.length };
+  }
   const box = document.querySelector("[data-speaker][data-complete]");
   if (!box) return { present: false };
   return {
@@ -357,10 +364,10 @@ function advanceStory() {
   return true;
 }
 
-/**
- * 프롤로그가 열렸다는 표식. CSS 모듈이 이름을 해싱하므로 부분 일치로 잡는다(entry 구간의 landingActions 와 같은 방식).
- * SSR HTML 은 언제나 `data-phase="landing"` 이고, 이 값이 `prologue` 로 바뀌는 것은 마운트 훅이 돈 뒤다.
- */
+// 현재 찻집 랜딩과 이전 랜딩에서 같은 동작을 찾는다.
+const TEA_STORY_BUTTON = 'button:has(+ a[href="#tea-example"]), [class*="landingActions"] button';
+const TEA_ALBUM_BUTTON = '[aria-labelledby="teaAlbumInvitationTitle"] button, [class*="honeyAlbumButton"]';
+const NEO_OPEN_PROLOGUE = '[data-phase="landing"] [class*="vnControlRow"] button[class*="vnGhostButton"]';
 const NEO_PROLOGUE_SELECTOR = '[class*="heroSection"][data-phase="prologue"]';
 
 /** 네오는 대사 상자 자체가 진행 버튼이다 — 클릭 핸들러가 붙었는지 확인할 대상. */
@@ -532,7 +539,7 @@ function digestTrace(events) {
  * 그래서 이 응답 하나만 고정값으로 채운다.
  *
  * 🔴 이것은 **측정 하네스 전용 스텁이고 제품의 게이팅은 손대지 않는다** — 실제 잠금 해제는
- * 꿀방울 10개를 쓰는 서버 판정 그대로다. 스텁이 몇 번 쓰였는지는 외부 요청 표에 함께 찍는다.
+ * 기존 앨범 보유자의 읽기 전용 응답을 로컬·원격 API 주소 모두에 쓴다. 스텁 횟수는 요청 표에 표시한다.
  */
 const HONEY_BALANCE_PATTERN = /\/api\/fortune-tea-house\/honey-drops\/balance/;
 const HONEY_BALANCE_STUB = {
@@ -570,7 +577,8 @@ function isLocal(url) {
 async function blockExternal(page, sink) {
   await page.route("**/*", (route) => {
     const url = route.request().url();
-    if (isLocal(url)) {
+    const stubBalance = HONEY_BALANCE_PATTERN.test(url);
+    if (isLocal(url) && !stubBalance) {
       route.continue();
       return;
     }
@@ -581,7 +589,7 @@ async function blockExternal(page, sink) {
       /* about:, chrome-extension: 등 */
     }
     const request = route.request();
-    if (HONEY_BALANCE_PATTERN.test(url)) {
+    if (stubBalance) {
       sink.push({ host, url, type: request.resourceType(), stubbed: true });
       if (request.method() === "OPTIONS") {
         void route.fulfill({ status: 204, headers: corsHeaders(request) });
@@ -772,8 +780,8 @@ async function measureEntry(page, cdp, origin, { tracing, network }) {
   network.reset();
 
   try {
-    await waitForHydrated(page, '[class*="landingActions"] button', BOOT_TIMEOUT_MS);
-    await page.click('[class*="landingActions"] button');
+    await waitForHydrated(page, TEA_STORY_BUTTON, BOOT_TIMEOUT_MS);
+    await page.click(TEA_STORY_BUTTON);
     await page.waitForSelector("section[data-entry-stage]", { timeout: BOOT_TIMEOUT_MS });
   } catch (error) {
     return { failures: [`입장 스토리에 도달하지 못했다 — ${error.message.split("\n")[0]}`], stages: [] };
@@ -840,12 +848,12 @@ async function measureNeoPrologue(page, cdp, origin, { tracing, network }) {
   await gotoRoute(page, origin);
   network.reset();
 
-  // 🔴 네오 프롤로그는 **입장 버튼을 누르는 것이 아니라 스스로 열린다** — 마운트 훅이 localStorage 의
-  //    "프롤로그 봤음" 표식을 읽어 없으면 그 자리에서 프롤로그를 켠다(NeoOperationRoomPage.tsx 의
-  //    shouldOpenPrologue). 하네스는 매 run 새 컨텍스트라 표식이 늘 비어 있으므로 항상 자동 개막이다.
-  //    랜딩 입장 버튼(vnStartButton[data-phase="landing"])은 **이미 본 방문자에게만** 뜬다 — 그걸 기다리면
-  //    영원히 안 온다. 그래서 개막 자체를 게이트로 쓴다(= 하이드레이션이 끝났다는 증거이기도 하다).
+  // 현재 랜딩에서는 다시 보기를 누르고, 이전 버전에서 이미 열린 프롤로그는 그대로 측정한다.
   try {
+    await waitForHydrated(page, NEO_PROLOGUE_SELECTOR + ", " + NEO_OPEN_PROLOGUE, BOOT_TIMEOUT_MS);
+    await page.evaluate(({ active, opener }) => {
+      if (!document.querySelector(active)) document.querySelector(opener)?.click();
+    }, { active: NEO_PROLOGUE_SELECTOR, opener: NEO_OPEN_PROLOGUE });
     await page.waitForSelector(NEO_PROLOGUE_SELECTOR, { timeout: BOOT_TIMEOUT_MS });
     await waitForHydrated(page, NEO_DIALOGUE_SELECTOR, BOOT_TIMEOUT_MS);
   } catch (error) {
@@ -922,11 +930,12 @@ async function measureAlbum(page, cdp, origin, { tracing, network }) {
   network.reset();
 
   try {
-    await waitForHydrated(page, '[class*="honeyAlbumButton"]', BOOT_TIMEOUT_MS);
-    await page.click('[class*="honeyAlbumButton"]');
+    await waitForHydrated(page, TEA_ALBUM_BUTTON, BOOT_TIMEOUT_MS);
+    await page.click(TEA_ALBUM_BUTTON);
     await page.waitForSelector(ALBUM_SELECTOR, { timeout: BOOT_TIMEOUT_MS });
+    await page.waitForSelector(`${ALBUM_SELECTOR} :is(article, li, [data-card-id])`, { state: "attached", timeout: BOOT_TIMEOUT_MS });
   } catch (error) {
-    return { failures: [`타로 앨범을 열지 못했다 — ${error.message.split("\n")[0]}`], scrolls: [] };
+    return { failures: [`타로 앨범의 카드 목록을 열지 못했다 — ${error.message.split("\n")[0]}`], scrolls: [] };
   }
   await page.waitForTimeout(2000);
 
@@ -1279,7 +1288,7 @@ function printReport(report) {
     }
 
     if (data.external) {
-      console.log(`\n  ── 외부 출처 요청 (차단하고 세기만 한다) · 총 ${data.external.total}건 ──`);
+      console.log(`\n  ── 차단한 외부 요청과 모의 응답 · 총 ${data.external.total}건 ──`);
       if (data.external.stubbed) console.log(`    ↳ 그중 ${data.external.stubbed}건은 꿀방울 잔량 스텁으로 응답(앨범 잠금 해제용, 하네스 전용)`);
       for (const host of data.external.byHost) console.log(`    ${String(host.count).padStart(4)}건  ${host.host}  [${host.types.join(",")}]`);
       for (const url of data.external.audio) console.log(`    🔊 ${url}`);

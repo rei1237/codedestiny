@@ -85,6 +85,20 @@
   color: var(--yn-muted);
 }
 .nav button { white-space: nowrap; }
+.page[data-reading-result] { --yn-result-return-height: calc(48px + env(safe-area-inset-top, 0px)); }
+.readingReturn {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  min-height: var(--yn-result-return-height);
+  padding: env(safe-area-inset-top, 0px) max(24px, calc((100% - 1032px) / 2)) 0;
+  border-bottom: 1px solid var(--yn-line);
+  background: var(--yn-night);
+}
+.readingReturn a { display: inline-flex; align-items: center; min-height: 44px; color: var(--yn-gold); font-weight: 650; }
+.page[data-reading-result] :is([id], :focus-visible) { scroll-margin-top: calc(var(--yn-result-return-height) + 1rem); }
 .consultation {
   max-width: 1080px;
   margin: 44px auto;
