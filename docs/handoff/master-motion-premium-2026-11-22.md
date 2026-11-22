@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: F5·F6 push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에서 origin/main 머지 → check:pre-push → `git push origin HEAD:main` → 워크트리 배수. 그다음 F7 — 영냥이 고양이 스프라이트(F2~F6 와 같은 절차 — Codex 편집 생성 → spec → build --report(모든 칸 수치 기록) → visual-checker(정지 칸 + 실제 화면) → 배선, variant yeongnyangi)
+next: F5·F6·F7 push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에서 "F5~F7 전달 상태" 절의 재개 명령(origin/main 머지 → sync:public → check:pre-push → `git push origin HEAD:main` → main 체크아웃 merge → 워크트리 배수). 그다음 G 꿀꿀 고급화
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -15,7 +15,7 @@ next: F5·F6 push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/D
 ## 지금 상태
 - 이전 작업(TOP5 개편 A, 기본 운세 마스터 말풍선 B·C, 연이 무료 결과 말풍선 D)은 `wt/top5-master-say-20261122-023703`에서 main에 머지·push되는 중이다(원 세션 담당). 이 문서의 단계는 그 머지 뒤 main 기준이다.
 - 계획 원문: `C:\Users\user\.claude\plans\moonlit-dazzling-puppy.md`(E·F·G·H 절).
-- **F5·F6 미push(2026-11-22)**: 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`(브랜치 `wt/master-motion-f5f6-20261122-104247`)에 커밋만 있다. 결과 기록의 "F5·F6 전달 상태" 절을 먼저 처리한다. 워크트리를 지우지 말 것.
+- **F5·F6·F7 미push(2026-11-22)**: 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`(브랜치 `wt/master-motion-f5f6-20261122-104247`)에 커밋만 있다. 결과 기록의 "F5~F7 전달 상태" 절을 먼저 처리한다. 워크트리를 지우지 말 것.
 
 ## 승인 상태 (사용자 원문, 2026-11-22)
 - 요청: "각 마스터들을 도화서원 사이트와 각 서비스의 진입화면을 보면 캐릭터들이 자연스럽게 움직이는 효과가 있는데 스프라이트 시트를 활용해서 부드럽게 움직이는 효과를 주도록해주고 … 전반적인 UI/UX를 이런식으로 고급스럽게 꿀꿀운세에 적용해주고 영냥이에도 어느정도 꽃 컨셉으로 배경이나 고급스러운 컨셉에 맞는 디자인으로 개선해줘 저 사이트처럼 영냥이도 어느정도 움직이면서 동적인 효과를 줘야해"
@@ -94,7 +94,7 @@ next: F5·F6 push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/D
 - [x] F4 무성 — d36e382314
 - [x] F5 서한비 — 4559d30e31
 - [x] F6 네오 — 45c0c758ea
-- [ ] F7 영냥이 고양이
+- [x] F7 영냥이 고양이 — f13075f36d (눈 깜빡임 부분 시트, 꼬리 없음, 미push)
 - [ ] G 꿀꿀 고급화
 - [ ] H 영냥이 꽃 배경·동적 효과
 - [ ] P 사이트 전반 UX 개선 프롬프트 작성(모든 작업 뒤). 사용자 원문(11-22): "내 사이트 진입부터 꿀꿀운세, 영냥이 사이트 전반을 업계 표준에 맞는 사용자가 이용하기 편리한 UI/UX로 개선해줄 프롬프트를 모든 작업 후 작성해줘"
@@ -389,8 +389,78 @@ next: F5·F6 push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/D
   - dev 서버를 오래 켜 두면 `ERR_MEMORY_ALLOCATION_FAILED` 로 컴파일이 멈춘다(F6 에서 /neo-operation-room/ 120초 시간 초과). `NODE_OPTIONS=--max-old-space-size=8192` 로 다시 켜고 페이지를 curl 로 미리 데운다. TaskStop 뒤에도 next 자식 프로세스가 3140 을 잡고 남아 PID 로 끝냈다.
   - 영냥이는 variant `yeongnyangi`(금빛 별가루, 분홍 없음)다.
 
-#### F5·F6 전달 상태 (2026-11-22) — push 보류
-- 워크트리 브랜치 커밋: 4559d30e31(F5) · 45c0c758ea(F6) · 0174f4d2bc(문서) · e4ef55f77b(origin/main 9e6866ce1e 머지, sitemap-lastmod 충돌은 theirs 뒤 `npm run sitemap:generate` 로 재생성, verify ok, sync:public 변경 없음). `npm run check:pre-push` 통과.
+### F7 영냥이 눈 깜빡임 부분 시트 (2026-11-22)
+- 커밋: f13075f36d (워크트리, 미push)
+- 기존 장치 확인 [실측]:
+  - 영냥이 정본은 쓰다듬기 마스코트 `app/yeongnyangi/_components/PetMascot.tsx`(hero-800, srcset hero-480)다. 이것을 쓰는 화면은 `/yeongnyangi/` 랜딩(NightHero)과 `/yeongnyangi/room/`(Room) 두 곳이다.
+  - `app/yeongnyangi/_home/CatMotion.tsx`(걸음·기분 포즈)는 어디서도 import 되지 않는다(git grep). PetMascot 과도 별개라 겹치지 않으며, 손대지 않았다.
+  - ServiceEntryScene(`.cd-entry-scene`)에는 연결하지 않았다. 다른 그림(cat-reading-entry)을 최대 1.8s 보여 주고, reduced-motion 이면 건너뛰며, LCP 와 경쟁하기 때문이다.
+- 새 kind `patch`:
+  - 정본 좌표의 사각형(area 252,200 324×160 /800)만 덮는다. 3칸 = base(완전 투명)·half·closed, sequence half→closed→half. 포스터는 없다.
+  - 칸 알파 = 눈 타원 무게 × 정본 알파다. 눈 밖에서는 아래 `<img>` 가 그대로 보인다.
+  - 불투명 사각형을 쓰지 않은 이유 [실측]: hero-480 의 라플라시안은 3390, hero-800 을 480 으로 줄인 것은 2382 라서 상자 경계에 이음매가 생긴다.
+  - 코드:
+    - `masterMotionPatch()`(sheets.mjs), `MasterMotionPatch`(MasterMotion.tsx), `.patch`/`.patchRow` CSS
+    - 첫 깜빡임 1.6s 지연. reduced-motion 이면 `.patch{display:none}`. 누르는 반응 중에는 `paused`.
+    - 빌드 스크립트 `buildPatch()`: area·타원+페더가 area 안에 있는지, `qa.minPatchAlpha`, 용량을 검사한다. patch 에서 `keep` 을 쓰면 실패한다.
+- 생성: Codex CLI 0.156.1 OAuth 내장 image_gen(gpt-image-2)으로 hero-800 을 편집 입력했다. 원본은 `D:\CodeDestiny-Build\master-motion\yeongnyangi\`(raw-half.png, raw-closed.png). 과금 API 는 쓰지 않았다.
+- 꼬리는 만들지 않았다. 꼬리가 투명 윤곽 가장자리에 걸쳐 있어서 겹치기로 원래 꼬리를 가릴 수 없다.
+- 산출 [실측]: `public/images/master-motion/yeongnyangi/mascot-sheet.webp` 14,758B(972×160, 상한 60,000B), manifest.json, provenance.json, spec `scripts/sprites/master-motion/yeongnyangi.json`
+- 1차 QA [실측] (`--report`, 기준 guard ≤5·region ≥8):
+
+  | 칸 | guard | region | 정합 | 톤 보정 뒤 guard(부호 평균) |
+  |---|---|---|---|---|
+  | half | 3.95 | 43.45 | scale 1, dx 0, dy 0 | 1.70 (−3.57) |
+  | closed | 3.49 | 59.1 | dx 1, dy 0 | 2.06 (−2.48) |
+
+  - raw guard 는 전체 톤 차이 때문이다. 구조적으로는 경계 근처가 아니다.
+  - 라플라시안(area / 왼눈 / 오른눈):
+
+    | | area | 왼눈 | 오른눈 |
+    |---|---|---|---|
+    | base | 1923 | 2868 | 3214 |
+    | half | 1809 | 2385 | 2992 |
+    | closed | 1466 | 1368 | 1869 |
+
+    closed 는 홍채·하이라이트 경계가 없어서 낮다.
+- 2차 QA [visual-checker, 정지 칸]: ship.
+  - 번짐 ≤1.8~3.4, r≥1.3 너머 0, 상자 이음매 없음
+  - 새 그림 없음(왼쪽 볼터치 R−B 19.3→24.5 약간)
+  - 털 질감 비슷, 포스터보다 흐리지 않음
+  - 첫 검수에서 오른눈 바깥 속눈썹 끝이 떠 있는 점이 보였다. 오른쪽 타원을 키우고(cx503 cy258 rx60 ry48) 왼쪽을 rx68 ry33 으로 바꿔 해소했다.
+- 실제 화면 [실측, dev :3150, DPR 2]:
+  - 범위: `/yeongnyangi/` · `/yeongnyangi/room/`, 각각 390·1280·390 reduced-motion
+  - 6건 모두 pageerror 0, 가로 넘침 0
+  - 패치 사각형 대 img×area%: dx/dy/dw/dh |≤0.01px| (반올림)
+  - 재생 허용: data-motion on, 줄 1, `3.6s steps(3) 1.6s infinite`. 누르는 동안 줄 0, 3.2s 뒤 1.
+  - reduced-motion: display none, 줄 0, `/images/master-motion/yeongnyangi/` 요청 0
+  - 아래 img: 랜딩 390 은 hero-480(184px), 나머지는 hero-800
+- visual-checker(실화면 캡처 12장, 픽셀 차분): 4화면 × 6항목 모두 ship.
+  - 상자 밖 ±2px 차분 max 0
+  - 상자 안 순수 털 휘도 차 +0.15~0.50
+  - room drop-shadow 와 어긋남 없음
+- 검증 [실측]:
+  - check:fast 1차·2차 결과
+    - 1차: BLOCKED verify:sitemap-drift → `npm run sitemap:generate`
+    - 2차: test:node 1 fail. `__tests__/ui/yeongnyangi-pet-mascot.test.mjs` 의 vm 하네스가 PetMascot 의 `@/` import 를 풀지 못했다. 하네스에서 MasterMotion(.tsx)은 stub 으로, `@/` 는 실제 파일로 바꾸니 3/3 통과.
+  - 3차 exit 0
+    - paid-gate 78/78
+    - typecheck ok, test:node 5795/5795
+    - verify 23종 ok, build:worker ok, entry-encoding ok
+    - test:jest 490 suites, 8553 pass, 1 skipped
+  - 자산 테스트 4/4. 변이 확인: reduced 에서 `.patch` 를 빼면 1 fail.
+- SEO 점검:
+  - 영향 없음: title/description/H1/canonical/robots. 패치는 aria-hidden 장식 span 이고 새 URL·이미지 색인도 없다.
+  - sitemap-lastmod 는 app/** 편집 때문에 재생성했다.
+- 남은 위험:
+  - [실측] 390 랜딩(hero-480 위)에서만 half/closed 눈꺼풀 선 기울기가 base 보다 10~15% 무르다. 나머지 화면은 ±5% 안이다. 1배 184px 실기기에서 눈에 띌지는 미검증이다.
+  - [실측] 감은 속눈썹 선 중심 휘도가 33~40 으로, base 눈꺼풀 선(12~16)보다 옅다. 생성물이 원래 그렇게 그렸다.
+  - [미검증] 사람이 실제 120ms 재생을 눈으로 본 확인은 없다(정지 칸·차분만).
+  - [추정] 반응 시트(mascot-reactions) 재생 중에는 패치를 숨기므로 두 시트가 겹치지 않는다. 다만 반응이 끝난 직후의 첫 깜빡임 타이밍은 재지 않았다.
+
+#### F5~F7 전달 상태 (2026-11-22) — push 보류
+- 워크트리 브랜치 커밋: 4559d30e31(F5) · 45c0c758ea(F6) · 0174f4d2bc(문서) · e4ef55f77b(origin/main 9e6866ce1e 머지, sitemap-lastmod 충돌은 theirs 뒤 `npm run sitemap:generate` 로 재생성, verify ok, sync:public 변경 없음) · b75a9e2464(문서) · f13075f36d(F7) · 이 문서 커밋. F5·F6 시점 `npm run check:pre-push` 통과. F7 뒤에는 pre-push 를 아직 안 돌렸다(push 직전에 돈다).
+- F7 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리는 그대로 9e6866ce1e, PR CI 44975100389 failure 그대로, 새 실행 없음. 같은 머리의 push "Yeongnyangi Browser Shadow" 44975100334 도 failure(shadow, 다른 세션 커밋). 그래서 F7 도 push 하지 않았다.
 - 보류 이유 [실측]: origin/main 머리 9e6866ce1e(다른 세션 "Decode private preview assets once per local session")의 PR CI 44975100389 가 실패했다. Critical checks 의 `apps/toss/test/tarot-recovery-ui.test.mjs` 에서 `ReferenceError: location is not defined`(tarot-recovery-ui.cjs:15139) 로 다수 실패, CI required 도 따라 실패. workflow_dispatch 재실행 44975122943 은 취소됨. 직전 머리 29550bf9e8 은 녹색. 실패는 F5·F6(마스터 스프라이트)과 무관한 apps/toss 영역이다. CLAUDE.md "main 이 다른 세션 커밋으로 빨간색이면 그 위에 push 하지 말고 보고" 를 따랐다.
 - 재개 명령(워크트리에서, main CI 녹색 1회 확인 뒤):
   1. `git fetch origin && git merge origin/main` (sitemap-lastmod 충돌 시 `git checkout --theirs config/sitemap-lastmod.json && npm run sitemap:generate`), `npm run sync:public`
