@@ -73,7 +73,19 @@ export async function startNativeReport(page,origin,key){
   }else if(key==='heukwol'){
    await page.getByRole('button',{name:'새 프로필 만들기'}).click();const form=page.locator('form').filter({has:page.locator('input[name=name]')});
    await form.locator('input[name=name]').fill('모의 생시');await form.locator('input[name=date]').fill('19900101');await form.getByPlaceholder('08:35').fill('0835');await form.locator('button[type=submit]').click();await form.waitFor({state:'hidden'});
-   await page.getByLabel('어떤 일을 겪었고, 무엇이 걱정되나요?').fill('이직을 고민하면서 올해 조심할 일을 알고 싶어요.');await page.getByRole('button',{name:'상담 시작하기'}).click();
+   const question='이직을 고민하면서 올해 조심할 일을 알고 싶어요.';
+   const questionLabel='어떤 일을 겪었고, 무엇이 걱정되나요?';
+   await page.getByLabel(questionLabel).fill(question);
+   const reopened=await page.context().newPage();
+   try{
+    await enter(reopened,origin,key);
+    await reopened.getByLabel(questionLabel).waitFor();
+    assert.equal(await reopened.getByLabel(questionLabel).inputValue(),question);
+    await reopened.getByRole('link',{name:'도입 웹툰 읽기'}).click();
+    await reopened.locator('.story-library footer a[href="/heukwol/?consult=1"]').click();
+    assert.equal(await reopened.getByLabel(questionLabel).inputValue(),question);
+   }finally{await reopened.close();}
+   await page.getByRole('button',{name:'상담 시작하기'}).click();
   }else if(key==='guardian'||key==='sibyl'){
    await page.getByLabel('상담할 프로필').selectOption('mock-profile');await page.getByRole('button',{name:key==='guardian'?'토스로 사주 가디언 열기':'토스로 시빌라 심층 리포트 열기'}).click();
    if(key==='guardian')await page.getByRole('button',{name:'영문 이미지 프롬프트 만들기'}).click();

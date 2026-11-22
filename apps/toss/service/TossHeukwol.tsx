@@ -14,11 +14,12 @@ const account=()=>{const user=getAuthState().user;return String(user?.id||user?.
 type Input={profileId:string;year:number;question:string;requestId:string};
 type Intent={id:string;orderId:string|null;sku:string;amountKRW:number;paid:boolean};
 function readDraft(key:string):Partial<Input>{
-  try{return JSON.parse(sessionStorage.getItem(key)||'{}')||{};}catch{return {};}
+  try{return JSON.parse(localStorage.getItem(key)||sessionStorage.getItem(key)||'{}')||{};}catch{return {};}
 }
+const storyHref='/consultations/stories?story=heukwol';
 export default function TossHeukwol(){
   const auth=useAuthStore(),owner=account();
-  if(!auth.isAuthenticated||!owner)return <section className={styles.form}><h1>흑월의 경고</h1><p>저장한 출생정보로 사주와 자미두수의 흐름을 함께 살펴봐요.</p><a href={'/login/?next='+encodeURIComponent(location.pathname+location.search)}>토스로 로그인하기</a></section>;
+  if(!auth.isAuthenticated||!owner)return <section className={styles.form}><h1>흑월의 주의 시기</h1><p>사주와 자미두수로 한 해의 월별 흐름을 살펴봐요. 연이와 네오의 도입 이야기를 먼저 읽을 수 있어요.</p><a className={styles.primary} href={'/login/?next='+encodeURIComponent(location.pathname+location.search)}>토스로 로그인하기</a><a className={styles.secondary} href={storyHref}>도입 웹툰 읽기</a></section>;
   return <Reading key={owner} owner={owner}/>;
 }
 function Reading({owner}:{owner:string}){
@@ -32,7 +33,15 @@ function Reading({owner}:{owner:string}){
   const [retry,setRetry]=useState(0),alive=useRef(true),flight=useRef(false),cancel=useRef<()=>void>();
   const question=draft.question||'',year=draft.year||firstYear;
   const current=()=>alive.current&&account()===owner;
-  const save=(value:Partial<Input>)=>{setDraft(value);try{sessionStorage.setItem(key,JSON.stringify(value));}catch{/* Optional draft storage. */}};
+  const save=(value:Partial<Input>)=>{setDraft(value);try{localStorage.setItem(key,JSON.stringify(value));sessionStorage.removeItem(key);}catch{/* Optional draft storage. */}};
+  // Only a profile returned for the signed-in owner may be restored after relaunch.
+  const initialProfile=useRef(draft.profileId);
+  useEffect(()=>{
+    if(profiles.loading||profiles.error||!initialProfile.current)return;
+    const id=initialProfile.current;
+    initialProfile.current=undefined;
+    if(profiles.profiles.some(profile=>profileKey(profile)===id))profiles.select(id);
+  },[profiles.loading,profiles.error,profiles.profiles,profiles.select]);
   useEffect(()=>{alive.current=true;const leave=()=>{alive.current=false;cancel.current?.();};const resume=()=>{if(account()===owner){if(!alive.current){alive.current=true;flight.current=false;setBusy(false);}setRetry(n=>n+1);}};window.addEventListener('pagehide',leave);window.addEventListener('pageshow',resume);window.addEventListener('online',resume);return()=>{leave();window.removeEventListener('pagehide',leave);window.removeEventListener('pageshow',resume);window.removeEventListener('online',resume);};},[]);
   useEffect(()=>{
     if(!resultId)return;
@@ -53,7 +62,9 @@ function Reading({owner}:{owner:string}){
       }catch{if(valid()){setState(null);setMessage('저장된 상담을 확인하지 못했어요. 구매한 계정과 연결 상태를 확인해 주세요.');}}
       finally{if(valid())setBusy(false);}
     }
-    void read();return()=>{active=false;};
+    const resume=()=>{if(!document.hidden)setRetry(n=>n+1);};
+    document.addEventListener('visibilitychange',resume);
+    void read();return()=>{active=false;document.removeEventListener('visibilitychange',resume);};
   },[resultId,retry,owner]);
   async function start(){
     if(flight.current||!profiles.profileId||(!orderId&&(!price||price.owner!==owner||paymentRequiresReview())))return;
@@ -76,18 +87,20 @@ function Reading({owner}:{owner:string}){
       if(!current())return;
       if(!owned.paid||owned.id!==intent.id)throw Error('ORDER_MISMATCH');
       const href='/heukwol/?result='+encodeURIComponent(intent.id);
-      try{sessionStorage.removeItem(key);}catch{/* Optional storage. */}
+      try{localStorage.removeItem(key);sessionStorage.removeItem(key);}catch{/* Optional storage. */}
       location.replace(href);
     }catch(e){if(current())setMessage((e as Error).message==='BIRTH_TIME_REQUIRED'?'출생 시각과 성별이 기록된 프로필을 선택해 주세요.':'상담을 준비하지 못했어요. 구매 기록을 먼저 확인한 뒤 다시 시도해 주세요.');}
     finally{if(current()){flight.current=false;setBusy(false);}}
   }
   if(state?.report)return <main className={styles.page}><HeukwolResult report={state.report} isCurrent={current}/></main>;
-  return <main className={styles.page}><section className={styles.form}><h1>흑월의 경고</h1>
+  return <main className={styles.page}><section className={styles.form}><h1>흑월의 주의 시기</h1>
     {resultId?<><p role="status">{state?.status==='failed'?'상담 작성을 완료하지 못했어요. 구매 기록에서 처리 상태를 확인해 주세요.':state?state.completedChapters+' / '+state.totalChapters+'장 저장':'구매한 상담을 확인하고 있어요.'}</p>
-      <button disabled={busy} onClick={()=>setRetry(n=>n+1)}>저장한 상담 이어서 확인하기</button></>:<>
+      {state?.status==='failed'?<a className={styles.secondary} href="/support">고객지원에서 문의하기</a>:<button disabled={busy} onClick={()=>setRetry(n=>n+1)}>저장한 상담 이어서 확인하기</button>}</>:<>
       <p>사주와 자미두수의 월별 비교를 위해 출생 시각과 성별이 기록된 프로필을 골라 주세요.</p>
-      <label>상담할 프로필<select value={profiles.profileId} disabled={busy||profiles.loading} onChange={e=>profiles.select(e.target.value)}><option value="">프로필 선택</option>{profiles.profiles.map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name}</option>)}</select></label>
-      <button type="button" disabled={busy} onClick={()=>setAdding(!adding)}>{adding?'입력 닫기':'새 프로필 만들기'}</button>{adding&&<ProfileForm locale="ko" surface="paper" onSaved={p=>{profiles.saved(p);setAdding(false);}}/>}
+      <a className={styles.secondary} href={storyHref}>도입 웹툰 읽기</a>
+      <label>상담할 프로필<select value={profiles.profileId} disabled={busy||profiles.loading} onChange={e=>{profiles.select(e.target.value);save({...draft,profileId:e.target.value,requestId:''});}}><option value="">프로필 선택</option>{profiles.profiles.map(p=><option key={profileKey(p)} value={profileKey(p)}>{p.name}</option>)}</select></label>
+      {profiles.error&&<p role="alert">{profiles.error} <button type="button" onClick={()=>void profiles.refresh(true)}>프로필 다시 확인하기</button></p>}
+      <button type="button" disabled={busy} onClick={()=>setAdding(!adding)}>{adding?'입력 닫기':'새 프로필 만들기'}</button>{adding&&<ProfileForm locale="ko" surface="paper" onSaved={p=>{profiles.saved(p);save({...draft,profileId:profileKey(p),requestId:''});setAdding(false);}}/>}
       <label>살펴볼 연도<select value={year} disabled={busy} onChange={e=>save({...draft,year:Number(e.target.value),requestId:''})}>{Array.from({length:10},(_,i)=><option key={i}>{firstYear+i}</option>)}</select></label>
       <label>어떤 일을 겪었고, 무엇이 걱정되나요?<textarea value={question} disabled={busy} maxLength={3000} onChange={e=>save({...draft,question:e.target.value,requestId:''})}/></label>
       <p>12~3,000자 · 현재 {question.trim().length}자</p>
