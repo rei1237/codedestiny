@@ -1,5 +1,5 @@
 /**
- * 기능 가이드 15종의 "실제 기능으로 가는" 1차 동선 정본.
+ * 기능 가이드의 "실제 기능으로 가는" 1차 동선 정본.
  *
  * 왜 한곳에 모으는가 — /health-report/guide 는 12개 가이드 중 홀로 기능 링크가 0개였고
  * (칩 5개가 전부 정책·문서였다), 아무도 그것을 몰랐다. 페이지마다 인라인으로 흩어 두면
@@ -26,6 +26,26 @@
  * 라벨은 lib/seo-landing-pages.js 의 ctaLabel 보이스를 따른다.
  */
 export const GUIDE_CTA_TARGETS = {
+  "/compatibility/tti": {
+    from: "tti-compatibility-guide",
+    primary: { href: "/compatibility", label: "궁합 보기" },
+  },
+  "/fortune/samjae": {
+    from: "samjae-guide",
+    primary: { href: "/saju", label: "사주 보기" },
+  },
+  "/fortune/son-eomneun-nal": {
+    from: "son-eomneun-nal-guide",
+    primary: { href: "/today", label: "오늘의 운세" },
+  },
+  "/fortune/tti-age": {
+    from: "tti-age-guide",
+    primary: { href: "/manse", label: "무료 만세력" },
+  },
+  "/saju/sinsal": {
+    from: "sinsal-guide",
+    primary: { href: "/manse", label: "만세력" },
+  },
   "/saju/destiny-anatomy": {
     from: "destiny-anatomy-guide", kicker: "내 사주부터 살펴보기",
     heading: "내 명식과 오행을 먼저 확인해 보세요",

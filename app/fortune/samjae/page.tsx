@@ -6,6 +6,8 @@
  * 그해 띠별 운세는 /fortune/2027 이 맡고, 이 페이지는 삼재의 뜻과 계산 원리, 여러 해의 표를 맡는다.
  */
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
@@ -264,12 +266,13 @@ export default function SamjaePage() {
           </div>
         </section>
 
+        <GuideCta target={GUIDE_CTA_TARGETS["/fortune/samjae"]} variant="compact" />
+
         <nav className="cd-chip-wrap mt-8" aria-label="함께 보는 띠 정보">
           <Link href="/fortune/2027" className="cd-chip">2027년 띠별 운세</Link>
           <Link href="/fortune/tti-age" className="cd-chip">띠별 나이표</Link>
           <Link href="/compatibility/tti" className="cd-chip">띠궁합 표</Link>
           <Link href="/fortune/son-eomneun-nal" className="cd-chip">손없는날 달력</Link>
-          <Link href="/saju" className="cd-chip">사주 보기</Link>
         </nav>
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">

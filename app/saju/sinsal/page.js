@@ -7,6 +7,8 @@
  * FAQPage JSON-LD 는 두지 않는다 — 질문은 화면에만 보인다.
  */
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
@@ -229,8 +231,9 @@ export default function SinsalHubPage() {
           </div>
         </section>
 
+        <GuideCta target={GUIDE_CTA_TARGETS["/saju/sinsal"]} variant="compact" />
+
         <nav className="cd-chip-wrap mt-8" aria-label="함께 보는 사주 정보">
-          <Link href="/manse" className="cd-chip">만세력</Link>
           <Link href="/saju" className="cd-chip">사주 보기</Link>
           <Link href="/saju/natal-chart" className="cd-chip">사주 명식 읽기</Link>
           <Link href="/saju/ten-gods" className="cd-chip">십성 가이드</Link>
