@@ -87,7 +87,9 @@ export default function AnalyticsConsent() {
     const previousPadding = body.style.paddingBottom;
     const update = () => {
       const top = node.getBoundingClientRect().top;
-      const cover = Math.max(0, Math.round(window.innerHeight - top + 12));
+      // The home page already reserves its fixed dock below the banner.
+      const dockHeight = node.hasAttribute("data-entry") ? parseFloat(window.getComputedStyle(root).getPropertyValue("--cd-home-nav-height")) || 0 : 0;
+      const cover = Math.max(0, Math.round(window.innerHeight - top + 12) - dockHeight);
       root.style.setProperty("--cd-consent-offset", `${cover}px`);
       body.style.paddingBottom = `${cover}px`;
     };

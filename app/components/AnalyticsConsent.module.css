@@ -70,6 +70,9 @@
   .actions { gap: 4px 8px; }
   .actions button { padding-inline: 8px; }
 }
+@media (max-width:699px) and (min-height:641px) {
+  .banner[data-entry] { bottom: calc(var(--cd-home-nav-height, 0px) + 8px); }
+}
 @media (min-width: 769px) {
   .banner { inset-inline: auto 24px; }
   .banner { bottom: 24px; }
