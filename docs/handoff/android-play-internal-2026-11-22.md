@@ -1,14 +1,14 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: ADB에 라이선스 테스트 기기가 연결되는 즉시 Play 내부 테스트 1.0.62 설치부터 보관함 재열람까지 검증한다.
+next: Samsung 기기의 운명 찻집에서 Play 단건 테스트 결제를 진행한 뒤 모의 결과를 보관함에서 재열람한다.
 ---
 
 # Google Play 내부 테스트와 한국어 등록정보
 
 ## 첫 행동
 
-- `adb devices -l`로 라이선스 테스터용 기기가 연결됐는지 확인하고 [Play 내부 테스트 참여](https://play.google.com/apps/testing/com.codedestiny.app)에서 1.0.62를 설치한다.
+- `adb -d shell dumpsys package com.codedestiny.app`으로 이미 설치된 1.0.62를 확인한다. 삼성 기기에서 운명 찻집에 들어가 있으며 Play 결제 화면에 테스트 수단이 명시된 때만 결제를 진행한다.
 - `gh run view 44966532658 --json status,conclusion,headSha`와 `https://staging.code-destiny.com/api/version`으로 스테이징 배포 상태를 확인한다.
 - Play Console에서 내부 62와 프로덕션 61을 확인했다. 기기에서 섞이지 않도록 설치 출처와 설치 버전 1.0.62를 대조한다.
 - 기기에서 Android 9 이상과 테스트 계정을 확인한다. 로그인·결제·AI·보관함 검증에는 계정, 영수증 토큰, 출생정보 등의 로그를 남기지 않는다.
@@ -20,7 +20,7 @@ next: ADB에 라이선스 테스트 기기가 연결되는 즉시 Play 내부 �
 - `dd877cf3f`에서 앱 홈의 승인된 제작자 기록 문구 재사용을 바로잡았고 CI 44960291367이 통과했다. `3933c604c`와 `0cb2f18c0`은 스테이징 전용 Android 빌드와 Play 테스트 영수증 경계를 적용했다. 최신 main CI 44966348826의 CI required가 통과했고 스테이징 워크플로 44966532658도 통과했다. 공개 버전 엔드포인트에서 같은 SHA와 staging 환경을 대조했다.
 - Play Console 한국어 기본 등록정보에 휴대전화 4장과 그래픽 1장을 적용하고 임시저장했다. 같은 편집기를 다시 열어 첨부 순서와 비활성 저장 버튼을 확인했다. 첫 스크린샷은 새 앱 화면을 담는다. 공개 시점은 실제 공개 앱 화면과 맞춘다. Play Console 내부 테스트 19번에 버전 62를 올리고 출시했다. 최신 버전 개요에서 내부 테스터에게 제공됨과 프로덕션 버전 61을 확인했다.
 - AAB 서명 사전 확인, 스테이징 LLM 모의 검사, Android OAuth 및 API 전달 테스트 35개, Play 서버 모의 테스트 120개, pre-push가 통과했다. 첫 Android 빌드는 sharp의 로컬 메모리 부족으로 이미지 변환에서 멈췄다. 두 번째 빌드는 이미지 처리를 통과했으나 다른 체크아웃의 개발 서버를 감지하는 호스트 공용 가드에서 멈췄다. 세 번째 빌드는 자체 경로로 분리된 .next 및 출력 디렉터리를 확인한 뒤 가드의 지원 플래그를 사용했다. 최적화와 앱 결제 가드 검증(HTML 1,060개), Capacitor Android 복사가 통과했다. Gradle :app:bundleRelease 및 :app:testReleaseUnitTest가 통과했다. bundletool 1.18.1, jarsigner 및 기존 업로드 인증서 대조도 통과했다. Android 단위 테스트 11개가 성공했다. 로그는 D:/Development/releases/codedestiny/1.0.62/verification에 남긴다.
-- Cloudflare 스테이징에는 Google OAuth와 Play 영수증 검증 서비스 계정 설정이 있다. Play Console에서 이 앱의 권한으로 서비스 계정이 활성임을 확인했고, 키는 메모리와 표준입력으로 스테이징 Worker 시크릿에 연결했다. 시크릿 연결 뒤에도 배포 SHA가 유지됐으며 실 LLM 사용자 허용 목록은 비어 있다. 스테이징 Google 시작 URL이 스테이징 콜백을 담아 Google 계정 선택 화면 200으로 전환되는 것을 확인했다. 마지막 ADB 확인 시 연결 기기가 없었고 사용자에게 USB 연결 상태 확인을 요청했다.
+- Cloudflare 스테이징에는 Google OAuth와 Play 영수증 검증 서비스 계정 설정이 있다. Play Console에서 이 앱의 권한으로 서비스 계정이 활성임을 확인했고, 키는 메모리와 표준입력으로 스테이징 Worker 시크릿에 연결했다. 시크릿 연결 뒤에도 배포 SHA가 유지됐으며 실 LLM 사용자 허용 목록은 비어 있다. 스테이징 Google 시작 URL이 스테이징 콜백을 담아 Google 계정 선택 화면 200으로 전환되는 것을 확인했다. USB 디버깅 승인 후 삼성 기기에 연결했다. Play에서 내려받은 1.0.62는 ADB로 버전 코드 62 및 설치 관리자 `com.android.vending`을 확인했다. Google 계정 선택을 거쳐 앱으로 돌아온 뒤 인증 상태에서 보관함을 열었다. 연애 비책 AI에서 결제창 대신 저장 결과를 찾을 수 없다는 화면을 관찰했다. 스테이징 이용권 네 가지 모두 판매 비활성으로 확인되어 운명 찻집 단건 결제 경로를 계속 검증한다. 기존 보관함 기록은 새 테스트 결과로 계산하지 않는다.
 
 ## 승인 상태
 
@@ -53,8 +53,8 @@ next: ADB에 라이선스 테스트 기기가 연결되는 즉시 Play 내부 �
 - [x] Play 검증 전용 계정 설정
 - [x] 서명 AAB와 Android 단위 테스트 확인
 - [x] Play 내부 테스트 업로드 및 출시
-- [ ] 테스터 기기에 Play 설치
-- [ ] Google 로그인 → 테스트 결제 → 모의 AI 결과 → 앱 재실행 → 보관함 재열람 기기 실측
+- [x] 테스터 기기에 Play 설치 및 Google 로그인 후 앱 복귀
+- [ ] Play 테스트 결제 → 모의 AI 결과 → 앱 재실행 → 보관함 재열람 기기 실측
 - [ ] 전달 보고와 자체 작업 파일 정리
 
 ## 내부 테스트 산출물
