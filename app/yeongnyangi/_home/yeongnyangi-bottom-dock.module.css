@@ -47,5 +47,9 @@
   background: linear-gradient(var(--yn-violet), color-mix(in srgb,var(--yn-violet) 48%,var(--yn-deep)));
 }
 .mascot img { width: 39px; height: 33px; object-fit: contain; }
+/* Keyboard focus in the room must clear the 72px dock and its focus ring. */
+:global(html):has(.roomDockReserve) {
+  scroll-padding-bottom: max(calc(80px + env(safe-area-inset-bottom, 0px)), var(--cd-consent-offset, 0px));
+}
 .roomDockReserve { padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)); background: color-mix(in srgb,var(--yn-violet) 23%,var(--yn-night)); }
 @media (max-width: 350px) { .item { font-size: 11px; } }
