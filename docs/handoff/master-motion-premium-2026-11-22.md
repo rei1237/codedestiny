@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: F5·F6·F7 push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에서 "F5~F7 전달 상태" 절의 재개 명령(origin/main 머지 → sync:public → check:pre-push → `git push origin HEAD:main` → main 체크아웃 merge → 워크트리 배수). 그다음 G 꿀꿀 고급화
+next: F5·F6·F7·G push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에서 "F5~F7 전달 상태" 절의 재개 명령(origin/main 머지 → sync:public → check:pre-push → `git push origin HEAD:main` → main 체크아웃 merge → 워크트리 배수). 그다음 H 영냥이 꽃 배경·동적 효과
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -15,7 +15,7 @@ next: F5·F6·F7 push 대기 — origin/main 이 녹색이 되면 워크트리 `
 ## 지금 상태
 - 이전 작업(TOP5 개편 A, 기본 운세 마스터 말풍선 B·C, 연이 무료 결과 말풍선 D)은 `wt/top5-master-say-20261122-023703`에서 main에 머지·push되는 중이다(원 세션 담당). 이 문서의 단계는 그 머지 뒤 main 기준이다.
 - 계획 원문: `C:\Users\user\.claude\plans\moonlit-dazzling-puppy.md`(E·F·G·H 절).
-- **F5·F6·F7 미push(2026-11-22)**: 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`(브랜치 `wt/master-motion-f5f6-20261122-104247`)에 커밋만 있다. 결과 기록의 "F5~F7 전달 상태" 절을 먼저 처리한다. 워크트리를 지우지 말 것.
+- **F5·F6·F7·G 미push(2026-11-22)**: 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`(브랜치 `wt/master-motion-f5f6-20261122-104247`)에 커밋만 있다. 결과 기록의 "F5~F7 전달 상태" 절을 먼저 처리한다. 워크트리를 지우지 말 것.
 
 ## 승인 상태 (사용자 원문, 2026-11-22)
 - 요청: "각 마스터들을 도화서원 사이트와 각 서비스의 진입화면을 보면 캐릭터들이 자연스럽게 움직이는 효과가 있는데 스프라이트 시트를 활용해서 부드럽게 움직이는 효과를 주도록해주고 … 전반적인 UI/UX를 이런식으로 고급스럽게 꿀꿀운세에 적용해주고 영냥이에도 어느정도 꽃 컨셉으로 배경이나 고급스러운 컨셉에 맞는 디자인으로 개선해줘 저 사이트처럼 영냥이도 어느정도 움직이면서 동적인 효과를 줘야해"
@@ -127,7 +127,7 @@ next: F5·F6·F7 push 대기 — origin/main 이 녹색이 되면 워크트리 `
 - [x] F5 서한비 — 4559d30e31
 - [x] F6 네오 — 45c0c758ea
 - [x] F7 영냥이 고양이 — f13075f36d (눈 깜빡임 부분 시트, 꼬리 없음, 미push)
-- [ ] G 꿀꿀 고급화
+- [x] G 꿀꿀 고급화 — 워크트리 커밋 198529f859·87bbb3bfc7·c962ebac34·c06c7d5e39·08bf6bb6d4, 미push(결과 기록 "G 결과" 절)
 - [ ] H 영냥이 꽃 배경·동적 효과
 - [ ] P 사이트 전반 UX 개선 프롬프트 작성(모든 작업 뒤). 사용자 원문(11-22): "내 사이트 진입부터 꿀꿀운세, 영냥이 사이트 전반을 업계 표준에 맞는 사용자가 이용하기 편리한 UI/UX로 개선해줄 프롬프트를 모든 작업 후 작성해줘"
   - 산출: `docs/prompts/2026-11-22-site-ux-standard.md`. 기존 형식은 `docs/prompts/2026-11-18-*`(03 UX)를 참고한다.
@@ -490,7 +490,8 @@ next: F5·F6·F7 push 대기 — origin/main 이 녹색이 되면 워크트리 `
   - [미검증] 사람이 실제 120ms 재생을 눈으로 본 확인은 없다(정지 칸·차분만).
   - [추정] 반응 시트(mascot-reactions) 재생 중에는 패치를 숨기므로 두 시트가 겹치지 않는다. 다만 반응이 끝난 직후의 첫 깜빡임 타이밍은 재지 않았다.
 
-#### F5~F7 전달 상태 (2026-11-22) — push 보류
+#### F5~F7 전달 상태 (2026-11-22) — push 보류 (G 도 같은 워크트리에 얹혀 함께 보류)
+- G 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리 그대로 9e6866ce1e, PR CI failure·Yeongnyangi Browser Shadow failure 그대로. G 도 push 하지 않았다. G 커밋 뒤 pre-push 는 아직 안 돌렸다(push 직전에 돈다). G 쪽 check:fast(critical) 는 통과.
 - 워크트리 브랜치 커밋: 4559d30e31(F5) · 45c0c758ea(F6) · 0174f4d2bc(문서) · e4ef55f77b(origin/main 9e6866ce1e 머지, sitemap-lastmod 충돌은 theirs 뒤 `npm run sitemap:generate` 로 재생성, verify ok, sync:public 변경 없음) · b75a9e2464(문서) · f13075f36d(F7) · 이 문서 커밋. F5·F6 시점 `npm run check:pre-push` 통과. F7 뒤에는 pre-push 를 아직 안 돌렸다(push 직전에 돈다).
 - F7 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리는 그대로 9e6866ce1e, PR CI 44975100389 failure 그대로, 새 실행 없음. 같은 머리의 push "Yeongnyangi Browser Shadow" 44975100334 도 failure(shadow, 다른 세션 커밋). 그래서 F7 도 push 하지 않았다.
 - 보류 이유 [실측]: origin/main 머리 9e6866ce1e(다른 세션 "Decode private preview assets once per local session")의 PR CI 44975100389 가 실패했다. Critical checks 의 `apps/toss/test/tarot-recovery-ui.test.mjs` 에서 `ReferenceError: location is not defined`(tarot-recovery-ui.cjs:15139) 로 다수 실패, CI required 도 따라 실패. workflow_dispatch 재실행 44975122943 은 취소됨. 직전 머리 29550bf9e8 은 녹색. 실패는 F5·F6(마스터 스프라이트)과 무관한 apps/toss 영역이다. CLAUDE.md "main 이 다른 세션 커밋으로 빨간색이면 그 위에 push 하지 말고 보고" 를 따랐다.
@@ -500,3 +501,26 @@ next: F5·F6·F7 push 대기 — origin/main 이 녹색이 되면 워크트리 `
   3. `git push origin HEAD:main`
   4. main 체크아웃(`d:/Development/code-destiny`)은 `git fetch` 뒤 `git merge origin/main` 으로만 맞춘다(reset 금지 — 로컬 main 에 card-rpg-lobby 세션의 미push 커밋이 있다).
   5. main 체크아웃에서 `npm run worktree:remove -- D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`
+
+#### G 결과 (2026-11-22) — 미push
+- 커밋(워크트리): 5ae4e5769a(방향·성공 기준 문서) · 198529f859(토큰+배너+카드) · 87bbb3bfc7(히어로 버튼) · c962ebac34(진입 entry + 셸 캐시 키) · c06c7d5e39(ProductMasterStrip + sitemap-lastmod) · 08bf6bb6d4(CONTEXT_AUDIT).
+- 바뀐 화면
+  - 토큰: `styles/theme-tokens.css` 두 블록에 `--cd-yehwa-night/-night-deep/-champagne/-pearl/-pearl-muted`(연이 딥 플럼, 네오는 기존 남보라 값).
+  - `/ggulggul/` 대표 상담 배너: 하드코딩 hex → 토큰, 딥 플럼 그라데이션, 데스크톱 글 칸 세로 가운데 정렬, 꼬리표 앞 28px 금선, 설명–가격 사이 금빛 1px 구분선(약 200px 빈칸 제거), hover -3px·그림 1.04배.
+  - 카드 목록: 소제목 앞 24px 금선, 그림 clip-path 둥근 틀, hover -3px·그림 1.04배(clip 으로 틀 밖 번짐 없음). 모두 `(hover:hover) and (prefers-reduced-motion:no-preference)` 안.
+  - 히어로 주 버튼: 바깥 1px 금선 3px 띄움(이중 금테), forced-colors 대응, focus-visible 유지.
+  - 진입 `entry()`: 제목 MaruBuri → `--font-display`(캐논), 이름 줄 앞 28px 금선, 진입 주 버튼만 이중 금테(`.fc-primary` 공용 생성 버튼은 그대로), 밝은 테마 장면 판을 짙은 남색 → 크림 단색 + 잉크 캡션(베다·네오 어두운 팔레트 유지).
+  - ProductMasterStrip: 라벨 오른쪽 남은 폭 1px 금선.
+- 되돌린 것 [실측]: 카드 글 영역 크림 그라데이션 — `/ggulggul/` 카드가 어두운 테마라 회보라 띠가 되어 설명 대비 3.4–3.7:1 → 규칙 삭제(원래 배경, 8.3:1 이상). 진입 장면 그라데이션 — 데스크톱에서 판이 글 칸 높이로 늘어 위 분홍·아래 크림으로 갈림 → 단색.
+- visual-checker 판정 [실측, 3회차 캡처 기준]: 배너 데스크톱 가운데 정렬(위 92/아래 88px)·대비 11–17:1·장식선 정렬 0.5–1.4px·hover 그림 틀 밖 번짐 없음·진입 버튼 이중 금테 네 면·크림 캡션 6.2:1·마스터 띠 대비 6.0–12.9:1·m390 과 reduced-motion 동일. pageerror 0, 가로 넘침 0(데스크톱 -30 은 스크롤바).
+- reduced-motion [실측]: 대상 요소 계산값 transition/animation 0.00001s·none — 내 전환은 no-preference 미디어 안이라 적용되지 않고, 남는 1e-5s 는 전역 reduced-motion 리셋 값.
+- perf:home [실측, dist·시뮬 Lighthouse 중앙값 3회] 전 → 후: `/` 모바일 LCP 10378→10170ms·CLS 0.164→0.165, 데스크톱 1949→1973ms·0.050→0.050. `/ggulggul/` 모바일 20527→20281ms·0.000→0.000(LCP 요소는 편지 팝업 틀, 관측 2167→1975ms), 데스크톱 2777→2789ms·0.063→0.063. 잡음 범위 안.
+- SEO: title·H1·canonical·마크업·alt 변경 없음(셸 HTML 차이는 캐시 키뿐), 장식은 가상요소만. sitemap:generate 뒤 verify:sitemap-drift OK(마스터 띠 3페이지 signature 갱신).
+- 검사: check:fast(critical) EXIT 0 — lint·typecheck·test:node·jest 8553 pass. home-fusion-placement 3/3, signature-banner·home-direct-feature-links·signature-inline-letter 16/16.
+- 후속 보고(범위 밖, 고치지 않음)
+  - 카드 hover 때 카드 링크 전체(제목·설명·가격·CTA)에 밑줄이 생긴다. G 이전부터의 동작(링크 상속), 의도는 CTA 한 줄로 보인다.
+  - 데스크톱 카드 가격 줄 높이가 카드마다 최대 65px 다르다(덧줄 유무).
+  - 배너 금 구분선은 바탕 대비 약 2:1 로 은은하다(장식 의도).
+  - 베다 390 캡션 띠는 본문과 같은 어두운 색이라 띠로 구분되지 않는다(G 이전과 같음).
+  - `.fc-master-reading` 결과 화면 제목 MaruBuri 는 캐논 위반이지만 G 범위 밖.
+- 미검증: 실제 상담 모달 흐름 안의 entry() 화면(합성 호스트에 실제 entry() HTML·CSS 를 넣어 찍음), 실기기 hover.
