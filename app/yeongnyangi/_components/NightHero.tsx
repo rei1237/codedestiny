@@ -33,7 +33,7 @@ export default function NightHero(){
    <h1 id="hero-title"><span className={styles.brandPrefix}>{mascotPrefix}</span>{' '}<span className={styles.brandName}>{mascotName}</span></h1>
    <p className={styles.desktopIntro}>간단한 고민 상담은 영냥이에게 물어봐! 답과 근거, 지금 해볼 행동을 함께 살펴봐요.</p>
    <div className={styles.actions}>
-    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>운세 고르고 고민 적기<ArrowRight size={19} aria-hidden="true"/></a>
+    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>고민 적고 운세 고르기<ArrowRight size={19} aria-hidden="true"/></a>
     <a className={styles.roomLink} href="/yeongnyangi/room/"><Moon size={16} aria-hidden="true"/>영냥이의 방</a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/> · </>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span></p>
