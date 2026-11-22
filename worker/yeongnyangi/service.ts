@@ -9,7 +9,7 @@ import {questionEvidence,questionPeriodTiming} from './fortune/ask/question-evid
 import {conversationView} from './fortune/ask/conversation';
 import {questionSkyReading} from './fortune/question-sky-preparation';
 import {CONSULTATION_BUDGET_VERSION,consultationBudget,fusionPremiumManifest,allocateConsultationBudget,withRequestedPeriodScope} from './fortune/consultation-budget';
-import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrder,questionManifest,type QuestionFish} from './fortune/ask/question-policy';
+import {QUESTION_POLICY_VERSION,questionDecision,questionTopic,assertQuestionOrder,questionManifest,LONG_QUESTION_BACKGROUND,type QuestionFish} from './fortune/ask/question-policy';
 import {COUNSEL_VERSION,counselManifest} from './fortune/counsel-purpose';
 import {withSajuCycleEvidence} from './fortune/saju/cycle-evidence';
 import {experienceCheckApplies} from './fortune/saju/experience-policy';
@@ -313,6 +313,8 @@ export async function prepareFortune(env: Record<string, unknown>, userId: strin
   if(!decision&&(!kind||kind.question)&&!relationship&&!tarotQuestion){
   // Questions are answered before the fixed outline, without reducing paid depth.
   manifest[0].focus=(manifest[0].consultationLayout===FUSION_BOOK_VERSION?DIRECT_FUSION_ANSWER+' ':'')+'사용자가 입력한 모든 질문에 먼저 직접 답하고 선택 주제와 연결해 해석한다. 질문이 없으면 선택 주제의 핵심 흐름부터 설명한다.';
+  // Each split question keeps its own answer slot, so a long input only drops the backstory, never a question.
+  if(String(body.question||'').trim().length>120)manifest[0].focus+=' '+LONG_QUESTION_BACKGROUND;
   manifest[0].excludes=[];
   manifest[0].systems=product.systems;
   const cross=await crossDaily;
