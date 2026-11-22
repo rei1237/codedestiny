@@ -10,7 +10,7 @@ const sources={'destiny-poker':'/destiny-poker.html','fortune-fish':'/fortune-te
 function frameBoot(slug){
  const allowed=JSON.stringify(gameStorageKeys[slug]);
  return `<script>
- const miniState=__TOSS_GAME_STATE__;
+ const miniState=JSON.parse(window.name||'{}');window.name='';
  const allowedKeys=${allowed};
  function notify(action,payload){parent.postMessage({type:'code-destiny:mini-game',game:${JSON.stringify(slug)},action,payload},'*');}
  const miniStore={getItem:key=>allowedKeys.includes(key)?miniState[key]??null:null,setItem(key,value){if(allowedKeys.includes(key)){miniState[key]=String(value);notify('store',miniState);}},removeItem(key){if(allowedKeys.includes(key)){delete miniState[key];notify('store',miniState);}}};
@@ -62,13 +62,23 @@ export async function miniGameDocument(slug){
 }
 
 export default function miniGamePlugin(){
- const prefix='virtual:toss-mini-game/';
+ const prefix='virtual:toss-mini-game/';let serving=false;
  const covers=new Map(Object.keys(miniGameRoutes).map(slug=>['/__mini-game-covers/'+slug+'.webp',file('/images/mini-games/'+slug+'-320.webp')]));
- return {name:'toss-original-mini-games',async generateBundle(){for(const [route,source] of covers)this.emitFile({type:'asset',fileName:route.slice(1),source:await readFile(source)});},
- configureServer(server){server.middlewares.use(async(req,res,next)=>{const source=covers.get(req.url?.split('?')[0]);if(!source)return next();try{res.setHeader('Content-Type','image/webp');res.end(await readFile(source));}catch(error){next(error);}});},
+ return {name:'toss-original-mini-games',configResolved(config){serving=config.command==='serve';},async generateBundle(){for(const [route,source] of covers)this.emitFile({type:'asset',fileName:route.slice(1),source:await readFile(source)});},
+ configureServer(server){server.middlewares.use(async(req,res,next)=>{
+  const path=req.url?.split('?')[0],source=covers.get(path),slug=/^\/__mini-games\/([a-z-]+)\.html$/.exec(path||'')?.[1];
+  try{
+   if(source){res.setHeader('Content-Type','image/webp');res.end(await readFile(source));}
+   else if(slug&&Object.hasOwn(sources,slug)){res.setHeader('Content-Type','text/html; charset=utf-8');res.end(await miniGameDocument(slug));}
+   else next();
+  }catch(error){next(error);}
+ });},
  resolveId(id){if(id.startsWith(prefix))return '\0'+id;},
  async load(id){if(!id.startsWith('\0'+prefix))return;
   const slug=id.slice(prefix.length+1);this.addWatchFile(fileURLToPath(file(sources[slug])));
-  return 'export default '+JSON.stringify(await miniGameDocument(slug));
+  const route='/__mini-games/'+slug+'.html';
+  if(serving)return 'export default '+JSON.stringify(route);
+  const ref=this.emitFile({type:'asset',fileName:route.slice(1),source:await miniGameDocument(slug)});
+  return 'export default import.meta.ROLLUP_FILE_URL_'+ref;
  }};
 }

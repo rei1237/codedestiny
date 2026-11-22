@@ -20,7 +20,7 @@ function Game({slug,name}){
    key='cd:toss:minigames:'+encodeURIComponent(scope)+':'+slug;
    const saved=JSON.parse(localStorage.getItem(key)||'{}'),state=Object.fromEntries(allowed.filter(k=>typeof saved[k]==='string').map(k=>[k,saved[k]]));
    const template=(await documents[slug]()).default;
-   if(active)setContent(template.replace('__TOSS_GAME_STATE__',()=>JSON.stringify(state).replaceAll('<','\\u003c')));
+   if(active)setContent({source:template,initialState:JSON.stringify(state)});
   }
   async function message(event){
    if(!active||!frame.current||!key||event.origin!=='null'||event.source!==frame.current.contentWindow)return;
@@ -44,7 +44,7 @@ function Game({slug,name}){
  },[slug,attempt,name]);
  return <><a className="daily-entry" href="/mini-games/">미니 운세 게임 목록으로</a><h1>{name}</h1>
   {issue&&<p role="alert">{issue} <button onClick={()=>retry(n=>n+1)}>다시 시도하기</button></p>}
-  {content?<iframe ref={frame} sandbox="allow-scripts" title={name} srcDoc={content} style={{width:'100%',height:'82svh',border:0,borderRadius:14}}/>:<p role="status">게임을 여는 중이에요.</p>}</>;
+  {content?<iframe ref={frame} sandbox="allow-scripts" title={name} name={content.initialState} src={content.source} style={{width:'100%',height:'82svh',border:0,borderRadius:14}}/>:<p role="status">게임을 여는 중이에요.</p>}</>;
 }
 export default function MiniGames(){
  const slug=new URLSearchParams(location.search).get('play');

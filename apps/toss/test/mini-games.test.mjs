@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
-import {miniGameDocument} from '../canonical/mini-game-documents.mjs';
+import miniGamePlugin,{miniGameDocument} from '../canonical/mini-game-documents.mjs';
 import {gameStorageKeys,miniGameRoutes} from '../canonical/mini-games.mjs';
 
 test('the original nine cards have their own mini-app destinations',async()=>{
@@ -22,3 +22,12 @@ for(const slug of Object.keys(gameStorageKeys)){
   }
  });
 }
+
+test('strict parent CSP loads each script in a separate opaque HTML document',async()=>{
+ const plugin=miniGamePlugin(),assets=[];
+ plugin.configResolved({command:'build'});
+ const result=await plugin.load.call({addWatchFile(){},emitFile(asset){assets.push(asset);return 'game';}},'\0virtual:toss-mini-game/fortune-fish');
+ assert.equal(result,'export default import.meta.ROLLUP_FILE_URL_game');assert.equal(assets[0].fileName,'__mini-games/fortune-fish.html');
+ assert.match(assets[0].source,/JSON\.parse\(window\.name/);
+ const shell=await readFile(new URL('../src/MiniGames.jsx',import.meta.url),'utf8');assert.match(shell,/sandbox="allow-scripts"/);assert.match(shell,/src=\{content\.source\}/);assert.doesNotMatch(shell,/srcDoc|allow-same-origin/);
+});
