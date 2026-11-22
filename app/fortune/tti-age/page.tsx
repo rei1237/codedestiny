@@ -6,6 +6,8 @@
  * 기준 연도(AGE_BASE_YEARS)는 빌드 날짜가 아니라 상수다 — 해가 바뀌면 날짜를 적은 커밋으로 올린다.
  */
 import Link from "next/link";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
@@ -246,6 +248,8 @@ export default function TtiAgePage() {
           <Link href="/fortune/son-eomneun-nal" className="cd-chip">손없는날 달력</Link>
           <Link href="/manse" className="cd-chip">무료 만세력</Link>
         </nav>
+
+        <GuideCta target={GUIDE_CTA_TARGETS["/fortune/tti-age"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
           띠와 간지는 민속 해석의 기준이며 개인 사주를 대신하지 않습니다. 입춘 시각과 설날은 이 사이트 만세력과 같은 한국 음양력 계산

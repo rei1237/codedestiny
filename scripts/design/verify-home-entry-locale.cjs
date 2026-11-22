@@ -27,10 +27,17 @@ const locales = ['ko', 'ja', 'en', 'zh-CN', 'zh-TW', 'vi', 'hi', 'es', 'fr', 'de
         await page.goto(base.href, { waitUntil: 'networkidle' });
         await page.waitForFunction(() => typeof window.cdGetCurrentLanguage === 'function');
         assert.equal(await page.locator('[data-home-card]').count(), 2, locale + ': cards survive hydration');
-        assert.equal(await page.locator('#homeCardTitle').textContent(), native && locale !== 'ko' ? nativeCopy['꿀꿀 운세에서 어떤 운세를 만나볼까요?'][locale] : '꿀꿀 운세에서 어떤 운세를 만나볼까요?');
+        const heading = page.locator(native ? '#homeCardTitle' : '#webServiceTitle');
+        const appTitle = '꿀꿀 운세에서 어떤 운세를 만나볼까요?';
+        const expectedTitle = native ? (nativeCopy[appTitle][locale] || appTitle) : '꿀꿀 운세 — 사주·타로·자미두수 운세 상담';
+        assert.equal(await heading.textContent(), expectedTitle);
+        if (!native) {
+          assert.equal(await page.locator('header a[href="#homeCardTitle"]').count(), 1);
+          assert.equal(await page.locator('summary#homeCardTitle').innerText(), '내 질문에 맞는 상담 찾기');
+        }
         assert.equal(await page.locator('[data-home-card="yeoni"] a').getAttribute('href'), '/ggulggul/');
         assert.equal(await page.locator('[data-home-card="yn"] a').getAttribute('href'), '/yeongnyangi/');
-        assert.equal(await page.locator('#homeCardTitle').evaluate(e => e.closest('[lang]').lang), native ? locale : 'ko');
+        assert.equal(await heading.evaluate(e => e.closest('[lang]').lang), native ? locale : 'ko');
         assert.equal(await page.locator('#homeExplore').count(), 0);
         assert.equal(await page.locator('[data-yh-home], video, [data-recommendation-product]').count(), 0);
         await page.locator('[data-home-card="yeoni"] a').focus();

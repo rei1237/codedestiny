@@ -35,7 +35,7 @@ import os from "node:os";
 import path from "node:path";
 import zlib from "node:zlib";
 import { chromium } from "@playwright/test";
-import { closeOverlays, reachMindscanTile, scrollIntoView } from "./lib/perf-home-reach.mjs";
+import { closeOverlays, COLLECTION_HEADER, HOME_HEADING, prepareShellControls, reachCollectionHeader, reachMindscanTile } from "./lib/perf-home-reach.mjs";
 
 const root = process.cwd();
 const staticRoot = fs.existsSync(path.join(root, "dist", "index.html")) ? path.join(root, "dist") : root;
@@ -59,15 +59,15 @@ const MOBILE_UA =
  *    touchstart/touchend 경로가 본선이고 click 은 곁가지라, 마우스로 쏘면 재려던 것을 못 잰다.
  */
 const SPOTS = [
-  { key: "header", name: "헤더(핸들러 없음)", selector: "#inputPage > header.logo-area" },
+  { key: "header", name: "헤더(핸들러 없음)", selector: HOME_HEADING },
   /* 🔴 이 헤더는 y≈9,574 로 폴드 한참 아래다. 스크롤 없이 좌표를 쏘면 뷰포트(844px) 밖이라
      **헤더가 아니라 빈 곳을 때린다** — 그런데도 document 전역 리스너가 도느라 숫자가 그럴듯하게
      나와서 대조군 노릇을 하는 것처럼 보였다. 반드시 화면 안으로 가져온 뒤에 잰다. */
   {
     key: "collection",
     name: "컬렉션 헤더(대조군)",
-    selector: ".tarot-collection__header",
-    setup: (page) => scrollIntoView(page, ".tarot-collection__header"),
+    selector: COLLECTION_HEADER,
+    setup: reachCollectionHeader,
   },
 
   /* 🔴 이 타일은 settle 만으로는 DOM 에 **없다**(실측: settle 직후 `.tarot-tile` 0개).
@@ -77,7 +77,7 @@ const SPOTS = [
   {
     key: "tile",
     name: "타로 타일(mindscan)",
-    selector: "a.tarot-tile--mindscan",
+    selector: "a.tarot-tile--mindscan:visible",
     setup: reachMindscanTile,
     teardown: closeOverlays,
   },
@@ -100,7 +100,8 @@ const COUNTER_KEYS = [
 const args = parseArgs(process.argv.slice(2));
 const server = await startStaticServer();
 const port = server.address().port;
-const targetUrl = args.url || `http://127.0.0.1:${port}/`;
+const shellPath = fs.existsSync(path.join(staticRoot, "ggulggul", "index.html")) ? "/ggulggul/" : "/index.html";
+const targetUrl = args.url || `http://127.0.0.1:${port}${shellPath}`;
 
 console.log(`[perf:tap-cost] target ${targetUrl}`);
 console.log(`[perf:tap-cost] runs ${args.runs} · CPU ${args.cpu}x · label ${args.label}`);
@@ -200,18 +201,20 @@ async function measureOnce(url) {
     await page.goto(url, { waitUntil: "load", timeout: 90000 });
     // 부팅이 끝난 뒤의 **고정 비용**만 잰다. 부팅 중 비용은 perf:interaction 의 '부팅 중 탭'이 본다.
     await page.waitForTimeout(args.settle);
+    await prepareShellControls(page);
 
     /**
      * 🔴 타일 탭은 `window.location.href` 로 페이지를 떠난다. 그대로 두면 카운터를 읽기 전에
      * 문서가 날아가 측정이 실패한다. `window.location` 을 덮어쓰지 않는다 — 셸이 그 경로를
-     * 스스로 쓰므로 덮으면 재려던 동작이 바뀐다. 대신 문서 요청만 네트워크 계층에서 취소한다.
+     * 스스로 쓰므로 덮으면 재려던 동작이 바뀐다. 문서 요청에는 204를 반환해 기존 문서를 유지한다.
      * 🔴 **부팅이 끝난 뒤에** 켠다. goto 전에 켜면 첫 문서까지 인터셉터를 거쳐 부팅이 달라진다.
      */
+    await cdp.send("Network.enable");
     await cdp.send("Fetch.enable", {
       patterns: [{ urlPattern: "*", requestStage: "Request", resourceType: "Document" }],
     });
     cdp.on("Fetch.requestPaused", (event) => {
-      cdp.send("Fetch.failRequest", { requestId: event.requestId, errorReason: "Aborted" }).catch(() => {});
+      cdp.send("Fetch.fulfillRequest", { requestId: event.requestId, responseCode: 204 }).catch(() => {});
     });
     const baselineUrl = page.url();
 
@@ -239,6 +242,18 @@ async function measureOnce(url) {
       const x = box.x + Math.min(40, box.width / 2);
       const y = box.y + Math.min(20, box.height / 2);
 
+      // 오버레이·고정 탭·부드러운 스크롤이 좌표를 가리면 그 탭의 카운터는 무효다.
+      const hitsTarget = await page.locator(spot.selector).first().evaluate(
+        (el, point) => el.contains(document.elementFromPoint(point.x, point.y)), { x, y },
+      );
+      if (!hitsTarget) {
+        console.warn(`\n  [${spot.name}] 터치 좌표에 다른 요소가 있음`);
+        out[spot.key] = null;
+        if (spot.teardown) await spot.teardown(page).catch(() => {});
+        continue;
+      }
+      // SW가 캐시한 문서는 CDP Fetch 인터셉터보다 먼저 응답한다. 이동하는 타일 탭에서만 우회한다.
+      if (spot.key === "tile") await cdp.send("Network.setBypassServiceWorker", { bypass: true });
       await page.evaluate(installCounters);
       await page.evaluate(() => window.__cdTapCost.reset());
 

@@ -150,7 +150,9 @@ test("마우스·포커스·탭 숨김·열린 대화상자에서는 멈춘다",
   assert.equal(f.timeouts.size, 0);
   link.blur();
   f.flush();
-  assert.equal(f.timeouts.size, 1);
+  assert.equal(f.timeouts.size, 0, "leaving with the keyboard must not restart rotation");
+  f.d.querySelector("[data-sig-banner-pause]").click();
+  assert.equal(f.timeouts.size, 1, "explicit start resumes rotation");
   Object.defineProperty(f.d, "hidden", { value: true, configurable: true });
   f.d.dispatchEvent(new f.window.Event("visibilitychange"));
   assert.equal(f.timeouts.size, 0);

@@ -62,8 +62,8 @@
 .entry .write p { font-size: .875rem; margin: var(--cd-sp-sm) 0 var(--cd-sp-md); }
 .write textarea { display: block; box-sizing: border-box; width: 100%; min-height: 112px; resize: vertical; padding: var(--cd-sp-md); border: 1px solid var(--yn-line); border-radius: var(--cd-r-control); background: var(--qj-bg); color: var(--qj-text); font: inherit; font-size: 16px; line-height: 1.7; caret-color: var(--qj-accent); scrollbar-color: var(--yn-line) var(--qj-bg); }
 .write textarea::placeholder { color: var(--qj-muted); opacity: 1; }
-.writeFooter { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: var(--cd-sp-sm); margin-top: var(--cd-sp-md); }
-.writeFooter > span { font-size: .875rem; color: var(--qj-muted); font-variant-numeric: tabular-nums; }
+.writeFooter { display: flex; justify-content: flex-end; margin-top: var(--cd-sp-md); }
+.questionCount { display: block; text-align: right; margin-top: var(--cd-sp-sm); font-size: .875rem; color: var(--qj-muted); font-variant-numeric: tabular-nums; }
 .writeFooter button { display: flex; align-items: center; justify-content: center; gap: var(--cd-sp-sm); min-height: 48px; padding: 10px 16px; border: 1px solid var(--qj-accent); border-radius: var(--cd-r-control); background: var(--qj-accent); color: var(--yn-deep); font: inherit; font-size: .875rem; font-weight: 600; cursor: pointer; }
 .writeFooter button:hover:not(:disabled) { background: var(--yn-gold-hover); }
 .writeFooter button:disabled { background: var(--yn-raised); border-color: var(--yn-line); color: var(--qj-muted); cursor: not-allowed; }
@@ -108,7 +108,6 @@
   .entry .intro p { font-size: 1rem; }
   .mascot { margin-top: var(--cd-sp-xs); }
   .write { padding: 0; margin-bottom: var(--cd-sp-lg); }
-  .writeFooter > span { width: 100%; text-align: right; }
   .writeFooter button { width: 100%; }
   .choices { grid-template-columns: minmax(0, 1fr); }
   .entry .choices button { min-height: 72px; gap: var(--cd-sp-sm); padding: var(--cd-sp-md) 0; }

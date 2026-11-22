@@ -40,10 +40,14 @@ await page.waitForTimeout(1200);
 
 const result = await page.evaluate((FLOOR) => {
   const sel = 'a[href], button, [role="button"], input:not([type="hidden"]), select, summary, label[for]';
-  const owns = (el, hit) => !!hit && (hit === el || el.contains(hit) || hit.contains(el));
+  // A label forwards the tap to its control. A card or section behind a closed disclosure does not.
+  const owns = (el, hit) => !!hit && (
+    el.contains(hit) || hit.closest("label")?.control === el || el.control?.contains(hit)
+  );
   const probe = (el, cx, cy, dx, dy) => {
     let n = 0;
-    for (let d = 1; d <= 32; d++) {
+    // A target near the edge of a scrollable strip can expose all 44 pixels to one side.
+    for (let d = 1; d < FLOOR; d++) {
       if (!owns(el, document.elementFromPoint(cx + dx * d, cy + dy * d))) break;
       n = d;
     }
@@ -58,6 +62,7 @@ const result = await page.evaluate((FLOOR) => {
   const blockers = new Map();
   const bad = new Map();
   for (const el of Array.from(document.querySelectorAll(sel))) {
+    if (!el.checkVisibility()) continue;
     let r = el.getBoundingClientRect();
     if (r.width <= 0 || r.height <= 0) continue;
     const cs = getComputedStyle(el);

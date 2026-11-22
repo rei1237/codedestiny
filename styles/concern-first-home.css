@@ -24,10 +24,9 @@
 }
 
 .cdh-specialists{border-top:1px solid var(--cdh-line);padding:8px 0}.cdh-specialists>summary{padding:18px 0;min-height:48px;font-weight:700;cursor:pointer}.cdh-specialists>summary:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
-#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;transform:none;width:auto}#cdHomeFunnel .cd-sig__viewport{overflow:visible}#cdHomeFunnel .cd-sig-card{min-width:0;width:auto}#cdHomeFunnel .cd-sig__controls{display:none}
+#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;transform:none;width:auto}#cdHomeFunnel .cd-sig__viewport{overflow:visible}
 @media(max-width:640px){
   #cdHomeFunnel .cd-sig__grid{grid-template-columns:minmax(0,1fr)}
-  #cdHomeFunnel .cd-sig-card{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:start;padding:12px;gap:12px}
   #cdHomeFunnel .cd-sig-card__media{align-self:start;width:100%;aspect-ratio:16/9;border-radius:var(--cd-r-sm);overflow:hidden}
   #cdHomeFunnel .cd-sig-card__img{width:100%;height:100%;object-fit:cover}
   #cdHomeFunnel .cd-sig-card__body{padding:0;min-width:0}

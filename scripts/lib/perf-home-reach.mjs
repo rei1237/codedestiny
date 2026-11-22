@@ -16,10 +16,38 @@
  *     (className 이 필드 데이터와 정확히 같다: `tarot-tile tarot-tile--mindscan notranslate MobileFeatureCard`).
  */
 
+export const HOME_HEADING = "#cdhTitle:visible, #inputPage > header.logo-area:visible";
+export const COLLECTION_HEADER = "button.tarot-collection__header";
+
+// 부팅 자체는 그대로 재고, 이후의 컨트롤은 필수 쿠키를 선택한 방문자 상태에서 잰다.
+export async function prepareShellControls(page) {
+  await page.waitForFunction(() => !document.documentElement.classList.contains("cd-boot-gate"));
+  await page.evaluate(() => {
+    if (document.querySelector("[data-signature-letter]")) {
+      localStorage.setItem("cd_signature_consult_hide_until_v1", String(Date.now() + 86400000));
+    }
+  });
+  const letter = page.locator("dialog[open] [data-signature-letter-close]");
+  if (await letter.isVisible()) await letter.click();
+  const consent = page.locator("#cdCookieConsent.is-visible #cdCookieEssentialBtn");
+  if (await consent.isVisible()) await consent.click();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+}
+
+export async function reachCollectionHeader(page) {
+  await page.evaluate(() => window.__cdOpenGarden?.());
+  await scrollIntoView(page, COLLECTION_HEADER);
+}
+
 /** '모든 운세' 풀스크린 컬렉션 오버레이를 연다. 이게 열려야 컬렉션 탭 칩이 존재한다. */
 export async function openAllCollections(page) {
-  await page.locator("#cdMobileBottomNav [data-nav-key='fortunes']").first().click({ timeout: 2500 });
-  await page.waitForSelector(".cd-mobile-collection-tab[data-collection-id]", { timeout: 4000 });
+  const overview = page.locator(".cd-mobile-collection-tab[data-collection-id='__overview']");
+  if (!(await page.locator("#cdMobileCollectionChromeBar.is-open").count())) {
+    const entry = page.locator(".yh-all:visible, #cdMobileBottomNav [data-nav-key='fortunes']:visible").first();
+    await entry.evaluate((el) => el.scrollIntoView({ block: "center", behavior: "instant" }));
+    await entry.press("Enter", { timeout: 10000 });
+    await overview.waitFor({ state: "visible", timeout: 10000 });
+  }
   // 오버레이 등장이 만든 시프트를 뒤따르는 측정에 귀속시키지 않는다.
   await page.waitForTimeout(400);
 }
@@ -29,8 +57,8 @@ export async function openCollectionTab(page, collectionId) {
   await page
     .locator(`.cd-mobile-collection-tab[data-collection-id='${collectionId}']`)
     .first()
-    .click({ timeout: 2500 });
-  await page.waitForTimeout(600);
+    .press("Enter", { timeout: 10000 });
+  await page.waitForFunction((id) => document.querySelector(".cd-mobile-collection-tab[aria-current='page']")?.getAttribute("data-collection-id") === id, collectionId, { timeout: 10000 });
 }
 
 /**
@@ -39,8 +67,9 @@ export async function openCollectionTab(page, collectionId) {
  *    document 를 굴려 봐야 아무 일도 일어나지 않는다.
  */
 export async function scrollUntilMounted(page, selector, { collectionId = "", steps = 14 } = {}) {
+  const visible = page.locator(selector + ":visible").first();
   for (let i = 0; i < steps; i += 1) {
-    if (await page.evaluate((sel) => !!document.querySelector(sel), selector)) return true;
+    if (await visible.isVisible()) return true;
     await page.evaluate((id) => {
       const collection = id ? document.getElementById(id) : null;
       const scroller =
@@ -49,7 +78,7 @@ export async function scrollUntilMounted(page, selector, { collectionId = "", st
     }, collectionId);
     await page.waitForTimeout(350);
   }
-  return page.evaluate((sel) => !!document.querySelector(sel), selector);
+  return visible.isVisible();
 }
 
 /**
@@ -61,11 +90,14 @@ export async function reachMindscanTile(page) {
   await openCollectionTab(page, "tarotCollection");
   const mounted = await scrollUntilMounted(page, "a.tarot-tile--mindscan", { collectionId: "tarotCollection" });
   if (!mounted) throw new Error("mindscan 타일이 스크롤 뒤에도 마운트되지 않았다 — 지연 마운트 경로가 바뀌었다");
+  await scrollIntoView(page, "a.tarot-tile--mindscan");
 }
 
 /** 오버레이를 닫아 다음 측정이 깨끗한 화면에서 시작하게 한다. */
 export async function closeOverlays(page) {
-  await page.keyboard.press("Escape").catch(() => {});
+  const collectionClose = page.locator("#cdMobileCollectionChromeBar.is-open .cd-mobile-collection-close");
+  if (await collectionClose.isVisible()) await collectionClose.press("Enter");
+  else await page.keyboard.press("Escape");
   await page.waitForTimeout(300);
 }
 
@@ -91,7 +123,7 @@ export async function scrollIntoView(page, selector) {
      `block:'center'` 로 화면 한가운데에 놓으면 고정 바 어느 것도 덮지 않는다.
      🔴 `behavior:'smooth'` 도 쓰지 않는다 — 스크롤이 끝나기 전에 좌표를 읽게 된다. */
   await page.evaluate((sel) => {
-    const el = document.querySelector(sel);
+    const el = Array.from(document.querySelectorAll(sel)).find((node) => node.checkVisibility());
     if (el) el.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
   }, selector);
   // 지연 이미지 마운트로 레이아웃이 한 번 더 움직일 수 있다 — 멎은 뒤에 재도록 한 박자 준다.
