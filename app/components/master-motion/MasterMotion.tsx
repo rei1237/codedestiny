@@ -93,6 +93,47 @@ function MasterMotionLive({ children, variant = "ggulggul", density = "md", as: 
   );
 }
 
+/** 부분 시트(F7 영냥이) — 정본 좌표(canvas)의 사각형(area) 하나만 덮는 한 줄 시트. lib/master-motion/sheets.mjs masterMotionPatch. */
+export type MasterMotionPatchArt = {
+  sheet: MasterMotionSheet;
+  area: { left: number; top: number; width: number; height: number };
+  canvas: { width: number; height: number };
+};
+
+const percent = (value: number, total: number) => `${(value / total) * 100}%`;
+
+function MasterMotionPatchLive({ patch, paused }: { patch: MasterMotionPatchArt; paused: boolean }) {
+  const gate = useSpritePlaybackGate<HTMLSpanElement>();
+  const sheet = usableSheet(patch.sheet);
+  const on = gate.canAnimate && !paused && Boolean(sheet);
+  // 보이고 움직여도 될 때만 받아 온다. 다 받기 전·멈춤·움직임 줄이기에서는 줄을 그리지 않아 아래 <img> 만 보인다.
+  const sheetImage = useLazySpriteSource(sheet?.src ?? "", on);
+  const { area, canvas } = patch;
+  return (
+    <span
+      ref={gate.ref}
+      className={styles.patch}
+      data-mm-patch=""
+      data-motion={on && sheetImage.isLoaded ? "on" : "off"}
+      style={{ left: percent(area.left, canvas.width), top: percent(area.top, canvas.height), width: percent(area.width, canvas.width), height: percent(area.height, canvas.height) }}
+      aria-hidden="true"
+    >
+      {on && sheet && sheetImage.isLoaded ? (
+        <span className={styles.patchRow} style={{ "--mm-n": sheet.frames, backgroundImage: `url("${sheet.src}")` } as CSSProperties} />
+      ) : null}
+    </span>
+  );
+}
+
+/**
+ * 정본 <img> 위에 겹치는 부분 대기 모션(F7). 부모는 <img> 와 같은 상자(position:relative, 정본 비율)여야 한다 — area 를 백분율로 놓는다.
+ * paused 면 줄을 내린다(예: 쓰다듬기 반응 그림이 <img> 를 가린 동안). MASTER_MOTION_ENABLED=false 면 아무것도 그리지 않는다.
+ */
+export function MasterMotionPatch({ patch, paused = false }: { patch: MasterMotionPatchArt | undefined; paused?: boolean }) {
+  if (!MASTER_MOTION_ENABLED || !patch) return null;
+  return <MasterMotionPatchLive patch={patch} paused={paused} />;
+}
+
 /**
  * 마스터 초상 모션 래퍼(W4). CSS 만으로 숨쉬기·흔들림(transform)과 꽃잎/별가루 레이어를 얹는다.
  * - 화면 밖·탭 숨김·움직임 줄이기면 정지하고 꽃잎 DOM 도 그리지 않는다(useSpritePlaybackGate).

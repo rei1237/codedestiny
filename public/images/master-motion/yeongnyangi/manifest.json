@@ -1,0 +1,72 @@
+{
+  "id": "yeongnyangi",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/assets/yeongnyangi/original/hero-800.webp",
+  "baseSha256": "1e7691f8810ad7c2c94fd63d9beaa3176b7fb0724a81103fd3222e7bd12eabab",
+  "variants": {
+    "mascot": {
+      "kind": "patch",
+      "sheet": {
+        "src": "/images/master-motion/yeongnyangi/mascot-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 324,
+          "height": 160
+        }
+      },
+      "sheetBytes": 14758,
+      "area": {
+        "left": 252,
+        "top": 200,
+        "width": 324,
+        "height": 160
+      },
+      "canvas": {
+        "width": 800,
+        "height": 800
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 3.95,
+      "wholeDiff": 13.49,
+      "regionDiff": 43.45,
+      "colorShift": [
+        2.8,
+        4.48,
+        2.89
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 6.01
+      }
+    },
+    "closed": {
+      "guardDiff": 3.49,
+      "wholeDiff": 14.13,
+      "regionDiff": 59.1,
+      "colorShift": [
+        2.44,
+        3.81,
+        2.77
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 1,
+        "dy": 0,
+        "score": 5.61
+      }
+    }
+  }
+}
