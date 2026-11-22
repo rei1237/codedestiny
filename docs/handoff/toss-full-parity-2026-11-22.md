@@ -42,3 +42,10 @@ node docs/toss/build-service-inventory.mjs가 발견한 ID와 11월 14일 감사
 - 검증 기준 커밋 9b108df384. 무료 허브는 웹의 23개 카드에서 출발하며 기본 궁합은 게스트 계산, 기존 유료 기본판은 소유 주문 조회, 고급 궁합은 별도 상품이다. 원본 뇌구조 추가 레이어와 공유, 무료 프롬프트 도구 16종은 통합 작업 중이다. 흑월은 같은 주문·소유권을 확인하고 저장된 장을 보존해 미완성 장을 재개하며 자동 환불 정산은 운영 확인 대상이다.
 - 중간 Windows 격리 아카이브 22개 시나리오 통과. 이 중 영냥이는 서로 다른 28개 상품을 각각 생성하고 같은 계정으로 다시 열었다. 실행 기록은 D:/tmp/toss-release/full-parity-20261122/service-flow-results.json에 있다. 웹 고급 궁합의 390px 실화면은 같은 폴더의 web-premium-390.png로 보관했다.
 - 두 번째 check:fast에서 일일 빌드 데이터 부재, 기본 궁합 버튼 금칙어, 영냥이 골든 테스트 2건의 부하 타임아웃이 발생했다. 정식 fortune:build-data 실행, 기본 궁합 버튼 수정, 제한된 테스트 병렬도로 재검증한다. 최종 isolated AIT 빌드, 최신 공유 UI 반영 sitemap, pre-push·CI·QR이 남았다.
+
+## 통합 아카이브
+
+- 최신 원격 변경 29550bf9e8을 4c2d4b53c1에서 병합했다. 기능 원장 a83996b6f6, 프롬프트 허브 11e69cba0b, 뇌구조 f1e2f347ed, 흑월 재개 5261e80547. 원본 대조 116행, 운영 구매 또는 실기기 검증 실적으로 합산 금지. 웹 정상 음원 122곡은 모두 32MiB 이하다. 미복구 neo-15와 환불·SDK 등 운영 게이트가 있다.
+- Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e에서 무료 23개 및 프롬프트 16종, PNG·프로필·고급궁합·흑월·음원 종합 증거를 docs/toss/mock-service-flow-20261122.json에 연결했다. 최신 AIT 01a200eb-5cdb-7a02-bab9-a739f9b06bef는 압축 해제 99,204,394바이트이며 프롬프트 16개, 계정 B 차단, 연결 해제 및 재연결 후 원문 삭제까지 확인했다. D:/tmp/toss-release/full-parity-20261122/windows-01a200eb. 최신 모의 AIT 둘 다 Windows 경로로 구성되므로 업로드 금지.
+- 현재 가상 모바일 4346은 01a200e2와 같은 격리 자원으로 동작한다. 최신 공식 Linux archive로 교체할 때 archive 전용 로컬 미리보기 명령을 사용할 수 있다. 실기기용 로컬 Android 브리지에 연결된 휴대폰은 0개.
+- 남은 첫 작업은 생성된 공개 미러 8개 및 sitemap 검증을 마치고 커밋, check:pre-push와 전체 targeted gate 로그 확인 후 병합·main 푸시·Linux 일반과 모의 AIT의 보관·미제출 비공개 QR 검증이다. 검증 프로세스 출력은 D:/Development/Temp/toss-parity-gate-final3.log. 이전 시간 제한 케이스는 단독 3/3 통과했다. 운영 배포·공개·환불 약속·약관 조작 금지.
