@@ -37,11 +37,14 @@ const FEATURED = [
 ];
 
 const OTHERS = [
-  { name: "홍염살", line: "일간별로 정해진 지지. 도화와 함께 매력 계열로 읽지만 기준이 다릅니다." },
-  { name: "천을귀인", line: "일간별 두 지지. 도움을 주는 사람과 위기에서 길이 열리는 힘으로 읽습니다." },
-  { name: "괴강살·백호살", line: "경진·경술·임진·무술(괴강), 갑진·을미 등 일곱 간지(백호)가 기둥에 있을 때." },
-  { name: "공망", line: "일주가 속한 순에서 빠진 두 지지. 비어 있는 자리라 집착을 덜어 내라는 뜻으로 읽습니다." },
-  { name: "원진살·귀문관살", line: "원국 두 지지가 정해진 짝을 이룰 때. 감정의 엇갈림과 예민한 직관으로 읽습니다." },
+  { href: "/insights/hongyeom-sal-meaning/", name: "홍염살", line: "일간별로 정해진 지지. 도화와 함께 매력 계열로 읽지만 기준이 다릅니다." },
+  { href: "/insights/cheoneul-gwiin-meaning/", name: "천을귀인", line: "일간별 두 지지. 도움을 주는 사람과 위기에서 길이 열리는 힘으로 읽습니다." },
+  { href: "/insights/goegang-sal-meaning/", name: "괴강살", line: "경진·경술·임진·무술 네 간지가 기둥에 있을 때. 강한 결단과 권한의 기질." },
+  { href: "/insights/baekho-sal-meaning/", name: "백호살", line: "갑진·을미·병술·정축·무진·임술·계축 일곱 간지. 속도와 단호함, 서두름의 경계." },
+  { href: "/insights/gongmang-meaning/", name: "공망", line: "일주가 속한 순에서 빠진 두 지지. 비어 있는 자리라 집착을 덜어 내라는 뜻으로 읽습니다." },
+  { href: "/insights/gwimun-gwan-sal-meaning/", name: "귀문관살", line: "원국 두 지지가 자유·축오·인미 등 여섯 쌍을 이룰 때. 예민한 직관과 몰입." },
+  { href: "/insights/wonjin-sal-meaning/", name: "원진살", line: "자미·축오·인유 등 여섯 쌍. 까닭 모를 서운함으로 읽고 띠궁합에서도 씁니다." },
+  { href: "/insights/sangchung-yukchung/", name: "상충", line: "정반대 자리 지지끼리의 육충 여섯 쌍. 변화와 긴장이 커지는 자리." },
 ];
 
 function titleOf() {
@@ -167,8 +170,9 @@ export default function SinsalHubPage() {
           <h2 id="others-heading">그 밖의 신살</h2>
           <ul className="mt-4 space-y-3">
             {OTHERS.map((item) => (
-              <li key={item.name} className="break-keep text-sm leading-7 text-[rgba(244,238,255,0.82)]">
-                <strong className="text-[#f4eeff]">{item.name}</strong> — {item.line}
+              <li key={item.href} className="break-keep text-sm leading-7">
+                <Link href={item.href} className="font-bold text-[#e8d5a3] underline underline-offset-4">{item.name} 뜻과 기준표</Link>
+                <span className="text-[rgba(244,238,255,0.78)]"> — {item.line}</span>
               </li>
             ))}
           </ul>
