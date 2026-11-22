@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: "D2 남은 정체 확정 7종: naming-prompt(+크론 select 에 result.namingPrompt 누락) 와 KNOWN_RETRY_PENDING 6종(nakshatra-ai·human-design-report·destiny-compass-ai·relationship-boundary-test·celestial-harmony·fortune) — 단계 D 줄의 \"남은 것\" 참조"
+next: "main CI(남의 커밋 dd877cf3f 의 Static guards — verify-saju-summary-browser 타임아웃) 녹색 확인 → 워크트리 delivery-gaps-c 에서 origin/main fetch·머지 → check:pre-push → git push origin HEAD:main → CI 1회 확인 → 정리 단계"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -104,10 +104,13 @@ next: "D2 남은 정체 확정 7종: naming-prompt(+크론 select 에 result.nam
 - [x] C3 과금 후 레코드 전 4xx 실패(감사 5) — 7d8f2e8f4·b517a51cc·88fcfa0f6·cb8867ece·93fd5a25c·3e7109b12 (아래 "C3·C3b·C4")
 - [x] C3b 환불(요청·승인·정산) 뒤 재개 거절, 무료 재생성 없음 — 41ec5e085
 - [x] C4 클라이언트 400/422 → INPUT_INVALID 분류 — 9e98190d0·e82fef6fa(사전)·01d5c639a(sitemap 원장)
-- [ ] D 서비스별 stuck settle — **5/12 완료**(2026-11-22). 공용 헬퍼 `settleStuckRetryFirst`(worker/lib/paid-delivery-stuck.js): 창 안은 generation_failed+retryable(저장 장 보존·빠진 장만 재생성·환불 없음), 생성+7일 뒤엔 서비스 기존 보류 환불(settle<Svc>RetryRefund). 커밋 1d13afe7f(헬퍼·크론 unsettled 이어쓰기), 7bfd2cadd vedic, e7a4bf0f3 astrology, 1989484d2 ziwei, 916d65316 sukuyo(읽기 전용 증빙 — resolveStartAccess 는 이용권 차감 가능해 쓰지 않음), 0658bee74 karma, 37cad9969 감사 B2(증빙 조회 실패 pending 도 이어쓰기·회전 — 안 하면 가장 오래된 1건이 서비스 크론을 막음), 4cba2f230·bfec7eddc·3e62fa12d 감사 B1(이용권 재판정 거절 시 `{}` 저장 → 7일 뒤 이용권 환불 누락; 서비스별 pass 모양으로 대체, refundId 멱등). paid-gate-auditor B1 재감사 PASS·verify-payment-freeze exit 0.
+- [x] D 서비스별 stuck settle — **10/12 자동 확정, 2종은 근거와 함께 경보 유지**(D2 2026-11-22, push 대기). D1(2026-11-22). 공용 헬퍼 `settleStuckRetryFirst`(worker/lib/paid-delivery-stuck.js): 창 안은 generation_failed+retryable(저장 장 보존·빠진 장만 재생성·환불 없음), 생성+7일 뒤엔 서비스 기존 보류 환불(settle<Svc>RetryRefund). 커밋 1d13afe7f(헬퍼·크론 unsettled 이어쓰기), 7bfd2cadd vedic, e7a4bf0f3 astrology, 1989484d2 ziwei, 916d65316 sukuyo(읽기 전용 증빙 — resolveStartAccess 는 이용권 차감 가능해 쓰지 않음), 0658bee74 karma, 37cad9969 감사 B2(증빙 조회 실패 pending 도 이어쓰기·회전 — 안 하면 가장 오래된 1건이 서비스 크론을 막음), 4cba2f230·bfec7eddc·3e62fa12d 감사 B1(이용권 재판정 거절 시 `{}` 저장 → 7일 뒤 이용권 환불 누락; 서비스별 pass 모양으로 대체, refundId 멱등). paid-gate-auditor B1 재감사 PASS·verify-payment-freeze exit 0.
   - 실측: verify:paid-llm-delivery ok(정체 자동 확정 12개·경보만 7개, 변이 37/37, 100/100). jest ziwei 59·vedic 54·astrology 56·sukuyo+karma+stuck+recovery 159 pass.
-  - 남은 것(KNOWN_STUCK_SETTLE_GAPS 7): naming-prompt(idKey executionId, metaKey result.namingPrompt; 크론 select 에 result.namingPrompt 가 없어 토스 분기 판정 불가 가능 — 먼저 확인), KNOWN_RETRY_PENDING 6종 nakshatra-ai·human-design-report·destiny-compass-ai·relationship-boundary-test·celestial-harmony·fortune(공용 GENERIC_STUCK_SETTLERS 경로 적합 여부 먼저, 아니면 서비스 기존 즉시 환불 사용 후 기록).
-  - 남은 위험(보고만): delivery_pending 정체 건은 구조 대신 retryable 로 감(가정), 크론 동시 실행 경합 미검증, paid-flow-gates.yml 이 paid-delivery-stuck.js 변경에 트리거 안 됨, ziwei Payment 확인이 CAS 전에 돌 수 있음(경미), vedic 은 증빙 없을 때 refundStatus 가 not_required 대신 requested 로 기록(금액 영향 없음).
+  - D2 커밋(워크트리, push 안 함 — main 이 남의 커밋으로 빨강): 051c5855a naming-prompt(settleStuckRetryFirst idKey executionId·metaKey result.namingPrompt, 환불 settleNamingRetryRefund; 크론 투영에 result.namingPrompt.tossIntentId·retryable.reopenedAt 추가 — 이전엔 토스 작명이 크론에서 handleGenerate 로 오배선, stuckAgeStart 가 작명 재개방 시각을 읽음), 76c6c7dd7+cccb82cd1 nakshatra-ai, 3716a8ef3+8b9b3fe64 human-design-report, fd13dbab0 destiny-compass-ai, a3bc7e763 relationship-boundary-test(4종 모두 기존 즉시 환불: CAS generation_failed 를 환불 앞에 — checkpoint-refund-guard 가 partial 을 recoverable 로 보고 admin review 로 돌리는 것 회피, 결제 회수 확인 선행으로 이중 환불 방지, 토스 unsettled, 완성 delivery_pending 은 서비스 완성 검사가 있을 때만 구제).
+  - 경보 유지(KNOWN_STUCK_SETTLE_GAPS 2): celestial-harmony — 결제 증빙(sourceTransactionId·paymentRef·metadata.billing)을 실패 시점 요청 access 로 쓰고 insert 에 저장하지 않아 크론에선 이용권 외(코인·월정석·카드) 환불 증빙이 없음 → 증빙 재구성 리팩터 필요. fortune — 환불이 요청 범위 consumePayload(미저장)에 의존하고 코인 환불은 Request 필요, 기존 stale 처리(markSajuAIPromptStaleExecutionFailed)는 결제 보존(환불 없음) → 리팩터 없이 자동 확정 불가.
+  - D2 실측: jest naming 5종 129 pass, 4종 각 98·199·208·142 pass; verify:paid-llm-delivery ok(정체 자동 확정 17개·경보만 2개, 변이 37/37·100/100); verify:naming-prompt PASS, verify:human-design-report·destiny-compass·nakshatra-ai-flow PASS; verify-payment-freeze 통과; paid-gate-auditor BLOCKING 은 human-design B1(회수 건 이중 환불) 1건 → 8b9b3fe64 로 수정.
+  - D2 남은 위험(보고만): relationship refundExecution 반환값 항상 false(relationship-boundary-test.js:243, `result?.refundStatus` → 실제 형태는 settlement.status) → 정체 확정이 refundStatus pending·거짓 경보, 환불 자체는 됨. naming settleNamingRetryRefund 는 access 가 비면 not_required 로 닫음(fail-open, 2026-09-15 이후 문서는 access 저장). STE 없는 건(월정석 원장·실행 시작 실패)은 pending 경보만. unsupported 결과가 크론 회전 없이 continue(레거시 문서 큐 정체 가능). paid-flow-gates 트리거에 라우트·paid-delivery-stuck.js 없음. 실 Mongo CAS 미검증.
+  - D1 남은 위험(보고만): delivery_pending 정체 건은 구조 대신 retryable 로 감(가정), 크론 동시 실행 경합 미검증, paid-flow-gates.yml 이 paid-delivery-stuck.js 변경에 트리거 안 됨, ziwei Payment 확인이 CAS 전에 돌 수 있음(경미), vedic 은 증빙 없을 때 refundStatus 가 not_required 대신 requested 로 기록(금액 영향 없음).
 - [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
 
 ## 실측 (단계마다 추가)
