@@ -23,7 +23,7 @@ test('library view event carries only public state and product key', () => {
 
 test('records view gates note, free link and review on completion and fires one view event', () => {
   const src = read('app/records/view/SavedRecordClient.tsx');
-  assert.match(src, /\{complete && <a className=\{recordButton\} href="\/reviews\/\?write=1">\{c\.review\}<\/a>\}/);
+  assert.match(src, /\{complete && <a className=\{recordButton\} href=\{reviewWriteHref\(detail\.record\.reviewProductId\)\}>\{c\.review\}<\/a>\}/);
   assert.doesNotMatch(src, />후기 쓰기</);
   assert.match(src, /\{complete && <section[^>]*data-cd-cross-sell="\/records\/view\/"><p>\{c\.reopenNote\}<\/p>/);
   assert.match(src, /data-cd-cta-placement="free_result"/);
@@ -51,7 +51,7 @@ test('R7b: retry_available records get their own label and a link to the origina
   assert.equal(copy.match(/retry_available: '/g)?.length, 5);
   assert.match(copy, /retry_available: '다시 시도 가능'/);
   assert.match(copy, /retryLead: '[^']*추가 결제·차감 없이/);
-  assert.match(read('app/records/RecordsClient.tsx'), /item\.status === 'retry_available' && item\.recoveryHref && <a className=\{recordButton\} href=\{item\.recoveryHref\}>\{c\.retryAction\}/);
+  assert.match(read('app/records/RecordsClient.tsx'), /item\.status === 'retry_available' && item\.recoveryHref && <a className=\{styles\.recordReview\} href=\{item\.recoveryHref\}>\{c\.retryAction\}/);
   const view = read('app/records/view/SavedRecordClient.tsx');
   assert.match(view, /status==='retry_available'\?c\.retryLead/);
   assert.match(view, /status==='retry_available'\?c\.retryAction:c\.recover/);

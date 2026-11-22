@@ -195,7 +195,7 @@ export default function QuickReviewComposer({ brand = "ggulggul", rewardLabel, r
     {stage === "empty" && <p>지금은 후기 작성이 가능한 상담 내역이 없어요.</p>}
     {stage === "error" && <p role="alert">작성 가능한 상담을 확인하지 못했어요. <a href={writeHref} onClick={() => trackEvent("review_invite_click", s00("error"))}>후기 페이지에서 다시 확인하기</a></p>}
     {stage === "ready" && <>
-      <div className="cd-quick-review__heading"><div><h3>{brand === "yeongnyangi" ? "영냥이의 풀이, 어떠셨냥?" : "연이의 풀이, 어떠셨나요?"}</h3><p>맞았던 부분도, 아쉬웠던 부분도 알려주세요. 별점 하나만 선택해도 바로 접수돼요.</p></div><span>{eligible.length}건 작성 가능</span></div>
+      <div className="cd-quick-review__heading"><div><h3>{brand === "yeongnyangi" ? "영냥이의 풀이, 어떠셨냥?" : "연이의 풀이, 어떠셨나요?"}</h3><p>별점을 고른 뒤 등록해 주세요. 태그와 한 줄 후기는 원하는 경우에 덧붙일 수 있어요.</p></div>{eligible.length > 1 && <span>{eligible.length}건 작성 가능</span>}</div>
       <p className="cd-quick-review__reward"><strong>{rewardLabel}</strong><span>관리자 승인 후 지급 · 지급일부터 30일 · 별점과 무관</span></p>
       {eligible.length > 1 && <label className="cd-quick-review__select">후기를 남길 상담<select value={productId} disabled={busy} onChange={(event) => selectProduct(event.target.value)}>{eligible.map((item) => <option key={item.productId} value={item.productId}>{item.productName}</option>)}</select><ChevronDown size={18} aria-hidden="true" /></label>}
       <fieldset className="cd-quick-review__stars"><legend>별점 선택</legend>{[1,2,3,4,5].map((star) => <button key={star} type="button" aria-label={`별점 ${star}점`} aria-pressed={rating === star} onClick={() => chooseRating(star)} className={star <= rating ? "is-active" : ""}>★</button>)}</fieldset>

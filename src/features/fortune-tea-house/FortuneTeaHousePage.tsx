@@ -24,7 +24,8 @@ import TeaHouseButton from "./components/TeaHouseButton";
 import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import { toDisplayText } from "@/lib/llm-text";
-import { authFetch } from "@/app/_lib/auth-client";
+import { authFetch, isMobileAppRuntime } from "@/app/_lib/auth-client";
+import ReviewRewardBanner from "@/app/components/ReviewRewardBanner";
 import { getAuthState, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
 import { readFortuneTeaRecovery, saveFortuneTeaRecovery, clearFortuneTeaRecovery, type FortuneTeaRecovery } from "./lib/consultRecovery";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
@@ -1113,7 +1114,8 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
   }
 
   function canUseLocalConsultPreview() {
-    if (typeof window === "undefined") return false;
+    // The Android WebView also uses localhost, but paid results need to be saved on the server.
+    if (typeof window === "undefined" || isMobileAppRuntime()) return false;
     return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.hostname === "::1";
   }
 
@@ -1728,7 +1730,14 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
           onEditBirthInfo={() => goToStage("questionInput")}
           onHoneyDropsChange={setHoneyDrops}
           onResultUpdate={setConsultResult}
-        /></>
+        />
+        {paymentSurface !== "toss" && consultResult.resultId &&
+          (consultResult.consultationMode === "tarot" || consultResult.consultationMode === "saju") && (
+            <div className={styles.resultReview}>
+              <ReviewRewardBanner afterResult reviewProductId={consultResult.featureKey === "fortune-tea-house-saju-joint-consultation" ? "tea-saju-joint" : "fortune-tea-house"} />
+            </div>
+          )}
+      </>
       );
     }
 

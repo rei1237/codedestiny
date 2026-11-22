@@ -154,7 +154,6 @@ export default function HomePage() {
             </ul>
             <p><NativeHomeText>{trustRecordCopy.full}</NativeHomeText></p>
             <div className={styles.nativeMasterActions}>
-              <Link href="/consultations/" prefetch={false}><NativeHomeText>마스터 상담 둘러보기</NativeHomeText></Link>
               <Link href={trustRecordCopy.href} prefetch={false}><NativeHomeText>공개 원문과 실제 사건 비교하기</NativeHomeText></Link>
             </div>
           </div>

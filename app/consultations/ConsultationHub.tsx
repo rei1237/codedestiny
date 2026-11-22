@@ -1,7 +1,7 @@
 "use client";
 import Image from 'next/image';
 import { consultationStories, expertStoryIds, signatureStoryIds, storyBenefits } from './stories';
-import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
+import { Archive, ArrowLeft, ArrowRight, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
 import { useLocale } from '@/lib/i18n/useT';
@@ -55,7 +55,10 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
       <h3>{name}</h3><p className={styles.storyConcern}>{consultationStories[id].lead}</p>
       <ul className={styles.storyBenefits} aria-label="상담에서 얻는 것">{storyBenefits[id].map(benefit=><li key={benefit}>{benefit}</li>)}</ul>
       <div className={styles.prices}>{prices(id,service.featureKey)}</div>
-      <div className={styles.storyActions}><a href={'/consultations/'+id+'/'}>웹툰으로 알아보기</a><a href={service.href}>상담 시작하기</a></div>
+      <div className={styles.storyActions}>
+        <a className={styles.storyExplore} href={'/consultations/'+id+'/'}>웹툰으로 알아보기</a>
+        <a className={styles.storyStart} href={service.href}>상담 시작하기<ArrowRight size={16} aria-hidden="true" /></a>
+      </div>
     </article>;
   };
   const renderCard = (id: string, index: number) => {
