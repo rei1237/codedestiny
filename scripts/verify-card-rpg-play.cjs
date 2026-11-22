@@ -13,6 +13,12 @@ const out = process.env.RPG_CAPTURE_DIR || ".tmp/card-rpg-battle";
     viewport: { width: 1280, height: 720 },
     reducedMotion: "reduce",
   });
+  process.env.CD_MOCK_DEV = "1";
+  process.env.NODE_ENV = "development";
+  const { createMockApiServer } = await import("./mock-dev-api.mjs");
+  const fixture = createMockApiServer({ rpgBattleFile: ":memory:", rpgWalletFile: null });
+  await new Promise((resolve) => fixture.listen(0, "127.0.0.1", resolve));
+  const mockBase = "http://127.0.0.1:" + fixture.address().port;
   const errors = [];
   p.on("pageerror", (e) => errors.push(e.message));
   p.setDefaultTimeout(10000);
@@ -33,11 +39,15 @@ const out = process.env.RPG_CAPTURE_DIR || ".tmp/card-rpg-battle";
   await p
     .context()
     .addCookies([{ name: "cd_cookie_consent", value: "essential", url }]);
-  await p.route("**/*", (r) =>
-    ["127.0.0.1", "localhost"].includes(new URL(r.request().url()).hostname)
-      ? r.continue()
-      : r.abort(),
-  );
+  await p.route("**/*", async (route) => {
+    const url = new URL(route.request().url());
+    if (!["127.0.0.1", "localhost"].includes(url.hostname)) return route.abort();
+    if (url.pathname.startsWith("/api/")) {
+      const response = await route.fetch({url: mockBase + url.pathname + url.search});
+      return route.fulfill({response});
+    }
+    return route.continue();
+  });
   async function win() {
     for (let t = 0; t < 40; t++) {
       if (await p.getByRole("heading", { name: "승리", exact: true }).count())
@@ -239,6 +249,8 @@ const out = process.env.RPG_CAPTURE_DIR || ".tmp/card-rpg-battle";
     throw err;
   } finally {
     await browser.close();
+    fixture.closeAllConnections();
+    await new Promise((resolve) => fixture.close(resolve));
   }
 })().catch((e) => {
   console.error(e);

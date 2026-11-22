@@ -325,7 +325,7 @@ function buff(a: Fighter, key: BuffKey, value: number, turns: number) {
 function heal(a: Fighter, amount: number) {
   a.hp = Math.min(a.maxHp, a.hp + amount);
 }
-export function useSkill(
+export function activateSkill(
   b: Battle,
   actorId: string,
   index: number,
@@ -674,7 +674,7 @@ export function replayBattle(
         b = resolveTurn(b, input.ids, input.targetId);
         break;
       case "skill":
-        b = useSkill(b, input.actorId, input.index, input.targetId);
+        b = activateSkill(b, input.actorId, input.index, input.targetId);
         break;
       case "swap":
         b = swapReserve(b, input.frontId, input.rearId);

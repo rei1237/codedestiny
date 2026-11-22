@@ -27,7 +27,7 @@ const {
   resolveTurn,
   getActions,
   previewChain,
-  useSkill,
+  activateSkill,
   swapReserve,
   replayBattle,
   skillDefinitions,
@@ -120,7 +120,7 @@ test("전투불능 후 후열 충원은 한 번만, 1인 편성은 5장만 순�
 test("치명타 확률은 손패 확정 시 생성되며 스킬, 조회, 직렬화로 재추첨되지 않는다", () => {
   const b = start(["moka"]);
   assert.ok(b.hand.every((c) => c.chance === 0));
-  const n = useSkill(b, "u0", 0, target(b));
+  const n = activateSkill(b, "u0", 0, target(b));
   assert.ok(n.hand.every((c) => c.chance === 0));
   const next = play(n, [n.hand.find((c) => c.type === "Quick").id]);
   assert.ok(next.hand.some((c) => c.chance > 0));
@@ -173,7 +173,7 @@ test("행동불능 전열은 실제 가능한 수만 선택하고 0장일 때도
   const b = start(["moka"]);
   b.allies[0].stunned = 1;
   assert.equal(getActions(b).length, 0);
-  assert.throws(() => useSkill(b, "u0", 0, target(b)));
+  assert.throws(() => activateSkill(b, "u0", 0, target(b)));
   assert.equal(getActions(play(b, [])).length, 5);
 });
 test("첫 웨이브 마지막 타격 후 미실행 궁극기·자원·적 턴을 취소하고 진행 상태를 이월", () => {
@@ -182,7 +182,7 @@ test("첫 웨이브 마지막 타격 후 미실행 궁극기·자원·적 턴을
   const card = b.hand[0],
     other = b.allies.find((a) => a.combatantId !== card.actorId);
   other.gauge = 100;
-  const n = useSkill(b, other.combatantId, 0, target(b));
+  const n = activateSkill(b, other.combatantId, 0, target(b));
   const next = play(n, [card.id, other.combatantId + ":ultimate"]);
   assert.equal(next.status, "playing");
   assert.equal(next.wave, 2);
@@ -246,8 +246,8 @@ test("서로 다른 덱과 18개 실제 스킬, 쿨다운, 결정적 재생", ()
     const sn = snapshot([name], ["alarm"]);
     let b = createBattle(sn, "boss", 713);
     for (let i = 0; i < 3; i++) {
-      b = useSkill(b, "u0", i, target(b));
-      assert.throws(() => useSkill(b, "u0", i, target(b)));
+      b = activateSkill(b, "u0", i, target(b));
+      assert.throws(() => activateSkill(b, "u0", i, target(b)));
     }
     for (let i = 0; i < 3 && b.status === "playing"; i++) b = play(b);
     assert.deepEqual(replayBattle(sn, "boss", 713, b.inputs), b);
@@ -299,7 +299,7 @@ test("계정 성장과 독립적인 초기 편성·전략·예장 실측", () =>
                   b.enemies.find((e) => e.id === target(b)).charge === 0
                 )
                   continue;
-                b = useSkill(b, a.combatantId, i, target(b));
+                b = activateSkill(b, a.combatantId, i, target(b));
               }
             }
             const score = (c) =>

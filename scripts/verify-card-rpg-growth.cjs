@@ -30,7 +30,7 @@ const {
   buildBattleSnapshot,
   createBattle,
   resolveTurn,
-  useSkill,
+  activateSkill,
   skillDefinitions,
 } = bundle.exports;
 function fixture() {
@@ -189,7 +189,7 @@ test("순수 의상의 성능 유지, 별도 전투 버전의 덱·스킬·게�
   assert.notDeepEqual(snapshot[0].deck, snapshot[1].deck);
   assert.notEqual(snapshot[0].combatantId, snapshot[1].combatantId);
   const b = createBattle(snapshot, "single", 585),
-    buffed = useSkill(b, stage.ownedUnitId, 0, b.enemies[0].id);
+    buffed = activateSkill(b, stage.ownedUnitId, 0, b.enemies[0].id);
   assert.equal(buffed.allies[0].gauge - b.allies[0].gauge, 12);
   assert.notEqual(
     skillDefinitions("moka-stage")[0].name,
@@ -206,7 +206,7 @@ test("스킬 및 해방 수련은 독립적으로 행동의 위력에 반영", (
   train(c, { kind: "ultimate", ownedId: "u0" });
   const s = sn(c),
     b = createBattle(s, "boss", 1010),
-    buffed = useSkill(b, "u0", 0, b.enemies[0].id);
+    buffed = activateSkill(b, "u0", 0, b.enemies[0].id);
   assert.deepEqual(s[0].skillLevel, [2, 1, 1]);
   assert.equal(buffed.nextStars, 13);
   assert.equal(s[0].ultimateLevel, 2);

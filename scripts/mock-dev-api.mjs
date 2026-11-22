@@ -37,7 +37,7 @@ function mockNakshatraResolve(body) {
   };
 }
 
-export function createMockApiServer({rpgWalletFile}={}) {
+export function createMockApiServer({rpgWalletFile, rpgBattleFile}={}) {
   // Process-local storage: restart clears sessions and profiles, never touches Mongo.
   const profiles = new Map();
   let practiceBattles;
@@ -81,7 +81,7 @@ export function createMockApiServer({rpgWalletFile}={}) {
   let loggedIn = heukwolEnabled;
   if(heukwolEnabled)profiles.set(HEUKWOL_MOCK_PROFILE.id,structuredClone(HEUKWOL_MOCK_PROFILE));
   let currentProfileId = '';
-  return http.createServer(async (req, res) => {
+  const server = http.createServer(async (req, res) => {
     const send = (status, body) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Code-Destiny-Mock': '1' });
       res.end(JSON.stringify({ ...body, mock: true }));
@@ -101,7 +101,7 @@ export function createMockApiServer({rpgWalletFile}={}) {
       const body = raw ? JSON.parse(raw) : {};
       const route = `${req.method} ${path}`;
       if (path.startsWith("/api/card-rpg-dev/battle/") && rpgMockEnabled && localWalletRequest(req)) {
-        practiceBattles ??= createBattlePracticeStore();
+        practiceBattles ??= createBattlePracticeStore(rpgBattleFile);
         const signedIn = loggedIn && walletSessions.get(walletToken(req)) > Date.now();
         return handlePracticeBattle(req, res, route, body, signedIn, send, practiceBattles);
       }
@@ -213,6 +213,8 @@ export function createMockApiServer({rpgWalletFile}={}) {
       send(error instanceof SyntaxError ? 400 : 500, { ok: false, error: error instanceof SyntaxError ? 'INVALID_JSON' : 'MOCK_SERVER_ERROR' });
     }
   });
+  server.once("close", () => practiceBattles?.close());
+  return server;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const port = Number(process.env.LOCAL_DEV_AUTH_API_PORT || 8790);

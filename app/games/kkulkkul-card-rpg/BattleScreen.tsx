@@ -21,7 +21,7 @@ import {
   resolveTurn,
   skillDefinitions,
   swapReserve,
-  useSkill as activateSkill,
+  activateSkill,
   type Battle,
   type BattleEvent,
   type EncounterId,
