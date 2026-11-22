@@ -15,8 +15,6 @@ function deviceId(){
  try{const found=localStorage.getItem(DEVICE_KEY);if(found)return found;const bytes=new Uint32Array(4);crypto.getRandomValues(bytes);const created=[...bytes].map(value=>value.toString(16).padStart(8,'0')).join('');localStorage.setItem(DEVICE_KEY,created);return created;}catch{return '';}
 }
 export default function DailyTarotCard(){
- const [dayOffset,setDayOffset]=useState(1),[today,setToday]=useState(''),[device,setDevice]=useState<string|null>(null);
- const [revealed,setRevealed]=useState<Record<string,number[]>>({});
  const [pass,setPass]=useState<AttendanceState|null>(null),[guest,setGuest]=useState(false);
  useEffect(()=>{
   let active=true;
@@ -25,6 +23,12 @@ export default function DailyTarotCard(){
   void refresh();window.addEventListener('cd:yeongnyangi-daily-pass',update);window.addEventListener('cd:auth-changed',update);
   return()=>{active=false;window.removeEventListener('cd:yeongnyangi-daily-pass',update);window.removeEventListener('cd:auth-changed',update);};
  },[]);
+ return <DailyTarotReading pass={pass} guest={guest} onLogin={loginForCurrentPage}/>;
+}
+
+export function DailyTarotReading({pass,guest,onLogin}:{pass:AttendanceState|null;guest:boolean;onLogin:()=>void}){
+ const [dayOffset,setDayOffset]=useState(1),[today,setToday]=useState(''),[device,setDevice]=useState<string|null>(null);
+ const [revealed,setRevealed]=useState<Record<string,number[]>>({});
  useEffect(()=>{
   setDevice(deviceId());
   const refresh=()=>setToday(kstDateKey());
@@ -42,7 +46,7 @@ export default function DailyTarotCard(){
    <figure className={styles.scene}><Image src="/assets/yeongnyangi/readings/tarot-v5.webp" width={960} height={640} sizes="(max-width: 700px) 100vw, 50vw" alt="달빛 점술방에서 영냥이가 세 장의 상징 카드를 펼쳐 보이는 안내 삽화"/><figcaption>영냥이가 준비한 자리 · 실제 카드는 아래에서 펼쳐요</figcaption></figure>
    <div className="daily-tarot-copy"><Moon size={20}/><h2 id="daily-tarot-title">오늘과 내일, 영냥이의 세 장 타로</h2><p>내일이 궁금한 밤에도, 오늘의 방향이 필요한 아침에도 찾아와.<br/>세 장을 펼치면 흐름과 마음, 행동을 하나의 이야기로 읽어줄게. 출석으로 오늘의 운세를 열면 내일 타로도 함께 볼 수 있어.</p><ol className={styles.chapterKeys}>{positions.map((position,index)=><li key={position}><span>{['첫 장','둘째 장','셋째 장'][index]}</span>{position}</li>)}</ol></div>
   </div>
-  {!unlocked?<div className={`daily-tarot-luck ${styles.access}`}><Sparkles size={17}/><span>오늘의 운세 잠김</span><b>사흘 출석해 모은 멸치 3마리로 오늘의 16종 운세와 오늘·내일 타로를 함께 열어줘.</b>{guest?<button type="button" onClick={loginForCurrentPage}>로그인하고 출석하기</button>:<a href="#daily">출석 멸치로 열기<ArrowRight size={16}/></a>}</div>:<>
+  {!unlocked?<div className={`daily-tarot-luck ${styles.access}`}><Sparkles size={17}/><span>오늘의 운세 잠김</span><b>사흘 출석해 모은 멸치 3마리로 오늘의 16종 운세와 오늘·내일 타로를 함께 열어줘.</b>{guest?<button type="button" onClick={onLogin}>로그인하고 출석하기</button>:<a href="#daily">출석 멸치로 열기<ArrowRight size={16}/></a>}</div>:<>
   <div className="daily-tarot-days" role="group" aria-label="타로를 볼 날짜">
    {[1,0].map(offset=><button type="button" key={offset} aria-pressed={dayOffset===offset} onClick={()=>setDayOffset(offset)}>{offset===1?'내일의 운세':'오늘의 운세'}</button>)}
   </div>

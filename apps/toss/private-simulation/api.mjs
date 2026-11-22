@@ -46,10 +46,10 @@ export function createSimulationApi(storage,person,musicTracks=[]){
   const token='private-simulation-token-'+person;
   const owner='private-simulation-person-'+person;
   const saved=JSON.parse(storage.getItem('consultations')||'{}');
-  const state={profiles:saved.profiles||[sample],loggedIn:saved.loggedIn===true,sequence:saved.sequence??(person==='B'?2**40:0),
+  const state={daily:saved.daily||{day:null,balance:2,attended:false,unlocked:false,readings:{}},profiles:saved.profiles||[sample],loggedIn:saved.loggedIn===true,sequence:saved.sequence??(person==='B'?2**40:0),
     fortunes:new Map(saved.fortunes),orders:new Map(saved.orders),letters:new Map(saved.letters),intents:new Map(saved.intents),teaDrafts:new Map(saved.teaDrafts)};
   const save=()=>{try{
-    storage.setItem('consultations',JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders],letters:[...state.letters],intents:[...state.intents],teaDrafts:[...state.teaDrafts]}));return true;
+    storage.setItem('consultations',JSON.stringify({daily:state.daily,profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders],letters:[...state.letters],intents:[...state.intents],teaDrafts:[...state.teaDrafts]}));return true;
   }catch{return false;}};
   return async request=>{
     const url=new URL(request.url);
@@ -105,6 +105,7 @@ export function createSimulationApi(storage,person,musicTracks=[]){
     if(path==='/events'&&method==='POST')return replies({ok:true});
     const now=()=>new Date();
     if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state),...extendedRecords(url,state),...paidFamilyRecords(url,state),...music.musicRecords(url,state)]});}
+    if(path.startsWith('/daily/'))return await handleReviewFixture(request,url,path,state,save,now)||unavailable();
     if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state),...paidFamilyPurchases(state).filter(row=>row.nativeService!=='sukuyo'),...music.musicPurchases(state)]});}
     if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...paidFamilyProducts,...music.musicProducts]});
     if(path.startsWith('/native/music/'))return await music.musicRequest(request,url,path,state,save,now)||unavailable();
