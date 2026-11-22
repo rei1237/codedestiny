@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: 기존 main CI 44972161006 재검증 결과와 로컬 targeted 검사 종료를 확인한 뒤, 통과한 소스를 main에 전달하고 Linux 일반·모의 AIT와 미제출 비공개 QR을 검증한다.
+next: 소스 9e6866ce1e의 공식 비배포 실행 44975122943에서 Linux 일반·모의 AIT를 확보한 뒤, 검증된 모의판만 비공개 테스트 QR로 등록하고 운영·단말 승인 게이트를 기록한다.
 ---
 
 # ai-saju-studio 전체 이식
@@ -10,7 +10,7 @@ next: 기존 main CI 44972161006 재검증 결과와 로컬 targeted 검사 종�
 기능 원장 116행과 원본 대조·Windows 모의 검증은 완료했다. 아래 통합 아카이브 절의 소스와 로그를 사용한다. 재개 시 `git status -sb`로 작업 위치를 확인하고 frontmatter의 next로 진행한다.
 
 ## 지금 상태
-최신 통합 기준 origin/main 29550bf9e87f13fc4948147f83ddbce6280b987f, 마지막 검증 스냅샷 0d55c4b127. 워크트리 D:/Development/codedestiny-worktrees/toss-full-parity-20261122-093536, 브랜치 wt/toss-full-parity-20261122-093536. 다른 세션의 로컬 main 미전달 커밋은 별도로 보존한다.
+전달 소스 9e6866ce1e91459b04780141aa99711e6712f8ba. 워크트리 D:/Development/codedestiny-worktrees/toss-full-parity-20261122-093536, 브랜치 wt/toss-full-parity-20261122-093536. 로컬 main에도 08423fc537로 병합했고 다른 세션의 로컬 미전달 커밋 7개를 원격에 올리지 않았다.
 
 ## 승인 상태
 2026-11-22 사용자 “모든 서비스의 이식과 필요한 운영 검증이 끝나기 전에는 공개 출시하지 마.” 과거 무료 기능·기존 기록 우선 출시 권한은 철회되었다. automation-2를 읽기 전용으로 수정했다. 약관 동의, 새 검토 제출·기존 검토 취소, 실결제, 판매 활성화, 운영 배포, 공개 출시는 별도 결정이다. 검증 소스의 비공개 테스트 QR 준비는 승인 범위다.
@@ -50,3 +50,4 @@ next: 기존 main CI 44972161006 재검증 결과와 로컬 targeted 검사 종�
 - 현재 가상 모바일 4346은 01a200eb와 같은 격리 자원으로 동작한다. 최신 공식 Linux archive로 교체할 때 archive 전용 로컬 미리보기 명령을 사용할 수 있다. 실기기용 로컬 Android 브리지에 연결된 휴대폰은 0개.
 - 남은 첫 작업은 생성된 공개 미러 8개 및 sitemap 검증을 마치고 커밋, check:pre-push와 전체 targeted gate 로그 확인 후 병합·main 푸시·Linux 일반과 모의 AIT의 보관·미제출 비공개 QR 검증이다. 검증 프로세스 출력은 D:/Development/Temp/toss-parity-gate-final3.log. 이전 시간 제한 케이스는 단독 3/3 통과했다. 운영 배포·공개·환불 약속·약관 조작 금지.
 - 미러·sitemap cfedf06452 및 pre-push 통과. 작성 시점 기존 origin/main(29550bf9e8) CI 44972161006이 데스크톱 웹 사주 카드 노출 검사에서 실패했다. 동일 소스의 실패한 검사만 재실행했다. 이 실패가 유지되는 동안 다른 사람의 빨간 커밋 위에 push하지 않는다. 현재 작업의 로컬 모의 Node 검사 5,795건 통과, 최신 콘솔 로그인 설정 및 mTLS 만료일은 출시 준비 점검 문서 참조.
+- 11:13 KST 기존 29550bf9e8의 CI 재실행 성공. 같은 데스크톱 회귀 검사도 로컬 통과. `CD_NODE_TEST_CONCURRENCY=5 npm run check:fast -- --base=origin/main` 종료 0(Node 5,795, Jest 8,553 통과·1 skipped), 최종 커밋 pre-push 통과. 9e6866ce1e를 정상 FF push한 뒤 main push CI 44975100389와 별도 Linux 산출물 실행 44975122943을 확인했다. 두 번째 실행은 이미 제출되어 있으므로 재요청하지 않는다. 일반/모의 AIT의 Windows 검사는 둘 다 100MB 미만이며 일반판 JS 429개에 모의 API 문자열 0개를 확인했다.
