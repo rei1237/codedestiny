@@ -1,8 +1,8 @@
 // Isolated design fixtures. These values never enter billing or the game inventory.
-import { companions } from "./catalog";
+import { definitions } from "./formation";
 import { fortuneTeaHouseAssets } from "@/src/features/fortune-tea-house/data/assets";
 export const CARD_BACK = fortuneTeaHouseAssets.yeoni.transparent.tarotCard;
-export type BannerId = "character" | "relic";
+export type BannerId = "character" | "encounter" | "relic";
 export type Scenario = "normal" | "poor" | "slow" | "failure" | "image";
 export const scenarios: Record<Scenario, string> = {
   normal: "기본",
@@ -28,12 +28,12 @@ type Banner = {
   owned: string[];
   entries: Entry[];
 };
-const cast = (index: number, stars: number, weight: number): Entry => {
-  const c = companions[index];
+const cast = (id: string, stars: number, weight: number): Entry => {
+  const c = definitions[id];
   return {
-    id: c.sheet,
+    id: c.battleVariantId,
     name: c.name,
-    art: c.image,
+    art: c.art,
     role: c.role,
     stars,
     weight,
@@ -46,8 +46,25 @@ export const banners: Record<BannerId, Banner> = {
     cost: 40,
     guarantee: 10,
     shards: 3,
-    owned: ["moka"],
-    entries: [cast(2, 4, 15), cast(4, 3, 45), cast(5, 3, 40)],
+    owned: ["moka-base"],
+    entries: [
+      cast("yun-base", 4, 15),
+      cast("moka-base", 3, 45),
+      cast("ln-base", 3, 40),
+    ],
+  },
+  encounter: {
+    label: "캐릭터",
+    title: "빗소리가 그친 자리",
+    cost: 40,
+    guarantee: 10,
+    shards: 3,
+    owned: [],
+    entries: [
+      cast("pje-base", 4, 15),
+      cast("yeon-base", 4, 45),
+      cast("neo-base", 4, 40),
+    ],
   },
   relic: {
     label: "예장",
@@ -60,7 +77,7 @@ export const banners: Record<BannerId, Banner> = {
       {
         id: "lotus",
         name: "연꽃의 문장",
-        art: "/assets/mascot/moonstone-lotus-v2-480.webp",
+        art: "/images/card-rpg/relic-lotus.webp",
         role: "방어를 돕는 예장 시안",
         stars: 4,
         weight: 15,
@@ -68,7 +85,7 @@ export const banners: Record<BannerId, Banner> = {
       {
         id: "alarm",
         name: "세 번째 알람",
-        art: "/images/novel/mobile/room.webp",
+        art: "/images/card-rpg/relic-alarm.webp",
         role: "첫 행동을 돕는 예장 시안",
         stars: 3,
         weight: 45,
@@ -76,7 +93,7 @@ export const banners: Record<BannerId, Banner> = {
       {
         id: "window",
         name: "창가의 아침",
-        art: "/images/novel/mobile/roomNight.webp",
+        art: "/images/card-rpg/relic-window.webp",
         role: "회복을 돕는 예장 시안",
         stars: 3,
         weight: 40,

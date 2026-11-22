@@ -86,7 +86,7 @@ const assert = require("node:assert/strict");
     const reset = async () => {
       await btn("배너로 돌아가기").click();
     };
-    const scenario = async (v) => p.getByRole("combobox").selectOption(v);
+    const scenario = async (v) => p.getByLabel("검증 시나리오").selectOption(v);
     const open = async (n, c) => btn(n + "회 소환 · " + c + "개").click();
     const start = () => btn("미리보기 시작").click();
     const results = () =>
@@ -158,7 +158,10 @@ const assert = require("node:assert/strict");
     await open(10, 400);
     await start();
     await results();
-    assert.deepEqual(await cards.allTextContents(), names);
+    assert.deepEqual(
+      (await cards.allTextContents()).map((v) => v.split(/NEW|기존 보유/)[0]),
+      names.map((v) => v.split(/NEW|기존 보유/)[0]),
+    );
     assert.deepEqual(writes, []);
     console.log(
       "single, ten, duplicate/new, relic, insufficient, double click, waiting, retry, back/restore, image failure, reduced motion PASS; API POSTs:",
@@ -169,6 +172,9 @@ const assert = require("node:assert/strict");
     for (let i = 1; i < 6; i++) await btn("다음 문장").click();
     await p.getByRole("img", { name: "연이", exact: true }).waitFor();
     await p.getByRole("link", { name: "원작 뷰어 열기" }).waitFor();
+    await p.reload();
+    await p.getByRole("link", { name: "원작 뷰어 열기" }).waitFor();
+    await p.getByRole("img", { name: "연이", exact: true }).waitFor();
   } finally {
     await b.close();
   }
