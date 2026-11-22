@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: F7 — 영냥이 고양이 스프라이트(F2~F6 와 같은 절차 — Codex 편집 생성 → spec → build --report(모든 칸 수치 기록) → visual-checker(정지 칸 + 실제 화면) → 배선, variant yeongnyangi)
+next: F5·F6 push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에서 origin/main 머지 → check:pre-push → `git push origin HEAD:main` → 워크트리 배수. 그다음 F7 — 영냥이 고양이 스프라이트(F2~F6 와 같은 절차 — Codex 편집 생성 → spec → build --report(모든 칸 수치 기록) → visual-checker(정지 칸 + 실제 화면) → 배선, variant yeongnyangi)
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -15,6 +15,7 @@ next: F7 — 영냥이 고양이 스프라이트(F2~F6 와 같은 절차 — Cod
 ## 지금 상태
 - 이전 작업(TOP5 개편 A, 기본 운세 마스터 말풍선 B·C, 연이 무료 결과 말풍선 D)은 `wt/top5-master-say-20261122-023703`에서 main에 머지·push되는 중이다(원 세션 담당). 이 문서의 단계는 그 머지 뒤 main 기준이다.
 - 계획 원문: `C:\Users\user\.claude\plans\moonlit-dazzling-puppy.md`(E·F·G·H 절).
+- **F5·F6 미push(2026-11-22)**: 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`(브랜치 `wt/master-motion-f5f6-20261122-104247`)에 커밋만 있다. 결과 기록의 "F5·F6 전달 상태" 절을 먼저 처리한다. 워크트리를 지우지 말 것.
 
 ## 승인 상태 (사용자 원문, 2026-11-22)
 - 요청: "각 마스터들을 도화서원 사이트와 각 서비스의 진입화면을 보면 캐릭터들이 자연스럽게 움직이는 효과가 있는데 스프라이트 시트를 활용해서 부드럽게 움직이는 효과를 주도록해주고 … 전반적인 UI/UX를 이런식으로 고급스럽게 꿀꿀운세에 적용해주고 영냥이에도 어느정도 꽃 컨셉으로 배경이나 고급스러운 컨셉에 맞는 디자인으로 개선해줘 저 사이트처럼 영냥이도 어느정도 움직이면서 동적인 효과를 줘야해"
@@ -387,3 +388,13 @@ next: F7 — 영냥이 고양이 스프라이트(F2~F6 와 같은 절차 — Cod
   - 기운 눈은 축 정렬 타원 하나로 덮이지 않는다. 감은 칸 속눈썹 선이 생성물 끝까지 닿는지 확인하고 작은 타원을 덧댄다.
   - dev 서버를 오래 켜 두면 `ERR_MEMORY_ALLOCATION_FAILED` 로 컴파일이 멈춘다(F6 에서 /neo-operation-room/ 120초 시간 초과). `NODE_OPTIONS=--max-old-space-size=8192` 로 다시 켜고 페이지를 curl 로 미리 데운다. TaskStop 뒤에도 next 자식 프로세스가 3140 을 잡고 남아 PID 로 끝냈다.
   - 영냥이는 variant `yeongnyangi`(금빛 별가루, 분홍 없음)다.
+
+#### F5·F6 전달 상태 (2026-11-22) — push 보류
+- 워크트리 브랜치 커밋: 4559d30e31(F5) · 45c0c758ea(F6) · 0174f4d2bc(문서) · e4ef55f77b(origin/main 9e6866ce1e 머지, sitemap-lastmod 충돌은 theirs 뒤 `npm run sitemap:generate` 로 재생성, verify ok, sync:public 변경 없음). `npm run check:pre-push` 통과.
+- 보류 이유 [실측]: origin/main 머리 9e6866ce1e(다른 세션 "Decode private preview assets once per local session")의 PR CI 44975100389 가 실패했다. Critical checks 의 `apps/toss/test/tarot-recovery-ui.test.mjs` 에서 `ReferenceError: location is not defined`(tarot-recovery-ui.cjs:15139) 로 다수 실패, CI required 도 따라 실패. workflow_dispatch 재실행 44975122943 은 취소됨. 직전 머리 29550bf9e8 은 녹색. 실패는 F5·F6(마스터 스프라이트)과 무관한 apps/toss 영역이다. CLAUDE.md "main 이 다른 세션 커밋으로 빨간색이면 그 위에 push 하지 말고 보고" 를 따랐다.
+- 재개 명령(워크트리에서, main CI 녹색 1회 확인 뒤):
+  1. `git fetch origin && git merge origin/main` (sitemap-lastmod 충돌 시 `git checkout --theirs config/sitemap-lastmod.json && npm run sitemap:generate`), `npm run sync:public`
+  2. `npm run check:pre-push`
+  3. `git push origin HEAD:main`
+  4. main 체크아웃(`d:/Development/code-destiny`)은 `git fetch` 뒤 `git merge origin/main` 으로만 맞춘다(reset 금지 — 로컬 main 에 card-rpg-lobby 세션의 미push 커밋이 있다).
+  5. main 체크아웃에서 `npm run worktree:remove -- D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`
