@@ -294,6 +294,9 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
 }
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-choice .cd-sig__viewport{scroll-behavior:auto}}
 
+/* Native dialog content scrolls independently while the document viewport stays still. */
+html[data-cd-viewport-lock] { overflow: hidden !important; overscroll-behavior: contain; scrollbar-gutter: stable; }
+
 /* 대표 상담 6종 — 한 편씩 떠오르는 러블리 달빛 예화 상담 편지. */
 #cdHomeFunnel .cd-signature-open {display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin-top:18px;padding:0 24px;border:1px solid rgba(234,208,137,.72);border-radius:var(--cd-r-pill);background:#fff8dc;color:#6f2147;font:800 var(--cd-t-body)/1.4 var(--font-body,sans-serif);box-shadow:0 10px 24px rgba(42,9,28,.18);cursor:pointer;}
 #cdHomeFunnel .cd-signature-open svg {width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;}

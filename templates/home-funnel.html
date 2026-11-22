@@ -2,12 +2,17 @@
 <!-- 2026-10-17 "직관성": 홈은 짧은 히어로 → 대표 상담 덱 → 무료 세 장 → 이용권 → 모든 운세 버튼 → 링크 한 줄. 나머지 운세는 시트·기능 페이지에 그대로 있다. -->
 <div class="cdh cdh--simple cdh--focused" id="cdHomeFunnel" data-cd-funnel-section="home">
   <header class="cdh-top" aria-label="공통 헤더">
-    <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
+    <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/images/home/illustrated/yeoni-brand-96.webp" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
+    <div class="yh-account-entry">
+      <a href="/login/?next=%2Fggulggul%2F" data-cd-guest-auth="login" data-cd-trans="auth.login">로그인</a>
+      <a href="/signup/?next=%2Fggulggul%2F" data-cd-guest-auth="signup" data-cd-trans="auth.signup">회원가입</a>
+      <button type="button" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false" data-cd-trans="home.funnelCopy.account">내 계정</button>
+    </div>
     <details class="yh-menu"><summary><span data-cd-trans="home.mobileEntry.menu">메뉴</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></summary><div class="yh-menu-panel">
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
       <a class="cdh-account-btn yh-featured-link" href="#cdSignatureConsult"><span data-cd-trans="home.guideCopy.signatureFeatured">대표 상담</span></a>
       <a class="cdh-account-btn" href="#cdhPass" data-cd-trans="home.myGarden.pass">이용권 · 월정석</a>
-      <a class="cdh-account-btn" href="/login/" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" role="button" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><span class="cdh-account-btn__guest" data-cd-trans="home.funnelCopy.login">로그인</span><span class="cdh-account-btn__member" data-cd-trans="home.funnelCopy.account">내 계정</span></a>
+      <button type="button" class="cdh-account-btn yh-guest-garden" id="cdhGuestGardenBtn" data-cd-sheet-open="cdAccountSheet" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false" data-cd-trans="home.myGarden.title">마이</button>
     </nav>
     <div class="cdh-tools"><div id="cdhThemeSlot"></div><div id="cdhLanguageSlot"></div></div>
     </div></details>

@@ -160,3 +160,33 @@ test("다른 대화상자가 열려 있으면 닫힐 때까지 자동 팝업을 
   window.flush();
   assert.equal(popupOpen(window), true);
 });
+test("편지와 다른 모달을 어느 순서로 닫아도 기존 스크롤 설정을 되살린다", () => {
+  const shell = fs.readFileSync(path.resolve(__dirname, "../../index.html"), "utf8");
+  const source = shell.match(/<script data-marker="cd-body-scroll-lock-v20260703">([\s\S]*?)<\/script>/)[1];
+  for (const first of ["letter", "account"]) {
+    const dom = new JSDOM("<body style='overflow:auto;padding-right:3px'></body>", { runScripts: "outside-only" });
+    const { window } = dom;
+    try {
+      window.eval(source);
+      const body = window.document.body;
+      const root = window.document.documentElement;
+      assert.equal(window.__cdLockBodyScroll("letter", "viewport"), 1);
+      assert.equal(window.__cdLockBodyScroll("letter", "viewport"), 1);
+      assert.equal(body.style.overflow, "auto");
+      assert.equal(window.__cdLockBodyScroll("account"), 2);
+      assert.equal(window.__cdUnlockBodyScroll(first), 1);
+      assert.equal(root.hasAttribute("data-cd-viewport-lock"), first === "account");
+      assert.equal(body.style.overflow, first === "account" ? "auto" : "hidden");
+      assert.equal(window.__cdUnlockBodyScroll(first === "account" ? "letter" : "account"), 0);
+      assert.equal(body.style.paddingRight, "3px");
+      assert.equal(body.style.overflow, "auto");
+      assert.equal(root.hasAttribute("data-cd-viewport-lock"), false);
+      window.__cdLockBodyScroll("letter", "viewport");
+      window.__cdResetBodyScrollLock();
+      assert.equal(body.style.overflow, "auto");
+      assert.equal(root.hasAttribute("data-cd-viewport-lock"), false);
+    } finally {
+      dom.window.close();
+    }
+  }
+});

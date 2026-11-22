@@ -42,7 +42,7 @@ export default function NightHero(){
 
   </div>
   <div className={styles.character}>
-   <PetMascot className={styles.cat} variant="landing" alt="달빛 모자를 쓰고 이야기를 기다리는 흰 고양이 영냥이" sizes="(min-width: 900px) 420px, (max-width: 699px) 184px, 210px" priority onReact={()=>setGreeting(value=>(value+1)%greetings.length)}/>
+   <PetMascot className={styles.cat} variant="landing" alt="달빛 모자를 쓰고 이야기를 기다리는 흰 고양이 영냥이" sizes="(min-width: 900px) 420px, (max-width: 699px) 184px, 210px" onReact={()=>setGreeting(value=>(value+1)%greetings.length)}/>
    <p aria-live="polite" data-greeted={greeting ? true : undefined}>{greetings[greeting]}</p>
   </div>
  </section>;
