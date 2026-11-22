@@ -1,8 +1,9 @@
+import {starHugSessionPlugin} from './star-hug-session-plugin.mjs';
 import '../../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {JSDOM} from 'jsdom';import {build} from 'esbuild';import {createRequire} from 'node:module';import path from 'node:path';
 const require=createRequire(new URL('../package.json',import.meta.url)),Module=require('node:module'),React=require('react'),{createRoot}=require('react-dom/client');
 const entry=path.resolve(import.meta.dirname,'../service/Screens.jsx');
-const bundle=await build({entryPoints:[entry],bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[{name:'offline-shell',setup(b){
+const bundle=await build({entryPoints:[entry],bundle:true,platform:'node',format:'cjs',write:false,jsx:'automatic',external:['react','react/jsx-runtime'],plugins:[starHugSessionPlugin,{name:'offline-shell',setup(b){
  b.onResolve({filter:/^\.\/letter-draft-bootstrap\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/letter-draft-bootstrap.mjs')}));
  b.onResolve({filter:/^\.\/tea-draft-bootstrap\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/tea-draft-bootstrap.mjs')}));
  b.onResolve({filter:/^\.\/sukuyo-draft-bootstrap\.mjs$/},()=>({path:path.resolve(import.meta.dirname,'../service/sukuyo-draft-bootstrap.mjs')}));

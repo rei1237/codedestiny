@@ -8,6 +8,7 @@ import { json, readJson, createHttpError, handleRouteError, notFound } from '../
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { products } from '../yeongnyangi/payments/catalog.ts';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
+import { touchViewed } from '../yeongnyangi/view-heartbeat.js';
 import { activateFortune, drawTarotSpread, experienceCheckFortune, jongCheckFortune, prepareFortune, presentFortune, providerReady, submitQuestionSkyFollowup } from '../yeongnyangi/service.ts';
 import { ownerId, YeongnyangiRequest, userCanRetry } from '../yeongnyangi/repository.js';
 import { hasRequestAccess } from '../yeongnyangi/access-methods.js';
@@ -192,7 +193,11 @@ export async function handleYeongnyangiRoutes(request, env) {
       const {reviewSajuCorrection}=await import('../yeongnyangi/saju-correction.js');
       return json({ok:true,correction:await reviewSajuCorrection(env,auth.userId,id,{enqueue:method==='POST'})});
     }
-    if(!action && method==='GET') return json({ok:true,fortune:presentFortune(await readAndContinueFortune(env,auth.userId,id))});
+    if(!action && method==='GET') {
+      // The heartbeat is owner-scoped and never rejects, so it cannot fail or delay the read beyond one write.
+      const [row]=await Promise.all([readAndContinueFortune(env,auth.userId,id),touchViewed(env,auth.userId,id)]);
+      return json({ok:true,fortune:presentFortune(row)});
+    }
     if(action==='tarot-draw' && method==='POST') {
       const body=await readJson(request);
       if(!body || typeof body!=='object' || Array.isArray(body))throw createHttpError(400,'고른 카드 정보를 확인해 주세요.',{code:'INVALID_TAROT_PICKS'});

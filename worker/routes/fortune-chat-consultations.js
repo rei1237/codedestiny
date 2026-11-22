@@ -9,6 +9,7 @@ import { json, readJson, createHttpError, handleRouteError, notFound } from '../
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { CHAT_FEATURE_KEYS, isChatFeatureKey, chatPaymentRequestId, hasRequestAccess } from '../yeongnyangi/access-methods.js';
 import { readAndContinueFortune } from '../yeongnyangi/delivery.js';
+import { touchViewed } from '../yeongnyangi/view-heartbeat.js';
 import { retryFortune } from '../yeongnyangi/retry.js';
 import { CHAT_ACCESS_CHOICES } from '../yeongnyangi/per-use-access.js';
 import { ownerId, readRequest, YeongnyangiRequest } from '../yeongnyangi/repository.js';
@@ -140,7 +141,9 @@ export async function handleFortuneChatConsultations(request, env, path) {
     if (!id) return notFound();
     if (!action && method === 'GET') {
       await readChat(env, auth.userId, id);
-      return json({ ok: true, consultation: await present(env, auth.userId, await readAndContinueFortune(env, auth.userId, id)) }, noStore);
+      // Owner-scoped heartbeat for the completion mail; it never rejects.
+      const [row] = await Promise.all([readAndContinueFortune(env, auth.userId, id), touchViewed(env, auth.userId, id)]);
+      return json({ ok: true, consultation: await present(env, auth.userId, row) }, noStore);
     }
     if (action === 'activate' && method === 'POST') {
       if (!enabled(env)) return notFound();
