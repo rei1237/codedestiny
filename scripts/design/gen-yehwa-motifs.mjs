@@ -272,51 +272,10 @@ function sparkle() {
   return star + circle(c + waist * 2.6, c - waist * 2.6, 1.6) + circle(c - waist * 2.6, c + waist * 2.6, 1.6);
 }
 
-// ── 영냥이 밤꽃 2종(목련·연꽃) — renderYnNight() 전용, MASKS 밖에 둔다 ──────────
+// ── 영냥이 밤꽃(연꽃) — renderYnNight() 전용, MASKS 밖에 둔다 ──────────
 // 🔴 MASKS 에 넣으면 render() 가 홈 --cd-yehwa-mask-* 로도 내보내 꿀꿀 홈 CSS 가 불어난다.
-/**
- * 목련 꽃잎 — 숟가락 모양: 밑동이 좁고 가운데(0.4~0.6)가 가장 넓으며 끝은 살짝만 좁아진다.
- * 🔴 끝을 완전히 둥글게 부풀리면 바깥 두 장이 W·하트 윤곽을 만들어 튤립으로 읽힌다(2026-11-22 v2 판정).
- * petal() 은 끝이 뾰족하고 0.3 지점이 가장 넓어 여러 장을 펼치면 연꽃·부채로 읽힌다(2026-11-22 시각 판정).
- */
-function spoonPetal(bx, by, deg, len, hw) {
-  const dx = Math.cos(rad(deg));
-  const dy = Math.sin(rad(deg));
-  const px = -dy;
-  const py = dx;
-  const at = (a, s) => [bx + dx * len * a + px * hw * s, by + dy * len * a + py * hw * s];
-  const tip = at(1, 0);
-  return `M${pt(...at(0, -0.3))}C${pt(...at(0.4, -0.95))} ${pt(...at(0.94, -0.5))} ${pt(...tip)}C${pt(...at(0.94, 0.5))} ${pt(...at(0.4, 0.95))} ${pt(...at(0, 0.3))}`;
-}
-
-/**
- * 목련 가지 — 우하 뿌리에서 좌상으로 오르는 가지 끝에 위로 선 컵 꽃 1(숟가락 꽃잎 3, 가운데가 앞),
- * 곁가지에 반쯤 핀 꽃 1·아래 곁가지에 봉오리 1. small 은 84px 렌더용 — 반쯤 핀 꽃을 봉오리로, 컵을 앞 꽃잎 없이 두 장으로 줄여 뭉침을 없앤다.
- * 🔴 옆 꽃잎을 수직에서 20° 넘게 벌리면 부채·연꽃으로 읽힌다(2026-11-22 시각 판정).
- */
-function magnolia(small = false) {
-  // small 두 장은 안쪽으로 더 모아(-95/-85) 끝이 거의 닿게 한다 — 벌어지면 하트·토끼 귀로 읽힌다(v3 판정)
-  const cup = small ? [[105, 118, -95, 56, 16], [111, 118, -85, 56, 16]] : [[104, 118, -100, 56, 16], [112, 118, -80, 56, 16], [108, 119, -90, 48, 14]];
-  const half = small ? [] : [[168, 113, -96, 34, 10], [172, 113, -82, 32, 10]];
-  return [
-    branch([[196, 258], [176, 226], [150, 190], [126, 152], [108, 120]]),
-    ...cup.map((p) => spoonPetal(...p)),
-    // 꽃받침 — 바깥 두 장 밑동을 잇는 짧은 호(없으면 밑이 벌어져 꽃이 가지에서 뜬다)
-    branch([[99, 117], [104, 122.5], [108, 123.5], [112, 122.5], [117, 117]]),
-    branch([[150, 190], [128, 196], [104, 194], [81, 184.5]]),
-    bud(80, 184, -115, 24),
-    branch([[126, 152], [150, 140], [170, 115]]),
-    ...(small ? [bud(170, 114, -90, 22)] : half.map((p) => spoonPetal(...p))),
-    // 잎은 가지에서 비껴 앉히고 짧은 잎자루로 잇는다(branchSpray 와 같은 부착 논리)
-    branch([[162, 207], [158, 207], [155, 208]]),
-    leaf(155, 208, 165, 26),
-    branch([[139, 172], [143, 172], [146, 173]]),
-    leaf(146, 173, 15, 22),
-    drift(40, 60, 200, 9),
-    drift(58, 132, 220, 8),
-    ...(small ? [] : [drift(28, 214, 190, 8)]),
-  ].join('');
-}
+// 🔴 목련은 두지 않는다 — 숟가락(v3)·아몬드(v4)·거꿀달걀꼴 잔(v5) 세 번 모두 실화면 판정에서 튤립·풍선 다발로 읽혔다(2026-11-22).
+//    한 줄 선(fill none) 마스크로는 오므린 목련 잔의 겹침·질감이 안 나온다. 밤꽃은 연꽃 1종으로 간다.
 
 /** 연잎 — 물 위에 뜬 납작한 타원 + 위쪽 V 홈(가운데 선을 넣으면 잎날·물고기로 읽힌다) */
 function lilyPad(cx, cy, rx, ry) {
@@ -344,7 +303,6 @@ function lotus(small = false) {
 }
 
 const YN_MASKS = [
-  { name: 'magnolia', viewBox: '0 0 200 260', strokeWidth: 1.2, smStroke: 2.8, d: magnolia },
   { name: 'lotus', viewBox: '0 0 240 160', strokeWidth: 1.8, smStroke: 2.8, d: lotus },
 ];
 
@@ -1255,8 +1213,8 @@ function renderYnNight() {
   const vars = ['branch-spray', 'branch-h', 'sparkle']
     .map((name) => `  --yn-yehwa-mask-${name}: ${toDataUri(MASKS.find((m) => m.name === name))};`)
     .join('\n');
-  // 밤꽃 2종 — 기본은 원판 굵기(목련 200→190px: 1.2×.95≈1.1px, 연꽃 240→150px: 1.8×.63≈1.1px),
-  // -sm 은 모바일 84~100px 렌더용(목련 200→84px: 2.8×.42≈1.2px, 연꽃 240→100px: 2.8×.42≈1.2px — 작은 렌더에선 같은 굵기도 흐려 보여 조금 굵게).
+  // 밤꽃 — 기본은 원판 굵기(연꽃 240→150px: 1.8×.63≈1.1px),
+  // -sm 은 모바일 84~100px 렌더용(연꽃 240→100px: 2.8×.42≈1.2px — 작은 렌더에선 같은 굵기도 흐려 보여 조금 굵게).
   // 🔴 박스 크기를 바꾸면 이 굵기도 함께 바꾼다(renderServiceIntro 와 같은 규칙).
   const bloomVars = YN_MASKS.flatMap((m) => [
     `  --yn-yehwa-mask-${m.name}: ${toDataUri(m)};`,
