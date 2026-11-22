@@ -25,7 +25,6 @@
 @media(max-width:999px){.navigation:has(details[open]){position:relative;top:auto}.navigation nav{max-height:42vh}.body{width:100%}}
 
 /* Saved answers lead the reading; reference material remains available on demand. */
-.overview .originalQuestion{margin:0 0 1.25rem;padding:0;color:var(--muted);font-size:1rem;line-height:1.75;white-space:pre-wrap;overflow-wrap:anywhere}
 .overview .focusAnswer{font-size:clamp(1.18rem,2.5vw,1.4rem);line-height:1.85;color:var(--ink)}
 .focusDetails{margin:1.5rem 0 0}.focusDetails>div{padding:1rem 0;border-top:1px solid var(--yn-line)}
 .focusDetails dt,.focusAction h3{font-size:1rem;font-weight:700;color:var(--gold);margin:0 0 .5rem}

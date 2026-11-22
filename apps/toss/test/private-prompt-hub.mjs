@@ -26,8 +26,10 @@ export async function verifyPromptHub(origin,context){
   if(id==='astrology')assert.match(value,/행성 배치.*별자리/);
   if(id==='vedic')assert.ok(value.includes('위도 37.4563'));
   if(question)assert.ok(value.includes(question));
+  const libraryRows=page.getByRole('button',{name:/프롬프트 불러오기/,includeHidden:true});
+  const previousCount=await libraryRows.count();
   await page.getByRole('button',{name:'보관함에 저장',exact:true}).click();
-  await page.getByRole('button',{name:'저장 완료',exact:true}).waitFor();
+  await libraryRows.nth(previousCount).waitFor({state:'attached'});
   return value;
  }
  async function openLibrary(){

@@ -3,7 +3,7 @@ export async function verifyPrivateNeoEmail(origin,context){
  let page=await context.newPage();page.setDefaultTimeout(25000);
  const question='새 업무를 시작할 때 어떤 조건을 확인할까요?';
  const open=async()=>{await page.goto(origin);await page.locator('.world-entry-ggulggul').click();await page.getByRole('button',{name:'전체 펼치기',exact:true}).click();await page.getByRole('button',{name:'네오 작전 결정서 · 이메일 상담'}).click();};
- const login=async()=>{await page.getByRole('link',{name:'토스로 로그인하기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();};
+ const login=async()=>{await page.getByRole('link',{name:'토스로 로그인하기'}).click();await page.getByRole('button',{name:'토스로 로그인하기'}).click();await page.getByRole('button',{name:'직장과 상사',exact:true}).waitFor();};
  try{
   await open();await login();await page.getByRole('button',{name:'직장과 상사'}).click();await page.locator('#neo-q-0').fill(question);await page.getByLabel(/자미두수 추가/).check();
   await page.waitForFunction(q=>Object.entries(localStorage).some(([key,value])=>key.startsWith('toss:neo-email-questions:')&&value.includes(q)),question);await page.reload();assert.equal(await page.locator('#neo-q-0').inputValue(),question);

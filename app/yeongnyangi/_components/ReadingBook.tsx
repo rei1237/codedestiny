@@ -16,6 +16,7 @@ import {readingPartHeading,readingBodyBlocks} from '@/lib/pdf/yeongnyangi-report
 import {spreadCards} from '../_lib/tarot-presentation-state';
 const TarotSpreadResult=dynamic(()=>import('./tarot/TarotSpreadReveal').then(module=>module.TarotSpreadResult),{ssr:false,loading:ReadingToolLoading});
 import BlockChartHints from './BlockChartHints';
+import QuestionMemo from './QuestionMemo';
 import {AtAGlance,AnswerTable,Interlude,KeyPoints,MascotBubble,SajuBoard,SceneArt,TimingTimeline,YearFocus} from './ReadingVisuals';
 import {expressionFor,interludes,isRichReading,sajuFacts,sceneArt,timingRows,yearFocus} from '../_lib/reading-visuals';
 import styles from './reading-v5.module.css';
@@ -63,7 +64,7 @@ export default memo(function ReadingBook({row}:{row:FortuneRecord}){
  return <div className={styles.book} lang={row.locale || 'ko'}>
   {first&&<section className={styles.overview} aria-labelledby="reading-focus-title" data-reading-focus>
    <h2 id="reading-focus-title">{firstAnswer?focusCopy.answer:copy.intro}</h2>
-   {(firstQuestion||row.consultation?.question)&&<blockquote className={styles.originalQuestion} aria-label={focusCopy.question}>{firstQuestion||row.consultation?.question}</blockquote>}
+   <QuestionMemo row={row} question={firstQuestion||row.consultation?.question}/>
    {firstAnswer?.mode&&<div className={styles.answerStatus} data-mode={firstAnswer.mode} role="note"><strong>{answerCopy[firstAnswer.mode]}</strong>{firstAnswer.mode==='limited'&&<p>{answerCopy.limitedHint}</p>}{firstAnswer.mode==='care'&&<p>{answerCopy.careHint}</p>}</div>}
    <p className={styles.focusAnswer}>{firstAnswer?.answer||first.summary}</p>
    {firstAnswer?<dl className={styles.focusDetails}>

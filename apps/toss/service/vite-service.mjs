@@ -75,7 +75,7 @@ export function isYeongnyangi640Reference(ref){return /^\/images\/service-introd
 
 // Encode the same 600×900 screen artwork at high quality; never resize or
 // replace the shared source. Retain original bytes if recompression is larger.
-export async function screenTarotBytes(source,quality=86){
+export async function screenTarotBytes(source,quality=85){
  const encoded=await sharp(source).webp({quality,effort:6,alphaQuality:100}).toBuffer();
  return encoded.length<source.length?encoded:source;
 }
