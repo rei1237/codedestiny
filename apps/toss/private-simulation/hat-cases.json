@@ -1,0 +1,341 @@
+[
+  {
+    "input": {
+      "birthDate": "1990-01-01",
+      "calendarType": "solar",
+      "leapMonth": false,
+      "gender": "female",
+      "birthPlace": {
+        "timezone": "Asia/Seoul",
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "name": "서울"
+      }
+    },
+    "result": {
+      "version": "yeongnyangi-hat-v1",
+      "houseId": "dawn-tower",
+      "mode": "reference",
+      "usedCount": 1,
+      "systems": [
+        {
+          "id": "saju",
+          "status": "used",
+          "engineVersion": "saju-natal-v2",
+          "evidence": [
+            {
+              "source": "saju",
+              "label": "십성 상관 1개",
+              "meaning": "새로운 방식으로 표현하는 힘",
+              "houseId": "star-forge",
+              "weight": 1
+            },
+            {
+              "source": "saju",
+              "label": "십성 비견 2.7개",
+              "meaning": "자기 기준으로 선택하는 힘",
+              "houseId": "dawn-tower",
+              "weight": 2.7
+            },
+            {
+              "source": "saju",
+              "label": "십성 편재 0.35개",
+              "meaning": "기회를 현실의 자원으로 바꾸는 감각",
+              "houseId": "gold-vault",
+              "weight": 0.35
+            },
+            {
+              "source": "saju",
+              "label": "십성 식신 0.7개",
+              "meaning": "익숙한 재능을 표현하는 힘",
+              "houseId": "star-forge",
+              "weight": 0.7
+            },
+            {
+              "source": "saju",
+              "label": "십성 정관 0.35개",
+              "meaning": "기준을 세우고 책임을 지는 태도",
+              "houseId": "gold-vault",
+              "weight": 0.35
+            },
+            {
+              "source": "saju",
+              "label": "십성 편인 0.35개",
+              "meaning": "다른 각도로 깊이 탐구하는 태도",
+              "houseId": "moon-library",
+              "weight": 0.35
+            }
+          ],
+          "reason": "출생시간 미상으로 시주를 제외했어요. 절기 경계에서는 생월 판정이 달라질 수 있어요."
+        },
+        {
+          "id": "ziwei",
+          "status": "omitted",
+          "reason": "태어난 시간이 없어 이번 배정에서는 제외했어요.",
+          "evidence": []
+        },
+        {
+          "id": "vedic",
+          "status": "omitted",
+          "reason": "태어난 시간이 없어 이번 배정에서는 제외했어요.",
+          "evidence": []
+        },
+        {
+          "id": "astrology",
+          "status": "omitted",
+          "reason": "태어난 시간이 없어 이번 배정에서는 제외했어요.",
+          "evidence": []
+        },
+        {
+          "id": "human-design",
+          "status": "omitted",
+          "reason": "태어난 시간이 없어 이번 배정에서는 제외했어요.",
+          "evidence": []
+        },
+        {
+          "id": "sukuyo",
+          "status": "omitted",
+          "reason": "태어난 시간이 없어 이번 배정에서는 제외했어요.",
+          "evidence": []
+        }
+      ],
+      "reasons": [
+        {
+          "source": "saju",
+          "label": "십성 비견 2.7개",
+          "meaning": "자기 기준으로 선택하는 힘",
+          "houseId": "dawn-tower",
+          "weight": 2.7
+        }
+      ]
+    }
+  },
+  {
+    "input": {
+      "birthDate": "1990-01-01",
+      "calendarType": "solar",
+      "leapMonth": false,
+      "birthTime": "08:35",
+      "gender": "female",
+      "birthPlace": {
+        "timezone": "Asia/Seoul",
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "name": "서울"
+      }
+    },
+    "result": {
+      "version": "yeongnyangi-hat-v1",
+      "houseId": "dawn-tower",
+      "mode": "complete",
+      "usedCount": 6,
+      "systems": [
+        {
+          "id": "saju",
+          "status": "used",
+          "engineVersion": "saju-natal-v2",
+          "evidence": [
+            {
+              "source": "saju",
+              "label": "십성 상관 1개",
+              "meaning": "새로운 방식으로 표현하는 힘",
+              "houseId": "star-forge",
+              "weight": 1
+            },
+            {
+              "source": "saju",
+              "label": "십성 비견 2.7개",
+              "meaning": "자기 기준으로 선택하는 힘",
+              "houseId": "dawn-tower",
+              "weight": 2.7
+            },
+            {
+              "source": "saju",
+              "label": "십성 편재 0.35개",
+              "meaning": "기회를 현실의 자원으로 바꾸는 감각",
+              "houseId": "gold-vault",
+              "weight": 0.35
+            },
+            {
+              "source": "saju",
+              "label": "십성 식신 1.05개",
+              "meaning": "익숙한 재능을 표현하는 힘",
+              "houseId": "star-forge",
+              "weight": 1.05
+            },
+            {
+              "source": "saju",
+              "label": "십성 정관 0.7개",
+              "meaning": "기준을 세우고 책임을 지는 태도",
+              "houseId": "gold-vault",
+              "weight": 0.7
+            },
+            {
+              "source": "saju",
+              "label": "십성 편인 0.35개",
+              "meaning": "다른 각도로 깊이 탐구하는 태도",
+              "houseId": "moon-library",
+              "weight": 0.35
+            },
+            {
+              "source": "saju",
+              "label": "십성 편관 1개",
+              "meaning": "어려운 상황에 먼저 대응하는 힘",
+              "houseId": "dawn-tower",
+              "weight": 1
+            },
+            {
+              "source": "saju",
+              "label": "십성 정인 0.35개",
+              "meaning": "배우고 보살피며 기반을 만드는 태도",
+              "houseId": "star-greenhouse",
+              "weight": 0.35
+            }
+          ]
+        },
+        {
+          "id": "ziwei",
+          "status": "used",
+          "engineVersion": "code-destiny-integrated-v1",
+          "evidence": [
+            {
+              "source": "ziwei",
+              "label": "명궁 · 태양",
+              "meaning": "밖으로 힘을 나누는 태도",
+              "houseId": "wind-gallery",
+              "weight": 2
+            },
+            {
+              "source": "ziwei",
+              "label": "명궁 · 천량",
+              "meaning": "지지하고 보호하는 태도",
+              "houseId": "star-greenhouse",
+              "weight": 2
+            },
+            {
+              "source": "ziwei",
+              "label": "재백궁 · 태음",
+              "meaning": "작은 변화를 살피고 돌보는 태도",
+              "houseId": "star-greenhouse",
+              "weight": 1
+            }
+          ]
+        },
+        {
+          "id": "vedic",
+          "status": "used",
+          "engineVersion": "code-destiny-integrated-v1",
+          "evidence": [
+            {
+              "source": "vedic",
+              "label": "라그나 · 사수자리 (라히리 항성황도)",
+              "meaning": "배움의 지평을 여는 다누의 상징",
+              "houseId": "dawn-tower",
+              "weight": 1
+            },
+            {
+              "source": "vedic",
+              "label": "달 · 물병자리 (라히리 항성황도)",
+              "meaning": "새로운 생각을 나누는 쿰바의 상징",
+              "houseId": "star-forge",
+              "weight": 1
+            },
+            {
+              "source": "vedic",
+              "label": "태양 · 사수자리 (라히리 항성황도)",
+              "meaning": "배움의 지평을 여는 다누의 상징",
+              "houseId": "dawn-tower",
+              "weight": 1
+            }
+          ]
+        },
+        {
+          "id": "astrology",
+          "status": "used",
+          "engineVersion": "code-destiny-integrated-v1",
+          "evidence": [
+            {
+              "source": "astrology",
+              "label": "태양 · 염소자리 (트로피컬)",
+              "meaning": "목표를 현실로 만드는 감각",
+              "houseId": "gold-vault",
+              "weight": 1
+            },
+            {
+              "source": "astrology",
+              "label": "달 · 물병자리 (트로피컬)",
+              "meaning": "다른 관점으로 표현하는 태도",
+              "houseId": "star-forge",
+              "weight": 1
+            }
+          ]
+        },
+        {
+          "id": "human-design",
+          "status": "used",
+          "engineVersion": "hd-calc-1",
+          "evidence": [
+            {
+              "source": "human-design",
+              "label": "유형 · 제너레이터",
+              "meaning": "반응을 살피며 지속 가능한 리듬을 만드는 전략",
+              "houseId": "star-greenhouse",
+              "weight": 2
+            },
+            {
+              "source": "human-design",
+              "label": "프로필 1/3 · 1번 라인",
+              "meaning": "토대를 조사하며 배우는 성향",
+              "houseId": "moon-library",
+              "weight": 1
+            },
+            {
+              "source": "human-design",
+              "label": "프로필 1/3 · 3번 라인",
+              "meaning": "시행착오로 배우는 성향",
+              "houseId": "dawn-tower",
+              "weight": 1
+            }
+          ]
+        },
+        {
+          "id": "sukuyo",
+          "status": "used",
+          "engineVersion": "code-destiny-integrated-v1",
+          "evidence": [
+            {
+              "source": "sukuyo",
+              "label": "본명숙 · 실숙(室) (천문식 27숙)",
+              "meaning": "창업·시작·개척의 상징",
+              "houseId": "dawn-tower",
+              "weight": 1
+            }
+          ]
+        }
+      ],
+      "reasons": [
+        {
+          "source": "sukuyo",
+          "label": "본명숙 · 실숙(室) (천문식 27숙)",
+          "meaning": "창업·시작·개척의 상징",
+          "houseId": "dawn-tower",
+          "weight": 1
+        },
+        {
+          "source": "saju",
+          "label": "십성 비견 2.7개",
+          "meaning": "자기 기준으로 선택하는 힘",
+          "houseId": "dawn-tower",
+          "weight": 2.7
+        },
+        {
+          "source": "vedic",
+          "label": "라그나 · 사수자리 (라히리 항성황도)",
+          "meaning": "배움의 지평을 여는 다누의 상징",
+          "houseId": "dawn-tower",
+          "weight": 1
+        }
+      ]
+    }
+  }
+]

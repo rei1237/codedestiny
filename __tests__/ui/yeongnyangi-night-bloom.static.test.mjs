@@ -6,7 +6,7 @@ const load=(name)=>readFileSync(new URL(name,import.meta.url),'utf8');
 const motion=load('../../app/yeongnyangi/_components/NightBloomMotion.tsx');
 const css=load('../../app/yeongnyangi/_components/NightBloomMotion.module.css');
 const hero=load('../../app/yeongnyangi/_components/NightHero.tsx');
-const room=load('../../app/yeongnyangi/_home/Room.tsx');
+const room=load('../../app/yeongnyangi/_home/RoomPresence.tsx');
 
 test('night bloom motion only renders when the playback gate and master flag allow it',()=>{
  assert.match(motion,/useSpritePlaybackGate<HTMLSpanElement>\(\{ enabled: MASTER_MOTION_ENABLED \}\)/);

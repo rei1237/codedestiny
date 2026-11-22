@@ -1,5 +1,6 @@
 "use client";
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useContext,useEffect,useRef,useState} from 'react';
+import {SpacePlatformContext} from './space-platform';
 import {readCurrentDestinyProfile,readDestinyProfileAccountId,isDestinyProfileStorageKey} from '@/app/_lib/profile-card-storage';
 import {authFetch} from '@/app/_lib/auth-client';
 import {petArtUrl} from '@/js/core/profile-pet.mjs';
@@ -8,22 +9,29 @@ import {COMPANIONS,isZodiac,zodiacSheet,COMPANION_ART,type RoomLook} from './com
 export type AvatarStyle=RoomLook&{color:string;zoom:number;x:number;y:number;name:string};
 export const DEFAULT_AVATAR:AvatarStyle={color:'#b998cf',zoom:1,x:50,y:35,name:'나의 친구'};
 export function useSpaceProfile(){
- const [identity,setIdentity]=useState({scope:'guest|default',account:'',profileId:'',gender:''});
+ const platform=useContext(SpacePlatformContext);
+ const readIdentity=useCallback(()=>{
+  const cachedAccount=readDestinyProfileAccountId();
+  const account=platform&&(!cachedAccount||!platform.ownerScope.startsWith('toss.'+cachedAccount.toLowerCase()+'.'))?'':cachedAccount;
+  const profile=platform&&!account?null:readCurrentDestinyProfile(undefined,()=>true);
+  const profileId=String(profile?.profileId||profile?.id||'default');
+  return {account,profileId,sourceProfile:platform?profile:undefined,gender:profile?.gender||'',scope:(platform?.ownerScope||account||'guest')+'|'+profileId};
+ },[platform]);
+ const [identity,setIdentity]=useState(()=>platform?readIdentity():{scope:'guest|default',account:'',profileId:'',sourceProfile:undefined,gender:''});
  const [character,setCharacter]=useState<Character|null>(null),[avatar,setAvatar]=useState<AvatarStyle>(DEFAULT_AVATAR);
  const [image,setImage]=useState(''),[portrait,setPortrait]=useState(''),[imageError,setImageError]=useState(''),[loading,setLoading]=useState(false),[loaded,setLoaded]=useState(false);
  const revision=useRef(0);
  const refresh=useCallback(()=>{
   revision.current++;
-  const account=readDestinyProfileAccountId(),profile=readCurrentDestinyProfile(undefined,()=>true);
-  const profileId=String(profile?.profileId||profile?.id||'default'),scope=(account||'guest')+'|'+profileId;
-  setIdentity({scope,account,profileId,gender:profile?.gender||''});setImage('');setPortrait('');setImageError('');setLoaded(false);setLoading(false);
+  const next=readIdentity(),{scope,gender}=next;
+  setIdentity(next);setImage('');setPortrait('');setImageError('');setLoaded(false);setLoading(false);
   try{
    const prefs=JSON.parse(localStorage.getItem('cd:moonlit:prefs:'+scope)||'{}');
    const manual=['yeoni','cat','custom'].includes(prefs.character)?prefs.character as Character:null;
-   setCharacter(defaultCharacter(manual,profile?.gender||''));
+   setCharacter(defaultCharacter(manual,gender));
    setAvatar({species:prefs.avatar?.species==='hanbi'?'hanbi':COMPANIONS.some(([id])=>id===prefs.avatar?.species)?prefs.avatar.species:'profile',headwear:Math.min(15,Math.max(0,Math.floor(Number(prefs.avatar?.headwear)||0))),trim:Math.min(7,Math.max(0,Math.floor(Number(prefs.avatar?.trim)||0))),color:/^#[a-f0-9]{6}$/i.test(prefs.avatar?.color)?prefs.avatar.color:DEFAULT_AVATAR.color,zoom:Math.min(1.8,Math.max(.8,Number(prefs.avatar?.zoom)||1)),x:Math.min(100,Math.max(0,Number(prefs.avatar?.x)||50)),y:Math.min(100,Math.max(0,Number(prefs.avatar?.y)||35)),name:String(prefs.avatar?.name||'나의 친구').slice(0,20)});
-  }catch{setCharacter(defaultCharacter(null,profile?.gender||''));setAvatar(DEFAULT_AVATAR);}
- },[]);
+  }catch{setCharacter(defaultCharacter(null,gender));setAvatar(DEFAULT_AVATAR);}
+ },[readIdentity]);
  useEffect(()=>{
   refresh();
   const storage=(event:StorageEvent)=>{if(!event.key||event.key==='fortune_auth_user'||isDestinyProfileStorageKey(event.key))refresh();};
@@ -33,6 +41,7 @@ export function useSpaceProfile(){
  },[refresh]);
  const loadImage=useCallback(async()=>{
   const token=++revision.current;setLoading(true);setImageError('');
+  if(platform){setImageError('웹 RPG 프로필의 친구는 기존 웹 계정에서 확인해 주세요. 연화당에서는 아래 친구를 직접 고를 수 있어요.');setLoading(false);return;}
   if(!identity.account||identity.profileId==='default'){setImageError('프로필에 저장된 친구가 필요해요. 마이페이지에서 프로필과 친구를 먼저 확인해 주세요.');setLoading(false);return;}
   try{
    // Same read-only saved companion used by the home/My profile card. Never hatch or mutate a pet here.
@@ -54,10 +63,10 @@ export function useSpaceProfile(){
    try{localStorage.setItem('cd:moonlit:prefs:'+identity.scope,JSON.stringify({character:next,avatar:look}));}catch{setImageError('현재 화면에 적용했지만 선택을 저장하지 못했어요.');}
   }catch{if(token===revision.current)setImageError('프로필의 친구 이미지를 불러오지 못했어요. 다시 시도하거나 연이·영냥이와 쉬어가세요.');}
   finally{if(token===revision.current)setLoading(false);}
- },[identity.account,identity.profileId,identity.scope]);
+ },[identity.account,identity.profileId,identity.scope,platform]);
  const save=(next:Character,look=avatar)=>{
   revision.current++;setLoading(false);setImageError('');setCharacter(next);setAvatar(look);
   try{localStorage.setItem('cd:moonlit:prefs:'+identity.scope,JSON.stringify({character:next,avatar:look}));}catch{setImageError('꾸민 모습은 현재 화면에 적용됐지만 저장하지 못했어요.');}
  };
- return{...identity,character,avatar,image,portrait,imageError,loading,loaded,loadImage,save,setAvatar};
+ return{...identity,savedCompanionAvailable:!platform,character,avatar,image,portrait,imageError,loading,loaded,loadImage,save,setAvatar};
 }

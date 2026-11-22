@@ -128,11 +128,13 @@ const dayKey=date=>new Date(date.getTime()+9*3600000).toISOString().slice(0,10);
 function daily(path,method,body,url,state,save,now){
   const day=dayKey(now),daily=state.daily;
   if(daily.day!==day){daily.day=day;daily.attended=false;daily.unlocked=false;daily.readings={};}
+  const previous={...daily,readings:{...daily.readings}};
+  const persist=()=>{if(save()!==false)return true;Object.assign(daily,previous);return false;};
   const status=()=>({day,balance:daily.balance,attended:daily.attended,unlocked:daily.unlocked,unlockCost:3});
   if(path==='/daily/status'&&method==='GET')return json(status());
-  if(path==='/daily/attendance'&&method==='POST'){const awarded=!daily.attended;if(awarded){daily.attended=true;daily.balance++;save();}return json({...status(),awarded});}
+  if(path==='/daily/attendance'&&method==='POST'){const awarded=!daily.attended;if(awarded){daily.attended=true;daily.balance++;if(!persist())return fail('MOCK_STORAGE_UNAVAILABLE',503);}return json({...status(),awarded});}
   if(path==='/daily/unlock'&&method==='POST'){
-    if(!daily.unlocked){if(daily.balance<3)return fail('ANCHOVY_REQUIRED',409);daily.balance-=3;daily.unlocked=true;save();}
+    if(!daily.unlocked){if(daily.balance<3)return fail('ANCHOVY_REQUIRED',409);daily.balance-=3;daily.unlocked=true;if(!persist())return fail('MOCK_STORAGE_UNAVAILABLE',503);}
     return json(status());
   }
   if(path!=='/daily/reading')return null;
@@ -147,7 +149,7 @@ function daily(path,method,body,url,state,save,now){
   if((category==='basic'||config.fields.some(field=>field.id==='birthDate'))&&!body.birth?.date?.year)return fail('FREE_PROFILE_REQUIRED',400);
   const result={category,day,title:'[테스트 전용] '+config.label,kind:'reflection',summary:'오프라인 당일 결과를 확인하기 위한 고정 예시입니다.',
     paragraphs:['오늘 해볼 작은 일을 하나 떠올려 보세요.'],basis:[{label:'자료',value:'합성 테스트 사례'}],limitations:['실제 출생정보나 운세 계산을 사용하지 않았습니다.'],prompt:'',version:'offline-test'};
-  daily.readings[category]=result;save();return json(result);
+  daily.readings[category]=result;return persist()?json(result):fail('MOCK_STORAGE_UNAVAILABLE',503);
 }
 
 export async function handleReviewFixture(request,url,path,state,save,now,delay=0,readSky=localSky){

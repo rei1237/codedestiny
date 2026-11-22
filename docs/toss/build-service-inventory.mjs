@@ -53,10 +53,14 @@ const aliasEvidence={
  'animal-destiny':['js/core/service-registry.js:animal-destiny-unlock','index.html:animal-guardian-unlock.inlineAliases'],
  'saju-guardian':['index.html:openSajuGuardianPage -> /saju-guardian','app/_lib/serviceFeatureRegistry.ts:saju-animal.launchRoute','app/saju-guardian/SajuGuardianClient.tsx:verifyGuardianUnlockAccess; registry free/paid descriptions conflict'],
 };
+const readJson = file => JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
+const sourceAudit=readJson('docs/toss/original-mode-audit-20261114.json');
+const auditedEntries=sourceAudit.rows.filter(row=>row.inventoryEntry);
 const groups=new Map();
 // These entries are reached from the current root or from an existing report.
 // A shared product or URL does not imply the same input or result.
 for(const [id,name,entry,implementation] of [
+ ...auditedEntries.map(row=>[row.id,row.inventoryEntry.name,row.webEntries[0],row.webSources[0]]),
  ['yeongnyangi-faq','영냥이 상담 전 자주 묻는 질문','/yeongnyangi/faq/','app/yeongnyangi/faq/page.tsx'],
  ['saju-compatibility','기존 구매 · 기본 사주 궁합 상담','js/saju-compat-archive.js:openSajuCompatArchive','js/saju-compat-flow.mjs'],
  ['saju-compat-basic-free','무료 기본 사주 궁합','js/saju-engine.js:runCompat','js/saju-engine.js'],
@@ -78,7 +82,7 @@ for(const [id,name,entry,implementation] of [
  ['island-consult','자미두수 섬 해설·궁별 상담','/island-consult/','app/island-consult/IslandConsultClient.tsx'],
  ['yeongnyangi-prashna','프라쉬나 질문 상담','/yeongnyangi/fortune/?mode=prashna','app/yeongnyangi/_components/QuestionSkyConsultation.tsx'],
  ['yeongnyangi-horary','호라리 질문 차트','/yeongnyangi/fortune/?mode=horary','app/yeongnyangi/_components/QuestionSkyConsultation.tsx'],
- ['yeongnyangi-daily','영냥이 출석과 오늘의 운세','/yeongnyangi/free-fortune/','app/yeongnyangi/_components/FreeFortune.tsx'],
+ ['yeongnyangi-daily','영냥이 출석과 오늘의 운세','/yeongnyangi/room/#daily','app/yeongnyangi/_components/FreeFortune.tsx'],
  ['neo-letter','네오 상담 편지','/fortune-chat/?character=neo','app/fortune-chat/ConsultationRoom.tsx'],
 ]){
  if(!fs.existsSync(path.join(root,implementation)))throw new Error('Missing web entry: '+implementation);
@@ -292,7 +296,6 @@ for(const row of rows){
  row.toss.candidateStatus=group.status;
  row.toss.canonicalRoute=group.tossRoute;
 }
-const readJson = file => JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
 const archiveEvidence = readJson('docs/toss/ait-verification-20261114.json');
 function routeKey(route){
  const url=new URL(route,'https://example.invalid');
@@ -554,7 +557,6 @@ for(const group of canonicalCandidates){
 // A code gap, a missing production configuration and a device check are separate
 // stages. Preserve historical status fields, but stop labelling every device-only
 // follow-up as unfinished implementation.
-const sourceAudit=readJson('docs/toss/original-mode-audit-20261114.json');
 const mockFlowPath='docs/toss/mock-service-flow-20261122.json';
 const mockArchive=readJson(mockFlowPath);
 for(const archive of [mockArchive,...(mockArchive.followups||[])]){
@@ -573,18 +575,27 @@ if(missingAudit.length||staleAudit.length||auditedIds.size!==sourceAudit.rows.le
  throw Error('Original mode audit scope changed: '+JSON.stringify({missingAudit,staleAudit,duplicates:sourceAudit.rows.length-auditedIds.size}));
 }
 const pendingEvidence=new Set(implementationReadiness({canonicalCandidates},sourceAudit).evidencePending.map(row=>row.id));
-const localOnly=new Set(['free-fortune-index','saju-compat-basic-free','yeongnyangi-faq','consultation-webtoons','heukwol-story','home-widget','juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle','lenormand-six','mbti-animal-compat','novel','psychotest','famous-saju','bias-destiny','tin-oracle','yeongnyangi-season']);
+const localOnly=new Set([...auditedEntries.filter(row=>row.inventoryEntry.guest).map(row=>row.id),'free-fortune-index','saju-compat-basic-free','yeongnyangi-faq','consultation-webtoons','heukwol-story','home-widget','juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle','lenormand-six','mbti-animal-compat','novel','psychotest','famous-saju','bias-destiny','tin-oracle','yeongnyangi-season']);
 for(const group of canonicalCandidates){
  const audit=sourceAudit.rows.find(row=>row.id===group.id);if(!audit)throw Error('Missing original mode audit: '+group.id);
  group.sourceAudit={path:'docs/toss/original-mode-audit-20261114.json',reviewState:audit.reviewState,reviewedModes:audit.reviewedModes,codeGaps:audit.codeGaps};
  group.implementationStage=audit.codeGaps.length?'확인된 코드/모의 연결 누락 있음':pendingEvidence.has(group.id)?'원본 연결 이후 개발 검증 근거 대조 중':'기존 원본 계약 및 개발 검증 근거 대조 완료';
  group.deviceStage='토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료';
- group.portStatus=audit.codeGaps.length||pendingEvidence.has(group.id)?(group.tossRoute||group.publicSubflows?.length?'일부만 이식':'미이식'):localOnly.has(group.id)?'이미 동작':'콘솔·운영 설정 필요';
+ group.portStatus=audit.codeGaps.length||pendingEvidence.has(group.id)?(group.tossRoute||audit.tossRoute||group.publicSubflows?.length?'일부만 이식':'미이식'):localOnly.has(group.id)?'이미 동작':'콘솔·운영 설정 필요';
  group.portStatusScope='개발 구현 판정이며 운영 출시 완료를 뜻하지 않음';
  if(group.id==='yeongnyangi-faq'){group.tossLogin='공개 진입';group.webProductIds=[];}
  if(group.id==='vedic')group.tossLogin='기본 명반은 게스트, 무료 궁합·Prashna는 로그인';
  if(group.id==='astrology')group.tossLogin='기본 차트·10풀이·두 궁합 모두 게스트';
  if(group.id==='music')group.tossLogin='무료 재생은 게스트, MP3 구매·저장은 소유 계정';
+ if(audit.inventoryEntry){
+  const entry=audit.inventoryEntry;
+  Object.assign(group,{status:'local-partial',webEntries:audit.webEntries,webSources:audit.webSources,tossRoute:audit.tossRoute,webModes:audit.reviewedModes,
+   currentEntry:entry.homePath+' · 소스 연결',reducedBundle:'QR21 이후 추가',tossLogin:entry.login,freeCalculation:entry.calculation===true,
+   inputContract:audit.recordedContract,resultRenderer:audit.renderer,tossResult:audit.renderer,storageContract:audit.recordedStorage,reread:audit.recordedStorage,
+   saleStatus:'신규 구매 없음',verification:audit.priorEvidence,bundleVerification:audit.archiveEvidence});
+ }
+ if(group.id==='yeongnyangi-daily'){group.webSources=audit.webSources;group.currentEntry='영냥이 → 오늘의 운세와 출석 또는 영냥이의 방 → 오늘의 무료 운세';group.tossAliases=['/yeongnyangi/room/#daily'];}
+ if(audit.regularDiscovery){group.regularDiscovery=audit.regularDiscovery;group.currentEntry=audit.regularDiscovery;}
  if(audit.currentArchiveEvidence)group.currentArchiveEvidence=audit.currentArchiveEvidence;
 }
 for(const row of rows){
@@ -613,7 +624,7 @@ const cell=value=>String(value||'—').replaceAll('|','\\|').replace(/\s+/g,' ')
 const standaloneTitles={'lenormand-six':'르노르망 6장','pet-saju':'반려동물 사주','relationship-boundary-test':'관계 경계 상담','saju-image-prompts':'사주 그림 프롬프트','tarot-healing':'태양 회복 타로','tarot-self-esteem':'자기 기준 타로','tin-oracle':'핀란드 주석점',yeongnyangi:'운세보는 영냥이','ziwei-island':'자미두수 운명의 섬'};
 const indexRows=canonicalCandidates.map(group=>{
  const name=group.evidence.find(item=>item.name)?.name||standaloneTitles[group.id]||group.id;
- const home=group.archiveHomeButtons.length?'홈 버튼 · '+group.archiveHomeButtons.join(', '):group.currentEntry;
+ const home=group.regularDiscovery||(group.archiveHomeButtons.length?'홈 버튼 · '+group.archiveHomeButtons.join(', '):group.currentEntry);
  return [name,group.webEntries[0],group.tossRoute,home,group.portStatus,group.archiveTests.join(', ')||'상품별 로컬 근거는 JSON 참조']
   .map(cell).join(' | ');
 });

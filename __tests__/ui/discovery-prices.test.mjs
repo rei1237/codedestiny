@@ -43,7 +43,7 @@ test('free psychology entries cannot seed or advertise the separate paid reading
   assert.equal(tile.querySelector('.cd-card-pricing').textContent, '무료');
   assert.equal(tile.querySelectorAll('[data-feature-key],[data-cd-price-key],[data-coin-cost],[data-price-krw]').length, 0);
   assert.equal(tile.hasAttribute('data-feature-key'), false);
-  assert.match(read('app/mini-games/page.tsx'), /slug: "psychotest"[^\n]*badge: "무료"/);
+  assert.match(read('app/mini-games/games.ts'), /slug: "psychotest"[^\n]*badge: "무료"/);
   assert.equal(document.querySelector('.tarot-tile--human-design').hasAttribute('data-feature-key'), false);
 });
 

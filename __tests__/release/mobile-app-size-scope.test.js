@@ -165,7 +165,7 @@ test('the Android bundle keeps the same hat artwork for its invitation, result a
   assert.deepEqual((await fs.readdir(folder)).filter(file => file.endsWith('.webp')).sort(), expectedFiles);
   assert.equal((await fs.readdir(folder)).some(file => file.endsWith('.avif')), false);
   const source = await fs.readFile(path.join(root, 'app/yeongnyangi/_components/SortingHat.tsx'), 'utf8');
-  assert.match(source, /set\s*&&\s*!IS_APP_BUILD\s*\?\s*<picture>/);
+  assert.match(source, /set\s*&&\s*!compact\s*&&\s*!IS_APP_BUILD\s*\?\s*<picture>/);
 });
 
 test('the date archive leaves the app and the guard strips links that would point at it', async t => {

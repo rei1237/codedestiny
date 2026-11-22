@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useContext } from "react";
+import {SpacePlatformContext} from "../_lib/space-platform";
 import { Pause, Play, RotateCcw } from "lucide-react";
 import { advance, CYCLE_MS, newSession, poseAt, restoreSession, serializeSession, type Session } from "./bow-session";
 import manifest from "@/public/assets/moonlit-lotus/yeoni/2d-v2/manifest.json";
@@ -18,6 +19,8 @@ const SEQUENCES = PREVIEW_CLIPS;
 const COPY = { idle: ["오늘도 만나서 반가워요", "다정한 미소부터 작은 놀람까지, 연이의 표정을 골라보세요."], greeting: ["반가운 마음을 건네요", "짧고 통통한 손으로 천천히 인사해요."], meditation: ["잠시, 마음을 내려놓아요", "연이와 함께 편안하게 쉬어가세요. 호흡을 억지로 맞추지 않아도 괜찮아요."], bow: ["한 번에 하나씩, 천천히", "캐릭터와 함께하는 온라인 108배예요. 사용자의 신체 움직임을 측정하지 않습니다."] };
 
 export default function ModelReview() {
+  const platform=useContext(SpacePlatformContext);
+  const storageKey=platform?STORAGE+":"+platform.ownerScope:STORAGE;
   const [mode, setMode] = useState<Mode>('idle');
   const [rearView,setRearView]=useState(false);
   const [expression, setExpression] = useState(0);
@@ -34,7 +37,7 @@ export default function ModelReview() {
 
   useEffect(() => {
     try {
-      const restored = restoreSession(localStorage.getItem(STORAGE));
+      const restored = restoreSession(localStorage.getItem(storageKey));
       if (restored) { setSession(restored); setMode('bow'); }
     } catch { setStorageMessage('이 브라우저에서는 진행 기록을 저장할 수 없어요. 페이지를 열어 둔 동안 이용할 수 있어요.'); }
     setHydrated(true);
@@ -43,15 +46,15 @@ export default function ModelReview() {
     const visibility = () => { setHidden(document.hidden); if (document.hidden) setSession(current => current.status === 'running' ? { ...current, status: 'paused' } : current); };
     motion(); visibility(); media.addEventListener('change', motion); document.addEventListener('visibilitychange', visibility);
     return () => { media.removeEventListener('change', motion); document.removeEventListener('visibilitychange', visibility); };
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (!hydrated || !session.sessionId) return;
     const serialized = serializeSession(session);
     if (serialized === persistKey.current) return;
-    try { localStorage.setItem(STORAGE, serialized); persistKey.current = serialized; }
+    try { localStorage.setItem(storageKey, serialized); persistKey.current = serialized; }
     catch { setStorageMessage('진행 기록을 저장하지 못했어요. 새로고침하면 마지막 기록이 복원되지 않을 수 있어요.'); }
-  }, [hydrated, session]);
+  }, [hydrated, session, storageKey]);
 
   useEffect(() => {
     let cancelled = false;
