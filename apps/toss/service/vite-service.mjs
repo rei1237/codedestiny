@@ -225,7 +225,14 @@ export default function serviceCompat(){
     // Recipe cards render public originals or separately packaged private mobile copies.
     // The shared recipe data builds these URLs dynamically. A directory prefix is not a file request.
     const recipeReader=entry.type==='chunk'&&Object.keys(entry.modules).some(id=>id.replaceAll('\\','/').endsWith('/src/RecipeReader.jsx'));
-    for(const match of source.matchAll(asset)){const ref=match[1];if(recipeReader&&ref.startsWith('/images/five-elements/'))continue;if(isTea640Reference(ref)){tea640=true;continue;}if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}const prefix=ref.split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
+    for(const match of source.matchAll(asset)){
+     const ref=match[1];
+     if(recipeReader&&ref.startsWith('/images/five-elements/'))continue;
+     if(isTea640Reference(ref)){tea640=true;continue;}
+     if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}
+     const prefix=ref.split('${')[0];
+     if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);
+    }
    }
    // Original named LOVE CODE character portraits (including Korean spaces) are used by the web engine.
    if(Object.values(bundle).some(entry=>entry.type==='chunk'&&entry.code.includes('/fuctionassets/러브 코드/'))){
