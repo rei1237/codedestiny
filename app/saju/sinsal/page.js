@@ -7,8 +7,8 @@
  * FAQPage JSON-LD 는 두지 않는다 — 질문은 화면에만 보인다.
  */
 import Link from "next/link";
-import GuideCta from "../../components/GuideCta";
-import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
@@ -231,14 +231,15 @@ export default function SinsalHubPage() {
           </div>
         </section>
 
-        <GuideCta target={GUIDE_CTA_TARGETS["/saju/sinsal"]} variant="compact" />
-
         <nav className="cd-chip-wrap mt-8" aria-label="함께 보는 사주 정보">
+          <Link href="/manse" className="cd-chip">만세력</Link>
           <Link href="/saju" className="cd-chip">사주 보기</Link>
           <Link href="/saju/natal-chart" className="cd-chip">사주 명식 읽기</Link>
           <Link href="/saju/ten-gods" className="cd-chip">십성 가이드</Link>
           <Link href="/fortune/samjae" className="cd-chip">삼재띠 계산표</Link>
         </nav>
+
+        <GuideCta target={GUIDE_CTA_TARGETS["/saju/sinsal"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
           신살은 전통 명리의 해석 용어이며 길흉을 예언하지 않습니다. 건강·법률·투자·결혼 같은 중요한 결정을 대신하지 않습니다. 규칙표는

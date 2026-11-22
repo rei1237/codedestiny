@@ -6,8 +6,8 @@
  * (lib/fortune/new-year-sign.ts) 한 곳에서 나온다.
  */
 import Link from "next/link";
-import GuideCta from "../../components/GuideCta";
-import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
@@ -193,13 +193,14 @@ export default function TtiCompatibilityPage() {
           </div>
         </section>
 
-        <GuideCta target={GUIDE_CTA_TARGETS["/compatibility/tti"]} variant="compact" />
-
         <nav className="cd-chip-wrap mt-8" aria-label="함께 보는 띠 정보">
           <Link href="/fortune/tti-age" className="cd-chip">띠별 나이표</Link>
           <Link href="/fortune/samjae" className="cd-chip">삼재띠 계산표</Link>
           <Link href="/fortune/2027" className="cd-chip">2027년 띠별 운세</Link>
+          <Link href="/compatibility" className="cd-chip">궁합 보기</Link>
         </nav>
+
+        <GuideCta target={GUIDE_CTA_TARGETS["/compatibility/tti"]} />
 
         <p className="mt-10 break-keep text-xs leading-6 text-[rgba(244,238,255,0.55)]">
           띠궁합은 민속 해석이며 개인 사주를 대신하지 않습니다. 관계 판정은 이 사이트의 2027년 띠별 운세와 같은 지지 관계 규칙으로

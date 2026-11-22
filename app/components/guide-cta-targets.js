@@ -1,5 +1,5 @@
 /**
- * 기능 가이드의 "실제 기능으로 가는" 1차 동선 정본.
+ * 기능 가이드 15종의 "실제 기능으로 가는" 1차 동선 정본.
  *
  * 왜 한곳에 모으는가 — /health-report/guide 는 12개 가이드 중 홀로 기능 링크가 0개였고
  * (칩 5개가 전부 정책·문서였다), 아무도 그것을 몰랐다. 페이지마다 인라인으로 흩어 두면
@@ -26,26 +26,6 @@
  * 라벨은 lib/seo-landing-pages.js 의 ctaLabel 보이스를 따른다.
  */
 export const GUIDE_CTA_TARGETS = {
-  "/compatibility/tti": {
-    from: "tti-compatibility-guide",
-    primary: { href: "/compatibility", label: "궁합 보기" },
-  },
-  "/fortune/samjae": {
-    from: "samjae-guide",
-    primary: { href: "/saju", label: "사주 보기" },
-  },
-  "/fortune/son-eomneun-nal": {
-    from: "son-eomneun-nal-guide",
-    primary: { href: "/today", label: "오늘의 운세" },
-  },
-  "/fortune/tti-age": {
-    from: "tti-age-guide",
-    primary: { href: "/manse", label: "무료 만세력" },
-  },
-  "/saju/sinsal": {
-    from: "sinsal-guide",
-    primary: { href: "/manse", label: "만세력" },
-  },
   "/saju/destiny-anatomy": {
     from: "destiny-anatomy-guide", kicker: "내 사주부터 살펴보기",
     heading: "내 명식과 오행을 먼저 확인해 보세요",
@@ -127,6 +107,46 @@ export const GUIDE_CTA_TARGETS = {
       { href: "/saju", label: "사주 전체 분석" },
       { href: "/manse", label: "무료 만세력" },
     ],
+  },
+  "/fortune/samjae": {
+    from: "fortune-samjae-table",
+    kicker: "내 띠 다음은 내 명식",
+    heading: "삼재는 띠 하나로 본 흐름, 내 사주는 여덟 글자로 봅니다",
+    body: "삼재표는 태어난 해의 띠만 기준으로 합니다. 만세력으로 네 기둥을 세우면 같은 해가 내 명식 어디에 닿는지 함께 볼 수 있습니다.",
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
+    secondary: [{ href: "/fortune/2027", label: "2027년 띠별 운세" }],
+  },
+  "/fortune/son-eomneun-nal": {
+    from: "fortune-son-eomneun-nal",
+    kicker: "날짜를 골랐다면",
+    heading: "고른 날의 일진도 함께 확인해 보세요",
+    body: "손없는날은 음력 날짜만 보는 민속 기준입니다. 날짜별 운세에서 그날의 일진과 띠별 흐름을 이어서 읽을 수 있습니다.",
+    primary: { href: "/fortune/date", label: "날짜별 운세 보기" },
+    secondary: [{ href: "/manse", label: "무료 만세력" }],
+  },
+  "/fortune/tti-age": {
+    from: "fortune-tti-age-table",
+    kicker: "내 띠를 찾았다면",
+    heading: "띠 다음은 내 여덟 글자를 세워 보세요",
+    body: "띠는 년주의 지지 하나입니다. 생년월일과 태어난 시각을 넣으면 년주·월주·일주·시주와 오행 분포가 바로 나옵니다.",
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
+    secondary: [{ href: "/today", label: "오늘의 운세 보기" }],
+  },
+  "/compatibility/tti": {
+    from: "compatibility-tti-table",
+    kicker: "띠궁합 다음 단계",
+    heading: "띠만이 아니라 두 사람의 명식으로 궁합을 보세요",
+    body: "띠궁합은 태어난 해 지지 하나만 비교합니다. 궁합 보기에서는 두 사람의 생년월일로 오행과 일간의 관계까지 살핍니다.",
+    primary: { href: "/compatibility", label: "궁합 보기" },
+    secondary: [{ href: "/saju/free/", label: "내 사주 먼저 보기" }],
+  },
+  "/saju/sinsal": {
+    from: "saju-sinsal-hub",
+    kicker: "내 원국에서 확인",
+    heading: "내 사주에는 어떤 신살이 붙어 있을까요",
+    body: "만세력으로 네 기둥을 세우면 도화·역마·화개 같은 신살이 어느 기둥에 붙는지 바로 확인할 수 있습니다.",
+    primary: { href: "/saju/free/", label: "사주 보기", note: "무료 · 가입 없이" },
+    secondary: [{ href: "/manse", label: "무료 만세력" }],
   },
   "/saju/five-elements": {
     from: "five-elements-guide",
