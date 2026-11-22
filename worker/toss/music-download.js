@@ -61,9 +61,15 @@ export async function downloadNativeMusic(env,auth,id){
     return {audioSourceKey:track.audioSourceKey,hasFullAccess:true,canDownload:true};
   }});
   const response=await handleMusicRoutes(request,env);
-  if(!response.ok||!response.body)throw new TossError('MUSIC_DOWNLOAD_UNAVAILABLE',502);
+  if(!response.body)throw new TossError('MUSIC_DOWNLOAD_UNAVAILABLE',502);
   const reader=response.body.getReader(),encoded=[];let length=0,pending='';
+  // Only a full original can be passed to the native saver. A decoded response
+  // can have a different length from its compressed transfer representation.
+  const size=response.headers.get('content-encoding')?null:response.headers.get('content-length');
+  const declaredBytes=size===null?null:Number(size);
   try{
+    if(response.status!==200||response.headers.has('content-range'))throw new TossError('MUSIC_DOWNLOAD_UNAVAILABLE',502);
+    if(declaredBytes!==null&&declaredBytes>MAX_NATIVE_MUSIC_BYTES)throw new TossError('MUSIC_FILE_TOO_LARGE',413);
     for(;;){const {done,value}=await reader.read();if(done)break;length+=value.length;
       if(length>MAX_NATIVE_MUSIC_BYTES)throw new TossError('MUSIC_FILE_TOO_LARGE',413);
       // Encode complete triples in bounded blocks; only the final block may use padding.
@@ -75,7 +81,7 @@ export async function downloadNativeMusic(env,auth,id){
       }
     }
   }finally{await reader.cancel();}
-  if(!length)throw new TossError('MUSIC_DOWNLOAD_UNAVAILABLE',502);
+  if(!length||(declaredBytes!==null&&length!==declaredBytes))throw new TossError('MUSIC_DOWNLOAD_UNAVAILABLE',502);
   await verifiedIntent(env,auth,row);
   if(pending)encoded.push(btoa(pending));
   return {data:encoded.join(''),fileName:track.audioSourceKey.split('/').pop().replace(/[\r\n"\\]/g,''),mimeType:'audio/mpeg'};

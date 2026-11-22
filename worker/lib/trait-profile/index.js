@@ -5,10 +5,10 @@
 // 🔴 전달·완성 판정·환불을 바꾸지 않는다. 검증기는 기록만 한다(게이트 B 설계 제약 4).
 // 켜기: worker/lib/engine-rollout.js ENGINE_ROLLOUT_FLAGS 에 TRAIT_FIRST_SAJU:'true' 한 줄을 넣는다.
 // 되돌리기: 그 줄을 지우는 revert. [vars] 에 같은 키가 있으면 그 값이 이긴다.
-import { buildSajuTraitProfile, checkTraitFirstSection, sajuTraitProfilePromptLines, TRAIT_FIRST_META } from './saju.js';
+import { buildSajuTraitProfile, checkTraitFirstSection, sajuTraitProfilePromptLines, softenTraitDoubleHedges, TRAIT_FIRST_META } from './saju.js';
 
 export const TRAIT_FIRST_SAJU_FLAG = 'TRAIT_FIRST_SAJU';
-export { TRAIT_FIRST_META };
+export { softenTraitDoubleHedges, TRAIT_FIRST_META };
 
 /** 요청 시점 선택: 'v1' | null. */
 export function selectTraitFirst(env) {

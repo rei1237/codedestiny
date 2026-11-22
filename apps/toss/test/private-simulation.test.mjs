@@ -4,6 +4,22 @@ import {createSimulationApi,products,skyExample} from '../private-simulation/api
 const url='https://local.invalid/private-simulation-api';
 const storage=()=>{const values=new Map();return {getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)};};
 const request=(api,path,token,body)=>api(new Request(url+path,{method:body===undefined?'GET':'POST',headers:{Authorization:'Bearer '+token},...(body===undefined?{}:{body:JSON.stringify(body)})}));
+test('profile correction persists only on the owning mock account and does not create another profile',async()=>{
+ const local=storage(),a=createSimulationApi(local,'A'),b=createSimulationApi(storage(),'B');
+ const login=async(api,who)=>(await (await request(api,'/login','',{authorizationCode:'private-simulation-person-'+who})).json()).token;
+ const [owner,other]=await Promise.all([login(a,'A'),login(b,'B')]);
+ const path='/canonical/yeongnyangi/profiles';
+ const input={profile:{profileId:'yn_test',name:'테스트',gender:'M',birth:{year:1991,month:3,day:1,timeUnknown:true,calType:'solar'}}};
+ const {profile}=await (await request(a,path,owner,input)).json();
+ const edit={expectedUpdatedAt:profile.updatedAt,profile:{...input.profile,name:'테스트 수정'}};
+ assert.equal((await request(b,path+'/update',other,edit)).status,404);
+ assert.equal((await request(a,path+'/update',owner,edit)).status,200);
+ assert.equal((await request(a,path+'/update',owner,edit)).status,200);
+ assert.equal((await request(a,path+'/update',owner,{...edit,profile:input.profile})).status,409);
+ const {profiles}=await (await request(createSimulationApi(local,'A'),path,owner)).json();
+ assert.equal(profiles.length,2);assert.equal(profiles.find(p=>p.id===profile.id).name,'테스트 수정');
+ assert.deepEqual((await(await request(a,'/library',owner)).json()).purchases,[]);
+});
 test('Prashna simulation grants only the separate SKU and reads the same two saved stages',async()=>{
  const a=storage(),b=storage(),api=createSimulationApi(a,'A'),other=createSimulationApi(b,'B');
  const login=async(fn,person)=>(await (await request(fn,'/login','',{authorizationCode:'private-simulation-person-'+person})).json()).token;

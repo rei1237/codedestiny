@@ -37,5 +37,12 @@ test('guided profile keeps original validation, drafts, calendar/time payload an
   await React.act(async()=>app.unmount());globalThis.__profileTest.account='toss-A';app=createRoot(document.getElementById('root'));await React.act(async()=>mount());await React.act(async()=>submit());await React.act(async()=>submit());
   assert.ok(saved,JSON.stringify({active:active(),text:document.body.textContent,requests}));assert.equal(saved.profileId,'saved');assert.equal(requests.length,1);const payload=JSON.parse(requests[0].init.body).profile;assert.equal(payload.birth.calType,'lunar_leap');assert.equal(payload.birth.year,1990);assert.equal(payload.birth.timeUnknown,true);assert.equal(payload.birth.hour,null);assert.equal(payload.name,'테스트');assert.deepEqual(payload.location,{label:'일본 도쿄',tz:'Asia/Tokyo',lat:35.68,lng:139.76});
   assert.equal([...Array(window.sessionStorage.length)].map((_,i)=>window.sessionStorage.key(i)).filter(key=>key.includes('toss-A')&&key.includes(encodeURIComponent('/yeongnyangi/fortune/?flow=question'))).length,0,'successful save clears only this account draft');
+  await React.act(async()=>app.unmount());app=createRoot(document.getElementById('root'));
+  const selected={profileId:'owned-id',name:'편집 전',gender:'M',birthDate:'1990-10-13',birthTime:'',timeUnknown:true,calendarType:'lunar_leap',location:{label:'런던',tz:'Europe/London',lat:51.5,lng:0},updatedAt:'2026-11-21T00:00:00.000Z'};
+  await React.act(async()=>app.render(React.createElement(Form,{guided:true,editProfile:selected,onSaved:()=>{}})));
+  assert.equal(document.querySelector('[name=name]').value,selected.name);assert.equal(document.querySelector('[name=date]').value,selected.birthDate);
+  await React.act(async()=>input('name','편집 후'));for(let step=0;step<4;step++)await React.act(async()=>submit());
+  const edited=JSON.parse(requests.at(-1).init.body);assert.equal(requests.at(-1).url,'/api/yeongnyangi/profiles/update');assert.equal(edited.expectedUpdatedAt,selected.updatedAt);
+  assert.equal(edited.profile.name,'편집 후');assert.equal(edited.profile.profileId,selected.profileId);assert.deepEqual(edited.profile.location,selected.location);
  }finally{await React.act(async()=>app.unmount());dom.window.close();delete globalThis.__profileTest;}
 });

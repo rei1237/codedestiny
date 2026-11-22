@@ -6,6 +6,9 @@ import {buildSajuSectionHtml} from '../../../worker/lib/saju-section/report.js';
 import {JSDOM} from 'jsdom';
 import * as KoreanCalendar from '../../../lib/korean-calendar/index.js';
 import * as SajuNatalCore from '../../../lib/saju/natal-core/index.mjs';
+import {readBrainLayers} from '../src/brain-layers.mjs';
+import {privateHumanDesign} from '../private-simulation/human-design.mjs';
+import {expertRequest} from '../private-simulation/experts.mjs';
 import {buildDashboardModule} from '../service/saju-dashboard-loader.mjs';
 
 const original=async name=>readFile(new URL('../../../'+name,import.meta.url),'utf8');
@@ -25,6 +28,35 @@ for(const known of [true,false])test('public web dashboard renders personal resu
   const shared=[],saved=[];
   const reading=prepare(chart,document,{share:text=>shared.push(text),save:(node,name)=>saved.push([node,name])});
   try{
+    for(const filename of ['engine.js','hd-copy.generated.js','copy.js','render.js']){
+      vm.runInContext(await original('js/core/saju/destiny-anatomy/'+filename),context);
+    }
+    const brain=context.DestinyAnatomyEngine.buildDestinyAnatomy({scope:reading.brainScope(),lang:'ko'});
+    assert.equal(brain.timeUnknown,!known);
+    const area=document.createElement('div');
+    context.DestinyAnatomyRender.renderSajuSections(area,brain);
+    assert.ok(area.querySelector('#daBrainTitle'));
+    assert.equal(area.querySelectorAll('[data-da-engine]').length,5);
+    assert.equal(area.querySelectorAll('[data-da-act=cta],a[href*="checkout"]').length,0);
+    if(known){
+      const birth={birthDate:'1992-05-07',birthTime:'08:30',timezone:'Asia/Seoul',latitude:37.5665,longitude:126.978};
+      const requests=[];
+      const request=async(path,body)=>{
+        requests.push(path);
+        if(path==='/human-design/chart')return (await privateHumanDesign(body.birth)).json();
+        const url=new URL(path,'https://mock.invalid'),req=new Request(url,{method:'POST',body:JSON.stringify(body)});
+        return (await expertRequest(req,url,path,null,null,null)).json();
+      };
+      const layers=await readBrainLayers(request,birth,'female');
+      const complete=context.DestinyAnatomyEngine.buildDestinyAnatomy({scope:reading.brainScope(),lang:'ko',...layers});
+      context.DestinyAnatomyRender.renderSajuSections(area,complete,{layer:'ready',view:'both'});
+      assert.ok(area.querySelector('#daVedicTitle'));assert.ok(area.querySelector('[data-da-view=both][aria-pressed=true]'));
+      assert.equal(area.querySelectorAll('[data-da-entry^=hd-]').length,9);
+      assert.deepEqual(requests,['/human-design/chart','/canonical/vedic-ai/basis']);
+      const partial=await readBrainLayers(async(path,body)=>{if(path.includes('vedic'))throw Error('NETWORK');return request(path,body);},birth,'female');
+      assert.ok(partial.hdChart);assert.equal(partial.vedicBasis,null);
+      await assert.rejects(readBrainLayers(()=>{throw Error('UNEXPECTED_REQUEST');},null,'female'),/BIRTH_REQUIRED/);
+    }
     assert.equal(Object.values(reading.data.natal.counts).reduce((a,b)=>a+b),known?9:7);
     assert.equal(reading.prompts('M').length,13);assert.equal(new Set(reading.prompts('M').map(item=>item.prompt)).size,13);
     const webPrompts=buildSajuSectionHtml({...originalInput,featureKey:'saju_natal_reading'}).imagePrompts;

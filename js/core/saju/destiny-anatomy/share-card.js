@@ -551,13 +551,12 @@
   }
 
   /* mode: 'share' 는 파일 공유가 되면 공유, 아니면 저장. 'save' 는 저장. 사용자가 닫으면 false. */
-  function share(model, opts) {
+  function createBlob(model, opts) {
     opts = opts || {};
     var doc = root.document;
     var scope = doc.getElementById('destinyAnatomyCard');
     var canvas = doc.createElement('canvas');
     var pal;
-    var name = 'destiny-anatomy.png';
     return Promise.resolve().then(function () {
       pal = palette(scope);
       return Promise.all([loadFonts(doc, model, pal), loadMark(scope)]);
@@ -568,7 +567,12 @@
         draw(canvas, model, {palette: pal, mark: null, format: opts.format});
         return toBlob(canvas);
       });
-    }).then(function (blob) {
+    });
+  }
+  function share(model, opts) {
+    opts = opts || {};
+    var name = 'destiny-anatomy.png';
+    return createBlob(model, opts).then(function (blob) {
       var nav = root.navigator;
       if (opts.mode === 'share' && nav && typeof nav.share === 'function' && typeof nav.canShare === 'function' && typeof root.File === 'function') {
         var file = new root.File([blob], name, {type: 'image/png'});
@@ -586,7 +590,7 @@
     });
   }
 
-  var api = {W: W, H: H, content: content, draw: draw, share: share, loadMark: loadMark, palette: palette, petalPath: petalPath, MEME_FLOWERS: MEME_FLOWERS};
+  var api = {W: W, H: H, content: content, draw: draw, createBlob: createBlob, share: share, loadMark: loadMark, palette: palette, petalPath: petalPath, MEME_FLOWERS: MEME_FLOWERS};
   root.DestinyAnatomyShareCard = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window === 'undefined' ? globalThis : window);

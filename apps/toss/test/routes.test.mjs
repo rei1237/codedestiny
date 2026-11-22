@@ -22,6 +22,7 @@ const stubMap={
  'worker/toss/vedic-compatibility.js':"export const tossVedicCompatibility=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public',stored:false});",
  'worker/toss/vedic-prashna.js':"export const tossVedicPrashna=async(_env,auth)=>({owner:auth.ownerId,accessSource:'public'});",
  'worker/toss/astro-synastry.js':"export const tossAstroSynastry=async(body)=>Response.json({accessSource:'public',input:body}),tossAstroSynastryPeople=()=>({people:[],categories:[],countries:{},css:''});",
+ 'worker/toss/native-compat-premium.js':"export const preparePremiumCompat=async(_env,auth)=>({owner:auth.ownerId}),readPremiumCompat=async(_env,auth,id,advance)=>({owner:auth.ownerId,id,advance}),premiumCompatLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/native-human-design.js':"export const prepareNativeHumanDesign=async(_env,owner)=>({owner:owner.ownerId}),readNativeHumanDesign=async(_env,owner,id)=>Response.json({owner:owner.ownerId,id}),nativeHumanDesignLibraryItem=async()=>({state:'PENDING'});",
  'worker/toss/sukuyo-past-life.js':"export const tossSukuyoPastLife=async(_env,auth)=>({owner:auth.ownerId,source:'public',stored:false});",
  'worker/toss/sukuyo-yearly.js':"export const tossSukuyoYearly=async(_env,owner)=>({owner:owner.ownerId,stored:false});",
@@ -814,4 +815,15 @@ test('production sales policy closes public catalogs and rejects raw prepare bef
   const catalog=await closed.exports.handleTossRoutes(new Request('https://code-destiny.com/api/toss/catalog',{headers:{Origin:'https://ai-saju-studio.apps.tossmini.com'}}),{});
   assert.equal(catalog.status,200);const products=(await catalog.json()).products;assert.ok(products.length);assert.ok(products.every(p=>p.available===false));
  }finally{mocks.approvedProducts.pop();}
+});
+
+test('premium compatibility routes keep the two-person report behind the Toss account and release gate',async()=>{
+  const base='/native/saju-compat-premium',path=base+'/results/'+'a'.repeat(64);
+  assert.equal((await request({input:{}},base+'/prepare',{TOSS_RELEASE_READY:'false'})).status,503);
+  mocks.denyAuth=true;
+  try{assert.equal((await request({},path)).status,401);}finally{mocks.denyAuth=false;}
+  assert.equal((await (await request({input:{}},base+'/prepare')).json()).owner,auth.ownerId);
+  const response=await request({},path);
+  assert.equal(response.status,200);
+  assert.deepEqual(await response.json(),{owner:auth.ownerId,id:'a'.repeat(64),advance:true});
 });
