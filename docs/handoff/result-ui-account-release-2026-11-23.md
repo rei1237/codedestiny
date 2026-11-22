@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-23
-next: 동일한 출시 빌드의 성능을 비교한 뒤 main CI와 웹 운영 배포를 확인하고 서명 AAB를 Google Play 프로덕션으로 제출한다.
+next: Google Play 버전 순서에 관한 사용자 답을 확인하고 Console의 최고 코드·다른 대기 변경을 다시 확인한 뒤 운영 후보를 제출한다.
 ---
 
 # 결과 화면·계정 진입과 운영 출시
@@ -32,9 +32,10 @@ next: 동일한 출시 빌드의 성능을 비교한 뒤 main CI와 웹 운영 �
 
 - [x] 기준본 Lighthouse 세 경로 2회, 모바일 이벤트·전송 측정
 - [x] 세 홈 계정 진입, 결과 그림, 대표 편지 개선
-- [ ] 수정본 실측과 최종 이미지 검수
-- [ ] 통합 검증·main CI·웹 운영 SHA 확인
-- [ ] Android 서명과 패키지 검수·Google Play 제출 및 상태 확인
+- [x] 수정본 실측과 최종 이미지 검수
+- [x] 통합 검증·main CI·웹 운영 SHA 확인
+- [x] Android 서명과 패키지 검수
+- [ ] Google Play 프로덕션 업로드·심사 제출·공개 상태 확인
 
 ## 06:55 KST 전달 상태
 
@@ -43,3 +44,16 @@ next: 동일한 출시 빌드의 성능을 비교한 뒤 main CI와 웹 운영 �
 Google Play 프로덕션은 61, 내부 테스트는 62다. 기존 19개 국가와 관리형 게시 설정을 확인했고 새 프로덕션 초안 8을 열었다. 1.0.63 빌드는 UI 소스 `6a76d36fce1745702f87ab64e4b132cf6fc58cd2` 기준이다. 서명 AAB를 업로드한 뒤 버전, 국가, 노트, 다른 사람의 미게시 변경 여부를 확인해 심사 제출한다.
 
 호스트 재연결로 로컬 빌드가 중단되어 웹 mock export를 복구했다. `.tmp/result-perf/recovery-state.json`은 빌드·측정 단계를, `.tmp/result-perf/verified-fast.log`는 전체 회귀의 진행을 남긴다. 앱과 웹의 대규모 Next 빌드는 메모리 부족으로 순차 실행한다.
+
+## 운영 웹 확인과 Android 버전
+
+2026-11-23 07:17 KST에 코드 커밋 6e951894a6의 main CI와 Cloudflare 릴리스 성공, 운영 Pages·Worker SHA 일치를 확인했다. 대표·꿀꿀·영냥이 상단 버튼을 운영 자산으로 390px와 1280px 브라우저에서 확인했다. 최종 성능·화면 표는 docs/ux-audit/2026-11-23-result-release.md에 있다. 측정용 기준선 워크트리는 공식 명령으로 배수했다.
+
+내부 테스트 전용 작업도 Google Play 버전 코드 63을 준비하고 있어 스토어 업로드 전 순서를 조정 중이다. 별도 테스트의 승인 범위는 스테이징 내부 테스트이며 운영 후보에는 해당 작업의 변경을 싣지 않는다. 내부 테스트와 운영 후보는 서로 다른 번들이다. 확인 당시 Console에서 사용 중인 최고 코드는 내부 62, 현재 프로덕션은 61이었다. 운영 후보의 격리 소스 및 63 서명 검증은 계속 진행한다.
+
+## 서명 패키지 보존과 다음 행동
+
+- 운영 AAB는 `D:/Development/releases/codedestiny/1.0.63/production-candidate/codedestiny-1.0.63-production.aab`이고 검증은 같은 폴더의 `verification.json`에 있다. 크기 340,684,163 B, SHA-256 `85D7C176BC03EE3FA63F64DE6FDA03EC83F0A61584FAD5E23B486674DC3B99CD`. 이전 운영 서명과 일치하며 390px 앱 자산으로 세 홈의 계정 진입 및 Google 복귀를 mock 확인했다.
+- Google Play 프로덕션 초안은 트랙 4697542548292933451의 releases/8/prepare다. 08:01 KST 기준 최고 업로드 코드는 내부 62이며 운영은 61이다. 두 63 후보는 다른 바이너리다. 내부·운영 출시 순서는 사용자에게 한 번 질문했으며 응답 전에는 서명 AAB를 업로드하지 않았다. 실제 Google 심사 요청·공개도 대기 중이다.
+- 운영 63 우선이면 사용자가 허용한 내부 테스트 채팅에 64 사용을 전달한 뒤 운영용 경로의 AAB만 제출한다. 내부 63 우선이면 검수 완료 뒤 64 운영 전용 웹·네이티브 패키지를 다시 빌드해 버전·서명을 확인한 뒤 제출한다. 가격·국가·기타 게시 대기는 그대로 보존한다.
+- 재빌드용 격리 소스는 `D:/Development/code-destiny/.tmp/aab-63`(6a76d36fce), 도구는 `D:/Development/code-destiny/.tmp/result-perf-work/result-perf-release-20261123-060321/.tmp/result-account/`에 있다. Google Play 전달 후 이 두 작업 디렉터리와 이 문서의 상태를 정리한다.
