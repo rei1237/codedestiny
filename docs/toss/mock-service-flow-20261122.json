@@ -1,0 +1,403 @@
+{
+  "date": "2026-11-22",
+  "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59",
+  "sha256": "52aff6bd349503bbf637ccfb6b800f764b6fbdaef6542b19549b9e17dfbaeadc",
+  "platform": "Windows 비공개 모의 AIT",
+  "runner": "apps/toss/test/private-simulation-archive.mjs",
+  "requiredFlags": [
+    "--local-windows"
+  ],
+  "entry": "격리한 127.0.0.1의 보관 번들 홈에서 UI 선택",
+  "limits": "고정된 모의 입력·주문·생성 결과로 사용자 경로를 확인했다. 운영 API, 실제 과금, 기기 SDK, 후속 빌드는 검증 범위 밖이다.",
+  "checks": [
+    {
+      "case": "영냥이-전체상품",
+      "args": [
+        "--all-products"
+      ],
+      "canonicalIds": [
+        "yeongnyangi"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "astrology_mackerel home, original input, virtual order, stored text after reentry",
+        "astrology_salmon home, original input, virtual order, stored text after reentry",
+        "astrology_flounder home, original input, virtual order, stored text after reentry",
+        "astrology_tuna home, original input, virtual order, stored text after reentry",
+        "vedic_mackerel home, original input, virtual order, stored text after reentry",
+        "vedic_salmon home, original input, virtual order, stored text after reentry",
+        "vedic_flounder home, original input, virtual order, stored text after reentry",
+        "vedic_tuna home, original input, virtual order, stored text after reentry",
+        "sukuyo_mackerel home, original input, virtual order, stored text after reentry",
+        "sukuyo_salmon home, original input, virtual order, stored text after reentry",
+        "sukuyo_flounder home, original input, virtual order, stored text after reentry",
+        "sukuyo_tuna home, original input, virtual order, stored text after reentry",
+        "saju_mackerel home, original input, virtual order, stored text after reentry",
+        "saju_salmon home, original input, virtual order, stored text after reentry",
+        "saju_flounder home, original input, virtual order, stored text after reentry",
+        "saju_tuna home, original input, virtual order, stored text after reentry",
+        "ziwei_mackerel home, original input, virtual order, stored text after reentry",
+        "ziwei_salmon home, original input, virtual order, stored text after reentry",
+        "ziwei_flounder home, original input, virtual order, stored text after reentry",
+        "ziwei_tuna home, original input, virtual order, stored text after reentry",
+        "tarot_mackerel home, original input, virtual order, stored text after reentry",
+        "tarot_salmon home, original input, virtual order, stored text after reentry",
+        "tarot_flounder home, original input, virtual order, stored text after reentry",
+        "tarot_tuna home, original input, virtual order, stored text after reentry",
+        "fusion_saju_ziwei home, original input, virtual order, stored text after reentry",
+        "fusion_sukuyo_vedic home, original input, virtual order, stored text after reentry",
+        "fusion_astrology_tarot home, original input, virtual order, stored text after reentry",
+        "fusion_all home, original input, virtual order, stored text after reentry"
+      ]
+    },
+    {
+      "case": "연이-사주편지",
+      "args": [
+        "--character-rooms",
+        "letter",
+        "--letter-domain",
+        "saju"
+      ],
+      "canonicalIds": [
+        "fortune-chat"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "letter saju 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "네오-베다전략",
+      "args": [
+        "--character-rooms",
+        "neo",
+        "--neo-method",
+        "vedic"
+      ],
+      "canonicalIds": [
+        "neo-operation-room"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "neo vedic 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "무료-계산",
+      "args": [
+        "--free-calculations"
+      ],
+      "canonicalIds": [
+        "pet-saju",
+        "manse",
+        "tarot-reunion",
+        "tarot-crystal-soul",
+        "tarot-year-fortune",
+        "tarot-numerology",
+        "tarot-ijik"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private free pet: guest original input/chart, saved pet reopen, paid account gate",
+        "private free manse: guest original input and canonical pillars",
+        "private free tarot 재회운 등대 타로 5",
+        "private free tarot 원석 소울 타로 5",
+        "private free tarot 십이지신 천운 타로 12",
+        "private free tarot 수비학 타로 5",
+        "private free tarot 이직 운명의 카드 7"
+      ]
+    },
+    {
+      "case": "음원-저장",
+      "args": [
+        "--music-download"
+      ],
+      "canonicalIds": [
+        "music"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private music home, one mock purchase, synthetic native save request, cold same-owner archive, B denial, 3 widths, no real audio download"
+      ]
+    },
+    {
+      "case": "유료타로-관계",
+      "args": [
+        "--paid-tarot",
+        "relationship"
+      ],
+      "canonicalIds": [
+        "tarot-love-relationship"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private relationship: home, selected original cards, mock login/purchase, exit/reopen, saved chapters, one order/generation, foreign UUID denied"
+      ]
+    },
+    {
+      "case": "무료-독서",
+      "args": [
+        "--free-reading"
+      ],
+      "canonicalIds": [
+        "novel",
+        "psychotest"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "free AIT home → novel persistent bookmark; home → psychotest recommendation → original answers/result → same-session reopen; 360/390/430px; zero orders"
+      ]
+    },
+    {
+      "case": "네오-타로편지",
+      "args": [
+        "--character-rooms",
+        "letter",
+        "--letter-domain",
+        "tarot",
+        "--letter-persona",
+        "neo"
+      ],
+      "canonicalIds": [
+        "neo-letter"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "letter neo-tarot 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "찻집-saju",
+      "args": [
+        "--character-rooms",
+        "tea",
+        "--tea-mode",
+        "saju"
+      ],
+      "canonicalIds": [
+        "fortune-tea-house"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "tea saju 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "찻집-sajuJoint",
+      "args": [
+        "--character-rooms",
+        "tea",
+        "--tea-mode",
+        "sajuJoint"
+      ],
+      "canonicalIds": [
+        "fortune-tea-house"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "tea sajuJoint 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "찻집-tarot",
+      "args": [
+        "--character-rooms",
+        "tea",
+        "--tea-mode",
+        "tarot"
+      ],
+      "canonicalIds": [
+        "fortune-tea-house"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "tea tarot 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "찻집-tarotFive",
+      "args": [
+        "--character-rooms",
+        "tea",
+        "--tea-mode",
+        "tarotFive"
+      ],
+      "canonicalIds": [
+        "fortune-tea-house"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "tea tarotFive 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "찻집-sajuCompatibility",
+      "args": [
+        "--character-rooms",
+        "tea",
+        "--tea-mode",
+        "sajuCompatibility"
+      ],
+      "canonicalIds": [
+        "fortune-tea-house"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "tea sajuCompatibility 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "찻집-sukuyo",
+      "args": [
+        "--character-rooms",
+        "tea",
+        "--tea-mode",
+        "sukuyo"
+      ],
+      "canonicalIds": [
+        "fortune-tea-house"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "tea sukuyo 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "인생총운",
+      "args": [
+        "--native-report",
+        "life-fortune"
+      ],
+      "canonicalIds": [
+        "life-fortune-report"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "native report life-fortune 360px home, mock purchase, generation exit, archive reopen, one order, owner B denied"
+      ]
+    },
+    {
+      "case": "연애비책",
+      "args": [
+        "--expert-report",
+        "love-secret"
+      ],
+      "canonicalIds": [
+        "love-secret-ai"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private expert love-secret home, original form, mock purchase, stored result, relaunched history, account B denied"
+      ]
+    },
+    {
+      "case": "무료-원본",
+      "args": [
+        "--free-originals"
+      ],
+      "canonicalIds": [
+        "vedic",
+        "flower"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private original Vedic compatibility/Prashna and four flowers, login/free policy, original copy, native back, account reset, 3 widths, zero orders"
+      ]
+    },
+    {
+      "case": "서양점성술-전략-상대",
+      "args": [
+        "--character-rooms",
+        "neo",
+        "--neo-method",
+        "astrology",
+        "--neo-partner"
+      ],
+      "canonicalIds": [
+        "neo-operation-room"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "neo astrology-partner 360px home, mock login, one order, stored result, cold reopen, owner B denied"
+      ]
+    },
+    {
+      "case": "유료타로-천상",
+      "args": [
+        "--paid-tarot",
+        "celestial"
+      ],
+      "canonicalIds": [
+        "tarot-celestial-harmony"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private celestial: home, selected original cards, mock login/purchase, exit/reopen, saved chapters, one order/generation, foreign UUID denied"
+      ]
+    },
+    {
+      "case": "별자리-여정",
+      "args": [
+        "--astro-reading"
+      ],
+      "canonicalIds": [
+        "astrology"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private astrology: guest home, example rejection, original wheel and ten sections, 360/390/430px, no purchase"
+      ]
+    },
+    {
+      "case": "베다-리딩",
+      "args": [
+        "--vedic-reading"
+      ],
+      "canonicalIds": [
+        "vedic"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private Vedic: non-example rejected, exact local Swiss example, south/north charts, 7 original topics, 8 original details, accordions/native back, 360/390/430px, no login/orders"
+      ]
+    },
+    {
+      "case": "숙요-도구",
+      "args": [
+        "--sukuyo-tools"
+      ],
+      "canonicalIds": [
+        "sukuyo"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private Sukuyo: known/unknown guest, original four tools and 27-entry filter, 360/390/430px, no purchase"
+      ]
+    },
+    {
+      "case": "자미두수-심층",
+      "args": [
+        "--extended-report",
+        "ziwei-deep"
+      ],
+      "canonicalIds": [
+        "ziwei-deep-report"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "extended ziwei-deep: home, mock purchase, interrupted generation, records restart, exact stored reread, one order/generation, owner B denied"
+      ]
+    },
+    {
+      "case": "영냥이-계정격리",
+      "args": [],
+      "canonicalIds": [
+        "yeongnyangi"
+      ],
+      "exitCode": 0,
+      "checked": [
+        "private simulated AIT 360px home → question → mock login and single order → original stored example → reentry → second account denied; native navigation only"
+      ]
+    }
+  ]
+}

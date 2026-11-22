@@ -1,5 +1,5 @@
 {
-  "sourceCommit": "5261e805473d53b494ed940c2fe0fff592bdc259",
+  "sourceCommit": "16d143b6da95c03bc226e9232bd9fe1137604a90",
   "sourceCounts": {
     "home": 64,
     "react": 18,
@@ -7,6 +7,11 @@
   },
   "scope": "홈 별칭, 상담 상품·모드, 무료 카테고리, 과거 상품 원장은 서로 다른 단위다. 코드상 진입과 실기기 검증을 분리한다.",
   "archiveEvidence": "docs/toss/ait-verification-20261114.json",
+  "mockServiceFlowEvidence": {
+    "path": "docs/toss/mock-service-flow-20261122.json",
+    "platform": "Windows 비공개 모의 AIT",
+    "deploymentId": "01a200c1-7dab-7038-88a9-3f2fac3bfb59"
+  },
   "entries": [
     {
       "id": "animal-destiny",
@@ -3426,6 +3431,9 @@
       "archiveHomeButtons": [
         "서양 점성술 출생차트"
       ],
+      "mockArchiveCases": [
+        "별자리-여정"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -4540,6 +4548,9 @@
       "archiveHomeButtons": [
         "운명의 꽃"
       ],
+      "mockArchiveCases": [
+        "무료-원본"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -4642,6 +4653,9 @@
       ],
       "archiveHomeButtons": [
         "연이의 상담 편지"
+      ],
+      "mockArchiveCases": [
+        "연이-사주편지"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -4847,6 +4861,14 @@
       ],
       "archiveHomeButtons": [
         "연이 · 운명의 찻집"
+      ],
+      "mockArchiveCases": [
+        "찻집-saju",
+        "찻집-sajuJoint",
+        "찻집-tarot",
+        "찻집-tarotFive",
+        "찻집-sajuCompatibility",
+        "찻집-sukuyo"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -6099,6 +6121,9 @@
       "archiveHomeButtons": [
         "인생 총운"
       ],
+      "mockArchiveCases": [
+        "인생총운"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -6341,6 +6366,9 @@
       "archiveHomeButtons": [
         "연애 비책"
       ],
+      "mockArchiveCases": [
+        "연애비책"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -6485,6 +6513,9 @@
       ],
       "archiveHomeButtons": [
         "만세력"
+      ],
+      "mockArchiveCases": [
+        "무료-계산"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -6807,6 +6838,9 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "꿀꿀운세 음악실"
+      ],
+      "mockArchiveCases": [
+        "음원-저장"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -7444,6 +7478,9 @@
       "archiveHomeButtons": [
         "네오의 상담 편지"
       ],
+      "mockArchiveCases": [
+        "네오-타로편지"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -7529,6 +7566,10 @@
       ],
       "archiveHomeButtons": [
         "네오 · 팩폭 전략실"
+      ],
+      "mockArchiveCases": [
+        "네오-베다전략",
+        "서양점성술-전략-상대"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -7731,6 +7772,9 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "연이의 운명 노벨"
+      ],
+      "mockArchiveCases": [
+        "무료-독서"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -8142,6 +8186,9 @@
       "archiveHomeButtons": [
         "반려동물 사주"
       ],
+      "mockArchiveCases": [
+        "무료-계산"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -8327,6 +8374,9 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "심리테스트"
+      ],
+      "mockArchiveCases": [
+        "무료-독서"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -9545,6 +9595,9 @@
       "archiveHomeButtons": [
         "기본 숙요점"
       ],
+      "mockArchiveCases": [
+        "숙요-도구"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -9756,6 +9809,9 @@
       "archiveHomeButtons": [
         "타로 리딩"
       ],
+      "mockArchiveCases": [
+        "유료타로-천상"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -9825,6 +9881,9 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
+      ],
+      "mockArchiveCases": [
+        "무료-계산"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -9949,6 +10008,9 @@
       "archiveHomeButtons": [
         "타로 리딩"
       ],
+      "mockArchiveCases": [
+        "무료-계산"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -10019,6 +10081,9 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "타로 리딩"
+      ],
+      "mockArchiveCases": [
+        "유료타로-관계"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10157,6 +10222,9 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
+      ],
+      "mockArchiveCases": [
+        "무료-계산"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10300,6 +10368,9 @@
       "archiveHomeButtons": [
         "타로 리딩"
       ],
+      "mockArchiveCases": [
+        "무료-계산"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -10422,6 +10493,9 @@
       ],
       "archiveHomeButtons": [
         "타로 리딩"
+      ],
+      "mockArchiveCases": [
+        "무료-계산"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
@@ -10635,6 +10709,10 @@
       "archiveHomeButtons": [
         "베다점 출생차트"
       ],
+      "mockArchiveCases": [
+        "무료-원본",
+        "베다-리딩"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "original-contract-reviewed",
@@ -10755,6 +10833,10 @@
         "mock-catalog"
       ],
       "archiveHomeButtons": [],
+      "mockArchiveCases": [
+        "영냥이-전체상품",
+        "영냥이-계정격리"
+      ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",
         "reviewState": "prior-contract-evidence-reconciled",
@@ -11340,6 +11422,9 @@
       "archiveTests": [],
       "archiveHomeButtons": [
         "자미두수 명반"
+      ],
+      "mockArchiveCases": [
+        "자미두수-심층"
       ],
       "sourceAudit": {
         "path": "docs/toss/original-mode-audit-20261114.json",

@@ -555,6 +555,15 @@ for(const group of canonicalCandidates){
 // stages. Preserve historical status fields, but stop labelling every device-only
 // follow-up as unfinished implementation.
 const sourceAudit=readJson('docs/toss/original-mode-audit-20261114.json');
+const mockFlowPath='docs/toss/mock-service-flow-20261122.json';
+const mockArchive=readJson(mockFlowPath);
+for(const check of mockArchive.checks){
+ for(const id of check.canonicalIds){
+  const group=groups.get(id);
+  if(!group)throw Error('Unknown mock archive service: '+id);
+  (group.mockArchiveCases??=[]).push(check.case);
+ }
+}
 const auditedIds=new Set(sourceAudit.rows.map(row=>row.id));
 const missingAudit=canonicalCandidates.filter(row=>!auditedIds.has(row.id)).map(row=>row.id);
 const staleAudit=sourceAudit.rows.filter(row=>!groups.has(row.id)).map(row=>row.id);
@@ -590,6 +599,7 @@ const report={
  sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},
  scope:'홈 별칭, 상담 상품·모드, 무료 카테고리, 과거 상품 원장은 서로 다른 단위다. 코드상 진입과 실기기 검증을 분리한다.',
  archiveEvidence:'docs/toss/ait-verification-20261114.json',
+ mockServiceFlowEvidence:{path:mockFlowPath,platform:mockArchive.platform,deploymentId:mockArchive.deploymentId},
  entries:rows,canonicalCandidates,consultationProducts,daily,letterProducts,productContracts,
  registeredProducts,newPurchasesAvailable:NEW_PURCHASES_AVAILABLE,
 };
