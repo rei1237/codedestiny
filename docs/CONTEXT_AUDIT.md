@@ -448,3 +448,16 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
   - 크림 그라데이션 위 글: 밝은 진입 장면만 크림 단색 판 위 잉크 글자로 바꿨다(데스크톱에서 판이 늘어나 그라데이션이면 위아래 색이 갈렸다). `/ggulggul/` 카드 글 영역은 어두운 테마라 그라데이션이 회보라 띠가 되어 대비가 3.4–3.7:1 로 떨어졌으므로 되돌렸다(실측, visual-checker).
 - **남은 위험**: `fortune-consultation-entry.css` 의 `.fc-master-reading` 제목 MaruBuri(결과 화면)는 G 범위 밖이라 그대로 두었다(후속 보고).
 - **롤백**: G 커밋을 `git revert` 하고 `npm run sync:public`.
+
+## 2026-11-22 영냥이 밤꽃(H) "움직이면서 동적인 효과" ↔ docs/design/yeongnyangi-night.md:9 "캐릭터를 눌렀을 때의 짧은 반응만 유지"
+
+- **충돌**: 영냥이 디자인 캐논은 움직임을 캐릭터 탭 반응으로 한정했다. 2026-11-22 사용자가 "영냥이도 어느정도 움직이면서 동적인 효과를 줘야해"라고 배경 움직임을 요청했다.
+- **해소**: 사용자 요청이 우선이다. 범위는 `/yeongnyangi/` 히어로와 `/yeongnyangi/room/` 그림 안의 `NightBloomMotion` 한 층이다.
+  - 금빛 별가루(MasterPetals yeongnyangi sm, 3개)와 아이보리→금 꽃잎(4개)을 쓴다.
+  - transform·opacity 만 움직이고, 초당 약 9~22px 로 느리게 떨어진다.
+  - 보일 때·탭 활성일 때만 재생한다(`useSpritePlaybackGate` + `MASTER_MOTION_ENABLED`).
+  - reduced motion 이면 층을 숨긴다.
+  - 정적 장식은 연꽃 라인아트 1종이다. 목련은 세 번 그렸지만 모두 튤립으로 읽혀 넣지 않았다.
+  - 분홍은 쓰지 않는다.
+- **남은 위험**: 모바일 히어로는 사진에 이미 매화가 그려져 있어 연꽃을 숨기고 모션만 둔다. 방 380px 미만도 캡션과 붙어 연꽃을 숨긴다.
+- **롤백**: H 화면 커밋을 `git revert`. 모션만 끄려면 `lib/master-motion/flags.mjs` 의 `MASTER_MOTION_ENABLED`(F 스프라이트와 함께 꺼진다).

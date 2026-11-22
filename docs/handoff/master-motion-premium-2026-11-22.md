@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-22
-next: F5·F6·F7·G push 대기 — origin/main 이 녹색이 되면 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에서 "F5~F7 전달 상태" 절의 재개 명령(origin/main 머지 → sync:public → check:pre-push → `git push origin HEAD:main` → main 체크아웃 merge → 워크트리 배수). 그다음 H 영냥이 꽃 배경·동적 효과
+next: push 대기 → P(UX 프롬프트) — F5·F6·F7·G·H 가 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247` 에 미push. origin/main 이 녹색이 되면 "F5~F7 전달 상태" 절의 재개 명령(origin/main 머지 → sync:public → check:pre-push → `git push origin HEAD:main` → main 체크아웃 merge → 워크트리 배수). 그다음 P
 ---
 
 # 마스터 스프라이트 모션·꿀꿀 고급화·영냥이 꽃 컨셉·대표 상담 자동 배너
@@ -15,7 +15,7 @@ next: F5·F6·F7·G push 대기 — origin/main 이 녹색이 되면 워크트�
 ## 지금 상태
 - 이전 작업(TOP5 개편 A, 기본 운세 마스터 말풍선 B·C, 연이 무료 결과 말풍선 D)은 `wt/top5-master-say-20261122-023703`에서 main에 머지·push되는 중이다(원 세션 담당). 이 문서의 단계는 그 머지 뒤 main 기준이다.
 - 계획 원문: `C:\Users\user\.claude\plans\moonlit-dazzling-puppy.md`(E·F·G·H 절).
-- **F5·F6·F7·G 미push(2026-11-22)**: 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`(브랜치 `wt/master-motion-f5f6-20261122-104247`)에 커밋만 있다. 결과 기록의 "F5~F7 전달 상태" 절을 먼저 처리한다. 워크트리를 지우지 말 것.
+- **F5·F6·F7·G·H 미push(2026-11-22)**: 워크트리 `D:/Development/codedestiny-worktrees/master-motion-f5f6-20261122-104247`(브랜치 `wt/master-motion-f5f6-20261122-104247`)에 커밋만 있다. 결과 기록의 "F5~F7 전달 상태" 절을 먼저 처리한다. 워크트리를 지우지 말 것.
 
 ## 승인 상태 (사용자 원문, 2026-11-22)
 - 요청: "각 마스터들을 도화서원 사이트와 각 서비스의 진입화면을 보면 캐릭터들이 자연스럽게 움직이는 효과가 있는데 스프라이트 시트를 활용해서 부드럽게 움직이는 효과를 주도록해주고 … 전반적인 UI/UX를 이런식으로 고급스럽게 꿀꿀운세에 적용해주고 영냥이에도 어느정도 꽃 컨셉으로 배경이나 고급스러운 컨셉에 맞는 디자인으로 개선해줘 저 사이트처럼 영냥이도 어느정도 움직이면서 동적인 효과를 줘야해"
@@ -128,7 +128,7 @@ next: F5·F6·F7·G push 대기 — origin/main 이 녹색이 되면 워크트�
 - [x] F6 네오 — 45c0c758ea
 - [x] F7 영냥이 고양이 — f13075f36d (눈 깜빡임 부분 시트, 꼬리 없음, 미push)
 - [x] G 꿀꿀 고급화 — 워크트리 커밋 198529f859·87bbb3bfc7·c962ebac34·c06c7d5e39·08bf6bb6d4, 미push(결과 기록 "G 결과" 절)
-- [ ] H 영냥이 꽃 배경·동적 효과
+- [x] H 영냥이 꽃 배경·동적 효과 — 워크트리 0472265e4d·0675c85910·a31b4ab188·f633689175·087c4d8fce·bf637241f7, 미push(결과 기록 "H 결과" 절)
 - [ ] P 사이트 전반 UX 개선 프롬프트 작성(모든 작업 뒤). 사용자 원문(11-22): "내 사이트 진입부터 꿀꿀운세, 영냥이 사이트 전반을 업계 표준에 맞는 사용자가 이용하기 편리한 UI/UX로 개선해줄 프롬프트를 모든 작업 후 작성해줘"
   - 산출: `docs/prompts/2026-11-22-site-ux-standard.md`. 기존 형식은 `docs/prompts/2026-11-18-*`(03 UX)를 참고한다.
   - 다른 세션(Claude·Codex)이 그대로 실행할 마스터 프롬프트로 쓴다.
@@ -490,7 +490,8 @@ next: F5·F6·F7·G push 대기 — origin/main 이 녹색이 되면 워크트�
   - [미검증] 사람이 실제 120ms 재생을 눈으로 본 확인은 없다(정지 칸·차분만).
   - [추정] 반응 시트(mascot-reactions) 재생 중에는 패치를 숨기므로 두 시트가 겹치지 않는다. 다만 반응이 끝난 직후의 첫 깜빡임 타이밍은 재지 않았다.
 
-#### F5~F7 전달 상태 (2026-11-22) — push 보류 (G 도 같은 워크트리에 얹혀 함께 보류)
+#### F5~F7 전달 상태 (2026-11-22) — push 보류 (G·H 도 같은 워크트리에 얹혀 함께 보류)
+- H 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리 그대로 9e6866ce1e, push PR CI 44975100389 failure 그대로(새 실행 없음), Yeongnyangi Browser Shadow 는 최근 5개 머리(9e6866ce1e·099c462781·cbf29560d6·b43e97c003·ed8b080660) 모두 failure 인 기존 shadow 실패(42건 중 1건 TimeoutError). H 도 push 하지 않았다. H 뒤 pre-push 는 push 직전에 돈다.
 - G 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리 그대로 9e6866ce1e, PR CI failure·Yeongnyangi Browser Shadow failure 그대로. G 도 push 하지 않았다. G 커밋 뒤 pre-push 는 아직 안 돌렸다(push 직전에 돈다). G 쪽 check:fast(critical) 는 통과.
 - 워크트리 브랜치 커밋: 4559d30e31(F5) · 45c0c758ea(F6) · 0174f4d2bc(문서) · e4ef55f77b(origin/main 9e6866ce1e 머지, sitemap-lastmod 충돌은 theirs 뒤 `npm run sitemap:generate` 로 재생성, verify ok, sync:public 변경 없음) · b75a9e2464(문서) · f13075f36d(F7) · 이 문서 커밋. F5·F6 시점 `npm run check:pre-push` 통과. F7 뒤에는 pre-push 를 아직 안 돌렸다(push 직전에 돈다).
 - F7 뒤 1회 확인 [실측, 2026-11-22]: origin/main 머리는 그대로 9e6866ce1e, PR CI 44975100389 failure 그대로, 새 실행 없음. 같은 머리의 push "Yeongnyangi Browser Shadow" 44975100334 도 failure(shadow, 다른 세션 커밋). 그래서 F7 도 push 하지 않았다.
@@ -547,3 +548,36 @@ next: F5·F6·F7·G push 대기 — origin/main 이 녹색이 되면 워크트�
   7. perf:home `--route=yeongnyangi/`(dist·시뮬 Lighthouse 중앙값 3회) LCP·CLS 가 전 기준선보다 잡음 범위 이상 나빠지지 않는다. 전: 모바일 LCP 13861ms·CLS 0.007(점수 54), 데스크톱 2150ms·0.022(86). LCP 요소는 히어로 방 그림(3/3).
   8. visual-checker 항목별(분홍·대비·가림·정렬/잘림·고급감/일관성·모션 산만함 연속 프레임) 통과
   9. 불변: title·H1·canonical·가격·라우트·결제/이용권 게이트·보관함 분리, branch-spray 바이트, `gen-yehwa-motifs --check` 통과
+
+#### H 결과 (2026-11-22) — 미push(F5~G 와 함께 보류)
+- 커밋(워크트리): 187f27ff71(방향·성공 기준) · 0472265e4d(생성기 목련·연꽃 마스크) · 0675c85910(목련 마스크 철회) · a31b4ab188(랜딩 히어로) · f633689175(방 그림 + 정적 테스트) · 087c4d8fce(특별 상담 카드 금테) · bf637241f7(sitemap-lastmod) · CONTEXT_AUDIT·이 문서 커밋.
+- 바뀐 화면
+  - `/yeongnyangi/` 히어로(`NightHero.tsx`·`night-hero.module.css`): 고양이 칸 오른쪽 아래 모서리 **안쪽**에 금 잉크 연꽃 라인아트(`--yn-yehwa-mask-lotus`, 1100↓ 120×80, 900↓ `-sm` 90×60). 모바일(≤699)은 사진에 금빛 매화가 이미 있어 연꽃을 숨기고 198px 방 그림 상자 안에 모션만 둔다. 데스크톱 모션 범위는 오른쪽 46%·아래 96px 위.
+  - `/yeongnyangi/room/`(`Room.tsx`·`room.css`): 방 그림 왼쪽 아래 연꽃 `-sm` 70×47(900↑ clamp(84px,9vw,130px)), 380px 미만은 캡션과 겹쳐 숨김, `.room-garden > .room-garden-lotus` 로 bottom 6px(🔴 `.ynOriginal .room-garden > span` 0,2,1 이 0,2,0 을 이겨 첫 시도 미적용).
+  - 새 `NightBloomMotion`(app/yeongnyangi/_components): MasterPetals yeongnyangi sm 별가루(높이 200px 상자, 낙하 1.4배 느리게, 6px) + 아이보리→금 꽃잎 4레인(`--yn-bloom-tempo` 로 상자 높이 무관 초당 약 20px 이하). `useSpritePlaybackGate({enabled: MASTER_MOTION_ENABLED})` 닫히면 빈 span `data-motion="off"`. 키프레임은 transform·opacity 만, reduced-motion 은 `.root{display:none}`. aria-hidden.
+  - 특별 상담 카드 3장(`QuestionSpecialConsultations.module.css`): 비 hover·비 focus 테두리를 불투명 금 혼합(`color-mix(--yn-gold 70%, --yn-night)`, 대체값 #a5916f)으로. hover·focus·선택 상태는 그대로.
+- 계획과 달라진 결정 [실측]
+  - 목련 철회: v3·v4·v5 세 번 그려 visual-checker 가 매번 튤립·풍선으로 읽었다. 생성기에서 함수·마스크 변수를 지우고 🔴 주석만 남겼다. 꽃 모티프는 연꽃 하나.
+  - 카드 안쪽 4px 금 실선 철회: 32% 금 선이 남색 위에서 회색으로 읽히고 카드 구분선과 교차했다 → 바깥 테두리 색만 불투명 금으로(재판정 PASS).
+  - 진입 장면(`ServiceEntryScene`): 포스터→모션 페이드 없음(위 근거 1~3). 계획의 정적 모서리 꽃도 **넣지 않았다** — `styles/service-entry-scene.css` 가 index.html·public 미러 7개에 인라인되고 셸 캐시 키까지 바뀌는데 노출 ≤1.8초, 장면에 이미 금 아치·장식이 있고, 목련이 빠져 짝이 맞지 않는다. 그래서 sync:public 변경 없음.
+  - 색: 밝은 금·아이보리를 낮은 opacity 로 얹으면 남색 위 회색·보라 그림 위 모브로 물든다(판정 2회) → 진한 금 잉크(`--yn-gold 70% + #5a3a0a`)를 opacity .7(히어로)/.75(방).
+- 성공 기준 대비 [실측, dev 3140]
+  1. 분홍 0 — visual-checker PASS(새 장식 색상 33–37°).
+  2. 장식·모션 사각형 ∩ 글자·고양이 얼굴 = 0 — 히어로 390·768·900·1024·1280·1440, 방 360·390·900·1024·1280·1440 모두 0(768/900 히어로, 900 방, 390·360 방 충돌은 크기·위치 조정으로 해소).
+  3. 대비 — 7.5:1·12.17:1·16.24:1, 장식은 글 뒤를 지나지 않는다.
+  4. pageerror 0, 가로 넘침 0 — 위 전 폭.
+  5. reduced-motion — 모션 레이어 DOM 없음(별가루·꽃잎 0), 정적 연꽃은 보임.
+  6. 화면 밖 — 스크롤하면 `data-motion="off"`.
+  7. perf — 아래.
+  8. visual-checker 항목별: 모션(보임·산만함·reduced·멈춤/잘림) PASS, 분홍 PASS, 색(앤티크 금) PASS, 가림 PASS, 대비 PASS, 정렬 PASS(수정 뒤), 고급감 연꽃 PASS, 카드 PASS. 속도 DOM 실측 별가루 16–22px/s·꽃잎 9–14px/s.
+  9. 불변 — title·H1·canonical 동일(측정), 가격·라우트·결제/이용권·보관함 파일 미수정, branch-spray 바이트 그대로, `gen-yehwa-motifs --check` 통과.
+- perf:home `--route=yeongnyangi/` [실측, dist·시뮬 Lighthouse 중앙값 3회] 전(G 끝 dist 14:33) → 후(H dist 16:05): 모바일 점수 54→57·FCP 7833→6700ms·LCP 13861→12042ms(전 범위 12046–13932, 후 11879–13999)·CLS 0.007→0.007, 데스크톱 86→85·FCP 1238→1240·LCP 2150→2219ms(전 범위 2032–2236, 후 2201–2221)·CLS 0.022→0.022. LCP 요소는 전후 모두 히어로 방 그림(3/3). 잡음 범위 안, 모션 레이어는 CLS 를 늘리지 않았다.
+  - 🔴 build:cf 의 no-dev-server 가드는 **다른 체크아웃**의 dev 서버(포트 3217, 01:50 시작)까지 잡는다. 워크트리 `.next` 는 정션이 아닌 자체 폴더이고 3분간 쓰기 0 을 확인한 뒤 `ALLOW_DEV_SERVER_DURING_BUILD=1` 로 빌드했다. 가드에 막힌 채 perf 를 돌리면 낡은 dist 를 잰다(첫 시도 폐기).
+- 검사 [실측]: `check:fast`(critical, base 0472265e4d~1) EXIT 0 — paid-gate-suite 78/78, lint, verify:sitemap-drift OK(1088), typecheck, test:node 5798/5798, verify 묶음·build:worker·entry-encoding, test:jest 490 suites 8553 pass·1 skipped. BLOCKED 줄은 mock 테스트 로그의 LLM_CONTENT_BLOCKED 코드 1건뿐(게이트 차단 아님).
+- SEO: title/description/H1/canonical/robots/hreflang 영향 없음, 장식은 aria-hidden span·CSS 마스크라 새 이미지·URL 없음. sitemap:generate 뒤 verify:sitemap-drift OK(1088 URL, signature 약 22건).
+- 정적 테스트 `__tests__/ui/yeongnyangi-night-bloom.static.test.mjs` 3/3. 변이(키프레임에 `top`)로 1 fail 확인.
+- 남은 위험
+  - [실측] 1280 에서 입자가 오른쪽 그림 영역에만 보인다(의도된 범위). 고급감 판정 경미: 작은 표류 원·연잎이 약간 클립아트 쪽.
+  - [실측] 카드 3번 윗변은 복잡한 그림 앞에서 약하다. hover 차이 약 1.5:1(배경·구분선도 함께 바뀐다).
+  - [미검증] 실기기 GPU 부하·배터리, 사람 눈 연속 재생 확인(연속 프레임 판정만).
+- 후속 보고(범위 밖, 고치지 않음): 랜딩 ggulggul-bridge 모브 톤, room.css L90 측면 탭, 히어로 오른쪽 위 기존 직선 가지 장식, 기존 특별 상담 그림 속 분홍 하트·분홍 타로 카드(자산 자체).
