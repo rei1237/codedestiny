@@ -73,6 +73,12 @@ export default function DiaryCalendarView() {
         <div className={styles.periodButtons}><button type="button" className={styles.iconButton} onClick={()=>move(-1)} disabled={!parts} aria-label="이전 기간"><ChevronLeft size={20}/></button><button type="button" className={styles.iconButton} onClick={()=>move(1)} disabled={!parts} aria-label="다음 기간"><ChevronRight size={20}/></button></div>
       </div>
       <h3 className={styles.periodTitle}>{title}</h3>
+      <label className={styles.dateJump}>날짜로 이동
+        <input type="date" value={date} disabled={!hydrated} onChange={event=>{
+          const next=event.currentTarget.value;
+          if(parseYmd(next))select(next);
+        }}/>
+      </label>
       <p className={styles.hint}>{events.length}개의 일정 · 기록 {marks.noteDays}일</p>
       {mode==="month"&&<>
         <div className={styles.weekdayHead} aria-hidden="true">{[0,1,2,3,4,5,6].map(day=><span key={day}>{weekdayLabel(day)}</span>)}</div>
@@ -85,6 +91,14 @@ export default function DiaryCalendarView() {
             <span className={styles.cellMarks}>{mark?.note&&<NotebookPen size={13} aria-hidden="true"/>}{todos.some(todo=>todo.done)&&<Check size={13} aria-hidden="true"/>}</span>
           </button>;
         })}</div>
+        {marks.noteDays>0&&<details className={styles.monthIndex}>
+          <summary>기록한 날 모아보기 · {marks.noteDays}일</summary>
+          <div>{dates.filter(day=>marks.byYmd[day]?.note).map(day=>(
+            <button type="button" key={day} onClick={()=>{select(day);setDetail(true);}}>
+              {Number(day.slice(8))}일 · {weekdayLabel(weekdayIndex(day))}요일
+            </button>
+          ))}</div>
+        </details>}
       </>}
       {mode==="week"&&<div className={styles.weekGrid}>{dates.map(day=><button type="button" key={day} className={styles.weekDay} aria-pressed={date===day} onClick={()=>select(day)}>
         <strong>{weekdayLabel(weekdayIndex(day))} <span>{Number(day.slice(8))}</span></strong>

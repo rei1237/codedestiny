@@ -5,6 +5,7 @@ import DiaryFlowCard from "./_components/DiaryFlowCard";
 import DiaryPlanCard from "./_components/DiaryPlanCard";
 import DiarySelfCard from "./_components/DiarySelfCard";
 import styles from "./_styles/diary.module.css";
+import Link from "next/link";
 
 /**
  * 다이어리 홈. 오늘의 기록은 운명 카드 안에 두고 흐름·나·계획은 아래에 이어 둔다.
@@ -15,6 +16,14 @@ import styles from "./_styles/diary.module.css";
 export default function DiaryHomePage() {
   return (
     <>
+      <section className={styles.gardenCover} aria-label="달빛 정원 다이어리">
+        <h2>나의 달빛 기록장</h2>
+        <div className={styles.bookmarks}>
+          <a href="#diaryJournalTitle">오늘 한 줄 쓰기</a>
+          <Link href="/diary/calendar/">달력 펼치기</Link>
+          <Link href="/diary/records/">지난 기록 읽기</Link>
+        </div>
+      </section>
       <DiaryFlowCard />
       <div className={styles.todayLayout}>
         <DiaryPlanCard />
