@@ -6,7 +6,7 @@ import { recordsCopy } from '@/lib/records/copy';
 import styles from './records.module.css';
 import neoTheme from '@/src/features/neo-war-room/neo-operation-room-result.module.css';
 export const recordButton = styles.button;
-export default function RecordFrame({ title, lead, children, view = 'library', reading = '', paymentSurface = 'web' }: { title: string; lead?: string; children: ReactNode; view?: 'library' | 'hub' | 'result'; reading?: string; paymentSurface?: 'web' | 'toss' }) {
+export default function RecordFrame({ title, lead, children, view = 'library', reading = '', cover, paymentSurface = 'web' }: { title: string; lead?: string; children: ReactNode; view?: 'library' | 'hub' | 'result'; reading?: string; cover?: 'garden' | 'neo'; paymentSurface?: 'web' | 'toss' }) {
   const c = recordsCopy(useLocale());
   return <main className={`${styles.page} ${view === 'library' ? styles.lightFrame : `${neoTheme.savedDocuments} ${styles.nightFrame}`}`} data-record-view={view} data-reading-family={reading || undefined}>
     <div className={styles.frame}>
@@ -14,8 +14,9 @@ export default function RecordFrame({ title, lead, children, view = 'library', r
         <a className={styles.back} href={view === 'result' ? '/records/' : paymentSurface === 'toss' ? '/' : '/ggulggul/'}><ArrowLeft size={18} aria-hidden />{view === 'result' ? c.back : c.home}</a>
         {paymentSurface === 'toss' ? view === 'result' && <a className={styles.back} href="/"><ArrowLeft size={18} aria-hidden />{c.home}</a> : <a className={styles.back} href={view === 'hub' ? '/records/' : '/consultations/'}>{view === 'hub' ? <Archive size={18} aria-hidden /> : <MessageCircleHeart size={18} aria-hidden />}{view === 'hub' ? c.title : c.hub}</a>}
       </nav>
-      <header className={styles.heading}>
+      <header className={styles.heading} data-reading-cover={cover}>
         <div><h1>{title}</h1>{lead && <p>{lead}</p>}</div>
+        {cover && <img className={styles.resultArt} src={cover === 'neo' ? '/images/records/neo-reading-320.webp' : '/images/yeoni/garden/yeoni-library-moonlight-v1-640.webp'} width={cover === 'neo' ? 320 : 640} height={cover === 'neo' ? 320 : 427} alt="" decoding="async" />}
         {view === 'library' && <img src="/images/yeoni/garden/yeoni-library-moonlight-v1-640.webp" srcSet="/images/yeoni/garden/yeoni-library-moonlight-v1-640.webp 640w, /images/yeoni/garden/yeoni-library-moonlight-v1-960.webp 960w" sizes="(max-width: 680px) 100vw, 460px" alt="" width="640" height="427" className={styles.libraryArt} />}
         <span className={styles.flower} aria-hidden="true" />
       </header>

@@ -60,7 +60,7 @@ export default function SavedRecordClient() {
   }, [detail, source, id]);
   const complete = Boolean(detail && isCompleteRecord(detail.record));
   const freeFeature = detail && locale === 'ko' ? savedRecordFreeFeature(detail.record) : null;
-  return <RecordFrame title={detail?.record.title || c.result} lead={detail?.record.serviceName} view="result" reading={readingView(source, detail?.record.serviceId || "").family}>
+  return <RecordFrame title={detail?.record.title || c.result} lead={detail?.record.serviceName} view="result" cover={detail && !error ? (detail.record.character === 'neo' || source === 'neo' ? 'neo' : 'garden') : undefined} reading={readingView(source, detail?.record.serviceId || "").family}>
     {auth.status === 'error' || auth.status === 'temporarilyOffline' ? <section role="alert" className="space-y-3"><h2 className="text-xl font-semibold">{c.error}</h2><button className={recordButton} onClick={() => void refreshAuth({silent:true}).catch(() => {})}>{c.retry}</button></section> : auth.authReady && !auth.isAuthenticated ? <section className="space-y-3"><h2 className="text-xl font-semibold">{c.loginTitle}</h2><p>{c.loginLead}</p><a className={recordButton} href={`/login/?next=${encodeURIComponent(`/records/view/?source=${encodeURIComponent(source)}&id=${encodeURIComponent(id)}`)}`}>{c.login}</a></section> : <>
       {loading && <p role="status">{c.loading}</p>}
       {error && <section role="alert" className="space-y-3"><h2 className="text-xl font-semibold">{error}</h2><button className={recordButton} onClick={() => setRetry(old => old + 1)}>{c.retry}</button></section>}
