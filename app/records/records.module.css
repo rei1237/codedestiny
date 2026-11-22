@@ -177,7 +177,7 @@
 .consultation[data-service='fusion'] .consultFormat { border-left: 2px solid var(--cd-accent); padding-left: 12px; }
 
 /* The 꿀꿀운세 archive follows Yeoni's moonlit garden; saved readings keep their native palette. */
-.lightFrame {
+.lightFrame, .letterFrame {
   color-scheme: light;
   --record-paper: #fffaf7;
   --record-wash: #fff3f8;
@@ -197,7 +197,19 @@
   accent-color: var(--record-rose);
   scrollbar-color: var(--record-blush) var(--record-paper);
 }
-.lightFrame ::selection { background: var(--record-blush); color: var(--record-ink); }
+.lightFrame ::selection, .letterFrame ::selection { background: var(--record-blush); color: var(--record-ink); }
+.letterFrame {
+  --cd-bg: var(--record-paper);
+  --cd-surface: var(--record-surface);
+  --cd-text: var(--record-ink);
+  --cd-text-muted: var(--record-secondary);
+  --cd-border: var(--record-border);
+  --cd-accent: var(--record-rose);
+  --cd-accent-soft: var(--record-wash);
+  --cd-yehwa-line: var(--record-border);
+  --cd-yehwa-line-deep: var(--record-gold);
+}
+.letterFrame .readingActions a:hover { border-color: var(--record-rose); }
 .lightFrame .navigation { margin-bottom: 18px; }
 .lightFrame .back { color: var(--record-secondary); }
 .lightFrame .back:hover { color: var(--record-rose); }
@@ -270,8 +282,28 @@
 .lightFrame .recordMeta strong { color: var(--record-rose); }
 .lightFrame .record h2 { color: var(--record-ink); font-weight: 700; }
 .lightFrame .recordQuestion, .lightFrame .recordFooter time { color: var(--record-secondary); }
-.lightFrame .recordFooter .button { border-color: var(--record-rose); color: var(--record-rose); font-weight: 700; }
-.lightFrame .recordFooter .button:hover { color: var(--record-paper); background: var(--record-rose); }
+.recordActions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.recordOpen, .recordReview {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: .875rem;
+  font-weight: 700;
+}
+.recordOpen {
+  padding: 8px 16px;
+  border-radius: var(--cd-r-pill);
+  background: var(--record-rose);
+  color: var(--record-paper);
+  text-decoration: none;
+}
+.recordReview { color: var(--record-rose); text-decoration: underline; text-underline-offset: 4px; }
+@media (hover: hover) {
+  .recordOpen:hover { background: var(--record-ink); color: var(--record-paper); }
+  .recordReview:hover { color: var(--record-ink); }
+}
 .lightFrame [role='alert'], .lightFrame [role='status'] { border-color: var(--record-border); }
 .emptyState { display: grid; justify-items: start; gap: 12px; padding: 28px; border: 1px solid var(--record-border); border-radius: var(--cd-r-card); background: var(--record-surface); }
 .emptyState img { width: 112px; height: 112px; object-fit: contain; border-radius: var(--cd-r-md); }
@@ -345,17 +377,17 @@
 }
 @media (max-width: 680px) {
   .lightFrame .navigation { margin-bottom: 12px; }
-  .lightFrame .heading { display: block; min-height: 0; padding: 190px 20px 26px; margin-bottom: 24px; }
+  .lightFrame .heading { display: block; min-height: 0; padding: 128px 20px 22px; margin-bottom: 20px; }
   .lightFrame .heading::before { background: linear-gradient(180deg, transparent 2%, transparent 42%, var(--record-wash) 68%); }
   .lightFrame .heading > div { max-width: none; }
   .lightFrame .heading h1 { font-size: var(--cd-t-display); }
   .lightFrame .heading p { margin-top: 8px; }
-  .lightFrame .libraryArt { inset: 0 0 auto; width: 100%; height: 210px; object-position: center 48%; }
+  .lightFrame .libraryArt { inset: 0 0 auto; width: 100%; height: 154px; object-position: center 44%; }
   .lightFrame .flower { right: 8px; bottom: 3px; width: 110px; }
   .lightFrame .record { grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 14px; }
   .lightFrame .recordArt, .lightFrame .recordSymbol { width: 64px; height: 84px; }
   .lightFrame .recordFooter { margin-top: 10px; }
-  .lightFrame .recordFooter .button { min-height: 44px; }
+  .recordActions { gap: 6px 12px; }
 }
 .readingNext { display: grid; gap: 12px; margin-top: 20px; color: var(--cd-text-muted, inherit); }
 .readingNext p { margin: 0; line-height: 1.6; }

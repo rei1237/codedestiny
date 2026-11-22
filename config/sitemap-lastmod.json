@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "31c905933cfbbac5",
+      "signature": "588647f6a16f6da9",
       "lastmod": "2026-11-22"
     },
     "/about/": {
@@ -67,7 +67,7 @@
       "lastmod": "2026-11-19"
     },
     "/destiny-compass/": {
-      "signature": "241762d3e7d1357c",
+      "signature": "bedb210cd8a5517b",
       "lastmod": "2026-11-22"
     },
     "/disclaimer/": {
@@ -607,7 +607,7 @@
       "lastmod": "2026-11-20"
     },
     "/fortune-tea-house/": {
-      "signature": "55904dd728b97207",
+      "signature": "5f6b593b2239fe64",
       "lastmod": "2026-11-22"
     },
     "/fortune/": {
@@ -1831,7 +1831,7 @@
       "lastmod": "2026-11-22"
     },
     "/new-year-ai-consultation/": {
-      "signature": "a57a26b0fa097f8c",
+      "signature": "bac0c5bb525bea5c",
       "lastmod": "2026-11-22"
     },
     "/oracle/hwatu-life/": {
@@ -2431,7 +2431,7 @@
       "lastmod": "2026-11-18"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "bbf6a3f03bebdea8",
+      "signature": "873c8c4b5e5916a4",
       "lastmod": "2026-11-22"
     },
     "/sukuyo/": {
@@ -2467,7 +2467,7 @@
       "lastmod": "2026-11-22"
     },
     "/tarot/mindscan/": {
-      "signature": "2dcdb57b2a5513ba",
+      "signature": "8d6e234f84fd26d9",
       "lastmod": "2026-11-22"
     },
     "/tarot/mingri/": {
@@ -2503,7 +2503,7 @@
       "lastmod": "2026-11-23"
     },
     "/vedic-ai/": {
-      "signature": "17bb94b27df85202",
+      "signature": "da2ecfeef4f7143f",
       "lastmod": "2026-11-22"
     },
     "/vedic/": {
@@ -3527,7 +3527,7 @@
       "lastmod": "2026-11-19"
     },
     "/ziwei-ai/": {
-      "signature": "854d7712b825af64",
+      "signature": "7f26cc34de699f51",
       "lastmod": "2026-11-22"
     },
     "/ziwei/": {
