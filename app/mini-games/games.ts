@@ -19,4 +19,3 @@ export const GAMES: ReadonlyArray<MiniGame> = [
   { slug: "saju-fpti", name: "사주 FPTI", href: "/saju-fpti/", desc: "오행·십성 4축으로 보는 성향", badge: "무료" },
   { slug: "psychotest", name: "심리테스트", href: "/psychotest/", desc: `성격·연애·직장 테마 ${PSYCHOTESTS.length}종`, badge: "무료" },
 ];
-
