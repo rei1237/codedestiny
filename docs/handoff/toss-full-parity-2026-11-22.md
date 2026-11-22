@@ -1,7 +1,7 @@
 ---
 status: in-progress
-updated: 2026-11-22
-next: 방·모자·오늘/내일 타로·요리 웹툰 통합 모의판의 중복 원화 제거를 검증하고, 마음 별자리·달빛 연화당·미니게임을 합쳐 독립 검수한 다음 Linux 일반·모의 AIT와 비공개 QR을 확보한다.
+updated: 2026-11-23
+next: 11월 23일 통합 소스의 로컬 검사와 main 집계 복구를 마친 뒤 비배포 CI에서 같은 SHA의 Linux 일반·모의 AIT를 검증하고 모의판의 미제출 QR을 확인한다.
 ---
 
 # ai-saju-studio 전체 이식
@@ -60,3 +60,11 @@ next: 방·모자·오늘/내일 타로·요리 웹툰 통합 모의판의 중�
 - 남은 첫 작업은 생성된 공개 미러 8개 및 sitemap 검증을 마치고 커밋, check:pre-push와 전체 targeted gate 로그 확인 후 병합·main 푸시·Linux 일반과 모의 AIT의 보관·미제출 비공개 QR 검증이다. 검증 프로세스 출력은 D:/Development/Temp/toss-parity-gate-final3.log. 이전 시간 제한 케이스는 단독 3/3 통과했다. 운영 배포·공개·환불 약속·약관 조작 금지.
 - 미러·sitemap cfedf06452 및 pre-push 통과. 작성 시점 기존 origin/main(29550bf9e8) CI 44972161006이 데스크톱 웹 사주 카드 노출 검사에서 실패했다. 동일 소스의 실패한 검사만 재실행했다. 이 실패가 유지되는 동안 다른 사람의 빨간 커밋 위에 push하지 않는다. 현재 작업의 로컬 모의 Node 검사 5,795건 통과, 최신 콘솔 로그인 설정 및 mTLS 만료일은 출시 준비 점검 문서 참조.
 - 11:13 KST 기존 29550bf9e8의 CI 재실행 성공. 같은 데스크톱 회귀 검사도 로컬 통과. `CD_NODE_TEST_CONCURRENCY=5 npm run check:fast -- --base=origin/main` 종료 0(Node 5,795, Jest 8,553 통과·1 skipped), 최종 커밋 pre-push 통과. 9e6866ce1e를 정상 FF push한 뒤 main push CI 44975100389와 별도 Linux 산출물 실행 44975122943을 확인했다. 두 번째 실행은 이미 제출되어 있으므로 재요청하지 않는다. 일반/모의 AIT의 Windows 검사는 둘 다 100MB 미만이며 일반판 JS 429개에 모의 API 문자열 0개를 확인했다.
+
+## 11월 23일 재개 기록
+
+- 사용자 승인 “검토 제출이나 공개 출시는 하지 마.” Linux 일반·모의 AIT와 비공개 QR까지 검증한다. 같은 날 “집계만 별도 복구”를 승인했다. 달빛 서재 집계 파일 한 개는 토스 소스와 분리해서 전달한다.
+- 원래 main CI 45024055327은 공개 URL 집합이 같은 상태에서 sitemap.xml 및 한국어·public 미러의 메타데이터와 lastmod 원장이 달라 실패했다. 재생성 7b40f55c11의 CI 45035975899 성공. 이후 cbfeadaa6b의 CI 45039314762는 공개 미러 검사 전에 docs/design/moon-library/insight-audit.json이 변경된 상태여서 실패했다.
+- 토스 전용 워크트리의 fbdce9449a 통합판에서 Windows 모의 AIT 01a203ca-800c-7f53-a26b-99fa7c15a831(압축 해제 96,643,617B, SHA256 499a0515dcf48a3e6b1e837de4a1e3cc0c6ab4e9a7216133a84610a5a13edbcc)로 꽃 아틀리에·달빛 연화당·미니게임·마음 별자리·요리·방·모자·당일 타로 8개 검사를 통과했다. 일반판 01a203f8은 99,867,224B. 두 파일은 Windows 빌드이며 콘솔 업로드 대상에서 제외한다.
+- cbfeadaa6b 병합 시 영냥이 방의 밤꽃·마스코트 눈깜빡임과 토스 그림 크기, 신규 세션·라우트 모의 검사 양쪽을 보존했다. 관련 Node 검사 97/97 통과. 병합 fb10f5d6e0, 공백 수정 64c336430d. 이 병합 기준의 일반판은 101,282,848B로 100MB 검사를 실패했다. 토스 화면에 쓰는 카드 78장만 원본 해상도를 유지하고 WebP 품질 86으로 재인코딩해 2,087,938B 절감을 실측했다.
+- 이 시점의 검사 로그는 전용 워크트리의 .tmp/toss-linux-source-check-2.log, .tmp/resume-regular-86.log, .tmp/resume-private-merged.log에 남긴다. Linux 산출물·콘솔 QR·실기기 결과는 아직 미검증이다.
