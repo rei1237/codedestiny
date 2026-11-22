@@ -345,6 +345,13 @@ ${periodLinkBlocks}
     <div class="fi-chiplist">
 ${NEW_YEAR_SIGNS.map((sign) => `      <a class="fi-chip" href="${esc(NEW_YEAR_SEASON.path)}/${esc(sign.id)}/">${esc(sign.name)}</a>`).join("\n")}
     </div>
+    <p class="fi-lead">띠와 함께 자주 찾는 민속 기준은 표로 따로 정리했습니다. 이사 날짜를 고를 때 보는 손없는날, 삼재가 드는 해, 년생별 띠와 나이, 띠끼리의 궁합입니다.</p>
+    <div class="fi-chiplist">
+      <a class="fi-chip" href="/fortune/son-eomneun-nal/">손없는날 달력</a>
+      <a class="fi-chip" href="/fortune/samjae/">삼재띠 계산표</a>
+      <a class="fi-chip" href="/fortune/tti-age/">띠 나이표</a>
+      <a class="fi-chip" href="/compatibility/tti/">띠궁합표</a>
+    </div>
   </section>
 
   <section class="fi-section" id="method">
