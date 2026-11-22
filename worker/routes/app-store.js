@@ -671,6 +671,12 @@ async function fetchGooglePurchase(env, { packageName, productId, productType, p
 
 async function verifyGooglePurchase(env, { packageName, productId, productType, purchaseToken }) {
   const payload = await fetchGooglePurchase(env, { packageName, productId, productType, purchaseToken });
+  if (cleanText(getEnv(env, "APP_ENV")).toLowerCase() === "staging" && payload.purchaseType !== 0) {
+    const error = new Error("스테이징에서는 Google Play 테스트 구매만 확인할 수 있어요.");
+    error.code = "GOOGLE_PLAY_TEST_PURCHASE_REQUIRED";
+    error.status = 409;
+    throw error;
+  }
   if (!isVerifiedPurchase(payload, productType)) {
     const error = new Error("Google Play purchase is not in a paid state.");
     error.code = "GOOGLE_PLAY_PURCHASE_NOT_PAID";
