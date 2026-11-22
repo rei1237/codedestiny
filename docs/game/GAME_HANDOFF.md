@@ -18,6 +18,8 @@ next: 실제 모바일에서 4단계 전투 조작과 연출을 점검하고, �
 - `node scripts/verify-card-rpg-choreography.cjs`는 Chromium에서 같은 시드와 행동으로 1배·2배·간소 결과, 턴 복원, 기명 필살기, 다단 피해와 승리 후 복귀를 검사한다. [실제 플레이 영상](D:/Development/captures/card-rpg-step04-motion/moka-release.webm) · [필살기 선택](D:/Development/captures/card-rpg-step04-motion/release-hand.png) · [모카 컷인](D:/Development/captures/card-rpg-step04-motion/moka-release.png)
 - 800×360, 844×390, 915×412, 1024×768, 1280×720 및 세로 390×844에서 일반 카드 5장과 필살기 3개의 터치 폭·높이가 각각 44px 이상임을 검사했다. 가로 다섯 규격에서 여덟 버튼이 모두 화면 안에 들어왔다.
 - Chromium에서 실제 근접 공격자의 전진 거리, 다단 피해 중 표적 이미지 개수와 HP를 확인했다. `node scripts/verify-card-rpg-art.cjs --browser`에서 11가지 외형 × 11가지 상태와 간소 모션을 검사했고 `npm run typecheck`도 통과했다. [근접 공격 화면](D:/Development/captures/card-rpg-step04-motion/melee-approach.png)
+- 일회용 개발 프로필에 레벨 1 동료 셋으로 편성을 저장한 뒤 실제 보스전에서 매 턴 약한 카드 한 장을 선택했다. 전열 전투불능 → 패배 결과 → 로비 복귀를 확인했다. [패배 결과](D:/Development/captures/card-rpg-step04-motion/defeat.png)
+- 저장소 통합 검사에서 결제 관련 78개, 변경 파일 린트·타입 검사가 통과했다. 전체 Node 검사에서는 이전 단계에도 실패한 외국어 운세 이름 검사(`__tests__/fortune/sky-and-range.test.mjs`)가 재현됐다. [4단계 검사 로그](D:/Development/captures/card-rpg-step04-motion/check-fast.log)
 - 이번 영상은 PC Chromium 844×390에서 녹화했다. 실제 스마트폰과 일곱 전투 버전 각각의 브라우저 영상은 미검증이다. 연습은 개발 데이터이고 운영 자산을 지급하거나 차감하지 않는다.
 
 ## 이전 단계별 인수인계
