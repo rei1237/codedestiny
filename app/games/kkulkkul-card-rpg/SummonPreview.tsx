@@ -14,6 +14,7 @@ import CharacterCard from "./CharacterCard";
 import { definitions } from "./formation";
 import s from "./summon.module.css";
 import { applySummon } from "./collection";
+import WalletSummon from "./WalletSummon";
 
 type Phase =
   | "banner"
@@ -33,6 +34,8 @@ type Session = {
   due: number;
   fast: boolean;
   run: string;
+  settled?: boolean;
+  settlement?: { balance: number; cost: number; guarantee?: number; shards: number[] };
   cards: Awaited<ReturnType<typeof applySummon>>;
 };
 const initial: Session = {
@@ -44,6 +47,8 @@ const initial: Session = {
   retried: false,
   due: 0,
   fast: false,
+  settled: false,
+  settlement: undefined,
   run: "",
   cards: [],
 };
@@ -239,12 +244,17 @@ function DevelopmentSummon({ scope, balance, still, go }: PreviewProps) {
   };
   return (
     <div className={s.summon} data-phase={phase} data-still={instant}>
-      <p className={s.notice}>개발용 소환 미리보기 · 실제 월정석 사용 없음</p>
+      <p className={s.notice}>{session.settled?"격리 테스트 계정 · 월정석 원장 정산 완료":"개발용 소환 미리보기 · 실제 월정석 사용 없음"}</p>
       <h2 ref={heading} tabIndex={-1}>
         {labels[phase]}
       </h2>
       {phase === "banner" && (
         <>
+          <WalletSummon scope={scope} id={id} reveal={(receipt, cards) => update({
+            id: receipt.id, n: receipt.count, run: receipt.key, cards, settled: true,
+            settlement: { balance: receipt.balance, cost: receipt.cost, guarantee: receipt.guarantee, shards: receipt.cards.map((card) => card.shards) },
+            phase: "reveal", scenario: "normal", index: 0,
+          })}/>
           <div className={s.tabs}>
             {(["character", "relic"] as const).map((tab) => (
               <button
@@ -435,8 +445,12 @@ function DevelopmentSummon({ scope, balance, still, go }: PreviewProps) {
       {phase === "results" && (
         <>
           <p>
-            {banner.label} {n}장 · 실험 후 잔액 {cost.after}개 · 보장{" "}
-            {results[n - 1].pity} / {banner.guarantee}
+            {banner.label} {n}장 · {session.settled
+              ? session.settlement
+                ? `월정석 ${session.settlement.cost}개 사용 · 정산 직후 잔액 ${session.settlement.balance}개`
+                : "테스트 원장에서 소환 이력을 확인하세요."
+              : `실험 후 잔액 ${cost.after}개`} · 보장 {results[n - 1].pity}
+            {(!session.settled || session.settlement?.guarantee) && ` / ${session.settled ? session.settlement?.guarantee : banner.guarantee}`}
           </p>
           <div className={s.results}>
             {results.map((r, i) => (
@@ -455,7 +469,7 @@ function DevelopmentSummon({ scope, balance, still, go }: PreviewProps) {
                 )}
                 <b>{r.entry.name}</b>
                 <small>
-                  {r.duplicate ? "기존 보유 · 조각 +" + banner.shards : "NEW"} ·
+                  {r.duplicate ? session.settled && id === "relic" ? "별도 예장 획득" : "기존 보유 · 조각 +" + (session.settlement?.shards[i] ?? banner.shards) : "NEW"} ·
                   상세 보기
                 </small>
               </button>
@@ -482,7 +496,7 @@ function DevelopmentSummon({ scope, balance, still, go }: PreviewProps) {
               <p>{result.entry.role}</p>
               <b>
                 {result.duplicate
-                  ? "중복 보상 · 실험용 조각 " + banner.shards + "개"
+                  ? session.settled && id === "relic" ? "추가 획득 · 개별 장착 가능" : "중복 보상 · 실험용 조각 " + (session.settlement?.shards[index] ?? banner.shards) + "개"
                   : "NEW · 첫 실험 획득"}
               </b>
               {result.guaranteed && <p>픽업 보장 적용</p>}

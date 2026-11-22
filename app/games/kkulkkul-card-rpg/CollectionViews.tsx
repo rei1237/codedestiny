@@ -5,11 +5,16 @@ import {
   variants,
   equipment,
   costumeArt,
+  costumes,
+  availableCostumes,
+  unitStats,
+  gearStats,
   type GearId,
 } from "./formation";
 import { loadCollection, setCostume, type Collection } from "./collection";
 import { banners } from "./summon-preview";
 import CharacterCard from "./CharacterCard";
+import { battleKit, skillDefinitions } from "./battle-data";
 import PartyEditor from "./PartyEditor";
 import { CharacterRoom } from "./character-room";
 import s from "./collection.module.css";
@@ -19,7 +24,9 @@ type Props = {
   screen: "cast" | "team" | "relic";
   target: string;
   hero: number;
-  chooseHero: (i: number) => void;
+  chooseHero: (i: number, battleVariantId?: string) => void;
+  heroVariant: string;
+  depart: (preset: number) => void;
   go: (id: "team" | "relic" | "cast", target: string) => void;
   still: boolean;
   metYeon: boolean;
@@ -68,7 +75,9 @@ function Library({
   screen,
   target,
   hero,
+  heroVariant,
   chooseHero,
+  depart,
   go,
   still,
   metYeon,
@@ -117,9 +126,18 @@ function Library({
         (unitFor(b.battleVariantId)?.acquired ?? -1) -
         (unitFor(a.battleVariantId)?.acquired ?? -1),
     );
-  const gear = equipment[gearId],
-    item = data.items.find((e) => e.equipmentDefinitionId === gearId);
-  const sceneMet = v.baseCharacterId === "yeon" && metYeon;
+  const matching = data.items.filter((i) => i.equipmentDefinitionId === gearId);
+  const [instance, chooseInstance] = useState(target);
+  const item =
+    matching.find((i) => i.ownedEquipmentId === instance) ?? matching[0];
+  const gear = item ? gearStats(item) : equipment[gearId],
+    stats = unitStats(v, u?.level);
+  const kit = battleKit(v.battleVariantId, v.baseCharacterId);
+  const story = data.campaign;
+  const sceneMet =
+    (v.baseCharacterId === "yeon" && (metYeon || !!story?.read?.length)) ||
+    (v.baseCharacterId === "neo" &&
+      (story?.node === "guardian" || story?.read?.includes("guardian")));
   const worn = u
     ? data.formations.flatMap((f, i) =>
         f.slots
@@ -155,6 +173,7 @@ function Library({
           scope={scope}
           data={data}
           target={target}
+          depart={depart}
           preset={preset}
           onPreset={setPreset}
           onSaved={setData}
@@ -185,7 +204,29 @@ function Library({
           </aside>
           <section>
             <h3>{gear.name}</h3>
-            <p>게임 각색 예장 · 장착 1슬롯</p>
+            <p>
+              게임 각색 예장 · 장착 1슬롯
+              {item &&
+                " · Lv." +
+                  (item.level ?? 1) +
+                  " · 한계 돌파 " +
+                  (item.breaks ?? 0)}
+            </p>
+            {matching.length > 1 && (
+              <label>
+                보유 예장 선택
+                <select
+                  value={item.ownedEquipmentId}
+                  onChange={(e) => chooseInstance(e.target.value)}
+                >
+                  {matching.map((x, i) => (
+                    <option key={x.ownedEquipmentId} value={x.ownedEquipmentId}>
+                      보관 {i + 1} · Lv.{x.level ?? 1}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <img
               className={s.gearArt}
               src={banners.relic.entries.find((e) => e.id === gearId)!.art}
@@ -209,7 +250,12 @@ function Library({
           </section>
         </div>
       ) : room && u ? (
-        <CharacterRoom v={v} still={still} close={() => setRoom(false)} />
+        <CharacterRoom
+          v={v}
+          still={still}
+          costumeId={u.costumeId}
+          close={() => setRoom(false)}
+        />
       ) : (
         <div className={s.workspace}>
           <aside>
@@ -272,7 +318,11 @@ function Library({
               {list.map((x) => (
                 <button
                   key={x.battleVariantId}
-                  aria-label={x.name + " 카드"}
+                  aria-label={
+                    x.name +
+                    (x.edition === "기본 전투 버전" ? "" : " " + x.edition) +
+                    " 카드"
+                  }
                   aria-pressed={x === v}
                   onClick={() => {
                     select(x.battleVariantId);
@@ -284,6 +334,7 @@ function Library({
                     costume={unitFor(x.battleVariantId)?.costumeId}
                   />
                   <small>
+                    {x.edition !== "기본 전투 버전" && x.edition + " · "}
                     {unitFor(x.battleVariantId)
                       ? "보유 · Lv." + unitFor(x.battleVariantId)!.level
                       : "미소유"}
@@ -295,7 +346,7 @@ function Library({
           </aside>
           <section>
             <h3>
-              {v.name} <small>기본 전투 버전</small>
+              {v.name} <small>{v.edition}</small>
             </h3>
             <p>
               {u
@@ -322,10 +373,12 @@ function Library({
                     companions.findIndex(
                       (c) => c.speaker === v.baseCharacterId,
                     ),
+                    u?.battleVariantId,
                   )
                 }
               >
-                {companions[hero].speaker === v.baseCharacterId
+                {companions[hero].speaker === v.baseCharacterId &&
+                heroVariant === v.battleVariantId
                   ? "현재 로비 대표"
                   : "로비 대표 지정"}
               </button>
@@ -338,7 +391,7 @@ function Library({
               <div>
                 <b>{v.role}</b>
                 <p>
-                  HP {v.hp} · 공격 {v.atk}
+                  HP {stats.hp} · 공격 {stats.atk}
                 </p>
                 <p>{v.deck.join(" / ")}</p>
               </div>
@@ -352,19 +405,51 @@ function Library({
                 onChange={(e) => wear(e.target.value)}
               >
                 <option value="default">기본 의상</option>
-                {v.baseCharacterId === "moka" && (
-                  <option value="moka-apron">축제 앞치마</option>
-                )}
+                {Object.entries(costumes)
+                  .filter(([, c]) => c.variantId === v.battleVariantId)
+                  .map(([id, c]) => {
+                    const unlocked = u && availableCostumes(u).includes(id);
+                    return (
+                      <option key={id} value={id} disabled={!unlocked}>
+                        {c.name}
+                        {!unlocked && " · 수련실에서 제작"}
+                      </option>
+                    );
+                  })}
               </select>
             </label>
             <span role="status">{msg}</span>
             <h4>능력 · 게임 각색</h4>
-            <p>스킬 · {v.skills.join(" / ")}</p>
+            <p>
+              스킬 ·{" "}
+              {v.skills
+                .map((name, i) => name + " Lv." + (u?.skillLevel?.[i] ?? 1))
+                .join(" / ")}
+            </p>
             <p>
               패시브 · {v.passive}
               <br />
-              운명해방 · {v.ultimate}
+              운명해방 · {v.ultimate} · Lv.{u?.ultimateLevel ?? 1}
             </p>
+            <details className={s.filterSheet}>
+              <summary>스킬 효과와 운용</summary>
+              {skillDefinitions(v.battleVariantId, u?.skillLevel).map(
+                (skill) => (
+                  <p key={skill.name}>
+                    <b>{skill.name}</b> · {skill.description} · 재사용{" "}
+                    {skill.cooldown}턴
+                  </p>
+                ),
+              )}
+              <p>
+                {v.passive} · {kit.passiveDescription}
+              </p>
+              <p>
+                {v.ultimate} · {kit.ultimate} · {kit.hits[kit.ultimate] + 1}타 ·
+                게이지 100
+              </p>
+              <p>{kit.weakness}</p>
+            </details>
             <h4>원작 인연 기록</h4>
             <p>
               {sceneMet

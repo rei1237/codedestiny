@@ -17,6 +17,15 @@ const emblems: Record<string, typeof Flower2> = {
   moka: Music2,
   ln: Wheat,
 };
+const illustratedBaseCards: Record<string, string> = {
+  "yeon-base": "/images/card-rpg/yeon-moonlit-card.webp",
+  "neo-base": "/images/card-rpg/neo-moonlit-card.webp",
+  "yun-base": "/images/card-rpg/yun-moonlit-card.webp",
+  "pje-base": "/images/card-rpg/pje-moonlit-card.webp",
+  "moka-base": "/images/card-rpg/moka-moonlit-card.webp",
+  "ln-base": "/images/card-rpg/ln-moonlit-card.webp",
+};
+
 export default function CharacterCard({
   variant: v,
   costume = "default",
@@ -25,7 +34,9 @@ export default function CharacterCard({
   costume?: string;
 }) {
   const Emblem = emblems[v.baseCharacterId];
-  const art = costumeArt(v, costume);
+  const art =
+    (costume === "default" && illustratedBaseCards[v.battleVariantId]) ||
+    costumeArt(v, costume);
   const [failed, setFailed] = useState("");
   return (
     <div className={s.collectible} data-person={v.baseCharacterId}>

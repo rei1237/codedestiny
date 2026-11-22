@@ -13,6 +13,13 @@ export function usePlayer() {
     : undefined;
   const [balance, setBalance] = useState({ owner: "", text: "" });
   const [level, setLevel] = useState({ owner: "", text: "" });
+  const [walletVersion,refreshWallet]=useState(0);
+  useEffect(()=>{
+    if(process.env.NEXT_PUBLIC_MOCK_DEV!=="1")return;
+    const refresh=()=>refreshWallet(n=>n+1);
+    window.addEventListener("kkulkkul-card-rpg:wallet",refresh);
+    return ()=>window.removeEventListener("kkulkkul-card-rpg:wallet",refresh);
+  },[]);
   useEffect(() => {
     if (!owner) return;
     let active = true;
@@ -56,7 +63,7 @@ export function usePlayer() {
     return () => {
       active = false;
     };
-  }, [owner]);
+  }, [owner,walletVersion]);
   const guest = auth.status === "guest" || auth.status === "expired";
   const offline =
     auth.status === "temporarilyOffline" || auth.status === "error";

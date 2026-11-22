@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NovelLine } from "./Dialogue";
+import { wardrobeKey } from "./battle-appearance";
 import type { Variant } from "./formation";
 import s from "./collection.module.css";
 
@@ -120,10 +121,12 @@ export function CharacterRoom({
   v,
   still,
   close,
+  costumeId,
 }: {
   v: Variant;
   still: boolean;
   close: () => void;
+  costumeId: string;
 }) {
   const story = stories[v.baseCharacterId],
     [page, setPage] = useState(0);
@@ -139,6 +142,7 @@ export function CharacterRoom({
         <NovelLine
           key={page}
           idleActor={v.baseCharacterId}
+          wardrobe={wardrobeKey(v.baseCharacterId,v.battleVariantId,costumeId)}
           speaker={spoken ? v.baseCharacterId : "n"}
           text={text}
           still={still}

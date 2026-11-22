@@ -110,6 +110,7 @@ export const variants = rows.map(
       baseCharacterId,
       battleVariantId: baseCharacterId + "-base",
       name: cast.name,
+      edition: "기본 전투 버전",
       stars,
       role,
       hp,
@@ -127,27 +128,67 @@ export const variants = rows.map(
     };
   },
 );
+const mokaBase = variants.find((v) => v.battleVariantId === "moka-base")!;
+variants.splice(variants.indexOf(mokaBase) + 1, 0, {
+  ...mokaBase,
+  battleVariantId: "moka-stage",
+  edition: "정오의 앙코르",
+  role: "선율 지원",
+  hp: 930,
+  atk: 206,
+  deck: ["Quick", "Quick", "Arts", "Arts", "Buster"],
+  skills: ["합창의 마디", "달빛 조율", "앵콜 신호"],
+  passive: "무대의 호흡",
+  ultimate: "달빛 합주",
+  art: "/images/card-rpg/wardrobe/moka-stage.webp",
+});
 export type Variant = (typeof variants)[number];
 export const definitions: Record<string, Variant> = Object.fromEntries(
   variants.map((v) => [v.battleVariantId, v]),
 );
 export const costumes: Record<
   string,
-  { image: string; voice: string; motion: string }
+  {
+    name: string;
+    variantId: string;
+    image: string;
+    voice: string;
+    motion: string;
+  }
 > = {
   "moka-apron": {
+    name: "축제 앞치마",
+    variantId: "moka-base",
     image: "/images/card-rpg/moka-festival.webp",
     voice: "default",
     motion: "cook",
   },
 };
+for (const [id, name, variantId] of [
+  ["yun-traveler", "여행길의 윤달", "yun-base"],
+  ["pje-rain", "빗길 우편", "pje-base"],
+  ["ln-festival", "꽃빵 배달", "ln-base"],
+])
+  costumes[id] = {
+    name,
+    variantId,
+    image: "/images/card-rpg/wardrobe/" + id + ".webp",
+    voice: "default",
+    motion: id,
+  };
 export function costumeArt(v: Variant, costumeId: string) {
-  if (v.baseCharacterId === "moka")
-    return (
-      costumes[costumeId]?.image ??
-      "/images/novel/remaster/v2/moka/neutral.webp"
-    );
+  const costume = costumes[costumeId];
+  if (costume?.variantId === v.battleVariantId) return costume.image;
+  if (v.battleVariantId === "moka-base")
+    return "/images/novel/remaster/v2/moka/neutral.webp";
   return v.art;
+}
+export function availableCostumes(u: Unit) {
+  return Object.keys(costumes).filter(
+    (id) =>
+      costumes[id].variantId === u.battleVariantId &&
+      (id === "moka-apron" || u.unlockedCostumes?.includes(id)),
+  );
 }
 export const equipment = {
   lotus: {
@@ -198,8 +239,42 @@ export type Unit = {
   xp: number;
   costumeId: string;
   acquired: number;
+  awakened?: boolean;
+  skillLevel?: number[];
+  ultimateLevel?: number;
+  unlockedCostumes?: string[];
 };
-export type Gear = { ownedEquipmentId: string; equipmentDefinitionId: GearId };
+export type Gear = {
+  ownedEquipmentId: string;
+  equipmentDefinitionId: GearId;
+  level?: number;
+  breaks?: number;
+  locked?: boolean;
+  favorite?: boolean;
+};
+export function unitStats(v: Variant, level = 1) {
+  return {
+    hp: Math.round(v.hp * (1 + 0.08 * (level - 1))),
+    atk: Math.round(v.atk * (1 + 0.04 * (level - 1))),
+  };
+}
+export function gearStats(item: Gear) {
+  const e = equipment[item.equipmentDefinitionId],
+    rank = item.breaks ?? 0,
+    mult = 1 + 0.15 * ((item.level ?? 1) - 1);
+  const bonus = rank * (item.equipmentDefinitionId === "window" ? 10 : 2);
+  const cap = e.effect.cap + bonus;
+  return {
+    ...e,
+    hp: Math.round(e.hp * mult),
+    atk: Math.round(e.atk * mult),
+    effect: {
+      ...e.effect,
+      amount: Math.min(cap, e.effect.amount + bonus),
+      cap,
+    },
+  };
+}
 export type Slot = { unit: string; gear?: string } | null;
 export type Formation = { tutorial: boolean; slots: Slot[] };
 export type Inventory = { units: Unit[]; items: Gear[] };
@@ -258,18 +333,21 @@ export function buildBattleSnapshot(
   return f.slots.map((slot, i) => {
     if (!slot) return null;
     const { owned, variant: v, item } = resolveSlot(inv, slot, defs),
-      e = item && equipment[item.equipmentDefinitionId];
+      e = item && gearStats(item),
+      stats = unitStats(v, owned?.level);
     return {
       combatantId: slot.unit,
       position: i,
       baseCharacterId: v.baseCharacterId,
       battleVariantId: v.battleVariantId,
       level: owned?.level ?? 1,
+      skillLevel: owned?.skillLevel ?? [1, 1, 1],
+      ultimateLevel: owned?.ultimateLevel ?? 1,
       costumeId: owned?.costumeId ?? "default",
       ownedEquipmentId: item?.ownedEquipmentId ?? null,
       equipmentDefinitionId: item?.equipmentDefinitionId ?? null,
-      hp: v.hp + (e?.hp ?? 0),
-      atk: v.atk + (e?.atk ?? 0),
+      hp: stats.hp + (e?.hp ?? 0),
+      atk: stats.atk + (e?.atk ?? 0),
       effect: e?.effect ?? null,
       deck: [...v.deck],
       temporary: !owned,
