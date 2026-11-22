@@ -33,3 +33,6 @@
  .special .pairs .card { grid-template-columns:1fr; grid-template-rows:auto 1fr; }
 }
 @media(forced-colors:active) { .special .card:focus-visible { outline:2px solid Highlight; } }
+/* H 밤꽃(2026-11-22) 금테 — 평소 테두리를 남색과 섞은 불투명 금(70%)으로 둔다. hover 는 위 규칙의 --yn-gold 그대로.
+   🔴 안쪽 3px 금 실선(투명도 32%)은 남색 위에서 회색으로 읽히고 그림·글 경계선과 + 자로 엇갈렸다(2026-11-22 실화면 판정) — 겹선 대신 바깥 한 줄을 금으로. */
+.special .card:not(:hover):not(:focus-visible) { border-color:#a5916f; border-color:color-mix(in srgb,var(--yn-gold) 70%,var(--yn-night)); }
