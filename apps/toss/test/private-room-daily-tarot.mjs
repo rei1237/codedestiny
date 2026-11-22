@@ -37,6 +37,10 @@ export async function verifyRoomDailyTarot(origin,context){
   await open();await tarot.getByRole('button',{name:'로그인하고 출석하기'}).click();await page.getByRole('button',{name:'오늘 출석하기'}).waitFor();
   assert.equal(await tarot.locator('.daily-tarot-flip').count(),0);assert.equal(await tarot.locator('.daily-tarot-synthesis').count(),0);
   assert.equal((await state()).daily.unlocked,false);assert.equal((await state()).orders.length,0);
+  await page.getByRole('button',{name:'오늘 출석하기'}).click();
+  await page.getByRole('button',{name:'멸치 3마리로 오늘의 운세 열기'}).click();
+  assert.equal(await spread(1),tomorrow,'the same physical device has the same spread after B earns its own pass');
+  assert.equal((await state()).orders.length,0);
   console.log('PASS room daily attendance and one shared three-anchovy pass; KST today/tomorrow canonical 3-card spreads, original artwork and synthesis, same-device repeat and account B locked, zero orders');
  }catch(error){console.error(page.url(),(await page.locator('body').innerText()).slice(-1200));throw error;}finally{await page.close();}
 }
