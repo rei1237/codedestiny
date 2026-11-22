@@ -332,9 +332,26 @@ html[data-cd-theme="neo"] .shell {
 
 .journal{position:relative;isolation:isolate;gap:6px;padding:28px 20px;background:var(--dy-surface);overflow:hidden}
 .journal::before{content:"";position:absolute;right:-12px;top:-10px;width:130px;height:110px;background:var(--dy-gold);opacity:.14;mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;pointer-events:none;z-index:-1}
-.journalCrest{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 8px;border-radius:25px;background:var(--dy-accent-soft);color:var(--dy-accent);border:1px solid var(--dy-line)}
-.journalTitle{font:400 24px/1.5 var(--font-display,inherit);text-align:center;margin:0;color:var(--dy-text)}
-.journalIntro{font-size:14px;line-height:1.8;text-align:center;color:var(--dy-muted);margin:0 0 16px;word-break:keep-all}
+.journalGreeting {
+  display: grid;
+  grid-template-columns: clamp(64px, 17vw, 92px) 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 16px 12px;
+  background: var(--dy-accent-soft);
+  border-radius: 24px 24px 24px 6px;
+}
+.journalCrest { display: grid; align-self: end; transform-origin: center bottom; }
+.journalCrest img { grid-area: 1 / 1; }
+.journalCrest img:last-child, .journal:focus-within .journalCrest img:first-child { opacity: 0; }
+.journal:focus-within .journalCrest img:last-child { opacity: 1; }
+.journalTitle { font: 400 clamp(20px, 5vw, 26px)/1.4 var(--font-display, serif); margin: 0; color: var(--dy-text); }
+.journalIntro { font-size: 14px; line-height: 1.65; color: var(--dy-text); margin: 6px 0 0; word-break: keep-all; }
+@media (prefers-reduced-motion: no-preference) {
+  .journalCrest, .journalCrest img { transition: transform 320ms ease-out, opacity 220ms ease-out; }
+  .journal:focus-within .journalCrest { transform: rotate(-4deg) translateY(-2px); }
+}
 .questButtons{display:flex;gap:8px;flex-wrap:wrap}
 .questButtons button{min-height:48px;padding:10px 16px;border-radius:18px;border:1px solid var(--dy-line-ui);background:var(--dy-accent-soft);color:var(--dy-text);font:600 14px/1.5 var(--font-body);cursor:pointer}
 .questButtons button:focus-visible{outline:2px solid var(--dy-focus);outline-offset:3px}
