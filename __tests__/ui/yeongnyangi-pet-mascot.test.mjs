@@ -14,7 +14,9 @@ const source=fs.readFileSync(root+'/PetMascot.tsx','utf8');
 const css=fs.readFileSync(root+'/pet-mascot.module.css','utf8');
 const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText;
 const mod={exports:{}};
-vm.runInThisContext('(function(require,module,exports){'+js+'\n})')((id)=>id.endsWith('.css')?new Proxy({},{get:(_,key)=>key==='__esModule'?false:key}):require(id),mod,mod.exports);
+// 깜빡임 부분 시트(MasterMotionPatch, .tsx)는 이 하네스에서 그리지 않는다 — 계약은 master-motion-assets.test.mjs, 화면은 실측(F7).
+const stubs={'@/app/components/master-motion/MasterMotion':{MasterMotionPatch:()=>null}};
+vm.runInThisContext('(function(require,module,exports){'+js+'\n})')((id)=>id.endsWith('.css')?new Proxy({},{get:(_,key)=>key==='__esModule'?false:key}):stubs[id]??require(id.startsWith('@/')?'../../'+id.slice(2):id),mod,mod.exports);
 const PetMascot=mod.exports.default;
 async function harness(run){
  const dom=new JSDOM('<div id="root"></div>',{url:'https://test.invalid'});

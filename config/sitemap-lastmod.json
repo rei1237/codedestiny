@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "cd47e5a40de7e2c9",
+      "signature": "dceccaf2c3167d5a",
       "lastmod": "2026-11-22"
     },
     "/about/": {
@@ -19,7 +19,7 @@
       "lastmod": "2026-11-21"
     },
     "/astrology/": {
-      "signature": "6241c7c35e90a595",
+      "signature": "3f797923545e088d",
       "lastmod": "2026-11-22"
     },
     "/astrology/guide/": {
@@ -51,7 +51,7 @@
       "lastmod": "2026-11-20"
     },
     "/compatibility/": {
-      "signature": "ef202773c63fa8cc",
+      "signature": "5959a8ae0324fa2d",
       "lastmod": "2026-11-22"
     },
     "/consultation-samples/": {
@@ -63,7 +63,7 @@
       "lastmod": "2026-11-19"
     },
     "/destiny-compass/": {
-      "signature": "8744718b226d2913",
+      "signature": "a214af42a7cbfc3a",
       "lastmod": "2026-11-22"
     },
     "/disclaimer/": {
@@ -71,7 +71,7 @@
       "lastmod": "2026-11-19"
     },
     "/dream/": {
-      "signature": "a78dd57f64e2cb4a",
+      "signature": "a14a013773360a83",
       "lastmod": "2026-11-22"
     },
     "/dream/psycho/": {
@@ -587,7 +587,7 @@
       "lastmod": "2026-11-19"
     },
     "/en/yeongnyangi/": {
-      "signature": "3d35658b568239f7",
+      "signature": "cf4d9ca47fdcfada",
       "lastmod": "2026-11-22"
     },
     "/en/ziwei/": {
@@ -603,7 +603,7 @@
       "lastmod": "2026-11-20"
     },
     "/fortune-tea-house/": {
-      "signature": "bcda35e85d101a40",
+      "signature": "272877041fc0a6c0",
       "lastmod": "2026-11-22"
     },
     "/fortune/": {
@@ -1087,11 +1087,11 @@
       "lastmod": "2026-11-20"
     },
     "/heukwol/": {
-      "signature": "ce2cc1fba354e1d1",
+      "signature": "54efa398be8f3098",
       "lastmod": "2026-11-22"
     },
     "/human-design/guide/": {
-      "signature": "9926cc3d7f1c0bc2",
+      "signature": "e6c2b39faf872d84",
       "lastmod": "2026-11-22"
     },
     "/insights/": {
@@ -1651,7 +1651,7 @@
       "lastmod": "2026-11-19"
     },
     "/ja/yeongnyangi/": {
-      "signature": "3d35658b568239f7",
+      "signature": "cf4d9ca47fdcfada",
       "lastmod": "2026-11-22"
     },
     "/ja/ziwei/": {
@@ -1659,27 +1659,27 @@
       "lastmod": "2026-11-19"
     },
     "/karma-destiny-ai/": {
-      "signature": "f3da644c4e3feb1f",
+      "signature": "541fffded93f7f15",
       "lastmod": "2026-11-22"
     },
     "/life-book-ai/": {
-      "signature": "a53e6691ec7a8304",
+      "signature": "535108923c6129fa",
       "lastmod": "2026-11-22"
     },
     "/love-secret-ai/": {
-      "signature": "d8c08ad5dec9dc23",
+      "signature": "8485bdda8d6ef5c5",
       "lastmod": "2026-11-22"
     },
     "/love/": {
-      "signature": "2f5abae2e110f65e",
+      "signature": "82d7bf21e79ba9f7",
       "lastmod": "2026-11-22"
     },
     "/manse/": {
-      "signature": "20c8667d099081ac",
+      "signature": "54ceb2f09f4fd3e6",
       "lastmod": "2026-11-22"
     },
     "/master-love-codex/": {
-      "signature": "1dd5fb0a4b67ab17",
+      "signature": "63962b7e5ba2fc83",
       "lastmod": "2026-11-22"
     },
     "/mayan-calendar/guide/": {
@@ -1807,15 +1807,15 @@
       "lastmod": "2026-11-13"
     },
     "/naming-ai/": {
-      "signature": "fd7921e4544e48db",
+      "signature": "3b52f01518c691bc",
       "lastmod": "2026-11-22"
     },
     "/neo-operation-room/": {
-      "signature": "0669961246361427",
+      "signature": "a970c66e9aa66011",
       "lastmod": "2026-11-22"
     },
     "/new-year-ai-consultation/": {
-      "signature": "237e2a73dccae87f",
+      "signature": "124e43e9ee818e96",
       "lastmod": "2026-11-22"
     },
     "/oracle/hwatu-life/": {
@@ -1827,11 +1827,11 @@
       "lastmod": "2026-11-21"
     },
     "/oracle/rune/": {
-      "signature": "f63d64dd79ef8e8f",
+      "signature": "073ee4b1cdb8f478",
       "lastmod": "2026-11-22"
     },
     "/physiognomy/": {
-      "signature": "e48a85d910fb5739",
+      "signature": "c3b969a6a67cfbfe",
       "lastmod": "2026-11-22"
     },
     "/privacy/": {
@@ -1979,11 +1979,11 @@
       "lastmod": "2026-11-22"
     },
     "/saju-guardian/": {
-      "signature": "1a74d6d41ec4625f",
+      "signature": "575affe0fb8d6fda",
       "lastmod": "2026-11-22"
     },
     "/saju/": {
-      "signature": "ecadccb1d708efbb",
+      "signature": "4ace037a628a85ea",
       "lastmod": "2026-11-22"
     },
     "/saju/ai-prompt-card/": {
@@ -1995,11 +1995,11 @@
       "lastmod": "2026-11-22"
     },
     "/saju/career-style/": {
-      "signature": "0497957114b64e08",
+      "signature": "a9db4bf989deb550",
       "lastmod": "2026-11-22"
     },
     "/saju/compatibility/": {
-      "signature": "3791edc6b1d9e535",
+      "signature": "0e247f822d633492",
       "lastmod": "2026-11-22"
     },
     "/saju/crystals/": {
@@ -2015,7 +2015,7 @@
       "lastmod": "2026-11-22"
     },
     "/saju/destiny-meeting-place/": {
-      "signature": "d2a5729e79e4fc78",
+      "signature": "a5792bc8cb68da83",
       "lastmod": "2026-11-22"
     },
     "/saju/dopamine/": {
@@ -2031,7 +2031,7 @@
       "lastmod": "2026-11-21"
     },
     "/saju/free/": {
-      "signature": "fd602970d0ccf0ad",
+      "signature": "bbd9f6dd0ca4a92f",
       "lastmod": "2026-11-22"
     },
     "/saju/guide/": {
@@ -2411,11 +2411,11 @@
       "lastmod": "2026-11-18"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "f8376edc0240eccc",
+      "signature": "403e756359b9d5e9",
       "lastmod": "2026-11-22"
     },
     "/sukuyo/": {
-      "signature": "24b09f458742d8b2",
+      "signature": "172b6240a36ba276",
       "lastmod": "2026-11-22"
     },
     "/sukuyo/calendar/": {
@@ -2423,7 +2423,7 @@
       "lastmod": "2026-11-19"
     },
     "/sukuyo/compatibility/": {
-      "signature": "70743ed3de8a6244",
+      "signature": "2b4764b595434660",
       "lastmod": "2026-11-22"
     },
     "/sukuyo/guide/": {
@@ -2431,7 +2431,7 @@
       "lastmod": "2026-11-20"
     },
     "/tarot/": {
-      "signature": "3db32745fe76c84a",
+      "signature": "9872575fe6e82d57",
       "lastmod": "2026-11-22"
     },
     "/tarot/guide/": {
@@ -2447,7 +2447,7 @@
       "lastmod": "2026-11-21"
     },
     "/tarot/mindscan/": {
-      "signature": "6538cd9679f326a6",
+      "signature": "5f689cbf5b781ed8",
       "lastmod": "2026-11-22"
     },
     "/tarot/mingri/": {
@@ -2455,15 +2455,15 @@
       "lastmod": "2026-11-21"
     },
     "/tarot/numerology/": {
-      "signature": "9e49e7ae12bfc8df",
+      "signature": "7f72dfd04b3e214f",
       "lastmod": "2026-11-22"
     },
     "/tarot/prompt-maker/": {
-      "signature": "58175ea3f74e4d01",
+      "signature": "60c5982eedcfdd81",
       "lastmod": "2026-11-22"
     },
     "/tarot/reunion/": {
-      "signature": "d0ec58dec606cc3a",
+      "signature": "6dce5f3e143f0a11",
       "lastmod": "2026-11-22"
     },
     "/tarot/self-esteem/": {
@@ -2479,15 +2479,15 @@
       "lastmod": "2026-11-19"
     },
     "/today/": {
-      "signature": "847180097849fb9e",
+      "signature": "6c7c243bf9389579",
       "lastmod": "2026-11-22"
     },
     "/vedic-ai/": {
-      "signature": "4619dd4cf2d50157",
+      "signature": "255b8f8b1c6f3084",
       "lastmod": "2026-11-22"
     },
     "/vedic/": {
-      "signature": "18ff3cf6cc2585b1",
+      "signature": "1bed7f578965d8c1",
       "lastmod": "2026-11-22"
     },
     "/vedic/guide/": {
@@ -2503,15 +2503,15 @@
       "lastmod": "2026-11-22"
     },
     "/yeongnyangi/": {
-      "signature": "a21f01ab8ec2bb1a",
+      "signature": "48cf34baa064c738",
       "lastmod": "2026-11-22"
     },
     "/yeongnyangi/1000-won-fortune/": {
-      "signature": "880f57d48faffed2",
+      "signature": "337a5fd2820a3593",
       "lastmod": "2026-11-22"
     },
     "/yeongnyangi/faq/": {
-      "signature": "48fa06c5bb9336da",
+      "signature": "1063fbf59f7887af",
       "lastmod": "2026-11-22"
     },
     "/yeongnyangi/season-1/": {
@@ -2991,7 +2991,7 @@
       "lastmod": "2026-11-19"
     },
     "/zh-tw/yeongnyangi/": {
-      "signature": "3d35658b568239f7",
+      "signature": "cf4d9ca47fdcfada",
       "lastmod": "2026-11-22"
     },
     "/zh-tw/ziwei/": {
@@ -3499,7 +3499,7 @@
       "lastmod": "2026-11-19"
     },
     "/zh/yeongnyangi/": {
-      "signature": "3d35658b568239f7",
+      "signature": "cf4d9ca47fdcfada",
       "lastmod": "2026-11-22"
     },
     "/zh/ziwei/": {
@@ -3507,11 +3507,11 @@
       "lastmod": "2026-11-19"
     },
     "/ziwei-ai/": {
-      "signature": "d8ba308e537579b0",
+      "signature": "0d3c9af7763550be",
       "lastmod": "2026-11-22"
     },
     "/ziwei/": {
-      "signature": "62fdcede798dbcd8",
+      "signature": "bf9cf848083fef09",
       "lastmod": "2026-11-22"
     },
     "/ziwei/animal-destiny/": {
@@ -3519,7 +3519,7 @@
       "lastmod": "2026-11-22"
     },
     "/ziwei/chart/": {
-      "signature": "36fb4fe8eb3bacf8",
+      "signature": "9876f00f77239f8c",
       "lastmod": "2026-11-22"
     },
     "/ziwei/guide/": {

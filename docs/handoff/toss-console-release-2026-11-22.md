@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-22
-next: 후속 정본 toss-full-parity-2026-11-22.md를 따른다
+next: 없음 — 이 문서는 종료. 정본은 toss-full-parity-2026-11-22.md
 ---
 
 # 앱인토스 콘솔 작업 인수인계 (Codex 용, 2026-11-22)

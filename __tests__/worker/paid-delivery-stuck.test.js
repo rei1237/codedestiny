@@ -69,6 +69,8 @@ test('재개방한 문서의 정체 나이는 재개방 시각부터 재고, 환
   const heukwol = { createdAt: new Date(START), metadata: { retryReopenedAt: new Date(day6) } };
   expect(stuck.shouldSettleStuck(generic, day6 + 600000)).toBe(false);
   expect(stuck.shouldSettleStuck(heukwol, day6 + 600000)).toBe(false);
+  const naming = { createdAt: new Date(START), result: { namingPrompt: { retryable: { reopenedAt: new Date(day6) } } } };
+  expect(stuck.shouldSettleStuck(naming, day6 + 600000)).toBe(false);
   expect(stuck.shouldSettleStuck({ createdAt: new Date(START) }, day6 + 600000)).toBe(true);
   expect(stuck.shouldSettleStuck({ ...generic, deliveryWatch: { stalls: 6 } }, day6 + 600000)).toBe(true);
   expect(stuck.retryRefundAt(generic, day6).getTime()).toBe(START + stuck.RETRY_REFUND_AFTER_MS);

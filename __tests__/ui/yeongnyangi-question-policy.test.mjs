@@ -158,3 +158,16 @@ test('composite questions pass the scope gate and get a ranked, non-repeating la
   if(fish==='flounder')assert.match(bonus.slice(0,2).map(r=>r.title).join(' '),/건강 리듬.*연애와 인연|연애와 인연.*건강 리듬/);
  }
 });
+test('a long question keeps its backstory out of chapter titles and asks for the key worries first',()=>{
+ const long='1999년 양력 3월 11일 오후에 태어났고 지금은 회사를 다니면서 혼자 살고 있어요.\n요즘 마음이 자꾸 흔들리는데 제가 어떤 사람인지, 앞으로 무엇을 먼저 챙겨야 하는지, 지금 붙잡고 있는 관계를 계속 이어가도 되는지 알고 싶어요. 예전부터 비슷한 고민이 반복되었는데 이번에는 꼭 방향을 정하고 싶어서 길게 적었습니다.';
+ const answer=rows=>rows.find(row=>row.layoutRole==='answer');
+ const longRows=p.questionManifest('saju','mackerel',d(),undefined,long);
+ assert.ok(!longRows.some(row=>row.title.includes('1999년')||row.part.includes('1999년')),'birth data never becomes a chapter title');
+ assert.ok(answer(longRows).title.startsWith('2026년 · '));
+ assert.ok(JSON.stringify(answer(longRows)).includes(p.LONG_QUESTION_FOCUS));
+ const short=p.questionManifest('saju','mackerel',d(),undefined,'올해 이직해도 괜찮을까?');
+ assert.ok(answer(short).title.startsWith('올해 이직해도 괜찮을까?'),'a short one-line question stays the title');
+ assert.ok(!JSON.stringify(short).includes(p.LONG_QUESTION_FOCUS));
+ // Composite questions already split and rank their worries; the long-question sentence is not added twice.
+ assert.ok(!JSON.stringify(p.questionManifest('saju','mackerel',d({category:'other'}),undefined,long)).includes(p.LONG_QUESTION_FOCUS));
+});

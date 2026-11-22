@@ -21,6 +21,7 @@ import { getAmbientAiLocale, runWithAiLocale, resolveAiLocaleFromRequest } from 
 import { isPaidResultRevoked, isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, cookieValue, HttpError } from "../lib/http.js";
 import { connectDb, isTransientMongoError } from "../lib/db.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, logStuckUnsettled } from "../lib/paid-delivery-stuck.js";
 import { DestinyCompassReport } from "../lib/models.js";
 import { requireAuth, getAccessTokenSecret, getJwtAudience, getJwtIssuer } from "../lib/auth.js";
 import { verifyJwt } from "../lib/jwt.js";
@@ -52,6 +53,7 @@ import {
 const FEATURE_KEY = "destiny-compass-deep-report";
 const REPORT_TYPE = "destinyCompassDeepReport";
 const SERVICE_KEY = "destiny-compass";
+const COMPASS_LOCK_TTL_MS = 120000;
 const REPORT_COST = FEATURE_KEY_PRICE_TABLE["destiny-compass-deep-report"].cost;
 const CONTINUATION_TYPE = "destiny-compass-report-continuation";
 
@@ -358,7 +360,7 @@ async function runCompassDeliveryInLocale(env, auth, initial) {
   if (!await compassAccessCurrent(initial,auth)) return json({ ok: false, reason: "PAYMENT_VERIFY_FAILED" }, { status: 402 });
   if (initial.status === "generation_failed") return json({ ok: false, reason: "GENERATION_FAILED", refunded: initial.generationError?.refunded === true }, { status: 409 });
   const claimed = await DestinyCompassReport.findOneAndUpdate({ id: reportId, userId: String(auth.userId), status: { $in: ["generating", "partial", "delivery_pending"] },
-    $or: [{ lock: null }, { "lock.at": { $lt: new Date(Date.now() - 120000) } }] },
+    $or: [{ lock: null }, { "lock.at": { $lt: new Date(Date.now() - COMPASS_LOCK_TTL_MS) } }] },
     { $set: { lock: { token: crypto.randomUUID(), at: new Date() } } }, { new: true }).lean();
   if (!claimed) return json({ ok: false, reason: "GENERATION_IN_PROGRESS", retryable: true, resultId: reportId }, { status: 409 });
   const filter = { id: reportId, userId: String(auth.userId), "lock.token": claimed.lock.token, status: { $ne: "completed" } };
@@ -872,6 +874,55 @@ export const __destinyCompassAiTestUtils = {
   COMPASS_SECTIONS,
   COMPASS_SECTION_MAX_OUTPUT_TOKENS,
 };
+
+// 복구 크론의 정체 자동 확정. 결제가 회수됐으면(이미 다른 경로로 돈이 돌아갔다) 쓰지 않고 경보만 남긴다 —
+// 생성 실패로 바꾸면 실행 가드·타임아웃 스위프가 한 번 더 환불한다. 회수되지 않은 delivery_pending 은 경로와 같은
+// 접근 재확인을 거친 것이므로 완료로 구제한다. generating·partial 은 생성 실패로 먼저 CAS 한 뒤(체크포인트 가드가
+// generation_failed 만 환불 대상으로 본다) 기존 즉시 환불 경로(refundExecution: 실행 가드 + 이용권 증빙)를 한 번 부른다.
+const STUCK_ROUTE_KEY = "destiny-compass-ai";
+export async function settleStuckDelivery(env, { doc, now = Date.now(), model } = {}) {
+  if (!doc?.id || !doc?.userId) return { outcome: "unsupported" };
+  await connectDb(env);
+  const target = model || DestinyCompassReport;
+  const owner = { id: String(doc.id), userId: String(doc.userId) };
+  const fresh = await target.findOne(owner).lean();
+  if (!fresh || !["generating", "partial", "delivery_pending"].includes(fresh.status)) return { outcome: "progressed" };
+  if (now - new Date(fresh.updatedAt || 0).getTime() < STUCK_LIVE_LEASE_MS
+    || now - new Date(fresh.lock?.at || 0).getTime() < COMPASS_LOCK_TTL_MS) return { outcome: "leased" };
+  if (fresh.accessType === "toss") { logStuckUnsettled(STUCK_ROUTE_KEY, fresh); return { outcome: "unsettled" }; }
+  const idempotencyKey = clean(fresh.idempotencyKey, 160);
+  if (!idempotencyKey) return { outcome: "unsupported" };
+  let allowed;
+  try { allowed = await compassAccessCurrent(fresh, null); } catch { return { outcome: "pending" }; } // 판단 보류 — 이어쓰기로 둔다.
+  if (!allowed) { logStuckUnsettled(STUCK_ROUTE_KEY, fresh); return { outcome: "unsettled" }; }
+  const stalls = Number(fresh.deliveryWatch?.stalls || 0);
+  const cas = { ...owner, status: fresh.status, updatedAt: fresh.updatedAt };
+  const auth = { userId: owner.userId };
+  const input = { idempotencyKey };
+  if (fresh.status === "delivery_pending") {
+    const done = await target.updateOne(cas, { $set: { status: "completed", usageAppliedAt: new Date(now), lock: null } });
+    if (!done?.modifiedCount) return { outcome: "progressed" };
+    await completeRefundableExecution(env, auth, input, owner.id);
+    logStuckSettled({ service: STUCK_ROUTE_KEY, sessionId: owner.id, outcome: "rescued", stalls });
+    return { outcome: "rescued" };
+  }
+  const generationError = { reason: "DELIVERY_STUCK", code: "DELIVERY_STUCK", message: "recovery made no progress", at: new Date(now).toISOString() };
+  const result = await target.updateOne(cas, { $set: { status: "generation_failed", generationError, lock: null } });
+  if (!result?.modifiedCount) return { outcome: "progressed" };
+  let refundStatus = "pending";
+  try {
+    if (await refundExecution(env, auth, input, owner.id, "delivery stuck")) {
+      refundStatus = "refunded";
+      await target.updateOne({ ...owner, status: "generation_failed" }, { $set: { generationError: { ...generationError, refunded: true } } })
+        .catch(error => console.warn("[destiny-compass-ai] refund mark failed", { message: clean(error?.message, 120) }));
+    }
+  } catch { refundStatus = "pending"; }
+  // 코인 실행 기록이 pending 이면 타임아웃 스위프가 생성 실패 문서를 보고 환불한다. 이용권(실행 기록 없음)은 재시도 경로가
+  // 없으므로 미환불 경보를 남긴다.
+  if (refundStatus === "pending") logStuckUnsettled(STUCK_ROUTE_KEY, fresh);
+  logStuckSettled({ service: STUCK_ROUTE_KEY, sessionId: owner.id, outcome: "generation_failed", refundStatus, stalls });
+  return { outcome: "generation_failed", refundStatus };
+}
 
 // Internal cron continuation: only a stored owner/id is accepted, never client input.
 // The normal handler rereads that owner's record and rechecks existing payment proof.

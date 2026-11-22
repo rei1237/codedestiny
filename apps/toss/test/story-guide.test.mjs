@@ -13,7 +13,13 @@ for(const mode of ['production','private-simulation'])test('webtoon projection p
  assert.deepEqual(guide.guideGroups,guideGroups);
  const prefix=mode==='production'?'https://code-destiny.com':'/__story-art';
  assert.equal(consultation.coverDirectory,prefix+'/images/consultation-webtoons/covers/mobile/');
- for(const [original,actual] of [...quickGuideStories.map((s,i)=>[s,guide.quickGuideStories[i]]),...Object.entries(consultationWebtoons).map(([id,s])=>[s,consultation.default[id]])]){
-  assert.deepEqual(actual,{...original,cuts:original.cuts.map(c=>({...c,src:c.src?prefix+c.src:''}))});
- }
+ // The private AIT packages one WebP from each original panel. Only its delivery URL
+ // and resolution differ; the production reader still streams the original responsive set.
+ const expectedStory=story=>({...story,cuts:story.cuts.map(cut=>{
+  if(!cut.src)return cut;
+  const sizes=mode==='private-simulation'?{widths:[],fallback:Math.min(480,cut.fallback)}:{};
+  return {...cut,...sizes,src:prefix+cut.src};
+ })});
+ assert.deepEqual(guide.quickGuideStories,quickGuideStories.map(expectedStory));
+ assert.deepEqual(consultation.default,Object.fromEntries(Object.entries(consultationWebtoons).map(([id,story])=>[id,expectedStory(story)])));
 });

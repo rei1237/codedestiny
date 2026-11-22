@@ -1,0 +1,84 @@
+{
+  "id": "neo",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/neo-strategy-portrait.webp",
+  "baseSha256": "237381df0dabd0b4c051ff6e341307d262b2774040a99a83c0064eb86f27fade",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/neo/portrait-poster.webp",
+      "posterBytes": 76466,
+      "sheet": {
+        "src": "/images/master-motion/neo/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        }
+      },
+      "sheetBytes": 275828
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/neo/avatar-poster.webp",
+      "posterBytes": 5142,
+      "sheet": {
+        "src": "/images/master-motion/neo/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 14928,
+      "crop": {
+        "left": 90,
+        "top": 0,
+        "size": 420
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 3.18,
+      "wholeDiff": 4.53,
+      "regionDiff": 44.42,
+      "colorShift": [
+        -6.54,
+        -6.13,
+        -5.91
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 1,
+        "dy": 1,
+        "score": 8.73
+      }
+    },
+    "closed": {
+      "guardDiff": 3.61,
+      "wholeDiff": 4.86,
+      "regionDiff": 52.25,
+      "colorShift": [
+        -3.34,
+        -1.42,
+        -2.52
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 8.9
+      }
+    }
+  }
+}

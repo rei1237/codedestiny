@@ -8,6 +8,9 @@
  * 원칙
  * - 캐릭터를 다시 그리지 않는다. 기본 칸은 정본 초상 그대로이고, 편집 생성물(D:\CodeDestiny-Build)은
  *   정본에 맞춰 위치·배율을 맞춘 뒤 spec 의 영역(눈·입 등 타원)만 페더 마스크로 정본 위에 얹는다.
+ * - frame.keep(선택): 영역 안이지만 정본을 그대로 둘 타원(점·머리카락 가닥 등 생성물이 다시 그려 어긋난 곳).
+ *   keep 안은 정본 무늬 + 바깥 고리의 톤 차(applyKeep). 등록·색 보정 고리·검수 블록 분류는 영역(region)만으로 정하고,
+ *   keep 핵심과 겹치는 블록은 region 수치에서 뺀다(바뀌지 않는 곳을 변화량으로 세지 않는다).
  * - 1차 검수(fail-closed): 영역 밖(얼굴 윤곽·의상) 평균 차이가 qa.maxGuardDiff 를 넘거나,
  *   영역 안 변화가 qa.minRegionDiff 보다 작으면 그 프레임을 쓰는 빌드는 실패한다.
  * - 시트는 재생 순서대로 한 줄(cols === frames). 용량이 lib/master-motion/sheets.mjs 의 상한을 넘으면 실패한다.
@@ -39,8 +42,12 @@ if (!spec.out.startsWith("public/images/master-motion/")) fail(`out 은 public/i
 const baseMeta = await sharp(spec.base).metadata();
 const W = baseMeta.width, H = baseMeta.height;
 const portraitBudget = MASTER_MOTION_BUDGETS.portrait;
-if (W !== portraitBudget.width || H !== portraitBudget.height) fail(`정본 초상 크기 ${W}x${H} ≠ ${portraitBudget.width}x${portraitBudget.height}`);
+// portrait·avatar 는 600×720 정본 초상에서 만든다. patch(F7 영냥이)는 정본 크기 그대로의 부분 사각형이라 크기를 묻지 않는다.
+const needsPortraitBase = Object.values(spec.variants).some((variant) => variant.kind !== "patch");
+if (needsPortraitBase && (W !== portraitBudget.width || H !== portraitBudget.height)) fail(`정본 초상 크기 ${W}x${H} ≠ ${portraitBudget.width}x${portraitBudget.height}`);
 const baseRgb = await sharp(spec.base).removeAlpha().raw().toBuffer();
+// 투명 배경 정본(영냥이)의 알파. patch 칸은 이 알파를 그대로 붙인다(합성 영역은 몸 안 불투명 영역이어야 한다).
+const baseAlpha = baseMeta.hasAlpha ? await sharp(spec.base).ensureAlpha().extractChannel(3).raw().toBuffer() : null;
 
 const luma = (buf, i) => 0.299 * buf[i] + 0.587 * buf[i + 1] + 0.114 * buf[i + 2];
 
@@ -117,7 +124,7 @@ function alignedRgb(reg) {
 // 수치는 8px 블록 평균 밝기 차이다. 편집 생성물은 그림 전체를 다시 그려 픽셀 단위 결 차이(평균 10 안팎)가 늘 있으므로,
 // 결이 아니라 구조(윤곽·명암 배치)가 같은지를 본다. guard = 등록 상자 안에서 영역과 겹치지 않는 블록, region = 중심이 영역 안인 블록.
 const BLOCK = 8;
-function compose(aligned, region) {
+function compose(aligned, region, keep) {
   const box = spec.registration.box;
   let guardSum = 0, guardN = 0, wholeSum = 0, wholeN = 0, regionSum = 0, regionN = 0;
   for (let by = 0; by + BLOCK <= H; by += BLOCK) for (let bx = 0; bx + BLOCK <= W; bx += BLOCK) {
@@ -128,7 +135,7 @@ function compose(aligned, region) {
       if (ellipseWeight(region, x, y) > 0) touches = true;
     }
     const diff = Math.abs(signed / (BLOCK * BLOCK));
-    if (ellipseWeight(region, bx + BLOCK / 2, by + BLOCK / 2) >= 1) { regionSum += diff; regionN += 1; }
+    if (ellipseWeight(region, bx + BLOCK / 2, by + BLOCK / 2) >= 1 && !keepTouches(keep, bx, by)) { regionSum += diff; regionN += 1; }
     if (touches) continue;
     wholeSum += diff; wholeN += 1;
     if (bx >= box.left && bx + BLOCK <= box.left + box.width && by >= box.top && by + BLOCK <= box.top + box.height) { guardSum += diff; guardN += 1; }
@@ -144,20 +151,63 @@ function compose(aligned, region) {
   }
   const shift = ring.map((v, c) => (ringN ? (ringBase[c] - v) / ringN : 0));
   const out = Buffer.from(baseRgb);
+  // edited = 색 보정한 생성물(영역 무게 > 0 인 곳만, 나머지는 정본). patch 는 이것을 알파 = 무게로 정본 <img> 위에 얹는다.
+  const edited = Buffer.from(baseRgb);
   for (let y = 0; y < H; y += 1) for (let x = 0; x < W; x += 1) {
     const w = ellipseWeight(region, x, y);
     if (!w) continue;
     const i = (y * W + x) * 3;
     for (let c = 0; c < 3; c += 1) {
-      const edited = Math.min(255, Math.max(0, aligned[i + c] + shift[c]));
-      out[i + c] = Math.round(baseRgb[i + c] * (1 - w) + edited * w);
+      edited[i + c] = Math.round(Math.min(255, Math.max(0, aligned[i + c] + shift[c])));
+      out[i + c] = Math.round(baseRgb[i + c] * (1 - w) + edited[i + c] * w);
     }
   }
+  applyKeep(out, keep);
   const round = (v) => Math.round(v * 100) / 100;
   return {
     frame: out,
+    edited,
     qa: { guardDiff: round(guardSum / guardN), wholeDiff: round(wholeSum / wholeN), regionDiff: round(regionN ? regionSum / regionN : 0), colorShift: shift.map(round) },
   };
+}
+
+/**
+ * keep 타원마다 정본 무늬를 되돌리되 밝기는 주변 합성 피부에 맞춘다. 편집이 눈가 피부 톤을 몇 단계 바꾸면
+ * 정본을 그대로 붙인 자리가 밝은/어두운 원반으로 남기 때문이다(F5 hanbi 점, visual-checker).
+ * 톤 = keep 바깥 3px 고리에서 (합성 − 정본) 채널 평균.
+ */
+function applyKeep(out, keep) {
+  for (const k of keep ? [keep].flat() : []) {
+    const outer = 1 + k.feather / Math.min(k.rx, k.ry), ringOuter = outer + 3 / Math.min(k.rx, k.ry);
+    const x0 = Math.max(0, Math.floor(k.cx - k.rx * ringOuter)), x1 = Math.min(W - 1, Math.ceil(k.cx + k.rx * ringOuter));
+    const y0 = Math.max(0, Math.floor(k.cy - k.ry * ringOuter)), y1 = Math.min(H - 1, Math.ceil(k.cy + k.ry * ringOuter));
+    const tone = [0, 0, 0];
+    let n = 0;
+    for (let y = y0; y <= y1; y += 1) for (let x = x0; x <= x1; x += 1) {
+      const d = Math.hypot((x - k.cx) / k.rx, (y - k.cy) / k.ry);
+      if (d < outer || d > ringOuter) continue;
+      const i = (y * W + x) * 3;
+      for (let c = 0; c < 3; c += 1) tone[c] += out[i + c] - baseRgb[i + c];
+      n += 1;
+    }
+    if (n) for (let c = 0; c < 3; c += 1) tone[c] /= n;
+    for (let y = y0; y <= y1; y += 1) for (let x = x0; x <= x1; x += 1) {
+      const wk = ellipseWeight(k, x, y);
+      if (!wk) continue;
+      const i = (y * W + x) * 3;
+      for (let c = 0; c < 3; c += 1) {
+        const kept = Math.min(255, Math.max(0, baseRgb[i + c] + tone[c]));
+        out[i + c] = Math.round(out[i + c] * (1 - wk) + kept * wk);
+      }
+    }
+  }
+}
+
+/** 블록 안에 keep 핵심(무게 1) 픽셀이 있는가. */
+function keepTouches(keep, bx, by) {
+  if (!keep) return false;
+  for (let y = by; y < by + BLOCK; y += 1) for (let x = bx; x < bx + BLOCK; x += 1) if (ellipseWeight(keep, x, y) >= 1) return true;
+  return false;
 }
 
 /** 영역 후보를 찾기 위한 변화 상자(등록 상자 안에서 밝기 차이 > threshold 인 픽셀의 범위·무게중심). */
@@ -179,16 +229,16 @@ for (const [name, frame] of Object.entries(spec.frames)) {
   if (!existsSync(file)) { results[name] = { missing: file }; continue; }
   const reg = await register(file, frame.region);
   const aligned = alignedRgb(reg);
-  const { frame: composed, qa } = compose(aligned, frame.region);
+  const { frame: composed, edited, qa } = compose(aligned, frame.region, frame.keep);
   const pass = Boolean(frame.region) && qa.guardDiff <= spec.qa.maxGuardDiff && qa.regionDiff >= spec.qa.minRegionDiff;
   results[name] = {
     file, sourceSha256: sha256(await readFile(file)),
     registration: { scale: reg.s, dx: reg.dx, dy: reg.dy, score: Math.round(reg.score * 100) / 100 },
-    qa: { ...qa, pass }, changeBox: changeBox(aligned), composed,
+    qa: { ...qa, pass }, changeBox: changeBox(aligned), composed, edited,
   };
 }
 
-const printable = Object.fromEntries(Object.entries(results).map(([k, v]) => [k, { ...v, composed: undefined }]));
+const printable = Object.fromEntries(Object.entries(results).map(([k, v]) => [k, { ...v, composed: undefined, edited: undefined }]));
 console.log(JSON.stringify({ id: spec.id, thresholds: spec.qa, frames: printable }, null, 2));
 
 if (reportOnly) {
@@ -217,9 +267,69 @@ await mkdir(spec.out, { recursive: true });
 const publicUrl = (file) => "/" + posix.relative("public", posix.join(spec.out, file));
 
 const manifest = { id: spec.id, frameMs: MASTER_MOTION_FRAME_MS, sequence, base: spec.base, baseSha256: sha256(await readFile(spec.base)), variants: {} };
+
+/**
+ * patch: 정본 위에 겹칠 부분 사각형(area)만 정본 배율 그대로 잘라 한 줄 시트로 만든다. 포스터는 없다 — 화면의 정본 <img> 가 포스터다.
+ * 모든 합성 영역(타원+페더)이 area 안에 있어야 하고(밖이면 잘린 칸이 정본과 어긋난다), area 의 알파가 qa.minPatchAlpha 이상이어야
+ * 한다(투명 윤곽이 들어오면 겹친 곳의 반투명 가장자리가 진해진다).
+ * 칸의 색은 색 보정한 생성물, 알파는 영역 무게 × 정본 알파다. 영역 밖은 투명이라 화면의 <img>(hero-480 처럼 해상도가 다른 파일일 수 있다)가
+ * 그대로 보이고, 페더 고리에서는 브라우저가 <img> 와 생성물을 섞는다. 불투명 사각형을 덮으면 선명도가 다른 파일 위에서 사각형 이음매가 남는다.
+ */
+async function buildPatch(variantName, variant, budget) {
+  const area = variant.area;
+  if (!area || area.left < 0 || area.top < 0 || area.left + area.width > W || area.top + area.height > H) fail(`${variantName} area 가 정본 밖이다: ${JSON.stringify(area)}`);
+  if (area.width > budget.maxWidth || area.height > budget.maxHeight) fail(`${variantName} area ${area.width}x${area.height} > ${budget.maxWidth}x${budget.maxHeight}`);
+  for (const name of sequence.filter((n) => n !== "base")) {
+    for (const one of [spec.frames[name].region].flat()) {
+      const grow = 1 + one.feather / Math.min(one.rx, one.ry);
+      if (one.cx - one.rx * grow < area.left || one.cx + one.rx * grow > area.left + area.width || one.cy - one.ry * grow < area.top || one.cy + one.ry * grow > area.top + area.height) {
+        fail(`${variantName}: ${name} 영역 ${JSON.stringify(one)} 이 area 밖으로 나간다`);
+      }
+    }
+  }
+  const minAlpha = spec.qa.minPatchAlpha ?? 250;
+  if (baseAlpha) for (let y = area.top; y < area.top + area.height; y += 1) for (let x = area.left; x < area.left + area.width; x += 1) {
+    if (baseAlpha[y * W + x] < minAlpha) fail(`${variantName} area 안 (${x},${y}) 알파 ${baseAlpha[y * W + x]} < ${minAlpha}`);
+  }
+  for (const name of sequence) if (name !== "base" && spec.frames[name].keep) fail(`${variantName}: patch 는 keep 을 지원하지 않는다(${name}). 영역을 줄여 정본을 남긴다`);
+  const cellRgba = (name) => {
+    const out = Buffer.alloc(area.width * area.height * 4);
+    if (name === "base") return out; // 정본 칸 = 완전 투명(아래 <img> 가 그대로 보인다)
+    const { edited } = results[name];
+    const region = spec.frames[name].region;
+    for (let y = 0; y < area.height; y += 1) for (let x = 0; x < area.width; x += 1) {
+      const px = area.left + x, py = area.top + y;
+      const s = py * W + px, o = (y * area.width + x) * 4;
+      const w = ellipseWeight(region, px, py);
+      if (!w) continue;
+      edited.copy(out, o, s * 3, s * 3 + 3);
+      out[o + 3] = Math.round(w * (baseAlpha ? baseAlpha[s] : 255));
+    }
+    return out;
+  };
+  const composites = await Promise.all(sequence.map(async (name, index) => ({
+    input: await sharp(cellRgba(name), { raw: { width: area.width, height: area.height, channels: 4 } }).png().toBuffer(),
+    left: index * area.width, top: 0,
+  })));
+  const quality = spec.webp[variant.kind] ?? spec.webp.default;
+  const sheet = await sharp({ create: { width: area.width * cells.length, height: area.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
+    .composite(composites).webp({ quality: quality.sheet, alphaQuality: 100, effort: 6, smartSubsample: true }).toBuffer();
+  if (sheet.length > budget.sheetBytes) fail(`${variantName} 시트 ${sheet.length}B > 상한 ${budget.sheetBytes}B`);
+  const sheetFile = `${variantName}-sheet.webp`;
+  await writeFile(join(spec.out, sheetFile), sheet);
+  manifest.variants[variantName] = {
+    kind: variant.kind,
+    sheet: { src: publicUrl(sheetFile), frames: cells.length, cols: cells.length, cell: { width: area.width, height: area.height } },
+    sheetBytes: sheet.length,
+    area: { left: area.left, top: area.top, width: area.width, height: area.height },
+    canvas: { width: W, height: H },
+  };
+}
+
 for (const [variantName, variant] of Object.entries(spec.variants)) {
   const budget = MASTER_MOTION_BUDGETS[variant.kind];
   if (!budget) fail(`알 수 없는 kind: ${variant.kind}`);
+  if (variant.kind === "patch") { await buildPatch(variantName, variant, budget); continue; }
   const toCell = (rgb) => {
     let img = sharp(rgb, { raw: { width: W, height: H, channels: 3 } });
     if (variant.kind === "avatar") {
@@ -262,8 +372,8 @@ const provenance = {
   builder: "scripts/sprites/build-master-motion.mjs",
   spec: specPath.replaceAll("\\", "/"),
   base: { path: spec.base, sha256: manifest.baseSha256 },
-  sources: Object.fromEntries(sequence.filter((n) => n !== "base").map((n) => [n, { file: results[n].file.replaceAll("\\", "/"), sha256: results[n].sourceSha256, region: spec.frames[n].region, prompt: spec.frames[n].prompt }])),
-  operation: "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다.",
+  sources: Object.fromEntries(sequence.filter((n) => n !== "base").map((n) => [n, { file: results[n].file.replaceAll("\\", "/"), sha256: results[n].sourceSha256, region: spec.frames[n].region, ...(spec.frames[n].keep ? { keep: spec.frames[n].keep } : {}), prompt: spec.frames[n].prompt }])),
+  operation: spec.provenance?.operation ?? "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다.",
 };
 await writeFile(join(spec.out, "provenance.json"), JSON.stringify(provenance, null, 2) + "\n");
 console.log(JSON.stringify({ out: spec.out, variants: Object.fromEntries(Object.entries(manifest.variants).map(([k, v]) => [k, { sheetBytes: v.sheetBytes, posterBytes: v.posterBytes, frames: v.sheet.frames }])) }, null, 2));
