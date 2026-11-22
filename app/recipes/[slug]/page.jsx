@@ -3,7 +3,7 @@ import { BRAND_FACTS } from '../../../lib/brand/brand-facts.mjs';
 import { notFound } from 'next/navigation';
 import { buildSeoMetadata } from '../../../lib/seo';
 import { siteSeo } from '../../../lib/seo/siteSeo';
-import { RECIPES, recipeImage, recipeJsonLd } from '../../../lib/lifestyle/recipes.mjs';
+import { RECIPES, recipeImage, recipeJsonLd, recipePath } from '../../../lib/lifestyle/recipes.mjs';
 import ReadingLayout, { JsonLd } from '../ReadingLayout';
 
 export const dynamicParams = false;
