@@ -4,7 +4,7 @@
 .cd-pop5{
   --pop5-paper:color-mix(in srgb,var(--cd-yehwa-ivory,#fdf6f0) 88%,var(--cd-surface,#fff));
   --pop5-rose:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 70%,var(--pop5-paper));
-  position:relative;isolation:isolate;box-sizing:border-box;min-height:484px;margin:24px auto;max-width:640px;
+  position:relative;isolation:isolate;box-sizing:border-box;width:100%;margin:24px auto;max-width:640px;
   padding:22px 18px 18px;border:1px solid var(--cd-yehwa-line,#c9a46a);border-radius:var(--cd-r-card,20px);
   background:radial-gradient(120% 70% at 100% 0%,var(--pop5-rose) 0%,transparent 55%),var(--pop5-paper);
   color:var(--cd-text);
@@ -16,14 +16,15 @@
 .cd-pop5[data-cd-pop5-shell]{max-width:none;margin:24px 0}
 html:not([lang|=ko]) .cd-pop5{display:none!important}
 
-.cd-pop5__head{margin:0 56px 10px 2px}
-.cd-pop5__title{margin:0;font-family:var(--font-display,var(--font-body));font-size:1.25rem;font-weight:400;line-height:1.4;color:var(--cd-text)}
-.cd-pop5__period{margin:4px 0 0;font-size:.875rem;line-height:1.6;color:var(--cd-text-muted)}
+.cd-pop5__head{margin:0 2px 10px}
+.cd-pop5__title{margin:0;padding-inline-end:32px;font-family:var(--font-display,var(--font-body));font-size:1.25rem;font-weight:400;line-height:1.4;color:var(--cd-text)}
+.cd-pop5__period{min-block-size:3.2em;margin:4px 0 0;font-size:.875rem;line-height:1.6;color:var(--cd-text-muted)}
 
+.cd-pop5__detail{display:block}
 .cd-pop5__list{list-style:none;margin:0;padding:0}
 .cd-pop5__item+.cd-pop5__item{border-top:1px solid color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 60%,transparent)}
 .cd-pop5__link{display:flex;align-items:center;gap:12px;min-height:64px;padding:6px 6px;box-sizing:border-box;color:var(--cd-text);text-decoration:none;border-radius:14px;transition:background-color .15s ease,transform .1s ease}
-.cd-pop5__link:focus-visible{outline:none;box-shadow:var(--cd-focus-ring)}
+.cd-pop5__link:focus-visible{outline:2px solid var(--cd-focus-ring);outline-offset:1px}
 .cd-pop5__link:active{transform:scale(.985);background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 55%,transparent)}
 @media (hover:hover){.cd-pop5__link:hover{background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 40%,transparent)}}
 
@@ -40,10 +41,6 @@ html:not([lang|=ko]) .cd-pop5{display:none!important}
 .cd-pop5__name{min-width:0;font-size:1.0625rem;line-height:1.5;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cd-pop5__tag{flex:0 0 auto;padding:1px 8px;border-radius:var(--cd-r-pill,999px);border:1px solid color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 80%,transparent);font-size:.75rem;line-height:1.5;font-weight:600;color:var(--cd-text-muted);background:transparent}
 .cd-pop5__arrow{flex:0 0 auto;color:var(--cd-yehwa-line-deep,#a97b3e);font-size:1.25rem;line-height:1}
-
-/* 달빛 메모 */
-.cd-pop5__note{position:relative;margin:10px 0 0;padding:8px 12px 8px 30px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 55%,transparent);border-radius:12px;background:color-mix(in srgb,var(--pop5-paper) 80%,#fff);font-size:.8125rem;line-height:1.6;color:var(--cd-text-muted)}
-.cd-pop5__note::before{content:"";position:absolute;left:10px;top:11px;width:14px;height:14px;background:var(--cd-yehwa-line,#c9a46a);-webkit-mask:var(--cd-button-sprig-mask) center/contain no-repeat;mask:var(--cd-button-sprig-mask) center/contain no-repeat}
 
 /* 스켈레톤: 데이터 전 첫 페인트 */
 .cd-pop5__skel{display:block;border-radius:8px;background:linear-gradient(90deg,color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 14%,transparent) 0%,color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 26%,transparent) 50%,color-mix(in srgb,var(--cd-yehwa-line,#c9a46a) 14%,transparent) 100%);background-size:200% 100%;animation:cd-pop5-shimmer 1.4s ease-in-out infinite}
