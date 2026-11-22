@@ -39,6 +39,7 @@
 - [궁합](https://code-destiny.com/compatibility/): 궁합을 사주·숙요점·타로의 서로 다른 관계 해석 관점으로 이어서 살펴봅니다.
 - [사주 궁합](https://code-destiny.com/saju/compatibility/): 사주 궁합의 관계 해석을 숙요점 궁합과 타로의 질문형 해석으로 이어서 살펴봅니다.
 - [띠궁합표](https://code-destiny.com/compatibility/tti/): 태어난 해 지지끼리의 삼합·육합·충·원진·형·파·해를 12띠별로 정리하고 사주 궁합과의 차이를 안내합니다.
+- [신살 뜻과 종류](https://code-destiny.com/saju/sinsal/): 신살이 삼합·일간·간지·지지 짝 가운데 무엇을 기준으로 붙는지와 대표 신살의 기준표를 정리합니다.
 - [연애운](https://code-destiny.com/love/): 연애운을 사주 궁합·숙요점·타로의 다른 관계 해석 관점으로 확장합니다.
 - [오늘의 운세](https://code-destiny.com/today/): 하루의 흐름을 사주·점성술·타로 콘텐츠의 실천 질문으로 확장합니다.
 - [2027년 띠별 운세·삼재띠](https://code-destiny.com/fortune/2027/): 2027년 정미년(丁未年) 세운의 천간 丁화·지지 未토가 12띠 지지와 맺는 합·충·형·해·원진 관계와 삼재 여부를 계산해 띠별·년생별·절기 월별로 정리합니다.

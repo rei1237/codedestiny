@@ -49,6 +49,7 @@ const SECTIONS = [
       "/compatibility",
       "/saju/compatibility",
       "/compatibility/tti",
+      "/saju/sinsal",
       "/love",
       "/today",
       "/fortune/2027",

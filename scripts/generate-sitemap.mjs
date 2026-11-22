@@ -243,6 +243,7 @@ const coreRoutes = [
   { path: "/guides/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
   { path: "/saju/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/saju/ten-gods", changefreq: "monthly", priority: 0.78 },
+  { path: "/saju/sinsal", changefreq: "monthly", priority: 0.78 },
   { path: "/saju/five-elements", changefreq: "monthly", priority: 0.78 },
   // 민속 계산형 랜딩(2026-11-22). 한국어 전용이고 AdSense 대상이 아니다. 표는 lib/fortune/zodiac-folk.ts 가 계산한다.
   { path: "/fortune/son-eomneun-nal", changefreq: "monthly", priority: 0.8 },
