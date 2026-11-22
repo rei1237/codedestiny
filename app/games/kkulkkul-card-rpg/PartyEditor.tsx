@@ -3,6 +3,8 @@ import { saveFormation, type Collection } from "./collection";
 import {
   buildBattleSnapshot,
   costumeArt,
+  unitStats,
+  gearStats,
   definitions,
   equipment,
   moveSlot,
@@ -21,6 +23,7 @@ type Props = {
   onSaved: (c: Collection) => void;
   reload: () => void;
   target: string;
+  depart: (preset: number) => void;
 };
 export default function PartyEditor({
   scope,
@@ -29,6 +32,7 @@ export default function PartyEditor({
   onPreset,
   onSaved,
   reload,
+  depart,
   target,
 }: Props) {
   const initial = data.formations[preset];
@@ -52,6 +56,8 @@ export default function PartyEditor({
     unit = active && resolveSlot(data, active),
     issues = validateFormation(data, draft);
   const requestedGear = data.items.find((e) => e.ownedEquipmentId === target);
+  const baseStats = unit && unitStats(unit.variant, unit.owned?.level),
+    wornGear = unit?.item && gearStats(unit.item);
   function edit(next: Formation) {
     setDraft(next);
     setInspect(false);
@@ -213,6 +219,8 @@ export default function PartyEditor({
             {data.units.map((u) => (
               <option key={u.ownedUnitId} value={u.ownedUnitId}>
                 {definitions[u.battleVariantId].name}
+                {definitions[u.battleVariantId].edition !== "기본 전투 버전" &&
+                  " · " + definitions[u.battleVariantId].edition}
               </option>
             ))}
             {draft.tutorial &&
@@ -272,16 +280,8 @@ export default function PartyEditor({
               </button>
             )}
             <p>
-              HP {unit.variant.hp} →{" "}
-              {unit.variant.hp +
-                (unit.item
-                  ? equipment[unit.item.equipmentDefinitionId].hp
-                  : 0)}{" "}
-              · 공격 {unit.variant.atk} →{" "}
-              {unit.variant.atk +
-                (unit.item
-                  ? equipment[unit.item.equipmentDefinitionId].atk
-                  : 0)}
+              HP {baseStats!.hp} → {baseStats!.hp + (wornGear?.hp ?? 0)} · 공격{" "}
+              {baseStats!.atk} → {baseStats!.atk + (wornGear?.atk ?? 0)}
             </p>
             {unit.item && (
               <p>
@@ -296,6 +296,24 @@ export default function PartyEditor({
             편성 저장
           </button>
           <button onClick={() => setInspect(true)}>출전 준비 확인</button>
+          <button
+            disabled={busy || issues.length > 0}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await saveFormation(scope, preset, rev, draft);
+                depart(preset);
+              } catch (e) {
+                setStatus(
+                  e instanceof Error ? e.message : "편성을 저장하지 못했어요.",
+                );
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            저장하고 출전
+          </button>
           <button onClick={reload}>다시 불러오기</button>
         </div>
         <p role="status">{status}</p>

@@ -26,7 +26,14 @@ import {
   screens,
   type Screen,
 } from "./catalog";
+import BattleScreen from "./BattleScreen";
+import type { EncounterId } from "./battle";
+import StoryCampaign from "./StoryCampaign";
+import Growth from "./GrowthScreen";
 import CollectionViews from "./CollectionViews";
+import { sceneById } from "./campaign-data";
+import { loadCollection } from "./collection";
+import { wardrobeKey } from "./battle-appearance";
 import SummonPreview from "./SummonPreview";
 import { Dialogue, Portrait, NovelLine } from "./Dialogue";
 import { usePlayer } from "./usePlayer";
@@ -41,7 +48,13 @@ const dock = [
   { id: "summon", Icon: Orbit },
   { id: "menu", Icon: Menu },
 ] as const;
-const defaults = { sound: false, large: false, still: false, hero: 0 };
+const defaults = {
+  sound: false,
+  large: false,
+  still: false,
+  hero: 0,
+  heroVariant: "",
+};
 const storageKey = "kkulkkul-card-rpg.lobby.v1";
 
 function readScreen(): Screen {
@@ -70,6 +83,43 @@ export default function Lobby({
   }
   const title = useRef<HTMLHeadingElement>(null);
   const hero = companions[prefs.hero];
+  const heroVariant = prefs.heroVariant || hero.speaker + "-base";
+  const [bookmark, setBookmark] = useState({ scope: "", node: "" });
+  const nextScene =
+    bookmark.scope === player.scope ? sceneById[bookmark.node] : undefined;
+  const [look, setLook] = useState({ scope: "", variant: "", key: "" });
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== "development" ||
+      !player.scope ||
+      screen !== "home"
+    )
+      return;
+    let current = true;
+    loadCollection(player.scope)
+      .then((data) => {
+        if (current)
+          setBookmark({
+            scope: player.scope,
+            node: data.campaign?.read.length ? data.campaign.node : "",
+          });
+        const unit = data.units.find((u) => u.battleVariantId === heroVariant);
+        if (current)
+          setLook({
+            scope: player.scope,
+            variant: heroVariant,
+            key: unit
+              ? wardrobeKey(hero.speaker, heroVariant, unit.costumeId)
+              : "",
+          });
+      })
+      .catch(() => {
+        if (current) setLook({ scope: "", variant: "", key: "" });
+      });
+    return () => {
+      current = false;
+    };
+  }, [player.scope, screen, hero.speaker, heroVariant]);
   const checkpointKey = player.scope
     ? storageKey + ".opening." + player.scope
     : "";
@@ -120,6 +170,8 @@ export default function Lobby({
     try {
       const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
       setPrefs({
+        heroVariant:
+          typeof saved.heroVariant === "string" ? saved.heroVariant : "",
         hero:
           Number.isInteger(saved.hero) && companions[saved.hero]
             ? saved.hero
@@ -168,10 +220,17 @@ export default function Lobby({
       /* Audio may be unavailable on this device. */
     }
   }
-  function go(id: Screen) {
+  function go(
+    id: Screen,
+    request?: { encounter: EncounterId; questId: string; preset?: number },
+  ) {
     if (id === screen) return;
     chime();
-    history.pushState({ cardRpgFrom: screen }, "", "#" + id);
+    history.pushState(
+      { cardRpgFrom: screen, battleRequest: request },
+      "",
+      "#" + id,
+    );
     setScreen(id);
   }
   function back() {
@@ -186,8 +245,12 @@ export default function Lobby({
     history.replaceState(null, "", "#home");
     setScreen("home");
   }
-  function chooseHero(id: number) {
-    save({ ...prefs, hero: id });
+  function chooseHero(id: number, battleVariantId?: string) {
+    save({
+      ...prefs,
+      hero: id,
+      heroVariant: battleVariantId || companions[id].speaker + "-base",
+    });
     setLine(0);
   }
   const shortcut = (id: Screen) => (
@@ -236,6 +299,11 @@ export default function Lobby({
           <Dialogue
             key={hero.name + line}
             index={prefs.hero}
+            wardrobe={
+              look.scope === player.scope && look.variant === heroVariant
+                ? look.key
+                : ""
+            }
             line={line}
             still={prefs.still}
             next={() => setLine((line + 1) % hero.lines.length)}
@@ -247,27 +315,74 @@ export default function Lobby({
                 <BookOpen size={14} /> MAIN STORY
               </span>
               <small>
-                프롤로그 · {beat === 0 ? "첫 장면" : "읽던 문장 " + (beat + 1)}
+                {nextScene
+                  ? nextScene.chapter + " · 읽던 장면"
+                  : "프롤로그 · " +
+                    (beat === 0 ? "첫 장면" : "읽던 문장 " + (beat + 1))}
               </small>
               <h1 tabIndex={-1} ref={title}>
-                이상한 앱이
-                <br />
-                깔렸다
+                {nextScene ? (
+                  nextScene.title
+                ) : (
+                  <>
+                    이상한 앱이
+                    <br />
+                    깔렸다
+                  </>
+                )}
               </h1>
-              <button className={s.gold} onClick={() => go("story")}>
+              <button
+                className={s.gold}
+                onClick={() => go(nextScene ? "campaign" : "story")}
+              >
                 이야기 이어하기 <ArrowRight size={20} />
               </button>
             </article>
-            <button className={s.event} onClick={() => go("event")}>
-              <Music2 />
-              <span>
-                <b>축제의 무대</b>
-                <small>EP.12 완료 후 해금 · 준비 중</small>
-              </span>
-              <LockKeyhole size={16} />
-            </button>
+            <div className={s.exits}>
+              {process.env.NODE_ENV === "development" && (
+                <button className={s.event} onClick={() => go("battle")}>
+                  <Swords />
+                  <span>
+                    <b>달빛 전장</b>
+                    <small>저장 편성 출전</small>
+                  </span>
+                </button>
+              )}
+              <button className={s.event} onClick={() => go("event")}>
+                <Music2 />
+                <span>
+                  <b>축제의 무대</b>
+                  <small>
+                    {process.env.NODE_ENV === "development"
+                      ? "의뢰와 해금 조건"
+                      : "EP.12 완료 후 해금 · 준비 중"}
+                  </small>
+                </span>
+              </button>
+            </div>
           </div>
         </section>
+      ) : screen === "battle" && process.env.NODE_ENV === "development" ? (
+        player.scope ? (
+          <BattleScreen
+            key={player.scope}
+            scope={player.scope}
+            requested={
+              typeof window !== "undefined"
+                ? history.state?.battleRequest
+                : undefined
+            }
+            still={prefs.still}
+            sound={prefs.sound}
+            home={() => go("home")}
+            team={() => go("team")}
+            returnQuest={(id) =>
+              go(id.startsWith("chapter1.") ? "campaign" : "event")
+            }
+          />
+        ) : (
+          <p>계정 상태 확인 중</p>
+        )
       ) : screen === "story" ? (
         <section className={book.spread} aria-labelledby="story-entry-title">
           <figure className={book.coverScene}>
@@ -313,6 +428,12 @@ export default function Lobby({
               >
                 <ArrowLeft size={18} />
               </button>
+              {process.env.NODE_ENV === "development" &&
+                beat === opening.length - 1 && (
+                  <button onClick={() => go("campaign")}>
+                    본편 시작 · 비겁의 섬
+                  </button>
+                )}
               {beat + 1 < opening.length ? (
                 <button
                   className={book.forward}
@@ -348,6 +469,10 @@ export default function Lobby({
                   }
                   hero={prefs.hero}
                   chooseHero={chooseHero}
+                  heroVariant={heroVariant}
+                  depart={(preset) =>
+                    go("battle", { preset, encounter: "tutorial", questId: "" })
+                  }
                   go={openOwned}
                   still={prefs.still}
                   metYeon={met === player.scope}
@@ -375,6 +500,29 @@ export default function Lobby({
                 <p>캐릭터 성장 레벨은 강화 기능에서 열립니다.</p>
               </>
             )}
+            {process.env.NODE_ENV === "development" &&
+              player.scope &&
+              (screen === "campaign" ||
+                screen === "archive" ||
+                screen === "event" ||
+                screen === "history") && (
+                <StoryCampaign
+                  key={player.scope + screen}
+                  scope={player.scope}
+                  screen={screen === "campaign" ? "story" : screen}
+                  still={prefs.still}
+                  sound={prefs.sound}
+                  startBattle={(encounter, questId) =>
+                    go("battle", { encounter, questId })
+                  }
+                  openGrowth={() => go("growth")}
+                />
+              )}
+            {process.env.NODE_ENV === "development" &&
+              screen === "growth" &&
+              player.scope && (
+                <Growth key={player.scope} scope={player.scope} />
+              )}
             {screen === "summon" && (
               <SummonPreview
                 balance={player.balance}
@@ -386,12 +534,20 @@ export default function Lobby({
             {screen in pending &&
               !(
                 process.env.NODE_ENV === "development" &&
-                (screen === "team" || screen === "relic")
+                ["team", "relic", "growth", "history", "event"].includes(screen)
               ) && <p>{pending[screen as keyof typeof pending]}</p>}
             {screen === "menu" &&
-              (["archive", "history", "settings", "help"] as const).map(
-                shortcut,
-              )}
+              (
+                [
+                  "archive",
+                  "history",
+                  ...(process.env.NODE_ENV === "development"
+                    ? (["battle", "campaign"] as const)
+                    : []),
+                  "settings",
+                  "help",
+                ] as const
+              ).map(shortcut)}
             {screen === "archive" && (
               <>
                 <p>프롤로그 · 이상한 앱이 깔렸다</p>

@@ -1,0 +1,556 @@
+.cutIn {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+  inset: 9% auto 11% 0;
+  width: min(66%, 570px);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  isolation: isolate;
+  padding-right: 9%;
+  color: #fff4dc;
+  background: linear-gradient(112deg, #38243edc, #783f59ed 73%, #c98691d9);
+  border-block: 1px solid #eacba6;
+  clip-path: polygon(0 0, 100% 0, 89% 100%, 0 100%);
+  animation: unseal 0.54s ease-out both;
+}
+.cutIn[data-fast="true"] {
+  animation-duration: 0.27s;
+}
+.cutIn:before {
+  content: "";
+  position: absolute;
+  inset: 4px 0;
+  border-block: 1px solid #e4c19895;
+  pointer-events: none;
+}
+.cutIn img {
+  width: 45%;
+  height: 150%;
+  object-fit: cover;
+  object-position: 50% 25%;
+  align-self: flex-start;
+  mask-image: linear-gradient(90deg, #000 70%, transparent);
+}
+.cutIn strong,
+.cutIn small {
+  display: block;
+  text-shadow: 0 2px 4px #2c1836;
+  font-family: Georgia, Batang, serif;
+}
+.cutIn strong {
+  font-size: clamp(17px, 2.4vw, 34px);
+  line-height: 1.15;
+}
+@keyframes unseal {
+  0% {
+    transform: translateX(-65%);
+    opacity: 0;
+  }
+  30%,
+  85% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0.75;
+  }
+}
+.actor {
+  position: relative;
+  isolation: isolate;
+  container-type: size;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  pointer-events: none;
+}
+.shadow {
+  position: absolute;
+  left: 22%;
+  right: 19%;
+  bottom: 1.2%;
+  height: 8%;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    #341c42a1,
+    #42213c5c 50%,
+    transparent 74%
+  );
+}
+.body,
+.cell {
+  position: absolute;
+  inset: 0;
+}
+.body {
+  transform-origin: 50% 95%;
+  filter: drop-shadow(0 2px 2px #24163073);
+}
+.cell {
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  inset: auto auto 0 50%;
+  transform: translateX(-50%);
+  overflow: hidden;
+}
+.cell img {
+  position: absolute;
+  display: block;
+  left: 0;
+  top: 0;
+  width: 400%;
+  height: 200%;
+  max-width: none;
+  max-height: none;
+  transform: translate(var(--pose-x), var(--pose-y));
+}
+.actor[data-motion="idle"] .body {
+  animation: breathe 3.4s ease-in-out infinite;
+}
+.actor[data-person="ln"][data-motion="idle"] .body {
+  animation: hop 2.9s ease-in-out infinite;
+}
+.actor[data-motion="enter"] .body {
+  animation: enter var(--beat) ease-out both;
+}
+.actor[data-motion="Quick"] .body {
+  animation: quick var(--beat) ease-out both;
+}
+.actor[data-motion="Arts"] .body,
+.actor[data-motion="skill"] .body {
+  animation: cast var(--beat) ease-out both;
+}
+.actor[data-motion="Buster"] .body,
+.actor[data-motion="ultimate"] .body {
+  animation: slam var(--beat) cubic-bezier(0.25, 0.7, 0.25, 1) both;
+}
+.actor[data-motion="hit"] .body {
+  animation: hit var(--beat) ease-out both;
+}
+.actor[data-motion="heavy"] .body {
+  animation: heavy var(--beat) ease-out both;
+}
+.actor[data-motion="down"] .body {
+  animation: down var(--beat) ease-out both;
+}
+.actor[data-motion="victory"] .body {
+  animation: cheer var(--beat) ease-out both;
+}
+.actor[data-person="pje"][data-motion="Arts"] .body {
+  transform-origin: 65% 70%;
+  animation: parasol var(--beat) ease-out both;
+}
+.actor[data-person="ln"][data-motion="Quick"] .body,
+.actor[data-person="neo"][data-motion="Buster"] .body {
+  animation: leap var(--beat) ease-out both;
+}
+.actor[data-person="moka"][data-motion="Quick"] .body {
+  animation: beat var(--beat) ease-out both;
+}
+.actor[data-person="yun"][data-motion="Buster"] .body {
+  transform-origin: 38% 95%;
+}
+
+.halo {
+  position: absolute;
+  z-index: -1;
+  inset: 15% 7% 0;
+  opacity: 0;
+  background: radial-gradient(ellipse, var(--ink), transparent 67%);
+  animation: aura var(--beat) both;
+}
+.gesture {
+  position: absolute;
+  inset: 0;
+  color: var(--light);
+}
+.sigil {
+  position: absolute;
+  left: var(--hand-x);
+  top: var(--hand-y);
+  width: 25%;
+  height: 25%;
+  stroke-width: 1.3;
+  filter: drop-shadow(0 0 2px var(--ink));
+  animation: sigil var(--beat) ease-out both;
+}
+.sweep {
+  position: absolute;
+  left: 34%;
+  top: 24%;
+  width: 65%;
+  height: 38%;
+  border-radius: 50%;
+  border-bottom: 3px solid var(--light);
+  border-right: 1px solid var(--ink);
+  filter: drop-shadow(0 0 3px var(--ink));
+  transform-origin: 15% 75%;
+  animation: stroke var(--beat) ease-out both;
+}
+.actor[data-motion="Arts"] .sweep,
+.actor[data-person="moka"] .sweep {
+  border: 2px solid var(--light);
+  border-inline-color: var(--ink);
+  width: 43%;
+  height: 23%;
+  left: var(--hand-x);
+  top: var(--hand-y);
+  animation: ripple var(--beat) ease-out both;
+}
+.actor[data-person="pje"] .sweep {
+  border-radius: 80% 90% 0 0;
+  border-top: 3px solid var(--light);
+  border-bottom: 0;
+}
+.actor[data-wardrobe="moka-stage"] .sweep {
+  border-style: double;
+  border-width: 3px;
+}
+.actor[data-wardrobe="ln-festival"] .sigil,
+.actor[data-wardrobe="yun-traveler"] .sigil {
+  color: #fff1c1;
+  stroke-width: 1;
+}
+.actor[data-motion="ultimate"] .sweep {
+  width: 75%;
+  height: 55%;
+  border-width: 4px;
+}
+.actor[data-motion="victory"] .sigil {
+  left: 66%;
+  top: 22%;
+}
+.spark {
+  position: absolute;
+  left: var(--hand-x);
+  top: var(--hand-y);
+  width: 5%;
+  aspect-ratio: 1;
+  background: var(--light);
+  clip-path: polygon(
+    50% 0,
+    63% 38%,
+    100% 50%,
+    63% 61%,
+    50% 100%,
+    37% 61%,
+    0 50%,
+    37% 38%
+  );
+  --ray-x: 360%;
+  --ray-y: -460%;
+  animation: spark var(--beat) ease-out both;
+}
+.spark:last-child {
+  --ray-x: 520%;
+  --ray-y: 120%;
+  width: 3%;
+}
+.impact {
+  position: absolute;
+  left: 43%;
+  top: 38%;
+  width: 28%;
+  aspect-ratio: 1;
+  background: radial-gradient(
+    circle,
+    #fff8cb,
+    #fcb5b3 30%,
+    #fc6486 52%,
+    transparent 70%
+  );
+  clip-path: polygon(
+    50% 0,
+    56% 36%,
+    88% 14%,
+    66% 43%,
+    100% 51%,
+    64% 59%,
+    87% 89%,
+    56% 66%,
+    50% 100%,
+    44% 66%,
+    10% 87%,
+    35% 56%,
+    0 50%,
+    36% 43%,
+    12% 14%,
+    45% 36%
+  );
+  animation: flash var(--beat) ease-out both;
+}
+.actor[data-motion="heavy"] .impact {
+  width: 52%;
+  left: 29%;
+  top: 26%;
+}
+
+@keyframes breathe {
+  50% {
+    transform: translateY(-1.1%) scale(1.013, 1.018);
+  }
+}
+@keyframes hop {
+  20%,
+  42% {
+    transform: translateY(-2%);
+  }
+  30%,
+  50%,
+  100% {
+    transform: scale(1.025, 0.985);
+  }
+}
+@keyframes enter {
+  0% {
+    opacity: 0;
+    transform: translateX(-20%) scale(0.9);
+  }
+  78% {
+    transform: translateX(2%);
+  }
+}
+@keyframes quick {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translateX(-4%) rotate(-3deg);
+  }
+  48% {
+    transform: translate(12%, -4%) rotate(4deg);
+  }
+}
+@keyframes cast {
+  0%,
+  100% {
+    transform: none;
+  }
+  35% {
+    transform: scale(0.98, 1.025) translateY(-3%);
+  }
+  64% {
+    transform: rotate(2deg);
+  }
+}
+@keyframes slam {
+  0%,
+  100% {
+    transform: none;
+  }
+  28% {
+    transform: translate(-4%, 3%) rotate(-8deg);
+  }
+  55% {
+    transform: translate(9%, -3%) rotate(6deg);
+  }
+  73% {
+    transform: translate(3%, 2%) scale(1.04, 0.96);
+  }
+}
+@keyframes leap {
+  0%,
+  100% {
+    transform: none;
+  }
+  24% {
+    transform: scale(1.04, 0.92);
+  }
+  50% {
+    transform: translate(9%, -13%) rotate(6deg);
+  }
+  75% {
+    transform: translate(7%, 1%) scale(1.04, 0.96);
+  }
+}
+@keyframes beat {
+  0%,
+  100% {
+    transform: none;
+  }
+  27%,
+  64% {
+    transform: rotate(-4deg) translateY(-3%);
+  }
+  40%,
+  77% {
+    transform: rotate(4deg) translateX(4%);
+  }
+}
+@keyframes parasol {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: rotate(-9deg);
+  }
+  65% {
+    transform: translateX(4%) rotate(7deg);
+  }
+}
+@keyframes hit {
+  0%,
+  100% {
+    transform: none;
+  }
+  24% {
+    transform: translateX(-5%) rotate(-3deg);
+    filter: brightness(1.32);
+  }
+  55% {
+    transform: translateX(1.5%);
+  }
+}
+@keyframes heavy {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: translate(-12%, -4%) rotate(-13deg);
+    filter: brightness(1.5);
+  }
+  58% {
+    transform: translate(-4%, 2%) rotate(-5deg);
+  }
+}
+@keyframes down {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateY(2%) rotate(-12deg) scale(0.95, 0.87);
+    filter: saturate(0.28);
+  }
+}
+@keyframes cheer {
+  0%,
+  100% {
+    transform: none;
+  }
+  47% {
+    transform: translateY(-7%) rotate(2deg);
+  }
+  78% {
+    transform: scale(1.02, 0.98);
+  }
+}
+@keyframes stroke {
+  0%,
+  15% {
+    opacity: 0;
+    transform: rotate(calc(var(--tilt) - 45deg)) scale(0.45);
+  }
+  47% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: rotate(calc(var(--tilt) + 38deg)) scale(1.25);
+  }
+}
+@keyframes ripple {
+  0%,
+  15% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.25);
+  }
+  40% {
+    opacity: 1;
+  }
+  95%,
+  100% {
+    opacity: 0;
+    transform: translate(-25%, -65%) scale(1.7);
+  }
+}
+@keyframes aura {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  45% {
+    opacity: 0.62;
+    transform: scale(1.15);
+  }
+}
+@keyframes sigil {
+  0%,
+  16% {
+    opacity: 0;
+    transform: translate(-60%, -50%) scale(0.45);
+  }
+  48% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(15%, -120%) scale(1.08) rotate(12deg);
+  }
+}
+@keyframes spark {
+  0%,
+  24% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--ray-x), var(--ray-y)) scale(0.65);
+  }
+}
+@keyframes flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+  22% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  62%,
+  100% {
+    opacity: 0;
+    transform: scale(1.32);
+  }
+}
+.actor[data-still="true"] *,
+.actor[data-still="true"] .body {
+  animation: none !important;
+}
+.actor[data-still="true"] .gesture,
+.actor[data-still="true"] .impact,
+.actor[data-still="true"] .halo {
+  display: none;
+}
+.actor[data-still="true"][data-motion="down"] .body {
+  opacity: 0.5;
+  filter: grayscale(0.7);
+}
+@media (prefers-reduced-motion: reduce) {
+  .actor *,
+  .actor[data-motion] .body {
+    animation: none !important;
+  }
+  .gesture,
+  .impact,
+  .halo {
+    display: none;
+  }
+  .actor[data-motion="down"] .body {
+    opacity: 0.5;
+    filter: grayscale(0.7);
+  }
+}

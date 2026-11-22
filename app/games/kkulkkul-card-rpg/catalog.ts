@@ -4,6 +4,8 @@ export const screens = {
   story: "이야기 이어하기",
   cast: "동료",
   team: "편성",
+  battle:"달빛 전장",
+  campaign:"본편 이야기",
   relic: "예장",
   growth: "강화",
   summon: "소환",

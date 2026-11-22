@@ -1,6 +1,9 @@
+import type {CampaignProgress} from "./campaign-data";
+import type {BattleSave} from "./battle-session";
 import { banners, draw, type BannerId } from "./summon-preview";
 import {
   definitions,
+  availableCostumes,
   equipment,
   validateFormation,
   type Inventory,
@@ -18,6 +21,10 @@ export type Collection = Inventory & {
   revisions: number[];
   receipts: Record<string, Receipt>;
   shards: number;
+  campaign?:CampaignProgress;
+  battle?:BattleSave;
+  growthRequests?:Record<string,string>;
+  battleHistory?:{id:string;name:string;turns:number;won:boolean}[];
 };
 function seed(): Collection {
   return {
@@ -47,7 +54,7 @@ function seed(): Collection {
   };
 }
 // A single read-write transaction serializes grants and edits across browser tabs.
-async function transaction<T>(
+export async function collectionTransaction<T>(
   scope: string,
   change: (c: Collection) => T,
 ): Promise<T> {
@@ -84,14 +91,14 @@ async function transaction<T>(
     db.close();
   }
 }
-export const loadCollection = (scope: string) => transaction(scope, (c) => c);
+export const loadCollection = (scope: string) => collectionTransaction(scope, (c) => c);
 export function applySummon(
   scope: string,
   run: string,
   id: BannerId,
   n: 1 | 10,
 ) {
-  return transaction(scope, (c) => {
+  return collectionTransaction(scope, (c) => {
     if (!run) throw Error("소환 실행 정보를 확인하세요.");
     const prior = c.receipts[run];
     if (prior) {
@@ -143,7 +150,7 @@ export function saveFormation(
   revision: number,
   f: Formation,
 ) {
-  return transaction(scope, (c) => {
+  return collectionTransaction(scope, (c) => {
     if (c.revisions[index] !== revision)
       throw Error("다른 화면에서 편성이 변경됐어요. 다시 불러오세요.");
     const errors = validateFormation(c, f, false);
@@ -154,14 +161,13 @@ export function saveFormation(
   });
 }
 export function setCostume(scope: string, unitId: string, costumeId: string) {
-  return transaction(scope, (c) => {
+  return collectionTransaction(scope, (c) => {
     const u = c.units.find((u) => u.ownedUnitId === unitId);
     if (
       !u ||
       !(
         costumeId === "default" ||
-        (definitions[u.battleVariantId]?.baseCharacterId === "moka" &&
-          costumeId === "moka-apron")
+        availableCostumes(u).includes(costumeId)
       )
     )
       throw Error("선택할 수 없는 의상이에요.");

@@ -1,0 +1,95 @@
+.workshop {
+  max-width: 100%;
+  color: #ffeedf;
+}
+.workshop header,
+.tabs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.workshop header {
+  border-bottom: 1px solid #ac7e87;
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+}
+.workshop h2 {
+  font:
+    600 clamp(21px, 3vw, 32px)/1.2 Georgia,
+    "Batang",
+    serif;
+  margin: 0;
+}
+.workshop fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.workshop .tabs {
+  justify-content: flex-start;
+  margin: 6px 0 12px;
+}
+.workshop label {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+.workshop select,
+.workshop .tabs button,
+.workshop button.confirm,
+.workshop section > button {
+  border: 1px solid #d49aa9;
+  background: #624153;
+  color: #fff2e2;
+  border-radius: 4px;
+  min-height: 44px;
+  padding: 6px 12px;
+  font: inherit;
+  max-width: 100%;
+}
+.workshop .tabs button[aria-pressed="true"],
+.workshop button.confirm {
+  background: #ffe1dd;
+  color: #5a3042;
+}
+.spread {
+  display: grid;
+  grid-template-columns: minmax(70px, 0.75fr) minmax(0, 1.6fr);
+  gap: clamp(10px, 2vw, 28px);
+}
+.spread aside {
+  align-self: start;
+  max-width: 215px;
+}
+.spread aside > img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2/3;
+  object-fit: cover;
+  border: 1px solid #f4caa1;
+}
+.compare {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 14px;
+  padding: 12px 0;
+  border-block: 1px solid #aa8192;
+}
+.compare dd {
+  margin: 0;
+}
+.compare dt {
+  color: #efc4ae;
+}
+@media (max-width: 520px) {
+  .spread {
+    grid-template-columns: 1fr;
+  }
+  .spread aside {
+    width: 95px;
+  }
+}

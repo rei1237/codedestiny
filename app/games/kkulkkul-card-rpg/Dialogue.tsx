@@ -7,12 +7,15 @@ import s from "./lobby.module.css";
 export function Portrait({
   index,
   frame = 0,
+  wardrobe = "",
 }: {
   index: number;
   frame?: number;
+  wardrobe?: string;
 }) {
   const hero = companions[index];
-  const luna = hero.sheet === "luna";
+  const luna = hero.sheet === "luna" && !wardrobe;
+  const sheet = wardrobe ? "/images/card-rpg/wardrobe/"+wardrobe+"-dialogue.webp" : "/assets/novel/atelier/"+hero.sheet+".webp";
   return (
     <svg
       role="img"
@@ -22,7 +25,7 @@ export function Portrait({
     >
       <svg width="320" height="384" overflow="hidden">
         <image
-          href={`/assets/novel/atelier/${hero.sheet}.webp`}
+          href={sheet}
           x={-320 * (luna ? 0 : frame)}
           width="1280"
           height="384"
@@ -83,11 +86,13 @@ export function NovelLine({
   speaker,
   still,
   idleActor,
+  wardrobe,
 }: {
   text: string;
   speaker: string;
   still: boolean;
   idleActor?: string;
+  wardrobe?: string;
 }) {
   const speech = useSpeech(text, still);
   const actor = companions.findIndex((c) => c.speaker === speaker);
@@ -96,7 +101,7 @@ export function NovelLine({
   return (
     <div className={s.novelLine}>
       {portrait >= 0 && (
-        <Portrait index={portrait} frame={actor >= 0 ? speech.frame : 0} />
+        <Portrait index={portrait} frame={actor >= 0 ? speech.frame : 0} wardrobe={wardrobe}/>
       )}
       <div>
         <small>
@@ -123,12 +128,14 @@ export function Dialogue({
   still,
   next,
   swap,
+  wardrobe,
 }: {
   index: number;
   line: number;
   still: boolean;
   next: () => void;
   swap: () => void;
+  wardrobe?: string;
 }) {
   const hero = companions[index];
   const text = hero.lines[line];
@@ -139,7 +146,7 @@ export function Dialogue({
         className={s.portrait}
         data-low-face={["luna", "moka", "neo_cat"].includes(hero.sheet)}
       >
-        <Portrait index={index} frame={frame} />
+        <Portrait index={index} frame={frame} wardrobe={wardrobe} />
       </div>
       <div className={s.speech}>
         <div>
