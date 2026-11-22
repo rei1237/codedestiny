@@ -18,7 +18,7 @@
 영상·프레임 대신 한 줄 WebP 시트를 쓰는 길이다. 캐릭터를 다시 그리지 않고, 정본 초상을 기본 칸으로 둔 채 편집 생성물에서 눈·입 같은 작은 영역만 합성한다.
 
 1. 편집 생성물(Codex OAuth `gpt-image-2`, 정본 초상을 이미지 입력)을 `D:\CodeDestiny-Build\master-motion/<id>/`에 둔다.
-2. spec `scripts/sprites/master-motion/<id>.json`을 쓰고 `node scripts/sprites/build-master-motion.mjs <spec> --report`로 1차 픽셀 검수 수치(영역 밖 평균 차이 `guardDiff`, 영역 안 변화 `regionDiff`)를 본다. 2차는 visual-checker 판정이다.
+2. spec `scripts/sprites/master-motion/<id>.json`을 쓰고 `node scripts/sprites/build-master-motion.mjs <spec> --report`로 1차 픽셀 검수 수치(영역 밖 평균 차이 `guardDiff`, 영역 안 변화 `regionDiff`)를 본다. 2차는 visual-checker 판정이다. 영역 안이지만 생성물이 어긋나게 다시 그린 작은 무늬(점·머리카락 가닥)는 프레임의 `keep` 타원으로 정본 무늬를 되돌린다. 밝기는 keep 바깥 고리의 톤 차에 맞춘다(F5 서한비).
 3. `--report` 없이 돌리면 `public/images/master-motion/<id>/`에 `<변형>-sheet.webp`·`<변형>-poster.webp`·`manifest.json`·`provenance.json`을 쓴다. 1차 검수 불합격 프레임이 있거나 아래 용량 상한(`lib/master-motion/sheets.mjs`의 `MASTER_MOTION_BUDGETS`)을 넘으면 파일을 쓰지 않고 실패한다.
 4. `lib/master-motion/sheets.mjs`의 `MASTER_MOTION_SHEETS`에 매니페스트 값을 옮기고, `lib/master-motion/flags.mjs`의 `MASTER_SPRITE_SHEETS.<id>`를 켠다. 화면 연결은 `motion: masterMotionArt("<id>", "<변형>")`이다. `__tests__/ui/master-motion-assets.test.mjs`가 매니페스트·용량·크기·플래그·CSS 계약을 확인한다.
 

@@ -8,6 +8,9 @@
  * 원칙
  * - 캐릭터를 다시 그리지 않는다. 기본 칸은 정본 초상 그대로이고, 편집 생성물(D:\CodeDestiny-Build)은
  *   정본에 맞춰 위치·배율을 맞춘 뒤 spec 의 영역(눈·입 등 타원)만 페더 마스크로 정본 위에 얹는다.
+ * - frame.keep(선택): 영역 안이지만 정본을 그대로 둘 타원(점·머리카락 가닥 등 생성물이 다시 그려 어긋난 곳).
+ *   keep 안은 정본 무늬 + 바깥 고리의 톤 차(applyKeep). 등록·색 보정 고리·검수 블록 분류는 영역(region)만으로 정하고,
+ *   keep 핵심과 겹치는 블록은 region 수치에서 뺀다(바뀌지 않는 곳을 변화량으로 세지 않는다).
  * - 1차 검수(fail-closed): 영역 밖(얼굴 윤곽·의상) 평균 차이가 qa.maxGuardDiff 를 넘거나,
  *   영역 안 변화가 qa.minRegionDiff 보다 작으면 그 프레임을 쓰는 빌드는 실패한다.
  * - 시트는 재생 순서대로 한 줄(cols === frames). 용량이 lib/master-motion/sheets.mjs 의 상한을 넘으면 실패한다.
@@ -117,7 +120,7 @@ function alignedRgb(reg) {
 // 수치는 8px 블록 평균 밝기 차이다. 편집 생성물은 그림 전체를 다시 그려 픽셀 단위 결 차이(평균 10 안팎)가 늘 있으므로,
 // 결이 아니라 구조(윤곽·명암 배치)가 같은지를 본다. guard = 등록 상자 안에서 영역과 겹치지 않는 블록, region = 중심이 영역 안인 블록.
 const BLOCK = 8;
-function compose(aligned, region) {
+function compose(aligned, region, keep) {
   const box = spec.registration.box;
   let guardSum = 0, guardN = 0, wholeSum = 0, wholeN = 0, regionSum = 0, regionN = 0;
   for (let by = 0; by + BLOCK <= H; by += BLOCK) for (let bx = 0; bx + BLOCK <= W; bx += BLOCK) {
@@ -128,7 +131,7 @@ function compose(aligned, region) {
       if (ellipseWeight(region, x, y) > 0) touches = true;
     }
     const diff = Math.abs(signed / (BLOCK * BLOCK));
-    if (ellipseWeight(region, bx + BLOCK / 2, by + BLOCK / 2) >= 1) { regionSum += diff; regionN += 1; }
+    if (ellipseWeight(region, bx + BLOCK / 2, by + BLOCK / 2) >= 1 && !keepTouches(keep, bx, by)) { regionSum += diff; regionN += 1; }
     if (touches) continue;
     wholeSum += diff; wholeN += 1;
     if (bx >= box.left && bx + BLOCK <= box.left + box.width && by >= box.top && by + BLOCK <= box.top + box.height) { guardSum += diff; guardN += 1; }
@@ -153,11 +156,51 @@ function compose(aligned, region) {
       out[i + c] = Math.round(baseRgb[i + c] * (1 - w) + edited * w);
     }
   }
+  applyKeep(out, keep);
   const round = (v) => Math.round(v * 100) / 100;
   return {
     frame: out,
     qa: { guardDiff: round(guardSum / guardN), wholeDiff: round(wholeSum / wholeN), regionDiff: round(regionN ? regionSum / regionN : 0), colorShift: shift.map(round) },
   };
+}
+
+/**
+ * keep 타원마다 정본 무늬를 되돌리되 밝기는 주변 합성 피부에 맞춘다. 편집이 눈가 피부 톤을 몇 단계 바꾸면
+ * 정본을 그대로 붙인 자리가 밝은/어두운 원반으로 남기 때문이다(F5 hanbi 점, visual-checker).
+ * 톤 = keep 바깥 3px 고리에서 (합성 − 정본) 채널 평균.
+ */
+function applyKeep(out, keep) {
+  for (const k of keep ? [keep].flat() : []) {
+    const outer = 1 + k.feather / Math.min(k.rx, k.ry), ringOuter = outer + 3 / Math.min(k.rx, k.ry);
+    const x0 = Math.max(0, Math.floor(k.cx - k.rx * ringOuter)), x1 = Math.min(W - 1, Math.ceil(k.cx + k.rx * ringOuter));
+    const y0 = Math.max(0, Math.floor(k.cy - k.ry * ringOuter)), y1 = Math.min(H - 1, Math.ceil(k.cy + k.ry * ringOuter));
+    const tone = [0, 0, 0];
+    let n = 0;
+    for (let y = y0; y <= y1; y += 1) for (let x = x0; x <= x1; x += 1) {
+      const d = Math.hypot((x - k.cx) / k.rx, (y - k.cy) / k.ry);
+      if (d < outer || d > ringOuter) continue;
+      const i = (y * W + x) * 3;
+      for (let c = 0; c < 3; c += 1) tone[c] += out[i + c] - baseRgb[i + c];
+      n += 1;
+    }
+    if (n) for (let c = 0; c < 3; c += 1) tone[c] /= n;
+    for (let y = y0; y <= y1; y += 1) for (let x = x0; x <= x1; x += 1) {
+      const wk = ellipseWeight(k, x, y);
+      if (!wk) continue;
+      const i = (y * W + x) * 3;
+      for (let c = 0; c < 3; c += 1) {
+        const kept = Math.min(255, Math.max(0, baseRgb[i + c] + tone[c]));
+        out[i + c] = Math.round(out[i + c] * (1 - wk) + kept * wk);
+      }
+    }
+  }
+}
+
+/** 블록 안에 keep 핵심(무게 1) 픽셀이 있는가. */
+function keepTouches(keep, bx, by) {
+  if (!keep) return false;
+  for (let y = by; y < by + BLOCK; y += 1) for (let x = bx; x < bx + BLOCK; x += 1) if (ellipseWeight(keep, x, y) >= 1) return true;
+  return false;
 }
 
 /** 영역 후보를 찾기 위한 변화 상자(등록 상자 안에서 밝기 차이 > threshold 인 픽셀의 범위·무게중심). */
@@ -179,7 +222,7 @@ for (const [name, frame] of Object.entries(spec.frames)) {
   if (!existsSync(file)) { results[name] = { missing: file }; continue; }
   const reg = await register(file, frame.region);
   const aligned = alignedRgb(reg);
-  const { frame: composed, qa } = compose(aligned, frame.region);
+  const { frame: composed, qa } = compose(aligned, frame.region, frame.keep);
   const pass = Boolean(frame.region) && qa.guardDiff <= spec.qa.maxGuardDiff && qa.regionDiff >= spec.qa.minRegionDiff;
   results[name] = {
     file, sourceSha256: sha256(await readFile(file)),
@@ -262,7 +305,7 @@ const provenance = {
   builder: "scripts/sprites/build-master-motion.mjs",
   spec: specPath.replaceAll("\\", "/"),
   base: { path: spec.base, sha256: manifest.baseSha256 },
-  sources: Object.fromEntries(sequence.filter((n) => n !== "base").map((n) => [n, { file: results[n].file.replaceAll("\\", "/"), sha256: results[n].sourceSha256, region: spec.frames[n].region, prompt: spec.frames[n].prompt }])),
+  sources: Object.fromEntries(sequence.filter((n) => n !== "base").map((n) => [n, { file: results[n].file.replaceAll("\\", "/"), sha256: results[n].sourceSha256, region: spec.frames[n].region, ...(spec.frames[n].keep ? { keep: spec.frames[n].keep } : {}), prompt: spec.frames[n].prompt }])),
   operation: "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다.",
 };
 await writeFile(join(spec.out, "provenance.json"), JSON.stringify(provenance, null, 2) + "\n");
