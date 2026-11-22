@@ -5,7 +5,20 @@ import { authorityText } from '../../lib/saju/gyeokguk-authority-copy.mjs';
 const positions = ['year', 'month', 'day', 'hour'];
 const schema = 'saju-consumer-authority-v1';
 const copy = value => JSON.parse(JSON.stringify(value));
-const hash = value => sha256Text(JSON.stringify(value));
+// 🔴 Mongoose minimize(기본값)는 저장할 때 일반 객체 안의 undefined·빈 객체를 (위로 번지며) 지운다. 배열 안은 건드리지 않는다.
+//    다이제스트를 그 모양으로 계산해야 저장했다 읽은 고정값이 검증을 통과한다(2026-11-22 인생의 책 LLM 0회 정체 환불 원인).
+//    빈 객체가 없던 고정값은 다이제스트가 그대로라 기존 저장본과 호환된다.
+const isPlain = value => value !== null && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype;
+function minimized(value) {
+  const out = {};
+  for (const [key, item] of Object.entries(value)) {
+    const next = isPlain(item) ? minimized(item) : item;
+    if (next !== undefined) out[key] = next;
+  }
+  return Object.keys(out).length ? out : undefined;
+}
+const canonical = value => minimized(copy(value)) ?? {};
+const hash = value => sha256Text(JSON.stringify(canonical(value)));
 function freeze(value) {
   if (value && typeof value === 'object') { Object.freeze(value); Object.values(value).forEach(freeze); }
   return value;
@@ -54,7 +67,8 @@ export function sajuAuthorityPromptFacts(snapshot) {
 export function selectSajuAuthority(pillars, { enabled = false, stored = null, hasExistingRecord = false } = {}) {
   if (stored) return readSajuAuthority(stored, pillars);
   if (hasExistingRecord || enabled !== true) return null;
-  const payload = { schema, calculationVersion: GYEOKGUK_AUTHORITY_VERSION, pillars: copy(pillars), analysis: buildApprovedNatalAnalysis(pillars) };
+  // 저장 전후 모양이 같도록 만들 때부터 정규화한다(위 minimized 주석).
+  const payload = canonical({ schema, calculationVersion: GYEOKGUK_AUTHORITY_VERSION, pillars: copy(pillars), analysis: buildApprovedNatalAnalysis(pillars) });
   return freeze({ ...payload, digest: hash(payload) });
 }
 
