@@ -243,7 +243,7 @@ export default function WalletSummon({ scope, id, reveal }: Props) {
     return (
       <p>
         테스트 월정석 소환은{" "}
-        <a href="/login?next=%2Fgames%2Fkkulkkul-card-rpg%2F%23summon">
+        <a href="/login/?next=%2Fgames%2Fkkulkkul-card-rpg%2F%23summon">
           개발 계정 로그인
         </a>{" "}
         후 이용할 수 있어요.
