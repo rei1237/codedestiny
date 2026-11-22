@@ -19,7 +19,7 @@ export default function AnalyticsConsent() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState(false);
   const panel = useRef<HTMLElement>(null);
-  const requested = useRef(false);
+  const opener = useRef<HTMLElement | null>(null);
   const excluded = /^\/(admin|gift|ggulggul)(\/|$)/.test(pathname);
   const inPage = /^\/snu(\/|$)/.test(pathname);
   const [inPageHost, setInPageHost] = useState<HTMLElement | null>(null);
@@ -39,8 +39,10 @@ export default function AnalyticsConsent() {
   // The footers stay server components, so the click is picked up here by delegation.
   useEffect(() => {
     const reopen = (event: MouseEvent) => {
-      if (!(event.target as Element | null)?.closest?.("[data-cd-cookie-settings]")) return;
-      requested.current = true;
+      const trigger = (event.target as Element | null)?.closest<HTMLElement>("[data-cd-cookie-settings]");
+      if (!trigger) return;
+      opener.current = trigger;
+      if (panel.current) panel.current.focus();
       setOpen(true);
     };
     document.addEventListener("click", reopen);
@@ -48,8 +50,7 @@ export default function AnalyticsConsent() {
   }, []);
 
   useEffect(() => {
-    if (!open || !requested.current) return;
-    requested.current = false;
+    if (!open || !opener.current) return;
     panel.current?.focus();
   }, [open]);
 
@@ -94,21 +95,27 @@ export default function AnalyticsConsent() {
       (window as ConsentWindow).cdSyncConsent?.();
       setError(false);
       setOpen(false);
+      opener.current?.focus({ preventScroll: true });
+      opener.current = null;
     } catch { setError(true); }
   }
 
   if (!ready || !open) return null;
   const banner = (
-    <section ref={panel} tabIndex={-1} className={`${styles.banner}${inPage ? ` ${styles.inPage}` : ""}`} aria-labelledby="analytics-consent-title">
+    <section ref={panel} tabIndex={-1} data-entry={pathname === "/" || undefined} className={`${styles.banner}${inPage ? ` ${styles.inPage}` : ""}`} aria-labelledby="analytics-consent-title">
       <div className={styles.heading}>
         <span className={styles.ornament} aria-hidden="true" />
         <h2 id="analytics-consent-title">방문 분석 쿠키 안내</h2>
       </div>
-      <p>로그인·결제에 필요한 필수 쿠키와, 방문 흐름을 익명 통계로 보는 Google Analytics 쿠키를 사용해요. 방문 분석을 원하지 않으면 &lsquo;필수만 사용&rsquo;을 눌러 주세요. 유럽경제지역·영국·스위스에서는 동의한 경우에만 분석해요. 필수만 선택해도 서비스를 이용할 수 있어요.</p>
+      <p>필수 쿠키는 로그인·결제에 쓰여요. 방문 통계용 Google Analytics 쿠키는 선택할 수 있어요.</p>
+      <details className={styles.details}>
+        <summary>쿠키 이용 안내</summary>
+        <p>유럽경제지역·영국·스위스에서는 동의한 경우에만 방문을 분석해요. 필수 쿠키만 선택해도 서비스를 이용할 수 있어요.</p>
+        <a href="/privacy-policy/">개인정보 처리방침</a>
+      </details>
       <div className={styles.actions}>
         <button type="button" onClick={() => choose("essential")}>필수만 사용</button>
         <button type="button" onClick={() => choose("accepted")}>분석 쿠키 동의</button>
-        <a href="/privacy-policy/">개인정보 처리방침</a>
       </div>
       {error ? <p className={styles.error} role="alert">선택을 저장하지 못했어요. 브라우저의 쿠키 허용 설정을 확인한 뒤 다시 선택해 주세요.</p> : null}
     </section>
