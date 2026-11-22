@@ -46,7 +46,8 @@ const result = await page.evaluate((FLOOR) => {
   );
   const probe = (el, cx, cy, dx, dy) => {
     let n = 0;
-    for (let d = 1; d <= 32; d++) {
+    // A target near the edge of a scrollable strip can expose all 44 pixels to one side.
+    for (let d = 1; d < FLOOR; d++) {
       if (!owns(el, document.elementFromPoint(cx + dx * d, cy + dy * d))) break;
       n = d;
     }
