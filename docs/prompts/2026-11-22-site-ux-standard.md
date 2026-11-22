@@ -7,6 +7,8 @@
 > 이 문서는 구현 지시서다. 실행 주체는 Claude Code 또는 Codex 이고, 사용자는 결과 화면만 검수한다.
 > 이 문서를 받은 에이전트는 먼저 아래 "0. 시작 전"을 실행하고, Phase 0 감사 결과를 근거로 방향과 성공 기준을 사용자에게 한 번 공유한 뒤(CLAUDE.md 코딩 원칙 16) 승인을 기다리지 않고 자율 구현한다. 사용자가 목업 승인을 명시적으로 요구한 경우에만 멈춘다.
 
+2026-11-23 실행 결과와 재현 출발점은 [여정 감사표](../ux-audit/2026-11-22-site-ux-phase0.md)에 있다. 후속 작업은 표에 남은 실기기·필드 항목과 현재 main에서 재현되는 문제부터 시작한다.
+
 ## 0. 시작 전
 
 1. `git branch --show-current`(main), `git status`(clean), `git pull --ff-only`. 다른 세션이 main 체크아웃에 미커밋 파일을 두고 있으면 `scripts/create-safe-worktree.ps1` 로 워크트리를 만들고, 거기서 `npm run fortune:build-data` 를 먼저 돌린다.
@@ -60,7 +62,7 @@
 | J4 | 결제 진입(표시만) | 결제창 렌더러, `config/payment-freeze.json` — 바꾸기 전 `paid-gate-auditor` |
 | J5 | 꿀꿀 기록 `/records/` | `app/records/page.tsx`·`RecordsClient.tsx`·`RecordFrame.tsx`·`view/` (noindex) |
 | J6 | 영냥이 랜딩 `/yeongnyangi/` | `app/yeongnyangi/page.tsx`, `_home/*`(`CatMotion.tsx` 포함) |
-| J7 | 영냥이 상담실 `/yeongnyangi/room/` → 결과 `/yeongnyangi/result/` | `app/yeongnyangi/room/page.tsx`, `result/ResultEntry.tsx` (room 은 noindex) |
+| J7 | 영냥이 홈 `#questions`에서 고민 입력 → 운세 선택·주문 `/yeongnyangi/fortune/` → 결과 `/yeongnyangi/result/`. `/yeongnyangi/room/`의 상담실 분기도 검수 | `app/components/QuestionJourney.tsx`, `app/yeongnyangi/room/page.tsx`, `app/yeongnyangi/_components/Result.tsx` |
 | J8 | 영냥이 보관함 `/yeongnyangi/library/` | `app/yeongnyangi/library/LibraryEntry.tsx` (noindex) |
 
 ## 5. 이미 알려진 마찰 (2026-11-22 관찰·실측)
@@ -99,6 +101,8 @@
    - P2: 불편·불일치
    - P3: 다듬기·정리
 4. 섹션 5의 K1~K11 을 같은 표에 넣고 실측값으로 갱신한다. **실측과 추정을 열을 나눠 표시한다.** "문제 없음" 같은 부정 단언에는 검색 범위와 근거를 적는다.
+로컬 도구에 대상을 명시한다. `perf:lcp-budget -- --url=<로컬 꿀꿀 셸 origin>`, `measure:touch-targets -- <loopback URL> 390 844`, `measure:shell-css -- <loopback URL>` 순으로 실행한다. 기준과 후보의 압축·브라우저·캐시 조건을 맞추고 실험실 횟수를 기록한다.
+
 5. 감사표는 `docs/ux-audit/2026-11-22-site-ux-phase0.md` 같은 문서로 남기고 커밋한다(문서 전용 GREEN).
 6. 방향과 성공 기준을 사용자에게 한 번 짧게 공유한다(추천안과 이유 먼저). 그 뒤 승인을 기다리지 않고 Phase 1 로 간다.
 
@@ -118,7 +122,7 @@
 ### B. 성능 — Core Web Vitals (모바일 p75 기준)
 - LCP ≤ 2.5s, INP ≤ 200ms, CLS ≤ 0.1. 실험실 값은 `perf:home`·`perf:app-route`·`perf:interaction` 으로, 필드 값은 `perf:crux` 로 확인한다(필드 값이 없으면 "필드 데이터 없음"으로 적는다).
 - 이미지: LCP 후보 하나만 `fetchpriority="high"`(현재 `/` 첫 카드가 그렇다, `app/page.js:128`). 나머지는 `loading="lazy"`·`decoding="async"`, `width`·`height` 또는 `aspect-ratio` 로 자리를 확보한다.
-- 스프라이트(K7): 모바일에는 360×432 시트, 데스크톱에는 600×720 을 `srcset`/`image-set` 이나 매니페스트 분기로 내린다. 화면 밖에서는 시트를 받지 않고 포스터만 보인다. 합격선: 390px 첫 화면 전송량에서 시트 바이트가 현재 대비 50% 이상 줄어든다. 에셋 예산은 `docs/design/master-motion-assets.md`(소개장 프레임 합계 400KB 이하, 포스터 80KB 이하, 아바타 80KB 이하)를 따른다. 원본은 `D:\CodeDestiny-Build`, 최적화본과 `provenance.json` 은 `public/images/master-motion/<id>/`.
+- 스프라이트(K7): 모바일에는 360×432 시트, 데스크톱에는 600×720 을 `srcset`/`image-set` 이나 매니페스트 분기로 내린다. 크기는 각 프레임 기준이다. 첫 화면 시트가 0B면 그대로 기록하고, 소개장이 처음 들어올 때 수신한 바이트를 별도로 대조한다. 화면 밖에서는 시트를 받지 않고 포스터만 보인다. 합격선: 390px 첫 화면 전송량에서 시트 바이트가 현재 대비 50% 이상 줄어든다. 에셋 예산은 `docs/design/master-motion-assets.md`(소개장 프레임 합계 400KB 이하, 포스터 80KB 이하, 아바타 80KB 이하)를 따른다. 원본은 `D:\CodeDestiny-Build`, 최적화본과 `provenance.json` 은 `public/images/master-motion/<id>/`.
 - CLS: 비동기로 채우는 영역(TOP5, 가격, 배너, 쿠키 배너)은 최종 높이를 미리 잡는다. 줄바꿈으로 높이가 달라지면(K1) 최소 높이나 고정 줄 수로 막는다.
 - 늦게 붙는 CSS 는 CLS 원인이다. 홈 셸 CSS 는 `npm run measure:shell-css` 로 확인한다.
 
@@ -143,8 +147,8 @@
 - 결과에서 목록으로 돌아오면 스크롤 위치를 복원한다.
 
 ### F. 로딩·빈 상태·오류 상태 (LLM 생성은 결과가 안 나오는 것이 최악이다)
-- 생성 대기: 화자 캐릭터와 단계 메시지로 진행감을 준다. 10초 넘게 대기하면 "기록에 저장되니 나중에 다시 와도 된다"는 안내와 보관함 링크를 보인다.
-- 실패: 막다른 화면 없이 "다시 시도"와 "기록에서 보기"를 둔다. 401 만 재로그인으로 보내고, 그 밖의 오류는 재시도로 처리한다. 이미 결제·차감된 생성이 실패하면 추가 결제 없이 재시도된다는 사실을 문구로 알린다. 문구만 바꾸고 재시도·차감 로직은 바꾸지 않는다.
+- 생성 대기: 화자 캐릭터와 단계 메시지로 진행감을 준다. 서버에 연결된 주문이 10초 넘게 대기하면 해당 서비스 보관함을 안내한다. 게스트 미저장 미리보기와 기기 내 무료 계산 결과는 실제 저장 방식에 맞춰 설명한다.
+- 실패: 막다른 화면 없이 "다시 시도"와 "기록에서 보기"를 둔다. 401 만 재로그인으로 보내고, 그 밖의 오류는 재시도로 처리한다. 주문 상태와 재시도 자격을 먼저 확인한다. 유효한 기존 결제로 재시도할 수 있을 때 그 사실을 설명하고, 이미 환불된 주문은 기존 환불 안내와 복귀 동선을 사용한다. 문구만 바꾸고 재시도·차감 로직은 바꾸지 않는다.
 - 빈 상태: `/records/`·`/yeongnyangi/library/` 가 비었을 때 화자에 맞는 한 줄 안내와 대표 상담 1~2개로 가는 행동 버튼을 둔다.
 - 스켈레톤은 최종 레이아웃과 같은 높이로 그려서 CLS 를 만들지 않는다.
 - 분량이나 형식 상한을 건드리게 되면 CLAUDE.md 코딩 원칙 17 을 따른다(하한은 목표 하한의 약 80% 이하, 출력 토큰 여유, 형식은 거부 대신 교정).
