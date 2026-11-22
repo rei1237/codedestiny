@@ -2809,7 +2809,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
     return consultation.warmMessage;
   }, [consultation]);
 
-  const readingTimer=useRef<ReturnType<typeof window.setTimeout>|undefined>(undefined);
+  const readingTimer=useRef<number|undefined>(undefined);
   useEffect(()=>()=>window.clearTimeout(readingTimer.current),[]);
   const runConsultation = () => {
     if (isGenerating) return;
