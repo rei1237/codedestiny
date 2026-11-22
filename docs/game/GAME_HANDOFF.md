@@ -1,10 +1,25 @@
 ---
 status: done
-updated: 2026-11-22
-next: 실제 모바일에서 조작·발열을 확인하고 운영 전 서버 소유권 및 책갈피 동기화를 연결한다.
+updated: 2026-11-23
+next: 실제 모바일에서 4단계 전투 조작과 연출을 점검하고, 다음 제작 단계는 사용자 요청을 따른다.
 ---
 
-# 꿀꿀운세 카드 RPG · 4–10단계 인수인계
+# 꿀꿀운세 카드 RPG · 4단계 전투
+
+## 2026-11-23 전투 변경
+
+[달빛 전장](http://127.0.0.1:3485/games/kkulkkul-card-rpg/#battle)의 전장 목록에서 **운명해방 연습**을 선택한다. 저장 편성으로 출전하거나 처음이면 ‘모카와 임시 지원으로 연습’을 누른다. 전열의 운명 게이지가 100%로 시작한다. 손패 위의 금빛 버튼은 캐릭터·유형·필살기 이름을 표시하며 일반 카드와 합쳐 세 행동까지 선택할 수 있다. 기존 진행 중 전투는 먼저 결과를 확인하거나 전투 종료 후 연습으로 진입한다.
+
+일반 공격은 의상 시트의 준비 자세, 접근 또는 발사, 타격, 복귀 자세를 이어 재생한다. 적의 공격도 대상 위치를 향한다. 타격별 피해, HP 감소, 효과음은 엔진의 같은 타격 배열을 사용한다. 필살기 이름은 도감, 선택, 컷인, 전투 기록에서 같은 전투 버전을 참조한다. 연이의 연꽃잎, 영냥이의 초승달 발톱, 윤달의 별, 서한비의 빗줄기, 모카의 음파, 루나의 밀가루와 꽃가루로 명중 효과를 구분했다. [전투 규칙·필살기 목록](BATTLE_RULES.md)
+
+변경 위치는 게임 폴더의 `BattleScreen.tsx`(선택·타격 시점 표시), `BattleActor.tsx`와 전투 CSS 두 파일(동작·컷인·명중), `battle-choreography.ts`(표적 좌표와 연출 시간), `formation.ts`(필살기 이름), `battle-data.ts`·`battle-session.ts`·`battle.ts`(연습 전장과 시작 게이지)다. 전투 수치·순환 덱·게이지 소비는 기존 전투 엔진에서 판정한다. 이번 변경의 범위는 4단계다.
+
+- `node --test scripts/verify-card-rpg-battle.cjs scripts/verify-card-rpg-battle-receipts.cjs` 15건 통과. 7개 전투 버전의 기명 해방과 고정 입력 재생, 전열 교대·전투불능, 마지막 타격, 동시 전멸, 제한 턴, 서버 검산과 중복 보상 차단을 확인했다.
+- `node scripts/verify-card-rpg-choreography.cjs`는 Chromium에서 같은 시드와 행동으로 1배·2배·간소 결과, 턴 복원, 기명 필살기, 다단 피해와 승리 후 복귀를 검사한다. [실제 플레이 영상](D:/Development/captures/card-rpg-step04-motion/moka-release.webm) · [필살기 선택](D:/Development/captures/card-rpg-step04-motion/release-hand.png) · [모카 컷인](D:/Development/captures/card-rpg-step04-motion/moka-release.png)
+- Chromium에서 실제 근접 공격자의 전진 거리, 다단 피해 중 표적 이미지 개수와 HP를 확인했다. `node scripts/verify-card-rpg-art.cjs --browser`에서 11가지 외형 × 11가지 상태와 간소 모션을 검사했고 `npm run typecheck`도 통과했다. [근접 공격 화면](D:/Development/captures/card-rpg-step04-motion/melee-approach.png)
+- 이번 영상은 PC Chromium 844×390에서 녹화했다. 실제 스마트폰과 일곱 전투 버전 각각의 브라우저 영상은 미검증이다. 연습은 개발 데이터이고 운영 자산을 지급하거나 차감하지 않는다.
+
+## 이전 단계별 인수인계
 
 ## 바로 플레이하기
 

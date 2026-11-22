@@ -122,12 +122,44 @@ export function battleActorSheet(unit: Unit) {
   return "/images/card-rpg/battle/" + key + ".webp";
 }
 
+export function BattleEmblem({ person }: { person: string }) {
+  const Icon = direction[person]?.icon ?? MoonStar;
+  return <Icon aria-hidden="true" />;
+}
+
+export function FinisherImpact({ unit, fast }: { unit: Unit; fast: boolean }) {
+  const signature =
+    unit.battleVariantId === "moka-stage" ? "encore" : unit.baseCharacterId;
+  const art = direction[unit.baseCharacterId];
+  return (
+    <div
+      className={s.burst}
+      data-signature={signature}
+      aria-hidden="true"
+      style={
+        {
+          "--burst": fast ? "280ms" : "560ms",
+          "--ink": art.ink,
+          "--light": art.light,
+        } as CSSProperties
+      }
+    >
+      {Array.from({ length: 6 }, (_, i) => (
+        <i key={i} style={{ "--ray": i } as CSSProperties} />
+      ))}
+    </div>
+  );
+}
+
 export function BattleCutIn({ unit, fast }: { unit: Unit; fast: boolean }) {
   const v = definitions[unit.battleVariantId];
-  const art =
-    unit.baseCharacterId === "yeon"
-      ? "/images/novel/remaster/v2/yeoni/vine-magic.webp"
-      : costumeArt(v, unit.costumeId);
+  const art = wardrobeKey(
+    unit.baseCharacterId,
+    unit.battleVariantId,
+    unit.costumeId,
+  )
+    ? costumeArt(v, unit.costumeId)
+    : "/images/card-rpg/" + unit.baseCharacterId + "-moonlit-card.webp";
   return (
     <div
       className={s.cutIn}
@@ -150,12 +182,14 @@ export default function BattleActor({
   fast,
   still,
   hits,
+  duration,
 }: {
   unit: Unit;
   motion: ActorMotion;
   fast: boolean;
   still: boolean;
   hits?: number;
+  duration?: number;
 }) {
   const art = direction[unit.baseCharacterId];
   const src = battleActorSheet(unit);
@@ -178,7 +212,7 @@ export default function BattleActor({
     "--tilt": art.stroke + "deg",
     "--pose-x": -25 * (tile % 4) + "%",
     "--pose-y": -50 * Math.floor(tile / 4) + "%",
-    "--beat": fast ? "270ms" : "540ms",
+    "--beat": (duration ?? (fast ? 270 : 540)) + "ms",
   } as CSSProperties;
   const attack =
     motion === "Quick" ||
@@ -230,8 +264,11 @@ export default function BattleActor({
                 className={s.sweep}
                 style={{
                   animationDelay:
-                    ((fast ? 270 : 540) * 0.48 * index) / impacts + "ms",
-                  animationDuration: (fast ? 270 : 540) * 0.55 + "ms",
+                    ((duration ?? (fast ? 270 : 540)) * 0.48 * index) /
+                      impacts +
+                    "ms",
+                  animationDuration:
+                    (duration ?? (fast ? 270 : 540)) * 0.55 + "ms",
                 }}
               />
             ))}

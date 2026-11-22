@@ -35,7 +35,7 @@ const rows: Row[] = [
     "QQAAB",
     ["판세 읽기", "허점 포착", "반격 작전"],
     "고양이의 직감",
-    "별빛 작전도",
+    "월영 역전수",
     "EP.01 · 강의실",
   ],
   [
@@ -47,7 +47,7 @@ const rows: Row[] = [
     "QAAAB",
     ["붓끝의 선", "여덟 칸", "균형 잡기"],
     "명식 읽기",
-    "여덟 칸의 별자리",
+    "팔자성도 · 마지막 획",
     "EP.13 · 궁합 상담",
   ],
   [
@@ -59,7 +59,7 @@ const rows: Row[] = [
     "QAABB",
     ["우산 펼치기", "빗방울", "물결 막기"],
     "비의 흔적",
-    "우산 아래의 약속",
+    "검은 우산에 맺힌 비",
     "EP.28 · 검은 우산",
   ],
   [
@@ -71,7 +71,7 @@ const rows: Row[] = [
     "QQABB",
     ["국자 박자", "불씨 올리기", "후렴 시작"],
     "주방의 리듬",
-    "정오의 앙코르",
+    "불꽃 주방의 앙코르",
     "EP.07 · 포장마차",
   ],
   [
@@ -83,7 +83,7 @@ const rows: Row[] = [
     "QQQAB",
     ["배달 출발", "바구니 지키기", "가벼운 발걸음"],
     "언덕길",
-    "갓 구운 응원",
+    "달고개 꽃빵 배달",
     "EP.13 · 빵 배달",
   ],
 ];
@@ -139,7 +139,7 @@ variants.splice(variants.indexOf(mokaBase) + 1, 0, {
   deck: ["Quick", "Quick", "Arts", "Arts", "Buster"],
   skills: ["합창의 마디", "달빛 조율", "앵콜 신호"],
   passive: "무대의 호흡",
-  ultimate: "달빛 합주",
+  ultimate: "달빛 합주 · 피날레",
   art: "/images/card-rpg/wardrobe/moka-stage.webp",
 });
 export type Variant = (typeof variants)[number];

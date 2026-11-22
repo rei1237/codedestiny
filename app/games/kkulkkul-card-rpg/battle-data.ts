@@ -1,6 +1,12 @@
 import { definitions, type Command } from "./formation";
 
-export type EncounterId = "tutorial" | "single" | "multi" | "waves" | "boss";
+export type EncounterId =
+  | "tutorial"
+  | "rehearsal"
+  | "single"
+  | "multi"
+  | "waves"
+  | "boss";
 export type EnemySpec = {
   name: string;
   hp: number;
@@ -31,6 +37,12 @@ export const encounters: Record<
     description:
       "피해는 버스터, 게이지는 아츠, 다음 턴의 치명타는 퀵으로 준비하세요.",
     waves: [[{ ...petal, hp: 540, atk: 48 }]],
+  },
+  rehearsal: {
+    name: "운명해방 연습",
+    description:
+      "전열의 운명 게이지가 100%로 시작해요. 금빛 필살기와 일반 카드를 원하는 순서로 고르세요.",
+    waves: [[{ ...petal, hp: 2600, atk: 48 }]],
   },
   single: {
     name: "향로의 불씨",

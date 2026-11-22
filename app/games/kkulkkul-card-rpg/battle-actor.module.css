@@ -554,3 +554,178 @@
     filter: grayscale(0.7);
   }
 }
+
+.burst {
+  position: absolute;
+  pointer-events: none;
+  left: 50%;
+  top: 60%;
+  width: clamp(54px, 9vw, 115px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 3px var(--ink));
+}
+.burst i {
+  --angle: calc(var(--ray) * 60deg);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14%;
+  height: 31%;
+  transform-origin: 50% 100%;
+  background: linear-gradient(var(--light), var(--ink));
+  border-radius: 80% 0 75% 25%;
+  animation: scatter var(--burst) ease-out both;
+}
+@keyframes scatter {
+  from {
+    opacity: 0.95;
+    transform: translate(-50%, -100%) rotate(var(--angle)) translateY(0)
+      scale(0.5);
+  }
+  65% {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -100%) rotate(var(--angle)) translateY(-110%)
+      scale(1.12);
+  }
+}
+/* Crescent cuts, constellations, rain, music and flour each have a different silhouette. */
+.burst[data-signature="neo"] i {
+  width: 65%;
+  height: 21%;
+  background: none;
+  border-top: 3px solid var(--light);
+  border-radius: 90%;
+  --angle: -32deg;
+  top: calc(27% + var(--ray) * 6%);
+}
+.burst[data-signature="yun"] i {
+  width: 18%;
+  height: 18%;
+  clip-path: polygon(
+    50% 0,
+    62% 38%,
+    100% 50%,
+    62% 62%,
+    50% 100%,
+    38% 62%,
+    0 50%,
+    38% 38%
+  );
+}
+.burst[data-signature="pje"] i {
+  width: 2.5%;
+  height: 65%;
+  border-radius: 90%;
+  left: calc(12% + var(--ray) * 15%);
+  --angle: 198deg;
+}
+.burst:is([data-signature="moka"], [data-signature="encore"]) i {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid var(--light);
+  background: none;
+  transform-origin: center;
+  animation-name: soundRing;
+}
+.burst:is([data-signature="moka"], [data-signature="encore"])
+  i:nth-child(n + 4) {
+  display: none;
+}
+.burst:is([data-signature="moka"], [data-signature="encore"]) i:nth-child(2) {
+  inset: 14%;
+  width: 72%;
+  height: 72%;
+  border-color: var(--ink);
+}
+.burst:is([data-signature="moka"], [data-signature="encore"]) i:nth-child(3) {
+  inset: 29%;
+  width: 42%;
+  height: 42%;
+}
+.burst[data-signature="encore"] i {
+  border-style: dashed;
+  --ink: #ffc3f1;
+}
+.burst[data-signature="ln"] i {
+  width: 11%;
+  height: 11%;
+  border-radius: 50%;
+  box-shadow:
+    5px 4px 0 -1px #fff1d8,
+    -6px 3px 0 -2px #ffb6c1;
+}
+@keyframes soundRing {
+  from {
+    opacity: 1;
+    transform: scale(0.18);
+  }
+  55% {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.24);
+  }
+}
+
+/* Keep figures anchored at the feet while the sheet changes from a prepared
+   pose to the drawn attack and then settles back into the standing frame. */
+.actor:is(
+    [data-motion="Quick"],
+    [data-motion="Arts"],
+    [data-motion="Buster"],
+    [data-motion="ultimate"]
+  ):not([data-still="true"])
+  .cell
+  img {
+  animation: attackPoses var(--beat) steps(1, end) both;
+}
+@keyframes attackPoses {
+  0%,
+  94%,
+  100% {
+    transform: translate(0, 0);
+  }
+  13% {
+    transform: translate(-75%, -50%);
+  }
+  33%,
+  69% {
+    transform: translate(var(--pose-x), var(--pose-y));
+  }
+  79% {
+    transform: translate(-25%, 0);
+  }
+}
+.cutIn {
+  animation: titlePass calc(var(--action-time, 1900ms) * 0.48) ease-out both;
+}
+.cutIn[data-fast="true"] {
+  animation-duration: calc(var(--action-time, 950ms) * 0.48);
+}
+@keyframes titlePass {
+  0% {
+    transform: translateX(-25%);
+    opacity: 0;
+  }
+  15%,
+  76% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(8%);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .actor[data-motion] .cell img {
+    animation: none !important;
+  }
+}

@@ -75,6 +75,7 @@ export type BattleEvent = {
   type?: Command;
   hits?: number;
   hitAmounts?: number[];
+  actorGaugeAfter?: number;
   heavy?: boolean;
   critical?: boolean;
 };
@@ -197,9 +198,11 @@ export function createBattle(
               definitions[a.baseCharacterId + "-base"]?.name,
             maxHp: a.hp,
             gauge:
-              (a.equipmentDefinitionId === "alarm"
-                ? (a.effect?.amount ?? 0)
-                : 0) + (a.baseCharacterId === "ln" ? 10 : 0),
+              encounter === "rehearsal" && a.position < 3
+                ? 100
+                : (a.equipmentDefinitionId === "alarm"
+                    ? (a.effect?.amount ?? 0)
+                    : 0) + (a.baseCharacterId === "ln" ? 10 : 0),
             stunned: 0,
             cooldowns: [0, 0, 0],
             buffs: {},
@@ -494,6 +497,7 @@ function playerStrike(
       type: c.type,
       hits,
       hitAmounts,
+      actorGaugeAfter: a.gauge,
       critical,
     },
   );

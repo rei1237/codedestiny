@@ -57,7 +57,12 @@ export function departure(
             null,
           ],
         }
-      : { ...f, tutorial: encounter === "tutorial" && f.tutorial };
+      : {
+          ...f,
+          tutorial:
+            (encounter === "tutorial" || encounter === "rehearsal") &&
+            f.tutorial,
+        };
   const issues = validateFormation(c, team);
   if (issues.length) throw Error(issues.join(" "));
   return buildBattleSnapshot(c, team);
