@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-22
-next: "main CI 녹색 확인 후 push → CI 1회 → 정리. 워크트리 delivery-gaps-c(wt/delivery-gaps-c-20261121-215250) HEAD 에서 origin/main fetch·머지 → npm run check:pre-push → git push origin HEAD:main. 미push 커밋: 051c5855a 76c6c7dd7 3716a8ef3 fd13dbab0 8b9b3fe64 cccb82cd1 a3bc7e763 8bb027e26 + 머지 13b7e0e68(origin/main 9e6866ce1). 2026-11-22 main 빨강: 9e6866ce1 PR CI 44975100389 Critical checks(토스 미니앱 계약, 다른 세션)"
+next: "없음 — D2·토스 CI 수정 push 완료(main cdb1b8bb4c, PR CI 45022219611 success). 후속은 남은 위험 절"
 ---
 
 # 사주 고급 궁합(10,000원) 재구축 인수인계
@@ -111,7 +111,7 @@ next: "main CI 녹색 확인 후 push → CI 1회 → 정리. 워크트리 deliv
   - D2 실측: jest naming 5종 129 pass, 4종 각 98·199·208·142 pass; verify:paid-llm-delivery ok(정체 자동 확정 17개·경보만 2개, 변이 37/37·100/100); verify:naming-prompt PASS, verify:human-design-report·destiny-compass·nakshatra-ai-flow PASS; verify-payment-freeze 통과; paid-gate-auditor BLOCKING 은 human-design B1(회수 건 이중 환불) 1건 → 8b9b3fe64 로 수정.
   - D2 남은 위험(보고만): relationship refundExecution 반환값 항상 false(relationship-boundary-test.js:243, `result?.refundStatus` → 실제 형태는 settlement.status) → 정체 확정이 refundStatus pending·거짓 경보, 환불 자체는 됨. naming settleNamingRetryRefund 는 access 가 비면 not_required 로 닫음(fail-open, 2026-09-15 이후 문서는 access 저장). STE 없는 건(월정석 원장·실행 시작 실패)은 pending 경보만. unsupported 결과가 크론 회전 없이 continue(레거시 문서 큐 정체 가능). paid-flow-gates 트리거에 라우트·paid-delivery-stuck.js 없음. 실 Mongo CAS 미검증.
   - D1 남은 위험(보고만): delivery_pending 정체 건은 구조 대신 retryable 로 감(가정), 크론 동시 실행 경합 미검증, paid-flow-gates.yml 이 paid-delivery-stuck.js 변경에 트리거 안 됨, ziwei Payment 확인이 CAS 전에 돌 수 있음(경미), vedic 은 증빙 없을 때 refundStatus 가 not_required 대신 requested 로 기록(금액 영향 없음).
-- [ ] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다.
+- [x] 정리: 이 문서를 `status: done`으로 바꾸고, 워크트리를 배수하고, 임시 파일을 지운다. (2026-11-22: D2 + 토스 세션 수정 cherry-pick 0612e3438d·87a1a6c955·060d0d1bc4 → main cdb1b8bb4c, CI success. 후속: celestial·fortune 증빙 리팩터, relationship refundExecution 반환값 오판(:243), 자미 이용권 환불 누락(:661-664), paid-flow-gates 트리거 공백)
 
 ## 실측 (단계마다 추가)
 
