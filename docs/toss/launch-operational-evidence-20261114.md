@@ -7,15 +7,9 @@
 
 ## 최초 주문의 구매자 귀속
 
-[공식 주문 API](https://developers-apps-in-toss.toss.im/api/iap)의 현재 OpenAPI는 mTLS로 미니앱을 인증하고 요청 본문으로 `orderId`만 받는다. 사용자 헤더 파라미터는 없고 응답은 주문 ID·SKU·상태·상태 확정 시각·설명이며 구매자나 검증 가능한 서명이 없다. 현재 `worker/toss/partner.js`의 제한과 일치한다.
+2026-11-22 공식 주문 조회 계약을 다시 확인했다. 최초 지급에 쓰는 서버 요청은 mTLS와 로그인 세션에서 얻은 x-toss-user-key를 사용한다. 서버는 주문 ID·SKU·상태와 purchaserMatched가 명시적으로 true인지 확인한다. 누락·false·다른 계정은 지급을 중단한다. 같은 계정에 이미 귀속된 구매는 기존 소유 원장에서 검증하고 저장 원문을 복구한다. [토스 주문 조회 API](https://developers-apps-in-toss.toss.im/api/iap).
 
-[공식 SDK](https://developers-apps-in-toss.toss.im/documentation/common/monetization/iap/in-app-purchase)는 상품 지급 콜백에 `orderId`를 넘긴다. 이 클라이언트 콜백만으로 서버가 독립적으로 구매자를 증명할 수 있다는 계약은 확인되지 않았다.
-
-[2026-10-19 담당자 답변](https://techchat-apps-in-toss.toss.im/t/webview-sdk-3-8-0-50/5026)은 구매자 검증 API 미제공과 개선 계획을 명시한다. 완료·환불 주문 페이지 인자는 이후 3.9.0에서 수정됐다고 안내하지만, 이는 구매자 검증 기능과 별개다.
-
-[2026-10-29 담당자 답변](https://techchat-apps-in-toss.toss.im/t/iap-webview/5061)은 원래 지급 대상을 특정할 수 없는 주문의 자동 지급 보류, 미결 안내·고객센터 확인과 수동 지급 절차를 허용한다. 결제 전에 주문 ID를 받는 기능도 제공되지 않는다. 이 운영 절차를 서버의 구매자 증명 API로 해석하지 않는다.
-
-따라서 최초 제출자에게 주문을 고정하거나 존재하지 않는 사용자 헤더를 추가하는 방식으로 판매 게이트를 열지 않는다. 독립적인 구매자 검증 계약 또는 승인된 수동 확인 운영 체계가 정해져야 신규 판매 활성화안을 확정할 수 있다. 확인 불가능한 주문은 새 결제를 유도하지 않고 미결 상태를 안내한다. 기존 소유권이 검증된 저장 원문은 별도 권리로 보존한다.
+검증한 구현은 worker/toss/partner.js와 worker/toss/grant.js이며 모의 구매자 일치·불일치·누락 및 판매 차단 중 기존 주문 복구는 apps/toss/test/grant.test.mjs에서 확인한다. 실주문으로 수행하는 최초 지급과 환불 반영은 별도 운영 검증이다. 콘솔 검토 승인과 분리해 결정한다.
 
 ## 콘솔 관찰
 

@@ -1,9 +1,28 @@
 // Local-only, user-operated mobile preview of the isolated private simulation build.
 import {createServer} from 'node:http';
 import {readFile,stat} from 'node:fs/promises';
-import {resolve,relative,extname} from 'node:path';
+import {resolve,relative,extname,isAbsolute} from 'node:path';
+import {createRequire} from 'node:module';
 const root=resolve(process.env.TOSS_PREVIEW_DIST||resolve(import.meta.dirname,'../private-simulation/dist'));
-const index=await readFile(resolve(root,'index.html'),'utf8');
+// A retained Linux simulation can be previewed straight from its signed-off build.
+// The regular service bundle is rejected by the same marker check as a dist directory.
+const archivePath=process.argv[2];
+async function openArchive(file){
+ const require=createRequire(import.meta.url);
+ const sdk=createRequire(require.resolve('@apps-in-toss/cli/package.json'));
+ const archive=sdk('@apps-in-toss/ait-format').AppsInTossBundle.reader(await readFile(file));
+ if(archive.appName!=='ai-saju-studio'||archive.bundle.index.some(item=>item.name.includes('\\')))throw Error('Expected a Linux ai-saju-studio archive');
+ return archive;
+}
+const archive=archivePath?await openArchive(archivePath):null;
+async function readAsset(name){
+ if(archive)return Buffer.from(await archive.readEntry('sources/'+name));
+ const file=resolve(root,name);
+ const inside=relative(root,file);
+ if(isAbsolute(inside)||inside.startsWith('..')||!(await stat(file)).isFile())throw Error('Asset unavailable');
+ return readFile(file);
+}
+const index=(await readAsset('index.html')).toString('utf8');
 if(!index.includes('private-simulation-person'))throw Error('Build the private simulation first; a regular service bundle cannot be previewed here.');
 const port=Number(process.env.TOSS_PREVIEW_PORT||4330);
 if(!Number.isInteger(port)||port<1024||port>65535)throw Error('Invalid loopback preview port');
@@ -27,11 +46,10 @@ const server=createServer(async(req,res)=>{
   const pathname=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);
   res.setHeader('Cache-Control','no-store');
   if(pathname==='/preview'||pathname==='/__preview/native.js'||pathname==='/__preview/controls.js'){res.writeHead(200,{'Content-Type':pathname==='/preview'?'text/html; charset=utf-8':'text/javascript; charset=utf-8'}).end(pathname==='/preview'?html:pathname.endsWith('native.js')?native:controls);return;}
-  const path=resolve(root,'.'+pathname);if(relative(root,path).startsWith('..')){res.writeHead(403).end();return;}
-  const file=extname(pathname)?path:resolve(root,'index.html');
-  if(!(await stat(file)).isFile()){res.writeHead(404).end();return;}
-  const body=file.endsWith('index.html')?index.replace('<head>','<head><script src="/__preview/native.js"></script>'):await readFile(file);
+  if(pathname.startsWith('/api/')||pathname.startsWith('/private-simulation-api/')){res.writeHead(403).end();return;}
+  const file=extname(pathname)?pathname.slice(1):'index.html';
+  const body=file==='index.html'?index.replace('<head>','<head><script src="/__preview/native.js"></script>'):await readAsset(file);
   res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'}).end(body);
  }catch{res.writeHead(404).end();}
 });
-server.listen(port,'127.0.0.1',()=>console.log('Private mobile preview: http://127.0.0.1:'+port+'/preview'));
+server.listen(port,'127.0.0.1',()=>console.log('Private mobile preview: http://127.0.0.1:'+port+'/preview',archive?.deploymentId||'local dist'));
