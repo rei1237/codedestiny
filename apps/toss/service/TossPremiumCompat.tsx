@@ -91,5 +91,5 @@ function Reading({owner,id}:{owner:string;id:string}){
 export default function TossPremiumCompat(){
   useAuthStore();
   const owner=ownerId(),id=new URLSearchParams(location.search).get('resultId')||'';
-  return location.pathname.includes('/result')?<Reading key={owner+id} owner={owner} id={id}/>:<Intake key={owner} owner={owner}/>;
+  return <main className={styles.page}>{location.pathname.includes('/result')?<Reading key={owner+id} owner={owner} id={id}/>:<Intake key={owner} owner={owner}/>}</main>;
 }
