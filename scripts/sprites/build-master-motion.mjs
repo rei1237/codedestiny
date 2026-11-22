@@ -341,13 +341,13 @@ for (const [variantName, variant] of Object.entries(spec.variants)) {
   const posterBuffer = await toCell(baseRgb);
   const sheetFile = `${variantName}-sheet.webp`, posterFile = `${variantName}-poster.webp`;
   const quality = spec.webp[variant.kind] ?? spec.webp.default;
-  async function encodeSheet(width, height, sheetQuality) {
+  async function encodeSheet(width, height, sheetQuality, smartSubsample = true) {
     const composites = await Promise.all(cells.map(async (rgb, index) => ({
       input: await sharp(await toCell(rgb, width, height), { raw: { width, height, channels: 3 } }).png().toBuffer(),
       left: index * width, top: 0,
     })));
     return sharp({ create: { width: width * cells.length, height, channels: 3, background: { r: 0, g: 0, b: 0 } } })
-      .composite(composites).webp({ quality: sheetQuality, effort: 6, smartSubsample: true }).toBuffer();
+      .composite(composites).webp({ quality: sheetQuality, effort: 6, smartSubsample }).toBuffer();
   }
   const sheet = await encodeSheet(budget.width, budget.height, quality.sheet);
   const poster = await sharp(posterBuffer, { raw: { width: budget.width, height: budget.height, channels: 3 } })
@@ -355,11 +355,13 @@ for (const [variantName, variant] of Object.entries(spec.variants)) {
   if (sheet.length > budget.sheetBytes) fail(`${variantName} 시트 ${sheet.length}B > 상한 ${budget.sheetBytes}B`);
   if (poster.length > budget.posterBytes) fail(`${variantName} 포스터 ${poster.length}B > 상한 ${budget.posterBytes}B`);
   let mobile;
-  if (variant.kind === "portrait") {
-    const { width, height } = budget.mobileCell;
-    const buffer = await encodeSheet(width, height, Math.min(quality.sheet, 76));
+  const isPortrait = variant.kind === "portrait";
+  if (isPortrait || quality.mobileSheet !== undefined) {
+    const { width, height } = isPortrait ? budget.mobileCell : budget;
+    const mobileQuality = isPortrait ? Math.min(quality.sheet, 76) : quality.mobileSheet;
+    const buffer = await encodeSheet(width, height, mobileQuality, isPortrait);
     if (buffer.length > sheet.length / 2) fail(`${variantName} 모바일 시트 ${buffer.length}B > 기본 시트 ${sheet.length}B의 50%`);
-    const filename = `${variantName}-sheet-${width}.webp`;
+    const filename = isPortrait ? `${variantName}-sheet-${width}.webp` : `${variantName}-sheet-mobile.webp`;
     mobile = { buffer, filename, src: publicUrl(filename), cell: { width, height } };
   }
   await writeFile(join(spec.out, sheetFile), sheet);
@@ -390,6 +392,11 @@ const provenance = {
     src: manifest.variants.portrait.sheet.mobile.src,
     cell: manifest.variants.portrait.sheet.mobile.cell,
     operation: "동일한 합성 원본을 칸별로 축소해 같은 순서로 묶었다.",
+  } } : {}),
+  ...(manifest.variants.avatar?.sheet.mobile ? { mobileAvatar: {
+    src: manifest.variants.avatar.sheet.mobile.src,
+    cell: manifest.variants.avatar.sheet.mobile.cell,
+    operation: "동일한 112×112 합성 칸과 재생 순서로 모바일 WebP를 인코딩했다.",
   } } : {}),
   operation: spec.provenance?.operation ?? "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다.",
 };

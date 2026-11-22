@@ -50,11 +50,12 @@ test('sheets and posters stay within budget and match the declared cell grid', a
       assert.ok(statSync(posterFile).size <= budget.posterBytes, `${posterFile} ${statSync(posterFile).size}B > ${budget.posterBytes}B`);
       const sheetMeta = await sharp(sheetFile).metadata();
       assert.deepEqual([sheetMeta.width, sheetMeta.height], [sheet.cols * budget.width, budget.height], sheetFile);
-      if (variant.kind === 'portrait') {
-        assert.deepEqual(sheet.mobile.cell, budget.mobileCell);
+      if (variant.kind === 'portrait' || (variant.kind === 'avatar' && ['yeoni', 'hanbi-love'].includes(id))) {
+        const mobileCell = variant.kind === 'portrait' ? budget.mobileCell : sheet.cell;
+        assert.deepEqual(sheet.mobile.cell, mobileCell);
         const smallFile = fileOf(sheet.mobile.src);
         const smallMeta = await sharp(smallFile).metadata();
-        assert.deepEqual([smallMeta.width, smallMeta.height], [sheet.cols * budget.mobileCell.width, budget.mobileCell.height], smallFile);
+        assert.deepEqual([smallMeta.width, smallMeta.height], [sheet.cols * mobileCell.width, mobileCell.height], smallFile);
         assert.equal(variant.mobileSheetBytes, statSync(smallFile).size);
         assert.ok(variant.mobileSheetBytes <= statSync(sheetFile).size / 2, smallFile);
       }

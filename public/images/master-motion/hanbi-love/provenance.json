@@ -111,5 +111,13 @@
       "height": 432
     },
     "operation": "동일한 합성 원본을 칸별로 축소해 같은 순서로 묶었다."
+  },
+  "mobileAvatar": {
+    "src": "/images/master-motion/hanbi-love/avatar-sheet-mobile.webp",
+    "cell": {
+      "width": 112,
+      "height": 112
+    },
+    "operation": "동일한 112×112 합성 칸과 재생 순서로 모바일 WebP를 인코딩했다."
   }
 }

@@ -43,6 +43,13 @@
         "cell": {
           "width": 112,
           "height": 112
+        },
+        "mobile": {
+          "src": "/images/master-motion/hanbi-love/avatar-sheet-mobile.webp",
+          "cell": {
+            "width": 112,
+            "height": 112
+          }
         }
       },
       "sheetBytes": 12012,
@@ -50,7 +57,8 @@
         "left": 130,
         "top": 45,
         "size": 280
-      }
+      },
+      "mobileSheetBytes": 5454
     }
   },
   "qa": {

@@ -42,7 +42,7 @@
   },
   "webp": {
     "default": { "sheet": 80, "poster": 76 },
-    "avatar": { "sheet": 84, "poster": 84 }
+    "avatar": { "sheet": 84, "poster": 84, "mobileSheet": 43 }
   },
   "provenance": {
     "purpose": "연애 비책 소개장 초상·마스터 띠 아바타의 대기 모션(눈 깜빡임) 스프라이트 시트",
