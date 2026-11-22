@@ -51,6 +51,10 @@ Windows, 로컬 Next 개발 서버, headless Chromium 149.0.7827.55, 844×390, �
 
 캡처와 원자료는 저장소 밖에 보관한다. [작은 가로 전장](D:/Development/captures/card-rpg-step04-10/battle-844.png) · [전체 전장](D:/Development/captures/card-rpg-step04-10/battle-1280.png) · [소장 카드 6장](D:/Development/captures/card-rpg-stage4/collectible-illustrations.png) · [의뢰 수첩](D:/Development/captures/card-rpg-step04-10/quest-records.png) · [성장](D:/Development/captures/card-rpg-step4-10/growth.png) · [개발 지갑 정산](D:/Development/captures/card-rpg-step04-10/settled-summon.png) · [측정 JSON](D:/Development/captures/card-rpg-step04-10/frame-sample.json)
 
+### 저장소 통합 검사
+
+`npm run check:fast -- --base=ca6fcc2ad2`에서 결제 관련 검사 78개, 변경 파일 린트와 타입 검사를 통과했다. 전체 Node 테스트에서는 기존 외국어 운세 문장 검사(`__tests__/fortune/sky-and-range.test.mjs`)가 실패했다. 3단계 검사 로그에서도 동일 테스트의 실패를 확인했다. 새 소환 로그인 링크에는 후행 슬래시 누락이 발견되어 수정했고, `node --test __tests__/ui/internal-link-trailing-slash.static.test.js` 재실행 4건이 모두 통과했다. 격리된 게스트가 로그인 사용자의 전투 티켓에 접근할 수 없음을 HTTP로 확인했다. `npm run check:pre-push`도 통과했다. [통합 검사 원문](D:/Development/captures/card-rpg-step04-10/check-fast-final.log)
+
 ## 현재 플레이 범위와 다음 확인
 
 - 저장 편성 자유 전투는 성장·예장·의상·전후열 상태를 그대로 사용한다. 서버 영수증을 발행하는 본편은 임시 지원, 본편 이후 의뢰는 서버 대여 편성을 사용한다. 서버 소유권·성장 저장을 연동한 이후에 보상 의뢰에도 개인 편성을 개방하는 것이 다음 작업이다.
