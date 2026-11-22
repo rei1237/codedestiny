@@ -44,6 +44,8 @@
 .page .title { font-size: clamp(1.5rem, 5.8vw, 2.5rem); line-height: 1.35; letter-spacing: -0.02em; }
 .lead { max-width: 52ch; color: var(--hm-gold-ink); font-size: clamp(.875rem, 2.5vw, .9375rem); line-height: 1.75; }
 .trust { color: var(--hm-gold-ink); text-align: center; }
+.trust a { position: relative; }
+.trust a::after { content: ""; position: absolute; inset: 50% 0 auto; min-height: 44px; transform: translateY(-50%); }
 .lead a { display: inline-flex; align-items: center; min-height: 44px; text-decoration-thickness: 1px; }
 .byline { margin-top: 16px !important; font-size: 0.875rem; font-weight: 600; color: var(--hm-gold-ink); }
 .byline a { display: inline-flex; align-items: center; min-height: 44px; }
@@ -160,7 +162,7 @@
 .page :where(h3) { margin: 0; font-size: 1rem; line-height: 1.5; font-weight: 700; color: inherit; }
 .footer { display: grid; justify-items: center; gap: 8px; padding-block: 18px 28px; border-top: 1px solid var(--cd-line); font-size: 0.75rem; line-height: 1.65; color: var(--cd-text-muted); text-align: center; }
 .footerNav { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 16px; }
-.footerNav a { display: inline-flex; align-items: center; min-height: 44px; font-size: 0.8125rem; color: var(--cd-text); text-decoration: none; }
+.footerNav a { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; font-size: 0.8125rem; color: var(--cd-text); text-decoration: none; }
 .footerNav .footerStrong { font-weight: 800; }
 .footerQuiet a { font-size: 0.75rem; color: var(--cd-text-muted); }
 /* "쿠키 설정"은 동의 배너를 여는 버튼이다(AnalyticsConsent). 모양은 옆 링크와 같다. */
@@ -204,12 +206,13 @@
 @media(prefers-reduced-motion:reduce) { .cardAction { transition: none; } }
 
 .entryHelp { display:flex; flex-wrap:wrap; justify-content:center; gap:0 24px; }
-.entryHelp a { display:inline-flex; align-items:center; min-height:44px; font-size:.875rem; }
+.entryHelp a { display:inline-flex; align-items:center; min-width:44px; min-height:44px; font-size:.875rem; }
 .entryNote { color:var(--cd-text-muted); font-size:.875rem; text-align:center; }
 
 .mobileNav{display:none}
 @media(max-width:699px){
- .page:has(.mobileNav){padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+ :global(html):has(.mobileNav){scroll-padding-bottom:var(--cd-home-nav-height,0px)}
+ .page:has(.mobileNav){padding-bottom:var(--cd-home-nav-height,0px)}
  .page:has(.mobileNav) .brandRow{justify-content:space-between}
  .page:has(.mobileNav) .brandRow a{display:none}
  .page:has(.mobileNav) .brandRow .wordmark{margin-right:auto}
@@ -220,9 +223,13 @@
  .page:has(.mobileNav) .cardNumeral,.page:has(.mobileNav) .cardFoil{display:none}
  .mobileNav{position:fixed;z-index:20;inset:auto 0 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:4px max(8px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));border-top:1px solid var(--hm-gold-line);background:var(--cd-surface);color:var(--cd-text-muted)}
  .mobileNav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:48px;border-radius:var(--cd-r-control);font-size:.75rem;font-weight:600;text-decoration:none}
+ :global(html.cd-consent-open) .mobileNav{bottom:var(--cd-consent-offset);padding-bottom:4px}
  .mobileNav a[aria-current]{color:var(--cd-accent);background:color-mix(in srgb,var(--cd-accent) 8%,var(--cd-surface))}
 }
 
+@media (max-width:699px) and (max-height:640px) {
+  :global(html.cd-consent-open) .mobileNav { position: static; }
+}
 .footerGroups { width:100%; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:24px; text-align:left; }
 .footerGroups h2 { width:100%; margin:0 0 6px; font:700 1rem/1.5 var(--font-display); color:var(--cd-text); }
 .footerGroups .entryHelp,.policyGroup .footerNav { justify-content:flex-start; align-content:start; gap:0 14px; }

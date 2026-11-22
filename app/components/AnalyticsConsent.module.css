@@ -35,7 +35,7 @@
 .details { margin-bottom: 8px; font-size: .875rem; }
 .details summary { width: fit-content; min-height: 44px; align-content: center; cursor: pointer; color: var(--ac-muted); }
 .details[open] p { margin-block: 4px; }
-:global(html.cd-consent-open):has(.banner) { scroll-padding-bottom: var(--cd-consent-offset); }
+:global(html.cd-consent-open):has(.banner) { scroll-padding-bottom: calc(var(--cd-consent-offset) + var(--cd-home-nav-height, 0px)); }
 .actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 .actions button {
   min-height: 48px;

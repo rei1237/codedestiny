@@ -99,7 +99,7 @@ export default function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width={96} height={96} alt="" decoding="async" />
         <span className={styles.wordmark}>{service.name}</span>
-        {!IS_APP_BUILD && <a href="#webServiceTitle">상담 추천</a>}
+        {!IS_APP_BUILD && <a href="#homeCardTitle">상담 추천</a>}
       </header>
 
       <main className={styles.stage}>
