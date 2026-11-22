@@ -48,6 +48,7 @@ if (!releaseKeyAlias) missingReleaseSigningItems.add('CODE_DESTINY_ANDROID_KEY_A
 if (!releaseStorePassword) missingReleaseSigningItems.add('CODE_DESTINY_ANDROID_KEYSTORE_PASSWORD')
 if (!releaseKeyPassword) missingReleaseSigningItems.add('CODE_DESTINY_ANDROID_KEY_PASSWORD')
 def hasReleaseSigning = missingReleaseSigningItems.isEmpty()
+def isStagingTestBuild = System.getenv("CODE_DESTINY_MOBILE_STAGING_TEST") == "1"
 
 gradle.taskGraph.whenReady { taskGraph ->
     def releasePackageTasks = taskGraph.allTasks.findAll { task ->
@@ -66,8 +67,9 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "com.codedestiny.app"
-        minSdkVersion rootProject.ext.minSdkVersion
+        minSdkVersion(isStagingTestBuild ? 28 : rootProject.ext.minSdkVersion)
         targetSdkVersion rootProject.ext.targetSdkVersion
+        resValue "bool", "cd_mobile_staging_test", String.valueOf(isStagingTestBuild)
         versionCode readMobileInt('CODE_DESTINY_ANDROID_VERSION_CODE', 1)
         versionName readMobileConfig('CODE_DESTINY_ANDROID_VERSION_NAME', '1.0')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"

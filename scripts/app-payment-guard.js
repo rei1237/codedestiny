@@ -19,20 +19,6 @@
 
   var APP_STORE_BASE = "/api/app-store";
 
-  function apiBase() {
-    var base = window.CODE_DESTINY_API_BASE_URL || "";
-    return String(base || "").replace(/\/+$/, "");
-  }
-
-  function authHeaders() {
-    var headers = { "Content-Type": "application/json" };
-    try {
-      var token = localStorage.getItem("fortune_auth_token");
-      if (token) headers.Authorization = "Bearer " + token;
-    } catch (e) { /* noop */ }
-    return headers;
-  }
-
   // intent/verify/free-grant 왕복 상한. 셸(index.html resolveTimeoutMs)의 /api/billing/checkout·confirm
   // 과 같은 25s — 같은 워커 스택(인증 + 보안가드 + Mongo 쓰기)을 타므로 콜드 시 ~25s 까지 걸린다.
   // 상한이 없으면 망 전환 등으로 응답이 영영 안 올 때 아래 inFlight 가 풀리지 않아 재시도 버튼도
@@ -54,9 +40,11 @@
     var response;
     var payload;
     try {
-      response = await fetch(apiBase() + path, {
+      // 결제 시트에 머무는 동안 access 토큰이 만료될 수 있다.
+      // 앱 브릿지가 API 출처와 세션 헤더를 요청 시점에 결정한다.
+      response = await fetch(path, {
         method: method,
-        headers: authHeaders(),
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         cache: "no-store",
         body: method === "GET" ? undefined : JSON.stringify(body || {}),

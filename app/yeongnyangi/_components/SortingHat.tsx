@@ -2,6 +2,7 @@
 import Image from 'next/image';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,ChevronDown,Download,RotateCcw} from 'lucide-react';
+import {IS_APP_BUILD} from '@/lib/app-build-target';
 import {hatHouses,hatImage,hatImageSet,hatSystems,type HatResult} from '@/lib/yeongnyangi/hat-houses';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {fortuneApi,loginForCurrentPage} from '../_lib/api';
@@ -69,5 +70,6 @@ const RESULT_ART_SIZES='(max-width: 900px) 100vw, 900px';
 function HatResultArt({house}:{house:typeof hatHouses[number]}){
  const set=hatImageSet(house.id),alt=set?.alt??`${house.scene}에서 원래의 초승달 모자를 쓴 영냥이. 기숙사 상징은 ${house.symbol}.`;
  const img=<Image src={hatImage(house.id)} width={set?.width??1200} height={set?.height??800} sizes={RESULT_ART_SIZES} alt={alt}/>;
- return set?<picture><source type="image/avif" srcSet={set.avif} sizes={RESULT_ART_SIZES}/><source type="image/webp" srcSet={set.webp} sizes={RESULT_ART_SIZES}/>{img}</picture>:img;
+ // 앱은 기숙사 목록·저장과 같은 기준 WebP를 번들에 싣는다.
+ return set&&!IS_APP_BUILD?<picture><source type="image/avif" srcSet={set.avif} sizes={RESULT_ART_SIZES}/><source type="image/webp" srcSet={set.webp} sizes={RESULT_ART_SIZES}/>{img}</picture>:img;
 }

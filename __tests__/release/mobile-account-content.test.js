@@ -79,6 +79,23 @@ test("React head의 인라인 순서를 유지하며 앱 브릿지가 API 출처
   } finally { dom.window.close(); }
 });
 
+test("내부 테스트 빌드만 스테이징 API와 WebView 연결 정책을 선언한다", async () => {
+  const { injectGuardTag } = await loadBuild();
+  const input = '<html><head><meta charset="utf-8"></head><body></body></html>';
+  assert.doesNotMatch(injectGuardTag(input, { stagingTest: false }).html, /cd-mobile-staging-api|connect-src/);
+
+  const { html } = injectGuardTag(input, { stagingTest: true });
+  const dom = new JSDOM(html, { url: 'https://localhost', runScripts: 'outside-only' });
+  try {
+    dom.window.CODE_DESTINY_API_BASE_URL = 'https://code-destiny.com';
+    dom.window.fetch = async () => { throw new Error('network forbidden'); };
+    dom.window.eval(await fs.readFile(path.join(root, 'scripts/app-native-bridge.js'), 'utf8'));
+    assert.equal(dom.window.CODE_DESTINY_API_BASE_URL, 'https://staging.code-destiny.com');
+    const csp = dom.window.document.querySelector('meta[http-equiv="Content-Security-Policy"]');
+    assert.equal(csp.getAttribute('content'), "connect-src 'self' https://staging.code-destiny.com");
+  } finally { dom.window.close(); }
+});
+
 test("앱 내 정보에서 부적과 읽기 콘텐츠로 이동할 수 있고 언어 변경이 반영된다", async () => {
   const dom = new JSDOM('<html lang="ko"><body><ul class="cd-sheet__menu my-garden-menu"><li><a href="/points/history/">결제 내역</a></li></ul></body></html>', {url:'https://localhost',runScripts:'outside-only'});
   try {
