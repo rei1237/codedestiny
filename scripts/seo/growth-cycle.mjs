@@ -28,7 +28,16 @@ export function quickWins(rows = []) {
 }
 export function searchEvidence(state, now = Date.now()) {
   // Reopening an old account report does not make its reporting period current.
-  const dates = [state.observedAt, state.period?.end].map(value => Date.parse(value));
+  // The state uses Korean calendar dates. Date.parse('YYYY-MM-DD') means UTC
+  // midnight and incorrectly rejects today's audit before 09:00 KST.
+  const dates = [state.observedAt, state.period?.end].map(value => {
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const utc = Date.parse(value);
+      if (!Number.isFinite(utc) || new Date(utc).toISOString().slice(0, 10) !== value) return NaN;
+      return Date.parse(`${value}T00:00:00+09:00`);
+    }
+    return Date.parse(value);
+  });
   if (dates.some(date => !Number.isFinite(date) || date > now)) {
     throw new Error('Invalid search evidence date');
   }

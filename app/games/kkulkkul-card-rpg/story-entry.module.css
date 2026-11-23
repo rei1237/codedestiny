@@ -1,0 +1,240 @@
+.spread {
+  --ink: #492e3a;
+  --rose: #84425b;
+  --rule: #ceae97;
+  position: relative;
+  isolation: isolate;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+  grid-template-rows: minmax(0, 1fr);
+  align-items: stretch;
+  padding: clamp(14px, 4vh, 48px) clamp(20px, 5vw, 96px);
+  overflow: hidden;
+  background: #53363c;
+}
+.spread::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  z-index: -1;
+  background:
+    linear-gradient(95deg, #55313b7a, #4b253d7d 55%, #412838cb),
+    url("/images/novel/mobile/roomNight.webp") center 52% / cover;
+  filter: blur(5px);
+}
+.coverScene {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  min-height: 0;
+  container-type: size;
+  perspective: 1100px;
+}
+.cover {
+  position: relative;
+  width: min(86cqw, 60cqh, 450px);
+  aspect-ratio: 2/3;
+  border-radius: 3px 6px 6px 3px;
+  background: #302232;
+  box-shadow:
+    2px 1px #d5b395,
+    4px 2px #e9d4bf,
+    6px 2px #9d7568,
+    8px 3px #612c42,
+    16px 22px 32px #29122085;
+  transform: rotateY(8deg) rotateZ(-2deg);
+}
+.cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #20152266,
+    #fff6db60 1.5%,
+    transparent 3%,
+    #32222e4d 5%,
+    transparent 7%
+  );
+  pointer-events: none;
+}
+.cover img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  object-fit: cover;
+}
+.coverTitle {
+  position: absolute;
+  inset: auto 0 4%;
+  text-align: center;
+  color: #fff2d5;
+  font:
+    600 clamp(16px, min(2.7vw, 5vh), 38px) / 1.2 Georgia,
+    "Batang",
+    serif;
+  letter-spacing: 0.07em;
+  text-shadow: 0 2px 5px #281624;
+}
+.paper {
+  position: relative;
+  color: var(--ink);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-self: center;
+  width: 100%;
+  max-width: 720px;
+  height: min(100%, 560px);
+  min-height: 0;
+  padding: clamp(18px, 4.5vh, 48px) clamp(22px, 3.8vw, 62px);
+  border-radius: 2px 14px 14px 2px;
+  border: 1px solid #f6d7c3;
+  background: linear-gradient(
+    90deg,
+    #dfc7b8 0,
+    #f5e4d9 2.5%,
+    #fff7ee 8%,
+    #fff4eb 88%,
+    #f3e1d7
+  );
+  box-shadow:
+    2px 2px #cbb2a4,
+    4px 4px #eed8ca,
+    6px 6px #af8e81,
+    11px 17px 26px #28132164;
+}
+.paper::before {
+  content: "";
+  position: absolute;
+  width: 15px;
+  height: clamp(18px, 4vh, 39px);
+  top: -1px;
+  right: clamp(22px, 3vw, 50px);
+  background: linear-gradient(90deg, #a25770, #c98297 50%, #96506b);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+}
+.chapter {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: clamp(8px, 2vh, 24px);
+}
+.chapter small,
+.controls span,
+.controls .forward {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chapter small {
+  color: var(--rose);
+  font-weight: 650;
+}
+.chapter h1 {
+  margin: 0.25em 0 0;
+  font:
+    600 clamp(25px, 3.4vw, 52px) / 1.17 Georgia,
+    "Batang",
+    serif;
+  letter-spacing: -0.055em;
+}
+.passage {
+  align-self: stretch;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c897a6 transparent;
+  padding-block: clamp(10px, 2.7vh, 28px);
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--rule);
+}
+.controls span {
+  margin-right: auto;
+  color: #745866;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.controls button {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+}
+.controls button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.controls .forward {
+  justify-content: center;
+  padding: 0 14px;
+  background: var(--rose);
+  color: #fff8f5;
+  border-radius: 4px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.controls .forward:hover {
+  background: #71334b;
+}
+.paper :is(button, a, .passage):focus-visible {
+  outline: 2px solid #8a4564;
+  outline-offset: -3px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :global(main[data-still="false"]) .cover {
+    animation: arrive 0.65s ease-out both;
+  }
+  @keyframes arrive {
+    from {
+      opacity: 0.35;
+      transform: translateY(8px) rotateY(16deg) rotateZ(-2deg);
+    }
+  }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+  .spread {
+    grid-template-columns: 0.78fr 1.22fr;
+    padding: 10px 4vw 12px;
+  }
+  .paper {
+    padding: 12px 22px 8px;
+  }
+  .chapter small {
+    font-size: 11px;
+  }
+  .chapter h1 {
+    font-size: 25px;
+  }
+  .passage {
+    padding-block: 5px;
+  }
+}
+@media (orientation: portrait) {
+  .spread {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px 16px 22px;
+    overflow: visible;
+  }
+  .coverScene {
+    height: clamp(190px, 31svh, 340px);
+  }
+  .cover {
+    width: min(86cqw, 64cqh);
+  }
+  .paper {
+    height: auto;
+    min-height: 260px;
+    padding: 18px 20px 10px;
+  }
+  .passage {
+    overflow: visible;
+  }
+}

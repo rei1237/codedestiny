@@ -1,0 +1,737 @@
+.brief,
+.arena {
+  --gold: #f6d5a7;
+  --ivory: #fff1e6;
+  --wine: #50283d;
+  --line: #d2aa9280;
+  position: relative;
+  isolation: isolate;
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  color: var(--ivory);
+  background:
+    linear-gradient(0deg, #341c3d59, transparent 62%),
+    url("/images/card-rpg/lotus-court.webp") center / cover;
+}
+.brief {
+  display: grid;
+  align-items: center;
+  padding: clamp(12px, 5vw, 76px);
+}
+.briefPanel,
+.sheet,
+.result {
+  background: linear-gradient(130deg, #40283ef5, #6d4154f5);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 50px #2c152f55;
+  padding: clamp(16px, 2.8vw, 36px);
+}
+.briefPanel {
+  max-width: 515px;
+  border-radius: 2px 30px 2px 2px;
+}
+.brief h1,
+.head h1,
+.result h2,
+.sheet h2 {
+  font-family: Georgia, "Batang", serif;
+  line-height: 1.2;
+  margin: 0.18em 0;
+  color: var(--ivory);
+}
+.brief h1 {
+  font-size: clamp(26px, 4vw, 53px);
+}
+.brief p {
+  margin: 10px 0;
+  font-size: clamp(13px, 1.25vw, 17px);
+}
+.brief label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 12px 0 0;
+}
+.brief select,
+.controls button,
+.order button,
+.sheet button,
+.result button,
+.alert button {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 7px 13px;
+  background: #fae3e1;
+  color: #512c42;
+  min-height: 44px;
+  cursor: pointer;
+  font: inherit;
+}
+.brief .controls button:first-child,
+.arena .confirm,
+.result button {
+  color: #482136;
+  background: linear-gradient(115deg, #ffd6bb, #efabc1);
+  font-weight: 750;
+}
+.names,
+.controls,
+.order {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.controls button,
+.order button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.names span {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 10px;
+}
+.brief button:disabled,
+.arena button:disabled {
+  opacity: 0.56;
+  cursor: default;
+}
+.arena {
+  display: grid;
+  grid-template-rows: auto minmax(94px, 1fr) auto auto;
+  min-height: 310px;
+}
+.head,
+.allies,
+.order {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.head {
+  background: linear-gradient(#392238eb, #44273dd1);
+  padding: 4px clamp(10px, 3vw, 46px);
+  border-bottom: 1px solid var(--line);
+}
+.head > div {
+  flex: 1;
+}
+.head h1 {
+  font-size: clamp(18px, 2.6vw, 34px);
+}
+.head small,
+.gauge small,
+.allies small {
+  font-size: clamp(10px, 1.15vw, 14px);
+}
+.head > button,
+.head > span {
+  min-width: 44px;
+  text-align: center;
+}
+.head button {
+  border: 1px solid #e4c5c23d;
+  border-radius: 5px;
+}
+.field {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 0;
+  overflow: hidden;
+}
+.squad,
+.foes {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  justify-content: center;
+}
+.squad {
+  width: 52%;
+  padding-left: 1%;
+}
+.foes {
+  width: 48%;
+  align-items: center;
+  gap: 2%;
+  padding-right: 2%;
+}
+.unit {
+  position: relative;
+  height: 95%;
+  width: 31%;
+  display: grid;
+  align-items: end;
+  justify-items: stretch;
+}
+.unit > div {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+.arena .enemy {
+  position: relative;
+  display: flex;
+  flex-flow: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 53%;
+  height: 95%;
+  min-height: 0;
+  border: 0;
+  background: none;
+  color: #fff7e8;
+}
+.enemy img {
+  width: clamp(78px, 16vw, 245px);
+  max-width: 100%;
+  height: 72%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 8px #49213c65);
+}
+.gauge {
+  padding: 2px 7px;
+  background: #41293bbf;
+  border: 1px solid #dcc6ae85;
+  min-width: 90px;
+  border-radius: 4px;
+  text-align: center;
+}
+.enemy[aria-pressed="true"] .gauge {
+  border-color: #ffe0a6;
+  box-shadow: 0 0 0 1px #ffe0a6;
+}
+.gauge b {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font-size: clamp(11px, 1.3vw, 17px);
+}
+.gauge meter {
+  display: block;
+  width: 100%;
+  height: 7px;
+  accent-color: #eaa4b7;
+}
+.damage {
+  position: absolute;
+  top: 40%;
+  left: 28%;
+  font: italic bold clamp(20px, 3vw, 45px) Georgia;
+  color: #fff6ce;
+  text-shadow:
+    0 2px 5px #4e263c,
+    1px 0 #713c48;
+  animation: damage 0.46s ease-out both;
+}
+.enemy[data-struck="true"] > img {
+  animation: struck 0.32s ease-out;
+}
+@keyframes damage {
+  from {
+    transform: translateY(10px) scale(0.85);
+  }
+  to {
+    transform: translateY(-8px) scale(1.06);
+  }
+}
+@keyframes struck {
+  35% {
+    transform: translateX(8px) rotate(3deg);
+    filter: brightness(1.6);
+  }
+}
+.allies {
+  gap: 4px;
+  justify-content: center;
+  padding: 2px 5%;
+  background: linear-gradient(transparent, #3d283dc9);
+}
+.arena .allies button {
+  position: relative;
+  color: white;
+  border: 1px solid var(--line);
+  background: #493042d9;
+  padding: 3px 12px 7px;
+  border-radius: 4px;
+  min-width: 0;
+  flex: 1;
+  max-width: 280px;
+  line-height: 1.15;
+}
+.allies button b,
+.allies button small {
+  display: inline;
+}
+.allies i {
+  position: absolute;
+  height: 3px;
+  bottom: 0;
+  left: 0;
+  background: #9aceb6;
+}
+.command {
+  background: linear-gradient(115deg, #44263e, #744052 61%, #492a43);
+  border-top: 1px solid var(--line);
+  padding: 5px clamp(8px, 3vw, 50px);
+}
+.cards {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(3px, 1.2vw, 18px);
+}
+.arena .card {
+  --accent: #a2dfbd;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  flex: 1;
+  max-width: 142px;
+  height: clamp(65px, 16vh, 146px);
+  border: 1px solid #ead2ac;
+  border-radius: 4px 12px 4px 4px;
+  background: #6e475a;
+  color: #fff4df;
+  box-shadow: inset 0 0 0 2px #c89e73;
+}
+.card[data-type="Arts"] {
+  --accent: #aed8ff;
+}
+.card[data-type="Buster"] {
+  --accent: #ffa4a8;
+}
+.cardPortrait {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background-size: 430% auto;
+  background-position: 0 8%;
+  background-repeat: no-repeat;
+}
+.arena .card {
+  border-bottom: 3px solid var(--accent);
+  background: radial-gradient(ellipse at 60% 20%, #c5949f, #472a43 76%);
+}
+.arena .card[data-type="Arts"] {
+  background: radial-gradient(ellipse at 65% 20%, #91a4bb, #41314d 80%);
+}
+.arena .card[data-type="Quick"] {
+  background: radial-gradient(ellipse at 65% 20%, #92bba9, #383a48 80%);
+}
+.gauge meter::-webkit-meter-bar {
+  background: #54374b;
+  border: none;
+}
+.gauge meter::-webkit-meter-optimum-value {
+  background: linear-gradient(90deg, #d87794, #ffe1b6);
+}
+.card > img {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 28%;
+}
+.card:after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(
+    #39213bac,
+    transparent 35%,
+    #3e203a20 50%,
+    #382137eb
+  );
+}
+.card > small,
+.card > b,
+.card > em {
+  position: absolute;
+}
+.card > small {
+  top: 3px;
+  left: 5px;
+  font-size: clamp(9px, 1vw, 12px);
+  text-shadow: 0 1px 3px black;
+}
+.card > b {
+  bottom: 2px;
+  left: 0;
+  right: 0;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  font: italic bold clamp(16px, 2.1vw, 26px) Georgia;
+}
+.card svg {
+  width: clamp(13px, 1.6vw, 22px);
+}
+.card > em {
+  top: 25%;
+  left: 7%;
+  border-radius: 50%;
+  padding: 3px 8px;
+  color: #482638;
+  background: #ffe0a6;
+  font: 700 17px Georgia;
+}
+.arena .card[aria-pressed="true"] {
+  outline: 2px solid #ffe2a0;
+  outline-offset: 0;
+  transform: translateY(-3px);
+}
+.order {
+  justify-content: center;
+  margin-top: 3px;
+  min-height: 44px;
+}
+.order > span {
+  font-size: clamp(11px, 1.3vw, 16px);
+  padding-right: 8px;
+}
+.arena .order .confirm {
+  min-width: 100px;
+  justify-content: center;
+}
+.rhythm {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  background: #5e354ced;
+  color: #ffe0c9;
+}
+.rhythm span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 38px;
+  font: italic 14px Georgia;
+}
+.rhythm span[data-roll="true"] {
+  animation: beatReel 0.28s ease-out backwards;
+}
+@keyframes beatReel {
+  from {
+    opacity: 0.2;
+    transform: translateY(-5px);
+  }
+}
+.alert {
+  padding: 6px 12px;
+  background: #633244;
+  color: white;
+  z-index: 3;
+}
+.arena > .alert {
+  position: absolute;
+  top: 50px;
+  left: 5%;
+}
+.shade,
+.result {
+  z-index: 6;
+}
+.shade {
+  position: absolute;
+  inset: 0;
+  background: #321d35ab;
+  display: grid;
+  place-items: center;
+  padding: 10px;
+}
+.sheet {
+  max-height: 100%;
+  overflow: auto;
+  width: min(100%, 480px);
+}
+.sheet button {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  text-align: left;
+}
+.sheet small {
+  display: block;
+  font-size: 12px;
+}
+.result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.result h2 {
+  font-size: 32px;
+}
+@media (max-height: 470px) and (orientation: landscape) {
+  .head {
+    padding-block: 1px;
+  }
+  .head h1 {
+    font-size: 16px;
+  }
+  .allies button small {
+    font-size: 10px;
+  }
+  .command {
+    padding-block: 3px;
+  }
+  .card > img {
+    object-position: 50% 24%;
+  }
+  .arena .card {
+    height: 61px;
+  }
+  .order {
+    margin: 0;
+  }
+  .brief {
+    padding: 6px 5%;
+  }
+  .briefPanel {
+    padding: 12px 20px;
+  }
+  .brief p {
+    margin: 3px 0;
+  }
+  .brief h1 {
+    font-size: 24px;
+  }
+}
+@media (orientation: portrait) {
+  .arena {
+    min-height: 72svh;
+  }
+  .field {
+    min-height: 148px;
+  }
+  .squad {
+    width: 52%;
+  }
+  .unit {
+    width: 33%;
+  }
+  .cards {
+    flex-wrap: wrap;
+  }
+  .arena .card {
+    flex: 1 0 26%;
+    height: 75px;
+  }
+  .head {
+    gap: 3px;
+  }
+  .head small {
+    font-size: 10px;
+  }
+  .allies {
+    padding: 4px;
+  }
+  .arena .allies button {
+    padding-inline: 3px;
+  }
+  .allies small {
+    display: block;
+  }
+  .order > span {
+    width: 100%;
+    text-align: center;
+  }
+  .brief {
+    min-height: 65vh;
+  }
+  .gauge {
+    min-width: 55px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .damage,
+  .enemy[data-struck="true"] > img {
+    animation: none;
+  }
+}
+.arena[data-quiet="true"] * {
+  animation-duration: 0s;
+}
+
+.unit[data-striking="true"] {
+  z-index: 3;
+}
+.unit[data-striking="true"] > div,
+.enemy[data-attacking="true"] img {
+  animation: crossField var(--action-time) both;
+}
+@keyframes crossField {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  14% {
+    transform: translate(calc(var(--travel-x, 0px) * -0.025), 2px);
+    animation-timing-function: cubic-bezier(0.36, 0, 0.75, 1);
+  }
+  31% {
+    transform: translate(
+      calc(var(--travel-x, 0px) * 0.62),
+      calc(var(--travel-y, 0px) * 0.6 + var(--lift, 0px))
+    );
+  }
+  45%,
+  68% {
+    transform: translate(var(--travel-x, 0px), var(--travel-y, 0px));
+  }
+  83% {
+    transform: translate(
+      calc(var(--travel-x, 0px) * 0.45),
+      calc(var(--travel-y, 0px) * 0.45 + var(--lift, 0px) * 0.5)
+    );
+    animation-timing-function: ease-out;
+  }
+}
+.flight {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+  left: var(--start-x);
+  top: var(--start-y);
+  color: #fff3c9;
+  width: clamp(23px, 4vw, 56px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 0 5px var(--trail, #ffa0c5));
+  animation: sendEmblem var(--action-time) both;
+}
+.flight svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--trail, #ffb8cd);
+  stroke-width: 1.2;
+}
+.flight::before {
+  content: "";
+  position: absolute;
+  right: 65%;
+  top: 37%;
+  width: 180%;
+  height: 25%;
+  border-radius: 100%;
+  background: linear-gradient(90deg, transparent, var(--trail, #ffc4d6));
+}
+.flight[data-person="pje"] {
+  --trail: #bfa9ff;
+}
+.flight[data-person="moka"] {
+  --trail: #ffaf60;
+}
+.flight[data-person="yun"] {
+  --trail: #83caff;
+}
+.field[data-finisher="true"] .flight {
+  animation-delay: calc(var(--action-time) * 0.13);
+}
+@keyframes sendEmblem {
+  0%,
+  25% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  30% {
+    opacity: 1;
+  }
+  46% {
+    opacity: 1;
+    transform: translate(
+        calc(-50% + var(--flight-x)),
+        calc(-50% + var(--flight-y))
+      )
+      scale(1.16);
+  }
+  63%,
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + var(--flight-x)),
+        calc(-50% + var(--flight-y))
+      )
+      scale(1.6);
+  }
+}
+.arena[data-playing="true"]
+  :is(.allies button, .card, .specials button):disabled {
+  opacity: 0.86;
+}
+.arena .enemy:disabled {
+  opacity: 1;
+}
+.enemy[data-struck="true"] .damage::before {
+  content: "✧";
+  position: absolute;
+  right: 85%;
+  top: -35%;
+  font-size: 1.4em;
+  color: #ffd1da;
+  text-shadow: 0 0 8px #f99c9b;
+}
+.specials {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.specials button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 2px 10px;
+  text-align: left;
+  color: #fff2cd;
+  background: linear-gradient(115deg, #704459, #412837);
+  border: 1px solid #f3cb84;
+  border-radius: 8px 2px;
+  box-shadow: inset 0 0 8px #e9a65939;
+}
+.specials small,
+.specials strong {
+  display: block;
+  line-height: 1.2;
+}
+.specials small {
+  font-size: 10px;
+  color: #ffe1b7;
+}
+.specials strong {
+  font:
+    600 clamp(11px, 1.25vw, 16px) Georgia,
+    Batang,
+    serif;
+}
+.specials button[aria-pressed="true"] {
+  background: #f8dfb8;
+  color: #49263d;
+}
+.specials button[aria-pressed="true"] small {
+  color: #63394a;
+}
+@media (prefers-reduced-motion: reduce) {
+  .unit[data-striking="true"] > div,
+  .enemy[data-attacking="true"] img,
+  .flight {
+    animation: none;
+  }
+}

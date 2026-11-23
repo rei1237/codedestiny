@@ -28,3 +28,17 @@ test('recent account visits cannot refresh old search evidence', () => {
   state.observedAt = 'unknown';
   assert.throws(() => searchEvidence(state, now), /Invalid search evidence date/);
 });
+
+test('Korean midnight audit dates work before UTC midnight without accepting future or stale evidence', () => {
+  const now = Date.parse('2026-11-23T19:20:00Z'); // 11/24 04:20 KST
+  const state = { observedAt: '2026-11-24', period: { end: '2026-11-21' },
+    gscRows: [{ page: '/saju/guide/', impressions: 19, position: 15 }] };
+  assert.equal(searchEvidence(state, now).quickWins.length, 1);
+  state.observedAt = '2026-11-25';
+  assert.throws(() => searchEvidence(state, now), /Invalid search evidence date/);
+  state.observedAt = '2026-11-24';
+  state.period.end = '2026-11-01';
+  assert.deepEqual(searchEvidence(state, now), { stale: true, quickWins: [] });
+  state.period.end = '2026-02-30';
+  assert.throws(() => searchEvidence(state, now), /Invalid search evidence date/);
+});
