@@ -1,7 +1,5 @@
 import { createHeukwolMock, HEUKWOL_MOCK_PROFILE, HEUKWOL_MOCK_SUBSCRIPTION } from './fixtures/mock-heukwol.mjs';
-import {createBattlePracticeStore,handlePracticeBattle} from "./fixtures/mock-card-rpg-battles.mjs";
 import http from 'node:http';
-import { randomUUID } from 'node:crypto';
 import { createRecommendationMock, MOCK_RECOMMENDATION_TOKEN } from './fixtures/mock-recommendations.mjs';
 import { createTeaMock } from './fixtures/mock-tea-house.mjs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -37,51 +35,18 @@ function mockNakshatraResolve(body) {
   };
 }
 
-export function createMockApiServer({rpgWalletFile, rpgBattleFile}={}) {
+export function createMockApiServer() {
   // Process-local storage: restart clears sessions and profiles, never touches Mongo.
   const profiles = new Map();
-  let practiceBattles;
   const teaMock = createTeaMock();
   const recommendationMock = createRecommendationMock();
   let workshop;
-  let rpgWallet;
-  const rpgMockEnabled=process.env.CD_MOCK_DEV==="1"&&process.env.NODE_ENV==="development";
-  const walletSessions = new Map();
-  const walletCookie = 'cd_local_rpg_wallet';
-  function walletToken(req) {
-    return (req.headers.cookie || '').split(';').map(c => c.trim())
-      .find(c => c.startsWith(walletCookie + '='))?.slice(walletCookie.length + 1);
-  }
-  function localWalletRequest(req) {
-    const loopback = ['127.0.0.1','::1','::ffff:127.0.0.1'];
-    if (!loopback.includes(req.socket.remoteAddress)) return false;
-    if (!req.headers.origin) return true;
-    try { return ['127.0.0.1','localhost','[::1]'].includes(new URL(req.headers.origin).hostname); }
-    catch { return false; }
-  }
-  function setWalletSession(req, res, signedIn) {
-    if (!rpgMockEnabled || !localWalletRequest(req)) return;
-    const now = Date.now();
-    walletSessions.delete(walletToken(req));
-    for (const [key, expires] of walletSessions) if (expires <= now) walletSessions.delete(key);
-    const token = signedIn ? randomUUID() : '';
-    if (signedIn) walletSessions.set(token, now + 43200000);
-    res.setHeader('Set-Cookie', `${walletCookie}=${token}; HttpOnly; SameSite=Strict; Path=/api; Max-Age=${signedIn ? 43200 : 0}`);
-  }
-  async function wallet() {
-    rpgWallet??=import("./fixtures/mock-card-rpg.mjs").then(async({createMockRpgWallet,mockWalletId})=>{
-      const file=fileURLToPath(new URL("../.tmp/mock-wallet-"+Number(process.env.LOCAL_DEV_AUTH_API_PORT||8790)+".json",import.meta.url));
-      const store=createMockRpgWallet({file:rpgWalletFile===undefined?file:rpgWalletFile});
-      await store.init(mockWalletId);return {store,uid:mockWalletId};
-    }).catch(error=>{rpgWallet=undefined;throw error;});
-    return rpgWallet;
-  }
   const heukwolEnabled=process.env.CD_MOCK_HEUKWOL_FLOW==='1' && process.env.NODE_ENV!=='production';
   const heukwolMock=createHeukwolMock();
   let loggedIn = heukwolEnabled;
   if(heukwolEnabled)profiles.set(HEUKWOL_MOCK_PROFILE.id,structuredClone(HEUKWOL_MOCK_PROFILE));
   let currentProfileId = '';
-  const server = http.createServer(async (req, res) => {
+  return http.createServer(async (req, res) => {
     const send = (status, body) => {
       res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Code-Destiny-Mock': '1' });
       res.end(JSON.stringify({ ...body, mock: true }));
@@ -100,11 +65,6 @@ export function createMockApiServer({rpgWalletFile, rpgBattleFile}={}) {
       }
       const body = raw ? JSON.parse(raw) : {};
       const route = `${req.method} ${path}`;
-      if (path.startsWith("/api/card-rpg-dev/battle/") && rpgMockEnabled && localWalletRequest(req)) {
-        practiceBattles ??= createBattlePracticeStore(rpgBattleFile);
-        const signedIn = loggedIn && walletSessions.get(walletToken(req)) > Date.now();
-        return handlePracticeBattle(req, res, route, body, signedIn, send, practiceBattles);
-      }
       if (path === '/api/admin/editions' || path === '/api/editions/verify') {
         if (process.env.CD_EDITION_WORKSHOP !== '1' || process.env.NODE_ENV === 'production') return send(404,{message:'공방이 열리지 않았어요.'});
         const admin = path === '/api/admin/editions';
@@ -120,25 +80,6 @@ export function createMockApiServer({rpgWalletFile, rpgBattleFile}={}) {
         } catch (err) {
           return send(err.status || 503,{message:err.status ? err.message : '로컬 체인에 연결하지 못했어요. 기록을 다시 확인해 주세요.'});
         }
-      }
-      if(rpgMockEnabled && (path.startsWith("/api/mock/card-rpg/") || (route==="GET /api/billing/balance" && url.searchParams.get("moonlightStone")==="1"))){
-        if (!localWalletRequest(req)) return send(403, {ok:false,reason:"LOCAL_ONLY"});
-        if (!loggedIn || !(walletSessions.get(walletToken(req)) > Date.now()))
-          return send(401, {ok:false,reason:"LOGIN_REQUIRED",message:"개발 계정에 다시 로그인하세요."});
-        if (!["GET /api/billing/balance","GET /api/mock/card-rpg/catalog","POST /api/mock/card-rpg/summon"].includes(route))
-          return send(404, {ok:false,reason:"UNKNOWN_MOCK_GAME_ROUTE"});
-        if (req.method === 'POST' && (req.headers['content-type'] || '').split(';')[0].trim() !== 'application/json')
-          return send(415, {ok:false,reason:"JSON_REQUIRED"});
-        const {store,uid}=await wallet();
-        if(route==="GET /api/billing/balance"){
-          const {balance}=await store.view(uid);
-          return send(200,{ok:true,data:{authenticated:true,authUserId:"mock-user",monthlyStoneBalance:balance}});
-        }
-        try{
-          if(route==="GET /api/mock/card-rpg/catalog")return send(200,{ok:true,...await store.view(uid),accountId:"mock-user"});
-          if(route==="POST /api/mock/card-rpg/summon")return send(200,{ok:true,accountId:"mock-user",receipt:await store.summon(uid,body)});
-          return send(404,{ok:false,reason:"UNKNOWN_MOCK_GAME_ROUTE"});
-        }catch(e){return send(e.status||503,{ok:false,reason:e.code||"STORAGE_UNAVAILABLE",message:e.status?e.message:"테스트 원장 저장에 실패했어요. 같은 요청을 다시 시도하세요."});}
       }
       if (recommendationMock(route, body, req.headers['x-admin-token'], send, url.searchParams)) return;
       if (await teaMock(route, body, loggedIn ? 'mock-user' : null, send)) return;
@@ -164,8 +105,8 @@ export function createMockApiServer({rpgWalletFile, rpgBattleFile}={}) {
         return send(200, { ok:true, balance:16, attended:false, streak:2, day:kstDay(), nextBonusIn:HONEY_STREAK_EVERY-2, monthDays:[], attendanceEvery:HONEY_ATTENDANCE_EVERY, streakEvery:HONEY_STREAK_EVERY, streakBonus:HONEY_STREAK_BONUS, promptCost:PROMPT_HUB_HONEY_COST });
       }
       if (route === 'GET /api/honey/unlocks') return send(loggedIn ? 200 : 401, loggedIn ? {ok:true,featureKeys:[]} : {ok:false,reason:'LOGIN_REQUIRED'});
-      if (route === 'POST /api/auth/login') { loggedIn = true; setWalletSession(req,res,true); }
-      if (route === 'POST /api/auth/logout') { loggedIn = false; setWalletSession(req,res,false); return send(200, { ok: true }); }
+      if (route === 'POST /api/auth/login') loggedIn = true;
+      if (route === 'POST /api/auth/logout') { loggedIn = false; return send(200, { ok: true }); }
       if (route === 'POST /api/auth/login' || route === 'GET /api/auth/me') {
         return send(loggedIn ? 200 : 401, loggedIn
           ? { ok: true, user: { id: 'mock-user', _id: 'mock-user', email: 'mock@example.invalid', nickname: '개발 사용자', ...(heukwolEnabled?{profileSubscription:HEUKWOL_MOCK_SUBSCRIPTION}:{}) } }
@@ -213,8 +154,6 @@ export function createMockApiServer({rpgWalletFile, rpgBattleFile}={}) {
       send(error instanceof SyntaxError ? 400 : 500, { ok: false, error: error instanceof SyntaxError ? 'INVALID_JSON' : 'MOCK_SERVER_ERROR' });
     }
   });
-  server.once("close", () => practiceBattles?.close());
-  return server;
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const port = Number(process.env.LOCAL_DEV_AUTH_API_PORT || 8790);

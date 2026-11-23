@@ -1,5 +1,6 @@
 // Static-shell browser evidence. Every API is mocked; external traffic is blocked.
 import { chromium } from 'playwright';
+import { openFreeSajuForm } from './lib/open-free-saju-form.mjs';
 import { createServer } from 'node:http';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
@@ -42,12 +43,12 @@ async function capture(subject, path) {
 }
 const server = createServer(async (req, res) => {
   const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
-  const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
+  const file = resolve(root, '.' + (pathname === '/' || pathname === '/ggulggul/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403).end(); return; }
   for (const candidate of [file, resolve(root, 'public', '.' + pathname)]) {
     try {
       const data = await readFile(candidate);
-      res.setHeader('content-type', ({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'})[extname(candidate)] || 'application/octet-stream');
+      res.setHeader('content-type', ({'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.webp':'image/webp','.png':'image/png','.svg':'image/svg+xml'})[extname(candidate)] || 'application/octet-stream');
       res.end(data); return;
     } catch {}
   }
@@ -75,10 +76,7 @@ try {
   await context.addInitScript(() => sessionStorage.setItem('privacyAgreed','true'));
   const page = await context.newPage();
   page.on('dialog', dialog => dialog.dismiss());
-  await page.goto(origin + (remoteBase ? '/ggulggul/' : ''), {waitUntil:'domcontentloaded'});
-  // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
-  if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
-  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"], .yh-entries a[data-action="cdOneStepFreeSajuEntry"]').filter({visible:true}).first().click();
+  await openFreeSajuForm(page, origin);
   await page.locator('#nameInput').fill('검증용 프로필');
   await page.locator('#birthDate').fill('1990-05-15');
   await page.locator('#run-btn').click();
