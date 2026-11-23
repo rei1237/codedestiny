@@ -3,8 +3,8 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "588647f6a16f6da9",
-      "lastmod": "2026-11-22"
+      "signature": "abfe2b1c7923a58b",
+      "lastmod": "2026-11-23"
     },
     "/about/": {
       "signature": "93ee44bbe2484609",
@@ -1859,132 +1859,152 @@
       "lastmod": "2026-11-19"
     },
     "/recipes/": {
-      "signature": "0dac2212e4493a39",
-      "lastmod": "2026-11-16"
+      "signature": "fea003abec35c7a8",
+      "lastmod": "2026-11-23"
     },
     "/recipes/apple-cabbage-wraps/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
+    },
+    "/recipes/apple-lentil-cabbage-salad/": {
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/banana-oat-muffins/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/black-pepper-shiitake-tteok/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/carrot-corn-porridge/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/chicory-chicken-salad/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/chicory-mushroom-omelette/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/chicory-mushroom-pasta/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/chicory-orange-toast/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/chicory-pear-barley/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
+    },
+    "/recipes/chicory-potato-soup/": {
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/ginger-cabbage-udon/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/ginger-mushroom-rice-noodles/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/ginger-potato-rosti/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
+    },
+    "/recipes/ginger-radish-somen/": {
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/ginger-scallion-tofu/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/kelp-zucchini-soup/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/lemon-broccoli-couscous/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/lemon-chickpea-salad/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/lemon-white-bean-stew/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/miso-eggplant-tofu-bowl/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/mustard-lotus-rice/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
+    },
+    "/recipes/nori-sesame-egg-roll/": {
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/nori-sesame-potatoes/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/nori-sesame-rice-gratin/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/pear-millet-crumble/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/pepper-cabbage-tofu-soup/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/plum-cucumber-soba/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/pumpkin-mushroom-risotto/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/pumpkin-oat-pancakes/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
+    },
+    "/recipes/pumpkin-soy-steamed-pudding/": {
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/radicchio-polenta/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/seaweed-mushroom-soup/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/seaweed-tofu-riceballs/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/sweet-potato-apple-oats/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/recipes/yuja-radish-noodles/": {
-      "signature": "a4702cf3461dcf16",
-      "lastmod": "2026-11-22"
+      "signature": "eddc0d07f5d03acd",
+      "lastmod": "2026-11-23"
     },
     "/refund-policy/": {
       "signature": "76cce1621b48ba66",
