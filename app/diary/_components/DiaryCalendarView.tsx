@@ -20,7 +20,7 @@ export default function DiaryCalendarView() {
   const { hydrated, ymd:today, store, chart, ext } = useDiaryToday();
   const [date,setDate] = useState("");
   const [mode,setMode] = useState<CalendarMode>("month");
-  const [detail,setDetail] = useState(false);
+  const [detail,setDetail] = useState<"summary" | "record" | null>(null);
   useEffect(()=>{
     if(!hydrated||!today)return;
     const params=new URLSearchParams(window.location.search);
@@ -30,7 +30,7 @@ export default function DiaryCalendarView() {
     if(view==="week"||view==="day")setMode(view);
   },[hydrated,today]);
   const select=useCallback((next:string,view?:CalendarMode)=>{
-    setDate(next);setDetail(false);
+    setDate(next);setDetail(null);
     if(view)setMode(view);
     const url=new URL(window.location.href);
     url.searchParams.set("d",next);
@@ -64,7 +64,7 @@ export default function DiaryCalendarView() {
   const title=mode==="day"?formatKoreanDate(date):mode==="week"?from+" — "+to:monthTitle;
   const dailyEvents=(ymd:string)=>events.filter(item=>item.date===ymd);
   const grain=diaryFlowCopy(fortunes[date]?.tone);
-  const goDetail=()=>setDetail(true);
+  const goDetail=()=>setDetail("summary");
   return <div className={styles.calendarLayout} data-view={mode}>
     <section className={styles.calendarPaper} aria-label="달력">
       <header className={styles.calendarHeader}><div className={styles.sectionTitle}><CalendarDays size={24} aria-hidden="true"/><h2>나의 달력</h2></div><button type="button" className={styles.secondaryButton} disabled={!today} onClick={()=>select(today)}>오늘</button></header>
@@ -94,7 +94,7 @@ export default function DiaryCalendarView() {
         {marks.noteDays>0&&<details className={styles.monthIndex}>
           <summary>기록한 날 모아보기 · {marks.noteDays}일</summary>
           <div>{dates.filter(day=>marks.byYmd[day]?.note).map(day=>(
-            <button type="button" key={day} onClick={()=>{select(day);setDetail(true);}}>
+            <button type="button" key={day} onClick={()=>{select(day);setDetail("record");}}>
               {Number(day.slice(8))}일 · {weekdayLabel(weekdayIndex(day))}요일
             </button>
           ))}</div>
@@ -116,6 +116,6 @@ export default function DiaryCalendarView() {
       <details className={styles.routineDetails}><summary>나의 루틴</summary><DiaryRoutineList ymd={date} entry={readStoredEntry(store,date)} emptyText="아직 고른 실천이 없어요."/></details>
       <button type="button" className={styles.recordButton} onClick={goDetail}><NotebookPen size={20} aria-hidden="true"/>이 날의 흐름 · 기록 · 회고<ChevronRight size={18} aria-hidden="true"/></button>
     </section>}
-    {detail&&date&&<DiaryDayView ymd={date} fortune={fortunes[date]||null} group={dayGroupOf(chart,date)} entry={readStoredEntry(store,date)} onClose={()=>setDetail(false)}/>}
+    {detail&&date&&<DiaryDayView initialTab={detail} ymd={date} fortune={fortunes[date]||null} group={dayGroupOf(chart,date)} entry={readStoredEntry(store,date)} onClose={()=>setDetail(null)}/>}
   </div>;
 }

@@ -86,6 +86,7 @@ const DAY_VIEW_TABS = [
 type DiaryDayTab = (typeof DAY_VIEW_TABS)[number]["key"];
 
 interface DiaryDayViewProps {
+  initialTab?: "summary" | "record";
   ymd: string;
   fortune: DiaryDayFortune | null;
   group: DiaryDayGroup | null;
@@ -93,22 +94,22 @@ interface DiaryDayViewProps {
   onClose: () => void;
 }
 
-export default function DiaryDayView({ ymd, fortune, group, entry, onClose }: DiaryDayViewProps) {
+export default function DiaryDayView({ ymd, fortune, group, entry, initialTab = "summary", onClose }: DiaryDayViewProps) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
     const previous = document.activeElement;
     return () => { if (previous instanceof HTMLElement && previous.isConnected) previous.focus({ preventScroll:true }); };
   }, []);
-  const [tab, setTab] = useState<DiaryDayTab>("summary");
+  const [tab, setTab] = useState<DiaryDayTab>(initialTab);
   const detail = buildDiaryDayDetail(fortune, group);
   const marks = readDayMarks(entry);
 
   // 🔴 날짜가 바뀌면 요약으로 되돌린다 — 다른 날의 기록 탭이 열린 채로 이어지면
   // 사용자는 방금 연 날에 쓰고 있다고 착각하기 쉽다.
   useEffect(() => {
-    setTab("summary");
+    setTab(initialTab);
     closeRef.current?.focus();
-  }, [ymd]);
+  }, [ymd, initialTab]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
