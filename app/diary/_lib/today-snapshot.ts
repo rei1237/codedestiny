@@ -83,6 +83,7 @@ export interface DiaryLegacyEntry {
 export type DiaryLegacyStore = Record<string, DiaryLegacyEntry>;
 
 export interface DiaryTodaySnapshot {
+  profilePalette: "blue" | "pink" | "neutral";
   profileName: string;
   profilePortrait: string;
   ymd: string;
@@ -100,6 +101,7 @@ export interface DiaryTodaySnapshot {
 }
 
 export const EMPTY_DIARY_TODAY_SNAPSHOT: DiaryTodaySnapshot = {
+  profilePalette: "neutral",
   profileName: "",
   profilePortrait: "",
   ymd: "",
@@ -163,12 +165,16 @@ export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourcePro
   }
 
   let birth: DiaryBirthInput | null = null;
+  let profilePalette: DiaryTodaySnapshot["profilePalette"] = "neutral";
   let profileName = "";
   let profilePortrait = "";
   let chart: DiaryNatalChart | null = null;
   let fortune: DiaryDayFortune | null = null;
   try {
     const profile = sourceProfile === undefined ? readCurrentDestinyProfile() : sourceProfile;
+    const gender = String(profile?.gender || "").trim().toLowerCase();
+    if (["male", "m", "남", "남성", "남자"].includes(gender)) profilePalette = "blue";
+    if (["female", "f", "여", "여성", "여자"].includes(gender)) profilePalette = "pink";
     profileName = typeof profile?.name === "string" ? profile.name.trim() : "";
     birth = resolveDiaryBirthInput(profile);
     chart = birth ? buildDiaryNatalChart(birth, ymd) : null;
@@ -185,7 +191,7 @@ export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourcePro
     fortune = null;
   }
 
-  return { ymd, entry, store, birth, chart, fortune, profileName, profilePortrait };
+  return { ymd, entry, store, birth, chart, fortune, profileName, profilePortrait, profilePalette };
 }
 
 /**

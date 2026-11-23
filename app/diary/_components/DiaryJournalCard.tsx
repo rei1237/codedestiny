@@ -18,7 +18,7 @@ export default function DiaryJournalCard() {
         <p className={styles.journalIntro}>연이가 물어요. 오늘 가장 오래 마음에 남은 순간은 언제였나요?</p>
       </div>
     </header>
-    {hydrated ? <DiaryEntryFields key={ymd} ymd={ymd} entry={entry} /> : <p role="status">당신의 기록을 펼치고 있어요.</p>}
+    {hydrated ? <DiaryEntryFields oneLineId="diaryTodayLine" key={ymd} ymd={ymd} entry={entry} /> : <p role="status">당신의 기록을 펼치고 있어요.</p>}
     <p className={styles.fieldHint}>기기나 브라우저를 바꾸기 전에는 더보기에서 기록을 백업해 주세요.</p>
     {failed && <p role="alert">{DIARY_SAVE_FAILED_TEXT}</p>}
   </section>;

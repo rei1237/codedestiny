@@ -4,7 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import DiaryAudioProvider from "./DiaryAudioProvider";
 import DiaryBottomNav from "./DiaryBottomNav";
-import DiaryStoreProvider from "./DiaryStoreProvider";
+import DiaryStoreProvider, { useDiaryToday } from "./DiaryStoreProvider";
 import DiaryTopBar from "./DiaryTopBar";
 import { formatKoreanDate, kstTodayYmd } from "../_lib/kst-date";
 import styles from "../_styles/diary.module.css";
@@ -19,6 +19,11 @@ import styles from "../_styles/diary.module.css";
  * 정본 락이 무효가 되고 새 락을 만들게 된다(원칙 6).
  */
 export default function DiaryShell({ children }: { children: ReactNode }) {
+  return <DiaryStoreProvider><DiaryFrame>{children}</DiaryFrame></DiaryStoreProvider>;
+}
+
+function DiaryFrame({ children }: { children: ReactNode }) {
+  const { profilePalette } = useDiaryToday();
   // 🔴 날짜는 이펙트에서 채운다 — `output:"export"` 는 빌드 시각에 프리렌더하므로 렌더 중에
   // 오늘을 계산하면 배포일과 열람일이 다를 때 하이드레이션 불일치가 난다.
   // 저장소·운기 스냅샷은 같은 이유로 `DiaryStoreProvider` 가 이펙트에서 한 번만 읽는다.
@@ -50,9 +55,9 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <div className={`${styles.shell} cd-yehwa-scope`} data-garden-embedded={embedded || undefined}>
+    <div className={`${styles.shell} cd-yehwa-scope`} data-palette={profilePalette} data-garden-embedded={embedded || undefined}>
       {/* 🔴 하단바도 provider 안이다 — ＋ 퀵캡처가 오늘 스냅샷과 저장 함수를 쓴다(PR-E). */}
-      <DiaryStoreProvider>
+
         <DiaryTopBar subtitle={today || undefined} embedded={embedded} returnToProfile={returnToProfile} />
         {/* 🔴 명상 오디오도 셸 레벨이다 — 시트 안에 두면 시트를 닫는 순간 재생이 끊긴다.
             저장(들은 분)을 위해 provider 안쪽이어야 한다. */}
@@ -60,7 +65,7 @@ export default function DiaryShell({ children }: { children: ReactNode }) {
           <main className={styles.main}>{children}</main>
           <DiaryBottomNav />
         </DiaryAudioProvider>
-      </DiaryStoreProvider>
+
     </div>
   );
 }
