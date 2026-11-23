@@ -328,13 +328,13 @@ html[data-cd-theme="neo"] .shell {
   padding: var(--cd-sp-md);
   border: 1px solid var(--dy-line);
   border-radius: 28px;
-  background: var(--dy-surface-2);
+  background: linear-gradient(130deg, var(--dy-surface), var(--dy-surface-2));
   box-shadow: 0 8px 24px color-mix(in srgb, var(--dy-text) 7%, transparent);
 }
 
 .recordAnchor { scroll-margin-top: 5rem; }
 
-.journal{position:relative;isolation:isolate;gap:6px;padding:28px 20px;background:var(--dy-surface);overflow:hidden}
+.journal{position:relative;isolation:isolate;gap:6px;padding:24px 20px;background:linear-gradient(90deg,color-mix(in srgb,var(--dy-gold) 12%,var(--dy-surface)),var(--dy-surface) 12px);overflow:hidden}
 .journal::before{content:"";position:absolute;right:-12px;top:-10px;width:130px;height:110px;background:var(--dy-gold);opacity:.14;mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;pointer-events:none;z-index:-1}
 .journalGreeting {
   display: grid;
@@ -343,8 +343,11 @@ html[data-cd-theme="neo"] .shell {
   align-items: center;
   margin-bottom: 12px;
   padding: 16px 12px;
-  background: var(--dy-accent-soft);
-  border-radius: 24px 24px 24px 6px;
+  background:
+    radial-gradient(ellipse at top right, color-mix(in srgb, var(--dy-gold) 18%, transparent), transparent 58%),
+    linear-gradient(110deg, var(--dy-accent-soft), var(--dy-surface));
+  border-block: 1px solid var(--dy-line);
+  border-radius: 3px 18px 3px 3px;
 }
 .journalCrest { display: grid; align-self: end; transform-origin: center bottom; }
 .journalCrest img { grid-area: 1 / 1; }
@@ -401,8 +404,10 @@ div.shell[data-palette="pink"] {
   padding: clamp(20px, 4vw, 46px);
   border-radius: 20px 20px 8px 8px;
   color: #fff1f5;
-  background: linear-gradient(90deg, #151d36 0%, #19223bed 42%, #19223b33 85%), url("/images/home/illustrated/yeoni-moon-garden-night-1280.webp") center 43% / cover;
-  box-shadow: inset 0 0 0 1px #bfcbe191;
+  background:
+    repeating-linear-gradient(28deg, transparent 0 3px, #e9d6ab09 3px 4px),
+    linear-gradient(90deg, #0f172d 0, #bba37f 4px, var(--dy-cover-base) 6px, var(--dy-cover-base) 32%, var(--dy-cover-mid) 65%, #19223b33 95%), url("/images/home/illustrated/yeoni-moon-garden-night-1280.webp") center 43% / cover;
+  box-shadow: inset 0 0 0 1px #bfcbe191, 0 3px 0 var(--dy-surface), 0 4px 0 var(--dy-line), 0 8px 18px color-mix(in srgb,var(--dy-text) 12%,transparent);
 }
 .gardenCover h2 { font: 500 clamp(26px, 4vw, 30px)/1.35 var(--dy-book-font); letter-spacing: -.04em; margin: 0 0 12px; }
 .bookmarks { display: flex; gap: 4px 12px; flex-wrap: wrap; }
@@ -2262,7 +2267,12 @@ div.shell[data-palette="pink"] {
 .todayLayout>.card{width:100%;max-width:none;min-width:0;margin:0}
 .draftStatus{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font:400 14px/1.7 var(--font-body);color:var(--dy-muted);margin:8px 0}
 .draftStatus button{min-height:44px;border:1px solid var(--dy-line-ui);border-radius:var(--cd-r-control);padding:8px 12px;background:var(--dy-surface);color:var(--dy-accent);font:600 14px/1.5 var(--font-body);cursor:pointer}
-.journal textarea{min-height:180px;resize:vertical;line-height:1.8}
+.journal textarea {
+  min-height:180px; resize:vertical; line-height:1.8;
+  background-color:var(--dy-surface);
+  background-image:repeating-linear-gradient(to bottom, transparent 0 calc(1.8em - 1px), color-mix(in srgb,var(--dy-line-ui) 21%,transparent) calc(1.8em - 1px) 1.8em);
+  background-origin:content-box; background-clip:padding-box; background-attachment:local;
+}
 @media(min-width:1000px){.todayLayout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
 @media(max-width:430px){.main{padding-inline:12px}}
 
@@ -2278,7 +2288,11 @@ div.shell[data-palette="pink"] {
 .shell .input { font-size:max(16px, 1rem); caret-color:var(--dy-accent); }
 .shell .input:focus-visible { outline:2px solid var(--dy-accent); outline-offset:2px; }
 
-.gardenCover { position:relative; padding-inline:clamp(16px, 4vw, 46px); }
+.gardenCover { position:relative; padding-inline:clamp(22px, 5vw, 46px); }
+.gardenCover::before {
+  content:""; position:absolute; inset:6px 6px 6px 9px; pointer-events:none;
+  border:1px solid #d5c29d66; border-radius:15px 15px 5px 5px;
+}
 .coverCompanion { position:absolute; right:16px; top:12px; width:56px; height:56px; object-fit:contain; }
 .ownerName { padding-right:56px; }
 .shell .input::placeholder { color:var(--dy-muted); opacity:1; }
