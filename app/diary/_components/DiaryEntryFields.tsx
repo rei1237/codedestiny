@@ -41,11 +41,13 @@ const copy = DIARY_ENTRY_FIELDS_TEXT.ko;
 export default function DiaryEntryFields({
   ymd,
   entry,
+  oneLineId,
   autoFocus = false,
   showTags = false,
 }: {
   ymd: string;
   entry: DiaryLegacyEntry | null;
+  oneLineId?: string;
   autoFocus?: boolean;
   showTags?: boolean;
 }) {
@@ -63,7 +65,7 @@ export default function DiaryEntryFields({
       <DiaryMoodPicker ymd={ymd} mood={entry?.moodEmoji || ""} label={copy.mood} />
 
       <p className={styles.fieldLabel}>{copy.oneLine}</p>
-      <input
+      <input id={oneLineId}
         className={styles.input}
         type="text"
         value={oneLine.value}

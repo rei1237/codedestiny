@@ -19,15 +19,15 @@ export default function DiaryHomePage() {
       <section className={styles.gardenCover} aria-label="달빛 정원 다이어리">
         <h2>나의 달빛 기록장</h2>
         <div className={styles.bookmarks}>
-          <a href="#diaryJournalTitle">오늘 한 줄 쓰기</a>
+          <a href="#diaryTodayLine">오늘 한 줄 쓰기</a>
           <Link href="/diary/calendar/">달력 펼치기</Link>
           <Link href="/diary/records/">지난 기록 읽기</Link>
         </div>
       </section>
       <DiaryFlowCard />
       <div className={styles.todayLayout}>
-        <DiaryPlanCard />
         <DiaryJournalCard />
+        <DiaryPlanCard />
       </div>
       <details className={styles.moreToday}>
         <summary>작은 실천과 나를 위한 시간</summary>
