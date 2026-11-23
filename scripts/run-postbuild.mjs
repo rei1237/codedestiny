@@ -54,6 +54,7 @@ const steps = [
   //    매 방문 다시 내려간다. 정적 셸만 대상이고 하이드레이션 HTML 은 건너뛴다.
   "scripts/strip-dist-html-comments.mjs",
   "scripts/optimize-legacy-home-head.mjs",
+  "scripts/install-home-font-subsets.mjs",
 ];
 
 // 🔴 스테이징 배포본만 색인·광고에서 뺀다. **마지막 단계**여야 한다 — 앞에 두면 minify·externalize

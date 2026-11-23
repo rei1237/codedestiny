@@ -212,10 +212,12 @@ export default function RootLayout({ children }) {
             __html: `try {
               if (localStorage.getItem('fortuneThemeModeStateV1') === 'neo') document.documentElement.dataset.cdTheme = 'neo';
             } catch (e) {}
-            if (location.pathname === '/' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches) {
+            if (location.pathname === '/' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches && !document.querySelector('link[data-home-floral]')) {
               var floralPreload = document.createElement('link');
               floralPreload.rel = 'preload';
               floralPreload.as = 'image';
+              floralPreload.fetchPriority = 'high';
+              floralPreload.setAttribute('data-home-floral', '');
               floralPreload.href = '/images/home/illustrated/moon-floral-' + (document.documentElement.dataset.cdTheme === 'neo' ? 'dark' : 'light') + '-480.webp';
               document.head.appendChild(floralPreload);
             }`,
