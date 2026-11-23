@@ -11,6 +11,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        diary: { accent: "var(--dy-accent)", ink: "var(--dy-text)", surface: "var(--dy-surface)" },
         "midnight-ink": "#0A0E1A",
         "deep-indigo": "#1B2340",
         "moonveil-silver": "#A8B3C7",

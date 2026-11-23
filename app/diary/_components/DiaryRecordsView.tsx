@@ -152,6 +152,8 @@ export default function DiaryRecordsView() {
           : `${copy.count} ${filtered.length}${copy.dayUnit}`}
       </p>
 
+      {!rows.length && !tag && <Link href="/diary/#diaryTodayLine" className="inline-flex min-h-11 items-center text-diary-accent underline">기록 쓰기</Link>}
+
       {visible.map((row) => {
         const month = row.ymd.slice(0, 7);
         const monthHead = month === lastMonth ? null : month;
@@ -193,17 +195,12 @@ function RecordGroup({
       ) : null}
 
       <Link
-        href={`/diary/calendar/?d=${row.ymd}`}
+        href={`/diary/calendar/?d=${row.ymd}&tab=record`}
         className={`${styles.recCard} ${grain ? styles[grain.step] : ""}`}
       >
         <span className={styles.recHead}>
           <span className={styles.recDate}>{parts ? `${parts.month}.${parts.day}` : row.ymd}</span>
           <span className={styles.recDow}>{weekdayLabel(weekdayIndex(row.ymd))}</span>
-          {row.mood ? (
-            <span className={styles.recMood} aria-hidden="true">
-              {row.mood}
-            </span>
-          ) : null}
           {grain ? (
             <span className={styles.recTone}>
               <i className={styles.recToneDot} aria-hidden="true" />
@@ -214,6 +211,11 @@ function RecordGroup({
 
         <span className={styles.recLine}>{row.line || row.memo || copy.noLine}</span>
 
+          {row.mood ? (
+            <span className={styles.recMood} aria-hidden="true">
+              {row.mood}
+            </span>
+          ) : null}
         {row.tags.length > 0 ? (
           <span className={styles.recTags}>
             {row.tags.map((item) => (
