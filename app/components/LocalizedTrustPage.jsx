@@ -43,6 +43,7 @@ export default function LocalizedTrustPage({ locale, pageKey }) {
         <section className="policy-embed-section">
           <h2 className="policy-embed-heading">{ui.contact}</h2>
           <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>
+          {pageKey === "contact" && <Link className="cd-chip" href="/feedback/" prefetch={false}>{{ en: "Report a bug", ja: "不具合を報告する", zh: "报告问题" }[locale]}</Link>}
         </section>
         <nav aria-label={ui.related} className="cd-chip-wrap">
           {links.map(key => <Link key={key} className="cd-chip" href={`/${locale}/${policyPaths[key] || key}/`}>{ui[key]}</Link>)}

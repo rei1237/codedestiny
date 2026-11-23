@@ -788,6 +788,35 @@ html[data-cd-theme=neo] .contact_page {
     transition: none;
   }
 }
+.contact_bugReport {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 14px 0;
+  min-height: 64px;
+  padding: 12px 18px;
+  border: 1px solid var(--cd-border,#c9b5a4);
+  border-radius: 18px;
+  color: var(--cd-text,#3c2534);
+  background: var(--cd-surface,#fffbf5);
+  text-decoration: none;
+}
+.contact_bugReport svg {
+  width: 21px;
+  flex: none;
+}
+.contact_bugReport svg:last-child {
+  margin-inline-start: auto;
+}
+.contact_bugReport strong,
+.contact_bugReport small {
+  display: block;
+}
+.contact_bugReport small {
+  font-size: 15px;
+  margin-top: 3px;
+  color: var(--cd-text-muted,#68565e);
+}
 
 /* styles/trust-stories.css */
 
