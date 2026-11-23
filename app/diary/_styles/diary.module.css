@@ -370,7 +370,7 @@ html[data-cd-theme="neo"] .shell {
   border-color: var(--dy-line-ui);
 }
 .shell[data-palette] { color-scheme: var(--dy-color-scheme); }
-.shell[data-palette="blue"] {
+div.shell[data-palette="blue"] {
   --dy-accent: light-dark(#275783, #b2d7ff);
   --dy-accent-ink: light-dark(#ffffff, #172c48);
   --dy-accent-hover: light-dark(#173d66, #d4eaff);
@@ -383,7 +383,7 @@ html[data-cd-theme="neo"] .shell {
   --dy-cover-base: #142b46f5;
   --dy-cover-mid: #1e466daa;
 }
-.shell[data-palette="pink"] {
+div.shell[data-palette="pink"] {
   --dy-bg: light-dark(#fff5f7, #2e2130);
   --dy-surface: light-dark(#fffafb, #392939);
   --dy-surface-2: light-dark(#fae6ed, #483245);
