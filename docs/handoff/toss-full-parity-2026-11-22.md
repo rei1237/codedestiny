@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-23
-next: QR에서 디코딩한 비공개 링크로 Galaxy SM-M156S의 토스 첫 화면을 확인한다. 기기 잠금 해제 대기 중.
+next: 없음 — Linux 일반·모의 AIT, 비공개 QR22 및 Galaxy 첫 화면 검증 완료.
 ---
 
 # ai-saju-studio 전체 이식
@@ -26,7 +26,8 @@ next: QR에서 디코딩한 비공개 링크로 Galaxy SM-M156S의 토스 첫 �
 - [x] 기능표 갱신, 확인된 입력·생성·재열람 누락 보완 및 음원 잔여 기록
 - [x] UI·인증·구매·생성·결과 모의 검증, 가상 모바일 제공
 - [x] Linux 일반·모의 AIT·비공개 QR 및 소스 CI
-- [ ] 실기기와 별도 운영 검증 후 최종 후보
+- [x] Galaxy SM-M156S의 토스 앱에서 QR22 첫 화면 확인
+- [ ] 별도 운영 검증 및 최종 출시 후보 결정 (이번 요청 범위 밖)
 
 ## 11월 22일 통합 검증 중간 기록
 
@@ -92,3 +93,4 @@ next: QR에서 디코딩한 비공개 링크로 Galaxy SM-M156S의 토스 첫 �
 - 45068746945 전체 성공. 같은 실행의 모의 AIT(01a2052a-d4bc-7b93-a4d4-6e14efd0d53d)는 85,525,597B, 확장 98,955,350B, SHA256 4474ecf2cdc48e9ab012be0851287fb671614be6cb18e8065fcfae3de2fb2cd9. 다운로드본에서 모의 주문·재열람·다른 계정 차단을 재확인했다. 두 파일의 SHA·배포 ID·모의 격리 검사 결과는 D:/tmp/toss-release/linux-660bafbb77/verified-archives.json.
 - 토스 콘솔 비공개 버전 20261123-22를 등록했다(상태 검토 필요). 테스트 창의 실제 SVG를 PNG로 보관해 디코딩했고, 모의 AIT의 배포 ID·앱 이름·intoss-private 스킴·appsInTossHost가 모두 일치했다. D:/tmp/toss-release/linux-660bafbb77/private-qr.png. 검토 요청·출시·테스트 푸시 전송 없음. SM-M156S가 잠겨 있어 사용자의 직접 잠금 해제를 요청했다.
 - 최종 후보 로컬 검사에서 Node 5,819개 통과. Jest 전체 단일 프로세스는 약 4GB 힙 한도로 종료돼, 저장소의 모의 네트워크 차단 설정으로 8개 묶음을 실행했다. 파일 493개 중복 없음, 테스트 8,597개 통과·1개 생략·실패 0개. QR 검증 기록의 check:fast 문서 검사도 통과했다.
+- 2026-11-23 09:16 KST, Galaxy SM-M156S에서 콘솔 QR22를 디코딩한 링크를 열었다. 토스 앱의 홈에 “비공개 모의 상담 · 실제 결제 없음”, “모의 계정 A”, “어떤 운세를 만나볼까요?” 및 운세 카드 2개가 표시됐다. 첫 화면까지만 확인했다. 증거 D:/tmp/toss-release/linux-660bafbb77/device-first-screen.json 및 galaxy-home.png. 콘솔 상태 검토 필요, 검토 제출·공개 출시 없음.
