@@ -26,7 +26,7 @@ import styles from "../_styles/diary.module.css";
 
 const MORE_TEXT = {
   ko: {
-    sectionFeature: "챙겨 볼 것",
+    groups: [{ title: "마음 돌보기", keys: ["meditation", "training"] }, { title: "오늘의 실천과 관계", keys: ["action", "card", "together"] }],
     items: [
       { key: "meditation", icon: "◯", label: "명상", desc: "숨을 고르는 시간을 재고 남깁니다." },
       { key: "training", icon: "❍", label: "마음 훈련", desc: "떠오른 장면과 한 문장을 적어 둡니다." },
@@ -58,14 +58,14 @@ export default function DiaryMoreView() {
 
   return (
     <>
-      <section className={styles.card} aria-labelledby="diary-more-title">
+      {copy.groups.map(group => <section key={group.title} className={styles.card} aria-label={group.title}>
         <div className={styles.cardHead}>
-          <h2 className={styles.cardTitle} id="diary-more-title">
-            {copy.sectionFeature}
+          <h2 className={styles.cardTitle}>
+            {group.title}
           </h2>
         </div>
         <ul className={styles.moreList}>
-          {copy.items.map((item) => (
+          {copy.items.filter(item => group.keys.includes(item.key)).map((item) => (
             <li key={item.key} className={styles.moreItem}>
               <button
                 type="button"
@@ -84,7 +84,7 @@ export default function DiaryMoreView() {
             </li>
           ))}
         </ul>
-      </section>
+      </section>)}
 
       <DiaryBackupPanel />
 

@@ -154,6 +154,7 @@ export default function DiarySearchOverlay({ onClose }: { onClose: () => void })
               : `${copy.count} ${hits.length}${copy.unit}${hits.length >= DIARY_SEARCH_MAX ? ` · ${copy.capped}` : ""}`}
         </p>
 
+        {ready && hits.length === 0 && <button type="button" className={styles.tagChip} onClick={() => setQuery("")}>검색 지우기</button>}
         {hits.map((hit, index) => {
           const href = `/diary/calendar/?d=${hit.ymd}`;
           return (

@@ -46,7 +46,7 @@ const DIARY_FLOW_CARD_TEXT = {
 const copy = DIARY_FLOW_CARD_TEXT.ko;
 
 export default function DiaryFlowCard() {
-  const { hydrated, fortune, chart, ymd, profileName, profilePortrait } = useDiaryToday();
+  const { hydrated, fortune, chart, ymd } = useDiaryToday();
   const detail = useMemo(
     () => buildDiaryDayDetail(fortune, dayGroupOf(chart, ymd)),
     [fortune, chart, ymd],
@@ -56,11 +56,7 @@ export default function DiaryFlowCard() {
   return (
     <section className={`${styles.card} ${styles.cardLead}`} aria-label={copy.title}>
       <header className={styles.cardHead}>
-        {(profilePortrait || profileName) && <span className={styles.profileSeal} aria-hidden="true"
-          style={profilePortrait ? { backgroundImage: `url("${profilePortrait}")` } : undefined}>
-          {profilePortrait ? null : Array.from(profileName)[0]}
-        </span>}
-        <h2 className={styles.cardTitle}>{profileName && <span className={styles.guideName}>{profileName}님의 다이어리</span>}{copy.title}</h2><time dateTime={ymd}>{ymd}</time>
+        <h2 className={styles.cardTitle}>{copy.title}</h2><time dateTime={ymd}>{ymd}</time>
       </header>
 
       {!hydrated ? <p className={styles.empty}>{copy.loading}</p> : null}

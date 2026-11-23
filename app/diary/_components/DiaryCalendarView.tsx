@@ -26,6 +26,7 @@ export default function DiaryCalendarView() {
     const params=new URLSearchParams(window.location.search);
     const requested=params.get("d")||"";
     setDate(parseYmd(requested)?requested:today);
+    if (parseYmd(requested) && params.get("tab") === "record") setDetail("record");
     const view=params.get("view");
     if(view==="week"||view==="day")setMode(view);
   },[hydrated,today]);
@@ -85,10 +86,10 @@ export default function DiaryCalendarView() {
         <div className={styles.monthGrid}>{cells.map(cell=>{
           if(!cell.ymd)return <span key={cell.key} className={styles.outDay} aria-hidden="true">{cell.day}</span>;
           const cellDate=cell.ymd,dayEvents=dailyEvents(cellDate),todos=resolveTodos(ext,cellDate),mark=marks.byYmd[cellDate];
-          return <button key={cell.key} type="button" className={styles.monthDay} data-today={cell.isToday||undefined} aria-pressed={date===cellDate} aria-label={formatKoreanDate(cellDate)+" · 일정 "+dayEvents.length+"개 · 할 일 "+todos.length+"개"+(mark?.note?" · 기록 있음":"")} onClick={()=>select(cellDate)}>
+          return <button key={cell.key} type="button" className={styles.monthDay} data-today={cell.isToday||undefined} aria-pressed={date===cellDate} aria-label={formatKoreanDate(cellDate)+" · 일정 "+dayEvents.length+"개 · 할 일 "+todos.length+"개"+(mark?.note?" · 기록 있음":"")} aria-current={cell.isToday ? "date" : undefined} onClick={()=>{select(cellDate);if(mark?.note)setDetail("record");}}>
             <span className={styles.dayNumber}>{cell.day}</span>
             {dayEvents.length>0&&<span className={styles.cellEvents}>{dayEvents.length}건</span>}
-            <span className={styles.cellMarks}>{mark?.note&&<NotebookPen size={13} aria-hidden="true"/>}{todos.some(todo=>todo.done)&&<Check size={13} aria-hidden="true"/>}</span>
+            <span className={styles.cellMarks}>{mark?.note&&<i className={styles.recordDot} aria-hidden="true"/>}{todos.some(todo=>todo.done)&&<Check size={13} aria-hidden="true"/>}</span>
           </button>;
         })}</div>
         {marks.noteDays>0&&<details className={styles.monthIndex}>
