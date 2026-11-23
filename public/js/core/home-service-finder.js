@@ -633,15 +633,15 @@
     if (worldSearch && !SERVICE_MASTERS[item.id] && METHOD_HUB_IDS.indexOf(item.id) === -1) master = "";
     var featureImage = item.image || featureTileImage(item) || methodHubImage(item) || LEGACY_SERVICE_IMAGES[item.id];
     if (LEGACY_SERVICE_IMAGES[item.id]) media.classList.add("fortune-gateway__rec-media--legacy");
+    image.loading = "lazy";
+    image.decoding = "async";
     if (item.imageSrcset) {
-      image.sizes = "auto, (max-width: 500px) calc(100vw - 64px), 320px";
+      image.sizes = "auto, (max-width: 426px) 75vw, 320px";
       image.srcset = item.imageSrcset;
     }
     image.src = featureImage || master || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
     if (master && !featureImage) media.className += " is-master";
-    image.loading = "lazy";
-    image.decoding = "async";
     image.width = 320;
     image.height = 180;
     var path = image.getAttribute("src").split(/[?#]/)[0];
