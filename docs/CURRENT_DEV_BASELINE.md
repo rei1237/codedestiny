@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-11-16`
+Last curated: `2026-11-23`
 
 ## Curation Rules
 
@@ -30,7 +30,14 @@ Last curated: `2026-11-16`
 - 후속 저장 안내 수정 `543a13020`의 main CI [43762290829](https://github.com/rei1237/codedestiny/actions/runs/43762290829)와 최신 main `ac1ed9a3c`의 CI [43764040772](https://github.com/rei1237/codedestiny/actions/runs/43764040772)는 성공했다. 후속 소스가 검토 중 AIT나 운영 Worker에 자동 포함되는 것은 아니다.
 - 이번 큐레이션은 실행 계약·토스 출시 상태·관련 소스를 대조한 범위다. 아래 날짜가 붙은 타 서비스 실측·운영 기록은 당시 근거이며 이번에 다시 검증한 것으로 취급하지 않는다.
 
-### Latest verified recipe delivery — 2026-11-16
+### Weekly recipe content — 2026-11-23
+
+- 이번 큐레이션은 요리 데이터·목록/상세의 공용 렌더링·이미지·사이트맵만 대조했다. 다른 기능의 과거 실측과 운영 상태를 재검증한 것은 아니다.
+- `lib/lifestyle/recipes-week-20261123.mjs`에 목·화·토·금·수 각 1개씩 추가해 총 36개다. 각 메뉴는 2인분 계량, 네 단계와 연이 안내, 대체 재료·알레르기·보관 정보를 제공하며 기존 HTML/Recipe JSON-LD/내부 링크 경로를 재사용한다.
+- 새 2D 이미지 5개는 실제 1200×800 WebP(215,826~292,602 bytes)다. 생성 프롬프트·참조·원본·인코딩 검증은 `public/images/five-elements/provenance-20261123.json`에 기록했다. 단계 그림은 기존 연이 자산을 재사용한다.
+- 기존 요리 테스트 3건 통과, 사이트맵 생성 1,111 URL. 공용 요리 데이터와 관련 링크 변경에 따라 기존 요리 경로의 서명/lastmod도 생성기가 함께 갱신한다. 이번 예약에서는 운영 승격이나 검색엔진 제출을 하지 않는다. 제작·소스 반영과 실제 공개를 구분한다.
+
+### Prior verified recipe delivery — 2026-11-16
 
 - 이번 검토는 공개 요리 페이지, 홈 진입, 전달 계약을 현재 코드와 대조한 범위다. 아래 날짜가 있는 과거 실측은 당시 기록이다.
 - 공개 레시피 정본은 `lib/lifestyle/recipes.mjs`다. `app/recipes/page.jsx` 목록과 `app/recipes/[slug]/page.jsx` 상세가 이를 사용하고, 같은 데이터에서 Recipe 구조화 데이터를 만든다. 상세는 로그인·결제 없이 읽을 수 있다.

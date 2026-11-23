@@ -1,0 +1,78 @@
+{
+  "date": "2026-11-23",
+  "tool": "image_gen.imagegen (built-in)",
+  "style": "2D storybook watercolor illustration",
+  "references": [
+    "public/images/home/illustrated/yeoni-character-480.webp",
+    "docs/design/character-references/yeoni-profile-v1.png"
+  ],
+  "encoding": {
+    "format": "webp",
+    "width": 1200,
+    "height": 800,
+    "quality": 85
+  },
+  "stageImages": "Existing yeoni-prepare/mix/cook/chef-2d.webp reused; no new stage assets.",
+  "images": [
+    {
+      "slug": "apple-lentil-cabbage-salad",
+      "output": "apple-lentil-cabbage-salad-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-9c7b8a6b-4e52-4820-921f-f0ac2d750a6c.png",
+      "prompt": "Create ONE 3:2 landscape recipe illustration for Code Destiny. Warm hand-drawn flat 2D storybook watercolor and clean ink contours, absolutely no photography or 3D. Reference images identify Yeoni: pale pink pig, round brown eyes, lotus flower on head, purple neck bow. Add white chef hat behind lotus and cream apron. Scene: Yeoni gently tossing a red cabbage, apple matchstick and cooked lentil salad with a wooden spoon, beautiful finished bowl foreground, small lemon and apple nearby. Cozy cream and rose kitchen, food visibly illustrated, inviting clear composition, no text, no logos, no buttons. Preserve character proportions.",
+      "verified": {
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "bytes": 273952
+      }
+    },
+    {
+      "slug": "chicory-potato-soup",
+      "output": "chicory-potato-soup-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-96fc3f6b-5f45-4321-93c2-ef1791967941.png",
+      "prompt": "Create ONE 3:2 landscape recipe illustration for Code Destiny. Warm hand-drawn flat 2D storybook watercolor and clean ink contours, absolutely no photography or 3D. Reference images identify Yeoni: pale pink pig, round brown eyes, lotus flower on head, purple neck bow. Add white chef hat behind lotus and cream apron. Scene: Yeoni stirring a small pot of creamy potato and chicory soup with a wooden ladle; two finished cream soup bowls foreground with finely sliced green chicory and golden toast cubes, peeled potato and chicory leaves nearby. Cozy cream and rose kitchen, food visibly illustrated, inviting clear composition, no text, no logos, no buttons. Preserve character proportions.",
+      "verified": {
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "bytes": 292602
+      }
+    },
+    {
+      "slug": "pumpkin-soy-steamed-pudding",
+      "output": "pumpkin-soy-steamed-pudding-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-e077849e-1ee3-49ac-9280-bdba0dd495d3.png",
+      "prompt": "Create ONE 3:2 landscape recipe illustration for Code Destiny. Warm hand-drawn flat 2D storybook watercolor and clean ink contours, absolutely no photography or 3D. Reference images identify Yeoni: pale pink pig, round brown eyes, lotus flower on head, purple neck bow. Add white chef hat behind lotus and cream apron. Scene: Yeoni wearing oven mitts lifting the lid of a steamer, two small ceramic cups of smooth golden kabocha pumpkin soy milk steamed egg pudding foreground, simple smooth tops NO caramel or syrup, cut green-skinned pumpkin and small jug of soy milk nearby. Cozy cream and rose kitchen, food visibly illustrated, inviting clear composition, no text, no logos, no buttons. Preserve character proportions.",
+      "verified": {
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "bytes": 215826
+      }
+    },
+    {
+      "slug": "ginger-radish-somen",
+      "output": "ginger-radish-somen-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-a454115b-da9d-4b86-9289-5a00b61c1951.png",
+      "prompt": "Create ONE 3:2 landscape recipe illustration for Code Destiny. Warm hand-drawn flat 2D storybook watercolor and clean ink contours, absolutely no photography or 3D. Reference images identify Yeoni: pale pink pig, round brown eyes, lotus flower on head, purple neck bow. Add white chef hat behind lotus and cream apron. Scene: Yeoni stirring thin wheat somen noodles with slender white daikon matchsticks and orange carrot strips in a skillet with wooden chopsticks; two plated noodle nests foreground with green scallions, fresh ginger root and white daikon nearby. No chilies, no meat, no soup. Cozy cream and rose kitchen, food visibly illustrated, inviting clear composition, no text, no logos, no buttons. Preserve character proportions.",
+      "verified": {
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "bytes": 246128
+      }
+    },
+    {
+      "slug": "nori-sesame-egg-roll",
+      "output": "nori-sesame-egg-roll-2d.webp",
+      "source": "C:/Users/user/.codex/generated_images/01a12b74-17e4-7352-bc59-4440069b68f3/exec-928c3142-c630-456f-b605-e01b8cc3e252.png",
+      "prompt": "Create ONE 3:2 landscape recipe illustration for Code Destiny. Warm hand-drawn flat 2D storybook watercolor and clean ink contours, absolutely no photography or 3D. Reference images identify Yeoni: pale pink pig, round brown eyes, lotus flower on head, purple neck bow. Add white chef hat behind lotus and cream apron. Scene: Yeoni using a spatula to roll a golden egg omelet with a dark nori seaweed layer in a rectangular tamagoyaki pan. Foreground: sliced golden egg rolls with visible dark nori spirals, tiny scallion flecks and sesame seeds on a ceramic platter. Eggs, nori sheet, and small sesame bowl nearby. No rice or sushi. Cozy cream and rose kitchen, food visibly illustrated, inviting clear composition, no text, no logos, no buttons. Preserve character proportions.",
+      "verified": {
+        "format": "webp",
+        "width": 1200,
+        "height": 800,
+        "bytes": 233716
+      }
+    }
+  ]
+}
