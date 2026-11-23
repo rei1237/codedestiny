@@ -18,6 +18,7 @@ import {
   type DiaryNatalChart,
 } from "@/lib/diary/fortune-adapter";
 import { readTodoProgress, type DiaryExtDay } from "./ext-snapshot";
+import { characterForPillar, mobileSpriteUrl } from "@/js/core/profile-characters.mjs";
 import {
   readCurrentDestinyProfile,
   resolveDestinyProfileBirthParts,
@@ -83,6 +84,7 @@ export type DiaryLegacyStore = Record<string, DiaryLegacyEntry>;
 
 export interface DiaryTodaySnapshot {
   profileName: string;
+  profilePortrait: string;
   ymd: string;
   entry: DiaryLegacyEntry | null;
   /**
@@ -99,6 +101,7 @@ export interface DiaryTodaySnapshot {
 
 export const EMPTY_DIARY_TODAY_SNAPSHOT: DiaryTodaySnapshot = {
   profileName: "",
+  profilePortrait: "",
   ymd: "",
   entry: null,
   store: {},
@@ -161,6 +164,7 @@ export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourcePro
 
   let birth: DiaryBirthInput | null = null;
   let profileName = "";
+  let profilePortrait = "";
   let chart: DiaryNatalChart | null = null;
   let fortune: DiaryDayFortune | null = null;
   try {
@@ -168,6 +172,11 @@ export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourcePro
     profileName = typeof profile?.name === "string" ? profile.name.trim() : "";
     birth = resolveDiaryBirthInput(profile);
     chart = birth ? buildDiaryNatalChart(birth, ymd) : null;
+    if (chart) {
+      const { g, j } = chart.pillars.d;
+      const character = characterForPillar(g + j, profile?.gender);
+      if (character) profilePortrait = mobileSpriteUrl(character.id);
+    }
     // 관계 Lite는 양력 민용 날짜를 받는다. 음력 원본과 보정 시계는 chart 메타에 보존한다.
     if (birth && chart) birth = { ...birth, ...chart.calculationMeta.civil, calendarType: "solar", isLeapMonth: false };
     fortune = classifyDiaryDay(chart, ymd);
@@ -176,7 +185,7 @@ export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourcePro
     fortune = null;
   }
 
-  return { ymd, entry, store, birth, chart, fortune, profileName };
+  return { ymd, entry, store, birth, chart, fortune, profileName, profilePortrait };
 }
 
 /**
