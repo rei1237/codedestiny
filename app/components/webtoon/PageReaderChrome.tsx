@@ -44,7 +44,10 @@ export default function PageReaderChrome({ title, total, backHref, backLabel, st
 
   useEffect(() => {
     if (page >= total) save(storageKey, null);
-    else if (page >= 2) save(storageKey, page);
+    else if (page >= 2) {
+      save(storageKey, page);
+      try { localStorage.setItem("cd:webtoon:last-read", storageKey); } catch { /* Optional device history. */ }
+    }
     if (page > 2) setResume(0);
   }, [page, storageKey, total]);
 

@@ -24,6 +24,7 @@ const original = readFileSync('index.html', 'utf8');
 // 인기 TOP5 자리·스켈레톤을 미리 그린다(2026-11-22 즉시 표시·CLS 방지). 채우기는 js/core/yehwa-home.mjs → popular-top5.mjs.
 const popularTop5ShellHtml = () => POPULAR_TOP5_ENABLED ? '<link rel="stylesheet" href="/styles/popular-top5.css?v=build-000000000000"><section class="cd-pop5" data-cd-pop5-shell data-cd-no-trans data-cd-korean-only aria-label="지금 많이 찾는 상담 TOP5">' + popularTop5SkeletonHtml() + '</section>' : '';
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
+vars.popularRanking = popularTop5ShellHtml();
 vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
 
 // 가벼운 체험만 선별한다. 승인된 무료 키는 무료 정책을, 나머지 유료 표시는 서버 상품 정본을 따른다.
@@ -155,7 +156,7 @@ for (const question of QUESTION_CATEGORIES.flatMap(category => category.question
 const storySlugByProduct = {'love-secret-ai':'love-secret','new-year-ai':'new-year','life-book-ai':'life-book','neo-operation-room':'neo','fortune-tea-house':'tea','master-love-codex':'codex'};
 const signatureProducts = [
   {
-    id: 'heukwol', href: '/heukwol/', title: '흑월의 주의 시기',
+    id: 'heukwol', href: '/heukwol/', title: '흑월의 경고',
     question: '주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요',
     popupCopy: '주의가 필요한 시기를 미리 살피고, 나에게 맞는 대비 방향을 확인하세요',
     featureKey: 'heukwol-warning-consultation', cta: '내가 주의할 시기 보기',
@@ -256,9 +257,10 @@ for (const product of signatureProducts) {
   const art = introductionArt[product.id];
   if (!art) throw new Error(`Missing introduction artwork: ${product.id}`);
   product.image = art.image.replace('.webp', '-640.webp');
-  product.imageSrcset = `${art.cardImage} 320w, ${product.image} 640w, ${art.image} 1536w`;
+  const entry = registryWindow.__cdServiceRegistry.find(item => item.id === product.id);
+  product.imageSrcset = entry?.imageSrcset || `${art.cardImage} 320w, ${product.image} 640w, ${art.image} 1536w`;
   product.imageAlt = art.alt;
-  if (registryWindow.__cdServiceRegistry.find(item => item.id === product.id)?.priceFrom) product.priceSuffix = '부터';
+  if (entry?.priceFrom) product.priceSuffix = '부터';
 }
 const signaturePrice = (featureKey, suffix = '') => {
   const amount = FEATURE_KEY_PRICE_TABLE[featureKey]?.amountKRW;
@@ -271,6 +273,8 @@ const introCards = [
   { id: 'yeongnyangi-question', href: '/yeongnyangi/', title: '영냥이 고민 상담', desc: '연애·일·돈 고민을 남기면, 질문에 맞춘 AI 운세 해석과 행동 조언을 받아요.', image: '/images/service-introductions/yeongnyangi-question-v2-640.webp', action: '영냥이에게 물어보기' },
 ];
 vars.signature = renderHomeConsultationPicker({
+  concernComparisonHtml: readFileSync("templates/home-concern-comparison.html", "utf8").replace("{{neoEmailConsultation}}", vars.neoEmailConsultation),
+  moonStoriesHtml: readFileSync("templates/home-moon-stories.html", "utf8"),
   catalog: registryWindow.__cdServiceRegistry,
   products: signatureProducts.map(product => ({...product, priceLabel:signaturePrice(product.featureKey, product.priceSuffix), resultFormat:product.resultFormat || storyBenefits[storySlugByProduct[product.id]].join(' · ')})),
   intros: introCards.map(card => card.id === 'yeongnyangi-question' ? {...card, featureKey:chatQuestionFeatureKey('mackerel'), priceLabel:signaturePrice(chatQuestionFeatureKey('mackerel'), '부터'), priceSuffix:'부터'} : card),
@@ -346,14 +350,16 @@ vars.pass = '<script type="module" src="/js/core/pass-duet.js?v=build-0000000000
   <a class="cdh-pass__btn" href="/points/?source=flower-membership" data-cd-trans="home.gardenCopy.passCta">나에게 맞는 이용권 확인하기</a>
 </section>`;
 const template = readFileSync('templates/home-funnel.html', 'utf8');
-// Keep the existing pass renderer between concern results and records/navigation.
+vars.myFortuneGuide = [
+  renderSituationCards(registryWindow.__cdServiceRegistry),
+  renderLightSajuAndMasters(),
+  renderFreePromoShellBanner(),
+  renderCompareSection(),
+  renderTrustBar(),
+].join('');
+
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
   consultationHtml: '<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot"><span id="homeSignature"></span>' + vars.signature + '</div></div>',
-  // 2026-11-16 상황형 카드 3장 — 히어로 바로 아래, 무료 홍보 배너 위.
-  trustHtml: renderTrustBar(),
-  situationHtml: renderSituationCards(registryWindow.__cdServiceRegistry) + popularTop5ShellHtml() + renderLightSajuAndMasters() + renderCompareSection(),
-  // 2026-11-12 무료 3개월 홍보 배너(표시 전용) — 무료 타일 바로 위.
-  quickHtml: renderFreePromoShellBanner(),
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
   passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',
 });
@@ -417,7 +423,7 @@ homeHtml = homeHtml.replace(/(<[a-z][^>]*>)([^<>]+)(<\/[a-z][a-z0-9]*>)/g, (whol
 // Translate accessibility copy alongside visible text, without replacing controls.
 homeHtml = homeHtml.replace(/<[a-z][^>]*>/g, open => {
   const entries = [];
-  for (const attr of ['aria-label', 'title', 'alt']) {
+  for (const attr of ['aria-label', 'title', 'alt', 'placeholder']) {
     const value = open.match(new RegExp('\\s' + attr + '="([^"]*)"'))?.[1];
     const key = labelKeys.get(value);
     if (key && !open.includes(attr + ':')) entries.push(attr + ':' + key);

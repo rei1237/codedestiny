@@ -144,6 +144,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
 
         <main>
           <NightHero/>
+          <QuestionJourney source="home"/>
           {desktopHome ? <><HeavenLightCinema/><FirstVisitGuide/></> : <div className={homeStyle.shortcuts}>
             <details onToggle={event => setFirstVisitOpen(event.currentTarget.open)}>
               <summary>처음 방문했어요</summary>
@@ -151,7 +152,6 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
             </details>
             <NightPriceDetails/>
           </div>}
-          <QuestionJourney source="home"/>
           <div className={homeStyle.reference}>
             {passBenefits}
             <HomeDisclosure className={homeStyle.homeFold} label="상담 가격과 이용 안내">{guide}</HomeDisclosure>
@@ -173,6 +173,7 @@ export default function FortuneHome({offers,guide,passBenefits}:{offers:ProductO
               <div className="ggulggul-bridge__copy">
                 <h2 id="ggulggul-title">달빛 따라, <span>꿀꿀운세로.</span></h2>
                 <div className="ggulggul-bridge__actions">
+                  <a href="/ggulggul/#homeStoryTitle">꿀꿀운세 웹툰 서가</a>
                   <a className="ggulggul-bridge__entry" href={ggulggulFortuneHref("/yeongnyangi/fortune/")}>
                     연이의 꽃정원 둘러보기 <ArrowRight size={17} aria-hidden="true" />
                   </a>

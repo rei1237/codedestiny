@@ -325,3 +325,20 @@
 .exploreSpread { display: grid; gap: 8px; padding: 14px 4px 0; }
 .exploreSpread a { display: flex; align-items: center; min-height: 48px; padding-inline: 20px; border: 1px solid var(--hm-gold-line); border-radius: 16px; color: var(--cd-text); text-decoration: none; }
 .exploreSpread a:focus-visible { outline: 3px solid var(--cd-text); outline-offset: 3px; }
+
+.cardSurface { display:flex; flex-direction:column; flex:1; min-width:0; color:inherit; text-decoration:none; border-radius:inherit; }
+.cardSurface:focus-visible { outline:3px solid var(--hm-card-ink); outline-offset:4px; }
+.entryChoiceNote { max-width:34em; text-align:center; text-wrap:balance; font-size:1rem; line-height:1.7; }
+.page:has(.entryChoiceNote) .deck { grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); max-width:38rem; gap:clamp(.65rem,3vw,1.6rem); }
+.page:has(.entryChoiceNote) .card { padding:clamp(.45rem,1.6vw,.85rem); border-radius:22px; }
+.page:has(.entryChoiceNote) .cardArt { aspect-ratio:4/4.7; }
+.page:has(.entryChoiceNote) .cardCopy { padding:.65rem .15rem .15rem; }
+.page:has(.entryChoiceNote) .cardTag { font-size:1rem; line-height:1.55; }
+.page:has(.entryChoiceNote) .cardAction { min-height:48px; margin-top:auto; }
+.page:has(.entryChoiceNote) .cardCopy::before { background:var(--hm-card-edge); width:2.5rem; }
+@media(min-width:45rem) {
+  .page:has(.entryChoiceNote) .deck { background: left 1% top 60% / 46% 85% no-repeat url('/images/fortune-tea-house/moonlight-tarot-card-back.webp'); }
+}
+
+.widgetEntry { display:grid; grid-template-columns:48px minmax(0,1fr) auto; gap:14px; width:min(100%,30rem); padding:10px 18px; box-sizing:border-box; text-align:start; border-radius:18px; background:var(--cd-surface); color:var(--cd-text); }
+.widgetEntry small { font-size:.9rem; color:var(--cd-text-muted); }

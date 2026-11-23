@@ -9,6 +9,18 @@ await mkdir(output, { recursive: true });
 for (const [form, spec] of Object.entries(config)) {
   const { left, top, width, height } = spec.face;
   const poster = await sharp(spec.poster).extract(spec.face).ensureAlpha().raw().toBuffer();
+  if (spec.silhouette) {
+    // Use the approved portrait's exact RGB pixels. The matte shares its 600×720 coordinates.
+    const mask = await sharp(source + '/' + spec.silhouette).greyscale().raw().toBuffer({ resolveWithObject:true });
+    if (mask.info.width !== spec.canvas[0] || mask.info.height !== spec.canvas[1]) {
+      throw new Error('Portrait and silhouette canvases must match: ' + form);
+    }
+    const cutout = await sharp(spec.poster).joinChannel(mask.data, {raw:mask.info}).png().toBuffer();
+    for (const size of [320, spec.canvas[0]]) {
+      await sharp(cutout).resize({width:size}).webp({quality:90, alphaQuality:100, effort:6})
+        .toFile(output + '/' + form + '-portrait-' + size + '.webp');
+    }
+  }
   const frames = [];
   for (const patches of Object.values(spec.states)) {
     const pixels = Buffer.from(poster);

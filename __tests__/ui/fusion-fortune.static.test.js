@@ -20,6 +20,9 @@ test("fusion fortune renders the premium flow and optimized hero asset", () => {
   assert.ok(hero, "the responsive hero keeps its own image element");
   assert.match(hero, /fetchPriority="high"/);
   assert.match(hero, /loading="eager"/);
+  assert.match(hero, /fusion-fortune-masters-v3\.webp 1200w/);
+  assert.match(hero, /width=\{1200\} height=\{800\}/);
+  assert.match(read("app/fusion-fortune/fusion-fortune.module.css"), /\.heroImage\s*\{[^}]*height:\s*auto;[^}]*object-fit:\s*contain;/);
   for (const width of [320, 640, 960]) {
     assert.ok(hero.includes(`fusion-fortune-masters-v3-${width}.webp ${width}w`));
     assert.ok(fs.existsSync(path.join(root, `public/images/service-introductions/fusion-fortune-masters-v3-${width}.webp`)));

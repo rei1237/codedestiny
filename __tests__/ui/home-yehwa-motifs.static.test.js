@@ -37,8 +37,9 @@ test('section dividers sit between the home sections', () => {
 
 test('illustrated hero replaces decorative motifs with separate persona art', () => {
   const html = read('index.html');
-  const garden = html.match(/<div class="yh-art" aria-hidden="true">([\s\S]*?)<\/div>/)?.[1] || '';
-  assert.match(garden, /data-character="yeoni"/);
+  const garden = html.match(/<button[^>]+data-home-yeoni[^>]*>([\s\S]*?)<\/button>/)?.[1] || '';
+  assert.match(garden, /home-yeoni-portrait\.js/);
+  assert.match(garden, /<noscript><img[^>]*yeoni-character-480\.webp/);
   // 2026-10-13: 라이트·다크 모두 연이 하나 — 네오 히어로 그림은 걷어 냈다.
   assert.doesNotMatch(garden, /data-character="neo"/);
   assert.doesNotMatch(garden, /cd-yehwa-spray|cdh-moon|cdh-peony/);

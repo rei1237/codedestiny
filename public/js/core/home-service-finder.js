@@ -262,6 +262,7 @@
       badge: item.badge || "",
       roles: item.roles || [],
       image: item.image || "",
+      imageSrcset: item.imageSrcset || "",
       imageAlt: item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지"),
       tagged: true,
       hay: norm([item.name, item.question, item.desc, item.price, item.keys,
@@ -614,6 +615,7 @@
        🔴 무료 항목에는 featureKey 를 싣지 않는다 — 시트가 카탈로그 가격을 찾아내면
           그 무료 기능을 '유료'로 프레이밍한다(index.html 의 _resolvePreviewData 주석). */
     if (item.priceFrom) node.setAttribute("data-price-from", "true");
+    if (item.featureKey === "heukwol-warning-consultation") return node;
     if (item.paid) {
       if (item.featureKey) node.setAttribute("data-feature-key", item.featureKey);
       node.setAttribute("data-pvw-paid", "1");
@@ -631,6 +633,10 @@
     if (worldSearch && !SERVICE_MASTERS[item.id] && METHOD_HUB_IDS.indexOf(item.id) === -1) master = "";
     var featureImage = item.image || featureTileImage(item) || methodHubImage(item) || LEGACY_SERVICE_IMAGES[item.id];
     if (LEGACY_SERVICE_IMAGES[item.id]) media.classList.add("fortune-gateway__rec-media--legacy");
+    if (item.imageSrcset) {
+      image.sizes = "auto, (max-width: 500px) calc(100vw - 64px), 320px";
+      image.srcset = item.imageSrcset;
+    }
     image.src = featureImage || master || DEFAULT_SERVICE_IMAGE;
     image.alt = item.imageAlt || (item.name ? item.name + " 대표 이미지" : "운세 서비스 대표 이미지");
     if (master && !featureImage) media.className += " is-master";
@@ -650,6 +656,7 @@
         return;
       }
       image.dataset.cdFallback = "1";
+      image.removeAttribute("srcset");
       image.src = next;
     });
     media.appendChild(image);
@@ -1284,6 +1291,25 @@
   }
 
   function bootAllFortunes() {
+    var search = document.querySelector('[data-home-search]');
+    if (search) search.addEventListener('submit', function (event) {
+      event.preventDefault();
+      var error = search.querySelector('[data-finder-error]');
+      var af = ensureAllFortunes();
+      if (!af || !REGISTRY.length || typeof window.cdOpenAllFortunes !== 'function') {
+        // The catalogue and picker are initialized by the shell. A second submit retries their loading.
+        if (!error.hidden) { window.location.reload(); return; }
+        error.hidden = false;
+        error.textContent = translate('home.shelf.finderError', '상담 목록을 불러오지 못했어요. 잠시 후 검색을 다시 눌러 주세요.');
+        return;
+      }
+      error.hidden = true;
+      var purpose = event.submitter && event.submitter.name === 'purpose' ? event.submitter.value : '';
+      var query = purpose ? '' : search.querySelector('input[type="search"]').value.trim();
+      afApplySaved(af.root, { query: query, purposes: purpose ? [purpose] : [], region: 'all' });
+      af.api.render();
+      window.cdOpenAllFortunes({ search: true });
+    });
     document.addEventListener("click", afGoSignature);
     var sheet = document.getElementById("cdAllFortunes");
     if (sheet) {

@@ -53,7 +53,7 @@ window.__cdServiceRegistryMeta = {
 
 window.__cdServiceRegistry = [
   {
-    id: "heukwol", name: "흑월의 주의 시기", href: "/heukwol/",
+    id: "heukwol", name: "흑월의 경고", href: "/heukwol/",
     featureKey: "heukwol-warning-consultation", price: "50,000원",
     image: "/images/service-introductions/heukwol-320.webp",
     imageAlt: "금빛 테두리의 어두운 달 아래 펼쳐진 운세책과 별자리",
@@ -331,6 +331,7 @@ window.__cdServiceRegistry = [
   },
   {
     image: "/images/service-introductions/fusion-fortune-masters-v3-320.webp",
+    imageSrcset: "/images/service-introductions/fusion-fortune-masters-v3-320.webp 320w, /images/service-introductions/fusion-fortune-masters-v3-640.webp 640w, /images/service-introductions/fusion-fortune-masters-v3-960.webp 960w, /images/service-introductions/fusion-fortune-masters-v3.webp 1200w",
     imageAlt: "네오·연이·서한비·윤달·무성의 초융합 심층 리딩 상담 장면",
     id: "fusion-fortune",
     name: "초융합 심층 리딩",

@@ -1,6 +1,3 @@
-import HomeQuestionGuide from './components/HomeQuestionGuide';
-import HomeInstallEntry from './components/HomeInstallEntry';
-import StoryDiscovery from './consultations/StoryDiscovery';
 import Image from 'next/image';
 import Link from 'next/link';
 import { productMasters } from '../components/fortune/master-profiles';
@@ -14,21 +11,14 @@ import { BUSINESS_IDENTITY } from "../lib/site-policy-config";
 import LegacyHomeEntry from "./components/LegacyHomeEntry";
 import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
 import HomeAccountEntry from "./components/HomeAccountEntry";
-import MobileHomeNav from './components/MobileHomeNav';
-import HomeCardDeck from "./components/HomeCardDeck";
-import FreePromoBanner from "./components/FreePromoBanner";
 import HomeDailyEntry from "./components/HomeDailyEntry";
 import HomeMoonlitEntry from "./components/HomeMoonlitEntry";
-import PopularTop5 from "./components/PopularTop5";
-import { POPULAR_TOP5_ENABLED } from "../js/core/popular-top5.mjs";
-import TrustRecordLine from "./components/conversion/TrustRecordLine";
 import { trustRecordCopy } from "../lib/marketing/trust-record.mjs";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
 import "./yeongnyangi/yehwa-night.generated.css";
 import styles from "./home-main.module.css";
 import { IS_APP_BUILD } from "../lib/app-build-target";
-import { products } from "../worker/yeongnyangi/payments/catalog";
 import { ROBOTS_META } from "../lib/seo/index-policy.mjs";
 import { alternatesFor, HOME_HREFLANG_ROUTES, toNextLanguages } from "../lib/seo/hreflang.mjs";
 
@@ -37,8 +27,6 @@ import { alternatesFor, HOME_HREFLANG_ROUTES, toNextLanguages } from "../lib/seo
 // 두 서비스 선택은 이 화면에서, 상담 탐색과 이용 안내는 각 서비스 홈에서 제공한다.
 const { service, characters } = BRAND_FACTS;
 const YEONGNYANGI = characters.find((character) => character.key === "yeongnyangi");
-// 영냥이 카드의 시작 가격은 영냥이 히어로(NightHero)와 같은 결제 카탈로그 값이다. 꿀꿀 카드엔 무료 운세가 있어 넣지 않는다.
-const YN_STARTER_KRW = products.find((product) => product.id === "saju_mackerel").priceKRW;
 const HOME_TITLE = "꿀꿀 운세 | 사주·타로·자미두수 운세 상담";
 const HOME_DESCRIPTION = "꿀꿀 운세는 명리학자 박병하(네오)가 만든 운세 서비스예요. 사주·궁합·타로·자미두수를 살펴보고, 고민은 영냥이 상담에서 챕터별로 읽어 보세요.";
 // summary_large_image 카드라 1200×630 공유 이미지를 쓴다. 정적 홈 셸(index.html)과 같은 그림이다.
@@ -76,8 +64,8 @@ export const metadata = {
 // 두 상담가의 역할과 실제 진입을 한 링크로 묶는다.
 // /ggulggul/ 은 Next RSC 페이로드가 없는 정적 셸이라 next/link 대신 <a> 로 연다(external).
 const CARDS = [
-  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꽃돼지 꿀꿀운세", href: service.appEntryPath, external: true, tag: "사주·타로부터 주제별 운세와 상담을 골라보세요.", action: "꿀꿀운세 들어가기" },
-  { key: "yn", className: "ynCard", art: "yeongnyangi", name: YEONGNYANGI.serviceName, href: YEONGNYANGI.path, tag: "궁금한 질문과 상황을 중심으로 깊이 살펴보세요.", action: "영냥이 만나기", night: true },
+  { key: "yeoni", className: "yeoniCard", art: "yeoni", name: "꽃돼지 꿀꿀운세", href: service.appEntryPath, external: true, tag: "사주·타로부터 주제별 상담과 웹툰까지", nativeTag: "사주·타로부터 주제별 운세와 상담을 골라보세요.", action: "꿀꿀운세 들어가기" },
+  { key: "yn", className: "ynCard", art: "yeongnyangi", name: YEONGNYANGI.serviceName, href: YEONGNYANGI.path, tag: "내 질문과 상황에 맞춰 깊이 나누는 운세 상담", nativeTag: "궁금한 질문과 상황을 중심으로 깊이 살펴보세요.", action: "영냥이 만나기", night: true },
 ];
 const CARD_ART_SIZES = "(min-width: 800px) 306px, (min-width: 641px) 38vw, 42vw";
 function discoveryTracking(serviceKey, placement = "directory") {
@@ -100,7 +88,6 @@ export default function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img className={styles.brandMark} src={IS_APP_BUILD ? "/fuctionassets/%EC%97%B0%EC%9D%B4.webp" : "/images/home/illustrated/yeoni-brand-96.webp"} width={96} height={96} alt="" decoding="async" />
         <span className={styles.wordmark}>{service.name}</span>
-        {!IS_APP_BUILD && <a className={styles.brandGuide} href="#homeCardTitle">상담 추천</a>}
         <HomeAccountEntry />
       </header>
 
@@ -109,21 +96,19 @@ export default function HomePage() {
           <h1 id="homeCardTitle" className={styles.title}><NativeHomeText>꿀꿀 운세에서 어떤 운세를 만나볼까요?</NativeHomeText></h1>
           <p className={styles.lead}><NativeHomeText>마음이 향하는 상담 공간을 골라보세요.</NativeHomeText></p>
         </div> : <div className={styles.head}>
-          <h1 id="webServiceTitle" tabIndex={-1} className={styles.title}>꿀꿀 운세 — 사주·타로·자미두수 운세 상담</h1>
-          <p className={styles.lead}>마음이 가는 카드를 골라보세요</p>
-          {/* 2026-11-15 사용자 결정: 카드 위 한 줄 근거. 날짜가 찍힌 원문 비교로만 연결한다. */}
-          <TrustRecordLine className={styles.trust} />
+          <h1 id="webServiceTitle" tabIndex={-1} className={styles.title}>오늘, 어떤 이야기를 만나볼까요?</h1>
         </div>}
 
         {/* 카드 제목(h2)의 링크를 카드 크기로 늘려 카드 전체가 한 링크다. 설명 두 줄은 aria-describedby 로 읽힌다. */}
-        <HomeCardDeck className={styles.deck} interactive={!IS_APP_BUILD} labelledBy={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>
+        <ul className={styles.deck} aria-labelledby={IS_APP_BUILD ? "homeCardTitle" : "webServiceTitle"}>
           {CARDS.map((card, index) => {
+            const CardSurface = IS_APP_BUILD ? "div" : "a";
             const linkProps = { href: card.href, className: styles.cardLink, "aria-describedby": `${card.key}CardTag`, ...discoveryTracking(card.key === "yeoni" ? "ggulggul" : "yeongnyangi", "primary") };
             const art = IS_APP_BUILD ? `${ART}/app-library-${card.art}` : `${ART}/root-card-${card.art}`;
             const revision = IS_APP_BUILD ? "" : CARD_ART_REV;
             return <li key={card.key} data-home-card={card.key} className={`${styles.card} ${styles[card.className]}${IS_APP_BUILD ? ` ${styles.nativeCard}` : ""}`} data-yn-night={card.night ? "" : undefined}>
 
-              {!IS_APP_BUILD && <span className={styles.cardNumeral} aria-hidden="true">{index === 0 ? "I" : "II"}</span>}
+              <CardSurface {...(IS_APP_BUILD ? {} : linkProps)} className={styles.cardSurface}>
               <picture className={styles.cardArt}>
                 {!IS_APP_BUILD && <source type="image/avif" srcSet={`${art}-360.avif${revision} 360w, ${art}-600.avif${revision} 600w`} sizes={CARD_ART_SIZES} />}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -131,15 +116,16 @@ export default function HomePage() {
               </picture>
               <div className={styles.cardCopy}><h2 className={styles.cardName}>
                 {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
-                <NativeHomeCardLink {...linkProps} name={card.name} action={card.action} external={card.external} />
+                {IS_APP_BUILD ? <NativeHomeCardLink {...linkProps} name={card.name} action={card.action} external={card.external} /> : card.key === "yeoni" ? "꿀꿀운세" : "영냥이"}
               </h2>
-              <p id={`${card.key}CardTag`} className={styles.cardTag}><NativeHomeText>{card.tag}</NativeHomeText>{card.key === "yn" && !IS_APP_BUILD && <span className={styles.cardPrice}>{" "}{YN_STARTER_KRW.toLocaleString("ko-KR")}원부터</span>}</p>
+              <p id={`${card.key}CardTag`} className={styles.cardTag}><NativeHomeText>{IS_APP_BUILD ? card.nativeTag : card.tag}</NativeHomeText></p>
 
               <span className={styles.cardAction} aria-hidden="true"><NativeHomeText>{card.action}</NativeHomeText><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></span></div>
               <span className={styles.cardFoil} aria-hidden="true" />
+              </CardSurface>
             </li>;
           })}
-        </HomeCardDeck>
+        </ul>
         {!IS_APP_BUILD && <div id="home-consent-slot" className={styles.consentSlot} />}
         {IS_APP_BUILD && <section className={styles.nativeMasters} aria-labelledby="nativeMastersTitle">
           <Image src="/images/home/fusion-signature-masters-600.webp" alt="" width={600} height={400} />
@@ -158,19 +144,11 @@ export default function HomePage() {
             </div>
           </div>
         </section>}
-        {/* 실제 인기 순위 TOP5(최근 30일 구매, 2026-11-21 사용자 요청). 끄기: js/core/popular-top5.mjs 의 POPULAR_TOP5_ENABLED */}
-        {!IS_APP_BUILD && POPULAR_TOP5_ENABLED && <PopularTop5 />}
-        <HomeMoonlitEntry />
-        {!IS_APP_BUILD && <FreePromoBanner />}
-        {!IS_APP_BUILD && <HomeQuestionGuide />}
-        {!IS_APP_BUILD && <StoryDiscovery />}
-        <HomeDailyEntry />
-        {!IS_APP_BUILD && <HomeInstallEntry />}
-        {!IS_APP_BUILD && <a className={styles.businessApiCard} href="/business/api/"><img src="/assets/yeongnyangi/original/room-study.webp" alt="" loading="lazy" /><span><NativeHomeDictionaryText translationKey="footer.businessApiInvite">내 서비스에 운세 기능을 넣고 싶다면?</NativeHomeDictionaryText><small><NativeHomeDictionaryText translationKey="footer.businessApiLink">운세 API · 요금 및 연동</NativeHomeDictionaryText></small></span> <span aria-hidden="true">→</span></a>}
-        <a className={styles.widgetEntry} href={IS_APP_BUILD ? "/app/home-widget/index.html" : "/app/home-widget/"} data-cd-home-widget-entry><img src="/images/home/illustrated/yeoni-hanbok-240.webp" alt="" width="48" height="64" loading="lazy" /><span><strong><NativeHomeText>홈 화면 꾸미기</NativeHomeText></strong><small><NativeHomeText>연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</NativeHomeText></small></span></a>
+        {!IS_APP_BUILD && <p className={styles.entryChoiceNote}>여러 상담을 둘러보고 싶다면 꿀꿀운세로, 떠오른 질문이 있다면 영냥이에게 가보세요.</p>}
+        {IS_APP_BUILD && <><HomeMoonlitEntry /><HomeDailyEntry /></>}
+        <a className={styles.widgetEntry} href={IS_APP_BUILD ? "/app/home-widget/index.html" : "/app/home-widget/"} data-cd-home-widget-entry><img src="/images/home/illustrated/yeoni-hanbok-240.webp" alt="" width="48" height="64" loading="lazy" /><span><strong><NativeHomeText>홈 화면 꾸미기</NativeHomeText></strong><small><NativeHomeText>연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</NativeHomeText></small></span><span aria-hidden="true">→</span></a>
       </main>
 
-      {!IS_APP_BUILD && <MobileHomeNav/>}
       <footer className={styles.footer}>
         {!IS_APP_BUILD && <nav className={styles.footerNav} aria-labelledby="home-business-audience"><b id="home-business-audience"><NativeHomeDictionaryText translationKey="footer.businessAudience">기업·개발자</NativeHomeDictionaryText></b><a href="/business/api/"><NativeHomeDictionaryText translationKey="footer.businessApiLink">운세 API · 요금 및 연동</NativeHomeDictionaryText></a></nav>}
         <div className={styles.footerGroups}>

@@ -138,6 +138,7 @@ export default function EntryWebtoon() {
     <EntryTracker />
     <StickyCta label={ENTRY_WEBTOON.stickyLabel} href={entryHref} watchId={watchId} />
     <header className={styles.hero}>
+      <a href="/ggulggul/#homeStoryTitle">꿀꿀운세 웹툰 서가로</a>
       <a className={styles.skip} data-entry-skip="" href="#service-guide">이야기 골라 읽기 →</a>
       <h1 id="homeCardTitle" className={styles.title}>{SERVICE_GUIDE_LABEL}</h1>
       <p className={styles.byline}>찻집의 문을 열면, 고민마다 다른 이야기가 기다려요.<br/>사주부터 타로, 대표 상담과 전문가 상담까지.</p>

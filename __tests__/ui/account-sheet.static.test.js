@@ -73,3 +73,31 @@ test("보관함은 서버 기록으로 이동하고 마이는 공용 시트로 �
   const runtime = read("js/core/index-inline-runtime.js");
   assert.match(runtime, /cdOpenLibrary: true,\n\s*cdOpenAccount: true,/);
 });
+
+// Shared links remain available before an account is selected and after a full reload.
+test("마이에서 일상과 상담 기록을 기존 서비스 주소로 연다", () => {
+  const { JSDOM } = require("jsdom");
+  const start = shell.indexOf('<dialog class="cd-sheet" id="cdAccountSheet"');
+  const end = shell.indexOf('</dialog>', start);
+  const dom = new JSDOM(shell.slice(start, end + '</dialog>'.length));
+  try {
+    const document = dom.window.document;
+    const my = document.querySelector("#cdAccountSheet");
+    const routes = [
+      [".my-daily-cards", "/ggulggul/?action=dpOpenList&petEntry=my"],
+      [".my-daily-cards", "/diary/"],
+      [".my-archive", "/records/"],
+      [".my-archive", "/yeongnyangi/library/"],
+      [".my-archive", "/fortune-chat/"],
+      [".my-fortune-guide", "/ggulggul/?action=cdHomeTarotEntry"],
+    ];
+    for (const [area, href] of routes) {
+      const links = Array.from(my.querySelector(area).querySelectorAll('a[href]'));
+      assert.ok(links.some(link => link.getAttribute('href') === href), href);
+    }
+    assert.equal(shell.match(/id="yhRecordsTitle"/g)?.length, 1);
+    assert.equal(my.querySelector('a[href="/app/home-widget/"]'), null);
+  } finally {
+    dom.window.close();
+  }
+});

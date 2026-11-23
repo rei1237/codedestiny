@@ -10,10 +10,14 @@
   image.height = human ? 720 : 800;
   image.decoding = 'async';
   image.fetchPriority = 'high';
-  if (!human) {
-    image.sizes = '(max-width:600px) 136px, 220px';
+  image.sizes = '(max-width:600px) 136px, 220px';
+  if (human) {
+    var portrait = '/images/home/yeoni-expressions/human-portrait-';
+    image.srcset = portrait + '320.webp 320w, ' + portrait + '600.webp 600w';
+    image.src = portrait + '320.webp';
+  } else {
     image.srcset = '/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w';
+    image.src = '/images/home/illustrated/yeoni-character-480.webp';
   }
-  image.src = human ? '/images/master-profiles/yeoni-love-portrait.webp' : '/images/home/illustrated/yeoni-character-480.webp';
   stage.appendChild(image);
 })();

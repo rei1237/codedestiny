@@ -56,7 +56,7 @@
 }
 .cd-picker-main { position:relative; display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 12px; text-decoration: none; }
 .cd-picker-main > .cd-yehwa-seal { position:absolute; top:18px; right:18px; width:28px; height:28px; pointer-events:none; }
-.cd-picker-main > img, .cd-picker-fusion-art > img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--cd-r-control); }
+.cd-picker-main > img { display: block; width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--cd-r-control); }
 .cd-picker-card[data-picker-fusion-featured] .cd-picker-main img { max-width: 320px; aspect-ratio: 320/213; align-self: center; }
 @media (min-width: 700px) {
   .cd-picker-card[data-picker-fusion-featured] .cd-picker-main { flex-direction: row; align-items: center; gap: 16px; }
@@ -78,13 +78,13 @@
 .cd-picker-links { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 24px; margin-top: 16px; }
 .cd-picker-links > a { display: inline-flex; align-items: center; min-height: 44px; color: var(--cdh-gold); text-underline-offset: 4px; }
 #cdHomeFunnel .cd-picker-links .yh-guide-open { color: var(--cdh-gold); background: none; border: 0; font-size: .9375rem; }
-.cd-picker-main > img, .cd-picker-fusion-art > img { clip-path: inset(0 round var(--cd-r-control)); }
+.cd-picker-main > img { clip-path: inset(0 round var(--cd-r-control)); }
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .cd-picker-card { transition: transform .35s ease, box-shadow .35s ease, border-color .2s ease; }
-  .cd-picker-main > img, .cd-picker-fusion-art > img { transition: transform .6s ease, clip-path .6s ease; }
+  .cd-picker-main > img { transition: transform .6s ease, clip-path .6s ease; }
   .cd-picker-card:has(.cd-picker-main:hover) { transform: translateY(-3px); box-shadow: 0 14px 26px -18px color-mix(in srgb, var(--cdh-ink) 45%, transparent); }
   /* 1.04배로 키우되 clip-path 로 원래 틀(1/1.04)만 보이게 해 틀 밖으로 번지지 않는다. */
-  .cd-picker-main:hover > img, .cd-picker-main:hover .cd-picker-fusion-art > img { transform: scale(1.04); clip-path: inset(1.923% round calc(var(--cd-r-control) / 1.04)); }
+  .cd-picker-main:hover > img { transform: scale(1.04); clip-path: inset(1.923% round calc(var(--cd-r-control) / 1.04)); }
 }
 @media (hover: hover) {
   .cd-picker-card:has(a:hover) { border-color: var(--cdh-gold); }
@@ -99,8 +99,6 @@
   .cd-picker-grid { grid-template-columns: minmax(0,1fr); }
 }
 
-/* A picture source changes resolution, never the existing flex geometry. */
-.cd-picker-fusion-art { display: contents; }
 
 /* Signature banner (2026-11-22): one consultation at a time, 0.5s crossfade, controls under the art. */
 .cd-sig-banner { margin: 4px 0 24px; }

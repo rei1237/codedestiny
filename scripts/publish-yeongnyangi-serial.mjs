@@ -4,7 +4,7 @@
 //   node scripts/publish-yeongnyangi-serial.mjs            # 지금 시각 기준
 //   SERIAL_NOW=2026-11-14T21:00:00+09:00 node scripts/...  # 기준 시각 주입(검증용)
 //   --check  복사하지 않고 공개/보류 회차만 출력
-import { cpSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { SEASON_ONE } from '../lib/yeongnyangi/season-1.mjs';
 import { completeness, pageFiles, publishedEpisodes, serialNow } from '../lib/yeongnyangi/serial.mjs';
@@ -28,5 +28,8 @@ if (!check) {
     mkdirSync(dir, { recursive: true });
     for (const page of episode.pages) for (const file of pageFiles(episode, page)) cpSync(file, join(dir, file.split(/[\\/]/).pop()));
   }
+  mkdirSync(TARGET, { recursive: true });
+  const entries = published.map(({ no, slug, title, href, pages }) => ({ no, slug, title, href, pages: pages.length }));
+  writeFileSync(join(TARGET, 'published.json'), JSON.stringify(entries));
   console.log(`[yeongnyangi-serial] ${published.length} episode(s) copied at ${now.toISOString()}`);
 }

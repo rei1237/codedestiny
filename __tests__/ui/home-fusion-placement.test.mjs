@@ -28,27 +28,29 @@ test('fusion lives in both existing consultation section and popup without stand
  assert.equal(d.querySelectorAll('.cdh-fusion-sig').length,0);
  assert.ok(d.querySelector('#cdhFusionSignature'),'old fragment remains');
  assert.equal(d.querySelector('#cdhFusionSignatureSlot').querySelectorAll('a').length,0);
- assert.equal(d.querySelectorAll('.yh-situation').length,3);
+ assert.equal(d.querySelectorAll('.yh-situation--paid [data-cd-price-key="heukwol-warning-consultation"]').length,0);
 });
 
-test('featured fusion keeps existing lightweight decorative art without changing popup artwork',()=>{
+test('featured fusion and the consultation letter select the same original art at the appropriate pixel density',()=>{
  const card=d.querySelector('[data-picker-fusion-featured] [data-picker-service-id="fusion-fortune"]');
  const image=card.querySelector('img');
  assert.ok(image, 'Fusion illustration must survive the home generator');
  assert.equal(image.getAttribute('src'),'/images/service-introductions/fusion-fortune-masters-v3-320.webp');
- const source=image.parentElement.querySelector('source');
- assert.equal(image.parentElement.tagName,'PICTURE');
- assert.equal(source.getAttribute('media'),'(min-width: 700px)');
- assert.equal(source.getAttribute('srcset'),'/images/service-introductions/fusion-fortune-masters-v3-640.webp 640w, /images/service-introductions/fusion-fortune-masters-v3-960.webp 960w');
- assert.equal(source.getAttribute('sizes'),'320px');
- assert.equal(image.hasAttribute('srcset'),false,'mobile keeps one compact asset even at high DPR');
+ const candidates=image.getAttribute('srcset').split(', ').map(entry=>entry.split(' '));
+ assert.deepEqual(candidates.map(([,width])=>width),['320w','640w','960w','1200w']);
+ for(const [url,width] of candidates){
+   const suffix=width==='1200w'?'':'-'+parseInt(width,10);
+   assert.equal(url,'/images/service-introductions/fusion-fortune-masters-v3'+suffix+'.webp');
+ }
+ assert.match(image.getAttribute('sizes'),/^auto, .*320px$/);
+ assert.equal(image.closest('picture'),null,'all widths are available on mobile, including high DPR devices');
  assert.equal(image.getAttribute('alt'),'');
  assert.equal(image.getAttribute('loading'),'lazy');
  assert.equal(image.getAttribute('decoding'),'async');
  assert.equal(image.getAttribute('width'),'320');
  assert.equal(image.getAttribute('height'),'213');
  const popup=d.querySelector('[data-signature-letter-slide][data-cd-service="fusion-fortune"] img');
- assert.ok(popup.getAttribute('srcset').includes(image.getAttribute('src')));
+ assert.equal(popup.getAttribute('srcset'),image.getAttribute('srcset'));
  assert.equal(popup.getAttribute('loading'),'lazy');
 });
 

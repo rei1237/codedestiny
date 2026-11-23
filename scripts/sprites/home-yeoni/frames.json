@@ -141,6 +141,7 @@
         "human-half-right",
         "human-smile-mouth"
       ]
-    }
+    },
+    "silhouette": "human-silhouette.png"
   }
 }

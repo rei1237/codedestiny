@@ -315,8 +315,9 @@ test('네오 편지 안내는 상담 장면과 서버 가격·답변 기한을 �
   assert.doesNotMatch(html,/BLUE MOON/);
   const template=readFileSync(new URL('../../templates/home-funnel.html',import.meta.url),'utf8');
   // 2026-10-17: '네오에게 물어봐' 편지 블록이 홈 1:1 상담 줄(연이 상담 옆)로 돌아왔다.
-  assert.equal(template.split('{{neoEmailConsultation}}').length - 1, 1);
-  assert.ok(template.indexOf('id="cdhFusionSignatureSlot"') < template.indexOf('{{neoEmailConsultation}}'));
+  const comparison = readFileSync(new URL('../../templates/home-concern-comparison.html', import.meta.url), 'utf8');
+  assert.equal(comparison.split('{{neoEmailConsultation}}').length - 1, 1);
+  assert.ok(!template.includes('{{neoEmailConsultation}}'));
   const shell=readFileSync(new URL('../../index.html',import.meta.url),'utf8');
   assert.ok(shell.indexOf('id="cdhSignatureSlot"') < shell.indexOf('id="cdhNeoLetterSlot"'),'free and unified consultation choices precede the existing email detail');
 });

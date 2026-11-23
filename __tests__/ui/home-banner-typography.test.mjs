@@ -6,7 +6,7 @@ import postcss from 'postcss';
 import { renderYehwaHome } from '../../lib/marketing/yehwa-home.mjs';
 
 const html = readFileSync('index.html', 'utf8');
-const hero = html.match(/<div class="yh-hero yh-entry-scene"[\s\S]*?(?=    <section class="cdh-(?:promo|free)")/)[0];
+const hero = html.slice(html.indexOf('<div class="yh-hero yh-entry-scene"'), html.indexOf('<section class="yh-finder"'));
 const document = new JSDOM(hero).window.document;
 const css = postcss.parse(readFileSync('styles/yehwa-home.css', 'utf8'));
 const declarations = selector => {
@@ -15,48 +15,47 @@ const declarations = selector => {
   return result;
 };
 
-test('banner keeps its copy, heading translation keys, and free-entry action', () => {
-  assert.equal(document.querySelector('#cdhTitle').textContent, '오늘은 어떤 이야기가궁금하세요?');
-  assert.equal(document.querySelector('.yh-greeting p').textContent, '지금 마음에 걸리는 상황부터 골라 보세요.결과를 먼저 보고, 더 깊게 볼지는 그다음에.');
-  assert.deepEqual([...document.querySelectorAll('[data-cd-trans]')].filter(node => !node.closest('.yh-situations, .yh-supplement')).map(node => node.dataset.cdTrans), ['home.yehwa.titleA', 'home.yehwa.titleB', 'home.moonlit.manseStart']);
-  const cta = document.querySelector('.yh-free-start');
-  assert.equal(cta.textContent, '무료로 내 만세력 확인하기');
-  assert.equal(cta.getAttribute('href'), '/?action=cdOneStepFreeSajuEntry');
-  assert.equal(cta.dataset.action, 'cdOneStepFreeSajuEntry');
-  assert.equal(cta.dataset.cdServiceId, 'saju');
-  assert.ok(cta.classList.contains('cd-yehwa-button'));
+test('the welcome area links directly to the finder without a loading gate', () => {
+  assert.equal(document.querySelector('#cdhTitle').textContent.replace(/\s/g,''), '오늘은어떤이야기가궁금하세요?');
+  const cta = document.querySelector('.yh-finder-cta');
+  assert.equal(cta.getAttribute('href'), '#homeFinder');
+  assert.equal(cta.textContent.trim(), '나에게 맞는 상담 찾기');
   assert.ok(cta.classList.contains('cd-yehwa-button--primary'));
-  assert.equal(cta.querySelector('svg').getAttribute('aria-hidden'), 'true');
-  assert.equal(cta.querySelector('svg').getAttribute('focusable'), 'false');
 });
 
-test('banner retains the responsive original character and both garden themes', () => {
-  const img = document.querySelector('#honeypigLogo');
-  assert.equal(img.dataset.character, 'yeoni');
-  assert.equal(img.getAttribute('src'), '/images/home/illustrated/yeoni-character-480.webp');
-  assert.equal(img.getAttribute('srcset'), '/images/home/illustrated/yeoni-character-320.webp 320w, /images/home/illustrated/yeoni-character-480.webp 480w, /images/home/illustrated/yeoni-character-800.webp 800w');
-  assert.equal(img.getAttribute('sizes'), '(max-width:600px) 156px, 270px');
-  assert.equal(img.getAttribute('width'), '800');
-  assert.equal(img.getAttribute('height'), '800');
-  assert.equal(img.getAttribute('fetchpriority'), 'high');
-  assert.equal(img.getAttribute('decoding'), 'async');
-  assert.equal(img.parentElement.getAttribute('aria-hidden'), 'true');
-  assert.match(css.toString(), /yeoni-moon-garden-(?:1280|640)\.webp/);
-  assert.match(css.toString(), /html\.neo-mode \.yh-hero\{--yh-garden:url\("\/images\/home\/illustrated\/yeoni-moon-garden-night-1280\.webp"\)/);
+test('the finder action uses a paired foreground and background even after the link has been visited', () => {
+  const rules = declarations(/a\.yh-finder-cta.*:visited/s);
+  assert.ok(rules.some(rule => rule.color?.includes('--cd-cta-primary-ink') && rule.background?.includes('--cd-cta-primary-bg')));
+  assert.ok(declarations('.yh-greeting .yh-finder-cta span').some(rule => rule.color === 'inherit'));
 });
 
-test('the shared primary component owns the banner button palette and shape', () => {
-  const [cta] = declarations('.yh-home .yh-free-start');
-  assert.equal(cta['min-height'], '52px');
-  assert.equal(cta['margin-top'], '20px');
-  assert.equal(cta['font-family'], 'var(--font-body)');
-  assert.equal(cta.color, 'var(--cd-cta-primary-ink)');
-  assert.equal(cta['white-space'], 'normal');
-  for (const rules of declarations('.yh-home .yh-free-start')) {
-    for (const property of ['background', 'background-color', 'border-radius', 'box-shadow']) assert.equal(rules[property], undefined);
+test('each visit selects one correctly sized original character with a static fallback', () => {
+  const loader = readFileSync('js/core/home-yeoni-portrait.js', 'utf8');
+  for (const [number, form, suffix, width, height] of [
+    [0.1, 'human', '/images/home/yeoni-expressions/human-portrait-320.webp', 600, 720],
+    [0.9, 'pig', '/images/home/illustrated/yeoni-character-480.webp', 800, 800]
+  ]) {
+    const dom = new JSDOM('<div data-home-yeoni><script></script></div>', { runScripts: 'outside-only' });
+    try {
+      const stage = dom.window.document.querySelector('[data-home-yeoni]');
+      Object.defineProperty(dom.window.document,'currentScript',{value:stage.querySelector('script')});
+      dom.window.Math.random = () => number;
+      dom.window.eval(loader);
+      dom.window.eval(loader);
+      assert.equal(stage.dataset.form, form);
+      assert.equal(stage.querySelectorAll('img').length, 1);
+      const image = stage.querySelector('img');
+      assert.equal(image.getAttribute('src'), suffix);
+      assert.equal(image.width, width);
+      assert.equal(image.height, height);
+    } finally { dom.window.close(); }
   }
-  assert.equal(declarations('.yh-free-start::before')[0]['pointer-events'], 'none');
-  assert.equal(declarations('.yh-free-start__label')[0]['min-width'], '0');
+  assert.ok(document.querySelector('noscript img[src$="yeoni-character-480.webp"]'));
+  assert.equal(new URL(document.querySelector('[data-home-yeoni] script[src]').getAttribute('src'), 'https://example.test').pathname, '/js/core/home-yeoni-portrait.js');
+  const backdrop = document.querySelector('picture.yh-garden-picture');
+  assert.equal(backdrop.querySelector('img').fetchPriority || backdrop.querySelector('img').getAttribute('fetchpriority'), 'high');
+  assert.ok(backdrop.querySelector('source[data-yh-garden-night][srcset$="night-1280.webp"]'));
+  assert.ok(backdrop.querySelector('source[media="(max-width:600px)"][srcset$="garden-640.webp"]'));
 });
 
 test('banner typography and layout stay fluid instead of clipping enlarged or translated copy', () => {
@@ -79,22 +78,9 @@ test('banner typography and layout stay fluid instead of clipping enlarged or tr
 });
 
 
-test('the source renderer preserves the same CTA and its conditional escaped action', () => {
-  const catalog = [{ id: 'saju', price: '무료 시작', quickHref: '/?action=cdOneStepFreeSajuEntry', action: 'cdOneStepFreeSajuEntry' }];
-  const rendered = new JSDOM(renderYehwaHome(catalog)).window.document;
-  assert.equal(rendered.querySelector('.yh-free-start').outerHTML, document.querySelector('.yh-free-start').outerHTML);
-  assert.equal(rendered.querySelector('.yh-art').outerHTML, document.querySelector('.yh-art').outerHTML);
-  assert.equal(new JSDOM(renderYehwaHome([])).window.document.querySelector('.yh-free-start'), null);
-  const escaped = renderYehwaHome([{ ...catalog[0], quickHref: '/?value="&<>', action: 'go"&<>' }]);
-  assert.ok(escaped.includes('href="/?value=&quot;&amp;&lt;&gt;"'));
-  assert.ok(escaped.includes('data-action="go&quot;&amp;&lt;&gt;"'));
-});
-
-
-test('banner title translation spans inherit the display font and its real weight', () => {
-  const spans = [...document.querySelectorAll('.yh-greeting h1 span')];
-  assert.equal(spans.length, 2);
-  assert.ok(spans.every(span => span.hasAttribute('data-cd-trans')));
-  assert.deepEqual(declarations('.yh-greeting h1 span'), [{ 'font-family': 'inherit', 'font-weight': 'inherit' }]);
-  assert.equal(declarations('.yh-greeting h1')[0]['font-weight'], '400');
+test('the welcome action remains available without catalog data or character frames', () => {
+  const rendered = new JSDOM(renderYehwaHome([])).window.document;
+  const link = rendered.querySelector('.yh-finder-cta');
+  assert.equal(link.getAttribute('href'), '#homeFinder');
+  assert.ok(rendered.querySelector(link.getAttribute('href')));
 });

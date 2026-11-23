@@ -19,6 +19,7 @@ export default function SeasonOne() {
   const next = nextRelease(now);
   return <div className={styles.wrap} lang="ko">
     <header className={styles.head}>
+      <a href="/ggulggul/#homeStoryTitle">꿀꿀운세 웹툰 서가로</a>
       <small>{SEASON_ONE.schedule.label} 연재</small>
       <h1>{SEASON_ONE.title}</h1>
       <p>자기 손으로 누르지 않은 버튼 하나에 낯선 세계로 떨어진 연이. 새침한 척하지만 늘 한발 먼저 와 있는 고양이 영냥이와 함께 엉킨 운을 풀어 가는 이야기예요.</p>

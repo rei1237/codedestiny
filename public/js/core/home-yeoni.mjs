@@ -1,3 +1,4 @@
+import { setHomeLabel } from './home-label.mjs';
 const art = document.querySelector('[data-home-yeoni]');
 const toggle = document.querySelector('[data-yeoni-motion]');
 const preference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -84,12 +85,14 @@ if (art) {
       wait(650, () => blink(true, () => wait(650, () => { show('open'); idle(); })));
     }).catch(() => { if (turn === current) patch.hidden = true; });
   }
-  art.addEventListener("click", () => {
+  function greet() {
     const reaction = reactions[nextReaction];
     nextReaction = (nextReaction + 1 + Math.floor(Math.random() * (reactions.length - 1))) % reactions.length;
-    speech.textContent = reaction.text;
+    setHomeLabel(speech, 'home.shelf.' + reaction.name, reaction.text);
     refresh(reaction);
-  });
+  }
+  art.addEventListener("click", greet);
+  document.querySelector("[data-yeoni-greet]")?.addEventListener("click", greet);
   toggle?.addEventListener('change', () => {
     enabled = toggle.checked;
     try { localStorage.setItem('cd:yeoni:motion', enabled ? 'on' : 'off'); } catch {}

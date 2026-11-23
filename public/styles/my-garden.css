@@ -1,5 +1,24 @@
 /* 마이와 프로필의 표현 계층. 성장/보상 정책은 CDLevel이 소유한다. */
 :is(#cdAccountSheet,#dpListSheet){--mg-bg:var(--cd-bg);--mg-surface:var(--cd-surface-2);--mg-ink:var(--cd-text);--mg-muted:var(--cd-text-muted);--mg-accent:var(--cd-accent);--mg-line:color-mix(in srgb,var(--mg-accent) 22%,transparent);color:var(--mg-ink);background:var(--mg-bg);scrollbar-color:var(--mg-accent) var(--mg-bg)}
+#cdAccountSheet {
+  --mg-bg: #fffcf6;
+  --mg-surface: #f7efe6;
+  --mg-ink: #38253a;
+  --mg-muted: #695667;
+  --mg-accent: #58364e;
+  --mg-gold: #937345;
+  --mg-line: #d8c6ac;
+}
+html:is(.neo-mode,[data-cd-theme="neo"]) #cdAccountSheet {
+  --mg-bg: #262032;
+  --mg-surface: #342a41;
+  --mg-ink: #fff4ea;
+  --mg-muted: #deccdc;
+  --mg-accent: #f1d7aa;
+  --mg-gold: #d3b47d;
+  --mg-line: #746278;
+}
+#cdAccountSheet .cd-sheet__panel { background: var(--mg-bg); }
 #cdAccountSheet{inset:max(12px,env(safe-area-inset-top)) 12px max(12px,env(safe-area-inset-bottom));width:auto;max-width:var(--cd-w-prose);height:auto;max-height:none;border-color:var(--mg-line);border-radius:var(--cd-r-section)}
 #cdAccountSheet .cd-sheet__head{padding:12px 12px 12px 24px;border-color:var(--mg-line)}
 #cdAccountSheet .cd-sheet__head h2{font-family:var(--font-serif);font-size:var(--cd-t-section);color:var(--mg-ink)}
@@ -7,7 +26,7 @@
 #cdAccountSheet .cd-sheet__body{padding:24px;display:flex;flex-direction:column;gap:28px}
 .my-garden-hero{flex-shrink:0;position:relative;isolation:isolate;padding:28px 24px;border:1px solid var(--mg-line);border-radius:var(--cd-r-card);background:var(--mg-surface);overflow:hidden}
 .my-garden-hero:before{content:"";position:absolute;right:-20px;top:0;width:190px;height:190px;background:var(--mg-accent);opacity:.36;pointer-events:none;mask:url(/icons/yehwa-branch.svg) center/contain no-repeat;-webkit-mask:url(/icons/yehwa-branch.svg) center/contain no-repeat;z-index:-1}
-.my-garden-moon{display:block;width:32px;height:32px;margin-bottom:18px;color:var(--mg-accent)}
+.my-garden-moon{display:block;width:32px;height:32px;margin-bottom:12px;color:var(--mg-gold)}
 .my-garden-name{margin:0;font:700 var(--cd-t-display)/1.4 var(--font-serif);overflow-wrap:anywhere;color:var(--mg-ink)}
 .my-garden-description{margin:8px 0 22px;font-size:var(--cd-t-body);line-height:1.7;color:var(--mg-muted);word-break:keep-all}
 .my-garden-progress{margin-bottom:22px}
@@ -110,3 +129,71 @@ html body #cdAccountSheet #authQuickLinks .auth-btn{min-height:44px;margin:0;pad
 #dpMasterCard.pc-game-card .dp-lvl__companion{display:flex;align-items:center;gap:12px;margin:0 0 12px;padding:8px 12px 8px 8px;border-radius:20px;background:#302b47;color:#fff5de}
 #dpMasterCard.pc-game-card .dp-lvl__companion img{flex:none;width:clamp(68px,19vw,100px);height:74px;border-radius:15px;object-fit:cover}
 #dpMasterCard.pc-game-card .dp-lvl__companion .pc-growth-feedback{margin:0;color:#fff5de;font-size:.93rem}
+
+/* The account opener uses the same moonlit metal trim as the My panel. */
+#cdHomeFunnel .cdh-top :is(#cdhGuestGardenBtn,#cdhAccountBtn) {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 48px;
+  padding: .55rem .95rem;
+  border: 1px solid #af8d61;
+  border-radius: 2rem;
+  background: linear-gradient(115deg,#483142,#302437);
+  color: #fff8e8;
+  font: 700 .95rem/1.4 var(--font-body);
+  cursor: pointer;
+}
+#cdHomeFunnel .cdh-top :is(#cdhGuestGardenBtn,#cdhAccountBtn) svg { flex: none; color: #efce92; }
+#cdHomeFunnel .cdh-top :is(#cdhGuestGardenBtn,#cdhAccountBtn):hover { background: #53354b; }
+#cdHomeFunnel .cdh-top :is(#cdhGuestGardenBtn,#cdhAccountBtn):focus-visible { outline: 3px solid var(--cd-focus-ring); outline-offset: 3px; }
+#cdHomeFunnel .cdh-top #cdhAccountBtn[data-auth="guest"],
+#cdHomeFunnel .cdh-top:has(#cdhAccountBtn[data-auth="member"]) #cdhGuestGardenBtn { display: none; }
+
+#cdAccountSheet .cd-sheet__body > * { min-width: 0; flex: none; }
+#cdAccountSheet .my-garden-section h3 { font: 700 max(18px,1.15rem)/1.5 var(--font-serif); }
+.my-daily-cards { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(7rem,100%),1fr)); gap: .65rem; }
+#cdAccountSheet .my-daily-cards a {
+  display: flex; flex-direction: column; overflow: hidden;
+  background: var(--mg-surface); color: var(--mg-ink); border: 1px solid var(--mg-line);
+  border-radius: 16px; font-size: max(16px,1rem); font-weight: 700; line-height: 1.45; text-decoration: none;
+}
+#cdAccountSheet .my-daily-cards img { display: block; width: 100%; aspect-ratio: 2/1; height: auto; object-fit: cover; object-position: center 42%; }
+#cdAccountSheet .my-garden-menu a { font-size: max(16px,1rem); }
+#cdAccountSheet .my-garden-menu li a:hover { background: var(--mg-surface); }
+#cdAccountSheet .my-garden-hero {
+  background: linear-gradient(110deg,var(--mg-bg),var(--mg-surface));
+}
+#cdAccountSheet .my-garden-hero::before { background: var(--mg-gold); }
+.my-daily-cards span { padding: .6rem .7rem; }
+.my-daily-links { display: flex; flex-wrap: wrap; gap: .4rem 1rem; }
+#cdAccountSheet :is(.my-daily-links a,.my-service-switch) {
+  display: inline-flex; align-items: center; gap: .5rem; min-height: 48px; color: var(--mg-ink);
+  font-size: 1rem; text-decoration: underline; text-decoration-color: var(--mg-line); text-underline-offset: .25em;
+}
+#cdAccountSheet .my-service-switch { justify-self: start; }
+.my-fortune-guide {
+  padding: 0 1rem;
+  border: 1px solid var(--mg-line); border-radius: 18px; background: var(--mg-surface);
+}
+.my-fortune-guide > summary {
+  display: flex; align-items: center; justify-content: space-between; min-height: 56px; gap: .75rem;
+  color: var(--mg-ink); cursor: pointer; list-style: none; font: 700 1.05rem/1.5 var(--font-serif);
+}
+.my-fortune-guide > summary::-webkit-details-marker { display: none; }
+.my-fortune-guide > summary::after { content: ''; width: .55rem; height: .55rem; border: solid currentColor; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.my-fortune-guide[open] > summary::after { transform: rotate(225deg); }
+.my-guide-content { padding-block-end: 1rem; }
+.my-guide-content .yh-situations__list { grid-template-columns: repeat(auto-fit,minmax(min(14rem,100%),1fr)); }
+.my-guide-content .yh-situation--featured { grid-column: auto; }
+#cdAccountSheet .my-guide-content .yh-situation__cta { width: 100%; color: var(--cd-cta-primary-ink); white-space: normal; }
+@media (hover:hover) {
+  #cdAccountSheet .my-daily-cards a:hover { border-color: var(--mg-accent); }
+  #cdAccountSheet :is(.my-daily-links a,.my-service-switch):hover { text-decoration-color: currentColor; }
+}
+@media (min-width:760px) {
+  #cdAccountSheet .my-garden-hero { grid-row: auto; }
+  #cdAccountSheet .my-archive, #cdAccountSheet .my-fortune-guide { grid-column: 1/-1; }
+}

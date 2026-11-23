@@ -28,7 +28,7 @@
     "ms": "Lihat konsultasi pilihan"
   },
   "home.moonlit.heukwolTitle": {
-    "ko": "흑월의 주의 시기",
+    "ko": "흑월의 경고",
     "en": "Black Moon Warning",
     "ja": "黒月の警告",
     "zh-CN": "黑月的警告",
@@ -238,7 +238,7 @@
     "ms": "Empat Tiang × Ziwei"
   },
   "featureMarketing.heukwol.fallbackTitle": {
-    "ko": "흑월의 주의 시기",
+    "ko": "흑월의 경고",
     "en": "Black Moon Warning",
     "ja": "黒月の警告",
     "zh-CN": "黑月的警告",

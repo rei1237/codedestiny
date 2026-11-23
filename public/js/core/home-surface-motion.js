@@ -10,8 +10,7 @@ function attachHomeSurfaceMotion(root) {
   const desktop = win.matchMedia('(min-width: 1024px) and (hover: hover)');
   const key = 'cd:ggul-motion:v1';
   try { JSON.parse(win.sessionStorage.getItem(key) || '[]').forEach(id => seen.add(id)); } catch { /* Storage is optional. */ }
-  const mark = id => {
-    seen.add(id);
+  const save = () => {
     try { win.sessionStorage.setItem(key, JSON.stringify([...seen])); } catch { /* Storage is optional. */ }
   };
   const targets = new Map();
@@ -43,22 +42,32 @@ function attachHomeSurfaceMotion(root) {
     stop();
     if (reduce.matches || doc.hidden || !win.IntersectionObserver) return;
     try {
+      // Initial observer records include the viewport geometry without forcing a
+      // synchronous layout for every card (including closed disclosure panels).
+      const initial = new Set();
       observer = new win.IntersectionObserver(entries => {
-        entries.filter(entry => entry.isIntersecting).forEach((entry, index) => {
+        let entered = 0;
+        let changed = false;
+        entries.forEach(entry => {
           const node = entry.target;
-          const id = targets.get(node);
+          const initialRecord = initial.delete(node);
+          if (!entry.isIntersecting) return;
           observer.unobserve(node);
+          const id = targets.get(node);
           if (seen.has(id)) return;
-          mark(id);
-          node.style.setProperty('--hm-enter-delay', Math.min(index * 55, 220) + 'ms');
+          seen.add(id);
+          changed = true;
+          if (initialRecord) return;
+          node.style.setProperty('--hm-enter-delay', Math.min(entered++ * 55, 220) + 'ms');
           node.dataset.homeEnter = '';
         });
+        if (changed) save();
       }, { threshold: 0.12 });
       targets.forEach((id, node) => {
-        const rect = node.getBoundingClientRect();
-        // Initial viewport content is immediate, including restored scroll positions.
-        if (rect.top < win.innerHeight && rect.bottom > 0) mark(id);
-        else if (!seen.has(id)) observer.observe(node);
+        if (!seen.has(id)) {
+          initial.add(node);
+          observer.observe(node);
+        }
       });
       const hero = root.querySelector('[data-home-hero]');
       if (desktop.matches && hero) {

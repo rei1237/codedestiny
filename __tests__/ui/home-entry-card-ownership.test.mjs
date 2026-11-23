@@ -16,14 +16,13 @@ test('service chooser omits only the four service-home discovery cards', () => {
 
 test('ggulggul retains destinations and opens active games without promoting the paused hub', () => {
   const home = doc.querySelector('#cdHomeFunnel');
-  for (const href of ['/entry-webtoon/']) {
-    assert.equal(template.querySelectorAll(`[data-cdh-entry-card] a[href="${href}"]`).length, 1, `generator source: ${href}`);
-    const links = home.querySelectorAll(`a[href="${href}"]`);
-    assert.equal(links.length, 1, href);
-    assert.equal(links[0].closest('[hidden], details'), null, href);
-    assert.equal(links[0].closest('.cdh-all-cta'), null, `mobile-hidden legacy wrapper: ${href}`);
-  }
-  assert.equal(home.querySelectorAll('details.cdh-story').length, 1);
+  const guide = home.querySelector('.yh-library a[href="/entry-webtoon/"]');
+  assert.ok(guide, 'the usage comic is reachable from the service bookshelf');
+  assert.ok(home.querySelector('.cdh-story a[href$="#homeStoryTitle"]'), 'moonlight stories opens the bookshelf');
+  const storySections = home.querySelectorAll('details.cdh-story');
+  assert.equal(storySections.length, 1);
+  assert.match(storySections[0].querySelector(':scope > summary').textContent, /달빛 이야기/);
+  assert.ok(home.querySelector('.cdh-story a[href="#homeStoryTitle"] img[width][height]'));
   for (const href of ['/codedestiny-novel.html', '/music/']) {
     assert.ok(home.querySelector(`.cdh-story a[href="${href}"]`), href);
   }

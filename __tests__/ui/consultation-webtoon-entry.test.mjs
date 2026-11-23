@@ -26,14 +26,15 @@ test('all 13 stories retain an existing service, art, three benefits and a dedic
       for(const w of cut.widths)assert.ok(existsSync('public'+cut.src+'-'+w+'.avif'),cut.src+' '+w);
     }
     assert.ok(existsSync('public/images/consultation-webtoons/covers/'+id+'.webp'),id+' entry cover');
-    for (const link of dom.window.document.querySelectorAll('a[href="/consultations/'+id+'/"]')) {
-      assert.ok(link.matches('.cd-picker-card > .cd-picker-story'), id);
-      assert.equal(link.previousElementSibling.getAttribute('href'), service.href, id);
+    const storyHref = id === 'heukwol' ? '/heukwol/#heukwol-story' : '/consultations/' + id + '/#story';
+    assert.ok(dom.window.document.querySelector('.yh-library a[href="' + storyHref + '"]'), id + ' shelf entry');
+    for (const link of dom.window.document.querySelectorAll('.cd-picker-story[href="' + storyHref + '"]')) {
+      assert.ok(link.closest('.cd-picker-card'), id);
+      assert.equal(link.closest('.cd-picker-card').querySelector('.cd-picker-main').getAttribute('href'), service.href, id);
     }
   }
-  assert.equal(dom.window.document.querySelectorAll('[data-picker-groups~="love"] .cd-picker-story').length >= 3, true);
-  assert.ok(dom.window.document.querySelector('a[href="/#homeStoryTitle"]'));
-  assert.equal(dom.window.document.querySelectorAll('#cdSigGrid .cd-picker-main[data-cd-service-id][data-cd-popup-copy]').length,6);
+  assert.ok(dom.window.document.querySelector('a[href="/ggulggul/#homeStoryTitle"]'));
+  assert.equal(dom.window.document.querySelectorAll('#cdSignatureConsult .cd-picker-main[data-cd-service-id][data-cd-popup-copy]').length,8);
   assert.equal(dom.window.document.querySelectorAll('a a').length,0);
   dom.window.close();
 });

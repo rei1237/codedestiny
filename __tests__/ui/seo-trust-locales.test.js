@@ -85,7 +85,20 @@ test("only completed public locales are eligible for SEO discovery", async () =>
 
 test("traditional-Chinese indexed hubs carry native explanatory copy", async () => {
   const source = fs.readFileSync(path.join(root, "lib/seo/i18nKeywords.ts"), "utf8");
-  assert.match(source, /TRADITIONAL_READING_CONTEXT/);
-  assert.doesNotMatch(source.match(/TRADITIONAL_READING_CONTEXT\s*=\s*"([^"]+)"/)?.[1] || "", /[가-힣]/);
-  assert.match(source, /traditional\.faq\.push/);
+  const ts = require("typescript");
+  const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext } }).outputText;
+  const { I18N_SEO_PAGES } = await import("data:text/javascript;base64," + Buffer.from(js).toString("base64"));
+  const { BRAND_FACTS } = await import("../../lib/brand/brand-facts.mjs");
+  const brandNames = [BRAND_FACTS.service.name, ...BRAND_FACTS.service.alternateNames];
+  const questions = new Set();
+  for (const translations of Object.values(I18N_SEO_PAGES)) {
+    const page = translations["zh-TW"];
+    const { question, answer } = page.faq.at(-1);
+    for (const value of [page.intro, question, answer]) {
+      assert.match(value, /[\u4e00-\u9fff]/);
+      assert.doesNotMatch(brandNames.reduce((text, name) => text.replaceAll(name, ""), value), /[가-힣]/);
+    }
+    questions.add(question);
+  }
+  assert.equal(questions.size, Object.keys(I18N_SEO_PAGES).length, "each indexed hub answers a topic-specific question");
 });

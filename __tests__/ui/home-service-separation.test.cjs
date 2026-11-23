@@ -7,12 +7,13 @@ const doc = new JSDOM(fs.readFileSync('index.html', 'utf8'), {virtualConsole: ne
 test('service chooser retains two real doors without service-home or affiliate content', () => {
   assert.match(source, /href: service.appEntryPath/);
   assert.match(source, /href: YEONGNYANGI.path/);
-  assert.match(source, /root-card-\$\{card.art\}-360/);
+  assert.ok(source.includes('root-card-${card.art}'));
+  assert.ok(source.includes('${art}-360.webp'));
   assert.match(source, /<LegacyHomeEntry\s*\/>/);
   assert.doesNotMatch(source, /RecommendationFooter|<HomeMusicVideo|<YehwaHome|<ConsultationDiscovery|styles.bottomNav|buildFaqPageJsonLd/);
 });
 test('service home owns discovery, passes, saved results, help and the open film in order', () => {
-  const selectors = ['.yh-hero','.yh-concerns','.yh-results','.yh-links','#cdhPass','.cd-help-entry','#cdhMoonlightMv'];
+  const selectors = ['.yh-hero','.yh-finder','.yh-featured-grid','.yh-more-consults','.yh-story-entry','.yh-library','#cdhPass','.cd-help-entry','#cdhMoonlightMv'];
   const nodes = selectors.map(selector => {
     assert.equal(doc.querySelectorAll(selector).length, 1, selector);
     return doc.querySelector(selector);
@@ -20,8 +21,8 @@ test('service home owns discovery, passes, saved results, help and the open film
   nodes.slice(1).forEach((node, i) => assert.ok(nodes[i].compareDocumentPosition(node) & 4, selectors[i+1]));
   assert.equal(doc.querySelector('#cdhMoonlightMv').closest('details'), null);
   assert.equal(doc.querySelector('#cdhMoonlightMv video').autoplay, false);
-  for (const group of doc.querySelectorAll('[data-yh-group]')) assert.ok(group.querySelectorAll('.yh-card').length <= 3);
-  for (const href of ['/records/','/yeongnyangi/library/']) assert.ok(doc.querySelector(`.yh-links a[href="${href}"]`));
+  assert.equal(doc.querySelectorAll('.yh-featured-grid > article').length, 4);
+  for (const href of ['/records/','/yeongnyangi/library/']) assert.ok(doc.querySelector(`#myGardenRecords a[href="${href}"]`));
   assert.ok(doc.querySelector('#cdAllFortunesSearch'));
   assert.ok(doc.querySelector('[data-yh-guide] img[data-yh-portrait-src="/assets/yeoni/atelier/talking-pig.webp"]:not([src])'));
 });

@@ -8,7 +8,12 @@
 .yh-home :where(button,a,summary):focus-visible{outline:3px solid var(--cd-focus-ring);outline-offset:4px}
 .yh-home button{min-height:44px;border:1px solid var(--cd-line);border-radius:var(--cd-r-control);background:var(--cd-surface);padding:8px 16px}
 .yh-home button:disabled{opacity:.55;cursor:default}
-.yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-1280.webp");display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;gap:24px;padding:32px 40px;min-height:280px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 50%,transparent);border-radius:var(--cd-r-section);background:linear-gradient(90deg,var(--cd-surface) 0%,color-mix(in srgb,var(--cd-surface) 94%,transparent) 35%,transparent 75%),var(--yh-garden) center 24%/cover no-repeat;box-shadow:inset 0 0 0 6px var(--cd-bg)}
+.yh-hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;gap:24px;padding:32px 40px;min-height:280px;border:1px solid color-mix(in srgb,var(--cd-yehwa-line) 50%,transparent);border-radius:var(--cd-r-section);--yh-shade:linear-gradient(90deg,var(--cd-surface) 0%,color-mix(in srgb,var(--cd-surface) 94%,transparent) 35%,transparent 75%);background:var(--cd-surface);box-shadow:inset 0 0 0 6px var(--cd-bg)}
+.yh-garden-picture,.yh-garden-picture::after{position:absolute;inset:0;pointer-events:none;border-radius:inherit}
+.yh-garden-picture{z-index:-1;overflow:hidden}
+.yh-garden-picture img[width][height]{display:block;width:100%;height:100%;object-fit:cover;object-position:center 24%}
+.yh-garden-picture::after{content:"";background:var(--yh-shade);box-shadow:inset 0 0 0 5px color-mix(in srgb,var(--cd-surface) 75%,transparent)}
+@media(max-width:699px){.yh-garden-picture img[width][height]{object-position:72% center}}
 .yh-greeting{min-width:0;text-align:start}
 .yh-greeting h1{font-size:clamp(1.625rem,3.7vw,2.75rem);font-weight:400;line-height:1.32;letter-spacing:-.01em;text-wrap:initial;color:var(--cd-text)}
 .yh-greeting h1 span{font-family:inherit;font-weight:inherit}
@@ -111,7 +116,6 @@ html:not([lang="ko"]) .yh-situations{display:none}
 .yh-home .yh-guide-open{display:block;padding:0;min-height:44px;margin-top:8px;border:0;background:transparent;text-decoration:underline;text-underline-offset:5px;font-size:14px;color:var(--cd-accent)}
 .yh-art{position:relative;width:100%;max-width:270px;justify-self:center;align-self:center;isolation:isolate}
 .yh-art img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain}
-html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-night-1280.webp")}
 .yh-concerns{padding-top:20px;scroll-margin-top:20px}
 .yh-concerns::before{content:"";display:block;width:min(80%,540px);height:28px;margin:0 auto 20px;background:var(--cd-yehwa-line-deep);opacity:.5;mask:var(--cd-yehwa-mask-branch-h) center/contain no-repeat}
 .yh-home h2{font-size:22px;line-height:1.5}
@@ -155,7 +159,7 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 [data-yh-highlight]{outline:2px solid var(--cd-yehwa-line);outline-offset:6px;border-radius:16px}
 @media(hover:hover){.yh-card:hover,.yh-choices button:hover{border-color:var(--cd-accent)}.yh-home a:hover{text-decoration:underline;text-underline-offset:4px}}
 @media(max-width:900px){.yh-card-list{grid-template-columns:1fr}.yh-card>img{width:72px;height:72px}.yh-card-foot{justify-items:stretch}}
-@media(max-width:600px){.yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-garden-640.webp")}.yh-home .yh-guide-open{font-size:13px;text-align:left}.yh-home h2{font-size:20px}.yh-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.yh-choices button{justify-content:flex-start;padding-inline:16px;font-size:15px}.yh-card-list{gap:12px}.yh-home .yh-card{padding:16px;gap:12px}.yh-guide{grid-template-columns:64px minmax(0,1fr);gap:10px;padding:12px}.yh-portrait{width:64px}.yh-guide-head{gap:6px}.yh-guide-actions button{padding-inline:10px}.yh-speech p{font-size:15px}}
+@media(max-width:600px){.yh-home .yh-guide-open{font-size:13px;text-align:left}.yh-home h2{font-size:20px}.yh-choices{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.yh-choices button{justify-content:flex-start;padding-inline:16px;font-size:15px}.yh-card-list{gap:12px}.yh-home .yh-card{padding:16px;gap:12px}.yh-guide{grid-template-columns:64px minmax(0,1fr);gap:10px;padding:12px}.yh-portrait{width:64px}.yh-guide-head{gap:6px}.yh-guide-actions button{padding-inline:10px}.yh-speech p{font-size:15px}}
 
 .yh-story-option{min-width:0;display:flex;flex-direction:column}.yh-story-option>.yh-card{flex:1}.yh-story-option>.yh-card:hover{text-decoration:none}.yh-story-option>.yh-card:is(:hover,:focus-visible) .yh-card-foot>span:last-child{text-decoration:underline;text-underline-offset:3px}.yh-home .yh-story-link{display:flex;align-items:center;justify-content:center;gap:12px;min-height:48px;font-size:14px;font-weight:700;text-underline-offset:5px;color:var(--cd-accent)}
 
@@ -188,7 +192,7 @@ html.neo-mode .yh-hero{--yh-garden:url("/images/home/illustrated/yeoni-moon-gard
 
 @media(max-width:699px){
  /* Keep the approved mobile composition fluid for translated or enlarged text. */
- .yh-entry-scene{grid-template-columns:minmax(0,1fr);gap:8px;min-height:0;padding:26px 24px 14px;border-color:color-mix(in srgb,var(--cd-yehwa-line) 72%,transparent);background:linear-gradient(90deg,color-mix(in srgb,var(--cd-bg) 76%,transparent),color-mix(in srgb,var(--cd-bg) 24%,transparent) 65%,transparent),var(--yh-garden) 72% center/cover no-repeat;box-shadow:inset 0 0 0 5px color-mix(in srgb,var(--cd-bg) 76%,transparent),0 14px 28px -20px color-mix(in srgb,var(--cd-text) 35%,transparent)}
+ .yh-entry-scene{grid-template-columns:minmax(0,1fr);gap:8px;min-height:0;padding:26px 24px 14px;border-color:color-mix(in srgb,var(--cd-yehwa-line) 72%,transparent);--yh-shade:linear-gradient(90deg,color-mix(in srgb,var(--cd-bg) 76%,transparent),color-mix(in srgb,var(--cd-bg) 24%,transparent) 65%,transparent);box-shadow:inset 0 0 0 5px color-mix(in srgb,var(--cd-bg) 76%,transparent),0 14px 28px -20px color-mix(in srgb,var(--cd-text) 35%,transparent)}
  .yh-entry-scene .yh-greeting h1{font-size:1.625rem}
  .yh-entry-scene .yh-greeting p{font-size:.9375rem}
  .yh-entry-scene .yh-art{width:144px;max-width:100%;line-height:0}
@@ -289,3 +293,48 @@ html:not([lang="ko"]) .yh-supplement{display:none}
 @media(max-width:699px){.yh-compare__grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:no-preference){.yh-trustbar__item{animation:yhTrustIn 480ms ease both}.yh-trustbar__item:nth-child(2){animation-delay:60ms}.yh-trustbar__item:nth-child(3){animation-delay:120ms}.yh-trustbar__item:nth-child(4){animation-delay:180ms}@keyframes yhTrustIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}
 html:not([lang="ko"]) .yh-trustbar,html:not([lang="ko"]) .yh-compare{display:none}
+
+/* The welcome portrait and its registered face share one fixed canvas. */
+.yh-character { display:grid; justify-items:center; gap:8px; min-width:0; }
+.yh-portrait-stage { height:clamp(136px,19vw,220px); width:100%; display:grid; place-items:center; }
+.yh-character-art { height:100%; max-width:100%; position:relative; aspect-ratio:1; }
+.yh-character-art[data-form="human"] { aspect-ratio:5/6; }
+.yh-character-art img { display:block; width:100%; height:100%; }
+.yh-character-art [data-face] { position:absolute; pointer-events:none; background-repeat:no-repeat; }
+.yh-motion-setting { min-height:44px; display:inline-flex; align-items:center; justify-content:center; }
+.yh-finder button,.yh-finder input { font:inherit; color:var(--cd-text); background:var(--cd-surface); border:1px solid var(--cd-border); border-radius:14px; padding:6px 12px; }
+.yh-finder,.yh-library,.yh-return { color:var(--cd-text); background:var(--cd-surface); padding:clamp(16px,3vw,32px); border-radius:24px; border:1px solid var(--cd-border); }
+.yh-finder h2,.yh-library h2 { margin:0 0 12px; scroll-margin-top:5rem; }
+.yh-finder form>div { display:flex; gap:8px; margin:6px 0; }
+.yh-finder input { min-width:0; flex:1; min-height:48px; font-size:16px; }
+.yh-finder button,.yh-return a,.yh-library a,.yh-library summary,.yh-return summary,.yh-more-consults summary { min-height:48px; }
+.yh-finder nav,.yh-serial nav,.yh-return nav { display:flex; flex-wrap:wrap; gap:6px; }
+.yh-finder a,.yh-library a,.yh-return a { display:inline-flex; align-items:center; color:inherit; text-underline-offset:4px; }
+.yh-finder a { min-height:48px; }
+.yh-featured-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr)); gap:16px; align-items:start; }
+.yh-featured-grid .cd-picker-card { width:100%; margin:0; }
+.yh-featured-grid .cd-picker-main { display:flex; flex-direction:column; align-items:stretch; }
+.yh-featured-grid .cd-picker-main>img { display:block; width:100%; height:auto; aspect-ratio:3/2; object-fit:cover; }
+.yh-featured-grid .cd-picker-copy { text-align:start; font-size:16px; }
+.yh-library { margin-block:24px; text-align:start; }
+.yh-serial { display:grid; grid-template-columns:minmax(85px,.64fr) 2fr; gap:clamp(12px,3vw,28px); align-items:center; }
+.yh-serial img { width:100%; height:auto; border-radius:16px; }
+.yh-library h3,.yh-library p { margin:6px 0; }
+.yh-library p,.yh-library li span { font-size:16px; line-height:1.6; }
+.yh-library details,.yh-more-consults { border-top:1px solid var(--cd-border); margin-top:16px; }
+.yh-library summary,.yh-return summary,.yh-more-consults summary { cursor:pointer; padding-block:12px; }
+.yh-library details>a,.yh-return a,.yh-serial nav>a { padding-inline:7px; }
+.yh-library ul { display:grid; gap:8px; list-style:none; padding:0; }
+.yh-library li a { display:grid; justify-items:start; gap:3px; }
+.yh-library [hidden],.yh-character-art [hidden] { display:none; }
+.yh-home :is(a,button,input,summary):focus-visible { outline:3px solid var(--cd-text); outline-offset:3px; }
+@media(min-width:800px) { .yh-featured-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .yh-entry-scene { padding:16px; gap:10px; } .yh-entry-scene .yh-greeting p { font-size:16px; } .yh-entry-scene .yh-greeting h1 { font-size:clamp(24px,5vw,30px); } }
+
+/* Pair the ink and surface explicitly, including visited links in the legacy shell. */
+html body .yh-greeting a.yh-finder-cta,
+html body .yh-greeting a.yh-finder-cta:visited {
+  background:var(--cd-cta-primary-bg,#401428);
+  color:var(--cd-cta-primary-ink,#fffaf2) !important;
+}
+.yh-greeting .yh-finder-cta span { color:inherit; }
