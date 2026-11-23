@@ -65,7 +65,7 @@ export default function DiaryMoreView() {
           </h2>
         </div>
         <ul className={styles.moreList}>
-          {copy.items.filter(item => group.keys.includes(item.key)).map((item) => (
+          {copy.items.filter(item => group.keys.some(key => key === item.key)).map((item) => (
             <li key={item.key} className={styles.moreItem}>
               <button
                 type="button"
