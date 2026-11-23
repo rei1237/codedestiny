@@ -1,4 +1,6 @@
 "use client";
+import {hasPlayingSoundtrack,registerSoundtrack} from '@/lib/soundtrack-session';
+import MasterRoomScene from '@/app/components/expert-consulting/MasterRoomScene';
 import {readGuideQuestion} from "@/lib/fortune/guide-handoff";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
@@ -79,8 +81,6 @@ import {
   getNeoFeatureTitle,
   getNeoFormCopy,
   getNeoIntensityText,
-  getNeoOperationMapStages,
-  getNeoOperationStageLabel,
   getNeoPaidGateCopy,
   getNeoQuestionHint,
   getNeoReadyPanelSummary,
@@ -227,7 +227,6 @@ const METHOD_INTRO_AUTO_ADVANCE_MS = 7200;
 const COMMAND_DIALOGUE_BASE_SPEED_MS = 28;
 const COMMAND_DIALOGUE_MAX_DURATION_MS = 2800;
 const NEO_PREVIEW_MODES = new Set<NeoPreviewMode>(["loading", "briefing", "reality", "refined"]);
-const NEO_LOADING_SEAL_SRC = "/neo-operation-room/lion-seal-loading.webp";
 
 const NEO_INTRO_PORTRAIT = neoWarRoomAssets.hero.portrait;
 const NEO_PROLOGUE_SHADOW = neoWarRoomAssets.hero.blackShadow;
@@ -1179,7 +1178,6 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
     () => intensityOptions.map((item) => ({ ...item, ...getNeoIntensityText(item.id, dialogueLocale) })),
     [dialogueLocale],
   );
-  const localizedOperationMapStages = useMemo(() => getNeoOperationMapStages(dialogueLocale), [dialogueLocale]);
   const selectedIntensity = localizedIntensityOptions.find((item) => item.id === intensity) ?? null;
   const trimmedQuestion = question.trim();
   const questionReady = trimmedQuestion.length >= NEO_WAR_ROOM_MIN_QUESTION_LENGTH;
@@ -1215,31 +1213,11 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
   const previewOperationMap = localPreviewMode === "loading";
   const showOperationMap = busy || flowPhase === "completed" || previewOperationMap;
   const showOperationMapActor = busy || previewOperationMap;
-  const cappedOperationStageIndex = Math.min(operationStageIndex, operationMapStages.length - 1);
-  const operationStageText =
-    previewOperationMap
-      ? localizedOperationMapStages[cappedOperationStageIndex]
-      : refining
-      ? formCopy["operationMap.refiningStage"]
-      : flowPhase === "checking"
-      ? formCopy["operationMap.checkingStage"]
-      : flowPhase === "payment"
-        ? formCopy["operationMap.paymentStage"]
-        : flowPhase === "completed"
-          ? formCopy["operationMap.completingStage"]
-          : localizedOperationMapStages[cappedOperationStageIndex];
-  const operationProgress =
-    previewOperationMap
-      ? Math.min(92, 34 + operationStageIndex * 10)
-      : refining
-      ? 88
-      : flowPhase === "checking"
-      ? 12
-      : flowPhase === "payment"
-        ? 24
-        : flowPhase === "completed"
-          ? 100
-          : Math.min(92, 34 + operationStageIndex * 6);
+  const operationStageText = refining ? formCopy["operationMap.refiningStage"]
+    : flowPhase === "checking" ? formCopy["operationMap.checkingStage"]
+    : flowPhase === "payment" ? formCopy["operationMap.paymentStage"]
+    : flowPhase === "completed" ? formCopy["operationMap.completeLabel"]
+    : formCopy["operationMap.fallbackStatus"];
   const hasRecoveryOrder = paymentSurface === "toss" && typeof window !== "undefined" && Boolean(new URLSearchParams(window.location.search).get("orderId"));
   const priceReady = Boolean(draftOwner && tossPrice && tossPrice.owner === draftOwner && tossPrice.featureKey === FEATURE_KEY && tossPrice.sku && tossPrice.displayAmount);
   const canStart = !busy && (paymentSurface !== "toss" || hasRecoveryOrder || priceReady);
@@ -1481,6 +1459,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
 
   useEffect(() => {
     const audio = bgmAudioRef.current;
+    const releaseSound = audio && registerSoundtrack(audio, () => setBgmEnabled(false));
     let shouldOpenPrologue = false;
     try {
       const search = new URLSearchParams(window.location.search);
@@ -1503,12 +1482,13 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
     if (audio) audio.volume = NEO_WAR_ROOM_BGM_TRACK.volume;
     try {
       const savedPreference = window.localStorage.getItem(NEO_WAR_ROOM_BGM_STORAGE_KEY);
-      if (savedPreference === "on") setBgmEnabled(true);
+      if (savedPreference === "on" && !hasPlayingSoundtrack()) setBgmEnabled(true);
     } catch {
       void 0;
     }
     setIsBgmPreferenceReady(true);
     return () => {
+      releaseSound?.();
       if (audio) audio.pause();
     };
   }, [paymentSurface]);
@@ -2356,8 +2336,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
 
       {!showOperationMap && !displayBriefing && !displayRefinedOrder && <section className={styles.consultationValue} aria-label={welcome.results}>
         <div className={styles.consultationValueIntro}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/feature-details/neo-operation-room-hero-v1.webp" srcSet="/images/feature-details/neo-operation-room-hero-v1-480.webp 480w, /images/feature-details/neo-operation-room-hero-v1-960.webp 960w, /images/feature-details/neo-operation-room-hero-v1.webp 1680w" sizes="(max-width: 720px) 100vw, 960px" alt="" width={1680} height={945} loading="lazy" fetchPriority="low" decoding="async" />
+          <MasterRoomScene master="neo" shot="intro"/>
           <div><h2>{welcome.results}</h2><p>{welcome.lead}</p><Link href="/neo-operation-room/strategy-books/">{bookCopy.title} →</Link><p className={styles.strategyBookHint}>{bookCopy.rule}</p></div>
         </div>
         <ExpertValueCards theme="neo" points={welcome.points} />
@@ -2371,66 +2350,14 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
           data-phase={flowPhase}
           aria-labelledby="neo-operation-map-title"
           aria-live="polite"
-          style={{ "--operation-progress": `${operationProgress}%` } as CSSProperties}
         >
           <div className={styles.operationMapHeader}>
             <span>{formCopy["operationMap.title"]}</span>
             <h2 id="neo-operation-map-title">{operationStageText}</h2>
-            <p>{statusMessage || formCopy["operationMap.fallbackStatus"]}</p>
+            {statusMessage && statusMessage !== operationStageText && <p>{statusMessage}</p>}
           </div>
 
-          <div className={styles.operationMapBody}>
-            <div className={styles.operationMapVisual} data-sprite={showOperationMapActor && !isSpriteMobile ? "true" : "false"} aria-hidden="true">
-              <div className={styles.operationMapRoom}>
-                <span className={styles.mapOrbit} />
-                <span className={styles.mapLineOne} />
-                <span className={styles.mapLineTwo} />
-                <span className={styles.mapNodeOne} />
-                <span className={styles.mapNodeTwo} />
-                <span className={styles.mapNodeThree} />
-                <span className={styles.mapNodeFour} />
-              </div>
-              <div className={styles.operationSeal} data-complete={flowPhase === "completed" ? "true" : "false"}>
-                <NeoWarRoomAssetImage
-                  src={NEO_LOADING_SEAL_SRC}
-                  alt=""
-                  sizes="116px"
-                  className={styles.operationSealImage}
-                  imageClassName={styles.loadingSealImage}
-                />
-              </div>
-            </div>
-
-            <div className={styles.operationMapStatus}>
-              <div className={styles.operationLoadingDialogue} aria-live="polite">
-                <span>NEO</span>
-                <p>{flowPhase === "completed" ? formCopy["operationMap.stageCompleteLine"] : operationStageText}</p>
-              </div>
-              <div className={styles.operationProgressBox}>
-                <div className={styles.operationProgressMeta}>
-                  <span>
-                    {flowPhase === "completed"
-                      ? formCopy["operationMap.completeLabel"]
-                      : getNeoOperationStageLabel(Math.min(operationStageIndex + 1, operationMapStages.length), operationMapStages.length, dialogueLocale)}
-                  </span>
-                  <strong>{operationProgress}%</strong>
-                </div>
-                <div className={styles.operationProgressTrack}>
-                  <span />
-                </div>
-                <ul className={styles.operationStageList}>
-                  {localizedOperationMapStages.map((stage, index) => (
-                    <li
-                      key={stage}
-                      data-active={flowPhase === "completed" || index <= operationStageIndex ? "true" : "false"}
-                    >
-                      {stage}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
+          <MasterRoomScene master="neo" still={!previewOperationMap && flowPhase !== "generating"}/>
         </section>
       ) : null}
 

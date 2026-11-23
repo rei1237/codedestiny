@@ -1,5 +1,6 @@
 "use client";
 
+import MasterRoomScene from '@/app/components/expert-consulting/MasterRoomScene';
 import ConsultationMasterIntro from "@/app/components/ConsultationMasterIntro";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -1281,6 +1282,7 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
           stageLabel={progress.stageLabel || copy.loaderStageDefault}
           detail={progress.currentChapterTitle || copy.loaderDetailDefault}
         >
+          <MasterRoomScene master="karma"/>
           <StarChain
             total={Number(progress.totalChapters || 15)}
             filled={Number(progress.completedChapters || 0)}

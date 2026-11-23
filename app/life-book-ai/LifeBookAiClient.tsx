@@ -2087,6 +2087,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
             {isBusy && (
               <GenerationProgress
                 persona="neo"
+                roomMaster={status === "generating" ? "yun" : undefined}
                 counselor={{ src: masterProfiles.yunLifeBook.portrait, srcSet: masterProfiles.yunLifeBook.portraitSrcSet }}
                 title={copy.writingHeading}
                 description={copy.writingDescription}

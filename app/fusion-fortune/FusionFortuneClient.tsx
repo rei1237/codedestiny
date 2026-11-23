@@ -1,4 +1,5 @@
 "use client";
+import MasterRoomScene from '@/app/components/expert-consulting/MasterRoomScene';
 import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
 import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
@@ -3064,9 +3065,9 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
         </div>
       </header>
 
-      {!exporting && loading && <div className="mx-4 my-5 flex items-center gap-4 rounded-[var(--cd-r-section)] border border-white/20 p-4 sm:mx-9" role="status">
-        <PaymentPigVisual tone="pass" className="!m-0 !h-24 !w-24 shrink-0" />
-        <div><p className="font-display text-[var(--fx-ink-1)]">{getCurrentLoadingLocale() === "ko" ? "연이가 질문에 맞춰 상담을 준비하고 있어요." : copy.buttonLoadingLabel}</p>
+      {!exporting && loading && <div className="mx-4 my-5 grid gap-4 rounded-[var(--cd-r-section)] border border-white/20 p-4 sm:mx-9">
+        <MasterRoomScene master="fusion"/>
+        <div><p className="font-display text-[var(--fx-ink-1)]">{getCurrentLoadingLocale() === "ko" ? "질문에 맞춰 상담서를 준비하고 있어요." : copy.buttonLoadingLabel}</p>
         <p className="mt-2 text-sm text-[var(--fx-ink-2)]">{completedStageCount} / 6 · {getCurrentLoadingLocale() === "ko" ? "완료한 해석부터 아래에서 읽을 수 있어요." : copy.stageDefaultProgressMessage}</p></div>
       </div>}
       {!exporting && (loading || stageTwoFailed) && <FusionConvergence stageStates={stageStates} result={result} loading={loading} composeProgress={composeProgress} />}

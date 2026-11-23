@@ -5,6 +5,7 @@ import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {consultationLocaleCopy,localizedSystem} from '../_lib/consultation-locale-copy';
 import {productOffers,productArtwork} from '../_lib/product-offers';
+import YeongnyangiRoomScene from './YeongnyangiRoomScene';
 import ProductGuide from './ProductGuide';
 import styles from '../readings/[domain]/page.module.css';
 
@@ -19,7 +20,7 @@ export default function LocalizedGuideScreen({children,domain}:{children:ReactNo
   <p>{copy.about}</p><p>{copy.pitch}</p><p>{copy.languageHint}</p>
   {domains.map(item=><section key={item}>
    {!domain&&<h2>{localizedSystem(item,siteLocale)}</h2>}
-   <Image className={styles.art} src={productArtwork(item)} width={960} height={640} alt={localizedSystem(item,siteLocale)} priority={item===domains[0]}/>
+   {domain ? <YeongnyangiRoomScene domain={domain} shot="intro"/> : <Image className={styles.art} src={productArtwork(item)} width={960} height={640} alt={localizedSystem(item,siteLocale)} priority={item===domains[0]}/>}
    <ProductGuide domain={item} offers={productOffers[item]} surface="product_page"/>
   </section>)}
  </article>;

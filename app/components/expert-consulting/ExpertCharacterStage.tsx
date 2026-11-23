@@ -1,5 +1,6 @@
 "use client";
 
+import MasterRoomScene from "./MasterRoomScene";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -110,7 +111,7 @@ export default function ExpertCharacterStage({
       data-aspect={spriteAspect ? "custom" : undefined}
       data-master-motion={masterMotion ? "ggulggul" : undefined}
     >
-      <div className={styles.frame} style={{ aspectRatio: spriteAspect ?? config.spriteAspect }}>
+      {placement === "loading" && character !== "yeoni" ? <MasterRoomScene master={character}/> : <div className={styles.frame} style={{ aspectRatio: spriteAspect ?? config.spriteAspect }}>
         <Image
           key={sprite.src}
           className={styles.sprite}
@@ -139,7 +140,7 @@ export default function ExpertCharacterStage({
             ))
           : null}
         {masterMotion && gate.canAnimate ? <MasterPetals density={placement === "inline" ? "sm" : "md"} /> : null}
-      </div>
+      </div>}
       {line ? (
         <figcaption className={styles.bubble} aria-live={announces ? "polite" : undefined}>
           <span className={styles.name}>{name}</span>

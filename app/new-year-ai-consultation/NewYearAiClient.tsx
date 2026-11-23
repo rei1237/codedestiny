@@ -676,7 +676,8 @@ function NewYearGenerationPanel({ count, toss }: { count: { completed: number; t
     <div data-pdf-skip="true">
       <GenerationProgress
         persona="neo"
-        counselor={{ src: masterProfiles.neoNewYear.portrait, srcSet: masterProfiles.neoNewYear.portraitSrcSet }}
+        roomMaster="neo"
+                counselor={{ src: masterProfiles.neoNewYear.portrait, srcSet: masterProfiles.neoNewYear.portraitSrcSet }}
         title="네오가 새해 상담문을 쓰고 있어요"
         description={`${count?.total || READING_SECTION_TOTAL}개 분야를 나눠 쓰고, 다 쓴 분야부터 저장해요.`}
         status="분야별 상담문을 쓰고 있어요"

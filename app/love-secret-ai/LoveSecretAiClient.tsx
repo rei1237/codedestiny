@@ -2411,7 +2411,8 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
               {busy ? (
                 <GenerationProgress
                   persona="yeoni"
-                  counselor={{ src: masterProfiles.yeoniLove.portrait, srcSet: masterProfiles.yeoniLove.portraitSrcSet }}
+                  roomMaster={phase === "generating" ? "love" : undefined}
+                counselor={{ src: masterProfiles.yeoniLove.portrait, srcSet: masterProfiles.yeoniLove.portraitSrcSet }}
                   title={copy.generatingCardHeading}
                   description={copy.generatingCardSubtext}
                   status={phaseText}

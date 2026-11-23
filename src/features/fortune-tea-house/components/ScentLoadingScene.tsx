@@ -8,6 +8,7 @@ import styles from "../styles/tea-brewing.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type ScentLoadingSceneProps = {
+  question?: string;
   selectedCup?: TeaHouseCup | null;
   consultationMode?: FortuneTeaHouseConsultMode;
   progress?: {
@@ -57,15 +58,16 @@ const KO = {
   retryNotice: "흐름이 끊기면 입력 화면에서 같은 질문으로 다시 시도할 수 있어요.",
 };
 
-export default function ScentLoadingScene({ selectedCup, consultationMode = "tarot", progress }: ScentLoadingSceneProps) {
+export default function ScentLoadingScene({ question, consultationMode = "tarot", progress }: ScentLoadingSceneProps) {
   const copy = useTeaHouseCopy("scentLoading", KO);
   const activeProgress = progress || { percent: 5, label: copy.progress.label, message: copy.progress.message, status: "running" };
+  const excerpt = Array.from(question?.trim() || "");
   const complete = activeProgress.status === "complete";
-  return <section className={styles.scene} aria-label={copy.sceneAria} aria-busy={!complete}>
-    <div className={styles.visual}><YeoniWaitingPortrait label={copy.yeoniAria} complete={complete} /></div>
+  return <section className={styles.scene} aria-label={copy.sceneAria}>
+    <div className={styles.visual}><YeoniWaitingPortrait label="" complete={complete} /></div>
     <div className={styles.content}>
       <h2 className={styles.title}>{copy.waitingTitle}</h2>
-      <p className={styles.intro}>{copy.introduction}</p>
+      <p className={styles.intro}>{excerpt.length ? excerpt.slice(0, 90).join("") + (excerpt.length > 90 ? "…" : "") : copy.introduction}</p>
       <div className={styles.status} role="status" aria-live="polite" aria-atomic="true">
         <h3 className={styles.statusTitle}>{complete ? <Check className={styles.statusIcon} aria-hidden /> : <Leaf className={styles.statusIcon} aria-hidden />}{activeProgress.label}</h3>
         <p>{activeProgress.message || copy.title[consultationMode]}</p>
