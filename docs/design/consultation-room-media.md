@@ -7,11 +7,12 @@
 | 꽃돼지 연이 | `/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp` | `b9bacf46-476d-44e9-b595-0bcb9bb0898d` | `/images/fortune-tea-house/renewal/yeoni-tea-loop.mp4` |
 | 영냥이 타로 | `/assets/yeongnyangi/readings/tarot-v5.webp` | `1906b75e-4a2a-4010-8623-a5bf11550468` | `/assets/yeongnyangi/readings/tarot-room.mp4` |
 | 윤달 | `/images/expert-characters/yun/hero.webp` | `e281f3df-8842-4d02-8bf2-b949d13fb28a` | `/images/consultation-rooms/yun.mp4` |
-| 무성 | `/images/expert-characters/musung/hero.webp` | `ba6db306-22e5-47b3-81f2-ec08d023efdd` | `/images/consultation-rooms/musung.mp4` |
+| 무성 | `/images/expert-characters/musung/hero.webp` | `f2ec304f-dcec-4b69-ab82-891c0c2480a7` | `/images/consultation-rooms/musung.mp4` |
 | 인간형 서한비 | `/images/expert-characters/hanbi/hero.webp` | `52f978e5-4b3f-4ffd-9ced-4f406642491c` | `/images/consultation-rooms/hanbi.mp4` |
-| 인간형 연이 | `/images/fortune-tea-house/renewal/yeoni-human-welcome.webp` | `ea0421be-a414-439d-a3d6-e0d8bf51e69b` | `/images/consultation-rooms/human.mp4` |
+| 인간형 연이 | `/images/master-profiles/yeoni-love-portrait.webp` | `984c3956-c2a3-495a-94c2-4f46ebe5ccea` | `/images/consultation-rooms/human.mp4` |
 | 인연의 서 마스터 | `/images/service-introductions/master-love-codex-960.webp` | `d4c52860-f01f-414c-9ecf-3c9b5fd27ca3` | `/images/consultation-rooms/codex.mp4` |
-| 인간형 네오 | `D:/CodeDestiny-Build/네오 인간 프로필1.png`와 동일 도안인 `/images/consultation-webtoons/heukwol/portraits/neo.webp` (얼굴), `/images/service-introductions/neo-operation-room-960.webp` (의상) | `64d1df50-a729-478b-a8a4-208e41045398` | `/images/consultation-rooms/neo.mp4` |
+| 네오 팩폭 전략실 | `D:/CodeDestiny-Build/네오 인간 프로필1.png`와 동일 도안인 `/images/consultation-webtoons/heukwol/portraits/neo.webp` (얼굴), `/images/service-introductions/neo-operation-room-960.webp` (의상) | `64d1df50-a729-478b-a8a4-208e41045398` | `/images/consultation-rooms/neo.mp4` |
+| 네오 작전 결정서 | 같은 인간형 네오 프로필·전략실 의상, 밝은 창가 장면 | `584f32c9-1f2f-4979-9a8b-22ac7001e185` | `/images/consultation-rooms/neo-decision.mp4` |
 | 영냥이 saju | `/assets/yeongnyangi/readings/saju-v5.webp` | `3b986404-e80c-4872-a1cf-1341c1812c86` | `/assets/yeongnyangi/readings/saju-room.mp4` |
 | 영냥이 ziwei | `/assets/yeongnyangi/readings/ziwei-v5.webp` | `9d9db704-a5cd-4694-b71e-be3e0634d31c` | `/assets/yeongnyangi/readings/ziwei-room.mp4` |
 | 영냥이 vedic | `/assets/yeongnyangi/readings/vedic-v5.webp` | `e5baf4a1-2656-471c-ba48-b500c044799c` | `/assets/yeongnyangi/readings/vedic-room.mp4` |
@@ -19,7 +20,7 @@
 | 영냥이 sukuyo | `/assets/yeongnyangi/readings/sukuyo-v5.webp` | `c9a50143-8879-4361-a20c-a964576d1e2a` | `/assets/yeongnyangi/readings/sukuyo-room.mp4` |
 | 영냥이 fusion | `/assets/yeongnyangi/readings/fusion-v5.webp` | `5dafae7d-b80d-453b-ab70-33d75d4d2d53` | `/assets/yeongnyangi/readings/fusion-room.mp4` |
 
-초융합에서는 네오·인간형 연이·인간형 서한비·윤달·무성 순으로 각 클립의 첫 3초를 사용한다. 흑월에서는 네오·인간형 연이의 단독 클립을 사용한다. 각 인물의 등장은 서버 진행 표시와 독립적이다. 웹 영상은 H.264, 오디오 스트림 없음, fast-start MP4다. 포스터는 영상 첫 프레임에서 추출했다. 원본 생성 결과는 위 작업 ID로 조회한다.
+초융합은 네오·한복 연이·인간형 서한비·윤달·무성 순으로 이어진다. 흑월은 네오와 연이, 인연 상담은 네오와 서한비, 연애 비책은 연이와 서한비가 등장한다. 각 전환은 24fps에서 90프레임이며 단독 화면에서 두 인물이 함께 보이는 구도를 거쳐 다음 단독 화면으로 이동한다. 두 명이 나오는 상품은 인물의 좌우 위치를 유지한다. 각 인물의 등장은 서버 진행 표시와 독립적이다. 웹 영상은 H.264, 오디오 스트림 없음, fast-start MP4다. 포스터는 영상 첫 프레임에서 추출했다. 원본 생성 결과는 위 작업 ID로 조회한다.
 
 ## 프롬프트
 
@@ -41,7 +42,7 @@ Use the supplied approved existing consultation artwork as the entire identity a
 
 ### 무성
 
-Use the supplied approved existing consultation artwork as the entire identity and setting reference. Locked camera, preserve the exact long dark hair, violet eyes, robes, posture and luminous star chart. One gentle blink and a slight glance at the chart. Return to the initial pose. Quiet repeatable motion, keep proportions and facial landmarks. No text, no generated audio, no additional limbs, no zoom or cuts.
+An assured, charismatic Musung welcomes a guest in an illuminated celestial library. The single adult human character is exactly the attached Korean fantasy illustration: same long dark plum hair, violet eyes, gold embroidery on black layered robes, violet neck jewel and fine linework. Medium shot at eye level, shoulders comfortably open and balanced, straight relaxed posture, chin level. His face clearly lit by soft warm light reflected from the golden astrolabe and gentle violet rim light, with visible eye highlights. Start with a composed gaze at the guest; he gently guides a single star point into place with a small measured gesture, raises his eyes back to the viewer, and a restrained, confident half smile reaches his eyes. Grounded, friendly authority, no scowl, no downcast slouch, no theatrical swagger. Elegant precisely drawn hands, same facial proportions throughout, long hair moves lightly then settles. Stable luminous star charts and a warm book-lined hall. Quiet eight-second loop ending near its opening pose; locked camera, no cuts, text, voices, music, or logos.
 
 ### 인간형 서한비
 
@@ -49,7 +50,7 @@ Keep the exact human woman Seo Hanbi, long dark hair, face, embroidered dark han
 
 ### 인간형 연이
 
-Preserve the existing human woman Yeoni, every detail of her face, hairstyle, flowers, clothing and tea room. She gives a small nod and settles. Use the reference composition exactly. Locked camera. Very subtle motion. Return gently to the initial pose. No written text or audio.
+Single eight-second locked medium shot, elegant hand-painted Korean fantasy consultation scene in a sunlit wooden hanok tea room. Use the attached approved HUMAN Yeoni as the exact identity and wardrobe reference: long wavy dusty rose hair, side part, delicate gold and pearl floral hair ornament behind her left ear, warm brown eyes, ivory floral-embroidered hanbok jeogori, rose ribbon and muted rose chima. Keep her distinctive features and illustrated finish. Compose waist up centered with comfortable headroom, both hands and small celadon teacup fully visible. She is listening to a guest: her eyes gently lift from the cup, she blinks once, and a small genuine smile develops subtly across eyes and lips, then she settles into her beginning pose. Soft natural breathing and a few loose strands settling; hands stay supporting the cup on the table, stable anatomically correct fingers. No pouring or talking. Warm afternoon light, restrained contrast, calm polished animation without poses snapping. Same camera, framing, lighting and posture at both ends, seamless loop. No text, logos, audio, animals or transformation.
 
 ### 인연의 서 마스터
 
