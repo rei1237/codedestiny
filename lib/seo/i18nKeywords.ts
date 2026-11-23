@@ -809,12 +809,36 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
 };
 
 // 번체 공개 경로는 새 URL을 늘리지 않고, 기존 허브에서 읽을 수 있는 설명을 보강한다.
-const TRADITIONAL_READING_CONTEXT = "閱讀時請先確認頁面要求的出生資料、日期與曆法設定，並保留不知道的部分。命理用語不是對人格或未來的定論；更適合把它視為觀察重複模式、整理下一次對話或小行動的參考。若解讀與實際的健康、法律、財務條件或他人的明確意願不同，應以可確認的現實資訊為先。";
-for (const page of Object.values(I18N_SEO_PAGES)) {
+// Each topic answers its own next question instead of repeating a disclaimer
+// in every introduction and FAQ. The existing page disclaimers remain intact.
+const TRADITIONAL_TOPIC_CONTEXT = {
+  home: {
+    intro: "若還不確定從哪裡開始，先把問題分成兩類：想認識長期行為模式，可閱讀八字或命盤介紹；想整理當下的一個選擇，可先看塔羅的提問方式。不要把不同體系的結果相加成總分，也不必為了尋找喜歡的答案反覆更換出生資料。先選一個問題，再核對服務頁列出的輸入與解讀範圍。",
+    question: "第一次使用，要先選命盤還是塔羅？",
+    answer: "想了解出生資料對應的結構，可先閱讀八字、紫微或占星介紹；想整理具體選擇，則先把問題寫清楚再選塔羅。不知道出生時間時，先閱讀該工具的限制，不要填入猜測的時間。",
+  },
+  ziwei: {
+    intro: "例如想了解工作，不是找到官祿宮就直接判斷職業，而是先記下該宮的星曜，再分清命宮所談的整體傾向與官祿宮所談的工作主題。財帛宮也不是收入預測表。出生時辰或曆法有疑問時，應先核對輸入，再比較宮位；不要用想要的解釋反推一個出生時間。",
+    question: "命宮與官祿宮的解讀不同，該相信哪一個？",
+    answer: "兩者回答不同問題。命宮是整體性格主題的起點，官祿宮聚焦工作與活動。先把各宮的星曜與問題分開記錄，再對照實際經驗；不要把其中一宮的說法當成整張命盤的結論。",
+  },
+  sukuyo: {
+    intro: "例如兩人同屬榮親關係，仍要分清誰從哪個方向閱讀「榮」與「親」，不能只留下關係名稱。近距離、遠距離是宿位排列的分類，不是居住距離，也不是感情強度。若兩個網站給出不同本命宿，先記錄出生時間、時區及日期表或天文計算方式，再比較結果，不要先判定哪個關係較好。",
+    question: "宿曜的近距離與遠距離，是指兩人住得多遠嗎？",
+    answer: "不是。這是27宿排列中關係位置的分類，不是地理距離、聯絡頻率或感情濃度。閱讀時保留雙方本命宿、關係方向與角色，再用實際互動確認有沒有需要討論的問題。",
+  },
+  today: {
+    intro: "閱讀每日內容時，先確認頁面上的日期與自己選擇的生肖或星座。這類共同主題與完整出生資料的個人命盤不同，同一分類的人可能看到相同文字。若一段話提醒你留意溝通，可把它化成今天要確認的約定，而不是預期某件事一定發生；需要安排明天的行程時，請改看明日頁面的日期。",
+    question: "生肖或星座的今日運勢，是我的完整個人命盤嗎？",
+    answer: "不是。每日生肖或星座內容面向同一分類的讀者，不能替代完整出生資料的個人分析。請先核對日期，再挑一項能在今天實行的提醒；不要把共同文字當成對個人事件的預測。",
+  },
+};
+for (const [topic, page] of Object.entries(I18N_SEO_PAGES)) {
   const traditional = page["zh-TW"];
-  traditional.intro = `${traditional.intro}${TRADITIONAL_READING_CONTEXT}`;
+  const context = TRADITIONAL_TOPIC_CONTEXT[topic as keyof typeof TRADITIONAL_TOPIC_CONTEXT];
+  traditional.intro = `${traditional.intro}${context.intro}`;
   traditional.faq.push({
-    question: "閱讀結果時應注意什麼？",
-    answer: "請保留輸入資料的不確定性，將結果與實際情況、清楚的溝通和可確認的條件一起判斷，不要把它當成對未來或他人心意的保證。",
+    question: context.question,
+    answer: context.answer,
   });
 }

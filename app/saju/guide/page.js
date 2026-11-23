@@ -8,7 +8,7 @@ import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from ".
 
 const SAJU_GUIDE_TEXT_TRANSLATIONS = {
   ko: {
-    metaTitle: "사주 명리학 기본 가이드 | 꿀꿀 운세",
+    metaTitle: "사주 보는 법·일간·오행·십성 읽는 순서 | 꿀꿀 운세",
     observe: "사주가 살피는 것",
     inputs: "필요한 입력값",
     useCases: "어떤 때 참고하면 좋은가",
@@ -30,7 +30,7 @@ export function generateMetadata() {
     path: "/saju/guide",
     title: sajuGuideText("metaTitle"),
     description:
-      "사주 명리학이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 오행·십성·대운을 어떻게 읽는지 차분히 안내합니다.",
+      "처음 사주를 볼 때는 무엇부터 읽을까요? 가상 명식의 일간·월지·오행·십성을 순서대로 풀고, 출생시간 미상과 입춘 경계에서 달라지는 부분을 설명합니다.",
     keywords: ["사주 가이드", "명리학 기본", "오행", "십성", "대운", "꿀꿀운세"],
   });
 }
@@ -65,7 +65,7 @@ const faqItems = [
   {
     question: "출생시간을 모르면 사주를 볼 수 없나요?",
     answer:
-      "일부 해석은 가능하지만 시주가 빠지면 자녀, 말년, 세부 성향, 특정 흐름의 정밀도가 낮아질 수 있습니다. 모르는 경우에는 모름으로 두고 큰 구조부터 보는 편이 안전합니다.",
+      "연·월·일의 구조를 참고할 수 있지만 시주를 확정할 수는 없습니다. 화면에 시간 모름 선택지가 있으면 이를 사용하고, 기본 시각이 적용된 결과라면 실제 출생시각으로 계산된 것과 구분하세요. 날짜 경계 부근은 일주도 달라질 수 있어 모르는 시간을 임의로 정해 세부 해석을 확정하지 않습니다.",
   },
   {
     question: "오행이 부족하면 반드시 나쁜가요?",
@@ -90,9 +90,9 @@ const GUIDE_ARTICLE = {
   path: "/saju/guide",
   title: "사주 명리학 기본 가이드",
   description:
-    "사주 명리학이 무엇을 살피는지, 생년월일과 출생시간이 왜 필요한지, 오행·십성·대운을 어떻게 읽는지 차분히 안내합니다.",
+    "가상 명식을 통해 일간·월지·오행·십성의 해석 순서와 출생시간 미상, 입춘 경계의 한계를 설명합니다.",
   datePublished: "2026-06-21",
-  dateModified: "2026-09-24",
+  dateModified: "2026-11-24",
 };
 
 const guideJsonLd = JSON.stringify({
@@ -142,7 +142,7 @@ export default function SajuGuidePage() {
         <article className="cd-card">
           <h2>{sajuGuideText("inputs")}</h2>
           <p>
-            생년월일, 출생시간, 성별, 양력·음력 여부가 기본 입력값입니다. 출생시간은 시주를 세우기 위해 필요하고, 양력·음력 구분은 달의 흐름을 바르게 맞추기 위해 중요합니다. 입력값이 정확할수록 해석의 초점도 선명해집니다.
+            생년월일, 출생시간, 성별, 양력·음력 여부를 먼저 확인합니다. 음력이라면 윤달 여부까지 확인해 같은 양력 날짜로 변환해야 합니다. 출생지역과 당시 시간대도 시간 보정에 쓰입니다. 날짜를 바꾸는 기준과 시간 보정 방식이 다르면 같은 생일을 넣어도 명식이 달라질 수 있습니다.
           </p>
         </article>
 
@@ -194,7 +194,7 @@ export default function SajuGuidePage() {
       <section className="cd-card">
         <h2>{sajuGuideText("sample")}</h2>
         <p>
-          목의 기운이 뚜렷하고 금의 기운이 균형을 잡아 주는 사주는 새로운 일을 시작하는 감각과 기준을 세우는 힘이 함께 드러납니다. 다만 계절의 열기가 강하면 마음이 앞서 지칠 수 있으니, 결정 전에는 일정과 체력을 먼저 정리하는 편이 안정적입니다.
+          위 가상 명식에서는 겉글자에 토가 많고 금은 보이지 않습니다. 그렇다고 책임감이 강하다거나 도움이 없다고 곧바로 결론내리지는 않습니다. 계수 일간과 초봄의 계절, 지장간을 함께 확인한 뒤 “맡은 일이 많아 내 속도를 잃는 장면이 반복되는가”처럼 경험에 대어 볼 질문을 고릅니다. 실제로 그렇다면 새 일을 더 맡기 전에 우선순위와 도움을 요청할 대상을 정해 볼 수 있습니다. 경험과 맞지 않으면 이 설명을 성격표처럼 받아들이지 않습니다.
         </p>
       </section>
 
@@ -231,7 +231,7 @@ export default function SajuGuidePage() {
       <nav className="cd-chip-wrap" aria-label="사주 가이드 관련 링크">
         <Link href="/saju" className="cd-chip">사주 서비스</Link>
         <Link href="/manse" className="cd-chip">무료 만세력으로 명식 세우기</Link>
-        <Link href="/saju" className="cd-chip">기본 사주 보기</Link>
+        <Link href="/insights/how-we-calculate-saju/" className="cd-chip">출생시간 보정·날짜 경계 확인</Link>
         <Link href="/compatibility" className="cd-chip">궁합 보기</Link>
         <Link href="/saju/crystals/" className="cd-chip">사주 원석 추천</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>
