@@ -82,6 +82,7 @@ export interface DiaryLegacyEntry {
 export type DiaryLegacyStore = Record<string, DiaryLegacyEntry>;
 
 export interface DiaryTodaySnapshot {
+  profileName: string;
   ymd: string;
   entry: DiaryLegacyEntry | null;
   /**
@@ -97,6 +98,7 @@ export interface DiaryTodaySnapshot {
 }
 
 export const EMPTY_DIARY_TODAY_SNAPSHOT: DiaryTodaySnapshot = {
+  profileName: "",
   ymd: "",
   entry: null,
   store: {},
@@ -158,10 +160,13 @@ export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourcePro
   }
 
   let birth: DiaryBirthInput | null = null;
+  let profileName = "";
   let chart: DiaryNatalChart | null = null;
   let fortune: DiaryDayFortune | null = null;
   try {
-    birth = resolveDiaryBirthInput(sourceProfile === undefined ? readCurrentDestinyProfile() : sourceProfile);
+    const profile = sourceProfile === undefined ? readCurrentDestinyProfile() : sourceProfile;
+    profileName = typeof profile?.name === "string" ? profile.name.trim() : "";
+    birth = resolveDiaryBirthInput(profile);
     chart = birth ? buildDiaryNatalChart(birth, ymd) : null;
     // 관계 Lite는 양력 민용 날짜를 받는다. 음력 원본과 보정 시계는 chart 메타에 보존한다.
     if (birth && chart) birth = { ...birth, ...chart.calculationMeta.civil, calendarType: "solar", isLeapMonth: false };
@@ -171,7 +176,7 @@ export function readDiaryTodaySnapshot(ymd: string, storage?: Storage, sourcePro
     fortune = null;
   }
 
-  return { ymd, entry, store, birth, chart, fortune };
+  return { ymd, entry, store, birth, chart, fortune, profileName };
 }
 
 /**
