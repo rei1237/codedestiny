@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-24
-next: 최종 커밋·pre-push·main push와 CI 1회 확인 후 done으로 닫기
+next: 운영 승격은 별도 승인 때 진행; 다음 주 동일 페이지 성과와 남은 CMP·전수 감사를 이어간다
 ---
 
 ## 첫 행동
@@ -25,6 +25,9 @@ main, 기본 체크아웃. 병합 커밋 d04c89fb705f791658e4f3294537ce90298fa84
 - [x] 실제 SEO 문구 수정, 공개 건강·광고 경로·ads.txt 검사
 - [x] 모바일 로컬 문구 검수와 변경 검사 결과 확인
 - [x] 상태 정본/주간 보고서 갱신
-- [ ] 해당 수정 커밋·pre-push·push·CI 최종 조회
+- [x] 해당 수정 커밋·pre-push·push (68ce41902f, origin/main 반영 완료)
+- [x] 이 인수인계 문서 닫기; 마지막 기록 커밋 뒤 CI를 1회 조회하여 채팅에 결과 전달
 
 콘텐츠 check:fast exit0: Node5822, smoke47. 후속 변경은 typecheck/ESLint/SEO68 통과. 새로 고친 시간대 스크립트가 미분류여서 최종 계획 critical, 로컬 전체 반복 금지 지시에 따라 full critical은 CI에 맡김. 이를 완전 로컬 통과로 주장하지 말 것. 브라우저 taskspace4는 finish 완료, mock dev 서버도 종료. 390px 사주/번체 숙요 가로 넘침0.
+
+pre-push에서 숙요 정적 설명 사본 1개가 낡아 실패했으며 공식 sync:public로 갱신해 같은 SEO 커밋에 포함했다. 재검사 전부 통과. unrelated feature-details는 생성 완료 후 원래 내용과 같아 변경 없음. 파일·브랜치 삭제나 force-push 없이 원격 분기 문제 해결.
