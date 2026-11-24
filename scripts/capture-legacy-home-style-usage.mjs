@@ -5,7 +5,7 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { chromium } from '@playwright/test';
 import { JSDOM, VirtualConsole } from 'jsdom';
-import { digest, homeStructure, usageFile } from './optimize-legacy-home-paint.mjs';
+import { deferredSheets, digest, homeStructure, usageFile } from './optimize-legacy-home-paint.mjs';
 
 const dist = path.resolve(process.argv[2] || 'dist');
 const shell = readFileSync(path.join(dist, 'ggulggul/index.html'), 'utf8');
@@ -20,7 +20,7 @@ const usage = new Map();
 const browser = await chromium.launch({ channel:'chrome' });
 try {
   for (const width of [390,1440]) for (const theme of ['pig','neo']) {
-    const ctx = await browser.newContext({ viewport:{ width,height:width === 390 ? 844 : 960 }, isMobile:width === 390, serviceWorkers:'block', locale:'ko-KR', reducedMotion:'reduce' });
+    const ctx = await browser.newContext({ viewport:{ width,height:width === 390 ? 844 : 960 }, isMobile:width === 390, serviceWorkers:'block', locale:'ko-KR', reducedMotion:theme === 'neo' ? 'reduce' : 'no-preference' });
     await ctx.route('**/*', route => {
       const url = new URL(route.request().url());
       if (url.origin !== origin) return route.abort();
@@ -44,8 +44,10 @@ try {
     for (const sheet of await page.coverage.stopCSSCoverage()) {
       if (!sheet.url.startsWith(origin)) continue;
       const name = new URL(sheet.url).pathname;
-      if (!/^\/css\/shell\/(?:home|s)-[0-9a-f]+\.css$/.test(name) && name !== '/styles/cosmic-main.css') continue;
-      if (statSync(path.join(dist,name)).size < 15000) continue;
+      if (!deferredSheets.has(name)) {
+        if (!/^\/css\/shell\/(?:home|s)-[0-9a-f]+\.css$/.test(name) && name !== '/styles/cosmic-main.css') continue;
+        if (statSync(path.join(dist,name)).size < 15000) continue;
+      }
       if (!usage.has(name)) usage.set(name, []);
       usage.get(name).push(...sheet.ranges);
     }

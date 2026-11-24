@@ -12,6 +12,45 @@ const ORIGIN = 'https://shell.invalid';
 const inlineStyleLimit = 9 * 1024;
 const inlineScriptLimit = 24 * 1024;
 
+// These classic scripts supply Saju and astrology result text. None renders the welcome area.
+const readingHelpers = new Set([
+  '/js/core/saju/reading-depth.generated.js', '/js/core/saju/reading-rich.js',
+  '/js/core/saju/reading-rich-intl.js', '/js/core/saju/reading-personas.js',
+  '/js/core/saju/natal-one-liner.generated.js', '/js/core/astro/natal-reading.js',
+  '/js/core/astro/transits.js', '/js/core/astro/transit-reading.js',
+]);
+
+// Embedded in the static export. Resume URLs, signed-in sessions and browser history
+// retain their original parser-inserted defer tags in their original cascade order.
+function scheduleGuestReadingHelpers(urls) {
+  let fresh = location.pathname === '/ggulggul/' && !location.search && !location.hash;
+  try {
+    fresh = fresh && performance.getEntriesByType('navigation')[0]?.type === 'navigate'
+      && !localStorage.getItem('fortune_auth_user') && !localStorage.getItem('fortune_auth_token')
+      && !/(?:^|;\s*)fortune_auth_role=/.test(document.cookie);
+  } catch { fresh = false; }
+  window.cdHomeUsesDeferredReadings = fresh;
+  if (!fresh) return;
+  let started = false;
+  function load() {
+    if (started) return;
+    started = true;
+    for (const url of urls) {
+      const script = document.createElement('script');
+      script.async = false;
+      script.src = url;
+      document.head.appendChild(script);
+    }
+  }
+  for (const event of ['pointerdown', 'keydown', 'hashchange']) {
+    window.addEventListener(event, load, {capture:true, once:true, passive:true});
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    if (document.hidden) load();
+    else requestAnimationFrame(() => requestAnimationFrame(load));
+  }, {once:true});
+}
+
 // These small classic scripts deliberately have parser-time dependencies. Keep
 // original tag positions and separate script scopes; only their delivery changes.
 const bootScripts = new Set([
@@ -81,6 +120,21 @@ export function optimizeLegacyHomeHead(html, dist) {
   function replace(node, text) {
     const { startOffset, endOffset } = dom.nodeLocation(node);
     edits.push({ start: startOffset, end: endOffset, text });
+  }
+  const reportTags = [...head.querySelectorAll('script[defer][src]')].filter(tag => {
+    const src = tag.getAttribute('src');
+    return tag.attributes.length === 2 && src.startsWith('/') && readingHelpers.has(src.split('?')[0]);
+  });
+  if (reportTags.length) {
+    const urls = reportTags.map(tag => tag.getAttribute('src'));
+    const setup = '(' + scheduleGuestReadingHelpers.toString() + ')(' + JSON.stringify(urls) + ');';
+    reportTags.forEach((tag, index) => {
+      // The literal is a build-owned tag with a known same-origin script path. Escaping
+      // "<" keeps it inside the outer script until the HTML parser needs the native tag.
+      const original = JSON.stringify(tag.outerHTML).replaceAll('<', '\\u003c');
+      replace(tag, '<script>' + (index === 0 ? setup : '')
+        + 'if(!window.cdHomeUsesDeferredReadings)document.write(' + original + ');</script>');
+    });
   }
   function flush() {
     if (!group.length) return;

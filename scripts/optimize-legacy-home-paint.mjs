@@ -6,6 +6,17 @@ import postcss from 'postcss';
 
 export const usageFile = new URL('./data/legacy-home-style-usage.json', import.meta.url);
 export const digest = value => createHash('sha256').update(value).digest('hex');
+export const deferredSheets = new Set([
+  'fortune-ui-home', 'fortune-gateway', 'tarot-ritual', 'consultation-method-guide',
+  'home-mv', 'press-coverage', 'saju-reading',
+].map(name => '/styles/' + name + '.css'));
+
+function isDeferredSheet(el, url) {
+  if (!deferredSheets.has(url) || el.attributes.length !== 4) return false;
+  const onload = el.getAttribute('onload');
+  return (el.rel === 'preload' && el.getAttribute('as') === 'style' && onload === "this.onload=null;this.rel='stylesheet'")
+    || (el.rel === 'stylesheet' && el.media === 'print' && onload === "this.onload=null;this.media='all'");
+}
 
 // A new or moved element may use a rule the previous recording never needed.
 // Keep the complete original styles until a developer captures the new shell.
@@ -56,7 +67,7 @@ const activate = `(function(){
       pending.observe(document.documentElement,{childList:true,subtree:true});
     }
   }
-  ['pointerover','pointerdown','touchstart','focusin','keydown','hashchange','beforeprint'].forEach(function(type){
+  ['pointerover','pointerdown','touchstart','focusin','keydown','scroll','hashchange','beforeprint'].forEach(function(type){
     addEventListener(type, restore, {capture:true, once:true, passive:true});
   });
   if (location.search || location.hash) restore();
@@ -74,33 +85,55 @@ export function optimizeLegacyHomePaint(html, dist, coverage) {
   const edits = [], rewritten = new Map();
   try {
     if (homeStructure(document) !== profile.structure) return html;
-    for (const el of document.querySelectorAll('link[rel="stylesheet"][href]')) {
-      if (el.attributes.length !== 2 || el.closest('template,noscript')) continue;
+    for (const el of document.querySelectorAll('link[href]')) {
+      if (el.closest('template,noscript')) continue;
       const href = el.getAttribute('href');
       const url = href.split('?')[0];
+      const deferred = isDeferredSheet(el, url);
+      if (!deferred && (el.rel !== 'stylesheet' || el.attributes.length !== 2)) continue;
       const recording = profile.styles[url];
       if (!recording || !existsSync(path.join(dist, url))) continue;
       const original = readFileSync(path.join(dist, url), 'utf8');
       if (digest(original) !== recording.sha256) continue;
-      if (!url.startsWith('/css/shell/') && (/@import\b/i.test(original) || Array.from(original.matchAll(/url\(\s*(["']?)([^)"']+)\1\s*\)/gi))
-        .some(match => !/^(?:\/|data:|https?:|#)/i.test(match[2])))) continue;
       const initial = initialCss(original, recording.ranges);
       if (initial.length > original.length * .85) continue;
-      const asset = '/css/shell/first-' + digest(initial).slice(0, 16) + '.css';
-      const file = path.join(dist, asset);
-      mkdirSync(path.dirname(file), { recursive: true });
-      writeFileSync(file, initial);
-      rewritten.set(href, asset);
+      const portable = !/@import\b|<\/style/i.test(initial) && !Array.from(initial.matchAll(/url\(\s*(["']?)([^)"']+)\1\s*\)/gi))
+        .some(match => !/^(?:\/|data:|https?:|#)/i.test(match[2]));
       const {startOffset, endOffset} = dom.nodeLocation(el);
-      const tag = html.slice(startOffset, endOffset);
-      edits.push([startOffset, endOffset, '<link rel="stylesheet" href="' + asset + '"><template data-home-workflow-css>' + tag + '</template><noscript>' + tag + '</noscript>']);
+      let first;
+      if (deferred && portable && Buffer.byteLength(initial) < 9000) {
+        first = '<style>' + initial + '</style>';
+        rewritten.set(href, '');
+      } else {
+        // Keep a relative @import or image in the same directory as its source.
+        const parent = portable ? '/css/shell' : path.posix.dirname(url);
+        const asset = parent + '/first-' + digest(initial).slice(0,16) + '.css';
+        const file = path.join(dist, asset);
+        mkdirSync(path.dirname(file), {recursive:true});
+        writeFileSync(file, initial);
+        const link = el.cloneNode(false);
+        link.setAttribute('href', asset);
+        first = link.outerHTML;
+        rewritten.set(href, asset);
+      }
+      const originalLink = document.createElement('link');
+      originalLink.rel = 'stylesheet';
+      originalLink.setAttribute('href',href);
+      const full = originalLink.outerHTML;
+      const noscript = el.nextElementSibling?.tagName === 'NOSCRIPT' &&
+        html.slice(dom.nodeLocation(el.nextElementSibling).startOffset, dom.nodeLocation(el.nextElementSibling).endOffset).includes(href);
+      edits.push([startOffset,endOffset,first + '<template data-home-workflow-css>' + full + '</template>' + (noscript ? '' : '<noscript>' + full + '</noscript>')]);
     }
     if (!edits.length) return html;
-    for (const el of document.querySelectorAll('link[data-cd-home-preload]')) {
+    const hinted = new Set();
+    for (const el of document.querySelectorAll('link[rel="preload"][as="style"]:not([onload])')) {
       const href = el.getAttribute('href');
       if (!rewritten.has(href)) continue;
       const {startOffset, endOffset} = dom.nodeLocation(el);
-      edits.push([startOffset, endOffset, '<link data-cd-home-preload rel="preload" as="style" href="' + rewritten.get(href) + '">']);
+      const asset = rewritten.get(href);
+      const hint = asset && !hinted.has(asset) ? '<link data-cd-home-preload rel="preload" as="style" href="' + asset + '">' : '';
+      hinted.add(asset);
+      edits.push([startOffset,endOffset,hint]);
     }
     const end = dom.nodeLocation(document.head).endTag.startOffset;
     edits.push([end, end, '<script>' + activate + '</script>']);

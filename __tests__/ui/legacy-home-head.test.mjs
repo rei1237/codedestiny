@@ -17,6 +17,35 @@ function withFixture(run) {
   try { run({ dir, write, page }); } finally { rmSync(dir, { recursive: true, force: true }); }
 }
 
+test('guest readings wait for intent, while direct entries keep native deferred scripts', () => withFixture(({ dir, page }) => {
+  const urls = ['/js/core/saju/reading-rich.js?v=one', '/js/core/saju/reading-personas.js?v=two'];
+  const original = page(urls.map(url => '<script defer src="' + url + '"></script>').join(''));
+  const base = 'https://shell.test/ggulggul/';
+  const packed = optimizeLegacyHomeHead(original, dir);
+  for (const [url, navigation, signedIn, early] of [
+    [base, 'navigate', false, false], [base + '?action=read', 'navigate', false, true],
+    [base, 'back_forward', false, true], [base, 'navigate', true, true],
+  ]) {
+    const dom = new JSDOM(packed, {url, runScripts:'dangerously', pretendToBeVisual:true, beforeParse(win) {
+      win.performance.getEntriesByType = () => [{type:navigation}];
+      if (signedIn) win.localStorage.setItem('fortune_auth_user', '{}');
+    }});
+    try {
+      const win = dom.window;
+      const sources = () => Array.from(win.document.querySelectorAll('script[src]'), tag => tag.getAttribute('src'));
+      if (early) {
+        assert.deepEqual(sources(), urls);
+        assert.equal(win.document.querySelectorAll('script[defer][src]').length, urls.length);
+      } else {
+        assert.deepEqual(sources(), []);
+        win.dispatchEvent(new win.Event('keydown'));
+        win.dispatchEvent(new win.Event('pointerdown'));
+        assert.deepEqual(sources(), urls);
+      }
+    } finally { dom.window.close(); }
+  }
+}));
+
 test('packaging keeps encoding, boot order, dynamic links and CSS cascade boundaries', () => withFixture(({ dir, write, page }) => {
   write('/js/core/auth-hint.js', 'window.events.push("boot");');
   write('/styles/yehwa-home.css', 'h1{color:red}');

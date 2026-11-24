@@ -1,12 +1,16 @@
 // Regenerate the checked-in characters using a local Korean production preview:
 // node scripts/font-subsets/collect-home-characters.mjs http://127.0.0.1:3000 [intro]
-import { writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { chromium } from '@playwright/test';
 
 const url = new URL('/ggulggul/', process.argv[2]);
 if (!['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) throw new Error('Use a local preview URL.');
 const introOnly = process.argv[3] === 'intro';
-const repertoire = { Body: new Set(), Rounded: new Set() };
+// Some SSR text is laid out before the page switches to its settled panels. A
+// cold Chrome trace requested the five upstream WOFF2 files listed here for
+// that text. Keep their observed SSR character intersection across recordings.
+const parserText = JSON.parse(readFileSync(new URL('./ggulggul-parser-body.json', import.meta.url), 'utf8'));
+const repertoire = { Body: new Set(Array.from(parserText.characters, ch => ch.codePointAt(0))), Rounded: new Set() };
 
 function renderedCharacters(introOnly) {
   const chars = { Body: new Set(), Rounded: new Set() };

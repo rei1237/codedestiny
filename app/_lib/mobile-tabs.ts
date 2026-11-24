@@ -88,7 +88,7 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   {
     key: "my",
     label: "마이",
-    href: `/?action=${ACCOUNT_SHEET_ACTION}`,
+    href: "/ggulggul/#cdAccountSheetTitle",
     ariaLabel: "마이페이지",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel",
