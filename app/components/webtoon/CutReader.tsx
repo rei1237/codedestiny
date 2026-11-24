@@ -1,4 +1,5 @@
 import styles from './cut-reader.module.css';
+import {keepDotRuns} from '@/app/components/keep-dot-runs';
 
 /** 표정 세트(docs/context/narrator-webtoon-result-spec.md §3). */
 export type WebtoonExpression = 'smile' | 'explain' | 'worry' | 'cheer' | 'serious' | 'greet' | 'think' | 'surprise';
@@ -32,8 +33,8 @@ function Line({ line, index }: { line: WebtoonLine; index: number }) {
     </p>;
   }
   return line.speaker
-    ? <p className={styles.bubble} {...data}><b>{line.speaker}</b>{line.text}{line.note && <small className={styles.note}>{line.note}</small>}</p>
-    : <p className={styles.narration} {...data}>{line.text}</p>;
+    ? <p className={styles.bubble} {...data}><b>{line.speaker}</b>{keepDotRuns(line.text)}{line.note && <small className={styles.note}>{line.note}</small>}</p>
+    : <p className={styles.narration} {...data}>{keepDotRuns(line.text)}</p>;
 }
 
 /** One painted cut per figure; every line of dialogue stays selectable HTML below the art.
