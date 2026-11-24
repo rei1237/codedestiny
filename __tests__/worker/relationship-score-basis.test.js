@@ -39,7 +39,7 @@ beforeAll(async()=>{
   PaidExecutionRecord:{findOne:()=>query(null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
- jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async()=>({}),completeServiceExecution:async()=>({}),failServiceExecution:async()=>({refundStatus:'refunded'})}));
+ jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({startServiceExecution:async()=>({}),completeServiceExecution:async()=>({}),failServiceExecution:async()=>({ok:true,status:200,idempotent:false,execution:{status:'refunded',refundStatus:'refunded'},settlement:{ok:true,status:'refunded'}})}));
  ({handleRelationshipBoundaryTestRoutes:route}=await import('../../worker/routes/relationship-boundary-test.js'));
 });
 beforeEach(()=>{docs=[];userId=user;wrongScorePart=null;silentPart=null;
