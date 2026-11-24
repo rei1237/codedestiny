@@ -36,6 +36,12 @@ export default function yeongnyangiRoomArt(){
     // The panel lettering is embedded in the original illustrations. Use a local UI font in the offline reader.
     return source.replace("url('/assets/yeongnyangi/prologue/Jua-Regular.ttf') format('truetype')",offline?'local("Malgun Gothic")':'url("'+webPrefix+'prologue/Jua-Regular.ttf") format("truetype")');
    }
+   if(filename.endsWith('/app/yeongnyangi/_components/YeongnyangiRoomScene.tsx')){
+    // The bundle carries only the room posters; the room films stream from the web origin so the archive does not grow.
+    const clip='clip={base + ".mp4"';
+    if(!source.includes(clip))throw Error('Yeongnyangi room film contract changed');
+    return offline?source:source.replace(clip,'clip={"'+webPrefix.slice(0,-'/assets/yeongnyangi/'.length)+'" + base + ".mp4"');
+   }
    if(!['/_home/RoomPresence.tsx','/_home/RoomInteractions.tsx','/_home/StoryPanel.tsx','/_components/PetMascot.tsx'].some(suffix=>filename.endsWith('/app/yeongnyangi'+suffix)))return;
    let code=source.replaceAll('/assets/yeongnyangi/',offline?offlinePrefix:webPrefix);
    if(offline)code=code.replaceAll('room-1440','room-780').replaceAll('hero-800','hero-480');
