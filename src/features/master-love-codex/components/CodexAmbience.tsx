@@ -9,6 +9,7 @@
  * 한 번만 다시 시도한다(운명의 찻집과 같은 방식 — 새 계층을 얹지 않았다).
  */
 
+import { hasPlayingSoundtrack, registerSoundtrack } from '@/lib/soundtrack-session';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { MASTER_LOVE_CODEX_BGM_KEY } from "../constants";
@@ -26,15 +27,17 @@ interface CodexAmbienceProps {
 export default function CodexAmbience({ track, inline = false, landing = false }: CodexAmbienceProps) {
   const copy = useMasterLoveCodexCopy();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(false);
   const [preferenceReady, setPreferenceReady] = useState(false);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     try {
-      if (window.localStorage.getItem(MASTER_LOVE_CODEX_BGM_KEY) === "off") setEnabled(false);
+      setEnabled(window.localStorage.getItem(MASTER_LOVE_CODEX_BGM_KEY) === "on" && !hasPlayingSoundtrack());
     } catch { /* best-effort */ }
     setPreferenceReady(true);
+    const audio = audioRef.current;
+    if (audio) return registerSoundtrack(audio, () => setEnabled(false));
   }, []);
 
   const play = useCallback(async (force = false) => {

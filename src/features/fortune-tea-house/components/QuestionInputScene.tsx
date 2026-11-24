@@ -844,7 +844,7 @@ export default function QuestionInputScene({ paymentSurface = "web", TossPrice, 
   return (
     <section className={`${styles.questionScene}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
-        <img className={styles.yeoniPortrait} src={jointSaju ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/yeoni-moonlight-novel.webp"} alt={jointSaju ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
+        <img className={styles.yeoniPortrait} src={jointSaju ? "/images/consultation/saju-yeoni-neo-joint-v1-640.webp" : "/images/fortune-tea-house/renewal/yeoni-room-poster.webp"} alt={jointSaju ? "명식을 함께 살펴보는 연이와 네오" : ""} width="1536" height="1024" />
         <div className={styles.questionInvitation}>
           {paymentSurface !== "toss" && consultationMode === "saju" && <PriceBadge featureKey={jointSaju ? "fortune-tea-house-saju-joint-consultation" : "fortune-tea-house-saju-consultation"} prefix={jointSaju ? "공동 상담 · 단건 " : "연이 사주 상담 · 단건 "} className="inline-flex rounded-full border border-[var(--cd-border)] bg-[var(--cd-surface)] px-3 py-2 text-sm font-bold text-[var(--cd-text)]" />}
           <p className={styles.chosenTea}>{selectedCup.name} · {selectedCup.topic}</p>

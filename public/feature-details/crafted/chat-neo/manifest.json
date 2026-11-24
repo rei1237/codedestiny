@@ -85,13 +85,14 @@
     {
       "key": "neo",
       "name": "네오",
-      "epithet": "백사자의 영혼을 가진 운명 마스터",
+      "epithet": "작전 지도에서 선택의 방향을 읽는 전략가",
       "signature": "반복되는 선택을 짚고, 실행할 행동을 정리하는 운명 전략론. 네오는 막연한 위로보다 지금 바꿀 수 있는 지점을 먼저 찾습니다.",
-      "role": "백사자의 영혼을 가진 운명 마스터",
+      "role": "작전 지도에서 선택의 방향을 읽는 전략가",
       "part": "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
       "basis": "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
-      "avatar": "/images/master-profiles/avatars/neo.webp",
-      "portrait": "/images/master-profiles/neo-strategy-portrait.webp"
+      "avatar": "/images/home/illustrated/neo-human-240.webp",
+      "portrait": "/images/consultation-rooms/neo.webp",
+      "portraitSrcSet": "/images/consultation-rooms/neo.webp 960w"
     }
   ]
 }

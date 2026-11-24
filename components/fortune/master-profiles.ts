@@ -4,6 +4,13 @@ import { masterMotionArt } from "@/lib/master-motion/sheets.mjs";
 
 const base = "/images/master-profiles";
 
+const neoPortrait = {
+  portrait: "/images/consultation-rooms/neo.webp",
+  portraitSrcSet: "/images/consultation-rooms/neo.webp 960w",
+  portraitAlt: "은발과 흰 망토 차림으로 작전 지도를 살피는 인간형 네오",
+  sheet: "/images/service-introductions/neo-operation-room-960.webp",
+  sheetWidth: 960, sheetHeight: 640,
+};
 /** 대표 상담 전용 초상(600·360w)·시트(1536·1024w) — scripts/design/build-master-dedicated.mjs 가 만든다. */
 const dedicated = (key: string) => ({
   portrait: `${base}/${key}-portrait.webp`,
@@ -27,12 +34,10 @@ export const masterProfiles = {
     sheet: `${base}/master-love-profile.webp`, sheetWidth: 1024, sheetHeight: 1536, theme: "master",
   },
   neo: {
-    name: "네오", role: "백사자의 영혼을 가진 운명 마스터",
+    name: "네오", role: "작전 지도에서 선택의 방향을 읽는 전략가",
     description: "반복되는 선택을 짚고, 실행할 행동을 정리하는 운명 전략론. 네오는 막연한 위로보다 지금 바꿀 수 있는 지점을 먼저 찾습니다.",
     approach: "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
-    portrait: `${base}/neo-strategy-portrait.webp`, portraitAlt: "남색 제복과 흰 망토를 입은 백사자의 운명 마스터 네오",
-    sheet: `${base}/neo-strategy-profile.webp`, sheetWidth: 1536, sheetHeight: 1024, theme: "neo",
-    motion: masterMotionArt("neo", "portrait"),
+    ...neoPortrait, theme: "neo",
   },
   yeoni: {
     name: "연이", role: "운명 찻집 마스터 · 근거부터 짚는 따뜻한 상담",
@@ -86,7 +91,7 @@ export const masterProfiles = {
       { label: "이 상담에서 맡는 부분", text: "타고난 연애 기질 · 핵심 연애운과 질문의 답 · 나의 연애 성향 — 장점·약점·심리 · 썸 전략·대화·매력·실천" },
     ],
     principles: ["마음을 먼저 듣고, 판단은 그다음에 해요", "누구를 탓하는 말로 위로하지 않아요", "그대로 보낼 수 있는 문장과 이번 주의 한 걸음으로 맺어요"],
-    ...dedicated("yeoni-love"), portraitAlt: "분홍빛 한복을 입고 달빛 찻집의 연서 책상에서 찻잔을 건네는 연애 비책 공동 마스터 연이", theme: "yeoni",
+    ...dedicated("yeoni-love"), roomMaster: "human", portraitAlt: "분홍빛 한복을 입고 달빛 찻집의 연서 책상에서 찻잔을 건네는 연애 비책 공동 마스터 연이", theme: "yeoni",
     motion: masterMotionArt("yeoni", "portrait"),
   },
   hanbiLove: {
@@ -112,8 +117,7 @@ export const masterProfiles = {
       { label: "이 상담에서 맡는 부분", text: "질문과 타고난 성향 · 올해의 총운 · 재물과 직업 · 애정과 대인관계 · 1월~12월 월별 흐름 · 건강과 개운법 — 여섯 장 전부" },
     ],
     principles: ["듣기 좋은 말보다 쓸 수 있는 말", "단정 대신 조건으로 말한다", "깎아내리지 않는다"],
-    ...dedicated("neo-new-year"), portraitAlt: "새해 첫 해가 드는 작전실에서 열두 달 작전 지도에 손을 얹은 신년운세 마스터 네오", theme: "neo",
-    motion: masterMotionArt("neo-new-year", "portrait"),
+    ...neoPortrait, theme: "neo",
   },
   yunLifeBook: {
     name: "윤달", epithet: "인생의 책 화자", role: "인생 소설을 읽어 주는 화자",
@@ -134,14 +138,14 @@ export const masterProfiles = {
 export const masterAvatars = {
   yeoni: `${base}/avatars/yeoni.webp`,
   hanbi: `${base}/avatars/hanbi.webp`,
-  neo: `${base}/avatars/neo.webp`,
+  neo: "/images/home/illustrated/neo-human-240.webp",
   yun: `${base}/avatars/yun.webp`,
   musung: `${base}/avatars/musung.webp`,
   master: `${base}/avatars/master.webp`,
   // 대표 상담 전용 초상에서 자른 아바타 — 홈 대표 카드·제품 마스터 띠·연애 결과 화자 칩이 같은 얼굴을 쓴다.
   yeoniLove: `${base}/avatars/yeoni-love.webp`,
   hanbiLove: `${base}/avatars/hanbi-love.webp`,
-  neoNewYear: `${base}/avatars/neo-new-year.webp`,
+  neoNewYear: "/images/home/illustrated/neo-human-240.webp",
   yunLifeBook: `${base}/avatars/yun-life-book.webp`,
 } as const;
 
@@ -159,14 +163,14 @@ export const productMasters = {
     { name: "서한비", role: "두 사람 사이의 거리를 재는 사람", avatar: masterAvatars.hanbiLove, line: "두 분 사이의 거리는 제가 재어 드릴게요. 서두르지 않되, 흐려 두지도 않겠습니다.", motion: masterMotionArt("hanbi-love", "avatar") },
   ],
   newYear: [
-    { name: "네오", role: "한 해의 판세를 짜는 운명 사령관", avatar: masterAvatars.neoNewYear, line: "올해 판세는 내가 먼저 읽는다. 너는 밀 때와 멈출 때만 기억하면 된다.", motion: masterMotionArt("neo-new-year", "avatar") },
+    { name: "네오", role: "한 해의 판세를 짜는 운명 사령관", avatar: masterAvatars.neoNewYear, line: "올해 판세는 내가 먼저 읽는다. 너는 밀 때와 멈출 때만 기억하면 된다." },
   ],
   lifeBook: [
     { name: "윤달", role: "인생 소설을 읽어 주는 화자", avatar: masterAvatars.yunLifeBook, line: "당신의 인생, 첫 장부터 읽어 드릴게요. 다음 장은 같이 써 보고요.", motion: masterMotionArt("yun-life-book", "avatar") },
   ],
   // 초융합 v2 — 체계 장과 영역별 장을 나눠 맡는 다섯 화자(lib/fusion-premium-report.js FUSION_NARRATOR_BY_KEY).
   fusion: [
-    { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "돈이랑 일은 흐름부터 본다. 무리수는 내가 먼저 말릴게.", motion: masterMotionArt("neo", "avatar") },
+    { name: "네오", role: "사주 · 재물 · 일", avatar: masterAvatars.neo, line: "돈이랑 일은 흐름부터 본다. 무리수는 내가 먼저 말릴게." },
     { name: "연이", role: "타로 · 연애", avatar: masterAvatars.yeoni, line: "마음이 먼저 움직이는 자리부터 같이 볼게요." },
     { name: "서한비", role: "숙요 · 결혼 · 인간관계", avatar: masterAvatars.hanbi, line: "사람 사이에 쌓이는 것과 갚는 법을 차분히 짚어 드리겠습니다.", motion: masterMotionArt("hanbi", "avatar") },
     { name: "윤달", role: "베다 · 점성술 · 시기 · 생활 리듬", avatar: masterAvatars.yun, line: "별길이 바뀌는 계절을 같이 짚어 볼게요.", motion: masterMotionArt("yun", "avatar") },

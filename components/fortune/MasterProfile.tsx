@@ -1,12 +1,13 @@
 "use client";
 
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import Image from "next/image";
 import { useId, useState } from "react";
 import MasterMotion, { type MasterMotionArt } from "@/app/components/master-motion/MasterMotion";
 import { useScopedCopy } from "@/lib/i18n/scopedCopy";
 import styles from "./master-profile.module.css";
 
-const ASSET_KEYS = ["portrait", "portraitSrcSet", "sheet", "sheetSrcSet", "theme", "motion"] as const;
+const ASSET_KEYS = ["portrait", "portraitSrcSet", "sheet", "sheetSrcSet", "theme", "motion", "roomMaster"] as const;
 const UI = {
   note: "서비스의 이야기를 안내하는 캐릭터예요. 상담은 선택을 돕는 해석이며, 미래나 상대의 마음을 확정하지 않아요.",
   expand: "프로필 시트 펼쳐보기", collapse: "프로필 시트 접기",
@@ -39,6 +40,7 @@ export type MasterProfileData = {
   sheetSrcSet?: string;
   /** 후속 대기 루프 그림(W4). 없으면 CSS 숨쉬기·꽃잎으로 대신한다. docs/design/master-motion-assets.md */
   motion?: MasterMotionArt;
+  roomMaster?: import("@/app/components/expert-consulting/MasterRoomScene").RoomMaster;
 };
 
 type MasterProfileProps = { profile: MasterProfileData; palette?: "page"; id?: string; level?: 2 | 3 };
@@ -55,7 +57,7 @@ export default function MasterProfile({ profile: source, palette, id, level = 2 
   return (
     <section id={id} className={styles.profile} data-theme={profile.theme} data-palette={palette} data-variant={dossier ? "dossier" : undefined} aria-labelledby={headingId}>
       <div className={styles.introduction}>
-        {dossier ? (
+        {source.roomMaster ? <MasterRoomScene master={source.roomMaster} shot="intro" /> : dossier ? (
           <MasterMotion as="div" className={styles.frame} art={source.motion}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className={styles.portrait} src={profile.portrait} srcSet={profile.portraitSrcSet} alt={profile.portraitAlt}

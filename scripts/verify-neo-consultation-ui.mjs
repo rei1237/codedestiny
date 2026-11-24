@@ -39,7 +39,7 @@ const server = createServer(async(req,res)=>{
   try {
     const origin='http://127.0.0.1:'+server.address().port;
     const path=new URL(req.url,origin).pathname;
-    if(/^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-(?:320|640|960))?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
+    if(path==="/images/consultation-rooms/neo-decision.webp" || /^\/assets\/yeongnyangi\/scenes\/(love|work-400|wealth-400|self-400)\.webp$/.test(path) || /^\/images\/home-questions\/(marriage|reunion)-400\.webp$/.test(path) || /^\/images\/neo-consultation\/moonlit-letter-(640|1280)\.webp$/.test(path) || path===NEO_EMAIL_PORTRAIT || /^\/images\/service-introductions\/neo-consultation(?:-(?:320|640|960))?\.webp$/.test(path)){res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;}
     if(path==='/images/home/illustrated/moon-floral-light-480.webp'){
       res.setHeader('content-type','image/webp');res.end(await readFile(resolve(root,'public',path.slice(1))));return;
     }
@@ -67,7 +67,7 @@ const base='http://127.0.0.1:'+server.address().port;
 const browser=await chromium.launch({headless:true});
 const errors=[], captures=[];
 try {
-  const context=await browser.newContext();
+  const context=await browser.newContext({reducedMotion:'reduce'});
   await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
   const page=await context.newPage();page.on('pageerror',e=>{errors.push(e.message);console.error('[neo-ui] browser error:',e.message);});
   for(const width of [360,390,430,1280]){
@@ -91,7 +91,9 @@ try {
     });
     assert.ok(contrast.every(value => value >= 4.5), 'form and primary button text contrast must be at least 4.5:1');
     await expect(page.getByRole('img',{name:'네오가 사주와 자미두수 자료를 살피며 상담 편지를 검토하는 장면'})).toBeVisible();
-    assert.equal(await page.getByRole('img',{name:'네오가 사주와 자미두수 자료를 살피며 상담 편지를 검토하는 장면'}).evaluate(img=>img.naturalWidth),640);
+    const poster = page.locator('header [data-shot=intro] img[src="/images/consultation-rooms/neo-decision.webp"]');
+    await poster.evaluate(img => img.decode());
+    assert.ok(await poster.evaluate(img => img.naturalWidth > 0));
     await expect(page.getByRole('img',{name:'달빛이 드는 서재의 편지와 은빛 만년필'})).toBeVisible();
     await expect(page.getByRole('link',{name:/operator@example.invalid/})).toHaveAttribute('href','mailto:operator@example.invalid');
     assert.equal(await page.getByText('BLUE MOON',{exact:true}).count(),0);

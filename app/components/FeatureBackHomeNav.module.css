@@ -25,3 +25,4 @@
 }
 .neo .home { padding-inline: 18px; }
 .neo .home::after { display: none; }
+.navLotus { margin-inline-start: auto; width: clamp(46px, 8vw, 80px); height: 28px; object-fit: contain; pointer-events: none; }

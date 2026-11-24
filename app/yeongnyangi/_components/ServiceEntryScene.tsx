@@ -1,4 +1,5 @@
 "use client";
+import EntryOrnament from "@/app/components/service-intro/EntryOrnament";
 import {useEffect, useRef, useState} from 'react';
 import Image from 'next/image';
 import {ENTRY_SKIP_KEY, startServiceEntry} from '@/lib/ui/service-entry-lifecycle.mjs';
@@ -28,6 +29,6 @@ export default function ServiceEntryScene() {
       <p className="cd-entry-scene__brand">운세보는 영냥이</p><p className="cd-entry-scene__heading">네 이야기를<br/>들려줘.</p><p className="cd-entry-scene__intro">별빛 아래, 차분히 함께 풀어볼게.</p>
     </div>
     <picture className="cd-entry-scene__picture"><source type="image/webp" srcSet="/assets/service-intro/cat-reading-entry-480.webp 480w, /assets/service-intro/cat-reading-entry-720.webp 720w" sizes="(max-width: 500px) 90vw, 450px"/><Image className="cd-entry-scene__art" src="/assets/service-intro/cat-reading-entry-480.webp" alt="책장을 넘기는 흰 마법사 고양이 영냥이" width={480} height={384} sizes="(max-width: 500px) 90vw, 450px" priority/></picture>
-    <div className="cd-entry-scene__footer"><p className="cd-entry-scene__status" role="status" aria-live="polite">달빛 점술방을 준비하고 있어요</p><button type="button" className="cd-entry-scene__enter" onClick={() => dismiss.current()}>바로 들어가기 <span aria-hidden="true">→</span></button><label className="cd-entry-scene__preference"><input type="checkbox" onChange={event => {try {if (event.target.checked) localStorage.setItem(ENTRY_SKIP_KEY, '1'); else localStorage.removeItem(ENTRY_SKIP_KEY);} catch {} if (event.target.checked) dismiss.current();}}/> 다음부터 연출 건너뛰기</label></div>
+    <div className="cd-entry-scene__footer"><EntryOrnament fish /><p className="cd-entry-scene__status" role="status" aria-live="polite">달빛 점술방을 준비하고 있어요</p><button type="button" className="cd-entry-scene__enter" onClick={() => dismiss.current()}>바로 들어가기 <span aria-hidden="true">→</span></button><label className="cd-entry-scene__preference"><input type="checkbox" onChange={event => {try {if (event.target.checked) localStorage.setItem(ENTRY_SKIP_KEY, '1'); else localStorage.removeItem(ENTRY_SKIP_KEY);} catch {} if (event.target.checked) dismiss.current();}}/> 다음부터 연출 건너뛰기</label></div>
   </section>;
 }

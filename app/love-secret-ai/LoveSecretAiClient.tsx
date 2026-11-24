@@ -1,4 +1,5 @@
 "use client";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
 import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
@@ -2411,7 +2412,8 @@ export default function LoveSecretAiPage({ paymentNotice, TossPrice, paymentSurf
               {busy ? (
                 <GenerationProgress
                   persona="yeoni"
-                  counselor={{ src: masterProfiles.yeoniLove.portrait, srcSet: masterProfiles.yeoniLove.portraitSrcSet }}
+                  roomMaster={phase === "generating" ? "love" : undefined}
+                counselor={{ src: masterProfiles.yeoniLove.portrait, srcSet: masterProfiles.yeoniLove.portraitSrcSet }}
                   title={copy.generatingCardHeading}
                   description={copy.generatingCardSubtext}
                   status={phaseText}
@@ -2608,10 +2610,7 @@ function LoveSecretHero({ onStart, busy, mastersHref, showWebPrice }: { showWebP
   const copy = useLoveSecretClientCopy();
   return (
     <header className={intro.hero}>
-      <div className={intro.letterObject} aria-hidden="true">
-        <p className={intro.coverTitle}>{copy.heroTitle}</p>
-        <p className={intro.coverSubtitle}>{copy.heroSubtitle}</p>
-      </div>
+      <MasterRoomScene master="love" shot="intro" still={busy} />
       <div className={intro.heroCopy}>
         <h2>{copy.heroTitle}</h2>
         {copy === LOVE_SECRET_CLIENT_COPY.ko && <ProductMasterStrip label="연애 비책 공동 마스터" masters={productMasters.love} profileHref={mastersHref} />}

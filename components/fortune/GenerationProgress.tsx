@@ -17,6 +17,7 @@
 // 🔴 움직임은 CSS 로만, prefers-reduced-motion 이면 멈춘다. 색은 --cd-* 토큰을 --gp-* 로
 //    옮겨 쓰고 새 색값을 만들지 않는다. 연이(분홍)·네오(달빛)는 페이지 모드와 상관없이 고정이다.
 
+import MasterRoomScene, {type RoomMaster} from '@/app/components/expert-consulting/MasterRoomScene';
 import type { CSSProperties } from "react";
 import { formatElapsed, useElapsed } from "./useElapsed";
 import styles from "./GenerationProgress.module.css";
@@ -82,6 +83,7 @@ export type GenerationProgressProps = {
   progressLabel?: string;
   persona?: "yeoni" | "neo";
   /** 상담사 그림(장식). 이미 있는 에셋만. */
+  roomMaster?: RoomMaster;
   counselor?: { src: string; srcSet?: string };
   className?: string;
 };
@@ -101,7 +103,7 @@ export default function GenerationProgress({
   leaveNotice = LEAVE_SAFE_NOTICE,
   progressLabel,
   persona = "yeoni",
-  counselor,
+  counselor, roomMaster,
   className,
 }: GenerationProgressProps) {
   const elapsed = useElapsed(timing);
@@ -117,7 +119,7 @@ export default function GenerationProgress({
 
   return (
     <section className={rootClass} data-persona={persona} data-gp-mode={count ? "determinate" : "indeterminate"}>
-      {counselor ? (
+      {roomMaster ? <MasterRoomScene master={roomMaster}/> : counselor ? (
         <div className={styles.scene} aria-hidden="true">
           <span className={styles.halo} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
