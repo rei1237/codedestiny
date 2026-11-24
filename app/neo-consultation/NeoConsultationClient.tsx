@@ -182,7 +182,7 @@ export default function NeoConsultationClient({native}: {native?: NeoNativeAdapt
         <p className={styles.notice}>{native ? (native.simulated ? '로컬 모의 접수 · 실제 결제와 이메일 발송이 없습니다.' : '토스 판매 준비 중 · 표시한 금액은 웹 기준이며 토스 판매가는 아직 정해지지 않았어요.') : mock ? "MOCK 미리보기 · 실제 결제와 이메일 발송이 없습니다." : canSubmit ? NEO_POLICY.delivery : "판매 준비 중 · 질문 작성 화면을 먼저 살펴보세요."}</p>
       </m.div>
       <m.figure className={styles.portrait} initial={{ y: reducedMotion ? 0 : 24 }} animate={{ y: 0 }} transition={{ duration: 1.1, ease: [.16,1,.3,1] }}>
-        <div className={styles.portraitFrame}><MasterRoomScene master="neo-decision" shot="intro" /></div>
+        <div role="img" aria-label="네오가 사주와 자미두수 자료를 살피며 상담 편지를 검토하는 장면" className={styles.portraitFrame}><MasterRoomScene master="neo-decision" shot="intro" /></div>
         <figcaption><p>고민을 읽는 깊이,<br />다음 한 걸음의 명료함.</p><small>네오를 표현한 캐릭터 일러스트</small></figcaption>
       </m.figure>
     </header>
