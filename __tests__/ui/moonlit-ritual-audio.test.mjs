@@ -104,7 +104,13 @@ test('sound effects duck the music to about 40% and restore it; disabled and mis
  advance(DUCK_IN_MS+TICK_MS);near(engine.levels()[0],.5*DUCK_LEVEL,'ducked');
  advance(DUCK_HOLD_MS-2*TICK_MS);near(engine.levels()[0],.5*DUCK_LEVEL,'held');
  advance(DUCK_OUT_MS+4*TICK_MS);near(engine.levels()[0],.5,'restored');
- for(const name of ['bell','windChime','fire'])assert.equal(engine.sfx(name),false,name+' is a silent slot');
+ // 범종·풍경·불붙기·연등은 audio-v3(직접 합성) 파일을 가리키고 실제로 울린다.
+ for(const name of ['bell','windChime','fire','lantern']){
+  const src=engineMod.SFX_SOURCES[name];assert.match(src,/^\/assets\/moonlit-lotus\/audio-v3\/[a-z]+\.mp3$/,name);
+  assert.ok(readdirSync(new URL('public/assets/moonlit-lotus/audio-v3/',root)).includes(src.split('/').pop()),name+' file exists');
+  assert.equal(engine.sfx(name),true,name+' plays');
+  assert.ok(media.some(m=>m.getAttribute('src')===src),name+' source set');
+ }
  engine.setSfxEnabled(false);const before=media.length;assert.equal(engine.sfx('mokugyo'),false);assert.equal(media.length,before);
  engine.setSfxEnabled(true);for(let i=0;i<6;i++)engine.sfx('mokugyo');assert.ok(media.length<=5,'sfx pool is bounded');
 });

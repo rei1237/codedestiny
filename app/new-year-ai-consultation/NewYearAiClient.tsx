@@ -1,4 +1,5 @@
 "use client";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
 import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
@@ -687,7 +688,8 @@ function NewYearGenerationPanel({ count, toss }: { count: { completed: number; t
     <div data-pdf-skip="true">
       <GenerationProgress
         persona="neo"
-        counselor={{ src: masterProfiles.neoNewYear.portrait, srcSet: masterProfiles.neoNewYear.portraitSrcSet }}
+        roomMaster="neo"
+                counselor={{ src: masterProfiles.neoNewYear.portrait, srcSet: masterProfiles.neoNewYear.portraitSrcSet }}
         title="네오가 새해 상담문을 쓰고 있어요"
         description={`${count?.total || READING_SECTION_TOTAL}개 분야를 나눠 쓰고, 다 쓴 분야부터 저장해요.`}
         status="분야별 상담문을 쓰고 있어요"
@@ -2351,6 +2353,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           </div>
         </div>)}
         <div className="nyai-intro-copy">
+          <MasterRoomScene master="neo" shot="intro" />
           {!tossJapanese&&<span className="nyai-eyebrow">서비스 소개</span>}
           <h2><Moon size={20} aria-hidden="true" /> {tossJapanese?.title||'신년운세 전문가 상담'}</h2>
           {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}

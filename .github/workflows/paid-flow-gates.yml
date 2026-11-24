@@ -428,6 +428,33 @@ on:
       # 랜딩 Service 의 고등어 Offer. verify:paid-service-offer 규칙 6 이 트리거 등록을 요구한다.
       - "app/yeongnyangi/page.tsx"
       - "worker/yeongnyangi/payments/**"
+      # 🔴 결제 후 전달·정체 확정·환불 축(2026-11-24 추가). 아래 파일은 needsPaidGateSuite 실측 false 였다 —
+      #    정체 자동 확정(paid-delivery-stuck·복구 크론·설정자 라우트)과 그 환불·환불 가드 lib 만 고친
+      #    커밋은 이 게이트가 깨어나지 않았다. 소스 파일만 추가하고 기존 항목은 그대로 둔다.
+      # 결제 후 다시 시도 화면 (전문가 상담 7종 공용 · 점성술 결과)
+      - "app/astrology-ai/**"
+      - "app/components/ExpertRetryPanel.tsx"
+      # 실행 기록·이용권 차감·전달 실패 환불·환불 가드
+      - "worker/lib/service-execution-task.js"
+      - "worker/lib/pass-consumption.js"
+      - "worker/lib/consultation-delivery-refund.js"
+      - "worker/lib/consultation-refund-state.js"
+      - "worker/lib/checkpoint-refund-guard.js"
+      - "worker/lib/coin-refund-eligibility.js"
+      - "worker/lib/refund-delivery-protection.js"
+      # 정체 자동 확정과 복구 크론
+      - "worker/lib/paid-delivery-stuck.js"
+      - "worker/lib/consultation-recovery-registry.js"
+      - "worker/lib/consultation-recovery-task.js"
+      # 위 와일드카드(*-ai.js 등)에 안 걸리는 정체 확정 라우트
+      - "worker/lib/celestial-delivery-store.js"
+      - "worker/lib/celestial-report-delivery.js"
+      - "worker/routes/celestial-harmony.js"
+      - "worker/routes/relationship-boundary-test.js"
+      - "worker/routes/ziwei-deep-report.js"
+      - "worker/routes/neo-operation-room.js"
+      - "worker/routes/fortune-tea-house.js"
+      - "worker/routes/saju-compat-premium.js"
   # ⚠️ 이 게이트의 가드는 트리거 paths 밖 파일도 읽는다(예: verify:nakshatra-premium 은 규약
   #    문서를 읽는다). paths 에 안 걸리는 커밋이 가드를 깨뜨릴 수 있다 — 2026-08-11 에 실제로
   #    그랬다(PR #678, CLAUDE.md 분할). paths 를 넓히면 2026-08-08 에 일부러 좁힌 트리거가

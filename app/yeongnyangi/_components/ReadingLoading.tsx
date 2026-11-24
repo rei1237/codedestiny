@@ -1,5 +1,6 @@
 'use client';
-import {MeditatingYeongnyangi} from '@/app/components/common/MeditatingYeongnyangi';
+
+import YeongnyangiRoomScene from './YeongnyangiRoomScene';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec} from '@/worker/yeongnyangi/fortune/book-contracts';
 import {formatElapsed,useElapsed} from '@/components/fortune/useElapsed';
@@ -40,9 +41,10 @@ export default function ReadingLoading({stage='fetching',saved=0,total=0,product
  const chapterTitle=spec?(ko?spec.title:v7Label(spec.titleKey,locale)):undefined;
  const elapsed=useElapsed(timing&&stage!=='fetching');
  return <div className={[styles.loading,compact?styles.compact:''].join(' ')} data-reading-stage={stage} data-reading-domain={domain} data-reading-count={counted?'determinate':'indeterminate'}>
-  <div className={styles.scene} aria-hidden="true">
-   <MeditatingYeongnyangi />
-  </div>
+  {timing && product ? <YeongnyangiRoomScene domain={domain}/> : <div className={styles.scene} aria-hidden="true">
+   <picture><source media="(max-width: 600px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" alt="" decoding="async"/></picture>
+   <img className={styles.master} src="/images/brand/yeongnyangi-meditating-v2.webp" alt="" width="480" height="480"/>
+  </div>}
   <div className={styles.copy}>
    <div role="status" aria-live="polite" aria-atomic="true"><p className={styles.title}>{title}</p>{writing>0?<p className={styles.count}>{wait.writing(writing,total)}</p>:counted&&<p className={styles.detail}>{stateCopy.saved(saved,total)}</p>}{chapterTitle&&<p className={styles.chapterTitle}>{chapterTitle}</p>}</div>
    {!counted&&stage!=='fetching'&&<span className={styles.flow} aria-hidden="true"/>}

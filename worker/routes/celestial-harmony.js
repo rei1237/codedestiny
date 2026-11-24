@@ -1,6 +1,6 @@
 import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
-import { runCelestialDelivery, restoreCelestialDelivery } from "../lib/celestial-delivery-store.js";
+import { runCelestialDelivery, restoreCelestialDelivery, settleStuckCelestialDelivery } from "../lib/celestial-delivery-store.js";
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 
@@ -503,4 +503,12 @@ export function resumeConsultationOnServer(env, doc) {
   const request = new Request("https://internal.invalid/api/celestial-harmony/resume", { method: "POST", headers: { "content-type": "application/json" },
     body: JSON.stringify({ resumeResultId: String(doc.executionKey) }) });
   return handleGenerate(request, env, { userId: String(doc.userId) });
+}
+
+// 복구 크론의 정체 자동 확정(S16). 이어쓰기와 같은 결제 확인으로 원 결제를 찾고, 저장된 파트가 없는 건만
+// 소진 종결과 같은 증빙 저장 + 즉시 자동 환불(failServiceExecution)로 닫는다.
+export function settleStuckDelivery(env, { doc, now = Date.now() } = {}) {
+  const request = new Request("https://internal.invalid/api/celestial-harmony/resume", { method: "POST" });
+  return settleStuckCelestialDelivery(env, { doc, now, cost: CELESTIAL_COST,
+    verify: (original, auth) => verifyCelestialAccess({ request, env, auth, body: original, reportId: original.reportId, transactionId: original.transactionId }) });
 }

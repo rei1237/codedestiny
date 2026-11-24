@@ -13,7 +13,7 @@ test('service chooser retains two real doors without service-home or affiliate c
   assert.doesNotMatch(source, /RecommendationFooter|<HomeMusicVideo|<YehwaHome|<ConsultationDiscovery|styles.bottomNav|buildFaqPageJsonLd/);
 });
 test('service home owns discovery, passes, saved results, help and the open film in order', () => {
-  const selectors = ['.yh-hero','.yh-finder','.yh-featured-grid','.yh-more-consults','.yh-story-entry','.yh-library','#cdhPass','.cd-help-entry','#cdhMoonlightMv'];
+  const selectors = ['.yh-hero','.yh-finder','.yh-featured-grid','.yh-more-consults','#cdhPass','.cd-help-entry','#cdhMoonlightMv','.yh-story-entry','.yh-library'];
   const nodes = selectors.map(selector => {
     assert.equal(doc.querySelectorAll(selector).length, 1, selector);
     return doc.querySelector(selector);

@@ -133,6 +133,7 @@ import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/billing-evidence-claim.js";
 import { assertDeductionRefundable } from "../lib/coin-refund-eligibility.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, logStuckUnsettled } from "../lib/paid-delivery-stuck.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
 const PIG_COIN_MAX_COST = 100000;
@@ -7354,6 +7355,126 @@ export const __sajuAiSectionTestUtils = {
   SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS,
   SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS,
 };
+
+// 2026-11-24 복구 크론 정체 자동 확정(S16). 진전 없는 결제 건 중 글이 있는 묶음이 하나도 없는 것만 핸들러 실패 경로(catch)와
+// 같은 환불 함수·같은 입력으로 즉시 환불하고 실패로 닫는다. catch 의 consumePayload 는 메모리에만 있으므로, 핸들러가
+// handlePigCoinConsume(requireExistingPaidAccess)에 넘기는 것과 같은 결제 필드로 같은 증빙 함수를 다시 불러(차감 없이 조회만) 만든다.
+// 글이 있거나, 결제를 확인할 수 없거나, 이미 회수됐거나, 환불 경로가 없는 건은 쓰지 않고 경보만 남겨 이어쓰기에 둔다.
+export async function settleStuckDelivery(env, { doc, now = Date.now() } = {}) {
+  const userId = String(doc?.userId || "").trim();
+  const executionId = String(doc?.executionId || "").trim();
+  if (!userId || !executionId) return { outcome: "unsupported" };
+  let fresh;
+  try {
+    await connectDb(env);
+    fresh = await PaidExecutionRecord.findOne({ executionId, userId }).lean();
+  } catch { return { outcome: "pending" }; }
+  if (!fresh || !["generating", "partial", "delivery_pending"].includes(fresh.status)) return { outcome: "progressed" };
+  const alert = () => { logStuckUnsettled("fortune", fresh); return { outcome: "unsettled" }; };
+  if (String(fresh.result?.order?.paymentStatus || "PAID").toUpperCase() !== "PAID") return alert();
+  if (now - new Date(fresh.updatedAt || 0).getTime() < Math.max(STUCK_LIVE_LEASE_MS, SAJU_AI_PROMPT_STALE_GENERATING_MS)) return { outcome: "leased" };
+  // catch 는 2판에서 글이 있는 묶음이 있으면 환불하지 않는다. 정체 확정은 1판·완성본까지 넓혀 같은 원칙을 지킨다.
+  if (countSajuAIVisibleChars(String(fresh.result?.consultation?.resultText || "")) > 0
+    || (fresh.result?.sections || []).some((row) => countSajuAIVisibleChars(readSajuAIBestSectionText(row)) > 0)) return alert();
+  const body = fresh.result?.resumeBody;
+  const requestId = String(fresh.requestId || "").trim();
+  if (!body || typeof body !== "object" || !requestId) return alert();
+  const auth = { userId };
+  const reason = "사주 전문가 상담 결과 생성";
+  // 핸들러의 위임 본문과 같은 결제 필드만 쓴다(JSON 왕복으로 undefined 를 버리는 것까지 같게).
+  const consumeBody = JSON.parse(JSON.stringify({
+    featureKey: SAJU_AI_PROMPT_FEATURE_KEY, reason, requireExistingPaidAccess: true, requestId,
+    transactionId: body.transactionId, ledgerId: body.ledgerId, purchaseId: body.purchaseId, idempotencyKey: body.idempotencyKey,
+    accessType: body.accessType, accessMethod: body.accessMethod, paymentMode: body.paymentMode, accessGrant: body.accessGrant,
+    accessDecision: body.accessDecision, freeBySubscription: body.freeBySubscription === true, consume: body.consume,
+    payment: body.payment, _paymentContext: body._paymentContext,
+  }));
+  let evidence;
+  try {
+    evidence = await withMongoRetry(env, () => findAIPromptPaidAccessEvidence({ auth, featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+      body: consumeBody, requestId, cost: SAJU_AI_PROMPT_PRICE, env }));
+  } catch { return { outcome: "pending" }; }
+  if (!evidence || evidence.source === "pass_denied") return alert();
+  const consumePayload = buildAIPromptVerifiedConsumePayload({ auth, featureKey: SAJU_AI_PROMPT_FEATURE_KEY, reason, requestId,
+    cost: SAJU_AI_PROMPT_PRICE, body: consumeBody, evidence, subscriptionUser: null });
+  const monthlyContext = readSajuAIPromptMonthlyRefundContext(consumePayload, body);
+  const pointRefundContext = readSajuAIPromptPointRefundContext(consumePayload, body);
+  const hasRefundRoute = (monthlyContext.isMonthly && monthlyContext.membershipCreditCost > 0)
+    || (pointRefundContext.isPointSpend && pointRefundContext.chargedCoins > 0 && pointRefundContext.sourceTransactionId)
+    || (pointRefundContext.isCardSpend && pointRefundContext.sourceTransactionId)
+    || pointRefundContext.isPassSpend || Boolean(consumePayload?.passRefund);
+  if (!hasRefundRoute) return alert();
+  const leaseToken = crypto.randomUUID();
+  let claimed;
+  try {
+    claimed = await PaidExecutionRecord.findOneAndUpdate({ executionId, userId, status: fresh.status, updatedAt: fresh.updatedAt },
+      { $set: { status: "generating", "result.leaseToken": leaseToken } }, { new: true }).lean();
+  } catch { return { outcome: "pending" }; }
+  if (!claimed) return { outcome: "progressed" };
+  const error = { code: "DELIVERY_STUCK", message: "recovery made no progress" };
+  const monthlyRefund = await refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, requestId, error }).catch((refundError) => {
+    console.error("[fortune][saju-ai-prompt] stuck monthly credit refund failed:", refundError);
+    return { attempted: true, refundOk: false };
+  });
+  let pointRefund = { attempted: false, refundOk: false };
+  if (pointRefundContext.isPointSpend && pointRefundContext.chargedCoins > 0 && pointRefundContext.sourceTransactionId) {
+    pointRefund = { attempted: true, refundOk: false };
+    try {
+      const refundRequest = new Request("https://internal.invalid/api/saju-ai-prompt", {
+        method: "POST",
+        headers: new Headers({ "Content-Type": "application/json" }),
+        body: JSON.stringify({
+          cost: pointRefundContext.chargedCoins,
+          featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+          sourceTransactionId: pointRefundContext.sourceTransactionId,
+          requestId: `refund:${requestId}`.slice(0, 120),
+          reason: "Saju AI prompt generation failed auto-refund",
+        }),
+      });
+      const refundResponse = await handlePigCoinRefund(refundRequest, auth, { env, failedRequestId: requestId });
+      pointRefund.refundOk = refundResponse.ok;
+    } catch (refundError) {
+      console.error("[fortune][saju-ai-prompt] stuck point refund failed:", refundError);
+    }
+  } else if (pointRefundContext.isCardSpend && pointRefundContext.sourceTransactionId) {
+    const cardRefund = await refundAIPromptCardPaymentOnFailure({
+      env,
+      auth,
+      paymentId: pointRefundContext.sourceTransactionId,
+      featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+      reasonCode: "ai_prompt_generation_failed",
+      reasonMessage: "Saju AI prompt generation failed auto-refund",
+    });
+    pointRefund = { attempted: true, refundOk: cardRefund.refunded === true };
+  } else if (pointRefundContext.isPassSpend || consumePayload?.passRefund) {
+    pointRefund = { attempted: true, refundOk: await restoreAIPromptPassOnFailure({ auth, featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+      requestId, passRefund: consumePayload?.passRefund && typeof consumePayload.passRefund === "object" ? consumePayload.passRefund : null, label: "saju-ai-prompt" }) };
+  }
+  // 환불이 성공했을 때만 환불로 기록한다. 실패하면 결제를 보존한 무료 재시도 상태로 닫고 경보를 남긴다.
+  const refunded = Boolean(monthlyRefund.refundOk || pointRefund.refundOk);
+  await withMongoRetry(env, () => PaidExecutionRecord.updateOne(
+    { executionId, status: "generating", "result.leaseToken": leaseToken },
+    {
+      $set: {
+        status: "generation_failed",
+        error: { code: refunded ? "GENERATION_FAILED_REFUNDED" : "LLM_GENERATION_RETRYABLE", message: error.message },
+        ...(refunded ? { "result.order.paymentStatus": "REFUNDED" } : {}),
+        "result.progress": buildSajuAIProgress(
+          0,
+          "failed",
+          refunded
+            ? "상담 생성에 거듭 실패해 결제를 자동 환불했어요. 다시 시도하면 새로 결제됩니다."
+            : "상담 생성에 실패했어요. 결제 권한은 보존되니 다시 시도해 주세요.",
+        ),
+      },
+    },
+  )).catch(() => {});
+  const refundStatus = refunded ? "refunded" : "pending";
+  if (!refunded) logStuckUnsettled("fortune", fresh);
+  logStuckSettled({ service: "fortune", sessionId: String(fresh.resultId || fresh._id || ""), outcome: "generation_failed", refundStatus,
+    stalls: Number(fresh.deliveryWatch?.stalls || 0) });
+  return { outcome: "generation_failed", refundStatus };
+}
 
 export function resumeConsultationOnServer(env, doc) {
   if (!doc?.userId || !doc.executionId) throw new Error("RECOVERY_IDENTITY_REQUIRED");

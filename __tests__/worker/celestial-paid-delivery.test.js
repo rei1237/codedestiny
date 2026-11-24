@@ -5,7 +5,7 @@ import { jest } from '@jest/globals';
 const timeoutPolicy = jest.requireActual('../../worker/lib/sync-llm-timeout.js');
 jest.unstable_mockModule('../../worker/lib/sync-llm-timeout.js', () => ({ ...timeoutPolicy, PAID_LLM_PARTS_PER_REQUEST: 4 }));
 
-let route, docs, provider, accessMode, revoked, userId, fault, fetchBlock, calls, lost, failExecution;
+let route, settleStuck, docs, provider, accessMode, revoked, userId, fault, fetchBlock, calls, lost, failExecution;
 const user='64b7f2a1c3d4e5f601234567';
 const clone=value=>structuredClone(value);
 const get=(doc,key)=>key.split('.').reduce((value,key)=>value?.[key],doc);
@@ -42,7 +42,7 @@ beforeAll(async()=>{
   PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)},
  }));
  jest.unstable_mockModule('../../worker/lib/gemini.js',()=>({...gemini,callGeminiText:(...args)=>provider(...args)}));
- ({handleCelestialHarmonyRoutes:route}=await import('../../worker/routes/celestial-harmony.js'));
+ ({handleCelestialHarmonyRoutes:route,settleStuckDelivery:settleStuck}=await import('../../worker/routes/celestial-harmony.js'));
 });
 beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;calls=[];lost=false;
  failExecution=jest.fn(async(_env,_user,payload)=>{const doc=docs.find(item=>item.executionKey===payload.executionKey);if(doc.lock?.token)throw Error('settlement needs a released lock');doc.status='refunded';return {ok:true,status:200,execution:{status:'refunded'},settlement:{ok:true,status:'refunded'}};});
@@ -276,4 +276,32 @@ test('a refund that could not settle is retried by the next request instead of s
  failExecution.mockImplementation(settle);
  const retried=await resume();expect(await retried.json()).toMatchObject({code:'CELESTIAL_GENERATION_FAILED',refunded:true});
  expect(failExecution).toHaveBeenCalledTimes(2);expect(provider).toHaveBeenCalledTimes(24);
+});
+// 2026-11-24 정체 자동 확정: 복구 크론이 진전 없는 건을 넘기면 저장된 카드가 없는 결제 건은 소진 종결과 같은 증빙을 남기고 즉시 자동 환불한다.
+const stuck=(now=Date.now()+3600000)=>settleStuck({},{doc:{userId:user,executionKey:docs[0].executionKey,status:'pending'},now});
+test('a stalled checkpoint without a saved card closes with the stored evidence and an automatic refund',async()=>{
+ accessMode='single';provider.mockImplementation(async()=>({ok:false,provider:'gemini',text:''}));
+ expect((await start()).status).toBe(202);expect(docs[0].metadata.celestialDelivery.delivery.parts).toEqual({});expect(docs[0].sourceTransactionId).toBeUndefined();
+ expect(await stuck(Date.now())).toEqual({outcome:'leased'});expect(failExecution).not.toHaveBeenCalled();
+ const calls=provider.mock.calls.length;
+ expect(await stuck()).toEqual({outcome:'generation_failed',refundStatus:'refunded'});
+ expect(failExecution).toHaveBeenCalledTimes(1);expect(failExecution.mock.calls[0][2]).toMatchObject({executionKey:docs[0].executionKey,reasonCode:'CELESTIAL_GENERATION_FAILED',forceRefundOnClose:true});
+ expect(docs[0]).toMatchObject({status:'refunded',sourceTransactionId:'64b7f2a1c3d4e5f60123abcd',cost:50,lock:{token:''},metadata:{celestialDelivery:{failed:true},billing:{requestId:body.requestId,reportId:body.reportId}}});
+ expect(provider).toHaveBeenCalledTimes(calls);
+ const again=await resume();expect(again.status).toBe(503);expect(await again.json()).toMatchObject({code:'CELESTIAL_GENERATION_FAILED',refunded:true});
+ expect(await stuck()).toEqual({outcome:'progressed'});expect(failExecution).toHaveBeenCalledTimes(1);
+});
+test('a stalled refund that could not settle is closed again by the next stuck pass',async()=>{
+ provider.mockImplementation(async()=>({ok:false,provider:'gemini',text:''}));await start();const settle=failExecution.getMockImplementation();
+ failExecution.mockImplementationOnce(async()=>{throw Error('settlement storage');});
+ expect(await stuck()).toEqual({outcome:'generation_failed',refundStatus:'pending'});expect(docs[0]).toMatchObject({status:'pending',metadata:{celestialDelivery:{failed:true}}});
+ failExecution.mockImplementation(settle);
+ expect(await stuck()).toEqual({outcome:'generation_failed',refundStatus:'refunded'});expect(docs[0].status).toBe('refunded');expect(failExecution).toHaveBeenCalledTimes(2);
+});
+test.each([['saved cards',()=>{}],['a revoked payment',()=>{revoked=true;}]])('a stalled checkpoint with %s is left to the resume path without a refund',async(_label,arrange)=>{
+ await start();arrange();const saved=Object.keys(docs[0].metadata.celestialDelivery.delivery.parts).length;
+ if(revoked)docs[0].metadata.celestialDelivery.delivery.parts={};else expect(saved).toBeGreaterThan(0);
+ const warn=jest.spyOn(console,'warn').mockImplementation(()=>{});
+ try{expect(await stuck()).toEqual({outcome:'unsettled'});expect(warn).toHaveBeenCalledWith('paid_delivery_stuck_unsettled',expect.objectContaining({service:'celestial-harmony'}));}finally{warn.mockRestore();}
+ expect(failExecution).not.toHaveBeenCalled();expect(docs[0]).toMatchObject({status:'pending'});expect(docs[0].metadata.celestialDelivery.failed).toBeUndefined();
 });

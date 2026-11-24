@@ -1,3 +1,4 @@
+import EntryOrnament from "@/app/components/service-intro/EntryOrnament";
 import type { ComponentPropsWithoutRef, ReactNode } from "react";
 import styles from "../ServiceIntroSection.module.css";
 import masks from "./yehwaIntroMasks.generated.module.css";
@@ -26,11 +27,7 @@ export default function YehwaCard({
   return (
     <Tag data-tone={tone} className={cls} {...rest}>
       {ornament ? (
-        <span className={styles.crest} aria-hidden="true">
-          <span className={styles.halo}>
-            <span className={styles.moon} />
-          </span>
-        </span>
+        <EntryOrnament />
       ) : null}
       <div className={styles.body}>{children}</div>
       {ornament ? <span className={styles.sprig} aria-hidden="true" /> : null}

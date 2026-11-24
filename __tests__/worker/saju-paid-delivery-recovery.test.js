@@ -22,6 +22,7 @@ const names = new Set([
   "buildSajuAIStatusPayload", "mapSajuAIExecutionStatus", "buildSajuAIProgress", "normalizeSajuAIStoredResult",
   "findSajuAIExecutionForRead", "handleSajuAIConsultationStatus", "handleSajuAIConsultationResult",
   "sajuAIDeliveryV2Enabled", "isSajuAIDeliveryV2", "readSajuAIBestSectionText", "assembleSajuAIBestEffortText",
+  "settleStuckDelivery", "readSajuAIPromptMonthlyRefundContext",
 ]);
 const constants = new Set([
   "SAJU_AI_REQUIRED_CHAPTER_PATTERNS",
@@ -158,7 +159,7 @@ function harness(mode = "single", env = V1_ENV) {
   const body = { question: "앞으로 진로를 어떻게 정할까요", domain: "life_direction", sajuResult: {}, requestId: "same" };
   return {
     ctx, calls, charges,
-    record: () => record, fault: (value) => { fault = value; },
+    record: () => record, seed: (value) => { record = clone(value); }, fault: (value) => { fault = value; },
     post: (input = body, owner = "owner") => ctx.handleSajuAIPrompt(new Request("https://mock.invalid/create", { method: "POST", body: JSON.stringify(input) }), { userId: owner }, env),
     setEnv: (value) => { env = value; },
   };
@@ -489,5 +490,76 @@ describe("delivery plan v2", () => {
     expect(res.status).toBe(503);
     expect(h.record().status).toBe("generation_failed");
     expect(h.record().result.sections.find((row) => row.key === "life_domains")).toMatchObject({ qualityRepair: true, attempts: 1 });
+  });
+});
+
+// 복구 크론 정체 확정(S16): 글이 하나도 없는 정체 건은 핸들러 실패 경로와 같은 환불 함수로 즉시 환불한다.
+describe("stuck delivery settlement", () => {
+  const NOW = Date.parse("2026-11-24T00:00:00.000Z");
+  const stuck = (over = {}) => ({
+    executionId: "owner:same", userId: "owner", requestId: "same", featureId: "saju_ai_question_prompt", status: "generating",
+    updatedAt: "2026-11-20T00:00:00.000Z", deliveryWatch: { stalls: 6 },
+    result: { leaseToken: "old", sections: [], order: { paymentStatus: "PAID", accessMethod: "single" },
+      resumeBody: { question: "앞으로 진로를 어떻게 정할까요", requestId: "same", paymentMode: "COIN", transactionId: "tx1" } },
+    ...over,
+  });
+  const routes = {
+    coin: { point: { isPointSpend: true, chargedCoins: 200, sourceTransactionId: "tx1" }, fn: "handlePigCoinRefund" },
+    card: { point: { isCardSpend: true, sourceTransactionId: "pay1" }, fn: "refundAIPromptCardPaymentOnFailure" },
+    pass: { point: { isPassSpend: true }, fn: "restoreAIPromptPassOnFailure" },
+    monthly: { point: {}, consume: { accessType: "membership_credit", membershipCreditCost: 3, ledgerId: "507f1f77bcf86cd799439011" }, fn: "refundSajuAIPromptMonthlyCredit" },
+  };
+  function settler(route = "coin", ok = true, record = stuck()) {
+    const h = harness("single");
+    const spec = routes[route];
+    Object.assign(h.ctx, {
+      connectDb: async () => {}, STUCK_LIVE_LEASE_MS: 120000, SAJU_AI_PROMPT_STALE_GENERATING_MS: 120000,
+      SAJU_AI_PROMPT_FEATURE_KEY: "saju_ai_question_prompt", SAJU_AI_PROMPT_PRICE: 200,
+      findAIPromptPaidAccessEvidence: jest.fn(async () => ({ source: "point_history", record: { _id: "tx1" } })),
+      buildAIPromptVerifiedConsumePayload: jest.fn(() => ({ accessMethod: "COIN", ...(spec.consume || {}) })),
+      readSajuAIPromptPointRefundContext: () => spec.point,
+      normalizeSajuAIPromptAccessMethod: () => (route === "monthly" ? "monthly" : "single"),
+      handlePigCoinRefund: jest.fn(async () => Response.json({ ok }, { status: ok ? 200 : 409 })),
+      refundAIPromptCardPaymentOnFailure: jest.fn(async () => ({ refunded: ok })),
+      restoreAIPromptPassOnFailure: jest.fn(async () => ok),
+      refundSajuAIPromptMonthlyCredit: jest.fn(async () => ({ attempted: route === "monthly", refundOk: route === "monthly" && ok })),
+      logStuckSettled: jest.fn(), logStuckUnsettled: jest.fn(),
+    });
+    h.seed(record);
+    return { h, spec, run: () => h.ctx.settleStuckDelivery({}, { doc: { executionId: "owner:same", userId: "owner" }, now: NOW }) };
+  }
+  const refundFns = ["handlePigCoinRefund", "refundAIPromptCardPaymentOnFailure", "restoreAIPromptPassOnFailure"];
+
+  test.each(Object.keys(routes))("%s payment with no saved text is refunded and recorded as refunded", async (route) => {
+    const { h, spec, run } = settler(route);
+    expect(await run()).toEqual({ outcome: "generation_failed", refundStatus: "refunded" });
+    expect(h.ctx[spec.fn]).toHaveBeenCalledTimes(1);
+    for (const fn of refundFns.filter((name) => name !== spec.fn)) expect(h.ctx[fn]).not.toHaveBeenCalled();
+    expect(h.ctx.findAIPromptPaidAccessEvidence.mock.calls[0][0]).toMatchObject({ auth: { userId: "owner" }, requestId: "same", body: { transactionId: "tx1" } });
+    if (route === "coin") expect(await h.ctx.handlePigCoinRefund.mock.calls[0][0].json()).toMatchObject({ cost: 200, sourceTransactionId: "tx1", requestId: "refund:same" });
+    expect(h.record()).toMatchObject({ status: "generation_failed", error: { code: "GENERATION_FAILED_REFUNDED" }, result: { order: { paymentStatus: "REFUNDED" } } });
+    expect(h.ctx.logStuckSettled).toHaveBeenCalledWith(expect.objectContaining({ service: "fortune", outcome: "generation_failed", refundStatus: "refunded" }));
+  });
+
+  test("a refund that does not go through keeps the payment for a free retry", async () => {
+    const { h, run } = settler("coin", false);
+    expect(await run()).toEqual({ outcome: "generation_failed", refundStatus: "pending" });
+    expect(h.record()).toMatchObject({ status: "generation_failed", error: { code: "LLM_GENERATION_RETRYABLE" }, result: { order: { paymentStatus: "PAID" } } });
+    expect(h.ctx.logStuckUnsettled).toHaveBeenCalled();
+  });
+
+  test.each([
+    ["saved text", stuck({ result: { ...stuck().result, sections: [{ key: "a", text: "이미 저장된 상담 본문입니다." }] } }), "unsettled"],
+    ["a live lease", stuck({ updatedAt: new Date(NOW - 30000).toISOString() }), "leased"],
+    ["a refunded order", stuck({ result: { ...stuck().result, order: { paymentStatus: "REFUNDED" } } }), "unsettled"],
+    ["no stored input", stuck({ result: { ...stuck().result, resumeBody: undefined } }), "unsettled"],
+    ["missing payment proof", stuck(), "unsettled"],
+    ["a finished record", stuck({ status: "completed" }), "progressed"],
+  ])("%s never moves money", async (label, record, outcome) => {
+    const { h, run } = settler("coin", true, record);
+    if (label === "missing payment proof") h.ctx.findAIPromptPaidAccessEvidence.mockResolvedValue(null);
+    expect((await run()).outcome).toBe(outcome);
+    for (const fn of [...refundFns, "refundSajuAIPromptMonthlyCredit"]) expect(h.ctx[fn]).not.toHaveBeenCalled();
+    expect(h.record().status).toBe(record.status);
   });
 });

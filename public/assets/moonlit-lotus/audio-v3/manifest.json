@@ -1,0 +1,57 @@
+{
+  "version": 3,
+  "creator": "Code Destiny (self-synthesized)",
+  "generator": "scripts/synth-moonlit-sfx.mjs",
+  "license": "CC0-1.0 (self-synthesized by scripts/synth-moonlit-sfx.mjs)",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "generated": "2026-11-22",
+  "description": "Original sound effects synthesized from pure JS DSP (no external recordings, no paid APIs). Deterministic seeds.",
+  "format": {
+    "codec": "MP3",
+    "channels": 1,
+    "sampleRate": 44100,
+    "bitrate": 96000
+  },
+  "files": [
+    {
+      "name": "bell",
+      "title": "범종",
+      "file": "bell.mp3",
+      "description": "Deep temple bell strike: inharmonic partials from 48 Hz hum, detuned-pair beating, soft wooden-beam thump, long fade.",
+      "durationSec": 7.5,
+      "peakDbfs": -3.45,
+      "bytes": 90926,
+      "sha256": "d6e7ca19f48792a6b7853513d30ce1531f0a1c9ebb15794cf832cee523e386b8"
+    },
+    {
+      "name": "windchime",
+      "title": "풍경",
+      "file": "windchime.mp3",
+      "description": "Small eave wind-bell: three light metallic strikes at seeded times and pitches.",
+      "durationSec": 2.8,
+      "peakDbfs": -3.43,
+      "bytes": 34501,
+      "sha256": "446ef3d66551b2622dd4153b0e2e21f1156131f4a548399904ea5fe8cbacaafb"
+    },
+    {
+      "name": "ignite",
+      "title": "향 불붙기",
+      "file": "ignite.mp3",
+      "description": "Soft incense ignition: sparse band-passed crackle and a warm low-passed whoosh.",
+      "durationSec": 1.3,
+      "peakDbfs": -3.29,
+      "bytes": 16320,
+      "sha256": "70e379fab862812b9732110f6433a9410329a9c466bd7c9c2e99de71e441686f"
+    },
+    {
+      "name": "lantern",
+      "title": "연등 떠오름",
+      "file": "lantern.mp3",
+      "description": "Lantern rising: airy C-major pad gliding up three semitones with ascending pentatonic sparkles.",
+      "durationSec": 2.7,
+      "peakDbfs": -3.39,
+      "bytes": 33247,
+      "sha256": "9aabf3584c6586b4760812abfed5452d421a204585292559bc4a18821f69d3d7"
+    }
+  ]
+}

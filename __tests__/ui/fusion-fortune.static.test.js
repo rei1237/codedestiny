@@ -15,17 +15,13 @@ test("fusion fortune renders the premium flow and optimized hero asset", () => {
   const client = read(CLIENT);
   assert.match(client, /여섯 체계 교차 판정/);
   assert.match(client, /체계별 6장 · 영역별 8장/);
-  assert.match(client, /fusion-fortune-masters-v3-960\.webp/);
-  const hero = client.match(/<img\b[^>]*className=\{styles\.heroImage\}[^>]*>/)?.[0];
-  assert.ok(hero, "the responsive hero keeps its own image element");
-  assert.match(hero, /fetchPriority="high"/);
-  assert.match(hero, /loading="eager"/);
-  assert.match(hero, /fusion-fortune-masters-v3\.webp 1200w/);
-  assert.match(hero, /width=\{1200\} height=\{800\}/);
-  assert.match(read("app/fusion-fortune/fusion-fortune.module.css"), /\.heroImage\s*\{[^}]*height:\s*auto;[^}]*object-fit:\s*contain;/);
-  for (const width of [320, 640, 960]) {
-    assert.ok(hero.includes(`fusion-fortune-masters-v3-${width}.webp ${width}w`));
-    assert.ok(fs.existsSync(path.join(root, `public/images/service-introductions/fusion-fortune-masters-v3-${width}.webp`)));
+  assert.match(client, /<MasterRoomScene master="fusion" shot="intro"/);
+  const player = read("app/components/expert-consulting/ConsultationScene.tsx");
+  assert.match(player, /fetchPriority=\{priority \? "high" : "auto"\}/);
+  assert.match(player, /preload="none"/);
+  assert.match(read("app/components/expert-consulting/ConsultationScene.module.css"), /object-fit:\s*contain/);
+  for (const ext of ["mp4", "webp"]) {
+    assert.ok(fs.existsSync(path.join(root, "public/images/consultation-rooms/fusion." + ext)));
   }
 });
 

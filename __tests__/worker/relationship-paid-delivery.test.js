@@ -45,7 +45,12 @@ beforeAll(async()=>{
  ({handleRelationshipBoundaryTestRoutes:route,resumeConsultationOnServer:resumeOnServer,settleStuckDelivery:settleStuck}=await import('../../worker/routes/relationship-boundary-test.js'));
  ({bindNativeTossRequest:bindNative}=await import('../../worker/toss/native-context.js'));
 });
-beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome={refundStatus:"refunded"};webVerifications=0;nativeRecovery=async()=>{throw new Error('native recovery evidence required');};
+// failServiceExecution 의 실제 반환 모양(worker/lib/service-execution-task.js failServiceExecution·toSummary).
+const REFUNDED_OUTCOME={ok:true,status:200,idempotent:false,execution:{status:"refunded",refundStatus:"refunded"},settlement:{ok:true,status:"refunded"}};
+const FAILED_OUTCOME={ok:true,status:202,idempotent:false,execution:{status:"failed",refundStatus:"refund_failed"},settlement:{ok:false,status:"failed"}};
+const ALREADY_REFUNDED_OUTCOME={ok:true,status:200,idempotent:true,execution:{status:"refunded",refundStatus:"refunded"}};
+const HELD_OUTCOME={ok:true,status:202,idempotent:false,execution:{status:"pending",refundStatus:"pending"},settlement:{ok:true,status:"pending",deferred:true}};
+beforeEach(()=>{docs=[];accessMode='pass';revoked=false;userId=user;fault=null;lost=false;refunds=0;closes=0;executionMetadata=null;refundOutcome=REFUNDED_OUTCOME;webVerifications=0;nativeRecovery=async()=>{throw new Error('native recovery evidence required');};
  provider=jest.fn(async(_env,prompt,options)=>{
   expect(options.timeoutMs).toBe(45000);expect(options.attempts).toBe(1);expect(options.fallbackToWorkersAI).toBe(false);
   const evidenceHash=prompt.match(/evidenceHash[":\s]+([a-f0-9]{64})/)[1];
@@ -172,9 +177,14 @@ test('pass evidence survives separate requests without a payment transaction id'
  await resume();expect(refunds).toBe(1);
 });
 test('unsuccessful settlement is never reported as refunded',async()=>{
- refundOutcome={refundStatus:'refund_failed'};
+ refundOutcome=FAILED_OUTCOME;
  provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
  await start();expect((await (await resume()).json()).refunded).toBe(false);
+});
+test.each([['already refunded execution',ALREADY_REFUNDED_OUTCOME,true],['held settlement',HELD_OUTCOME,false],['missing execution',{ok:false,status:404},false]])('%s maps to the real refund outcome',async(_name,outcome,refunded)=>{
+ refundOutcome=outcome;
+ provider.mockImplementation(async()=>({ok:true,provider:'gemini',text:'{}'}));
+ await start();expect((await (await resume()).json()).refunded).toBe(refunded);
 });
 test('query-shaped ids are rejected before storage lookup',async()=>{
  expect((await post({resumeSessionId:{$ne:null}})).status).toBe(422);
@@ -271,6 +281,12 @@ describe('settleStuckDelivery', () => {
     await stalled('delivery_pending');
     expect(await settle()).toMatchObject({ outcome: 'generation_failed' });
     expect(docs[0].status).toBe('generation_failed');
+    expect(refunds).toBe(1);
+  });
+  test('unsettled refund keeps the stuck report pending for the timeout sweep', async () => {
+    await stalled('partial');
+    refundOutcome = FAILED_OUTCOME;
+    expect(await settle()).toEqual({ outcome: 'generation_failed', refundStatus: 'pending' });
     expect(refunds).toBe(1);
   });
   test('revoked payment and reviewed no-refund repairs are only alerted', async () => {

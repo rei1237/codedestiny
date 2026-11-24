@@ -1,0 +1,37 @@
+.scene { overflow:hidden; aspect-ratio:16/9; width:100%; border-radius:16px; background:#332335; }
+.scene img,.scene video { display:block; width:100%; height:100%; object-fit:contain; }
+
+.roomFrame {
+  box-sizing: border-box;
+  width: min(100%, 32rem);
+  min-width: 0;
+  margin-inline: auto;
+  padding: 3px;
+  align-self: center;
+  border: 1px solid #9c7954;
+  border-radius: 18px;
+  background: linear-gradient(140deg, #594640, #2a202c 55%, #685342);
+}
+.roomFrame[data-shot="intro"] { width: min(100%, 46rem); }
+.roomFrame .scene { border-radius: 14px; }
+
+/* Borrow the petals of Yeoni's tea room and keep the illustration unobstructed. */
+.roomFrame { position: relative; }
+.roomPetals {
+  position: absolute;
+  width: 32px;
+  height: 20px;
+  right: 8px;
+  bottom: -3px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.scene { position: relative; }
+.scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 rgb(253 231 192 / 46%), inset 0 -1px 0 rgb(221 180 157 / 35%);
+  pointer-events: none;
+}

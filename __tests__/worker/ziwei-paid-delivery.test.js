@@ -17,7 +17,7 @@ function matches(doc, filter) {
       if ("$exists" in value && (actual !== undefined && actual !== null) !== value.$exists) return false;
       if ("$ne" in value) return actual !== value.$ne;
       if ("$nin" in value) return !value.$nin.includes(actual);
-      if ("$in" in value) return value.$in.includes(actual);
+      if ("$in" in value) return value.$in.includes(actual ?? null);
       if ("$lt" in value) return new Date(actual) < value.$lt;
       if ("$lte" in value) return new Date(actual) <= value.$lte;
       return "$exists" in value;
@@ -276,6 +276,29 @@ it("settles an expired retry window through the refund cron and restores a check
   expect(passRefund.mock.calls[0][0]).toMatchObject({ userId: uid, featureKey: "ziwei-ai-consultation", requestId: "original-paid-request" });
   expect(docs[0].llmMeta).toMatchObject({ retryable: { refundReason: "RETRY_WINDOW_EXPIRED", refundStatus: "refunded" } });
   expect((await post("/retry", { sessionId: docs[0].id })).status).toBe(409);
+});
+// 2026-11-24 승인 수선: 이용권·월정석·코인 복원이 예외로 끝나면 삼키지 않고 경보를 남기며, 보류 환불을 not_required 로 닫지 않는다.
+it("alerts and keeps the retry refund open when restoring the checkout pass throws", async () => {
+  await exhaust();
+  docs[0].updatedAt = new Date(Date.now() - 300000);
+  const later = Date.now() + 8 * 86400000;
+  passRefund.mockRejectedValueOnce(new Error("pass store down"));
+  const alert = jest.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    expect(await settleDue({}, { model, now: later })).toEqual([{ service: "ziwei-ai", refundStatus: "failed" }]);
+    expect(docs[0].llmMeta.retryable.refundSettledAt).toBeUndefined(); expect(release).not.toHaveBeenCalled();
+    const line = alert.mock.calls.find(([marker]) => marker === "[PaidService Auto Refund Failed]");
+    expect(JSON.parse(line[1])).toMatchObject({ service: "ziwei-ai", stage: "prepaid_access_restore", evidenceType: "pass", requestId: "original-paid-request", refundStatus: "refund_failed", failureReason: "pass store down" });
+  } finally { alert.mockRestore(); }
+  expect(await settleDue({}, { model, now: later })).toEqual([{ service: "ziwei-ai", refundStatus: "refunded" }]);
+  expect(passRefund).toHaveBeenCalledTimes(2); expect(release).toHaveBeenCalledTimes(1);
+});
+it("lists only this service's completed consultations and keeps legacy rows without a service type", async () => {
+  docs.push({ id: "zwai_main", userId: uid, serviceType: "ziwei-ai", status: "completed", createdAt: new Date() },
+    { id: "zwai_legacy", userId: uid, status: "completed", createdAt: new Date() },
+    { id: "zwai_island", userId: uid, serviceType: "ziwei-island-palace-consult", status: "completed", createdAt: new Date() });
+  const listed = await (await route(new Request("https://mock.test/api/ziwei-ai/result"), {})).json();
+  expect(listed.consultations.map(row => row.id).sort()).toEqual(["zwai_legacy", "zwai_main"]);
 });
 it("does not expire a reopened retry that is generating right now", async () => {
   mode = "paid"; await exhaust();

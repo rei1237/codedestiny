@@ -27,7 +27,7 @@ export default function Room(){
  const [storyOpen,setStoryOpen]=useState(false);
  const [storyMood,setStoryMood]=useState<Parameters<typeof useRoomSoundtrack>[0]>('quiet');
  const opener=useRef<HTMLElement|null>(null);
- const sound=useRoomSoundtrack(storyOpen?storyMood:'room');
+ const sound=useRoomSoundtrack(storyOpen?storyMood:'room',undefined,'cd:yn:room-sound');
  useEffect(()=>{
   const sync=()=>{if(window.location.hash==='#story')setStoryOpen(true);};
   sync();window.addEventListener('hashchange',sync);
