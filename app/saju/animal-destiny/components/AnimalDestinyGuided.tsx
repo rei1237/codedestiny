@@ -16,7 +16,7 @@ import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { normalizeBirthDateInput } from "@/lib/birthDateInput";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
-import { GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED } from "@/lib/guided-flow/flags.mjs";
+import { GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED, GUIDED_BIRTH_INPUT_V2_ENABLED } from "@/lib/guided-flow/flags.mjs";
 import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedBirthTitles } from "@/app/components/guided-flow/birth/GuidedBirthSteps";
 import { BIRTH_CONFIRM, type BirthProfileSeed, birthSteps, isBirthField } from "@/app/components/guided-flow/birth/birth-steps";
 
@@ -31,8 +31,11 @@ const LEGACY_STEPS: GuidedStep[] = [
   { id: "result", kind: "result", history: "replace" },
 ];
 // W1 공용 출생 입력: 이름(선택) → 성별 → 생년월일 → 달력 → 시각 → 확인 요약. 단계 id·답 형식·스토어 입력(animalInputFromAnswers)은 같다.
-// 태어난 장소는 12운성 계산이 받지 않아 묻지 않는다.
-const BIRTH_FIELDS = ["name", "gender", "date", "calendar", "time"] as const;
+// 출생 입력 확대(GUIDED_BIRTH_INPUT_V2_ENABLED): 생년월일 한 칸 + 시각 뒤 태어난 장소(선택, 기록만).
+// 🔴 장소는 스토어 입력(animalInputFromAnswers)에 넣지 않는다 — 12운성·유료 풀이(saju section 조회)는 지금처럼 장소 없이 계산한다.
+// 출생 정보가 유료 풀이·달력 조회로 서버에 가므로 '브라우저에서만 계산' 안내는 두지 않는다.
+const BIRTH_V2 = GUIDED_BIRTH_INPUT_V2_ENABLED;
+const BIRTH_FIELDS = BIRTH_V2 ? ["name", "gender", "date", "calendar", "time", "place"] as const : ["name", "gender", "date", "calendar", "time"] as const;
 const BIRTH_STEPS: GuidedStep[] = [
   ...birthSteps({ fields: BIRTH_FIELDS }),
   { id: "computing", kind: "wait", history: "none", transient: true, restoreTo: BIRTH_CONFIRM, awaitWork: true },
@@ -40,6 +43,8 @@ const BIRTH_STEPS: GuidedStep[] = [
 ];
 const BIRTH = GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED;
 const STEPS = BIRTH ? BIRTH_STEPS : LEGACY_STEPS;
+// 랜딩 안내의 단계 번호는 진행 표시(계산 단계까지 셈)와 같아야 한다: 장소 단계가 있으면 8단계 문구.
+const GUIDE_PLACE = BIRTH && BIRTH_V2 ? "Place" : "";
 
 type Answers = Record<string, string | undefined>;
 
@@ -150,7 +155,7 @@ export default function AnimalDestinyGuided() {
 
   // W1: 저장 프로필을 고르면 원본 매핑으로 스토어를 채운다. 단계 답은 공용 묶음이 같은 프로필에서 채운다.
   const birthOptions = useMemo<GuidedBirthOptions>(() => ({
-    idPrefix: "animal-destiny", fields: BIRTH_FIELDS, profile: true,
+    idPrefix: "animal-destiny", fields: BIRTH_FIELDS, profile: true, ...(BIRTH_V2 ? { dateInput: "single", placeMode: "record" } as const : {}),
     onProfile: (seed: BirthProfileSeed) => {
       setInput({
         name: seed.name || "",
@@ -175,8 +180,8 @@ export default function AnimalDestinyGuided() {
     freeHint={t("animalDestiny.freeHint")}
     aboutTitle={t("animalDestiny.aboutTitle")}
     aboutBody={t("animalDestiny.aboutBody")}
-    guideTitle={t("animalDestiny.guideTitle")}
-    guideSteps={[1, 2, 3].map((n) => ({ title: t(`animalDestiny.guide${n}Title`), body: t(`animalDestiny.guide${n}Body`) }))}
+    guideTitle={t(`animalDestiny.guideTitle${GUIDE_PLACE}`)}
+    guideSteps={[1, 2, 3].map((n) => ({ title: t(`animalDestiny.guide${n}Title${n === 3 ? GUIDE_PLACE : ""}`), body: t(`animalDestiny.guide${n}Body${n === 3 ? GUIDE_PLACE : ""}`) }))}
   />;
 
   const renderStep = (current: GuidedStep) => {

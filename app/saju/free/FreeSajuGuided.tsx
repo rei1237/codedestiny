@@ -17,7 +17,7 @@ import { normalizeBirthDateInput } from "@/lib/birthDateInput";
 import { elementBalanceLine } from "@/lib/free-saju/copy";
 import { trackEvent } from "@/lib/analytics";
 import YeoniSay from "@/components/fortune/YeoniSay";
-import { GUIDED_BIRTH_FREE_SAJU_ENABLED } from "@/lib/guided-flow/flags.mjs";
+import { GUIDED_BIRTH_FREE_SAJU_ENABLED, GUIDED_BIRTH_INPUT_V2_ENABLED } from "@/lib/guided-flow/flags.mjs";
 import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedBirthTitles } from "@/app/components/guided-flow/birth/GuidedBirthSteps";
 import { BIRTH_CONFIRM, birthSteps, isBirthField } from "@/app/components/guided-flow/birth/birth-steps";
 
@@ -30,8 +30,12 @@ const LEGACY_STEPS: GuidedStep[] = [
   { id: "result", kind: "result", history: "replace" },
 ];
 // W1 공용 출생 입력: 생년월일(년·월·일 칸) → 달력 → 시각(시진 칩·직접·몰라요) → 확인 요약. 답 형식·엔진 입력은 위와 같다.
-// 태어난 장소는 이 계산(computeFreeSaju)이 받지 않아 묻지 않는다. 저장 프로필 고르기도 원본처럼 없다.
-const BIRTH_OPTIONS: GuidedBirthOptions = { idPrefix: "free-saju", fields: ["date", "calendar", "time"] };
+// 저장 프로필 고르기는 원본처럼 없다. 출생 입력 확대(GUIDED_BIRTH_INPUT_V2_ENABLED): 생년월일 한 칸 + 태어난 장소(선택, 기록만).
+// 🔴 장소는 computeFreeSaju 에 넘기지 않는다(엔진 입력 4개 그대로, 계산은 서울 기준) — 확인 요약에만 보인다. 계산·측정 모두
+// 브라우저 안에서 끝나고 출생 정보는 측정 이벤트에도 싣지 않으므로 확인 단계에 '브라우저에서만 계산' 안내를 둔다.
+const BIRTH_OPTIONS: GuidedBirthOptions = GUIDED_BIRTH_INPUT_V2_ENABLED
+  ? { idPrefix: "free-saju", fields: ["date", "calendar", "time", "place"], dateInput: "single", placeMode: "record", localNote: true }
+  : { idPrefix: "free-saju", fields: ["date", "calendar", "time"] };
 const BIRTH_STEPS: GuidedStep[] = [
   ...birthSteps(BIRTH_OPTIONS),
   { id: "computing", kind: "wait", history: "none", transient: true, restoreTo: BIRTH_CONFIRM, awaitWork: true },

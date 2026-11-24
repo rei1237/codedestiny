@@ -11,7 +11,7 @@ import { type GuidedStep, useGuidedFlow } from "@/app/components/guided-flow/use
 import { useGuidedT } from "@/app/components/guided-flow/useGuidedT";
 import gf from "@/app/components/guided-flow/guided-flow.module.css";
 import tarot from "@/app/components/guided-flow/guided-tarot.module.css";
-import { GUIDED_BIRTH_STAR_HUG_ENABLED } from "@/lib/guided-flow/flags.mjs";
+import { GUIDED_BIRTH_INPUT_V2_ENABLED, GUIDED_BIRTH_STAR_HUG_ENABLED } from "@/lib/guided-flow/flags.mjs";
 import { GuidedBirthStep, type GuidedBirthOptions, guidedBirthCtaLabels, guidedBirthTitles } from "@/app/components/guided-flow/birth/GuidedBirthSteps";
 import { BIRTH_CONFIRM, birthSteps, isBirthField } from "@/app/components/guided-flow/birth/birth-steps";
 
@@ -25,8 +25,12 @@ const LEGACY_STEPS: GuidedStep[] = [
   { id: "result", kind: "result", history: "replace" },
 ];
 // W1 공용 출생 입력: 감정 → 이름 → 생년월일(선택) → 시각 → 확인 요약 → 별자리 → 고민. 값의 정본은 여전히 원본 상태다:
-// 단계 답(YYYY-MM-DD·HH:mm)과 원본 값(8자리·4자리)을 서로 비춘다. 태어난 장소는 이 리딩이 받지 않아 묻지 않는다.
-const BIRTH_FIELDS = ["name", "date", "time"] as const;
+// 단계 답(YYYY-MM-DD·HH:mm)과 원본 값(8자리·4자리)을 서로 비춘다.
+// 출생 입력 확대(GUIDED_BIRTH_INPUT_V2_ENABLED): 생년월일 한 칸 + 시각 뒤 태어난 장소(선택, 기록만).
+// 🔴 장소는 원본 상태·리딩(buildConsultation)에 넘기지 않는다. 저장 프로필을 고르면 원본이 정밀 차트를 서버(western-chart 조회)에서
+// 계산하므로 '브라우저에서만 계산' 안내는 두지 않는다.
+const BIRTH_V2 = GUIDED_BIRTH_INPUT_V2_ENABLED;
+const BIRTH_FIELDS = BIRTH_V2 ? ["name", "date", "time", "place"] as const : ["name", "date", "time"] as const;
 const BIRTH_STEPS: GuidedStep[] = [
   { id: "emotion", kind: "choice" },
   ...birthSteps({ fields: BIRTH_FIELDS, required: { date: false } }),
@@ -151,6 +155,7 @@ export default function YeonStarHugGuided({ flowScope, emotions, signs, samples,
   // W1: 저장 프로필은 원본 onProfileSelect 로만 담는다(음력 프로필 양력 변환·별자리 연결이 원본에 있다). 답은 위 effect 로 흘러온다.
   const birthOptions = useMemo<GuidedBirthOptions>(() => ({
     idPrefix: "star-hug", fields: BIRTH_FIELDS, required: { date: false }, nameMaxLength: 30, profile: true, profileFill: false,
+    ...(BIRTH_V2 ? { dateInput: "single", placeMode: "record" } as const : {}),
     onProfile: (seed, profile) => { onProfileSelect(seed as ProfileSelect[0], profile as ProfileSelect[1]); },
   }), [onProfileSelect]);
 

@@ -44,7 +44,7 @@ try {
   page = await context.newPage();
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto(origin + '/saju/animal-destiny/', { waitUntil: 'domcontentloaded', timeout: 120000 });
-  // W1 공용 출생 입력(GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED): 시작 → 이름(건너뜀) → 성별 → 생년월일 → 달력 → 시각 → 확인.
+  // W1 공용 출생 입력 + 출생 입력 확대(GUIDED_BIRTH_INPUT_V2_ENABLED): 시작 → 이름(건너뜀) → 성별 → 생년월일 한 칸 → 달력 → 시각 → 장소(건너뜀) → 확인.
   const nextIfShown = async () => {
     const next = page.getByRole('button', { name: '다음', exact: true });
     if (await next.isVisible().catch(() => false)) await next.click();
@@ -55,16 +55,15 @@ try {
   await page.getByRole('button', { name: '여성', exact: true }).click();
   await page.waitForTimeout(300);
   await nextIfShown();
-  await page.getByPlaceholder('YYYY').fill('1995');
-  await page.getByPlaceholder('MM').fill('06');
-  await page.getByPlaceholder('DD').fill('15');
+  await page.getByPlaceholder('0000.00.00').fill('19950615');
+  assert.equal(await page.getByPlaceholder('0000.00.00').inputValue(), '1995.06.15');
   await nextIfShown();
   await page.getByRole('button', { name: '양력', exact: true }).click();
   await page.waitForTimeout(300);
   await nextIfShown();
   await page.getByRole('button', { name: '시간을 몰라요' }).click();
+  await page.getByRole('button', { name: '잘 몰라요, 건너뛸게요' }).click();
   await page.waitForTimeout(300);
-  await nextIfShown();
   await page.getByRole('button', { name: '확인', exact: true }).click();
   await page.waitForTimeout(3500);
   const animalCard = page.locator('section, article, div').filter({ hasText: '운명 도감 대표 카드' }).filter({ has: page.getByRole('heading', { name: '보물 햄스터', exact: true }) }).last();

@@ -184,7 +184,7 @@ test('저장 프로필을 고르면 원본 매핑으로 스토어를 채우고 �
 
 // ── W1 공용 출생 입력(GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED): 이름 → 성별 → 생년월일 → 달력 → 시각 → 확인, 스토어 입력 6필드는 같다 ──
 {
-  const birth = await load({ GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED: true });
+  const birth = await load({ GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED: true, GUIDED_BIRTH_INPUT_V2_ENABLED: false });
 
   test('W1 출생 입력: 이름 → 성별 → 년·월·일 → 달력 → 시진 → 확인 → 같은 스토어 입력·유료 확인 1회', async () => {
     Component = birth.default; useStore = birth.useAnimalDestinyStore;
@@ -229,6 +229,47 @@ test('저장 프로필을 고르면 원본 매핑으로 스토어를 채우고 �
     await v.click(v.byText('확인'));
     await waitFor(() => store().status === 'result');
     assert.deepEqual(globalThis.__inputs[0], { name: '달', birthDate: '1988-02-03', birthTime: '23:10', gender: 'male', calendarType: 'lunar', lunarLeap: false });
+    await v.close();
+  });
+}
+
+// ── 출생 입력 확대(GUIDED_BIRTH_INPUT_V2_ENABLED): 한 칸 날짜, 시각 다음 태어난 장소(기록만) — 스토어 입력 6필드·유료 확인은 같다 ──
+{
+  const birthV2 = await load({ GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED: true, GUIDED_BIRTH_INPUT_V2_ENABLED: true });
+
+  test('출생 입력 확대: 8단계 안내 → 한 칸 날짜 → 장소 기록 → 확인(서울 기준) → 같은 스토어 입력·유료 확인 1회, 브라우저 안내는 없다', async () => {
+    Component = birthV2.default; useStore = birthV2.useAnimalDestinyStore;
+    const v = await mount();
+    const landing = v.w.document.body.textContent;
+    assert.ok(landing.includes('모두 8단계로 진행돼요') && landing.includes('(5~7단계)'), '장소가 늘어난 단계 수를 첫 화면도 같이 말한다');
+    await v.click(v.byText('동물 찾기 시작'));
+    await v.setValue(v.q('input[name="name"]'), '호랑');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('여성')); await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '생년월일을 알려 주세요');
+    assert.equal(v.q('input[name="birth-year"]'), null, '년·월·일 세 칸 대신 한 칸');
+    const date = v.q('input[name="birth-date"]');
+    await v.setValue(date, '1990515');
+    assert.equal(date.value, '1990.05.15');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('음력 윤달')); await v.click(v.byText('다음'));
+    await v.setValue(v.q('input[name="time"]'), '07:30');
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '태어난 곳을 알려 주세요');
+    assert.ok(v.w.document.body.textContent.includes('6 / 8 단계'));
+    await v.setValue(v.q('input[name="birth-place"]'), '부산');
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '입력한 정보가 맞나요?');
+    const confirm = v.w.document.body.textContent;
+    assert.ok(confirm.includes('부산 (계산은 서울 기준)'));
+    assert.ok(!confirm.includes('브라우저에서만 계산'), '유료 풀이 확인이 서버로 가는 흐름이라 안내하지 않는다');
+    await v.click(v.byText('확인'));
+    await waitFor(() => store().status === 'result');
+    await flush();
+    assert.deepEqual(globalThis.__inputs[0], {
+      name: '호랑', birthDate: '1990-05-15', birthTime: '07:30', gender: 'female', calendarType: 'lunar', lunarLeap: true,
+    }, '장소는 스토어 입력에 들어가지 않는다(원본 6필드)');
+    assert.deepEqual(globalThis.__paid, ['1990-05-15']);
     await v.close();
   });
 }

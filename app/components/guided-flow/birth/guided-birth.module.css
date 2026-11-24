@@ -92,6 +92,11 @@
   font-size: var(--type-reading-size);
   color: var(--gf-ink);
 }
+/* 한 칸 입력(0000.00.00): 숫자 폭을 고정해 점이 들어가도 글자가 흔들리지 않게 한다. */
+.dateField {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
 
 /* ── 시진 칩 ── */
 .sijin {

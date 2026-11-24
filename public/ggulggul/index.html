@@ -12270,6 +12270,8 @@ html.neo-mode body footer .cd-footer-byline a{color:#f4eeff}
 .cd-help-links .cd-help-arrow { width: 20px; height: 20px; }
 .cd-help-entry a:focus-visible { outline: 3px solid var(--cd-focus-ring); outline-offset: 4px; border-radius: var(--cd-r-sm); }
 .cd-help-entry a:hover { color: var(--cd-accent); text-decoration: underline; text-underline-offset: 5px; }
+.cd-help-links a:hover { text-decoration: none; }
+.cd-help-links a:is(:hover, :focus-visible) strong { text-decoration: underline; text-underline-offset: 5px; }
 .cd-help-entry a:active { color: var(--cd-text); }
 @media (max-width: 720px) { .cd-help-entry { grid-template-columns: minmax(0,1fr); gap: 16px; margin-block: 28px; } .cd-help-intro { grid-template-columns: minmax(0,1fr) 88px; gap: 12px; } .cd-help-mascot { grid-column: 2; grid-row: 1; width: 88px; max-width: 100%; } .cd-help-intro>div { grid-column: 1; grid-row: 1; } .cd-help-intro h2 { font-size: 1.3rem; } .cd-help-intro p br { display: none; } .cd-help-links a { min-height: 88px; } }
 

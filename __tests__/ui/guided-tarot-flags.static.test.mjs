@@ -17,6 +17,7 @@ test('흐름별 롤백 플래그는 boolean 코드 상수다', async () => {
   assert.equal(typeof flags.GUIDED_BIRTH_FREE_SAJU_ENABLED, 'boolean');
   assert.equal(typeof flags.GUIDED_BIRTH_ANIMAL_DESTINY_ENABLED, 'boolean');
   assert.equal(typeof flags.GUIDED_BIRTH_STAR_HUG_ENABLED, 'boolean');
+  assert.equal(typeof flags.GUIDED_BIRTH_INPUT_V2_ENABLED, 'boolean');
 });
 
 test('W1 공용 출생 입력은 흐름마다 플래그 하나로 이전 입력 단계(LEGACY_STEPS)와 고른다', () => {
@@ -28,7 +29,11 @@ test('W1 공용 출생 입력은 흐름마다 플래그 하나로 이전 입력 
     const src = read(file);
     assert.match(src, new RegExp(`const BIRTH = ${flag};`), file);
     assert.match(src, /const STEPS = BIRTH [?] BIRTH_STEPS : LEGACY_STEPS;/, file);
-    assert.doesNotMatch(src, /"place"/, `${file}: 장소를 받지 않는 흐름이라 장소 단계를 묻지 않는다`);
+    for (const m of src.matchAll(/"place"/g)) {
+      assert.match(src.slice(Math.max(0, m.index - 160), m.index), /BIRTH_V2 \?|GUIDED_BIRTH_INPUT_V2_ENABLED\s*\?/, `${file}: 장소 단계는 출생 입력 확대 플래그(GUIDED_BIRTH_INPUT_V2_ENABLED) 안에서만 묻는다`);
+    }
+    assert.match(src, /placeMode: "record"/, `${file}: 장소는 기록·확인 표시만 한다`);
+    assert.doesNotMatch(src, /\/api\/geocode|BirthPlaceInput/, `${file}: 위치 조회를 부르지 않는다(계산은 서울 기준 그대로)`);
   }
 });
 

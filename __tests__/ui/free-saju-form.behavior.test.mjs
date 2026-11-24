@@ -166,7 +166,7 @@ const RESULT_LINE = '년주 庚午 · 월주 辛巳 · 일주 甲子 · 시주 �
 
 // ── W1 공용 출생 입력(GUIDED_BIRTH_FREE_SAJU_ENABLED): 년·월·일 칸 → 달력 → 시진 칩 → 확인 요약, 엔진 입력은 같다 ──
 {
-  const FreeSajuGuided = await load('app/saju/free/FreeSajuGuided.tsx', { GUIDED_BIRTH_FREE_SAJU_ENABLED: true });
+  const FreeSajuGuided = await load('app/saju/free/FreeSajuGuided.tsx', { GUIDED_BIRTH_FREE_SAJU_ENABLED: true, GUIDED_BIRTH_INPUT_V2_ENABLED: false });
   const heading = (v) => v.q('[id^="gf-title-"]')?.textContent;
 
   test('W1 출생 입력: 칸 자동 이동·즉시 검증 → 시진 칩 → 확인 요약(수정하기) → 같은 엔진 입력·결과', async () => {
@@ -217,5 +217,81 @@ const RESULT_LINE = '년주 庚午 · 월주 辛巳 · 일주 甲子 · 시주 �
     assert.deepEqual(globalThis.__inputs[0], { birthDate: '1990-05-15', birthTime: '07:30', calendarType: 'solar', leapMonth: false });
     assert.equal(globalThis.__events.find(([n]) => n === 'free_saju_chart_started')[1].time_known, true);
     await v.close();
+  });
+}
+
+// ── 출생 입력 확대(GUIDED_BIRTH_INPUT_V2_ENABLED): 생년월일 한 칸(0000.00.00) → 달력 → 시각 → 태어난 장소(선택, 기록만) → 확인 ──
+{
+  const FreeSajuV2 = await load('app/saju/free/FreeSajuGuided.tsx', { GUIDED_BIRTH_FREE_SAJU_ENABLED: true, GUIDED_BIRTH_INPUT_V2_ENABLED: true });
+  const heading = (v) => v.q('[id^="gf-title-"]')?.textContent;
+
+  test('출생 입력 확대: 한 칸 날짜 자동 형식·1900~오늘 검증 → 장소 기록 → 확인 요약·브라우저 안내 → 엔진 입력은 장소 없이 같다', async () => {
+    const calls = []; const realFetch = globalThis.fetch;
+    globalThis.fetch = (...args) => { calls.push(args); return Promise.reject(new Error('no network')); };
+    const v = await mount(FreeSajuV2);
+    await v.click(v.byText('명식 보기 시작'));
+    assert.equal(heading(v), '생년월일을 알려 주세요');
+    assert.equal(v.q('input[name="birth-year"]'), null, '년·월·일 세 칸 대신 한 칸');
+    const date = v.q('input[name="birth-date"]');
+    assert.equal(date.getAttribute('inputmode'), 'numeric');
+    assert.equal(date.getAttribute('placeholder'), '0000.00.00');
+    await v.setValue(date, '199005');
+    assert.equal(date.value, '1990.05', '숫자만 쳐도 점이 들어간다');
+    await v.setValue(date, '19900230');
+    assert.ok(v.text().includes('날짜를 다시 확인해 주세요'), '없는 날짜는 바로 알려 준다');
+    assert.equal(v.byText('다음').disabled, true);
+    await v.setValue(date, '18991231');
+    assert.equal(v.byText('다음').disabled, true, '1900년 전은 받지 않는다');
+    await v.setValue(date, '1990.5.15');
+    assert.equal(date.value, '1990.05.15');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('음력 윤달')); await v.click(v.byText('다음'));
+    await v.click(v.byText('묘시')); await v.click(v.byText('다음'));
+    assert.equal(heading(v), '태어난 곳을 알려 주세요');
+    assert.ok(v.text().includes('4 / 6 단계'), '장소가 늘어 진행 표시는 6단계');
+    assert.ok(v.text().includes('서울 기준 시각으로 계산해요'), '장소가 계산을 바꾸지 않는다고 알린다');
+    await v.setValue(v.q('input[name="birth-place"]'), '대한민국 부산');
+    await v.click(v.byText('다음'));
+    assert.equal(heading(v), '입력한 정보가 맞나요?');
+    assert.ok(v.text().includes('대한민국 부산 (계산은 서울 기준)'));
+    assert.ok(v.text().includes('입력한 정보는 브라우저에서만 계산돼요'));
+    await v.click(v.byText('확인')); await flush();
+    assert.equal(heading(v), '내 명식');
+    assert.deepEqual(globalThis.__inputs, [{ birthDate: '1990-05-15', birthTime: '06:30', calendarType: 'lunar', leapMonth: true }], '장소는 엔진에 가지 않는다');
+    assert.ok(v.text().includes('년주 庚午'));
+    assert.deepEqual(calls.map(([u]) => String(u)).filter((u) => !u.startsWith('/i18n/')), [], '문구 사전 말고는 네트워크 호출(/api/geocode 등)이 없다');
+    const events = JSON.stringify(globalThis.__events);
+    assert.ok(!events.includes('부산') && !events.includes('1990'), '측정에 출생 정보를 싣지 않는다');
+    globalThis.fetch = realFetch;
+    await v.close();
+  });
+
+  test('출생 입력 확대: 장소를 건너뛰면 서울 기준 표시, 엔진 입력·결과는 장소 단계 없는 W1 과 같다', async () => {
+    const v = await mount(FreeSajuV2);
+    await v.click(v.byText('명식 보기 시작'));
+    await v.setValue(v.q('input[name="birth-date"]'), '19900515');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('양력')); await v.click(v.byText('다음'));
+    await v.click(v.byText('시간을 몰라요'));
+    assert.equal(heading(v), '태어난 곳을 알려 주세요');
+    await v.click(v.byText('잘 몰라요, 건너뛸게요'));
+    assert.equal(heading(v), '입력한 정보가 맞나요?');
+    assert.ok(v.text().includes('서울 기준'));
+    await v.click(v.byText('확인')); await flush();
+    const inputsV2 = globalThis.__inputs;
+    const resultV2 = v.text().slice(v.text().indexOf('년주'));
+    await v.close();
+    const W1 = await load('app/saju/free/FreeSajuGuided.tsx', { GUIDED_BIRTH_FREE_SAJU_ENABLED: true, GUIDED_BIRTH_INPUT_V2_ENABLED: false });
+    const o = await mount(W1);
+    await o.click(o.byText('명식 보기 시작'));
+    await o.setValue(o.q('input[name="birth-year"]'), '19900515');
+    await o.click(o.byText('다음'));
+    await o.click(o.byText('양력')); await o.click(o.byText('다음'));
+    await o.click(o.byText('시간을 몰라요'));
+    await o.click(o.byText('확인')); await flush();
+    assert.deepEqual(globalThis.__inputs, inputsV2, '엔진 입력이 같다');
+    assert.deepEqual(inputsV2, [{ birthDate: '1990-05-15', birthTime: null, calendarType: 'solar', leapMonth: false }]);
+    assert.equal(o.text().slice(o.text().indexOf('년주')), resultV2, '결과 본문이 같다');
+    await o.close();
   });
 }

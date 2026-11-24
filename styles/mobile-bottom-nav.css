@@ -62,7 +62,10 @@ body.cd-mnav-mounted .cd-feature-nav {
 
 .cd-mnav__list {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  /* 탭 수만큼 한 줄로 나눈다. repeat(4) 였을 때 다섯째 탭(웹툰 추가, a1d38dafa9)이 둘째 줄로 내려가
+     바가 136px 로 커지고, --cd-mnav-offset(92) 위에 붙는 하단 고정 CTA 를 50px 가렸다(2026-11-25 실측). */
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   gap: 4px;
   margin: 0 auto;
   padding: 0;

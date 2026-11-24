@@ -90,6 +90,32 @@ export function dateFromParts(parts: DateParts, now: Date = new Date()): { value
   return { value: ok ? value : "", complete: true, invalid: !ok };
 }
 
+/** 생년월일 한 칸 입력 → 년·월·일과 화면 문자열(0000.00.00). 숫자는 차례로 채우고, 칸이 차면 점을 넣는다.
+ *  월 첫 자리가 2~9, 일 첫 자리가 4~9 면 앞에 0 을 붙여 넘긴다. 숫자가 아닌 글자(붙여넣은 '-'·'.'·'년')는 그 칸을 닫는다. */
+const DATE_SIZES = [4, 2, 2] as const;
+export function maskBirthDate(raw: string): { parts: DateParts; text: string } {
+  const out = ["", "", ""];
+  let field = 0;
+  for (const ch of String(raw || "")) {
+    if (field > 2) break;
+    if (ch >= "0" && ch <= "9") {
+      out[field] += ch;
+      if (out[field].length === DATE_SIZES[field]) field += 1;
+      else if (field > 0 && Number(out[field]) > (field === 1 ? 1 : 3)) { out[field] = `0${out[field]}`; field += 1; }
+    } else if (out[field]) {
+      if (field > 0 && out[field] !== "0") out[field] = out[field].padStart(2, "0");
+      field += 1;
+    }
+  }
+  return { parts: { year: out[0], month: out[1], day: out[2] }, text: out.filter(Boolean).join(".") };
+}
+
+/** 답(YYYY-MM-DD) → 한 칸 화면 문자열. */
+export function birthDateText(value: string): string {
+  const parts = splitBirthDate(value);
+  return parts.year ? `${parts.year}.${parts.month}.${parts.day}` : "";
+}
+
 /* ── 답 읽기 ── */
 export type BirthPlace = { text: string; lat: number; lng: number; timezone: string; name: string };
 export type BirthAnswers = {
