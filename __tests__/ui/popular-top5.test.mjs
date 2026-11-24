@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
-import { mountPopularTop5, mountPopularTop5InShell, popularTop5SkeletonHtml, toPopularRows } from '../../js/core/popular-top5.mjs';
+import { mountPopularTop5, mountPopularTop5InShell, popularTop5Copy, popularTop5SkeletonHtml, toPopularRows } from '../../js/core/popular-top5.mjs';
 
 // 2026-11-21 메인 인기 TOP5 → 2026-11-22: 모든 줄에 1~5위 숫자, 추천으로 채운 줄에만 "추천" 꼬리표.
 // API 가 실패·지연되면 추천 목록으로 자리를 지키고, 오늘 받은 응답은 캐시로 바로 그린다.
@@ -100,4 +100,39 @@ test('비한국어 셸은 미리 그린 자리도 치운다', () => {
   window.document.querySelector('.yh-situations').insertAdjacentHTML('afterend', '<section class="cd-pop5" data-cd-pop5-shell></section>');
   mountPopularTop5InShell(window.document);
   assert.equal(window.document.querySelector('[data-cd-pop5-shell]'), null);
+});
+
+// 2026-11-24 "두 홈 모두 복귀": /ggulggul/ 은 본문(ggulggul-home)과 '모든 운세' 시트(빈 값) 두 자리를 함께 채운다.
+test('본문·시트 두 자리를 요청 한 번으로 채우고 제목 id 가 겹치지 않는다', async () => {
+  const window = dom();
+  const situations = window.document.querySelector('.yh-situations');
+  situations.insertAdjacentHTML('beforebegin', `<section class="cd-pop5" data-cd-pop5-shell>${popularTop5SkeletonHtml()}</section>`);
+  situations.insertAdjacentHTML('afterend', `<section class="cd-pop5" data-cd-pop5-shell="ggulggul-home">${popularTop5SkeletonHtml()}</section>`);
+  const body = { ok: true, asOf: '2026-11-24', windowDays: 30, items: items(['sales', 'sales', 'sales', 'curated', 'curated']) };
+  const response = () => ({ ok: true, json: async () => body, clone: response });
+  let calls = 0;
+  window.fetch = async () => { calls += 1; return response(); };
+  mountPopularTop5InShell(window.document);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const shells = [...window.document.querySelectorAll('[data-cd-pop5-shell]')];
+  assert.equal(shells.length, 2, '자리를 새로 만들거나 지우지 않는다');
+  assert.equal(calls, 1, '자리가 둘이어도 요청은 한 번');
+  assert.deepEqual(shells.map((shell) => shell.dataset.cdPop5State), ['ready', 'ready']);
+  assert.deepEqual(shells.map((shell) => shell.querySelectorAll('.cd-pop5__tag').length), [2, 2]);
+  assert.deepEqual(shells.map((shell) => shell.getAttribute('aria-labelledby')), ['cdPop5Title-ggulggul', 'cdPop5Title-ggulggul-home']);
+});
+
+test('하이드레이션 뒤 그리는 글자는 모두 / 초기 CSS 글꼴 말뭉치(popularTop5Copy)에 있다', async () => {
+  const copy = new Set(popularTop5Copy());
+  const payloads = [['sales', 'sales', 'curated', 'curated', 'curated'], ['sales', 'sales', 'sales', 'sales', 'sales'], ['curated', 'curated', 'curated', 'curated', 'curated']]
+    .map((sources) => reply({ ok: true, asOf: '2026-12-31', windowDays: 30, items: items(sources) }));
+  for (const fetchImpl of [...payloads, async () => { throw new Error('offline'); }]) {
+    const window = dom();
+    const section = window.document.createElement('section');
+    window.document.body.append(section);
+    await mountPopularTop5(section, { fetchImpl });
+    const text = section.textContent + [...section.querySelectorAll('[aria-label]')].map((node) => node.getAttribute('aria-label')).join('');
+    const missing = [...new Set(text)].filter((ch) => !/s/.test(ch) && !copy.has(ch));
+    assert.deepEqual(missing, []);
+  }
 });
