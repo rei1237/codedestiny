@@ -59,16 +59,22 @@ try {
     await page.goto(base + '/ggulggul/', { waitUntil: 'domcontentloaded', timeout: 120000 });
     await page.waitForLoadState('load');
     const consultationPopup = page.locator('#cdSignatureConsultPopup');
+    await expect(consultationPopup).toBeHidden();
+    await page.locator('[data-signature-open]').click();
     await expect(consultationPopup).toBeVisible({ timeout: 30000 });
     await consultationPopup.locator('[data-signature-letter-close]').click();
     await expect(consultationPopup).not.toBeVisible();
     // 대표 상담은 고정 비교 카드와 고민 필터를 사용한다. 사라진 슬라이드
     // 레일 대신 실제 진입 영역과 기존 여섯 유료 서비스의 보존을 검증한다.
     await expect(page.locator('#cdSignatureConsult')).toBeVisible();
+    const comparison = page.locator('.yh-more-consults');
+    await expect(page.locator('[data-picker-featured]')).toHaveCount(4);
+    await expect(page.locator('[data-picker-featured] a[href="/heukwol/"]')).toHaveCount(1);
+    await comparison.locator(':scope > summary').click();
     await expect(page.locator('#cdSigGrid.cd-picker-grid')).toBeVisible();
     await expect(page.locator('[data-yh-concern]')).toHaveCount(6);
-    await expect(page.locator('a[href="/#homeStoryTitle"]')).toHaveCount(1);
-    const signatureCards = page.locator('#cdSigGrid [data-picker-card] > a[data-cd-service-id][data-pvw-paid]');
+    await expect(page.locator('a[href="/ggulggul/#homeStoryTitle"]')).toHaveCount(1);
+    const signatureCards = page.locator('#cdSignatureConsult :is([data-picker-featured], [data-picker-card]) > a[data-cd-service-id][data-pvw-paid]');
     await expect(signatureCards).toHaveCount(6);
     const signatureDestinations = await signatureCards.evaluateAll(cards => cards.map(card => ({
       id: card.getAttribute('data-cd-service-id'),

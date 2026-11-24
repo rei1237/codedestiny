@@ -18,6 +18,7 @@ const steps = [
   "scripts/write-apple-app-site-association.mjs",
   "scripts/promote-static-shell-to-root.mjs",
   "scripts/promote-static-policy-pages.mjs",
+  "scripts/verify-independent-game-exclusion.mjs",
   // 셸 승격이 끝난 뒤, 검증 게이트 앞에서 로케일 산출물을 손본다.
   // 순서를 바꾸면 promote 단계가 다시 한국어 셸로 덮어쓴다.
   "scripts/fix-locale-html-lang.mjs",
@@ -48,9 +49,12 @@ const steps = [
   // 🔴 CSS minify 뒤에 실행한다. 내용 해시는 실제 배포 바이트를 기준으로 만들고, 소스 셸은
   //    손대지 않은 채 정적 홈 셸의 연속 style 구간만 캐시 가능한 파일로 바꾼다.
   "scripts/externalize-dist-inline-css.mjs",
+  "scripts/optimize-next-home-styles.mjs",
   // 🔴 minify 뒤 · 마지막. 저작 주석은 브라우저가 쓸 일이 없고, 셸 HTML 은 no-cache 라
   //    매 방문 다시 내려간다. 정적 셸만 대상이고 하이드레이션 HTML 은 건너뛴다.
   "scripts/strip-dist-html-comments.mjs",
+  "scripts/optimize-legacy-home-head.mjs",
+  "scripts/install-home-font-subsets.mjs",
 ];
 
 // 🔴 스테이징 배포본만 색인·광고에서 뺀다. **마지막 단계**여야 한다 — 앞에 두면 minify·externalize
@@ -68,6 +72,8 @@ if (String(process.env.CD_DEPLOY_TARGET || "").trim().toLowerCase() === "staging
 //    실측 2026-09-03: 앱 빌드가 고아 9건(/en·/ja·/zh·/zh-tw·/ja/tokushoho·/oracle/ifa …)으로 실패했다.
 //    배열에서 지우지 않고 여기서 빼는 이유: verify-guard-wiring 이 steps 의 리터럴 경로로 배선을 본다.
 if (process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app") {
+  steps.splice(steps.indexOf("scripts/verify-independent-game-exclusion.mjs"), 1);
+  steps.splice(steps.indexOf("scripts/optimize-next-home-styles.mjs"), 1);
   steps.splice(steps.indexOf("scripts/verify-adsense-readiness.mjs"), 1);
   // 앱 번들의 / 는 /ggulggul/ 로 바로 넘기는 진입 셸이고 대표 홈이 아니다. 웹 빌드가 CI 에서 같은 검사를 돈다.
   steps.splice(steps.indexOf("scripts/verify-home-identity.mjs"), 1);

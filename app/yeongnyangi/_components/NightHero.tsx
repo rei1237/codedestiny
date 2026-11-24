@@ -1,6 +1,6 @@
 'use client';
 import {mascotName,mascotPrefix} from '../_lib/mascot-name.mjs';
-import {useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,Moon,PawPrint} from 'lucide-react';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
@@ -25,10 +25,27 @@ export function NightPriceDetails(){
 }
 export default function NightHero(){
  const [greeting,setGreeting]=useState(0);
+ const room = useRef<HTMLImageElement>(null);
+ const [sceneReady, setSceneReady] = useState(false);
+ useEffect(() => {
+   const image = room.current;
+   if (!image) return;
+   let cancelled = false;
+   const paint = () => { if (!cancelled) setSceneReady(true); };
+   // A cached image can finish before hydration attaches a load listener.
+   if (image.complete) paint();
+   else { image.addEventListener('load', paint); image.addEventListener('error', paint); }
+   return () => { cancelled = true; image.removeEventListener('load', paint); image.removeEventListener('error', paint); };
+ }, []);
  return <section className={styles.hero} aria-labelledby="hero-title">
-  <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
+  <picture className={styles.room}>
+    <source media="(max-width: 699px)" type="image/avif" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.avif"/>
+    <source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/>
+    <source type="image/avif" srcSet="/assets/yeongnyangi/night/consultation-room.avif"/>
+    <img ref={room} src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/>
+  </picture>
   <span className={styles.garden} aria-hidden="true"><span className={styles.lotus} data-yn-bloom="lotus"/></span>
-  <NightBloomMotion className={styles.bloomMotion}/>
+  {sceneReady && <NightBloomMotion className={styles.bloomMotion}/>}
   <div className={styles.copy}>
    <h1 id="hero-title"><span className={styles.brandPrefix}>{mascotPrefix}</span>{' '}<span className={styles.brandName}>{mascotName}</span></h1>
    <p className={styles.desktopIntro}>간단한 고민 상담은 영냥이에게 물어봐! 답과 근거, 지금 해볼 행동을 함께 살펴봐요.</p>

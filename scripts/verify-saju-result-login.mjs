@@ -1,4 +1,5 @@
 import './lib/mock-network-guard.cjs';
+import { openFreeSajuForm } from './lib/open-free-saju-form.mjs';
 import {chromium} from '@playwright/test';
 import {createServer} from 'node:http';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
@@ -43,18 +44,11 @@ async function openContext(width,guestFlag){
  const page=await context.newPage();page.on('dialog',d=>d.dismiss());
  return {context,page,state};
 }
-async function openFreeSajuForm(page){
- await page.waitForFunction(()=>typeof window.cdOneStepFreeSajuEntry==='function');
- // 무료 사주 카드(퀵 서비스)는 연이의 정원 안이다 — 사용자처럼 정원을 먼저 연다.
- if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
- await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"], .yh-entries a[data-action="cdOneStepFreeSajuEntry"]').filter({visible:true}).first().click();
-}
 try{
  // 플래그 끔: 이전 계약(로그인 벽) 그대로.
  for(const width of [360,390,430,1280]){
   const {context,page,state}=await openContext(width,false);
-  await page.goto(origin,{waitUntil:'domcontentloaded'});
-  await openFreeSajuForm(page);
+  await openFreeSajuForm(page,origin);
   await page.locator('#birthDate').fill('19900515');
   await page.locator('#nameInput').fill('입력복원검증');
   await page.locator('#run-btn').click();
@@ -93,8 +87,7 @@ try{
  // 플래그 켬: 비회원이 동의 뒤 로그인 없이 무료 결과를 보고, 상세 풀이·저장의 로그인 뒤 같은 결과로 돌아온다.
  for(const width of [360,960]){
   const {context,page,state}=await openContext(width,true);
-  await page.goto(origin,{waitUntil:'domcontentloaded'});
-  await openFreeSajuForm(page);
+  await openFreeSajuForm(page,origin);
   await page.locator('#birthDate').fill('19900515');
   await page.locator('#nameInput').fill('비회원결과검증');
   await page.locator('#run-btn').click();
