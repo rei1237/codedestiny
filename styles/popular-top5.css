@@ -18,6 +18,8 @@ html:not([lang|=ko]) .cd-pop5{display:none!important}
 
 .cd-pop5__head{margin:0 2px 10px}
 .cd-pop5__title{margin:0;padding-inline-end:32px;font-family:var(--font-display,var(--font-body));font-size:1.25rem;font-weight:400;line-height:1.4;color:var(--cd-text)}
+/* 스켈레톤 제목은 기기 글꼴로 그린다. 표시 글꼴의 "많·찾·담" 조각(Jua)이 첫 페인트 전에 받아지지 않게 하고, 결과가 채워진 뒤 표시 글꼴로 바꾼다. 기기 글꼴은 표시 글꼴보다 넓어 줄바꿈되면 블록 높이가 달라지므로 한 줄로 둔다. */
+.cd-pop5:not([data-cd-pop5-state=ready]) .cd-pop5__title{font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cd-pop5__period{min-block-size:3.2em;margin:4px 0 0;font-size:.875rem;line-height:1.6;color:var(--cd-text-muted)}
 
 .cd-pop5__detail{display:block}

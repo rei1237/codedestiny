@@ -54,6 +54,7 @@ test('server-rendered popular TOP5 skeleton keeps its whole block and the glyphs
   const page = body => '<html><head>' + link + '</head><body><main class="home">' + body + '</main></body></html>';
   writeFileSync(path.join(root, cssPath), [
     '.home{color:#111}.cd-pop5{min-height:1px}.cd-pop5__rank{color:gold}.cd-pop5__tag{color:plum}',
+    '.cd-pop5:not([data-cd-pop5-state=ready]) .cd-pop5__title{font-family:system-ui}',
     '@font-face{font-family:ui;src:url(tag.woff2);unicode-range:U+CD94}',
   ].join(''));
   writeFileSync(path.join(root, 'index.html'), page('<section class="cd-pop5"><h2 class="cd-pop5__title">TOP</h2></section>'));
@@ -67,6 +68,7 @@ test('server-rendered popular TOP5 skeleton keeps its whole block and the glyphs
   const home = critical('index.html');
   assert.match(home, /.cd-pop5__rank{color:gold}/);
   assert.match(home, /.cd-pop5__tag{color:plum}/);
+  assert.match(home, /:not\(\[data-cd-pop5-state=ready\]\) \.cd-pop5__title\{font-family:system-ui\}/,'skeleton title keeps a device font before hydration');
   assert.match(home, /tag.woff2/, '"추천" glyph range stays although the skeleton never shows it');
   assert.doesNotMatch(critical('yeongnyangi/index.html'), /cd-pop5|tag.woff2/);
 });
