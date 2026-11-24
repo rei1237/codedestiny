@@ -8,7 +8,7 @@
 | 영냥이 타로 | `/assets/yeongnyangi/readings/tarot-v5.webp` | `1906b75e-4a2a-4010-8623-a5bf11550468` | `/assets/yeongnyangi/readings/tarot-room.mp4` |
 | 윤달 | `/images/expert-characters/yun/hero.webp` | `476ef663-c578-49f2-a647-fbc1ec2b1d44` | `/images/consultation-rooms/yun.mp4` |
 | 무성 | `/images/expert-characters/musung/hero.webp` | `f2ec304f-dcec-4b69-ab82-891c0c2480a7` | `/images/consultation-rooms/musung.mp4` |
-| 인간형 서한비 | `/images/expert-characters/hanbi/hero.webp` | `3bd36702-c705-43a7-80a3-cb3abe04de10` | `/images/consultation-rooms/hanbi.mp4` |
+| 인간형 서한비 | `/images/expert-characters/hanbi/hero.webp` | `af48fb9f-703f-4c79-b6e7-c967b698023b` | `/images/consultation-rooms/hanbi.mp4` |
 | 인간형 연이 | `/images/master-profiles/yeoni-love-portrait.webp` | `984c3956-c2a3-495a-94c2-4f46ebe5ccea` | `/images/consultation-rooms/human.mp4` |
 | 인연의 서 마스터 | `/images/service-introductions/master-love-codex-960.webp` | `d4c52860-f01f-414c-9ecf-3c9b5fd27ca3` | `/images/consultation-rooms/codex.mp4` |
 | 네오 팩폭 전략실 | `D:/CodeDestiny-Build/네오 인간 프로필1.png`와 동일 도안인 `/images/consultation-webtoons/heukwol/portraits/neo.webp` (얼굴), `/images/service-introductions/neo-operation-room-960.webp` (의상) | `1ac7f583-69ee-4f4c-8f41-c461205d506b` | `/images/consultation-rooms/neo.mp4` |
@@ -19,6 +19,8 @@
 | 영냥이 astrology | `/assets/yeongnyangi/readings/astrology-v5.webp` | `c552466a-e564-4742-a594-698bdffcde86` | `/assets/yeongnyangi/readings/astrology-room.mp4` |
 | 영냥이 sukuyo | `/assets/yeongnyangi/readings/sukuyo-v5.webp` | `c9a50143-8879-4361-a20c-a964576d1e2a` | `/assets/yeongnyangi/readings/sukuyo-room.mp4` |
 | 영냥이 fusion | `/assets/yeongnyangi/readings/fusion-v5.webp` | `5dafae7d-b80d-453b-ab70-33d75d4d2d53` | `/assets/yeongnyangi/readings/fusion-room.mp4` |
+
+연애 비책 승인본은 /images/service-introductions/love-secret-ai.webp에서 파생한 단일 상담실 장면이다. 작업 ID는 dacddc0b-1f78-4b86-8582-01baa5a8e98a이며 love.mp4와 love.webp로 제공한다. 서한비 단독 승인본에는 홍채 하이라이트 국소 보정을 적용했다. 아래 공동 편집 설명은 연애 비책의 이전 버전을 포함한다.
 
 초융합은 네오·한복 연이·인간형 서한비·윤달·무성 순으로 이어진다. 흑월은 네오와 연이, 인연 상담은 네오와 서한비, 연애 비책은 연이와 서한비가 등장한다. 각 전환은 24fps에서 90프레임이며 단독 화면에서 두 인물이 함께 보이는 구도를 거쳐 다음 단독 화면으로 이동한다. 두 명이 나오는 상품은 인물의 좌우 위치를 유지한다. 각 인물의 등장은 서버 진행 표시와 독립적이다. 웹 영상은 H.264, 오디오 스트림 없음, fast-start MP4다. 포스터는 영상 첫 프레임에서 추출했다. 원본 생성 결과는 위 작업 ID로 조회한다.
 
@@ -50,7 +52,11 @@ An assured, charismatic Musung welcomes a guest in an illuminated celestial libr
 
 ### 인간형 서한비
 
-The exact adult human woman Seo Hanbi in the supplied moonlit bridge artwork. Long glossy black hair, official facial structure and dark embroidered hanbok, closed black book held against her chest. Compose a cinematic waist-up view, face near center, warm lantern reflection catches her eyes against cool moonlight. Magnetic, poised and slightly dangerous elegance expressed only by eye contact and timing. Looking just past the guest, she turns her eyes to meet theirs before lifting her chin a fraction. A restrained almost-smile stays for a beat, then settles as a strand of hair slips back. Preserve her calm, self-possessed femininity and exact wardrobe. Never change into an animal. Fingers rest around the book without opening it. Quiet continuous shot, no dramatic cuts or melodrama. Premium existing 2D Korean fantasy illustration with stable identity, proportions, eyes and costume. Locked camera, soft natural breathing, independent subtle eye and hair timing. Match the opening pose, framing and light at the end. No generated lettering, crests with words, speech, vocals, music, extra fingers or rapid camera movement.
+A single locked waist-up shot of the exact adult human woman Seo Hanbi by the moonlit stone bridge. Match her long black hair, black embroidered hanbok and the book against her chest. She rests her hand on the book, looks past the bridge, shifts only her pupils gently toward the visitor, holds the look with an inscrutable expression, and lets her gaze settle again. Quiet secretive atmosphere through timing and stillness. Her natural dark brown irises must stay matte, dark and CONSTANT in color and brightness in every single frame. Absolutely no glowing eyes, no moving eye highlights, reflections, sparkle, magical eyes or bright pupils. Reflections of the lantern are restricted to the water and gold foil on the book. Keep face evenly softly exposed. Do not obscure the eyes. Premium restrained illustrated 2D, stable camera and facial landmarks, single composition and lighting throughout. Keep heads, hands and props in mobile-safe area. Gentle repeatable action. No dialogue, text, logos, singing, effects or audio.
+
+### 연애 비책
+
+One uninterrupted two-person shot of exactly the two adult human women in the attached existing illustration. Preserve their distinct faces and clothes, pink-haired Yeoni on the left, long black-haired Seo Hanbi on the right wearing her embroidered dark hanbok. Preserve their shared table with the circular chart, flowering room and open book; both faces, hands and book visible together throughout. Yeoni's fingertip moves a very short distance then rests on a spot of the chart. A beat later Hanbi quietly shifts her gaze from her book to that same spot. Slow gentle breathing, subtle affectionate concentration, subtle return to starting pose. Hanbi's natural dark brown irises stay dark, matte and identical in color and brightness in EVERY frame. No glowing eyes, glints, animated highlights, sparkle or light bloom on either face. Stable soft window light. No split screen, composited panels or transitions. Premium restrained illustrated 2D, stable camera and facial landmarks, single composition and lighting throughout. Keep heads, hands and props in mobile-safe area. Gentle repeatable action. No dialogue, text, logos, singing, effects or audio.
 
 ### 인간형 연이
 
