@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { optimizeLegacyHomePaint } from './optimize-legacy-home-paint.mjs';
 
 const ORIGIN = 'https://shell.invalid';
 const inlineStyleLimit = 9 * 1024;
@@ -154,7 +155,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   const entry = path.join(dist, 'ggulggul', 'index.html');
   if (existsSync(entry)) {
     const html = readFileSync(entry, 'utf8');
-    const packed = optimizeLegacyHomeHead(html, dist);
+    const head = optimizeLegacyHomeHead(html, dist);
+    const packed = process.env.CD_RECORD_HOME_STYLES === '1' ? head : optimizeLegacyHomePaint(head, dist);
     if (packed !== html) writeFileSync(entry, packed);
     console.log('[legacy-home-head] Render-blocking assets packaged for /ggulggul/.');
   }

@@ -338,3 +338,24 @@ html body .yh-greeting a.yh-finder-cta:visited {
   color:var(--cd-cta-primary-ink,#fffaf2) !important;
 }
 .yh-greeting .yh-finder-cta span { color:inherit; }
+
+/* Keep the scroll space for unopened cards while the browser draws the welcome area.
+   After a section is visited, auto remembers its actual size, including expanded chapters. */
+@media screen {
+  #cdHomeFunnel .yh-featured-grid > .cd-picker-card,
+  #cdHomeFunnel :is(#cdhPass, .cd-help-entry, #cdhMoonlightMv, .cdh-flow) {
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto var(--yh-section-height, 550px);
+  }
+  #cdhPass { --yh-section-height: 670px; }
+  #cdHomeFunnel .cd-help-entry { --yh-section-height: 490px; }
+  #cdhMoonlightMv { --yh-section-height: 620px; }
+  #cdHomeFunnel .cdh-flow { --yh-section-height: 340px; }
+}
+@media screen and (min-width: 800px) {
+  #cdHomeFunnel .yh-featured-grid { --yh-section-height: 690px; }
+  #cdhPass { --yh-section-height: 600px; }
+  #cdHomeFunnel .cd-help-entry { --yh-section-height: 330px; }
+  #cdhMoonlightMv { --yh-section-height: 750px; }
+  #cdHomeFunnel .cdh-flow { --yh-section-height: 530px; }
+}
