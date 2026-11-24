@@ -193,8 +193,12 @@ test('lookup/input/ownership/preflight/storage failures do not become another ne
 });
 
 test('payment/access/read helpers remain identical to the task baseline', () => {
+  // 2026-11-24 승인 수선(자미 환불 후속): 결과 목록에 서비스 구분을 더한 한 줄만 기준선과 다를 수 있다(옛 기록은 serviceType 이 없어 null 로 함께 남긴다).
+  const approvedEdits = { handleResult: [['ZiweiAiConsultation.find({ userId: clean(auth.userId), status: "completed" })', 'ZiweiAiConsultation.find({ userId: clean(auth.userId), serviceType: { $in: [SERVICE_KEY, null] }, status: "completed" })']] };
   for (const name of ['resolveStartAccess', 'handleResult', 'applyUsageOnce', 'verifyPaymentForStart', 'saveZiweiDelivery']) {
-    assert.equal(functionText(source, name).replaceAll('\r\n', '\n'), functionText(baseline, name).replaceAll('\r\n', '\n'), name);
+    let expected = functionText(baseline, name).replaceAll('\r\n', '\n');
+    for (const [before, after] of approvedEdits[name] || []) { assert.ok(expected.includes(before), `${name} baseline anchor`); expected = expected.replace(before, after); }
+    assert.equal(functionText(source, name).replaceAll('\r\n', '\n'), expected, name);
   }
   const taskBaseline = execFileSync('git', ['show', 'c7f46acf26fc1e7881635a9bce7d2f905d17ee1e:worker/routes/ziwei-ai.js'], { encoding: 'utf8', maxBuffer: 2 * 1024 * 1024 });
   assert.equal(functionText(source, 'createOrReusePaymentPayload').replaceAll('\r\n', '\n'), functionText(taskBaseline, 'createOrReusePaymentPayload').replaceAll('\r\n', '\n'));

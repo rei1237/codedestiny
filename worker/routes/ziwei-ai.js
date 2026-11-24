@@ -2437,12 +2437,13 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
 
       const purchaseId = clean(access.purchaseId || ledger.sourceId || idempotencyKey, 180);
       // 복원분은 신규 30일 lot으로 재적립(lotId=원장 id로 멱등). recentConsumeRequestIds도 정리.
+      // 원장 환불 표지는 이미 붙었으므로 여기서 실패하면 다시 시도로 되살릴 수 없다 — 삼키지 않고 경보를 남긴다.
       await restoreMonthlyCreditLot({
         userId,
         lotId: `ziwei-ai-refund:${String(ledger._id)}`,
         amount: refundCredit,
         pullRequestId: purchaseId || "",
-      }).catch(() => {});
+      }).catch(lotError => alertPrepaidRestoreFailed("monthly_credit_lot_restore", { userId, evidenceType, evidenceId, idempotencyKey, error: lotError }));
 
       const clauses = pointHistoryTokenClauses([purchaseId, evidenceId, idempotencyKey].filter(Boolean));
       if (clauses.length) {
@@ -2466,14 +2467,17 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
       return true;
     }
   } catch (restoreError) {
-    console.warn("[ziwei-ai] prepaid access restore failed", {
-      userId: clean(userId, 80),
-      evidenceType,
-      evidenceId,
-      message: clean(restoreError?.message || restoreError, 300),
-    });
+    // 복원 시도 자체가 실패했다(되돌릴 것이 없다는 false 와 다르다). null 로 알려 다시 시도 정산이 환불을 닫지 않게 하고 경보를 남긴다.
+    alertPrepaidRestoreFailed("prepaid_access_restore", { userId, evidenceType, evidenceId, idempotencyKey, error: restoreError });
+    return null;
   }
   return false;
+}
+// 공용 자동 환불 실패 표지와 같은 마커로 남긴다(service-execution-task.js·payment-refund.js). 결제 ID·본문은 남기지 않는다.
+function alertPrepaidRestoreFailed(stage, { userId, evidenceType, evidenceId, idempotencyKey, error }) {
+  console.error("[PaidService Auto Refund Failed]", JSON.stringify({ service: SERVICE_KEY, featureKey: FEATURE_KEY, stage,
+    userId: clean(userId, 80), evidenceType: clean(evidenceType, 80), evidenceId: clean(evidenceId, 160), requestId: clean(idempotencyKey, 180),
+    refundStatus: "refund_failed", failureReason: clean(error?.message || error, 300) }));
 }
 
 // 카드 단건 결제로 연 상담이 실패했을 때의 자동 환불. 위 restorePrepaidAccessOnFailure 는
@@ -3003,7 +3007,7 @@ async function handleResult(request, env) {
 
   await connectDb(env);
   if (!sessionId) {
-    const rows = await ZiweiAiConsultation.find({ userId: clean(auth.userId), status: "completed" })
+    const rows = await ZiweiAiConsultation.find({ userId: clean(auth.userId), serviceType: { $in: [SERVICE_KEY, null] }, status: "completed" })
       // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
       // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
       .sort({ createdAt: -1 })
@@ -3179,7 +3183,8 @@ async function settleZiweiRetryRefund(env, { id, userId }, model = ZiweiAiConsul
   const error = Object.assign(new Error("retry closed without delivery"), { code: clean(meta.retryable.refundReason || "RETRY_REFUND", 80) });
   const restored = await restorePrepaidAccessOnFailure({ userId: fresh.userId, access, idempotencyKey, pricing: getPricing(), error });
   const card = await refundCardPaymentOnFailure(env, auth, access, error);
-  if (card?.refundFailed) return { refundStatus: "failed" };
+  // restored === null: 이용권·월정석·코인 복원이 실패했다 — 카드 실패와 같이 표시·claim 해제 없이 두어 다음 크론이 다시 시도한다.
+  if (card?.refundFailed || restored === null) return { refundStatus: "failed" };
   await releaseRequestBillingEvidence(env, { userId: clean(fresh.userId), requestId: idempotencyKey, evidenceIds: access.claimEvidenceIds })
     .catch(releaseError => logZiweiAi("Retry evidence release failed", { message: clean(releaseError?.message || releaseError, 300) }, "warn"));
   const refundStatus = restored || card?.refunded ? "refunded" : "not_required";
