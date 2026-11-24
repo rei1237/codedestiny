@@ -41,11 +41,13 @@ const copy = DIARY_ENTRY_FIELDS_TEXT.ko;
 export default function DiaryEntryFields({
   ymd,
   entry,
+  oneLineId,
   autoFocus = false,
   showTags = false,
 }: {
   ymd: string;
   entry: DiaryLegacyEntry | null;
+  oneLineId?: string;
   autoFocus?: boolean;
   showTags?: boolean;
 }) {
@@ -63,7 +65,7 @@ export default function DiaryEntryFields({
       <DiaryMoodPicker ymd={ymd} mood={entry?.moodEmoji || ""} label={copy.mood} />
 
       <p className={styles.fieldLabel}>{copy.oneLine}</p>
-      <input
+      <input id={oneLineId}
         className={styles.input}
         type="text"
         value={oneLine.value}
@@ -86,7 +88,7 @@ export default function DiaryEntryFields({
         aria-label={copy.memo}
       />
 
-      <p className={styles.draftStatus} role="status">
+      <p data-saved={([oneLine.status, memo.status].includes("saved") && ![oneLine.status, memo.status].some(status => status === "pending" || status === "error")) || undefined} className={styles.draftStatus} role="status">
         {oneLine.status === "error" || memo.status === "error" ? "저장하지 못했어요. 글은 남겨 두었어요." : oneLine.status === "pending" || memo.status === "pending" ? "입력 중 · 잠시 후 저장해요" : oneLine.status === "saved" || memo.status === "saved" ? "이 브라우저에 저장했어요" : "입력을 멈추면 이 브라우저에 저장해요"}
         {(oneLine.status === "error" || memo.status === "error") && <button type="button" onClick={() => { oneLine.flush(); memo.flush(); }}>다시 저장하기</button>}
       </p>

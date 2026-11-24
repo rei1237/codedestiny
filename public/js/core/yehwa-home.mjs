@@ -39,7 +39,7 @@ export function mountYehwaHome(root) {
   }
   function show() {
     root.querySelectorAll('[data-yh-highlight]').forEach(node => node.removeAttribute('data-yh-highlight'));
-    const target = step === 1 ? root.querySelector('[data-picker-card]:not([hidden]) .cd-picker-main') : root.querySelector(`[data-yh-target="${step}"]`);
+    const target = step > 0 ? root.querySelector('[data-picker-card]:not([hidden]) .cd-picker-main') : root.querySelector(`[data-yh-target="${step}"]`);
     if (!target || target.hidden) { close(); return; }
     target.setAttribute('data-yh-highlight', '');
     target.after(guide);
@@ -48,6 +48,7 @@ export function mountYehwaHome(root) {
     guide.querySelector('[data-yh-progress]').textContent = `${step + 1} / ${lines.length}`;
     guide.querySelector('[data-yh-prev]').disabled = step === 0;
     const last = step === lines.length - 1;
+    guide.querySelector('[data-yh-my]').hidden = !last;
     guide.querySelector('[data-yh-next]').textContent = window.cdTranslate?.('home.yehwa.' + (last ? 'done' : 'next'), null, last ? '안내 마치기' : '다음') || (last ? '안내 마치기' : '다음');
     const portrait = guide.querySelector('.yh-portrait');
     const sprite = portrait.querySelector('img');

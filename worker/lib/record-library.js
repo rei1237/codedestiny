@@ -97,7 +97,7 @@ export function recordMetadata(source, doc) {
     createdAt: doc.createdAt && Number.isFinite(Date.parse(doc.createdAt)) ? new Date(doc.createdAt).toISOString() : null,
     status, group: source.dynamic ? variant?.group || source.group : source.group, character: clean(doc.persona || doc.characterId || source.character, 30),
     href: savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
-    recoveryHref: featureKey === 'heukwol-warning-consultation' ? `/heukwol/?result=${encodeURIComponent(id)}` : featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : featureKey === 'premium-naming-prompt' && doc.executionId ? `/naming-ai/result?executionId=${encodeURIComponent(doc.executionId)}` : source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
+    recoveryHref: featureKey === 'heukwol-warning-consultation' ? `/heukwol/?result=${encodeURIComponent(id)}` : featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : featureKey === 'premium-naming-prompt' && doc.executionId ? `/naming-ai/result?executionId=${encodeURIComponent(doc.executionId)}` : source.id === 'chat-consultation' ? source.resultPath + encodeURIComponent(id): source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
     nativeHref: status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
   };
 }
@@ -266,6 +266,8 @@ export async function readRecord(userId, sourceId, id) {
   if (source.id === 'chat-consultation') {
     const { presentFortune } = await import('../yeongnyangi/service.ts');
     content = { ...presentFortune(doc), persona: doc.persona };
+    // 연이·네오 상담실도 결제 건이 끊긴 채 멈췄으면 보관함에서 '다시 시도'로 상담실을 연다 — 판정은 상담실 버튼과 같은 userCanRetry(fail-closed).
+    if (['failed', 'partial', 'generating'].includes(record.status) && content.recovery?.canRetryNow === true) record.status = 'retry_available';
     record.nativeHref = '';
   }
   if (source.id === 'human-design-reading' && doc.calculationId) {

@@ -1,7 +1,7 @@
 "use client";
 import Image from 'next/image';
 import { consultationStories, expertStoryIds, signatureStoryIds, storyBenefits } from './stories';
-import { Archive, ArrowLeft, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
+import { Archive, ArrowLeft, ArrowRight, ArrowUpRight, MessageCircleHeart, Moon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
 import { useLocale } from '@/lib/i18n/useT';
@@ -55,7 +55,10 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
       <h3>{name}</h3><p className={styles.storyConcern}>{consultationStories[id].lead}</p>
       <ul className={styles.storyBenefits} aria-label="상담에서 얻는 것">{storyBenefits[id].map(benefit=><li key={benefit}>{benefit}</li>)}</ul>
       <div className={styles.prices}>{prices(id,service.featureKey)}</div>
-      <div className={styles.storyActions}><a href={'/consultations/'+id+'/'}>웹툰으로 알아보기</a><a href={service.href}>상담 시작하기</a></div>
+      <div className={styles.storyActions}>
+        <a className={styles.storyExplore} href={'/consultations/'+id+'/'}>웹툰으로 알아보기</a>
+        <a className={styles.storyStart} href={service.href}>상담 시작하기<ArrowRight size={16} aria-hidden="true" /></a>
+      </div>
     </article>;
   };
   const renderCard = (id: string, index: number) => {
@@ -112,7 +115,7 @@ export default function ConsultationHub({ children }: { children?: ReactNode }) 
       </nav>
       <section id="signature" className={styles.section} aria-labelledby="signature-title">
         <div className={styles.sectionHeading}><h2 id="signature-title">{copy.signatureTitle}</h2><p>{copy.signatureLead}</p></div>
-        <div className={styles.deck}>{groups.signature.map(renderCard)}<article className={styles.tarot} data-service="heukwol"><a href="/heukwol/"><span className={styles.tarotTop} aria-hidden="true"><b>Ⅶ</b></span><span className={styles.tarotArt}><img src="/images/consultation-webtoons/heukwol/portraits/moon-library.webp" alt="흑월의 경고 이야기가 열리는 달빛 서재" width="900" height="1600" loading="lazy"/></span><div className={styles.tarotBody}><h3>흑월의 주의 시기</h3><span className={styles.tarotLine}>선택한 해의 열두 달, 주의할 조건과 대응할 방법</span><span className={styles.prices}><PriceBadge featureKey="heukwol-warning-consultation" className={styles.price}/></span><span className={styles.tertiary}>이야기 펼치기<ArrowUpRight size={15} aria-hidden="true"/></span></div></a></article></div>
+        <div className={styles.deck}>{groups.signature.map(renderCard)}<article className={styles.tarot} data-service="heukwol"><a href="/heukwol/"><span className={styles.tarotTop} aria-hidden="true"><b>Ⅶ</b></span><span className={styles.tarotArt}><img src="/images/consultation-webtoons/heukwol/portraits/moon-library.webp" alt="흑월의 경고 이야기가 열리는 달빛 서재" width="900" height="1600" loading="lazy"/></span><div className={styles.tarotBody}><h3>흑월의 경고</h3><span className={styles.tarotLine}>선택한 해의 열두 달, 주의할 조건과 대응할 방법</span><span className={styles.prices}><PriceBadge featureKey="heukwol-warning-consultation" className={styles.price}/></span><span className={styles.tertiary}>이야기 펼치기<ArrowUpRight size={15} aria-hidden="true"/></span></div></a></article></div>
       </section>
       <section id="others" className={styles.section} aria-labelledby="others-title">
         <div className={styles.sectionHeading}><h2 id="others-title">{copy.othersTitle}</h2><p>{copy.othersLead}</p></div>

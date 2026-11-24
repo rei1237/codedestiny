@@ -10,7 +10,13 @@
 .segmented{display:flex;border:1px solid var(--dy-line-ui);border-radius:var(--cd-r-control);padding:3px;gap:3px}
 .segmented button{min-width:44px;min-height:44px;padding:6px 12px;border:0;border-radius:var(--cd-r-sm);background:transparent;color:var(--dy-muted);font:600 15px/1.5 var(--font-body);cursor:pointer}
 .segmented button[aria-pressed="true"]{background:var(--dy-accent);color:var(--dy-accent-ink);box-shadow:0 2px 5px color-mix(in srgb,var(--dy-text) 10%,transparent)}
-.periodTitle{font:400 21px/1.5 var(--font-display);margin:var(--cd-sp-md) 0 4px;overflow-wrap:anywhere}
+.periodTitle{font:500 clamp(24px,4vw,36px)/1.4 var(--dy-book-font);letter-spacing:-.035em;margin:var(--cd-sp-md) 0 4px;overflow-wrap:anywhere}
+.dateJump{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-block:12px;color:var(--dy-muted);font:500 14px/1.6 var(--font-body)}
+.dateJump input{font:inherit;color:var(--dy-text);background:var(--dy-surface);border:1px solid var(--dy-line-ui);border-radius:8px;padding:6px 12px;min-height:44px}
+.monthIndex{margin-top:16px;border-block:1px solid var(--dy-line);padding-block:4px}
+.monthIndex summary{padding:12px 0;font-weight:600;cursor:pointer}
+.monthIndex>div{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:10px}
+.monthIndex button{min-height:44px;padding:6px 12px;background:var(--dy-accent-soft);color:var(--dy-text);border:1px solid var(--dy-line);border-radius:8px;font:inherit;cursor:pointer}
 .weekdayHead,.monthGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0}
 .weekdayHead{padding-block:12px;text-align:center;font-size:14px;color:var(--dy-muted)}
 .monthDay,.outDay{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:78px;padding:8px 1px;border:1px solid transparent;border-radius:var(--cd-r-sm);font:400 15px/1.4 var(--font-body);color:var(--dy-text);background:transparent;cursor:pointer}
@@ -92,3 +98,6 @@
 @media(max-width:390px){.calendarPaper{padding:10px}.dayPanel{padding:16px}.calendarToolbar{gap:6px}.segmented button{padding-inline:8px}.agendaRow{grid-template-columns:76px minmax(0,1fr) 16px}}
 @media(max-width:430px){.weekdays{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){.calendarLayout button:not(:disabled):active,.scheduleSection button:not(:disabled):active{transform:none}}
+
+.monthDay[data-today] .dayNumber { outline:1px solid currentColor; outline-offset:2px; border-radius:100%; }
+.recordDot { width:6px; height:6px; margin-block:4px; border-radius:50%; background:currentColor; }

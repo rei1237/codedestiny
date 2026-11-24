@@ -11,7 +11,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
@@ -36,7 +36,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/animal/mbti/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.87</priority>
   </url>
@@ -51,49 +51,49 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/astrology/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/astrology/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/astrology/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/astrology/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/business/api/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/business/api/docs/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.65</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/calendar/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/compare/fortune-apps/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/compare/saju-vs-ziwei/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/compare/sukuyo-vs-vedic/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -108,9 +108,15 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/compatibility/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/compatibility/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/compatibility/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.96</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/compatibility/tti/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/consultation-samples/</loc>
@@ -127,7 +133,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/contact/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/contact/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/contact/" />
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -140,7 +146,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/destiny-compass/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/destiny-compass/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -159,19 +165,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/dream/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/dream/psycho/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/dream/tarot/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -183,7 +189,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/entry-webtoon/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.65</priority>
   </url>
@@ -209,7 +215,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune-tea-house/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune-tea-house/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
@@ -224,85 +230,85 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/dog/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/dragon/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/goat/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/horse/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/monkey/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/ox/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/pig/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/rabbit/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/rat/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/rooster/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/snake/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/2027/tiger/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -317,7 +323,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -332,7 +338,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/aquarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/aquarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/aquarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -347,7 +353,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/aries/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/aries/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/aries/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -362,7 +368,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/cancer/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/cancer/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/cancer/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -377,7 +383,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/capricorn/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/capricorn/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/capricorn/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -392,7 +398,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/dog/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/dog/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/dog/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -407,7 +413,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/dragon/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/dragon/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/dragon/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -422,7 +428,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/gemini/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/gemini/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/gemini/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -437,7 +443,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/goat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/goat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/goat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -452,7 +458,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/horse/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/horse/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/horse/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -467,7 +473,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/leo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/leo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/leo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -482,7 +488,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/libra/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/libra/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/libra/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -497,7 +503,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/monkey/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/monkey/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/monkey/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -512,7 +518,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/ox/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/ox/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/ox/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -527,7 +533,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/pig/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/pig/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/pig/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -542,7 +548,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/pisces/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/pisces/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/pisces/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -557,7 +563,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/rabbit/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/rabbit/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/rabbit/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -572,7 +578,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/rat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/rat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/rat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -587,7 +593,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/rooster/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/rooster/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/rooster/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -602,7 +608,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/sagittarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -617,7 +623,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/scorpio/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/scorpio/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/scorpio/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -632,7 +638,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/snake/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/snake/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/snake/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -647,7 +653,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/taurus/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/taurus/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/taurus/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -662,7 +668,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/tiger/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/tiger/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/tiger/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -677,15 +683,27 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/monthly/virgo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/monthly/virgo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/monthly/virgo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/prompt-hub/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fortune/samjae/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fortune/son-eomneun-nal/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/today/</loc>
@@ -698,7 +716,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -713,7 +731,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/aquarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/aquarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/aquarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -728,7 +746,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/aries/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/aries/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/aries/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -743,7 +761,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/cancer/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/cancer/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/cancer/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -758,7 +776,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/capricorn/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/capricorn/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/capricorn/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -773,7 +791,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/dog/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/dog/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/dog/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -788,7 +806,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/dragon/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/dragon/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/dragon/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -803,7 +821,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/gemini/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/gemini/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/gemini/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -818,7 +836,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/goat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/goat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/goat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -833,7 +851,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/horse/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/horse/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/horse/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -848,7 +866,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/leo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/leo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/leo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -863,7 +881,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/libra/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/libra/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/libra/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -878,7 +896,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/monkey/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/monkey/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/monkey/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -893,7 +911,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/ox/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/ox/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/ox/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -908,7 +926,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/pig/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/pig/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/pig/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -923,7 +941,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/pisces/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/pisces/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/pisces/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -938,7 +956,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/rabbit/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/rabbit/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/rabbit/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -953,7 +971,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/rat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/rat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/rat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -968,7 +986,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/rooster/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/rooster/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/rooster/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -983,7 +1001,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/sagittarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -998,7 +1016,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/scorpio/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/scorpio/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/scorpio/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1013,7 +1031,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/snake/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/snake/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/snake/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1028,7 +1046,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/taurus/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/taurus/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/taurus/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1043,7 +1061,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/tiger/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/tiger/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/tiger/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1058,7 +1076,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/today/virgo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/today/virgo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/today/virgo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1073,7 +1091,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -1088,7 +1106,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/aquarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/aquarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/aquarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1103,7 +1121,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/aries/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/aries/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/aries/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1118,7 +1136,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/cancer/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/cancer/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/cancer/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1133,7 +1151,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/capricorn/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/capricorn/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/capricorn/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1148,7 +1166,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/dog/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/dog/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/dog/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1163,7 +1181,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/dragon/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/dragon/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/dragon/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1178,7 +1196,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/gemini/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/gemini/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/gemini/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1193,7 +1211,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/goat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/goat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/goat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1208,7 +1226,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/horse/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/horse/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/horse/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1223,7 +1241,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/leo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/leo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/leo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1238,7 +1256,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/libra/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/libra/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/libra/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1253,7 +1271,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/monkey/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/monkey/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/monkey/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1268,7 +1286,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/ox/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/ox/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/ox/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1283,7 +1301,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/pig/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/pig/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/pig/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1298,7 +1316,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/pisces/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/pisces/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/pisces/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1313,7 +1331,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/rabbit/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/rabbit/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/rabbit/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1328,7 +1346,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/rat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/rat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/rat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1343,7 +1361,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/rooster/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/rooster/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/rooster/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1358,7 +1376,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/sagittarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1373,7 +1391,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/scorpio/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/scorpio/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/scorpio/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1388,7 +1406,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/snake/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/snake/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/snake/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1403,7 +1421,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/taurus/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/taurus/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/taurus/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1418,7 +1436,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/tiger/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/tiger/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/tiger/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1433,9 +1451,15 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/tomorrow/virgo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/tomorrow/virgo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/tomorrow/virgo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.82</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/fortune/tti-age/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.78</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/weekly/</loc>
@@ -1448,7 +1472,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -1463,7 +1487,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/aquarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/aquarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/aquarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1478,7 +1502,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/aries/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/aries/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/aries/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1493,7 +1517,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/cancer/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/cancer/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/cancer/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1508,7 +1532,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/capricorn/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/capricorn/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/capricorn/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1523,7 +1547,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/dog/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/dog/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/dog/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1538,7 +1562,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/dragon/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/dragon/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/dragon/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1553,7 +1577,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/gemini/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/gemini/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/gemini/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1568,7 +1592,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/goat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/goat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/goat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1583,7 +1607,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/horse/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/horse/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/horse/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1598,7 +1622,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/leo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/leo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/leo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1613,7 +1637,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/libra/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/libra/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/libra/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1628,7 +1652,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/monkey/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/monkey/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/monkey/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1643,7 +1667,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/ox/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/ox/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/ox/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1658,7 +1682,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/pig/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/pig/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/pig/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1673,7 +1697,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/pisces/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/pisces/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/pisces/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1688,7 +1712,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/rabbit/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/rabbit/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/rabbit/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1703,7 +1727,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/rat/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/rat/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/rat/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1718,7 +1742,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/rooster/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/rooster/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/rooster/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1733,7 +1757,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/sagittarius/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/sagittarius/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1748,7 +1772,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/scorpio/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/scorpio/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/scorpio/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1763,7 +1787,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/snake/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/snake/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/snake/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1778,7 +1802,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/taurus/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/taurus/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/taurus/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1793,7 +1817,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/tiger/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/tiger/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/tiger/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -1808,19 +1832,19 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/fortune/weekly/virgo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/fortune/weekly/virgo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/fortune/weekly/virgo/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/free/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ggulggul/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
@@ -1904,19 +1928,19 @@
   </url>
   <url>
     <loc>https://code-destiny.com/health-report/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/heukwol/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/human-design/guide/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -1931,7 +1955,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/insights/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/" />
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -1985,9 +2009,15 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/astrology/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/baekho-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/byeongo-year-reorder-signals/</loc>
@@ -2002,6 +2032,12 @@
     <priority>0.74</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights/cheoneul-gwiin-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/insights/cheongan-jiji-complete-explanation/</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
@@ -2009,7 +2045,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/compatibility/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -2020,8 +2056,14 @@
     <priority>0.74</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights/dohwa-sal-saju/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/insights/dream/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -2039,7 +2081,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/famous-saju/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.89</priority>
   </url>
@@ -2507,13 +2549,37 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/fusion/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights/goegang-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/gongmang-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/gwimun-gwan-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/insights/gyeokguk-vs-yongshin/</loc>
     <lastmod>2026-10-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/hongyeom-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -2526,6 +2592,12 @@
   <url>
     <loc>https://code-destiny.com/insights/how-we-calculate-saju/</loc>
     <lastmod>2026-09-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/hwagae-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -2657,13 +2729,25 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/saju/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/insights/same-day-pillar-different-season-reading/</loc>
     <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/sangchung-yukchung/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/sangmun-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -2840,7 +2924,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/sukuyo/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -2924,7 +3008,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/tarot/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -3008,7 +3092,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/vedic/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -3019,8 +3103,26 @@
     <priority>0.74</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights/wonjin-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/insights/world-strange-divination-guide-including-pig-oracle/</loc>
     <lastmod>2026-07-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/yangin-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/yeokma-sal-meaning/</loc>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -3197,49 +3299,49 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ziwei/</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/karma-destiny-ai/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/life-book-ai/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/love-secret-ai/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/love/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/manse/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.98</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/master-love-codex/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/mayan-calendar/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
   </url>
@@ -3251,13 +3353,13 @@
   </url>
   <url>
     <loc>https://code-destiny.com/music/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/nakshatra/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -3425,43 +3527,43 @@
   </url>
   <url>
     <loc>https://code-destiny.com/naming-ai/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/neo-operation-room/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/new-year-ai-consultation/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/oracle/hwatu-life/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/oracle/ifa/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/oracle/rune/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/physiognomy/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.93</priority>
   </url>
@@ -3495,193 +3597,223 @@
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/apple-cabbage-wraps/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/recipes/apple-lentil-cabbage-salad/</loc>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/banana-oat-muffins/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/black-pepper-shiitake-tteok/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/carrot-corn-porridge/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/chicory-chicken-salad/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/chicory-mushroom-omelette/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/chicory-mushroom-pasta/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/chicory-orange-toast/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/chicory-pear-barley/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/recipes/chicory-potato-soup/</loc>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/ginger-cabbage-udon/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/ginger-mushroom-rice-noodles/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/ginger-potato-rosti/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/recipes/ginger-radish-somen/</loc>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/ginger-scallion-tofu/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/kelp-zucchini-soup/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/lemon-broccoli-couscous/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/lemon-chickpea-salad/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/lemon-white-bean-stew/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/miso-eggplant-tofu-bowl/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/mustard-lotus-rice/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/recipes/nori-sesame-egg-roll/</loc>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/nori-sesame-potatoes/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/nori-sesame-rice-gratin/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/pear-millet-crumble/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/pepper-cabbage-tofu-soup/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/plum-cucumber-soba/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/pumpkin-mushroom-risotto/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/pumpkin-oat-pancakes/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.70</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/recipes/pumpkin-soy-steamed-pudding/</loc>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/radicchio-polenta/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/seaweed-mushroom-soup/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/seaweed-tofu-riceballs/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/sweet-potato-apple-oats/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/recipes/yuja-radish-noodles/</loc>
-    <lastmod>2026-11-16</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
   </url>
@@ -3702,13 +3834,13 @@
   </url>
   <url>
     <loc>https://code-destiny.com/saju-fpti/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju-guardian/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -3723,25 +3855,25 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.98</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/ai-prompt-card/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/animal-destiny/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/career-style/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -3756,7 +3888,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/saju-compatibility/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/saju-compatibility/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/saju/compatibility/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.96</priority>
   </url>
@@ -3768,163 +3900,169 @@
   </url>
   <url>
     <loc>https://code-destiny.com/saju/destiny-anatomy/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/destiny-bias/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/destiny-meeting-place/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/dopamine/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/five-elements/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/four-cut/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/free/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/lotto-ritual/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/byeong-hwa/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/eul-mok/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/gap-mok/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/gi-to/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/gye-su/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/gyeong-geum/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/im-su/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/jeong-hwa/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/mu-to/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/monthly/2026-09/sin-geum/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/natal-chart/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/season-rhythm/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/sibyl/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/saju/sinsal/</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.78</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/saju/skill-tree/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/t-test/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/ten-gods/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.78</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/teto-egen/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -4381,7 +4519,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hans" href="https://code-destiny.com/zh/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility-ai/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo-compatibility-ai/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.87</priority>
   </url>
@@ -4396,7 +4534,7 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/sukuyo/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
@@ -4417,13 +4555,13 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/sukuyo-compatibility/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/sukuyo-compatibility/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/sukuyo/compatibility/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/sukuyo/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -4438,55 +4576,55 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/tarot/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/tarot/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/tarot/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.96</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/healing/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/love/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/mindscan/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/mingri/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/numerology/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/prompt-maker/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/reunion/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
@@ -4498,7 +4636,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/year/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -4528,13 +4666,13 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/today/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/today/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/today/" />
-    <lastmod>2026-11-22</lastmod>
+    <lastmod>2026-11-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.97</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/vedic-ai/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.87</priority>
   </url>
@@ -4549,13 +4687,13 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/vedic/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/vedic/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/vedic/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/vedic/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>
@@ -4567,7 +4705,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/yeon-star-hug/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
@@ -4582,37 +4720,37 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/yeongnyangi/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/yeongnyangi/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/yeongnyangi/1000-won-fortune/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/yeongnyangi/faq/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.60</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/yeongnyangi/season-1/</loc>
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/yeongnyangi/season-1/prologue/</loc>
-    <lastmod>2026-11-13</lastmod>
+    <lastmod>2026-11-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.70</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei-ai/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -4627,25 +4765,25 @@
     <xhtml:link rel="alternate" hreflang="zh-Hant" href="https://code-destiny.com/zh-tw/ziwei/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/ziwei/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/ziwei/" />
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.95</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei/animal-destiny/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.87</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei/chart/</loc>
-    <lastmod>2026-11-21</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.92</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/ziwei/guide/</loc>
-    <lastmod>2026-11-20</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
   </url>

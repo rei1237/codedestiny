@@ -1,0 +1,78 @@
+{
+  "id": "yeongnyangi",
+  "base": "public/assets/yeongnyangi/original/hero-800.webp",
+  "sourceDir": "D:/CodeDestiny-Build/master-motion/yeongnyangi",
+  "reportDir": "D:/CodeDestiny-Build/master-motion/yeongnyangi/report",
+  "out": "public/images/master-motion/yeongnyangi",
+  "input": {
+    "paddedSize": 800,
+    "padLeft": 0,
+    "padTop": 0,
+    "note": "정본 800x800 RGBA 를 --yn-deep(#0b1220) 위에 평탄화해 1024x1024(lanczos3)로 키운 input-1024.png 를 첨부했다. 생성물은 1254x1254 로 왔고 빌드가 800 으로 줄여 맞춘다"
+  },
+  "registration": {
+    "box": {
+      "left": 252,
+      "top": 200,
+      "width": 324,
+      "height": 160
+    },
+    "maxShift": 12,
+    "scales": [
+      0.98,
+      0.99,
+      1,
+      1.01,
+      1.02
+    ]
+  },
+  "qa": {
+    "maxGuardDiff": 5,
+    "minRegionDiff": 8,
+    "minPatchAlpha": 250,
+    "note": "8px 블록 평균 밝기 차이. F2~F6 과 같은 문턱. 두 눈 모두 정본에서 가림 없이 보인다(모자 금테 끝은 왼쪽 눈 바깥 꼬리에서 약 25px 떨어져 있다)"
+  },
+  "frames": {
+    "half": {
+      "file": "raw-half.png",
+      "prompt": "the cat's eyes half-closed mid-blink (upper eyelids lowered about halfway over the irises, same eye shape, tilt and eyelash tails); whiskers, nose, mouth, blush and expression otherwise unchanged.",
+      "region": [
+        { "cx": 340, "cy": 317, "rx": 68, "ry": 33, "feather": 8 },
+        { "cx": 503, "cy": 258, "rx": 60, "ry": 48, "feather": 8 }
+      ]
+    },
+    "closed": {
+      "file": "raw-closed.png",
+      "prompt": "the cat's eyes fully closed in a gentle natural blink (upper eyelids fully lowered into a soft curved lash line following the same eye shape and tilt, eyelash tails unchanged); whiskers, nose, mouth, blush and expression otherwise unchanged.",
+      "region": [
+        { "cx": 340, "cy": 317, "rx": 68, "ry": 33, "feather": 8 },
+        { "cx": 503, "cy": 258, "rx": 60, "ry": 48, "feather": 8 }
+      ]
+    }
+  },
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "variants": {
+    "mascot": {
+      "kind": "patch",
+      "area": { "left": 252, "top": 200, "width": 324, "height": 160 }
+    }
+  },
+  "webp": {
+    "default": {
+      "sheet": 84
+    }
+  },
+  "provenance": {
+    "purpose": "운세보는 영냥이 홈 히어로·영냥이의 방의 쓰다듬기 마스코트(정본 hero-800) 위에 겹치는 대기 모션(눈 깜빡임) 부분 시트",
+    "generationTool": "Codex CLI 0.156.1 (ChatGPT OAuth) built-in image_gen = gpt-image-2, 이미지 편집 입력",
+    "references": [
+      "public/assets/yeongnyangi/original/hero-800.webp"
+    ],
+    "promptRules": "정본과 같은 고양이·얼굴·털·귀·모자·의상·소품·구도·조명·배경을 유지하고 눈만 바꾼다. 텍스트·글자·숫자·워터마크·로고·서명·테두리·꽃잎·반짝이 금지. 물체 추가·이동·삭제 금지.",
+    "operation": "정본(투명 배경)을 기본으로, 편집 생성물을 정본에 위치·배율 맞춤 뒤 눈 영역(타원·페더)만 합성했다. 눈 언저리 부분 사각형만 정본 배율·정본 알파 그대로 잘라 한 줄 WebP 시트로 내보냈다(포스터 없음, 정본 <img> 위에 겹친다)."
+  }
+}

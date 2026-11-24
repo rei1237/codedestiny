@@ -4607,6 +4607,7 @@ function clearSajuFormStatus() {
 }
 
 function validateSajuFormBeforeLogin() {
+  if (typeof window.cdValidateBirthFields === 'function' && !window.cdValidateBirthFields()) return false;
   var birthDateEl = document.getElementById('birthDate');
   var birthDateValue = birthDateEl ? _cdNormalizeBirthDateInput(birthDateEl.value) : '';
   if (!birthDateValue) {

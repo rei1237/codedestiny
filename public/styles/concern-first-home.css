@@ -24,10 +24,9 @@
 }
 
 .cdh-specialists{border-top:1px solid var(--cdh-line);padding:8px 0}.cdh-specialists>summary{padding:18px 0;min-height:48px;font-weight:700;cursor:pointer}.cdh-specialists>summary:focus-visible{outline:3px solid var(--cdh-accent);outline-offset:3px}
-#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;transform:none;width:auto}#cdHomeFunnel .cd-sig__viewport{overflow:visible}#cdHomeFunnel .cd-sig-card{min-width:0;width:auto}#cdHomeFunnel .cd-sig__controls{display:none}
+#cdHomeFunnel .cd-sig__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;transform:none;width:auto}#cdHomeFunnel .cd-sig__viewport{overflow:visible}
 @media(max-width:640px){
   #cdHomeFunnel .cd-sig__grid{grid-template-columns:minmax(0,1fr)}
-  #cdHomeFunnel .cd-sig-card{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:start;padding:12px;gap:12px}
   #cdHomeFunnel .cd-sig-card__media{align-self:start;width:100%;aspect-ratio:16/9;border-radius:var(--cd-r-sm);overflow:hidden}
   #cdHomeFunnel .cd-sig-card__img{width:100%;height:100%;object-fit:cover}
   #cdHomeFunnel .cd-sig-card__body{padding:0;min-width:0}
@@ -294,6 +293,9 @@ html.cdh-input-open body .cdh-input-return:focus-visible{outline:3px solid var(-
  #cdHomeFunnel.cdh--focused .cd-choice .cd-concern__q-price{grid-column:2;text-align:right}
 }
 @media(prefers-reduced-motion:reduce){#cdHomeFunnel .cd-choice .cd-sig__viewport{scroll-behavior:auto}}
+
+/* Native dialog content scrolls independently while the document viewport stays still. */
+html[data-cd-viewport-lock] { overflow: hidden !important; overscroll-behavior: contain; scrollbar-gutter: stable; }
 
 /* 대표 상담 6종 — 한 편씩 떠오르는 러블리 달빛 예화 상담 편지. */
 #cdHomeFunnel .cd-signature-open {display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;margin-top:18px;padding:0 24px;border:1px solid rgba(234,208,137,.72);border-radius:var(--cd-r-pill);background:#fff8dc;color:#6f2147;font:800 var(--cd-t-body)/1.4 var(--font-body,sans-serif);box-shadow:0 10px 24px rgba(42,9,28,.18);cursor:pointer;}

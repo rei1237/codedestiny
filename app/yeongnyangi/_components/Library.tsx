@@ -6,7 +6,7 @@ import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale'
 import {useReadingLanguage} from '../_lib/use-reading-language';
 import {localizedSystem,localizedTier,localizedKind,consultationLocaleCopy} from '../_lib/consultation-locale-copy';
 import {readingArtwork} from './ReadingIdentity';
-import {useCallback,useEffect,useRef,useState} from 'react';
+import {useCallback,useEffect,useRef,useState,type MouseEvent} from 'react';
 import {fortuneApi,FortuneApiError,loginForCurrentPage,resultPath,type FortuneSummary,type FortunePage} from '../_lib/api';
 import {friendlyErrorMessage} from '@/app/_lib/friendly-error';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
@@ -20,6 +20,7 @@ export default function Library({paymentSurface}:{paymentSurface?:'toss'}={}){
  const [rows,setRows]=useState<FortuneSummary[]|null>(null),[error,setError]=useState(''),[needsLogin,setNeedsLogin]=useState(false);
  const [recovering,setRecovering]=useState(''),[recoverError,setRecoverError]=useState<{id:string;message:string}|null>(null);
  const active=useRef<AbortController|null>(null),revision=useRef(0),retryAt=useRef(0),requestedCursor=useRef<string|null>(null);
+ const pages=useRef(0);
  const load=useCallback(async(next:string|null=null)=>{
   if(next&&active.current)return;
   active.current?.abort();const controller=new AbortController();active.current=controller;
@@ -36,6 +37,7 @@ export default function Library({paymentSurface}:{paymentSurface?:'toss'}={}){
     data=await fortuneApi<FortunePage>(path,undefined,{signal:controller.signal});
    }
    if(!current())return;
+   pages.current=next?pages.current+1:1;
    setRows(previous=>next?[...new Map([...(previous||[]),...data.fortunes].map(row=>[row.id,row])).values()]:data.fortunes);
    setCursor(data.nextCursor);
   }catch(reason){
@@ -65,6 +67,27 @@ export default function Library({paymentSurface}:{paymentSurface?:'toss'}={}){
   void load();window.addEventListener('cd:auth-changed',reset);window.addEventListener('storage',storage);
   return()=>{revision.current++;active.current?.abort();unsubscribe();window.removeEventListener('cd:auth-changed',reset);window.removeEventListener('storage',storage);};
  },[load]);
+ // Only the list position is kept in this tab. Each page is loaded again under the current account.
+ function rememberResultPosition(event:MouseEvent<HTMLDivElement>){
+  if(paymentSurface==='toss'||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+  const link=(event.target as Element).closest<HTMLAnchorElement>('a[href]');
+  const owner=readDestinyProfileAccountId();
+  if(!owner||link?.pathname!=='/yeongnyangi/result/')return;
+  try{window.sessionStorage.setItem('yn-library-position:'+owner,JSON.stringify({pages:pages.current,y:window.scrollY}));}catch{/* Optional position. */}
+ }
+ useEffect(()=>{
+  const owner=readDestinyProfileAccountId();
+  if(paymentSurface==='toss'||!owner||!rows||loading||error||needsLogin)return;
+  const key='yn-library-position:'+owner;
+  try{
+   const raw=window.sessionStorage.getItem(key);
+   if(!raw)return;
+   const position=JSON.parse(raw);
+   if(Number.isSafeInteger(position?.pages)&&pages.current<position.pages&&cursor&&cursor!==requestedCursor.current){void load(cursor);return;}
+   window.sessionStorage.removeItem(key);
+   if(rows.length&&Number.isFinite(position?.y)&&position.y>0)window.scrollTo({top:position.y,behavior:'instant'});
+  }catch{/* An unavailable position never blocks the library. */}
+ },[rows,cursor,loading,error,needsLogin,load,paymentSurface]);
  function retry(){if(Date.now()<retryAt.current){setError('잠시 후 다시 불러와 주세요.');return;}void load(requestedCursor.current);}
  // The same server retry as the result page; the result page then shows the chapters as they are saved.
  async function recover(row:FortuneSummary){
@@ -84,7 +107,7 @@ export default function Library({paymentSurface}:{paymentSurface?:'toss'}={}){
  return <section className={styles.consultation}><header className={styles.spiritIntro}><img className={scene==='signup'?styles.libraryFade:undefined} src={art} width={artWidth} height={artHeight} alt=""/><div className={styles.libraryIntro}><h1>{copy.library}</h1>
   {needsLogin?<div role="alert"><p>{copy.loginHint}</p><button onClick={loginForCurrentPage}>{copy.login}</button></div>:rows===null&&loading?<p role="status">{copy.loading}</p>:empty&&<><p>{copy.empty}</p><a className={styles.primaryAction} href={startHref}>{consultationLocaleCopy(locale).libraryStart}</a></>}</div></header>
   <OrderLookup locale={locale}/>
-  <div className={styles.library}>{rows?.map(row=><div key={row.id} className={styles.libraryItem}><a href={`${resultPath(row.id,locale)}&source=library`}><img src={row.product?readingArtwork(row.product):ART.hero[0]} width={120} height={80} loading="lazy" alt=""/><div><h2>{!row.product?(row.kindLabel||copy.library):locale==='ko'?`${row.kindLabel||row.product.name} · ${row.product.fishName}`:`${row.consultationKind?localizedKind(row.consultationKind,locale):localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`}</h2>{row.participants&&<p>{row.participants.self} · {row.participants.partner}</p>}<p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?row.recovering?copy.recoveringItems(row.completedChapters||0,row.totalChapters||row.product?.chapterCount||0):copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>
+  <div className={styles.library} onClick={rememberResultPosition}>{rows?.map(row=><div key={row.id} className={styles.libraryItem}><a href={`${resultPath(row.id,locale)}&source=library`}><img src={row.product?readingArtwork(row.product):ART.hero[0]} width={120} height={80} loading="lazy" alt=""/><div><h2>{!row.product?(row.kindLabel||copy.library):locale==='ko'?`${row.kindLabel||row.product.name} · ${row.product.fishName}`:`${row.consultationKind?localizedKind(row.consultationKind,locale):localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`}</h2>{row.participants&&<p>{row.participants.self} · {row.participants.partner}</p>}<p>{new Date(row.createdAt).toLocaleDateString(locale)} · {row.state==='REFUNDED'?copy.refunded:row.state==='COMPLETED'?copy.view:row.paid?row.recovering?copy.recoveringItems(row.completedChapters||0,row.totalChapters||row.product?.chapterCount||0):copy.continue:copy.checkout}</p><p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p></div></a>
    {row.state==='COMPLETED'&&row.paid&&row.product&&row.completedChapters>0&&<a className={styles.libraryReport} href={`${resultPath(row.id,locale)}&source=library#image-report`}>{locale==='ko'?'이미지 리포트 만들기':'Make image report'}</a>}
    {row.canRetry&&<button className={styles.retryButton} disabled={Boolean(recovering)} onClick={()=>void recover(row)}>{recovering===row.id?stateCopy.recovering:copy.recovery}</button>}
    {row.state==='COMPLETED'&&<a className={styles.reviewAction} href="/reviews/?write=1&product=yeongnyangi">후기 남기기</a>}

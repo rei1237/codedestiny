@@ -20,8 +20,8 @@ export async function tea(page,origin){
   await page.locator('#fortuneTeaBirthTimeUnknown').check();
   await page.locator('#fortuneTeaGender').selectOption({label:'여성'});
   await page.locator('#fortuneTeaBirthPlace').fill('서울');
-  await button(page,'출생지 확인').click();
-  await page.getByText('확인됨',{exact:true}).waitFor();
+  await page.locator('#fortuneTeaBirthPlace').blur();
+  await button(page,'확인됨').waitFor();
   await page.locator('#fortuneTeaQuestion').fill(teaQuestion);
   await page.locator('#tea-question-category').selectOption({label:'직업·진로'});
   await button(page,'상담 내용과 가격 확인').click();

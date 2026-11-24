@@ -22,14 +22,12 @@ test('trust line claims only what the dated 2024 originals support', () => {
   assert.ok(existsSync('app/insights/public-record-article.js'), 'public record article must exist');
 });
 
-test('trust line is rendered on the three first screens', () => {
-  assert.match(readFileSync('app/page.js', 'utf8'), /<TrustRecordLine className=\{styles\.trust\} \/>/);
+test('the public record is reachable in context and service selection stays uncluttered', () => {
+  const root = readFileSync('app/page.js', 'utf8');
+  assert.doesNotMatch(root, /<TrustRecordLine/);
   assert.match(readFileSync('app/yeongnyangi/_components/NightHero.tsx', 'utf8'), /<TrustRecordLine variant="short"/);
-  const shell = renderYehwaHome([{ id: 'saju', price: '무료 시작', quickHref: '/?action=x', action: 'x', purposes: [] }]);
-  const greeting = shell.match(/<div class="yh-greeting">[\s\S]*?<\/p><\/div>/)[0];
-  assert.ok(greeting.indexOf('yh-free-start') < greeting.indexOf('yh-trust'), 'trust line stays below the primary CTA');
-  assert.ok(greeting.includes(`href="${PUBLIC_RECORD_PATH}"`));
-  assert.ok(greeting.includes(trustRecordCopy.publicLink));
+  const shell = renderYehwaHome([]);
+  assert.ok(shell.includes('href="#homeFinder"'));
+  assert.ok(!shell.includes(trustRecordCopy.full));
   assert.ok(readFileSync('app/components/conversion/TrustRecordLine.tsx', 'utf8').includes('trustRecordCopy.publicLink'));
-  assert.ok(readFileSync('index.html', 'utf8').includes(trustRecordCopy.full), 'regenerate index.html with npm run sync:public');
 });

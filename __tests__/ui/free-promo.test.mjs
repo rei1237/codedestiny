@@ -38,12 +38,12 @@ test('free promo end date never gates access', () => {
   }
 });
 
-test('main and Kkulkkul keep the campaign banner, independent of Yeongnyangi', () => {
+test('the campaign stays inside Kkulkkul and leaves the public chooser and question flow clear', () => {
   const root = read('app/page.js');
   const shell = read('index.html');
   const yeongnyangi = read('app/yeongnyangi/_home/FortuneHome.tsx');
   const banner = read('app/components/FreePromoBanner.tsx');
-  assert.match(root, /<FreePromoBanner\s*\/>/);
+  assert.doesNotMatch(root, /<FreePromoBanner\s*\/>/);
   assert.match(shell, /class="cdh-promo"/);
   assert.doesNotMatch(yeongnyangi, /FreePromoBanner/);
   assert.match(banner, /yeoni-cheer\.webp|FREE_PROMO_YEONI\.image/);

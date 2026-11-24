@@ -20,17 +20,18 @@ export default function DiaryCalendarView() {
   const { hydrated, ymd:today, store, chart, ext } = useDiaryToday();
   const [date,setDate] = useState("");
   const [mode,setMode] = useState<CalendarMode>("month");
-  const [detail,setDetail] = useState(false);
+  const [detail,setDetail] = useState<"summary" | "record" | null>(null);
   useEffect(()=>{
     if(!hydrated||!today)return;
     const params=new URLSearchParams(window.location.search);
     const requested=params.get("d")||"";
     setDate(parseYmd(requested)?requested:today);
+    if (parseYmd(requested) && params.get("tab") === "record") setDetail("record");
     const view=params.get("view");
     if(view==="week"||view==="day")setMode(view);
   },[hydrated,today]);
   const select=useCallback((next:string,view?:CalendarMode)=>{
-    setDate(next);setDetail(false);
+    setDate(next);setDetail(null);
     if(view)setMode(view);
     const url=new URL(window.location.href);
     url.searchParams.set("d",next);
@@ -64,7 +65,7 @@ export default function DiaryCalendarView() {
   const title=mode==="day"?formatKoreanDate(date):mode==="week"?from+" — "+to:monthTitle;
   const dailyEvents=(ymd:string)=>events.filter(item=>item.date===ymd);
   const grain=diaryFlowCopy(fortunes[date]?.tone);
-  const goDetail=()=>setDetail(true);
+  const goDetail=()=>setDetail("summary");
   return <div className={styles.calendarLayout} data-view={mode}>
     <section className={styles.calendarPaper} aria-label="달력">
       <header className={styles.calendarHeader}><div className={styles.sectionTitle}><CalendarDays size={24} aria-hidden="true"/><h2>나의 달력</h2></div><button type="button" className={styles.secondaryButton} disabled={!today} onClick={()=>select(today)}>오늘</button></header>
@@ -73,18 +74,32 @@ export default function DiaryCalendarView() {
         <div className={styles.periodButtons}><button type="button" className={styles.iconButton} onClick={()=>move(-1)} disabled={!parts} aria-label="이전 기간"><ChevronLeft size={20}/></button><button type="button" className={styles.iconButton} onClick={()=>move(1)} disabled={!parts} aria-label="다음 기간"><ChevronRight size={20}/></button></div>
       </div>
       <h3 className={styles.periodTitle}>{title}</h3>
+      <label className={styles.dateJump}>날짜로 이동
+        <input type="date" value={date} disabled={!hydrated} onChange={event=>{
+          const next=event.currentTarget.value;
+          if(parseYmd(next))select(next);
+        }}/>
+      </label>
       <p className={styles.hint}>{events.length}개의 일정 · 기록 {marks.noteDays}일</p>
       {mode==="month"&&<>
         <div className={styles.weekdayHead} aria-hidden="true">{[0,1,2,3,4,5,6].map(day=><span key={day}>{weekdayLabel(day)}</span>)}</div>
         <div className={styles.monthGrid}>{cells.map(cell=>{
           if(!cell.ymd)return <span key={cell.key} className={styles.outDay} aria-hidden="true">{cell.day}</span>;
           const cellDate=cell.ymd,dayEvents=dailyEvents(cellDate),todos=resolveTodos(ext,cellDate),mark=marks.byYmd[cellDate];
-          return <button key={cell.key} type="button" className={styles.monthDay} data-today={cell.isToday||undefined} aria-pressed={date===cellDate} aria-label={formatKoreanDate(cellDate)+" · 일정 "+dayEvents.length+"개 · 할 일 "+todos.length+"개"+(mark?.note?" · 기록 있음":"")} onClick={()=>select(cellDate)}>
+          return <button key={cell.key} type="button" className={styles.monthDay} data-today={cell.isToday||undefined} aria-pressed={date===cellDate} aria-label={formatKoreanDate(cellDate)+" · 일정 "+dayEvents.length+"개 · 할 일 "+todos.length+"개"+(mark?.note?" · 기록 있음":"")} aria-current={cell.isToday ? "date" : undefined} onClick={()=>{select(cellDate);if(mark?.note)setDetail("record");}}>
             <span className={styles.dayNumber}>{cell.day}</span>
             {dayEvents.length>0&&<span className={styles.cellEvents}>{dayEvents.length}건</span>}
-            <span className={styles.cellMarks}>{mark?.note&&<NotebookPen size={13} aria-hidden="true"/>}{todos.some(todo=>todo.done)&&<Check size={13} aria-hidden="true"/>}</span>
+            <span className={styles.cellMarks}>{mark?.note&&<i className={styles.recordDot} aria-hidden="true"/>}{todos.some(todo=>todo.done)&&<Check size={13} aria-hidden="true"/>}</span>
           </button>;
         })}</div>
+        {marks.noteDays>0&&<details className={styles.monthIndex}>
+          <summary>기록한 날 모아보기 · {marks.noteDays}일</summary>
+          <div>{dates.filter(day=>marks.byYmd[day]?.note).map(day=>(
+            <button type="button" key={day} onClick={()=>{select(day);setDetail("record");}}>
+              {Number(day.slice(8))}일 · {weekdayLabel(weekdayIndex(day))}요일
+            </button>
+          ))}</div>
+        </details>}
       </>}
       {mode==="week"&&<div className={styles.weekGrid}>{dates.map(day=><button type="button" key={day} className={styles.weekDay} aria-pressed={date===day} onClick={()=>select(day)}>
         <strong>{weekdayLabel(weekdayIndex(day))} <span>{Number(day.slice(8))}</span></strong>
@@ -102,6 +117,6 @@ export default function DiaryCalendarView() {
       <details className={styles.routineDetails}><summary>나의 루틴</summary><DiaryRoutineList ymd={date} entry={readStoredEntry(store,date)} emptyText="아직 고른 실천이 없어요."/></details>
       <button type="button" className={styles.recordButton} onClick={goDetail}><NotebookPen size={20} aria-hidden="true"/>이 날의 흐름 · 기록 · 회고<ChevronRight size={18} aria-hidden="true"/></button>
     </section>}
-    {detail&&date&&<DiaryDayView ymd={date} fortune={fortunes[date]||null} group={dayGroupOf(chart,date)} entry={readStoredEntry(store,date)} onClose={()=>setDetail(false)}/>}
+    {detail&&date&&<DiaryDayView initialTab={detail} ymd={date} fortune={fortunes[date]||null} group={dayGroupOf(chart,date)} entry={readStoredEntry(store,date)} onClose={()=>setDetail(null)}/>}
   </div>;
 }

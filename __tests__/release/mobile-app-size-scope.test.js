@@ -139,15 +139,33 @@ test('verified dead image families leave the app, but assembled names and refere
   const dist = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-dead-'));
   t.after(() => fs.rm(dist, { recursive: true, force: true }));
   const files = [
-    'fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 쥐.webp', 'assets/yeongnyangi/hat/moon-library-v1.webp', 'assets/yeongnyangi/mv/heaven-light-v5-ch1-320.webp',
+    'fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 쥐.webp', 'assets/yeongnyangi/mv/heaven-light-v5-ch1-320.webp',
     'assets/yeongnyangi/mv/heaven-light-v72-ch1-320.webp', 'assets/yeongnyangi/mv/heaven-light-v7-poster-960.webp', 'assets/sharing/neo-letter-v1.webp',
     'assets/yeongnyangi/report-art/cover-print.webp', 'images/destiny-island/guardians/career-v1.webp', 'assets/yeongnyangi/service-packs/tuna-gift-set-v1.webp',
   ];
   for (const rel of files) { await fs.mkdir(path.dirname(path.join(dist, rel)), { recursive: true }); await fs.writeFile(path.join(dist, rel), 'x'); }
   const removed = (await removeVerifiedDeadImages(new Set(['tuna-gift-set-v1.webp']), dist)).map(item => item.path).sort();
-  assert.deepEqual(removed, ['assets/yeongnyangi/hat/moon-library-v1.webp', 'assets/yeongnyangi/mv/heaven-light-v5-ch1-320.webp', 'fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 쥐.webp']);
+  assert.deepEqual(removed, ['assets/yeongnyangi/mv/heaven-light-v5-ch1-320.webp', 'fuctionassets/다마고치 에셋/달 컨셉/달 컨셉 쥐.webp']);
   const art = await fs.readFile(path.join(__dirname, '../../app/yeongnyangi/_components/HeavenLightCinema.tsx'), 'utf8');
   assert.match(art, /heaven-light-v72-ch\$\{index\+1\}-320\.webp/, 'cinema must still read v72 chapter art the rule keeps');
+});
+
+test('the Android bundle keeps the same hat artwork for its invitation, result and downloads', async t => {
+  const { removeVerifiedDeadImages } = await import('../../scripts/build-mobile-app.mjs');
+  const dist = await fs.mkdtemp(path.join(os.tmpdir(), 'cd-hat-art-'));
+  t.after(() => fs.rm(dist, { recursive: true, force: true }));
+  const root = path.join(__dirname, '../../');
+  const relative = 'assets/yeongnyangi/hat';
+  const folder = path.join(dist, relative);
+  await fs.cp(path.join(root, 'public', relative), folder, { recursive: true });
+  const { hatHouses, hatImage } = await import('../../lib/yeongnyangi/hat-houses.ts');
+  const expectedFiles = ['invitation', ...hatHouses.map(house => house.id)].map(id => path.basename(hatImage(id))).sort();
+
+  await removeVerifiedDeadImages(new Set(), dist);
+  assert.deepEqual((await fs.readdir(folder)).filter(file => file.endsWith('.webp')).sort(), expectedFiles);
+  assert.equal((await fs.readdir(folder)).some(file => file.endsWith('.avif')), false);
+  const source = await fs.readFile(path.join(root, 'app/yeongnyangi/_components/SortingHat.tsx'), 'utf8');
+  assert.match(source, /set\s*&&\s*!compact\s*&&\s*!IS_APP_BUILD\s*\?\s*<picture>/);
 });
 
 test('the date archive leaves the app and the guard strips links that would point at it', async t => {

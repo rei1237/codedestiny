@@ -4,6 +4,8 @@
 
 ## 위험도
 
+디자인을 수정할 때는 가능하면 실제 서비스 화면을 열어 변경 전후를 직접 본다. 모바일 너비에서 글자·배치·대비와 주요 상호작용을 확인하고, 결과를 보여 달라는 요청에는 실제 화면 캡처를 첨부한다. 열 수 없으면 확인한 범위와 이유를 적는다.
+
 GREEN: 문구·CSS·마크업·문서 등 동작 경계가 바뀌지 않는 국소 수정.
 RED: 결제·이용권·인증·DB·배포·CI·라우팅·공유 동작·삭제·리네임 또는 영향 불명.
 파일 수는 등급 기준이 아니다. 생성 미러 때문에 등급을 올리지 않는다.
@@ -74,6 +76,7 @@ push를 배포 승인으로 확대 해석하지 않는다. push는 스테이징�
 - 명령·예외: [reference-basics](docs/context/reference-basics.md)
 - 무료 운세·타로 단계형 플로우: [guided-step-flow-spec](docs/context/guided-step-flow-spec.md)
 - 캐릭터 웹툰 결과·화자 레이어: [narrator-webtoon-result-spec](docs/context/narrator-webtoon-result-spec.md)
+- 유료 상담 성향 장 근거(Trait-First)·플래그·롤백: [trait-first](docs/context/trait-first.md)
 
 홈 `/` 정본은 app/page.js다(연이·영냥이 타로 카드로 선택하는 서비스 진입 화면, 200. 상담 탐색·이용권·길잡이·뮤직비디오는 `/ggulggul/` 메인에 둔다. 워커가 추적 키만 붙은 요청은 그대로 200, 기능 키는 `/ggulggul/`로 302, `/index.html`은 `/`로 301 한다. LegacyHomeEntry는 옛 해시 딥링크와 standalone PWA만 `/ggulggul/`로 보낸다). 브랜드 이름·운영자·공식 채널 원본은 lib/brand/brand-facts.mjs다(2026-10-15 사용자 결정: 공식 "꿀꿀 운세", 별칭 "꿀꿀운세"). 꽃돼지 `/ggulggul/` 및 기존 로케일 정적 셸 정본은 index.html이며 public 미러는 sync:public으로 생성한다. 영냥이는 `/yeongnyangi/`(app/yeongnyangi/)다. Pages 준비 단계에서 `/`를 정적 셸로 덮어쓰지 않는다.
 결제 진입은 로컬 스냅샷, 서버 이용권 판정은 결제창에서. 단건은 사용자의 선택 후에만.

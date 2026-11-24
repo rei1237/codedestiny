@@ -161,6 +161,52 @@ test("불가능한 날짜는 정규화되지 않는다", async () => {
   }
 });
 
+test("달력 기준에 맞지 않는 날짜는 입력을 보존하고 오류를 말한다", async () => {
+  const { window, doc } = await boot();
+  const date = doc.getElementById("birthDate"), error = doc.getElementById("birthDateError");
+  for (const value of ["2026-02-31", "2999-12-31"]) {
+    date.value = value;
+    fire(window, date, "blur");
+    assert.equal(date.value, value);
+    assert.equal(date.getAttribute("aria-invalid"), "true");
+    assert.ok(error.textContent);
+    assert.equal(window.cdValidateBirthFields(), false);
+    assert.equal(doc.activeElement, date);
+  }
+  date.value = "2024-02-29";
+  fire(window, date, "blur");
+  assert.equal(date.hasAttribute("aria-invalid"), false);
+  assert.equal(error.textContent, "");
+});
+
+test("시간을 입력하지 않은 기본 폼은 기존 시각 선택값으로 제출한다", async () => {
+  const { window, doc } = await boot();
+  doc.getElementById("birthDate").value = "1990-05-15";
+  doc.getElementById("birthHour").value = "12";
+  doc.getElementById("birthMinute").value = "0";
+  doc.getElementById("birthTimeText").value = "";
+  assert.equal(window.cdValidateBirthFields(), true);
+  assert.equal(doc.getElementById("birthTimeText").value, "12:00");
+});
+
+test("출생지를 검색하면 결과 없음 안내가 나오고, 방향키로 고르면 원본 select도 바뀐다", async () => {
+  const { window, doc } = await boot();
+  const input = doc.getElementById("birthCountryInput"), select = doc.getElementById("birthCountry");
+  select.innerHTML = '<option value="KR">서울</option><option value="JP">도쿄</option>';
+  input.value = "없는지명";
+  fire(window, input, "input");
+  assert.match(doc.getElementById("birthCountryStatus").textContent, /검색 결과가 없/);
+  input.value = "도쿄";
+  fire(window, input, "input");
+  const key = (value) => input.dispatchEvent(new window.KeyboardEvent("keydown", {key: value, bubbles: true}));
+  key("ArrowDown");
+  assert.equal(doc.getElementById(input.getAttribute("aria-activedescendant")).textContent, "도쿄");
+  key("Enter");
+  assert.equal(select.value, "JP");
+  assert.equal(input.value, "도쿄");
+  assert.equal(input.getAttribute("aria-expanded"), "false");
+});
+
 test("입력 중에는 값을 건드리지 않는다", async () => {
   const { window, doc } = await boot();
   const el = doc.getElementById("birthDate");
@@ -224,7 +270,7 @@ test("출생시간은 24시간제 한 칸이다 — 오전/오후 select 가 없
   assert.doesNotMatch(profileJs, /BirthTimePeriod/, "destiny-profile.js 가 오전/오후 select 를 참조한다");
 });
 
-test("해석할 수 없는 시간은 select 를 건드리지 않고 되돌린다", async () => {
+test("해석할 수 없는 시간은 고칠 수 있도록 보존하고 select는 그대로 둔다", async () => {
   const { window, doc } = await boot();
   const text = doc.getElementById("birthTimeText");
   const hour = doc.getElementById("birthHour");
@@ -236,7 +282,9 @@ test("해석할 수 없는 시간은 select 를 건드리지 않고 되돌린다
   text.value = "9999";
   fire(window, text, "blur");
   assert.equal(hour.value, "8", "잘못된 입력이 select 를 오염시켰다");
-  assert.equal(text.value, "08:35", "잘못된 입력이 화면에 남았다");
+  assert.equal(text.value, "9999");
+  assert.equal(text.getAttribute("aria-invalid"), "true");
+  assert.match(doc.getElementById("birthTimeError").textContent, /23:59/);
 });
 
 test("select 를 바꾸면 텍스트 입력이 따라온다", async () => {

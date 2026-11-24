@@ -55,6 +55,8 @@ module.exports = {
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]daily-webtoon\\.test\\.mjs$",
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]today-tomorrow-separation\\.test\\.mjs$",
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]daily-scroll-copy\\.test\\.mjs$",
+    "[\\\\/]__tests__[\\\\/]fortune[\\\\/]birth-year-line\\.test\\.mjs$",
+    "[\\\\/]__tests__[\\\\/]saju[\\\\/]sinsal-rules\\.test\\.mjs$",
     // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
     "[\\\\/]__tests__[\\\\/]ui[\\\\/]",
     // 릴리스 빌드 파이프라인 가드. 🔴 jest(= critical 티어) 에 두면 정작 그것이 지키는

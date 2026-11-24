@@ -90,3 +90,18 @@ test('staging queue picks the LLM env per row owner: allowlisted owner gets prod
  expect(seen[0].STAGING_LLM_MOCK_ENABLED).toBe('false');expect(seen[0].GEMINIF_API_KEY).toBe('k');
  expect(seen[1].GEMINIF_API_KEY||'').toBe('');expect(seen[1].STAGING_LLM_MOCK_ENABLED).toBe('true');
 });
+test('a completed delivery hands the row to the completion mail beside the ack; a mail failure never retries the message',async()=>{
+ const r=row(),done={...r,state:'COMPLETED'};
+ const generateNextChapter=jest.fn(async()=>done);
+ const waitUntil=jest.fn(),notifyCompleted=jest.fn(async()=>({outcome:'sent'}));
+ let m=message();
+ await consumeConsultationQueue({messages:[m]},{},{read:async()=>r,service:{generateNextChapter},notifyCompleted,ctx:{waitUntil}});
+ expect(waitUntil).toHaveBeenCalledTimes(1);await waitUntil.mock.calls[0][0];
+ expect(notifyCompleted).toHaveBeenCalledWith({},done);expect(m.ack).toHaveBeenCalled();expect(m.retry).not.toHaveBeenCalled();
+ m=message();const failing=jest.fn(async()=>{throw new Error('mail down');});
+ await consumeConsultationQueue({messages:[m]},{},{read:async()=>r,service:{generateNextChapter},notifyCompleted:failing});
+ expect(failing).toHaveBeenCalled();expect(m.ack).toHaveBeenCalled();expect(m.retry).not.toHaveBeenCalled();
+ m=message();const partial=jest.fn();
+ await consumeConsultationQueue({messages:[m]},{YEONGNYANGI_QUEUE:{send:async()=>{}}},{read:async()=>r,service:{generateNextChapter:async()=>({...r,chapters:[{}]})},notifyCompleted:partial,enqueue:async()=>true});
+ expect(partial).not.toHaveBeenCalled();
+});

@@ -1,7 +1,7 @@
 import {hatHouses,hatImage,type HatResult} from '@/lib/yeongnyangi/hat-houses';
 /** Explicit allowlist: never receives a profile, account, raw chart or birth input. */
 const SANS='"Yeongnyangi Noto","Noto Sans KR","Malgun Gothic",sans-serif',SERIF='"Yeongnyangi Myeongjo","Nanum Myeongjo",serif';
-export async function saveHatCard(result:HatResult,element:HTMLElement){
+export async function saveHatCard(result:HatResult,element:HTMLElement,write?: (blob:Blob,fileName:string)=>Promise<void>){
  const house=hatHouses.find(h=>h.id===result.houseId)!;
  const picture=new Image();picture.src=hatImage(house.id);await picture.decode();
  const modeLine=result.mode==='reference'?`참고 배정 · ${result.usedCount}개 체계 반영`:'여섯 체계를 함께 읽은 배정';
@@ -21,5 +21,6 @@ export async function saveHatCard(result:HatResult,element:HTMLElement){
  ctx.fillStyle=color('--yn-muted');ctx.textAlign='center';ctx.font=`400 25px ${SANS}`;
  ctx.fillText(modeLine,540,1270);ctx.fillText('운세의 상징으로 읽는 창작 성향 이야기',540,1318);
  const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('이미지를 만들지 못했어요. 다시 시도해 주세요.')),'image/png'));
+ if(write){await write(blob,`영냥이의-모자-${house.name}.png`);return;}
  const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`영냥이의-모자-${house.name}.png`;link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
 }

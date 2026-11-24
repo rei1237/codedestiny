@@ -1,9 +1,9 @@
 // Only imported by the private simulation build. The existing offline contracts
 // exercise the real input/rendering adapters without contacting a paid provider.
-import {roomProducts,roomRequest} from '../test/offline/room-fixture.mjs';
+import {roomProducts,roomRequest,retainedCompatSku} from '../test/offline/room-fixture.mjs';
 
 export const nativeReportProducts=roomProducts.filter(product=>!/^native:(tea|neo):/.test(product.id));
-const services=new Set(nativeReportProducts.map(product=>product.id.split(':')[1]));
+const services=new Set(['saju-compat',...nativeReportProducts.map(product=>product.id.split(':')[1])]);
 
 export async function nativeReportPublicRequest(request,path){
   if(path!=='/canonical/naming-prompt/basis'||request.method!=='POST')return null;
@@ -33,7 +33,7 @@ export async function nativeReportRequest(request,url,path,state,save,now){
   }
   if(['/orders/grant','/orders/restore'].includes(path)&&request.method==='POST'){
     const {sku}=await request.clone().json();
-    if(nativeReportProducts.some(product=>product.sku===sku))return roomRequest(request,url,path,state,save,now);
+    if(nativeReportProducts.some(product=>product.sku===sku)||path==='/orders/restore'&&sku===retainedCompatSku)return roomRequest(request,url,path,state,save,now);
   }
   return null;
 }

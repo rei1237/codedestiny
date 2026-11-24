@@ -227,10 +227,9 @@ test('restored hero artwork, catalog reuse, and collection previews stay in sync
   const expectedSignature=Object.fromEntries([...Object.keys(signatureArtwork), 'fusion-fortune'].map(id=>[id,introductionArt[id].image.replace('.webp', id === 'fusion-fortune' ? '-320.webp' : '-640.webp')]));
   assert.deepEqual(signatureSources, expectedSignature);
   assert.equal(fragment.querySelectorAll('[data-picker-fusion-featured]').length, 1);
-  const desktopArt=fragment.querySelector('[data-picker-fusion-featured] picture source');
-  assert.equal(desktopArt?.getAttribute('media'),'(min-width: 700px)');
-  assert.equal(desktopArt?.getAttribute('srcset'),introductionArt['fusion-fortune'].image.replace('.webp','-640.webp')+' 640w, '+introductionArt['fusion-fortune'].image.replace('.webp','-960.webp')+' 960w');
-  for(const candidate of desktopArt.getAttribute('srcset').split(', ')) assert.ok(fs.existsSync('public'+candidate.split(' ')[0]));
+  const fusionArt=fragment.querySelector('[data-picker-fusion-featured] img');
+  assert.match(fusionArt.getAttribute('sizes'), /^auto,/);
+  for(const candidate of fusionArt.getAttribute('srcset').split(', ')) assert.ok(fs.existsSync('public'+candidate.split(' ')[0]));
   assert.equal(fragment.querySelector('[data-picker-fusion-featured] img')?.getAttribute('loading'), 'lazy', 'compact fusion art does not block initial rendering');
   for (const [id, source] of Object.entries(expectedSignature)) {
     assert.ok(fs.existsSync(`public${source}`), `${id}: referenced signature artwork is missing`);

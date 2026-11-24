@@ -1,8 +1,8 @@
 {
-  "updated": "2026-11-15",
+  "updated": "2026-11-22",
   "scopeSource": "docs/toss/full-service-inventory.json",
-  "scopeCount": 110,
-  "rule": "기존 110개 행의 하위 모드만 추가한다. prior-evidence-to-reconcile은 코드 누락 판정이 아니라 기존 담당 증거와 원본 하위 모드 경계 대조 대기다. 한 번 대조하여 확인된 누락과 완료 근거를 고정하고, 근거 없는 전체 재탐색을 반복하지 않는다.",
+  "scopeCount": 127,
+  "rule": "입력·계산·생성·구매 권리가 다른 상담은 별도 행으로 관리한다. 기존 검증은 실행 당시 소스와 경로에만 적용한다.",
   "completionCriteria": [
     "각 행의 원본 진입·선택 모드·입력 경계·계산/본문·저장/재열람·유무료 정책을 기록하고 기존 근거와 대조",
     "확인된 codeGaps를 구현하거나 실제 외부/플랫폼 의존 근거로 구분; 추측으로 제외하지 않음",
@@ -577,7 +577,9 @@
       "webSources": [
         "index.html",
         "js/core/service-registry.js",
-        "app/flower/page.tsx"
+        "app/flower/page.tsx",
+        "index.html:openDestinyFlowerStudio",
+        "js/core/index-inline-runtime.js:7312,7485,7533,8176"
       ],
       "webEntries": [
         "/index.html?action=openAstrologyFlowerStudio",
@@ -594,10 +596,13 @@
       "reviewedModes": [
         "로그인 무료 사주·서양·자미·숙요 원본4꽃",
         "원본 SVG·꽃말·narrative·해석범위",
-        "private 고정출생예시, 예시외입력422; 운영은 원본 자유입력"
+        "private 고정출생예시, 예시외입력422; 운영은 원본 자유입력",
+        "홈 openDestinyFlowerStudio의 팔레트·관계/커리어 가이드·positive/negative 프롬프트 팩·저장 개화 기록·공유"
       ],
       "reviewState": "original-contract-reviewed",
-      "codeGaps": [],
+      "codeGaps": [
+        "꽃 4체계 계산 이외에 웹 아틀리에의 팔레트·관계/커리어 가이드, positive/negative 프롬프트 팩, 개화 기록의 저장·재열람·공유는 미이식"
+      ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
@@ -750,17 +755,19 @@
       "renderer": "apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx",
       "recordedContract": "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
       "recordedStorage": "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
-      "priorEvidence": "360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증",
+      "priorEvidence": "360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증 · native-heukwol.test.mjs 세 검사에서 장별 재시도·소유권·종결 시점의 중복 재개 차단",
       "reviewedModes": [
         "원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문",
-        "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록"
+        "TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록",
+        "27장 중 종결 실패한 장은 원본 7일 창 안에서 구매한 소유 계정이 추가 결제 없이 수동으로 이어 쓰기"
       ],
-      "reviewState": "prior-contract-evidence-reconciled",
+      "reviewState": "original-contract-reviewed",
       "codeGaps": [],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
+      "operations": "생성 종결 후 실제 토스 IAP 환불·정산, 전용 상품 등록, 운영 배포와 기기 PDF 확인 필요",
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다.",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --native-report heukwol 홈에서 질문 초안·도입 웹툰 왕복, mock 주문·생성 중 종료·보관 원문·계정 B 거부. 실패한 장의 7일 재개는 별도 Worker 검사"
     },
     {
       "id": "heukwol-story",
@@ -1079,7 +1086,8 @@
         "app/saju/love-simulation/_components/LoveSimulationEngine.tsx",
         "app/saju/love-simulation/_components/LoveCharacterStorySection.tsx",
         "app/saju/love-simulation/_services/sajuApi.ts",
-        "app/saju/love-simulation/_engine/compatibilityEngine.ts"
+        "app/saju/love-simulation/_engine/compatibilityEngine.ts",
+        "lib/seo/index-policy.mjs"
       ],
       "webEntries": [
         "/index.html?action=openLoveSimulation",
@@ -1092,14 +1100,16 @@
       "priorEvidence": "love-code-browser.mjs 360px 일반 홈, 게스트 탐색, mock 토스 로그인, 두 출생정보·네오 원화·선택과 결말. 실기기 미검증",
       "reviewedModes": [
         "원본 16인 프리셋 또는 상대 출생정보 사주 매칭. 내 명식·상대 선택·데이트 장면 선택으로 결말",
-        "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립"
+        "현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립",
+        "운영 비노출 웹 주소의 신규 탐색은 일반판에서 제외. 비공개 AIT에서 기존 흐름 검증 가능."
       ],
       "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
+      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다.",
+      "regularDiscovery": "일반 사주 리포트의 새 게임 탐색에서 제외 · 기존 결과/기록·소유 조회는 종전 경로 유지"
     },
     {
       "id": "love-secret-ai",
@@ -1297,12 +1307,12 @@
       ],
       "reviewState": "original-modes-verified-sdk-limit",
       "codeGaps": [
-        "32MiB 초과 원곡 네이티브 저장 미완료: 32MiB는 현재 어댑터의 메모리 상한이며 SDK 공식 용량 한도가 아님. SDK 3.7.0은 스트리밍/URL 파일 API를 제공하지 않음. 기존 구매 권리는 보존"
+        "32MiB 초과 원곡 저장은 네이티브 메모리 방어 상한과 SDK의 파일 단위 호출로 제한된다. 2026-11-22 응답 정상인 현행 MP3 122개는 최대 12,396,644바이트로 모두 상한 안에 있다"
       ],
       "archiveEvidence": "일반 AIT에서 상위 화면 진입 확인. 하위 입력·결과·재열람의 검증 근거는 verification 참조. 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "곡별 승인 SKU·콘솔 가격, 실원곡 크기·실기기 저장, 운영 Worker 필요. 신규 판매 false",
-      "currentArchiveEvidence": "Linux AIT 01a1da96-cd8d-734f-82d5-b3c44273984c, run 43607109624, --music-download PASS. 기존 원본/계정 경계·화면 폭 검사 유지. 휴대폰 SDK·실운영은 미검증.",
+      "operations": "123개 고유 키 중 neo-15(비겁다자의 우정 지옥, music-track-1x0675y)는 404였다. 이 상품의 원본 파일 복구와 기기 저장 확인 필요. 증거는 docs/toss/launch-operational-evidence-20261114.md",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --music-download 홈에서 모의 주문 1회·합성 파일 저장 요청·같은 소유자 구매 기록·계정 B 거부·세 화면 폭. 실제 MP3 다운로드와 실기기 저장 별도",
       "historicalArchiveEvidence": "Windows AIT 01a1d9fc-2ed6-7908-864d-2a4cf77daa03 --music-download PASS; 홈→로그인복귀→모의구매1건→합성파일저장기록→cold보관함/새로고침→B동일URL차단, 3폭. 실제 음원 다운로드/파일저장 미실행"
     },
     {
@@ -2031,6 +2041,30 @@
       "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
     },
     {
+      "id": "saju-compat-premium",
+      "webSources": [
+        "app/saju/compatibility/premium/SajuCompatPremiumClient.tsx",
+        "worker/lib/saju-compat-premium-facts.js",
+        "worker/lib/saju-compat-premium-prompt.js",
+        "worker/routes/saju-compat-premium.js",
+        "app/saju/compatibility/premium/result/SajuCompatPremiumResultClient.tsx"
+      ],
+      "webEntries": [
+        "/saju/compatibility/premium/"
+      ],
+      "tossRoute": "/saju/compatibility/premium/",
+      "reviewedModes": [
+        "두 사람의 출생정보·성별·관계 유형으로 서버 계산",
+        "장별 원본 생성·구매한 결과 재열람"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 Windows 비공개 모의 AIT 01a200c1-7dab-7038-88a9-3f2fac3bfb59. 홈에서 시작해 생성 중 이탈·저장 원문·다른 계정 거절, 단일 주문·생성 확인. Linux 일반 AIT·실기기 미검증",
+      "deviceState": "not-verified",
+      "operations": "전용 SKU·가격 및 소유 주문 관련 실기기 검증 필요",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --native-report saju-compat-premium 홈에서 독립 상품 입력·mock 주문·생성 이탈·구매 기록 원문 및 계정 B 거부. 주문·생성 1회"
+    },
+    {
       "id": "saju-compatibility",
       "webSources": [
         "app/saju/compatibility/page.js",
@@ -2042,23 +2076,23 @@
         "worker/lib/saju-compat-schema.js"
       ],
       "webEntries": [
-        "/saju/compatibility/"
+        "js/saju-compat-archive.js:openSajuCompatArchive"
       ],
-      "tossRoute": "/saju/compatibility/",
+      "tossRoute": "/saju/compatibility/?orderId=<소유 주문 ID>",
       "renderer": "js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js",
       "recordedContract": "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
       "recordedStorage": "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람",
-      "priorEvidence": "saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건",
+      "priorEvidence": "saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건 · 9bc9fc9a7b 기존 소유 주문 복구·환불 차단과 신규 주문 접수 거부",
       "reviewedModes": [
-        "두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts",
-        "토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람"
+        "구매 기록에서 기존 소유 주문의 생성 이어쓰기 및 저장 원문 열기",
+        "신규 주문은 닫힘. 무료 정적 궁합과 고급 궁합은 별도 기능"
       ],
       "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
       "archiveEvidence": "휴대폰 및 상품별 전체 흐름 미검증",
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
-      "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
+      "reconciliationBasis": "2026-11-20 웹 무료 정책과 2026-11-22 토스 신규 주문 차단·소유 주문 복구 경로를 대조했다. 구버전 신규 구매 테스트는 과거 증거다."
     },
     {
       "id": "saju-fpti",
@@ -2169,7 +2203,8 @@
       "id": "secret-house",
       "webSources": [
         "secret-house_real.html SCENE_DATA/CHARS/calculateEnding/buildResult/shareResult",
-        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml"
+        "worker/routes/saju-section.js → worker/lib/saju-section/report.js:buildSajuSectionHtml",
+        "lib/seo/index-policy.mjs"
       ],
       "webEntries": [
         "js/core/saju/reportDashboard.js secretHouseEntryCard → openSecretHouseRoute",
@@ -2183,13 +2218,15 @@
       "priorEvidence": "secret-house-browser.mjs 일반 홈에서 5인 원본 초상·선택·반응·엔딩·다시 도전. Worker 승격·실기기 공유 미검증",
       "reviewedModes": [
         "원본 sandbox 문서 및 5이미지 바이트 동일",
-        "전체 단계·최종 원문·재시작 실제 AIT"
+        "전체 단계·최종 원문·재시작 실제 AIT",
+        "운영 비노출 웹 주소의 신규 탐색은 일반판에서 제외. 비공개 AIT에서 기존 흐름 검증 가능."
       ],
       "reviewState": "original-contract-reviewed",
       "codeGaps": [],
       "archiveEvidence": "원본 다섯 인물·선택·반응·결말·재도전 16회 계산 요청 · 360px 배포 AIT 브라우저, 토스 휴대폰 미검증",
       "deviceState": "not-verified",
-      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도"
+      "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
+      "regularDiscovery": "일반 사주 리포트의 새 게임 탐색에서 제외 · 기존 결과/기록·소유 조회는 종전 경로 유지"
     },
     {
       "id": "stonehenge-runes",
@@ -2721,10 +2758,13 @@
     {
       "id": "yeongnyangi-daily",
       "webSources": [
-        "app/yeongnyangi/_components/FreeFortune.tsx"
+        "app/yeongnyangi/_components/FreeFortune.tsx",
+        "app/yeongnyangi/_home/Room.tsx",
+        "worker/yeongnyangi/free-service.ts",
+        "worker/yeongnyangi/fortune/free/readings.ts"
       ],
       "webEntries": [
-        "/yeongnyangi/free-fortune/"
+        "/yeongnyangi/room/#daily"
       ],
       "tossRoute": "/daily",
       "renderer": "apps/toss/src/DailyReadings.tsx",
@@ -2733,7 +2773,9 @@
       "priorEvidence": "apps/toss/test/ daily-ui.test.mjs · daily.test.mjs · 개별 검사 범위. 실제 기기 미검증",
       "reviewedModes": [
         "worker/toss/daily.js",
-        "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면"
+        "계정별 출석·당일 결과 15종. 호라리는 별도 무료 화면",
+        "방의 #daily와 /daily는 같은 계정별 출석·당일권을 사용. 호라리와 오늘·내일 타로는 독립 행.",
+        "일반 Worker는 15개 원본 계산 호출. 비공개 모의 AIT의 15종 결과는 테스트용 고정 예시이며 원본 계산 일치 근거는 별개."
       ],
       "reviewState": "prior-contract-evidence-reconciled",
       "codeGaps": [],
@@ -2947,6 +2989,502 @@
       "deviceState": "not-verified",
       "operations": "가격·SKU·신원/주문증명·운영 Worker·실기기·검토/출시는 코드 대조와 별도",
       "reconciliationBasis": "기존 담당의 원본 연결·상품별 입력·저장 경계 및 아래 targeted/브라우저 증거를 현재 고정 110행과 대조했다. 새 전체 E2E 실행으로 간주하지 않는다. 실제 AIT와 실기기 단계는 archiveEvidence/deviceState를 별도 사용한다."
+    },
+    {
+      "id": "yeongnyangi-faq",
+      "webSources": [
+        "app/yeongnyangi/faq/page.tsx"
+      ],
+      "webEntries": [
+        "/yeongnyangi/faq/"
+      ],
+      "tossRoute": "/yeongnyangi/faq/",
+      "reviewedModes": [
+        "탭에서 질문을 골라 상담 전 안내 웹툰 읽기",
+        "플랫폼별 구매·보관함 안내"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "새 Linux AIT 검증 전",
+      "deviceState": "not-verified",
+      "operations": "계정·주문·생성 없이 공개 설명을 읽는 경로"
+    },
+    {
+      "id": "free-fortune-index",
+      "webSources": [
+        "app/free/page.tsx",
+        "lib/marketing/free-promo.mjs",
+        "lib/payment/free-fortune-policy.mjs"
+      ],
+      "webEntries": [
+        "/free/"
+      ],
+      "tossRoute": "/free/",
+      "reviewedModes": [
+        "FREE_PROMO_GROUPS 주제별 23개 카드의 원본 주소·토스 주소·무료 정책",
+        "각 연결 화면의 로그인·결과·구매는 개별 검증"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "배포 소스와 토스 실기기에서 별도 검증",
+      "priorEvidence": "9bc9fc9a7b targeted. 23개 원본 정책 키·토스 23개 고유 목적지 매핑·유료 키 거부",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 홈에서 원본 목록 23개 카드를 각각 선택해 대응 화면과 주소 도달, 카드 이미지 확인. 하위 상품별 전체 검사는 별도"
+    },
+    {
+      "id": "saju-compat-basic-free",
+      "webSources": [
+        "js/saju-engine.js",
+        "js/saju-compat-render.mjs",
+        "lib/payment/free-fortune-policy.mjs"
+      ],
+      "webEntries": [
+        "/ggulggul/?action=cdOneStepFreeSajuEntry&section=compatCard"
+      ],
+      "tossRoute": "/saju/compatibility/",
+      "reviewedModes": [
+        "두 사람 명식의 원본 궁합 및 전생 인연 계산",
+        "section_compat 무료·비회원, 기존 소유 유료 주문과 독립"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "배포 소스와 토스 실기기에서 별도 검증",
+      "priorEvidence": "9bc9fc9a7b targeted. 두 사람 정적 궁합과 전생 인연 HTML, 게스트·주문 0건 계약",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 두 사람 출생정보로 무료 정적 궁합·전생 인연 확인, 주문 0건"
+    },
+    {
+      "id": "saju-brain",
+      "webSources": [
+        "js/core/saju/destiny-anatomy/engine.js",
+        "js/core/saju/destiny-anatomy/copy.js",
+        "js/core/saju/destiny-anatomy/render.js",
+        "js/core/saju/destiny-anatomy/share-card.js",
+        "js/core/saju/destiny-anatomy/boot.js"
+      ],
+      "webEntries": [
+        "/ggulggul/?action=cdOneStepFreeSajuEntry&section=destinyAnatomyCard"
+      ],
+      "tossRoute": "/saju/basic/play/?reading=brain",
+      "reviewedModes": [
+        "게스트 생일·시각·도시 → 원본 명식 기반 뇌구조와 각 영역 본문",
+        "유료 보고서 또는 주문 없이 무료 재계산",
+        "로그인 계정의 HD·베다 추가 차트, 생시 미상·부분 실패 재호출, 뇌센터·차크라 전환",
+        "웹 원본 피드/스토리 PNG 생성과 토스 저장·공유 어댑터"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "배포 AIT 원본으로 새 화면 검증, 실기기 외부 공유와 파일 저장 필요",
+      "priorEvidence": "9bc9fc9a7b targeted. 시간 있음·모름의 개인별 원본 사고축 5종 검사 · f1e2f347ed 관련 4개 파일 55개 검사 통과. Chrome에서 원본 PNG 1080×1350·1080×1920 생성 확인",
+      "currentArchiveEvidence": "2026-11-22 Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e. --free-hub 비회원 정적 계산, 시간 미상과 생시 입력, mock 로그인 후 HD·베다 추가 레이어, 1080×1920 스토리 PNG 모의 저장 검사. 기기의 외부 공유·저장은 별도"
+    },
+    {
+      "id": "fortune-prompt-hub",
+      "webSources": [
+        "app/fortune/prompt-hub/PromptHubClient.tsx",
+        "lib/fortune/prompt-hub-template.js",
+        "worker/routes/prompt-hub.js",
+        "app/fortune/prompt-hub/prompt-hub-storage.ts"
+      ],
+      "webEntries": [
+        "/fortune/prompt-hub/"
+      ],
+      "tossRoute": "/fortune/prompt-hub/",
+      "reviewedModes": [
+        "도구별 입력·원본 계산으로 외부 AI에 사용할 프롬프트 구성",
+        "로그인 뒤 무료 생성·소유 계정별 프롬프트 보관"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "archiveEvidence": "2026-11-22 신규 대조. 구버전 AIT에서 이 신규 경로를 검증하지 않았다.",
+      "deviceState": "not-verified",
+      "operations": "최신 Linux AIT와 기기 로그인·클립보드·계정 연결 해제·외부 AI 열기 검증 필요",
+      "priorEvidence": "prompt-hub.test.mjs의 3개 검사. 일반 15개 원본 역할과 장, 호라리 계산, 무료 게이트와 계정 연결 해제 경계",
+      "currentArchiveEvidence": "Windows 모의 AIT 01a200e2-0f0e-70b7-a158-00d25d2af59e --prompt-hub. 홈 → 무료 허브에서 16개 도구 각각 원본 프롬프트 생성·저장. 재실행 16개 원문 일치, B의 1개와 A의 16개 격리, 주문·외부 요청 0건. 후속 저장 키 보강은 이 증거에 미포함"
+    },
+    {
+      "id": "yeongnyangi-room",
+      "webEntries": [
+        "/yeongnyangi/room/"
+      ],
+      "webSources": [
+        "app/yeongnyangi/_home/Room.tsx",
+        "app/yeongnyangi/_home/RoomInteractions.tsx",
+        "app/yeongnyangi/_home/RoomPresence.tsx",
+        "app/yeongnyangi/_home/StoryPanel.tsx",
+        "app/yeongnyangi/_home/prologue-scenes.json",
+        "app/yeongnyangi/_home/RoomSoundtrack.tsx"
+      ],
+      "tossRoute": "/yeongnyangi/room/",
+      "renderer": "apps/toss/src/YeongnyangiRoom.tsx",
+      "recordedContract": "펫·대화 사물·행동 쪽지·프롤로그 선택지·음량",
+      "recordedStorage": "현재 방에서 대화·행동 진행. 유료 주문·생성·보관함 기록 없음",
+      "reviewedModes": [
+        "영냥이 쓰다듬기와 4개 반응",
+        "5가지 사물과 개별 잡담",
+        "3가지 행동 쪽지와 완료 표시",
+        "영냥이의 프롤로그 20장면과 두 분기",
+        "방·이야기 분위기의 음악 4종 및 음량"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "운영 웹 홈에서 방의 사물 대사·행동 쪽지·첫 펫 반응·프롤로그 01/20 직접 확인. BGM 제어 표시 확인. 모의 음원은 실제 음악의 기기 재생과 분리",
+      "archiveEvidence": "이 신규 경로는 이전 QR21·기존 AIT 검증에 포함되지 않음. 배포 소스의 새 독립 검증 대기.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "영냥이의 방",
+        "homePath": "홈 → 영냥이 → 영냥이의 방",
+        "login": "게스트 공개",
+        "guest": true,
+        "calculation": false
+      },
+      "currentArchiveEvidence": "Windows 중간 모의 AIT 01a2012a-d541-71e7-9838-706dd25b62f1: 22컷/2분기·펫 4반응·잡담 5×2·행동 쪽지 3·모의 음향·주문 0. 업로드 크기 초과, Linux·실기기 미검증."
+    },
+    {
+      "id": "yeongnyangi-sorting-hat",
+      "webEntries": [
+        "/yeongnyangi/room/#sorting-hat"
+      ],
+      "webSources": [
+        "app/yeongnyangi/_components/SortingHat.tsx",
+        "app/yeongnyangi/_components/HatPrologue.tsx",
+        "app/yeongnyangi/_components/HatPersonality.tsx",
+        "worker/yeongnyangi/hat/service.ts",
+        "worker/yeongnyangi/hat/rules.ts",
+        "app/yeongnyangi/_lib/hat-card.ts"
+      ],
+      "tossRoute": "/yeongnyangi/hat/",
+      "renderer": "apps/toss/service/SortingHat.jsx · 웹 원본 SortingHat",
+      "recordedContract": "현재 계정의 출생 프로필로 모자 판정",
+      "recordedStorage": "소유 프로필로 재계산. 기숙사 결과를 이미지로 개인 저장",
+      "reviewedModes": [
+        "모자 이야기와 6개 기숙사 도감",
+        "계정 프로필로 6체계 근거·기숙사 판정",
+        "기숙사 입학 카드 PNG 저장 및 공유"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "웹 방의 #sorting-hat 항목과 원본 판정·카드 생성 계약 대조",
+      "archiveEvidence": "이 신규 경로는 이전 QR21·기존 AIT 검증에 포함되지 않음. 배포 소스의 새 독립 검증 대기.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "영냥이의 모자",
+        "homePath": "홈 → 영냥이 → 영냥이의 방 → 모자 이야기",
+        "login": "도감 공개, 프로필 판정은 로그인",
+        "guest": false,
+        "calculation": true
+      },
+      "currentArchiveEvidence": "Windows 중간 모의 AIT 01a2012a-d541-71e7-9838-706dd25b62f1: 게스트 안내→로그인·소유 프로필 판정·6개 그림·PNG·텍스트 공유·계정 B 격리. 업로드 크기 초과, Linux·실기기 미검증."
+    },
+    {
+      "id": "yeongnyangi-room-daily-tarot",
+      "webEntries": [
+        "/yeongnyangi/room/#daily-tarot"
+      ],
+      "webSources": [
+        "app/yeongnyangi/_components/DailyTarotCard.tsx",
+        "lib/tarot/yeongnyangi-daily-card.ts",
+        "lib/tarot/yeongnyangi-daily-synthesis.ts",
+        "worker/yeongnyangi/free-repository.js"
+      ],
+      "tossRoute": "/yeongnyangi/room/#daily-tarot",
+      "renderer": "apps/toss/src/RoomDaily.tsx · 원본 DailyTarotReading",
+      "recordedContract": "당일권과 기기의 원본 식별 키·한국 날짜·카드 펼침 순서",
+      "recordedStorage": "같은 기기/날짜에서 같은 카드. 다른 계정의 해금은 별도. 보관함·IAP·외부 생성 없음",
+      "reviewedModes": [
+        "KST 오늘/내일 각각 세 장",
+        "하루의 흐름·살필 마음·운을 여는 행동",
+        "정역 방향, 원본 카드별 설명과 종합 리딩"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "운영 웹의 멸치 3개 잠금 직접 확인. fdc7a6ef7c 출석/당일권·소유·중복 차감 방지·KST 및 기존 일일 UI/Worker 15개 검사",
+      "archiveEvidence": "이 신규 경로는 이전 QR21·기존 AIT 검증에 포함되지 않음. 배포 소스의 새 독립 검증 대기.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "영냥이의 오늘·내일 타로",
+        "homePath": "홈 → 영냥이 → 영냥이의 방 → 오늘·내일 타로",
+        "login": "초대 공개. 로그인한 계정이 그날 출석 멸치로 해금",
+        "guest": false,
+        "calculation": true
+      },
+      "currentArchiveEvidence": "Windows 중간 모의 AIT 01a2012a-d541-71e7-9838-706dd25b62f1: 영냥이의 방에서 멸치 당일권·오늘/내일 각각 세 장과 종합 원문·재진입 및 다른 계정 차단. 업로드 크기 초과, Linux·실기기 미검증."
+    },
+    {
+      "id": "saju-recipe-comics",
+      "webEntries": [
+        "/recipes/"
+      ],
+      "webSources": [
+        "app/recipes/page.jsx",
+        "lib/lifestyle/recipes.mjs",
+        "app/recipes/RecipeArticle.jsx",
+        "app/recipes/RecipePanels.jsx"
+      ],
+      "tossRoute": "/recipes/",
+      "renderer": "apps/toss/src/RecipeReader.jsx · RecipeArticle 및 RecipePanels",
+      "recordedContract": "오행·맛·요리 선택",
+      "recordedStorage": "공개 원문을 다시 열람. 주문·생성·계정별 구매 기록 없음",
+      "reviewedModes": [
+        "오행·맛 분류",
+        "31가지 요리별 재료·일러스트·조리 단계·보관/주의사항",
+        "요리 가이드"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "웹 레시피 원장 31개·상세 기사/그림과 앱의 조회 경로 대조",
+      "archiveEvidence": "이 신규 경로는 이전 QR21·기존 AIT 검증에 포함되지 않음. 배포 소스의 새 독립 검증 대기.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "사주 요리 웹툰",
+        "homePath": "홈 → 꿀꿀운세 → 이야기·음악 → 사주 요리 웹툰",
+        "login": "게스트 공개",
+        "guest": true,
+        "calculation": false
+      },
+      "currentArchiveEvidence": "Windows 중간 모의 AIT 01a2012a-d541-71e7-9838-706dd25b62f1: 요리 31개 원문·재료·조리 단계·가이드. 업로드 크기 초과, Linux·실기기 미검증."
+    },
+    {
+      "id": "yeon-star-hug",
+      "webEntries": [
+        "/yeon-star-hug/"
+      ],
+      "webSources": [
+        "app/yeon-star-hug/YeonStarHugClient.tsx",
+        "app/yeon-star-hug/YeonStarHugGuided.tsx"
+      ],
+      "tossRoute": "/yeon-star-hug/",
+      "renderer": "app/yeon-star-hug/YeonStarHugClient.tsx",
+      "recordedContract": "감정·별자리·고민. 선택 프로필·출생차트",
+      "recordedStorage": "원본 입력에 따른 로컬 리딩·상징 카드 저장. 결제·생성 주문 없음",
+      "reviewedModes": [
+        "감정·별자리·고민 직접 입력",
+        "선택 프로필의 별자리·출생차트",
+        "상징 카드와 원본 위로 리딩"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "b31d6c59e2 및 ccd5dba1aa. 감정 6종·선택 출생 프로필/Swiss·SVG·텍스트 공유·세션 원문·연결 해제 경계 초점검사 85개 및 미니앱 tsc 통과",
+      "archiveEvidence": "이 신규 경로는 이전 QR21·기존 AIT 검증에 포함되지 않음. 배포 소스의 새 독립 검증 대기.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "연이의 마음 별자리",
+        "homePath": "홈 → 꿀꿀운세 → 연이의 마음 별자리",
+        "login": "직접 입력 공개, 토스 계정 프로필은 로그인",
+        "guest": true,
+        "calculation": true
+      },
+      "currentArchiveEvidence": "Windows 모의 AIT 01a20135-196e-7949-b48e-709df0122fe5 --yeon-star-hug PASS. Linux 및 네이티브 실기기 검증 별도."
+    },
+    {
+      "id": "mini-games",
+      "webEntries": [
+        "/mini-games/"
+      ],
+      "webSources": [
+        "app/mini-games/page.tsx",
+        "app/mini-games/games.ts",
+        "lib/seo/index-policy.mjs"
+      ],
+      "tossRoute": "/mini-games/",
+      "renderer": "apps/toss/src/MiniGames.jsx",
+      "recordedContract": "원본 9개 항목의 카드를 선택",
+      "recordedStorage": "공개 목록. 각 연결 서비스의 입력과 로그인·기록 정책 유지",
+      "reviewedModes": [
+        "원본 9개 카드: 포커·포춘 피쉬·오미쿠지·혈액형·운명의 섬·시크릿 하우스·화투 인생 패·사주 FPTI·심리테스트"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "공유 원본 GAMES 및 각 카드 토스 목적지 회귀; 2026-11-22 모바일 UA 운영 HTTP에서 /mini-games 및 /mini-games/ 모두 302 → /ggulggul/. 웹 서비스 레지스트리의 9개 항목과 현재 공개 URL의 응답을 구분. 카드별 HTTP에서 포커·시크릿 하우스는 302 → /ggulggul/, 그 외 7개 서비스 200. 시크릿 하우스의 특별 진입 문맥은 js/core/saju/reportDashboard.js의 openSecretHouseRoute에 별도.",
+      "archiveEvidence": "01a20135에서 목록 뒤 첫 게임 실행이 부모 CSP로 실패. 9c9b6d37fa의 독립 opaque HTML 수정 후 01a2013a에서 확인.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "미니 운세 게임",
+        "homePath": "홈 → 꿀꿀운세 → 미니 운세 게임",
+        "login": "게스트 공개",
+        "guest": true,
+        "calculation": false
+      },
+      "currentArchiveEvidence": "Windows 비공개 모의 AIT 01a2013a-c3a2-7baf-af70-341e21650254 --mini-games PASS. 홈 → 9개 카드, 연결 5개 및 원본 4개 결과·원화·당일 제한·재진입·계정 B 격리·구매 0. 업로드 크기 초과 101,039,853B. 일반판 비노출 후속 수정·Linux·실기기 별도.",
+      "regularDiscovery": "일반 홈 비노출 · 모의 전용 진입"
+    },
+    {
+      "id": "destiny-poker",
+      "webEntries": [
+        "/destiny-poker"
+      ],
+      "webSources": [
+        "public/destiny-poker.html",
+        "lib/seo/index-policy.mjs"
+      ],
+      "tossRoute": "/mini-games/?play=destiny-poker",
+      "renderer": "apps/toss/src/MiniGames.jsx",
+      "recordedContract": "이름·마스터·체크/레이즈/폴드. 또는 왕 카드 선택",
+      "recordedStorage": "원래 일일 대결 제한·해금 기록만 기기 범위로 제한. 실돈·실제 재화·보상 및 구매 없음",
+      "reviewedModes": [
+        "네 마스터 중 1명과 5라운드·판결서",
+        "원본 999% 조건의 4신 연속 대결",
+        "왕게임의 네 장 중 한 왕과 두 트럼프 풀이"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "390px 격리 원본 HTML: 왕게임, 4인 후보·1인 5라운드 판결서, 동일 날짜 재대결 제한, 원본 공유 요청. 연속대결 실제 승리 검증 대기",
+      "archiveEvidence": "01a20135에서 목록 뒤 첫 게임 실행이 부모 CSP로 실패. 9c9b6d37fa의 독립 opaque HTML 수정 후 01a2013a에서 확인.",
+      "deviceState": "not-verified",
+      "operations": "모의 포커의 토스 콘솔 게임·심사 정책, 실기기 검토 전 제공 보류",
+      "inventoryEntry": {
+        "name": "데스티니 포커",
+        "homePath": "홈 → 꿀꿀운세 → 미니 운세 게임 → 데스티니 포커",
+        "login": "게스트 공개",
+        "guest": true,
+        "calculation": true
+      },
+      "currentArchiveEvidence": "Windows 비공개 모의 AIT 01a2013a-c3a2-7baf-af70-341e21650254 --mini-games PASS. 홈 → 9개 카드, 연결 5개 및 원본 4개 결과·원화·당일 제한·재진입·계정 B 격리·구매 0. 업로드 크기 초과 101,039,853B. 일반판 비노출 후속 수정·Linux·실기기 별도.",
+      "regularDiscovery": "일반 홈 비노출 · 모의 전용 진입"
+    },
+    {
+      "id": "fortune-fish",
+      "webEntries": [
+        "/fortune-teller-fish"
+      ],
+      "webSources": [
+        "public/fortune-teller-fish.html"
+      ],
+      "tossRoute": "/mini-games/?play=fortune-fish",
+      "renderer": "apps/toss/src/MiniGames.jsx",
+      "recordedContract": "코랄색 금붕어 바라보기",
+      "recordedStorage": "게스트의 즉시 추첨. 구입/저장된 개인 결과 없음",
+      "reviewedModes": [
+        "금붕어 네 가지 몸짓과 각각의 관찰·원문·행동 조언",
+        "움직임 멈춤과 재시도"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "390px 격리 원본 HTML: 원본 스프라이트 준비, 두 차례 결과 보기",
+      "archiveEvidence": "01a20135에서 목록 뒤 첫 게임 실행이 부모 CSP로 실패. 9c9b6d37fa의 독립 opaque HTML 수정 후 01a2013a에서 확인.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "포춘 피쉬",
+        "homePath": "홈 → 꿀꿀운세 → 미니 운세 게임 → 포춘 피쉬",
+        "login": "게스트 공개",
+        "guest": true,
+        "calculation": true
+      },
+      "currentArchiveEvidence": "Windows 비공개 모의 AIT 01a2013a-c3a2-7baf-af70-341e21650254 --mini-games PASS. 홈 → 9개 카드, 연결 5개 및 원본 4개 결과·원화·당일 제한·재진입·계정 B 격리·구매 0. 업로드 크기 초과 101,039,853B. 일반판 비노출 후속 수정·Linux·실기기 별도.",
+      "regularDiscovery": "일반 홈 → 꿀꿀운세 → 포춘 피쉬 · 모의판은 9종 목록을 경유"
+    },
+    {
+      "id": "blood-type",
+      "webEntries": [
+        "/blood-type-app"
+      ],
+      "webSources": [
+        "public/blood-type-app.html"
+      ],
+      "tossRoute": "/mini-games/?play=blood-type",
+      "renderer": "apps/toss/src/MiniGames.jsx",
+      "recordedContract": "혈액형·각 탭·궁합/게임 선택",
+      "recordedStorage": "혈액형만 게임 전용 게스트 또는 로그인 계정의 기기에 저장. 웹 혈액형·구매 기록과 분리",
+      "reviewedModes": [
+        "4개 혈액형별 오늘 운세",
+        "성격·궁합·라이프스타일·엔터테인먼트",
+        "텍스트 복사·공유"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "390px 격리 원본 HTML: AB 선택·4개 탭·원문 공유·재진입. 웹의 이미지 저장은 안내 문구만 제공",
+      "archiveEvidence": "01a20135에서 목록 뒤 첫 게임 실행이 부모 CSP로 실패. 9c9b6d37fa의 독립 opaque HTML 수정 후 01a2013a에서 확인.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "혈액형 테스트",
+        "homePath": "홈 → 꿀꿀운세 → 미니 운세 게임 → 혈액형 테스트",
+        "login": "게스트 공개",
+        "guest": true,
+        "calculation": true
+      },
+      "currentArchiveEvidence": "Windows 비공개 모의 AIT 01a2013a-c3a2-7baf-af70-341e21650254 --mini-games PASS. 홈 → 9개 카드, 연결 5개 및 원본 4개 결과·원화·당일 제한·재진입·계정 B 격리·구매 0. 업로드 크기 초과 101,039,853B. 일반판 비노출 후속 수정·Linux·실기기 별도.",
+      "regularDiscovery": "일반 홈 → 꿀꿀운세 → 혈액형 테스트 · 모의판은 9종 목록을 경유"
+    },
+    {
+      "id": "hwatu-life",
+      "webEntries": [
+        "/oracle/hwatu-life/"
+      ],
+      "webSources": [
+        "app/oracle/hwatu-life/page.tsx",
+        "public/HwatuFortune.js",
+        "js/share-reward.js"
+      ],
+      "tossRoute": "/mini-games/?play=hwatu-life",
+      "renderer": "apps/toss/src/MiniGames.jsx",
+      "recordedContract": "돈·사랑·위기 속 선택. 화투점 모드와 48장 덱",
+      "recordedStorage": "기기에서 원본 날짜·사용횟수 유지. 공유 보상은 웹에서 폐지. 실금전·지급 없음",
+      "reviewedModes": [
+        "인생 패 원본 7문항·아키타입·조합·상세 해설",
+        "정통 운수 떼기·섯다 운세·세 패의 조언",
+        "원본 일일 한도와 공유"
+      ],
+      "reviewState": "original-contract-reviewed",
+      "codeGaps": [],
+      "priorEvidence": "390px 격리 원본 HTML: 7문항·원화 디코드·상세 및 공유. 세 패 결과·섯다·운수 떼기 진입. 선택한 세부 모드별 완전 E2E는 별도",
+      "archiveEvidence": "01a20135에서 목록 뒤 첫 게임 실행이 부모 CSP로 실패. 9c9b6d37fa의 독립 opaque HTML 수정 후 01a2013a에서 확인.",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "화투 인생 패",
+        "homePath": "홈 → 꿀꿀운세 → 미니 운세 게임 → 화투 인생 패",
+        "login": "게스트 공개",
+        "guest": true,
+        "calculation": true
+      },
+      "currentArchiveEvidence": "Windows 비공개 모의 AIT 01a2013a-c3a2-7baf-af70-341e21650254 --mini-games PASS. 홈 → 9개 카드, 연결 5개 및 원본 4개 결과·원화·당일 제한·재진입·계정 B 격리·구매 0. 업로드 크기 초과 101,039,853B. 일반판 비노출 후속 수정·Linux·실기기 별도.",
+      "regularDiscovery": "일반 홈 → 꿀꿀운세 → 화투 인생 패 · 모의판은 9종 목록을 경유"
+    },
+    {
+      "id": "moonlit-lotus",
+      "webEntries": [
+        "/moonlit-lotus/"
+      ],
+      "webSources": [
+        "app/moonlit-lotus/page.tsx",
+        "app/moonlit-lotus/_ritual/MoonlitEntry.tsx",
+        "app/moonlit-lotus/_ritual/RitualFlow.tsx"
+      ],
+      "tossRoute": "/moonlit-lotus/",
+      "renderer": "apps/toss/service/TossMoonlitLotus.jsx",
+      "recordedContract": "참배·동행자·공간·기도·다짐 및 선택 사진",
+      "recordedStorage": "기기 IndexedDB/localStorage에 게스트 또는 인증된 계정·연결세대·환경·프로필별 기록. 웹 RPG 친구 사진은 웹 계정 범위",
+      "reviewedModes": [
+        "원본 참배 및 108배 진행·재개",
+        "공간 3장소·5시점, 동행자 15명",
+        "기도·다짐·사진 합성·음향",
+        "15컷 이야기·모델 보기"
+      ],
+      "reviewState": "toss-route-under-verification",
+      "codeGaps": [],
+      "priorEvidence": "TossMoonlitLotus.jsx 및 원본 공간·참배·기록 계약 확인. 기기 PNG·음원 및 새 AIT 미검증",
+      "archiveEvidence": "해당 신규 소스의 배포용 Linux AIT 및 휴대폰 미검증",
+      "deviceState": "not-verified",
+      "operations": "실기기·운영 검증 별도",
+      "inventoryEntry": {
+        "name": "달빛 연화당",
+        "homePath": "홈 → 꿀꿀운세 → 달빛 연화당",
+        "login": "게스트 또는 로그인 계정·프로필별 기록",
+        "guest": true,
+        "calculation": false
+      }
     }
   ],
   "reconciliationMethod": {
@@ -2963,7 +3501,8 @@
       "apps/toss/test/yeongnyangi-daily-engines.test.mjs: 각 카테고리 원본 계산·basis·prompt·limits",
       "apps/toss/test/bias-report.test.mjs: 원본 runChemi·5상세·미성년 경계",
       "apps/toss/src/BasicSajuReading.tsx 및 basic-saju-flow: 원본 명식·SajuDashboard·시각미상·음력윤달",
-      "apps/toss/test/compressed-psychotest-copy.test.mjs:22검사 모든 데이터·256점수 조합 동일"
+      "apps/toss/test/compressed-psychotest-copy.test.mjs:22검사 모든 데이터·256점수 조합 동일",
+      "2026-11-22 웹 영냥이 홈 → 방의 Room.tsx 하위 호출, 동일 진입에서 각기 다른 입력·결과·권리 및 프롤로그/행동 쪽지의 실제 웹 표시를 대조"
     ],
     "externalBoundaries": [
       "홈 위젯 OS 고정은 기존 Android 앱 플러그인 전용; 미니앱의 미리보기와 구분",

@@ -73,19 +73,38 @@ if (raw.includes('id="cdHomeFunnel"')) {
   const css = readFileSync(resolve(root, 'styles/home-funnel.css'), 'utf8');
   const link = raw.indexOf('href="/styles/home-funnel.css');
   assert(link > 0 && link < raw.indexOf('id="cdHomeFunnel"'), 'Home styles must precede first paint');
-  // 승인된 반응형 연이 이미지: 최대 srcset 자산과 선언 크기를 대조해 첫 페인트 비율을 보장한다.
-  assert.match(raw, /id="honeypigLogo"[^>]*srcset="[^"]*yeoni-character-480\.webp 480w[^"]*"[^>]*width="800" height="800" fetchpriority="high"/);
+  const { JSDOM } = await import('jsdom');
   const sharp = (await import('sharp')).default;
-  const heroImage = raw.match(/<img\b[^>]*id="honeypigLogo"[^>]*>/)?.[0];
-  assert.ok(heroImage, 'Hero image must exist');
-  const candidates = heroImage.match(/srcset="([^"]+)"/)?.[1].split(',').map(value => value.trim().split(/\s+/));
-  assert.ok(candidates?.length, 'Hero must have responsive image candidates');
-  for (const [src, descriptor] of candidates) {
-    const metadata = await sharp(resolve(root, 'public', src.replace(/^\//, ''))).metadata();
-    assert.equal(descriptor, metadata.width + 'w', 'Responsive descriptor must match asset width');
-    assert.equal(metadata.width, metadata.height, 'Hero candidates must preserve square geometry');
+  const start = raw.indexOf('<div class="yh-hero yh-entry-scene"');
+  const scene = raw.slice(start, raw.indexOf('<section class="yh-finder"', start));
+  const loader = readFileSync(resolve(root, 'js/core/home-yeoni-portrait.js'), 'utf8');
+  // Verify both actual randomized forms and the responsive candidate dimensions.
+  for (const [random, form] of [[0.2, 'human'], [0.8, 'pig']]) {
+    const dom = new JSDOM(scene, { runScripts: 'outside-only' });
+    try {
+      const document = dom.window.document;
+      const stage = document.querySelector('[data-home-yeoni]');
+      const script = stage.querySelector('script[src*="home-yeoni-portrait.js"]');
+      assert.ok(script);
+      Object.defineProperty(document, 'currentScript', { value: script });
+      dom.window.Math.random = () => random;
+      dom.window.eval(loader);
+      assert.equal(stage.dataset.form, form);
+      const image = stage.querySelector(':scope > img');
+      assert.equal(image.fetchPriority, 'high');
+      for (const candidate of image.srcset.split(',')) {
+        const [src, descriptor] = candidate.trim().split(/\s+/);
+        const meta = await sharp(resolve(root, 'public', src.slice(1))).metadata();
+        assert.equal(descriptor, meta.width + 'w');
+        assert.ok(Math.abs(meta.width / meta.height - image.width / image.height) < 0.01);
+      }
+      const backdrop = document.querySelector('.yh-garden-picture img');
+      assert.equal(backdrop.getAttribute('fetchpriority'), 'high');
+      const meta = await sharp(resolve(root, 'public', backdrop.getAttribute('src').slice(1))).metadata();
+      assert.equal(meta.width, backdrop.width);
+      assert.equal(meta.height, backdrop.height);
+    } finally { dom.window.close(); }
   }
-  // 2026-10-13 네오 사자 히어로는 없어졌다. 다크 모드도 연이가 맞는다 — 되살아나지 않게 막는다.
   assert.doesNotMatch(raw, /data-character="neo"|neo-character-/);
   assert.equal((raw.match(/<link rel="preload" as="image"/g) || []).length, 1, 'Only the shared hero/payment art is preloaded');
   assert.doesNotMatch(raw, /class="moon-hero__(?:visual|zzz|ambient|copy)/);

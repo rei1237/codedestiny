@@ -1,3 +1,4 @@
+import {readChart,NatalPillars} from './NatalPillars';
 import ImagePrompts,{type ImagePrompt} from './SajuImagePrompts';
 import {lazy,Suspense,useEffect,useRef,useState,type FormEvent} from 'react';
 import {TOSS_PUBLIC_SECTIONS,isTossPublicSection} from '../../../lib/fortune/toss-public-sections.mjs';
@@ -11,6 +12,7 @@ import WebPurchaseHistory from './WebPurchaseHistory';
 import TossSessionScope from './TossSessionScope';
 
 import {loadTravelHistory,saveTravelHistory,type TravelHistory} from './travel-history';
+import {fullGameShelf} from '../canonical/mini-games.mjs';
 const IslandReading=lazy(()=>import('./IslandReading'));
 const SecretHouseReading=lazy(()=>import('./SecretHouseReading'));
 type SectionKey=keyof typeof TOSS_PUBLIC_SECTIONS;
@@ -98,7 +100,7 @@ function SectionBody({report,input,travel,onLogin}:{report:Report;input:RequestB
 }
 function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   const keys=(Object.keys(TOSS_PUBLIC_SECTIONS) as SectionKey[]).filter(k=>isTossPublicSection(k)&&(kind==='saju'?!k.startsWith('ziwei_'):k.startsWith('ziwei_')));
-  const [key,setKey]=useState(keys.includes('saju_natal_reading')?'saju_natal_reading':keys[0]),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
+  const [key,setKey]=useState(()=>keys.find(k=>k===new URLSearchParams(location.search).get('reading'))||(keys.includes('saju_natal_reading')?'saju_natal_reading':keys[0])),[birth,setBirth]=useState(emptyBirth),[mode,setMode]=useState('pig'),[name,setName]=useState('');
   const [result,setResult]=useState<{report:Report;input:RequestBody;travel:TravelHistory}|null>(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const [island,setIsland]=useState(kind==='ziwei'&&new URLSearchParams(location.search).get('reading')==='island');
   const [house,setHouse]=useState(kind==='saju'&&new URLSearchParams(location.search).get('reading')==='house');
@@ -137,15 +139,16 @@ function Reading({kind,onLogin}:{kind:'saju'|'ziwei';onLogin:()=>void}){
   if(house)return <Suspense fallback={<p>합숙소를 열고 있어요.</p>}><SecretHouseReading onBack={()=>setHouse(false)}/></Suspense>;
   if(result)return <section><h1 tabIndex={-1} ref={title}>{TOSS_PUBLIC_SECTIONS[result.input.featureKey]}</h1>
     {birth.unknown&&<p>출생 시각을 몰라 정오를 기준으로 계산했어요.</p>}
+    {result.input.featureKey==='saju_natal_reading'&&<NatalPillars chart={readChart(birth)} unknown={birth.unknown}/>}
     <SectionBody {...result} onLogin={onLogin}/>{result.report.imagePrompts&&<ImagePrompts items={result.report.imagePrompts}/>}<Button variant="weak" display="block" onClick={()=>setResult(null)}>다른 풀이 보기</Button></section>;
   return <section><h1>{kind==='saju'?'사주 리포트':'자미두수 상세 풀이'}</h1>
-    {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju/love-simulation/')}>러브 코드 · 사주 연애 시뮬레이션</Button>}
+    {kind==='saju'&&fullGameShelf&&<Button display="block" onClick={()=>location.assign('/saju/love-simulation/')}>러브 코드 · 사주 연애 시뮬레이션</Button>}
     {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju/compatibility/')}>두 사람의 사주 궁합</Button>}
     {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju-guardian/')}>사주 가디언</Button>}
     {kind==='saju'&&<Button display="block" onClick={()=>location.assign('/saju/sibyl/')}>시빌라 연간 대비 리포트</Button>}
     {kind==='ziwei'&&<><Button display="block" onClick={()=>setIsland(true)}>운명의 섬 탐험하기</Button><WebPurchaseHistory kind="island"/></>}
     <form className="form" onSubmit={submit}><label>풀이 선택<select value={key} onChange={e=>setKey(e.target.value as SectionKey)} disabled={busy}>
-    {keys.map(k=><option key={k} value={k}>{TOSS_PUBLIC_SECTIONS[k]}</option>)}</select></label>
+    {keys.filter(k=>fullGameShelf||k!=='rpt_secretHouseEntryCard').map(k=><option key={k} value={k}>{TOSS_PUBLIC_SECTIONS[k]}</option>)}</select></label>
     {key!=='rpt_secretHouseEntryCard'&&<BirthFields title="풀이할 출생정보" value={birth} onChange={setBirth} disabled={busy}/>}
     {['saju_natal_reading','rpt_skillTreeCard'].includes(key)&&<label>풀이에서 부를 이름 (선택)<input maxLength={40} value={name} disabled={busy} onChange={e=>setName(e.target.value)}/></label>}
     {['rpt_quantumCard','saju_natal_reading'].includes(key)&&<label>해석 관점<select value={mode} disabled={busy} onChange={e=>setMode(e.target.value)}><option value="pig">연이</option><option value="neo">영냥이</option></select></label>}

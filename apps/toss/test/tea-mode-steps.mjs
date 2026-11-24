@@ -16,7 +16,7 @@ export async function teaModeSteps(page,origin,mode=selectedTeaMode){
  if(mode==='saju'||mode==='sajuJoint'){
   await page.locator('#fortuneTeaBirthDate').fill('19900101');await page.locator('#fortuneTeaBirthTimeUnknown').check();
   await page.locator('#fortuneTeaGender').selectOption('female');await page.locator('#fortuneTeaBirthPlace').fill('서울');
-  await button('출생지 확인').click();await page.getByText('확인됨',{exact:true}).waitFor();
+  await page.locator('#fortuneTeaBirthPlace').blur();await button('확인됨').waitFor();
   await page.locator('#tea-question-category').selectOption('career');
  }else if(mode==='sajuCompatibility'||mode==='sukuyo'){
   const prefix=mode==='sukuyo'?'fortuneTeaSukuyo':'fortuneTeaSajuCompat';

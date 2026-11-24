@@ -11,12 +11,14 @@ import {resolveCheckoutPolicyHrefs} from '@/app/checkout/checkout-copy';
 import {readingCopy} from '../_lib/reading-copy';
 import {resultStateCopy,deliveryRefundCopy,autoRefundCopy,heldRefundHint} from '../_lib/result-state-copy';
 import {readingLanguageNames} from '@/worker/yeongnyangi/fortune/reading-locale';
-import {formatAskRange} from '@/worker/yeongnyangi/fortune/ask/period';
 import ReadingBook from './ReadingBook';
 import FusionBookExtras,{FusionBookIntroduction} from './FusionBookExtras';
 import QuestionConversation,{QuestionConversationEntry} from './QuestionConversation';
 import ReadingIdentity from './ReadingIdentity';
-const SpiritResult = dynamic(() => import('./SpiritResult'), { ssr: false, loading: () => <p role="status">상담 풀이를 준비하고 있어요.</p> });
+import QuestionMemo from './QuestionMemo';
+import {questionMemoCopy} from '../_lib/question-memo-copy';
+const SpiritResult = dynamic(() => import('./SpiritResult'), { ssr: false, loading: () => <p className={styles.spiritPending} role="status">상담 풀이를 준비하고 있어요.</p> });
+import ReportIllustration from './ReportIllustration';
 import ReviewRewardBanner from '@/app/components/ReviewRewardBanner';
 import ResultBenefits from '@/app/components/activation/ResultBenefits';
 import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';
@@ -34,7 +36,7 @@ const TarotDrawRitual=dynamic(()=>import('./TarotDrawRitual'),{ssr:false,loading
 const TarotCardPick=dynamic(()=>import('./tarot/TarotCardPick'),{ssr:false,loading:TarotPresentationLoading});
 const TarotSpreadReveal=dynamic(()=>import('./tarot/TarotSpreadReveal'),{ssr:false,loading:TarotPresentationLoading});
 import {useReadingLanguage} from '../_lib/use-reading-language';
-import {localizedSystem,localizedTier,localizedKind} from '../_lib/consultation-locale-copy';
+import {localizedSystem,localizedTier} from '../_lib/consultation-locale-copy';
 import {freeFeatureForDomain} from '@/lib/records/saved-record-next.mjs';
 // Completed-reading tools load after the record selects them. The reading body
 // keeps its original mount timing and space ahead of the benefits section.
@@ -226,20 +228,19 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  const locale=row?.locale||siteLocale;
  const copy=readingCopy(locale);
  const stateCopy=resultStateCopy(locale);
- const consultationLabel=row&&locale==='ko'?(row.consultation?.kindLabel||row.consultation?.topicLabel||stateCopy.consultation):row?.consultation?.consultationKind?localizedKind(row.consultation.consultationKind,locale):stateCopy.consultation;
- const periodLabel=row?.consultation?.period?(locale==='ko'?row.consultation.period.label+(row.consultation.period.ranges?.length?` (${row.consultation.period.ranges.map(formatAskRange).join(', ')})`:''):row.consultation.period.years?.map(value=>value.year).join('–')||[row.consultation.period.start,row.consultation.period.end].filter(Boolean).join('–')||stateCopy.periodHint):'';
  const needsSupport=!!row?.paid&&row.state!=='COMPLETED'&&row.state!=='REFUNDED'&&!row.recovery?.canRetryNow&&['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'');
  const supportLink=needsSupport?<p><a href={resolveCheckoutPolicyHrefs(row?.locale||'ko').support}>{locale==='ko'?'주문번호로 상담 문의하기':chromeCopy(locale).contact}</a></p>:null;
   const askReading=!!row?.consultation?.questions?.length;
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  const interpreting=!!row?.paid&&['PAID','GENERATING'].includes(row.state)&&!row.errorCode&&!row.recovery?.canRetryNow&&!error;
- const loading=interpreting?<ReadingLoading stage={row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} compact={row!.chapters.length>0} manifest={row!.manifest} timing/>:null;
+ // While a paid reading is written the buyer may leave: the completion mail and My readings carry it, so the card says so (2026-11-23).
+ const loading=interpreting?<ReadingLoading stage={row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} leaveNote={interpreting&&paymentSurface!=='toss'?questionMemoCopy(row!.locale).leaveOk:undefined} compact={row!.chapters.length>0} manifest={row!.manifest} timing libraryHref={paymentSurface==='toss'?undefined:`/yeongnyangi/library/?lang=${siteLocale}`}/>:null;
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {paymentSurface==='toss'&&row.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
-  {row.paid&&row.state!=='REFUNDED'&&<FishReceipt product={row.product} locale={row.locale}/>}
+  {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&<FishReceipt product={row.product} locale={row.locale}/>}
   {loading}
   <SpiritResult row={row} onRow={setRow} paymentSurface={paymentSurface} {...(paymentSurface === "toss" ? {onFollowupStart:startTossFollowup,onFollowupResult:finishTossFollowup,onFollowupError:failTossFollowup} : {})}/>
-  {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'} reviewProductId="yeongnyangi"/>}<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/><ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ImageReport key={`report-${row.id}`} row={row}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/></>}
+  {row.state==='COMPLETED'&&<>{row.paid&&<FishReceipt product={row.product} locale={row.locale}/>}{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'} reviewProductId="yeongnyangi"/>}<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/><ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ImageReport key={`report-${row.id}`} row={row}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/></>}
   {row.state==='REFUNDED'?<p>{autoRefundCopy(row.locale,row.errorCode)||stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.primaryAction} href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
     {row.errorCode==='DELIVERY_REFUND_PENDING'?<p role="status">{deliveryRefundCopy(row.locale)}</p>:row.recovery?.canRetryNow?<><p role="alert">{copy.recoveryStopped}</p><button className={styles.retryButton} disabled={busy} onClick={()=>void generate(row.id)}><PawPrint size={18} aria-hidden="true"/>{copy.recovery}</button></>:['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING'].includes(row.errorCode||'')?<><p role="status">{copy.held}</p>{paymentSurface!=='toss'&&heldRefundable(row)&&<p role="note">{heldRefundHint(row.locale)}</p>}</>:row.errorCode==='PAYMENT_NOT_ACTIVE'?<p role="alert">{copy.support}</p>:<p>{stateCopy.serverResume}</p>}
   </>}
@@ -248,20 +249,16 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  </section>;
  return <section className={styles.reader} lang={locale}>
   {paymentSurface==='toss'&&row?.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
-  <h1>{row?(locale==='ko'?`${row.product.name} · ${row.product.fishName}`:`${localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`):stateCopy.result}</h1>
+  {(row || error) && <header className={row?.state==='COMPLETED' && row.chapters.length ? styles.bookCover : undefined}>
+   <h1>{row?(locale==='ko'?`${row.product.name} · ${row.product.fishName}`:`${localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`):stateCopy.result}</h1>
+   {row?.state==='COMPLETED' && row.chapters.length>0 && <ReportIllustration scene="cover" header/>}
+  </header>}
   {row&&row.state!=='COMPLETED'&&<OrderReference id={row.id} locale={row.locale}/>}
 
   {row&&<QuestionConversationEntry row={row}/>}
-  {!row&&!error&&<p className={styles.loading} role="status">{copy.loading}</p>}
+  {!row&&!error&&<p className={styles.readingPending} role="status">{copy.loading}</p>}
   {row&&row.state==='AWAITING_DRAW'&&row.tarotSpread?<TarotCardPick row={row} spread={row.tarotSpread} siteLocale={siteLocale} onRow={setRow}/>:row&&<>
    {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?row.tarotSpread&&spreadReveal?<TarotSpreadReveal requestId={row.id} locale={row.locale} spread={row.tarotSpread} cards={spreadReveal} onComplete={finishRitual}/>:<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
-   {row.state!=='COMPLETED'&&<details className={styles.questionContext} open>
-    <summary>{consultationLabel}</summary>
-    {row.consultation?.question?<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>:<p>{stateCopy.context}</p>}
-    {row.consultation?.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}
-    {row.consultation?.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone || 'Asia/Seoul'}</p>}
-    {row.consultation?.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}
-   </details>}
    {loading}
    <div id="reading-progress" className={styles.progress} data-state={row.state}>
      <div>{row.correction&&<p role="status">{row.correction.reason}</p>}{!unpaid&&!interpreting&&<p>{row.state==='COMPLETED'?copy.complete:askReading?stateCopy.answering:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
@@ -272,17 +269,19 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
     </div>
    </div>
    {supportLink}
+   {/* The progress card leads; the question follows as a folded memo. Once a chapter is saved the memo moves into the reading's opening (2026-11-23). */}
+   {row.state!=='COMPLETED'&&!row.chapters.length&&<QuestionMemo row={row} context/>}
    {!unpaid&&<><FusionBookIntroduction row={row}/><ReadingBook row={row}/><FusionBookExtras row={row}/></>}
    {row.conversation&&<QuestionConversation row={row} onRow={setRow}/>}
    {row.state==='COMPLETED'&&<SummaryReportView row={row}/>}
    {row.state==='COMPLETED'&&<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/>}
-   {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'} reviewProductId="yeongnyangi"/>}<ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ImageReport key={`report-${row.id}`} row={row}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/><OrderReference id={row.id} locale={row.locale}/>{row.consultation&&<details className={styles.questionContext}><summary>{consultationLabel}</summary>{row.consultation.question&&<p style={{whiteSpace:'pre-wrap'}}>{row.consultation.question}</p>}{row.consultation.relationship?.participants&&<p>{row.consultation.relationship.participants.self} · {row.consultation.relationship.participants.partner}</p>}{row.consultation.asOf&&<p>{stateCopy.asOf}: {row.consultation.asOf} · {row.consultation.timezone||'Asia/Seoul'}</p>}{row.consultation.period&&<p>{stateCopy.period}: {periodLabel}. {stateCopy.periodHint}</p>}</details>}</>}
+   {row.state==='COMPLETED'&&<>{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'} reviewProductId="yeongnyangi"/>}<ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ImageReport key={`report-${row.id}`} row={row}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/><OrderReference id={row.id} locale={row.locale}/></>}
    {row.paid&&row.state!=='REFUNDED'&&<><ReadingIdentity product={row.product} locale={row.locale}/><FishReceipt product={row.product} locale={row.locale}/></>}
    </>}
   </>}
   {error&&!row&&requestId.current?<RecoveryNotice message={locale==='ko'?error:stateCopy.loadFailed} locale={locale} busy={busy} onRetry={()=>{setError('');setReload(n=>n+1);}}/>:error&&<p role="alert">{locale==='ko'?error:requestId.current?stateCopy.loadFailed:stateCopy.notFound} {stateCopy.paidWarningKnown}</p>}
   {row&&<p>{copy.language}: {readingLanguageNames[row.locale || 'ko']}</p>}
   {!row&&requestId.current&&<OrderReference id={requestId.current} locale={siteLocale}/>}
-  <a href={'/yeongnyangi/library/?lang='+siteLocale}>{copy.library}</a>
+  <a className={styles.libraryReport} href={'/yeongnyangi/library/?lang='+siteLocale}>{copy.library}</a>
  </section>;
 }

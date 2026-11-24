@@ -311,6 +311,30 @@ test.each(["standard", "premium", "vvip"])("%s 현재 이용권 검증 완료 �
 });
 
 describe("verify — 회당 결제(PER_USE)", () => {
+  test.each([undefined, 1, 0])("스테이징 Play 검증은 테스트 영수증만 지급·승인한다 (purchaseType=%s)", async (purchaseType) => {
+    const previousEnv = ENV;
+    ENV = { ...ENV, APP_ENV: "staging" };
+    googlePurchasePayload.purchaseType = purchaseType;
+    try {
+      const { status, payload } = await callRoute(postJson("/google/verify", {
+        featureKey: perUse.key, productId: perUse.tier.productId,
+        purchaseToken: "tok-staging", requestId: "staging-request",
+      }));
+      if (purchaseType === 0) {
+        expect(status).toBe(200);
+        expect(mockPaymentCreate).toHaveBeenCalledTimes(1);
+        expect(acknowledgeCalls).toHaveLength(1);
+      } else {
+        expect(status).toBe(409);
+        expect(payload.code).toBe("GOOGLE_PLAY_TEST_PURCHASE_REQUIRED");
+        expect(mockPaymentCreate).not.toHaveBeenCalled();
+        expect(acknowledgeCalls).toHaveLength(0);
+      }
+    } finally {
+      ENV = previousEnv;
+    }
+  });
+
   test("영수증 검증 → 멱등키 Payment 기록 → 앱 확정가 → 서버 acknowledge → consume 지시", async () => {
     const { status, payload } = await callRoute(postJson("/google/verify", {
       featureKey: perUse.key,
@@ -341,6 +365,35 @@ describe("verify — 회당 결제(PER_USE)", () => {
 
     // PER_USE는 영구 권한으로 굳히지 않는다(굳히면 재구매 불가).
     expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+  });
+
+  test("확정한 회당 결제는 Play 후속 승인 오류가 나도 원래 상담으로 돌아간다", async () => {
+    const playFetch = global.fetch.getMockImplementation();
+    global.fetch.mockImplementation(async (url, options) => {
+      if (!String(url).includes(":acknowledge")) return playFetch(url, options);
+      return { ok: false, status: 503, json: async () => ({ error: { message: "unavailable" } }) };
+    });
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const { status, payload } = await callRoute(postJson("/google/verify", {
+        featureKey: perUse.key,
+        productId: perUse.tier.productId,
+        purchaseToken: "test-paid-token",
+        requestId: "original-consultation",
+      }));
+
+      expect(status).toBe(200);
+      expect(mockPaymentCreate).toHaveBeenCalledTimes(1);
+      expect(payload.data.accessGrant).toMatchObject({
+        requestId: "original-consultation",
+        paymentMethod: "GOOGLE_PLAY",
+        purchaseId: "pay-new",
+      });
+      expect(payload.data.payment.acknowledged).toBe(false);
+      expect(payload.data.appPurchase.shouldConsume).toBe(true);
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   test("이미 acknowledge된 영수증에는 다시 acknowledge를 보내지 않는다", async () => {
@@ -612,6 +665,41 @@ describe("rtdn — 환불 회수", () => {
     const query = token ? `?token=${encodeURIComponent(token)}` : "";
     return postJson(`/google/rtdn${query}`, { message: { data } });
   }
+
+  test.each([
+    [200, 0, 200, true],
+    [200, 1, 200, false],
+    [404, null, 200, false],
+    [410, null, 200, false],
+    [401, null, 502, null],
+    [403, null, 502, null],
+    [429, null, 502, null],
+    [500, null, 502, null],
+  ])("Play 조회 HTTP %i 상태 %s: RTDN HTTP %i, 권한 활성 %s", async (googleStatus, purchaseState, expectedStatus, active) => {
+    googlePurchaseStatus = googleStatus;
+    googlePurchasePayload = { purchaseState };
+    mockPaymentFindOne.mockReturnValue(leanable({
+      _id: "pay-rtdn-lookup",
+      userId: USER_ID,
+      featureKey: unlock.key,
+      productId: unlock.tier.productId,
+      paymentType: "digital_content",
+    }));
+    const { status, payload } = await callRoute(rtdnRequest({
+      packageName: "com.codedestiny.app",
+      oneTimeProductNotification: { purchaseToken: "tok-rtdn-lookup", sku: unlock.tier.productId, notificationType: 2 },
+    }));
+    expect(status).toBe(expectedStatus);
+    if (active === null) {
+      expect(payload.code).toBe("GOOGLE_PLAY_RTDN_RETRY");
+      expect(mockPaymentFindOneAndUpdate).not.toHaveBeenCalled();
+      expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
+      expect(mockRevokePaymentContentAccess).not.toHaveBeenCalled();
+    } else {
+      expect(payload.data.active).toBe(active);
+      expect(mockPaymentFindOneAndUpdate).toHaveBeenCalledTimes(active ? 0 : 1);
+    }
+  });
 
   test("voided(환불 확정)는 재조회 없이 즉시 회수한다 — 콘텐츠 결제", async () => {
     mockPaymentFindOne.mockReturnValue({

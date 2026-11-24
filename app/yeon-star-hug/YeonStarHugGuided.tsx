@@ -56,6 +56,7 @@ type Setters = { [K in keyof StarHugValues]: (value: string) => void };
 type ProfileSelect = Parameters<NonNullable<Parameters<typeof SavedBirthProfilePicker>[0]["onSelect"]>>;
 
 type Props = {
+  flowScope?: string;
   emotions: { key: string; label: string }[];
   signs: { sign: string; period: string }[];
   samples: string[];
@@ -80,9 +81,9 @@ export function birthAnswer(values: Pick<StarHugValues, "birthDate" | "birthTime
   return [values.birthDate, values.birthTime, values.name];
 }
 
-export default function YeonStarHugGuided({ emotions, signs, samples, values, onChange, onProfileSelect, profileNote, run, ready, onStepChange }: Props) {
+export default function YeonStarHugGuided({ flowScope, emotions, signs, samples, values, onChange, onProfileSelect, profileNote, run, ready, onStepChange }: Props) {
   const t = useGuidedT();
-  const flow = useGuidedFlow({ steps: STEPS, featureId: "yeon_star_hug", surface: "yeon_star_hug", flowId: FLOW_ID });
+  const flow = useGuidedFlow({ steps: STEPS, featureId: "yeon_star_hug", surface: "yeon_star_hug", flowId: flowScope || FLOW_ID });
   const { controller, state, step } = flow;
   const answers = state.answers as Answers;
   const stepId = step?.id ?? null;

@@ -168,7 +168,7 @@ test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다",
   doc.querySelector('#fortuneGatewayDiscover [data-method="ziwei"]').click();
 
   const hits = names(panel);
-  assert.deepEqual(hits, ["흑월의 주의 시기", "팩폭 전략소", "자미두수", "네오에게 물어봐"], `자미두수 방식 결과가 예상과 다르다: ${hits.join(", ")}`);
+  assert.deepEqual(hits, ["흑월의 경고", "팩폭 전략소", "자미두수", "네오에게 물어봐"], `자미두수 방식 결과가 예상과 다르다: ${hits.join(", ")}`);
 });
 
 test("검색은 레지스트리에 없는 컬렉션 타일도 찾아 준다", async () => {
@@ -939,4 +939,17 @@ test("모든 운세 정렬은 낮은 가격순에서 무료가 앞, 가격 불�
   root.querySelector("[data-cd-finder-reset]").click();
   assert.equal(sort.value, "recommended");
   assert.deepEqual(names(panel), recommended);
+});
+
+test("초융합 검색 카드는 레지스트리의 해상도 후보를 사용하고 이미지 오류 시 대체 그림을 복구한다", async () => {
+  const { panel, window, search } = await bootAllFortunes();
+  await search("초융합");
+  const image = panel.querySelector('img[src*="fusion-fortune-masters-v3"]');
+  const entry = window.__cdServiceRegistry.find(item => item.id === "fusion-fortune");
+  assert.equal(image.getAttribute("srcset"), entry.imageSrcset);
+  assert.match(image.getAttribute("sizes"), /^auto,/);
+  image.dispatchEvent(new window.Event("error"));
+  assert.equal(image.hasAttribute("srcset"), false);
+  assert.ok(image.dataset.cdFallback);
+  assert.ok(!image.getAttribute("src").includes("fusion-fortune-masters"));
 });

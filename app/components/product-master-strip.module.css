@@ -22,7 +22,9 @@
   border-radius: calc(var(--cd-r-card) - 4px);
   pointer-events: none;
 }
-.label { margin: 0 0 10px; color: var(--pms-accent); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
+.label { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; color: var(--pms-accent); font-size: .78rem; font-weight: 700; letter-spacing: .12em; }
+/* 고급화(G 2026-11-22): 소제목 옆 1px 금 장식선. 낭독기에는 내용이 없다. */
+.label::after { content: ""; flex: 1 1 auto; min-width: 24px; height: 1px; background: var(--pms-line); }
 .list { display: grid; gap: 14px; margin: 0; padding: 0; list-style: none; }
 .strip[data-count="2"] .list { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .master { display: flex; align-items: flex-start; gap: 12px; min-width: 0; }

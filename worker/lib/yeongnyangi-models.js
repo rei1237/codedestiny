@@ -60,8 +60,16 @@ const schema = new mongoose.Schema({
   lastFailure: { code: String, stage: String, at: Date },
   firstContentAt: { type: Date, default: null },
   completedAt: { type: Date, default: null },
+  // Result polling heartbeat (view-heartbeat.js, at most one write per 20s). The null default marks rows created
+  // after this field existed, so the completion-mail sweep never reaches orders completed before it shipped.
+  lastViewedAt: { type: Date, default: null },
+  // Completion mail claim and marker (completion-mail.js): null = not sent yet; skipped says why none went out.
+  completionMailSentAt: { type: Date, default: null },
+  completionMailSkipped: { type: String, enum: ['watching','no_email','config'], default: undefined },
 }, { timestamps: true, collection: 'yeongnyangi_requests' });
 schema.index({ userId: 1, createdAt: -1, _id: -1 });
+// Completion-mail sweep (completion-mail.js sendPendingCompletionMails): equality on state + unsent marker, range/sort on completedAt.
+schema.index({ state: 1, completionMailSentAt: 1, completedAt: 1 }, { name: "completion_mail_sweep" });
 export const YeongnyangiRequest = scopedModel(mongoose.models.YeongnyangiRequest || mongoose.model('YeongnyangiRequest', schema));
 
 const anchovyAccountSchema = new mongoose.Schema({

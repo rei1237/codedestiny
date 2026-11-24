@@ -20,32 +20,30 @@ test('situation cards: one question, one result and one button each, destination
   assert.equal(section.dataset.cdFunnelSection, 'situation_pick');
   assert.ok(section.hasAttribute('data-cd-korean-only') && section.hasAttribute('data-cd-no-trans'));
   const cards = [...doc.querySelectorAll('.yh-situation')];
-  assert.equal(cards.length, 3);
+  assert.equal(cards.length, 2);
   for (const card of cards) {
     assert.equal(card.querySelectorAll('.yh-situation__q').length, 1);
     assert.equal(card.querySelectorAll('.yh-situation__result').length, 1);
     assert.equal(card.querySelectorAll('a').length, 1);
   }
-  const [saju, tarot, paid] = cards.map(card => card.querySelector('a'));
+  const [saju, tarot] = cards.map(card => card.querySelector('a'));
   assert.equal(saju.textContent, hc('homeCards.natal.cta'));
   assert.equal(saju.getAttribute('href'), '/ggulggul/?action=cdOneStepFreeSajuEntry&section=sajuCard');
   assert.equal(saju.dataset.action, 'cdOneStepFreeSajuEntry');
   assert.equal(tarot.textContent, hc('homeCards.tarot.cta'));
   assert.equal(tarot.getAttribute('href'), '/ggulggul/?action=cdHomeTarotEntry');
   assert.equal(tarot.dataset.action, 'cdHomeTarotEntry');
-  assert.equal(paid.getAttribute('href'), '/heukwol/');
-  assert.equal(paid.textContent, hc('homeCards.heukwol.cta') + heukwol.price);
-  assert.equal(paid.querySelector('[data-cd-play-price]').dataset.cdPlayFeature, heukwol.featureKey);
-  assert.deepEqual(cards.map(card => card.querySelector('.yh-badge--free, .yh-badge--paid').textContent), ['무료', '무료', '유료']);
+  assert.deepEqual(cards.map(card => card.querySelector('.yh-badge--free').textContent), ['무료', '무료']);
+  assert.equal(doc.querySelector('a[href="/heukwol/"]'), null);
   assert.ok(cards[0].querySelector('.yh-badge--pick'), 'first free card is the featured entry');
-  assert.equal(doc.querySelectorAll('.yh-block__title').length, 2);
-  assert.equal(doc.querySelectorAll('.yh-situation__art[width][height]').length, 3);
-  assert.throws(() => renderSituationCards([]), /heukwol/);
+  assert.equal(doc.querySelectorAll('.yh-block__title').length, 1);
+  assert.equal(doc.querySelectorAll('.yh-situation__art[width][height]').length, 2);
+  assert.equal(renderSituationCards([]), renderSituationCards(catalog), 'free entries are independent of the paid catalog');
 });
 
 test('흑월의 미리보기는 결제 전 공개 목차이며 단일 진입과 원래 가격을 유지한다', () => {
-  const doc = new JSDOM(renderSituationCards(catalog)).window.document;
-  const paid = doc.querySelector('.yh-situation--paid');
+  const doc = new JSDOM(read('index.html')).window.document;
+  const paid = doc.querySelector('.yh-featured-grid [data-picker-service-id="heukwol"]').closest('article');
   const preview = paid.querySelector('.yh-chapter-preview');
   assert.equal(preview.localName, 'details');
   assert.equal(preview.open, false);
@@ -61,8 +59,8 @@ test('흑월의 미리보기는 결제 전 공개 목차이며 단일 진입과 
   assert.doesNotMatch(preview.textContent, /단정 금지|사고 발생|결과 생성/);
   assert.deepEqual([...preview.querySelectorAll('ol li strong')].map(x => x.textContent), ['타고난 성향', '월별 흐름', '주제별 대응', '다음 선택']);
   assert.equal(preview.querySelectorAll('a, button, [onclick]').length, 0);
-  assert.equal(doc.querySelectorAll('.yh-chapter-preview').length, 1);
-  assert.equal(paid.querySelector('a.yh-chapter-cta').getAttribute('href'), heukwol.href);
+  assert.equal(paid.querySelectorAll('.yh-chapter-preview').length, 1);
+  assert.equal(paid.querySelector('.cd-picker-main').getAttribute('href'), heukwol.href);
   assert.equal(paid.querySelector('[data-cd-play-price]').textContent, heukwol.price);
   const source = read('worker/lib/heukwol-report.js');
   const sourceKeys = ["key:'temperament'", "key:`month-", "key:'money'", "key:'alternatives'"];
@@ -75,12 +73,12 @@ test('free tarot entry opens the three-card spread by default', () => {
   assert.match(read('js/core/index-inline-runtime.js'), /window\.setTarotMode\(window\.tarotSpreadMode \|\| 'three'\)/);
 });
 
-test('situation cards are baked into the shell below the hero and hidden outside Korean', () => {
+test('situation cards open in My and retain the Korean-only scope', () => {
   const shell = read('index.html');
-  const hero = shell.indexOf('class="yh-hero yh-entry-scene"');
-  const cards = shell.indexOf('<section class="yh-situations"');
-  const promo = shell.indexOf('<section class="cdh-promo"');
-  assert.ok(hero >= 0 && hero < cards && cards < promo, 'regenerate index.html with npm run sync:public');
+  const doc = new JSDOM(shell).window.document;
+  assert.ok(doc.querySelector('#cdAccountSheet .yh-situations'));
+  assert.equal(doc.querySelector('.yh-home .yh-situations'), null);
+  assert.ok(doc.querySelector('#cdAccountSheet #cdhFreePromo'));
   assert.match(read('styles/yehwa-home.css'), /html:not\(\[lang="ko"\]\) \.yh-situations\{display:none\}/);
 });
 

@@ -662,6 +662,7 @@ async function fetchGooglePurchase(env, { packageName, productId, productType, p
     const error = new Error(cleanText(payload.error?.message || payload.message || "Google Play purchase verification failed."));
     error.code = "GOOGLE_PLAY_VERIFY_FAILED";
     error.status = response.status >= 400 && response.status < 500 ? 400 : 502;
+    error.googleStatus = response.status;
     error.details = payload;
     throw error;
   }
@@ -670,6 +671,12 @@ async function fetchGooglePurchase(env, { packageName, productId, productType, p
 
 async function verifyGooglePurchase(env, { packageName, productId, productType, purchaseToken }) {
   const payload = await fetchGooglePurchase(env, { packageName, productId, productType, purchaseToken });
+  if (cleanText(getEnv(env, "APP_ENV")).toLowerCase() === "staging" && payload.purchaseType !== 0) {
+    const error = new Error("스테이징에서는 Google Play 테스트 구매만 확인할 수 있어요.");
+    error.code = "GOOGLE_PLAY_TEST_PURCHASE_REQUIRED";
+    error.status = 409;
+    throw error;
+  }
   if (!isVerifiedPurchase(payload, productType)) {
     const error = new Error("Google Play purchase is not in a paid state.");
     error.code = "GOOGLE_PLAY_PURCHASE_NOT_PAID";
@@ -703,6 +710,21 @@ async function acknowledgeGooglePurchase(env, { packageName, productId, productT
   error.status = response.status >= 400 && response.status < 500 ? 400 : 502;
   error.details = payload;
   throw error;
+}
+
+async function acknowledgeVerifiedGooglePurchase(env, product, purchase) {
+  try {
+    return await acknowledgeGooglePurchase(env, purchase);
+  } catch (error) {
+    // Consuming a consumable on the app also acknowledges it in Play.
+    if (!shouldConsumePurchase(product)) throw error;
+    console.warn("Google Play acknowledgement deferred to consumption", {
+      productId: product.productId,
+      code: cleanText(error?.code),
+      status: Number(error?.status || 0),
+    });
+    return false;
+  }
 }
 
 async function handleProducts(request, env) {
@@ -1181,7 +1203,7 @@ async function handleGoogleVerify(request, env) {
     intent: receiptIntent,
   });
   await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken), receiptIntent?._id);
-  const acknowledged = await acknowledgeGooglePurchase(env, {
+  const acknowledged = await acknowledgeVerifiedGooglePurchase(env, product, {
     packageName,
     productId: product.productId,
     productType: product.productType,
@@ -1317,7 +1339,7 @@ async function handleGoogleRestore(request, env) {
           googlePurchase,
           intent,
         });
-        const acknowledged = await acknowledgeGooglePurchase(env, {
+        const acknowledged = await acknowledgeVerifiedGooglePurchase(env, product, {
           packageName,
           productId: product.productId,
           productType: product.productType,
@@ -1619,8 +1641,13 @@ async function handleGoogleRtdn(request, env) {
     });
     active = isVerifiedPurchase(googlePurchase, notification.productType);
   } catch (error) {
-    const status = Number(error?.status || error?.statusCode || 0);
-    if (status >= 500) throw error;
+    // 권한·호출 한도·연결 오류는 구매 상태가 아니다. Pub/Sub가 재시도하도록 실패를 돌려준다.
+    if (error?.googleStatus !== 404 && error?.googleStatus !== 410) {
+      const retry = new Error("Google Play purchase status could not be confirmed.");
+      retry.code = "GOOGLE_PLAY_RTDN_RETRY";
+      retry.status = 502;
+      throw retry;
+    }
   }
 
   if (active) {

@@ -1,7 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildSubmissionState,selectSubmissionDelta,publicNotificationUrl,indexNowRetryDelayMs} from '../../scripts/lib/indexnow-delta.mjs';
+import {readFileSync} from 'node:fs';
+import {buildSubmissionState,selectSubmissionDelta,publicNotificationUrl,indexNowRetryDelayMs,sitemapLocsRejectedByPolicy} from '../../scripts/lib/indexnow-delta.mjs';
 const host='code-destiny.com',url=`https://${host}/saju/`;
+
+// 11/14 /yeongnyangi/faq/ 가 사이트맵에만 들어가 운영 제출이 전부 throw 로 끝났다. 커밋된 사이트맵 전체가 정책을 통과해야 한다.
+test('every committed sitemap URL passes the public notification policy',()=>{
+  assert.equal(publicNotificationUrl(`https://${host}/yeongnyangi/faq/`,host),true);
+  for(const rel of ['sitemap.xml','sitemap-ko.xml']){
+    const {total,rejected}=sitemapLocsRejectedByPolicy(readFileSync(new URL(`../../${rel}`,import.meta.url),'utf8'),host);
+    assert.ok(total>0,`${rel} has no <url> entries`);
+    assert.deepEqual(rejected,[],rel);
+  }
+});
 const state=(signature,lastmod='2026-01-01')=>buildSubmissionState([{loc:url,lastmod}],{routes:{'/saju/':{signature}}},host);
 test('delayed deployment and same-day edits are selected by deployed signatures',()=>{
   assert.deepEqual(selectSubmissionDelta(state('b'),state('a')),[url]);

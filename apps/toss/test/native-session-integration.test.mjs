@@ -18,6 +18,10 @@ const bundle=await build({
   plugins:[{name:'offline-app-integration',setup(b){
     b.onResolve({filter:/^\.\/apps\/toss\/src\/(platform\.ts|App\.tsx)$/},a=>({path:path.resolve(repo,a.path)}));
     b.onResolve({filter:/^\.\/platform$/},()=>({path:path.join(repo,'apps/toss/src/platform.ts')}));
+    b.onResolve({filter:/flower-history\.mjs$/},()=>({path:path.join(repo,'apps/toss/service/flower-history.mjs')}));
+    b.onResolve({filter:/yeon-star-session\.mjs$/},()=>({path:path.join(repo,'apps/toss/service/yeon-star-session.mjs')}));
+    b.onResolve({filter:/step-controller\.mjs$/},()=>({path:path.join(repo,'lib/guided-flow/step-controller.mjs')}));
+    b.onResolve({filter:/toss-prompt-library\.mjs$/},()=>({path:path.join(repo,'lib/fortune/toss-prompt-library.mjs')}));
     b.onResolve({filter:/toss-library-links\.mjs$/},()=>({path:path.join(repo,'lib/tarot/toss-library-links.mjs')}));
     b.onResolve({filter:/toss-letter-recovery-link\.mjs$/},()=>({path:path.join(repo,'lib/fortune/toss-letter-recovery-link.mjs')}));
     b.onResolve({filter:/^\.\/initial-selection\.mjs$/},()=>({path:path.join(repo,'apps/toss/src/initial-selection.mjs')}));

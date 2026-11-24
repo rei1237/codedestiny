@@ -24,7 +24,6 @@ test('the ask period picker only rewrites the question text and previews the sam
  const form=read('app/yeongnyangi/_components/Consultation.tsx');
  const picker=read('app/yeongnyangi/_components/AskPeriodPicker.tsx');
  const book=read('app/yeongnyangi/_components/ReadingBook.tsx');
- const result=read('app/yeongnyangi/_components/Result.tsx');
  // Korean ask only; the picker hands back question text, so the request body and checkout stay unchanged.
  assert.match(form,/kind\.id==='ask'&&siteLocale==='ko'&&<AskPeriodPicker question=\{question\} onQuestion=\{setQuestion\}/);
  assert.doesNotMatch(form,/askPeriod|periodChip/);
@@ -36,7 +35,8 @@ test('the ask period picker only rewrites the question text and previews the sam
  // The review appears only when the stored answer has one; older readings render as before.
  assert.match(book,/\{firstAnswer\.review&&/);
  assert.match(book,/\{answer\.review&&/);
- assert.match(result,/period\.ranges\?\.length\?/);
+ // The period line moved from Result.tsx to the shared question memo (2026-11-23).
+ assert.match(read('app/yeongnyangi/_components/QuestionMemo.tsx'),/period\.ranges\?\.length\?/);
 });
 
 test('question choices stay short: entry topics filter examples and tiers compare by scope (2026-10-12)',()=>{

@@ -1,6 +1,6 @@
 import PolicyGuide, { policyPageClass } from "../components/PolicyGuide";
 import Link from "next/link";
-import { MessageCircle, Mail, Clock3, ArrowUpRight, ShieldCheck, ListChecks, Building2, FilePenLine, CircleHelp } from "lucide-react";
+import { MessageCircle, Bug, Mail, Clock3, ArrowUpRight, ShieldCheck, ListChecks, Building2, FilePenLine, CircleHelp } from "lucide-react";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
 import { BUSINESS_IDENTITY, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 import ContactForm from "./ContactForm";
@@ -76,6 +76,7 @@ export default function ContactUsPage() {
                 <a className={styles.secondaryAction} href="#contact-form">문의 내용 작성하기 <FilePenLine aria-hidden="true" /></a>
               </section>
             </div>
+            <Link className={styles.bugReport} href="/feedback/" prefetch={false}><Bug aria-hidden="true" /><span><strong>버그 제보실</strong><small>오류가 생긴 화면과 상황을 알려주세요.</small></span><ArrowUpRight aria-hidden="true" /></Link>
             <aside className={styles.prepare} aria-labelledby="prepare-heading">
               <ShieldCheck aria-hidden="true" />
               <div><h2 id="prepare-heading">이렇게 남겨주시면 확인이 쉬워요</h2><p>이용한 기능 이름과 발생 상황을 알려주세요. 결제 문의에는 주문번호를, 오류 문의에는 개인정보를 가린 화면을 함께 남겨주세요.</p><p className={styles.caption}>비밀번호·카드번호·주민등록번호는 보내지 마세요.</p></div>

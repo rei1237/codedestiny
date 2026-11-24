@@ -6,7 +6,7 @@ export function decodedSpriteImage(url:string){
 export function loadSpriteImage(url:string):Promise<HTMLImageElement>{
  const existing=cache.get(url);
  if(existing){cache.delete(url);cache.set(url,existing);return existing.promise;}
- const image=new Image();
+ const image=new Image();image.crossOrigin='anonymous';
  const entry={image,ready:false,promise:Promise.resolve(image)};
  image.src=url;
  entry.promise=image.decode().then(()=>{

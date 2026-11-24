@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { Seasons } from 'astronomy-engine';
@@ -12,7 +13,17 @@ const { buildPeriodFaqs } = loadTsModule('lib/fortune/period-faqs.ts');
 const { resolveKey, resolveVars } = loadTsModule('lib/i18n/dictionary.ts');
 const { buildSignViewModel } = loadTsModule('lib/fortune/build-view.ts');
 
-test('every period resolves each animal and zodiac protagonist name in non-Korean narratives', () => {
+test('every period resolves each animal and zodiac protagonist name in non-Korean narratives', (t) => {
+  // The narrative markers depend on the sign and period, not today's build artifact.
+  const daily = createRequire(import.meta.url)('../../lib/fortune/daily-data.ts');
+  const entries = kind => Object.fromEntries(SIGN_PROFILES.filter(p => p.kind === kind).map(p => [p.id, { id: p.id }]));
+  const pkg = {
+    animals: entries('animal'), zodiacs: entries('zodiac'),
+    calendar: { ilchin: '甲子', wolgeon: '甲子', lunar_date: '1/1' },
+    sky_today: { moon_sign: 'Aries', moon_phase: 'New Moon' },
+  };
+  t.mock.method(daily, 'loadDailyPackage', () => pkg);
+  t.mock.method(daily, 'resolvePeriodDate', period => period === 'tomorrow' ? '2026-01-06' : '2026-01-05');
   for (const basename of ['en', 'ja', 'zh-cn', 'zh-tw']) {
     const dictionary = JSON.parse(readFileSync(new URL(`../../public/i18n/${basename}.json`, import.meta.url), 'utf8'));
     for (const profile of SIGN_PROFILES) for (const period of ['today', 'tomorrow', 'weekly', 'monthly']) {

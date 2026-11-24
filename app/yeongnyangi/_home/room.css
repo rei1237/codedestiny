@@ -1,12 +1,12 @@
-.ynOriginal .yeongnyang-room { min-height: 100dvh; background: #191228; color: var(--ivory); }
-.ynOriginal .room-header { height: 68px; padding: max(10px, env(safe-area-inset-top)) 20px 10px; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin: auto; border-bottom: 1px solid #af875d40; }
+.ynOriginal .yeongnyang-room { min-height: 100dvh; background: #191228; color: var(--ivory); word-break: keep-all; overflow-wrap: anywhere; }
+.ynOriginal .room-header { height: 68px; padding: max(10px, env(safe-area-inset-top)) 20px 10px; display: flex; justify-content: space-between; align-items: center; max-width: 1300px; margin: auto; border-bottom: 1px solid color-mix(in srgb, var(--yn-gold) 25%, transparent); }
 .ynOriginal .room-header h1 { font-family: var(--serif); font-size: 23px; display: flex; align-items: center; gap: 10px; color: var(--gold); }
 .ynOriginal .room-round-button { width: 44px; height: 44px; border: 1px solid #ad895a; border-radius: 50%; display: grid; place-items: center; color: var(--gold); flex-shrink: 0; }
 .ynOriginal .room-layout { max-width: 1240px; margin: auto; }
 .ynOriginal .room-presence { height: 380px; position: relative; overflow: hidden; background: #241731; }
 .ynOriginal .room-scenery { width: 100%; height: 100%; object-fit: cover; object-position: 52% center; position: absolute; opacity: .78; }
 .ynOriginal .room-presence::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(0deg, #191228, transparent 28%, #19122850); }
-.ynOriginal .room-welcome { display: flex; align-items: center; gap: 7px; position: absolute; z-index: 1; top: 22px; left: 24px; color: #f2dbb7; font-size: 12px; }
+.ynOriginal .room-welcome { display: flex; align-items: center; gap: 7px; position: absolute; z-index: 1; top: 18px; left: 16px; padding: 4px 10px; border-radius: 999px; background: color-mix(in srgb, var(--yn-deep) 64%, transparent); color: var(--yn-gold-hover); font-size: var(--yn-t-caption); }
 .ynOriginal .room-cat-speech { position: absolute; z-index: 2; top: 22px; right: 16px; border-radius: 25px 25px 25px 4px; background: #f4e9d8; color: #36213c; font-family: var(--serif); font-size: 14px; line-height: 1.7; padding: 15px 18px; box-shadow: 0 5px 15px #130d2840; }
 .ynOriginal .room-resident { position: absolute; width: 285px; height: 285px; left: calc(50% - 160px); bottom: 25px; z-index: 1; padding: 0; border-radius: 50%; }
 .ynOriginal .room-resident img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 12px #0e092850); }
@@ -38,7 +38,7 @@
 .ynOriginal .room-composer-actions button { display: flex; align-items: center; gap: 10px; min-height: 44px; background: var(--yn-night); color: var(--yn-ivory); border: 1px solid var(--yn-line); border-radius: var(--yn-btn-radius); padding: 10px 15px; font-size: var(--yn-t-caption); }
 .ynOriginal .room-composer-actions button:hover:not(:disabled) { background: var(--yn-raised); }
 .ynOriginal .room-composer-actions button:disabled { opacity: .45; cursor: default; }
-.ynOriginal #room-input-note { color: #c5b2cf; font-size: 11px; line-height: 1.8; margin-top: 13px; }
+.ynOriginal #room-input-note { color: #c5b2cf; font-size: var(--yn-t-caption); line-height: 1.8; margin-top: 13px; }
 .ynOriginal .room-fortune-link { display: flex; justify-content: center; align-items: center; gap: 10px; min-height: 44px; color: #eaca97; font-size: 12px; margin-top: 14px; }
 .ynOriginal .room-stories { padding: 0 22px 28px; }
 .ynOriginal .room-story-heading { display: flex; align-items: center; gap: 9px; color: #f1d6ad; margin-bottom: 15px; }
@@ -47,13 +47,13 @@
 .ynOriginal .room-prologue-entry > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .3; }
 .ynOriginal .room-prologue-entry > span { position: relative; display: grid; gap: 13px; }
 .ynOriginal .room-prologue-entry strong { font-family: var(--serif); font-size: 21px; line-height: 1.6; text-wrap: balance; }
-.ynOriginal .room-prologue-entry span span { font-size: 11px; color: #d5bfdc; }
+.ynOriginal .room-prologue-entry span span { font-size: var(--yn-t-caption); color: #d5bfdc; }
 .ynOriginal .room-prologue-entry b { display: flex; align-items: center; gap: 8px; color: var(--gold); font-weight: 500; font-size: 12px; }
 .ynOriginal .room-small-moment { padding: 0 22px 25px; display: grid; grid-template-columns: 125px 1fr; gap: 20px; align-items: center; }
 .ynOriginal .room-small-moment > div > svg { color: var(--gold); margin-bottom: 10px; }
 .ynOriginal .room-small-moment h2 { font-size: 17px; }
 .ynOriginal .room-small-moment p { font-size: 12px; color: #cbb8d3; line-height: 1.85; margin-top: 8px; }
-.ynOriginal .room-footer { border-top: 1px solid #94745235; color: #bfa6c9; display: flex; gap: 10px; justify-content: center; align-items: center; padding: 26px 20px max(26px, env(safe-area-inset-bottom)); font-size: 11px; }
+.ynOriginal .room-footer { border-top: 1px solid color-mix(in srgb, var(--yn-gold) 21%, transparent); color: color-mix(in srgb, var(--yn-violet) 30%, var(--yn-ivory)); display: flex; gap: 10px; justify-content: center; align-items: center; padding: 26px 20px max(26px, env(safe-area-inset-bottom)); font-size: var(--yn-t-caption); }
 .ynOriginal .daily-tarot{padding:34px 22px 38px;background:#100d1d;border-block:1px solid #9b7a5042;color:#f8eddd;display:grid;grid-template-columns:minmax(0,1fr);gap:28px;align-items:center;position:relative;overflow:hidden}
 .ynOriginal .daily-tarot::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 16% 18%,#b7965d1f,transparent 32%),radial-gradient(circle at 82% 72%,#8066a81c,transparent 36%)}
 .ynOriginal .daily-tarot-copy,.ynOriginal .daily-tarot-flip,.ynOriginal .daily-tarot-reading{position:relative;z-index:1}
@@ -118,3 +118,27 @@
 .ynOriginal .daily-tarot-synthesis .daily-tarot-headline{font-family:var(--serif);font-size:19px;color:#f2d8aa}
 .ynOriginal .daily-tarot-note{max-width:68ch;margin-inline:auto;font-size:13px;line-height:1.8;color:#d1bfd5}
 .ynOriginal .room-free-nav{position:sticky;top:0;z-index:15;display:flex;justify-content:center;flex-wrap:wrap;gap:8px;padding:10px 12px;background:#171126;border-bottom:1px solid #795b8255}.ynOriginal .room-free-nav a{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px 14px;color:#f3d296;border:1px solid #a8865c66;border-radius:12px;font-size:.9rem;text-decoration:none}.ynOriginal .room-free-nav a:focus-visible{outline:2px solid #f3d296;outline-offset:3px}.ynOriginal .room-layout>#sorting-hat{grid-column:1/-1;scroll-margin-top:90px}.ynOriginal .room-stories>summary{cursor:pointer;min-height:48px;padding:16px;color:#e8d5a3}.ynOriginal :is(#daily,#daily-tarot){scroll-margin-top:90px}
+/* 방 아래 서비스 안내의 짧은 링크(내 결과 40px)도 터치 44px. 랜딩과 공유하는 original.css 대신 방 형제 선택자로 범위를 좁힌다. */
+.ynOriginal .yeongnyang-room~.service-navigation a{min-width:44px;justify-content:center}
+
+/* H 밤꽃(2026-11-22) — 방 그림 안의 연꽃 라인아트 + 배경 모션(NightBloomMotion).
+   z-index 1 이고 DOM 에서 .room-resident(z1) 보다 앞이라 고양이가 위에 그려진다. ::after 그라데이션(z auto)보다는 위.
+   꽃은 그림이 배경색으로 페이드되는 바닥에 앉힌다(모바일 14px, 데스크톱 20px — 캡션은 가운데 열이라 좌우 모서리 꽃과 겹치지 않는다).
+   모션은 위쪽 인사 칩·말풍선 아래에서 시작해(모바일 96px, 데스크톱 168px) "쓰다듬어 봐" 칩 위에서 멈춘다(모바일 84px, 데스크톱 178px).
+   🔴 선 색은 진한 금 잉크를 opacity .75 로 — 밝은 금을 낮은 opacity 로 얹으면 보라 그림에 물들어 모브가 된다(실화면 판정 2회).
+   목련은 두지 않는다 — 그림 오른쪽 아래의 병·술 장식·흰 털 위를 지나 도장처럼 보인다(실화면 판정). 연꽃만 왼쪽 아래 술 장식 곁에 앉힌다.
+   연꽃은 그림 왼쪽 모서리에서 10~14px 안쪽 — 모서리에 붙이면 수면선이 잘린 것처럼 보인다(실화면 판정). */
+.ynOriginal .room-garden, .ynOriginal .room-bloom-motion { position: absolute; inset: 0 0 14px; z-index: 1; pointer-events: none; }
+.ynOriginal .room-bloom-motion { top: 96px; bottom: 84px; --yn-bloom-tempo: 1; }
+.ynOriginal .room-garden > span { position: absolute; bottom: 0; background: var(--yn-gold); background: color-mix(in srgb, var(--yn-gold) 70%, #5a3a0a); opacity: .75; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: 100% 100%; mask-size: 100% 100%; }
+.ynOriginal .room-garden-lotus { left: 10px; width: 70px; height: 47px; -webkit-mask-image: var(--yn-yehwa-mask-lotus-sm); mask-image: var(--yn-yehwa-mask-lotus-sm); }
+/* 380px 미만은 가운데 캡션이 왼쪽 모서리까지 닿아 연꽃과 붙는다(360 실측 간격 -1px) — 연꽃만 감추고 모션은 둔다 */
+/* 모바일 수면선을 캡션 아랫선보다 6px 올린다 — 같은 줄이면 캡션 밑줄처럼 이어 보인다(실화면 판정) */
+.ynOriginal .room-garden > .room-garden-lotus { bottom: 6px; }
+@media (min-width: 900px) { .ynOriginal .room-garden > .room-garden-lotus { bottom: 0; } }
+@media (max-width: 379px) { .ynOriginal .room-garden-lotus { display: none; } }
+@media (min-width: 900px) {
+  .ynOriginal .room-garden, .ynOriginal .room-bloom-motion { inset: 0 0 20px; }
+  .ynOriginal .room-bloom-motion { top: 168px; bottom: 178px; --yn-bloom-tempo: 1.3; }
+  .ynOriginal .room-garden-lotus { left: 14px; width: clamp(84px, 9vw, 130px); height: auto; aspect-ratio: 3 / 2; -webkit-mask-image: var(--yn-yehwa-mask-lotus); mask-image: var(--yn-yehwa-mask-lotus); }
+}

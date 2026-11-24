@@ -155,6 +155,18 @@ cd apps\mobile\android
 apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
 ```
 
+### Play 내부 테스트용 스테이징 AAB
+
+Play 라이선스 테스트 결제와 모의 AI를 함께 검증할 때는 스테이징 DB에 연결하는 내부 테스트용 번들을 만든다. 스테이징의 Google 로그인 설정, Play 테스트 영수증 검증 자격증명, 테스트 계정의 모의 AI 적용 상태를 먼저 확인한다. 일반 런타임과 동일한 패키지명과 업로드 키를 쓰며, 이 버전은 내부 테스트 트랙에서 사용한다.
+
+```powershell
+$env:CODE_DESTINY_MOBILE_STAGING_TEST="1"
+$env:NEXT_PUBLIC_API_URL="https://staging.code-destiny.com"
+npm.cmd run mobile:android:sync
+```
+
+이 모드의 앱 문서는 인증·결제·저장 결과 요청을 스테이징으로 보낸다. WebView의 운영 API 연결을 차단하고 운영 앱과 별도 WebView 저장소를 쓰므로 테스트 기기는 Android 9 이상이 필요하다. 두 변수를 유지한 셸에서 새 버전 코드로 서명한 뒤 내부 테스트 릴리스 이름에 `스테이징`을 표시한다. 테스트 구매 화면에서 Play 테스트 결제 수단이 표시된 경우에만 진행한다. 일반 출시용 번들은 두 환경 변수가 빠진 새 셸에서 별도 버전 코드로 만든다.
+
 ## Release APK
 
 기기 설치 테스트용입니다. Play Console 업로드는 `.aab`를 사용합니다.

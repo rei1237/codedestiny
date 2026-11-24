@@ -60,8 +60,10 @@ test.afterEach(() => {
   }
 });
 
-test("일반 홈 방문은 달빛 상담 팝업에서 첫 편 하나만 보여 준다", () => {
+test("일반 홈에선 편지를 열 때만 첫 상담과 모달을 보여 준다", () => {
   const window = boot();
+  assert.equal(popupOpen(window), false);
+  window.document.querySelector("[data-signature-open]").click();
   assert.equal(popupOpen(window), true);
   assert.equal(visibleTitle(window), "상담 1");
   assert.equal(window.document.querySelectorAll("[data-signature-letter-slide]:not([hidden])").length, 1);
@@ -71,6 +73,7 @@ test("일반 홈 방문은 달빛 상담 팝업에서 첫 편 하나만 보여 �
 
 test("이전과 다음은 상담 한 편씩 이동하고 양끝에서 순환한다", () => {
   const window = boot();
+  window.document.querySelector("[data-signature-open]").click();
   window.document.querySelector("[data-signature-letter-next]").click();
   assert.equal(visibleTitle(window), "상담 2");
   assert.equal(window.document.querySelector("[data-signature-letter-position]").textContent, "2 / 6");
@@ -82,6 +85,7 @@ test("이전과 다음은 상담 한 편씩 이동하고 양끝에서 순환한�
 
 test("위치 버튼과 키보드로 원하는 상담을 직접 고른다", () => {
   const window = boot();
+  window.document.querySelector("[data-signature-open]").click();
   const stage = window.document.querySelector("[data-signature-letter-stage]");
   window.document.querySelector('[data-signature-letter-dot="3"]').click();
   assert.equal(visibleTitle(window), "상담 4");
@@ -122,6 +126,7 @@ test("오늘은 그만 보기는 KST 자정까지만 숨기고 수동 열기는 
   let now = Date.parse("2026-11-17T23:59:00+09:00");
   const clock = window => { window.Date.now = () => now; };
   const window = boot({ before: clock });
+  window.document.querySelector("[data-signature-open]").click();
   assert.equal(popupOpen(window), true);
   window.document.querySelector("[data-signature-letter-today]").click();
   const until = window.localStorage.getItem("cd_signature_consult_hide_until_v1");
@@ -140,10 +145,12 @@ test("오늘은 그만 보기는 KST 자정까지만 숨기고 수동 열기는 
 
   now += 60000;
   const nextDay = boot({ before: clock, storage: { cd_signature_consult_hide_until_v1: until }, session: { cd_signature_consult_seen_v3: "2026-11-17" } });
+  assert.equal(popupOpen(nextDay), false);
+  nextDay.document.querySelector("[data-signature-open]").click();
   assert.equal(popupOpen(nextDay), true);
 });
 
-test("다른 대화상자가 열려 있으면 닫힐 때까지 자동 팝업을 미룬다", () => {
+test("다른 대화상자가 열린 동안 요청해도 팝업은 겹치지 않고 다시 눌러야 열린다", () => {
   const window = boot({ before: win => {
     const other = win.document.createElement("dialog");
     other.dataset.otherDialog = "";
@@ -153,10 +160,44 @@ test("다른 대화상자가 열려 있으면 닫힐 때까지 자동 팝업을 
     win.document.body.appendChild(other);
   } });
   assert.equal(popupOpen(window), false);
+  window.document.querySelector("[data-signature-open]").click();
+  assert.equal(popupOpen(window), false);
   const other = window.document.querySelector("[data-other-dialog]");
   other.open = false;
   other.removeAttribute("open");
   window.dispatchEvent(new window.Event("pageshow"));
   window.flush();
+  assert.equal(popupOpen(window), false);
+  window.document.querySelector("[data-signature-open]").click();
   assert.equal(popupOpen(window), true);
+});
+test("편지와 다른 모달을 어느 순서로 닫아도 기존 스크롤 설정을 되살린다", () => {
+  const shell = fs.readFileSync(path.resolve(__dirname, "../../index.html"), "utf8");
+  const source = shell.match(/<script data-marker="cd-body-scroll-lock-v20260703">([\s\S]*?)<\/script>/)[1];
+  for (const first of ["letter", "account"]) {
+    const dom = new JSDOM("<body style='overflow:auto;padding-right:3px'></body>", { runScripts: "outside-only" });
+    const { window } = dom;
+    try {
+      window.eval(source);
+      const body = window.document.body;
+      const root = window.document.documentElement;
+      assert.equal(window.__cdLockBodyScroll("letter", "viewport"), 1);
+      assert.equal(window.__cdLockBodyScroll("letter", "viewport"), 1);
+      assert.equal(body.style.overflow, "auto");
+      assert.equal(window.__cdLockBodyScroll("account"), 2);
+      assert.equal(window.__cdUnlockBodyScroll(first), 1);
+      assert.equal(root.hasAttribute("data-cd-viewport-lock"), first === "account");
+      assert.equal(body.style.overflow, first === "account" ? "auto" : "hidden");
+      assert.equal(window.__cdUnlockBodyScroll(first === "account" ? "letter" : "account"), 0);
+      assert.equal(body.style.paddingRight, "3px");
+      assert.equal(body.style.overflow, "auto");
+      assert.equal(root.hasAttribute("data-cd-viewport-lock"), false);
+      window.__cdLockBodyScroll("letter", "viewport");
+      window.__cdResetBodyScrollLock();
+      assert.equal(body.style.overflow, "auto");
+      assert.equal(root.hasAttribute("data-cd-viewport-lock"), false);
+    } finally {
+      dom.window.close();
+    }
+  }
 });

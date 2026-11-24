@@ -20,15 +20,17 @@ test('home widget becomes complete only on the success callback of the dialog it
   assert.equal(nextWidgetStatus('web', { type: 'pin', status: 'requested' }), 'web');
 });
 
-test('both service homes expose the studio and native builds use their local HTML route', () => {
+test('the public entrance owns one widget link and native builds use the local studio route', () => {
   const page = read('../../app/page.js');
   assert.match(page, /href=\{IS_APP_BUILD \? "\/app\/home-widget\/index\.html" : "\/app\/home-widget\/"\}/);
-  assert.ok(page.indexOf('data-cd-home-widget-entry') > page.indexOf('</HomeCardDeck>'));
+  assert.ok(page.indexOf('data-cd-home-widget-entry') > page.indexOf('</CardSurface>'));
   const widgetEntry = page.slice(page.indexOf('<a className={styles.widgetEntry}'));
-  assert.match(widgetEntry, /^<a\b[^\n]*<\/a>\s*<\/main>/);
+  assert.match(widgetEntry, /^<a[^>]+data-cd-home-widget-entry/);
   assert.ok(page.indexOf('data-cd-home-widget-entry') > page.indexOf('<HomeDailyEntry />'));
   assert.equal((page.match(/data-cd-home-widget-entry/g) || []).length, 1);
-  assert.match(read('../../public/ggulggul/index.html'), /class="cdh-widget-entry" href="\/app\/home-widget\/"/);
+  assert.doesNotMatch(read('../../public/ggulggul/index.html'), /href="\/app\/home-widget\//);
+  assert.doesNotMatch(read('../../app/yeongnyangi/_home/FortuneHome.tsx'), /\/app\/home-widget\//);
+  assert.match(read('../../app/app/home-widget/page.tsx'), /<HomeWidgetStudio\b/);
 });
 
 test('widget studio keeps one header and the add button docked on screen', () => {

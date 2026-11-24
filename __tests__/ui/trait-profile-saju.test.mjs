@@ -1,7 +1,7 @@
 import '../../scripts/lib/mock-network-guard.cjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSajuTraitProfile as build, sajuTraitProfilePromptLines as lines, checkTraitFirstSection as check, traitSeedHash } from '../../worker/lib/trait-profile/saju.js';
+import { buildSajuTraitProfile as build, sajuTraitProfilePromptLines as lines, checkTraitFirstSection as check, softenTraitDoubleHedges as soften, traitSeedHash } from '../../worker/lib/trait-profile/saju.js';
 import { DAY_MASTER_KB, FAMILY_KB } from '../../worker/lib/trait-profile/saju-kb.js';
 import { buildSajuTemperamentProfile } from '../../worker/lib/saju-temperament.js';
 
@@ -120,6 +120,14 @@ test('shadow validator only reports; it flags missing headline, hedges and label
   assert.ok(check('갑목이라 곧은 편일 수도 있어요.', p).issues.some(i => i.startsWith('hedge:')));
   assert.ok(check('[타고난 성향 핵심 근거] 갑목', p).issues.includes('label_leak'));
   assert.deepEqual(check('anything', null), {ok:true, issues:[]});
+});
+
+test('double hedge softener only collapses 경향+수 있다 and never throws on non-strings', () => {
+  assert.equal(soften('조심하는 경향이 있을 수 있습니다. 말을 아끼는 경향이 있을 수도 있어요.'), '조심하는 경향이 있습니다. 말을 아끼는 경향이 있어요.');
+  const untouched = '성공할 수 있습니다. 때로는 외향적이고 때로는 내향적입니다. 일 수도 있어요.';
+  assert.equal(soften(untouched), untouched);
+  for (const v of [null, undefined, '', 3, {}]) assert.equal(soften(v), v);
+  assert.ok(lines(build(SCENARIOS.wealthWeak)).some(l => l.includes('겹친 완곡')));
 });
 
 test('KB covers all 10 stems and every family state with non-empty material and no health claims', () => {

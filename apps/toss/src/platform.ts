@@ -1,3 +1,6 @@
+import {clearFlowerHistory} from '../service/flower-history.mjs';
+import {clearStarHugSession} from '../service/yeon-star-session.mjs';
+import {clearTossPromptLibrary} from '../../../lib/fortune/toss-prompt-library.mjs';
 import {NEW_PURCHASES_AVAILABLE,SERVICE_AVAILABLE} from './release';
 import {Environment,IAP,TossAuth,Storage,Share,isMinVersionSupported} from '@apps-in-toss/web-framework';
 export const APP_NAME='ai-saju-studio';
@@ -143,10 +146,20 @@ export async function login(){
 export async function clearSession(cancelPendingLogin=true){if(cancelPendingLogin)loginAttempt++;token=null;const clearEpoch=advanceSessionRevision();if(isToss())await queueStorage(async()=>{if(sessionEpoch===clearEpoch)await Storage.removeItem('toss-session');});return clearEpoch;}
 export async function unlinkCurrentSession(){
   const unlinkEpoch=sessionEpoch,unlinkAttempt=loginAttempt;
-  const result=await api<{remoteUnlink:string}>('/unlink',{});
+  const result=await api<{remoteUnlink:string;promptLibraryOwner?:string}>('/unlink',{});
+  let cleanupFailed=false;
+  if(result.promptLibraryOwner&&typeof localStorage!=='undefined'){
+    try{const {clearTossSpaceOwner}=await import('../../../app/moonlit-lotus/_lib/private-store');await clearTossSpaceOwner(result.promptLibraryOwner);}
+    catch{cleanupFailed=true;}
+  }
+  try{if(result.promptLibraryOwner&&typeof localStorage!=='undefined')clearTossPromptLibrary(localStorage,result.promptLibraryOwner);
+    if(result.promptLibraryOwner&&typeof localStorage!=='undefined')clearFlowerHistory(localStorage,result.promptLibraryOwner);
+    if(result.promptLibraryOwner&&typeof sessionStorage!=='undefined')clearStarHugSession(sessionStorage,result.promptLibraryOwner);}
+  catch{cleanupFailed=true;}
   if(sessionEpoch!==unlinkEpoch||loginAttempt!==unlinkAttempt)throw new ApiError('SESSION_CHANGED','',409);
   const cleared=await clearSession();
   if(token!==null||sessionEpoch!==cleared||loginAttempt!==unlinkAttempt+1)throw new ApiError('SESSION_CHANGED','',409);
+  if(cleanupFailed)throw new ApiError('LOCAL_CLEANUP_FAILED');
   return result;
 }
 export async function logout(){

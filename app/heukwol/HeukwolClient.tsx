@@ -33,6 +33,8 @@ export default function HeukwolClient(){
  const [year,setYear]=useState(()=>Number(new Intl.DateTimeFormat('en',{timeZone:'Asia/Seoul',year:'numeric'}).format(new Date())));
  const firstYear=useRef(year),[profileId,setProfileId]=useState(''),[question,setQuestion]=useState(''),[pricing,setPricing]=useState<Pricing|null>(null);
  const [state,setState]=useState<HeukwolState|null>(null),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[showForm,setShowForm]=useState(false);
+ const [priceFailed,setPriceFailed]=useState(false);
+ const priceLabel=pricing?.displayPrice || (priceFailed ? '가격 조회 실패' : '가격 확인 중');
  const [adding,setAdding]=useState(false);
  // 결제가 확인된 뒤 첫 장이 저장되기 전까지 보이는 생성 화면. 질문 입력 폼으로 돌아가지 않게 한다.
  const [paid,setPaid]=useState(false);
@@ -91,16 +93,21 @@ export default function HeukwolClient(){
   finally{following.current=false;if(current()&&!flight.current)setBusy(false);}
  // eslint-disable-next-line react-hooks/exhaustive-deps
  },[receive]);
+ const loadPrice=useCallback(async()=>{
+  setPriceFailed(false);
+  try { const data=await api('pricing'); if(!data.pricing?.displayPrice)throw Error('Missing price'); if(mounted.current)setPricing(data.pricing); }
+  catch { if(mounted.current)setPriceFailed(true); }
+ },[]);
  useEffect(()=>{
   mounted.current=true;owner.current=readDestinyProfileAccountId();
-  api('pricing').then(data=>{if(mounted.current)setPricing(data.pricing);}).catch(()=>setMessage('가격을 확인하지 못했어요. 새로고침 후 다시 확인해 주세요.'));
+  void loadPrice();
   // 새로고침·뒤로 가기·결제 리다이렉트 뒤 재방문: 완성본은 그대로 보여 주고, 생성 중이면 자동으로 이어 쓴다.
   const id=new URL(location.href).searchParams.get('result');
   if(id){setShowForm(true);void follow(id);}
   const changed=()=>{if(owner.current!==readDestinyProfileAccountId()){operation.current++;authEpoch.current++;owner.current=readDestinyProfileAccountId();pending.current=null;delivery.current=null;flight.current=false;latest.current=null;looping.current=0;following.current=false;setState(null);setPaid(false);setProfileId('');setQuestion('');setBusy(false);setMessage('계정이 변경되었어요. 프로필을 다시 선택해 주세요.');}};
   window.addEventListener('storage',changed);window.addEventListener('focus',changed);window.addEventListener('cd:auth-changed',changed);
   return()=>{mounted.current=false;operation.current++;authEpoch.current++;window.removeEventListener('storage',changed);window.removeEventListener('focus',changed);window.removeEventListener('cd:auth-changed',changed);};
- },[follow]);
+ },[follow,loadPrice]);
  useEffect(()=>{
   // 숨은 탭·오프라인에서 멈춘 생성을 복귀·온라인·bfcache 복원 때 이어 쓴다(네오 결과 화면과 같은 이벤트).
   const wake=(event:Event)=>{
@@ -159,18 +166,19 @@ export default function HeukwolClient(){
  }
  return <main className={styles.page} lang="ko" data-cd-no-trans>
   <link rel="stylesheet" href="/styles/service-intro-fonts.css"/>
-  <nav className={styles.nav}><a href="/">꿀꿀 운세</a><button onClick={()=>{setShowForm(true);document.getElementById('heukwol-profile')?.scrollIntoView();}}>이야기 건너뛰기</button></nav>
+  <nav className={styles.nav}><a href="/ggulggul/">꿀꿀 운세 홈</a><button onClick={()=>{setShowForm(true);document.getElementById('heukwol-profile')?.scrollIntoView();}}>이야기 건너뛰기</button></nav>
+  {priceFailed && !pricing && <p role="status">가격을 확인하지 못했어요. <button type="button" onClick={loadPrice}>가격 다시 확인하기</button></p>}
   {state?.report?<HeukwolResult report={state.report} isCurrent={validOwner}/>:<>
-  {!showForm && <><header className={styles.cover}><p className={styles.eyebrow}>연이와 네오가 함께 읽는 다른 선택</p><h1>흑월의 주의 시기</h1><p className={styles.subtitle}>사주와 자미두수로 살펴보는 월별 흐름과 대비</p><p>어디로 가야 할지 막막할 때,<br/>흑월이 짚은 주의 흐름을 살펴보세요.<br/>연이와 네오가 다음 방향을 정리하도록 도와드립니다.</p><a className={styles.primary} href="#heukwol-story">이야기 읽기</a><p>단건 {pricing?.displayPrice||'가격 확인 중'} · 약 5만 자 · PDF</p><small>도입 이야기의 예시 · 개인 운세 결과가 아닙니다</small></header>
+  {!showForm && <><header className={styles.cover}><p className={styles.eyebrow}>연이와 네오가 함께 읽는 다른 선택</p><h1>흑월의 경고</h1><p className={styles.subtitle}>사주와 자미두수로 살펴보는 월별 흐름과 대비</p><p>어디로 가야 할지 막막할 때,<br/>흑월이 짚은 주의 흐름을 살펴보세요.<br/>연이와 네오가 다음 방향을 정리하도록 도와드립니다.</p><a className={styles.primary} href="#heukwol-story">이야기 읽기</a><p>단건 {priceLabel} · 약 5만 자 · PDF</p><small>도입 이야기의 예시 · 개인 운세 결과가 아닙니다</small></header>
   <FateWarningEpisode />
-  <section className={styles.invitation}><h2>아직 쓰이지 않은<br/>당신의 다음 장</h2><p>타고난 성향과 반복되는 선택부터 살펴봐요.<br/>연애·재물·인간관계·안전·건강의 점검과<br/>선택한 해의 열두 달 대응을 27장에 담아요.</p><a className={styles.primary} href="#heukwol-profile">저장한 프로필 선택하기</a><p>단건 {pricing?.displayPrice||'가격 확인 중'} · 약 5만 자 · 월별 리포트와 PDF</p></section></>}
+  <section className={styles.invitation}><h2>아직 쓰이지 않은<br/>당신의 다음 장</h2><p>타고난 성향과 반복되는 선택부터 살펴봐요.<br/>연애·재물·인간관계·안전·건강의 점검과<br/>선택한 해의 열두 달 대응을 27장에 담아요.</p><a className={styles.primary} href="#heukwol-profile">저장한 프로필 선택하기</a><p>단건 {priceLabel} · 약 5만 자 · 월별 리포트와 PDF</p></section></>}
   <section id="heukwol-profile" className={styles.form}>
-   {showForm&&<h1>흑월의 주의 시기</h1>}
+   {showForm&&<h1>흑월의 경고</h1>}
    {state?<>{state.status==='generating'&&<Image className={styles.writingScene} src="/images/consultation-webtoons/heukwol/portraits/moon-library.webp" alt="흑월 상담의 결과를 정리하는 달빛 서재" width={900} height={1600} sizes="(max-width: 600px) 90vw, 420px"/>}<h2>{state.status==='completed'?'상담을 완성했어요':state.status==='failed'?(state.retry?.available?'상담서 작성이 잠시 멈췄어요':'상담서를 완성하지 못했어요'):'당신의 대응 상담서를 쓰고 있어요'}</h2>{state.status==='failed'?(state.retry?.available?<><p role="alert">{RETRY_NOTICE}</p><p>{state.completedChapters} / {state.totalChapters}장 보관</p><button className={styles.primary} onClick={retryFree} disabled={busy}>{busy?'처리 중':'다시 시도 · 추가 결제·차감 없음'}</button><button type="button" className={styles.secondary} onClick={refundInstead} disabled={busy}>다시 시도 대신 환불 요청</button></>:<p role="alert">{REFUND_NOTICE[state.refundStatus||'pending']}</p>):<><p role="status">{state.completedChapters} / {state.totalChapters}장 저장</p><progress max={state.totalChapters} value={state.completedChapters}/></>}{state.status==='generating'&&<button className={styles.primary} onClick={resume} disabled={busy}>{busy?'작성 중':'이어서 작성하기'}</button>}<a href="/records/">보관함에서 확인하기</a></>:paid?<><Image className={styles.writingScene} src="/images/consultation-webtoons/heukwol/portraits/moon-library.webp" alt="흑월 상담의 결과를 정리하는 달빛 서재" width={900} height={1600} sizes="(max-width: 600px) 90vw, 420px"/><h2>결제를 확인했어요. 상담서를 쓰기 시작했어요</h2><progress/>{!busy&&<button className={styles.primary} onClick={()=>{if(pending.current&&!flight.current)void runPaid(pending.current);}}>다시 시도하기</button>}<a href="/records/">보관함에서 확인하기</a></>:<><header className={styles.formHeading}><svg aria-hidden="true" viewBox="0 0 48 48" width="40" height="40" fill="none"><path d="M33 8a18 18 0 1 0 7 28A19 19 0 0 1 33 8Z" stroke="currentColor" strokeWidth="1.2"/><path d="m35 17 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" stroke="currentColor" strokeWidth="1.2"/></svg><h2>당신의 흐름을 함께 살펴봐요</h2><p>사주와 자미두수의 월별 비교를 위해<br/>출생 시각이 기록된 프로필을 골라 주세요.</p></header><div className={styles.profileEntry}><SavedBirthProfilePicker locale="ko" disabled={busy} onClear={()=>setProfileId('')} onSelect={(_seed,profile)=>setProfileId(String(profile.profileId||profile.id||''))}/><button type="button" className={styles.secondary} disabled={busy} aria-expanded={adding} aria-controls="heukwol-new-profile" onClick={()=>setAdding(!adding)}>{adding?'입력 닫기':'새 프로필 만들기'}</button>{adding&&<div id="heukwol-new-profile" className={styles.newProfile}><ProfileForm locale="ko" surface="paper" onSaved={profile=>{setProfileId(String(profile.profileId||profile.id||''));setAdding(false);}}/></div>}</div>
    <label className={styles.yearField}>살펴볼 연도<select value={year} disabled={busy} onChange={e=>setYear(Number(e.target.value))}>{Array.from({length:10},(_,i)=><option key={i} value={firstYear.current+i}>{firstYear.current+i}년</option>)}</select></label>
    <label className={styles.questionField}>어떤 일을 겪었고, 무엇이 걱정되나요?<textarea value={question} onChange={e=>setQuestion(e.target.value)} disabled={busy} aria-describedby="heukwol-question-help" minLength={12} maxLength={3000} placeholder="실제로 겪은 일과 앞으로 걱정되는 일을 나눠 적어 주세요."/></label>
    <p className={styles.inputHint} id="heukwol-question-help">12~3,000자 · 현재 {question.trim().length}자</p><p className={styles.methodNote}>사주 절입 구간과 자미두수 음력 구간의 근거를 구분해요. 주의 지표는 실제 사고나 손실의 발생 확률이 아니에요.</p>
-   <button className={styles.primary} disabled={busy||!pricing||!profileId||question.trim().length<12} onClick={start}>{busy?'상담 준비 중':`이용 조건 확인하기 · ${pricing?.displayPrice||'가격 확인 중'}`}</button><p className={styles.inputHint}>선택한 프로필·연도·질문으로 상담 한 편을 만들어요. 완성본은 추가 생성 없이 다시 읽고 PDF로 저장할 수 있어요.</p></>}
+   <button className={styles.primary} disabled={busy||!pricing||!profileId||question.trim().length<12} onClick={start}>{busy?'상담 준비 중':`이용 조건 확인하기 · ${priceLabel}`}</button><p className={styles.inputHint}>선택한 프로필·연도·질문으로 상담 한 편을 만들어요. 완성본은 추가 생성 없이 다시 읽고 PDF로 저장할 수 있어요.</p></>}
    <p role="status">{message}</p>
   </section></>}
  </main>;

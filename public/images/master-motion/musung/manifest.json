@@ -1,0 +1,92 @@
+{
+  "id": "musung",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/musung-ziwei-portrait.webp",
+  "baseSha256": "e3ac4ac80586b787079ee1d1d62d47386527633a4daa476f2b52ca32d5feaa49",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/musung/portrait-poster.webp",
+      "posterBytes": 58668,
+      "sheet": {
+        "src": "/images/master-motion/musung/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/musung/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
+        }
+      },
+      "sheetBytes": 219980,
+      "mobileSheetBytes": 96940
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/musung/avatar-poster.webp",
+      "posterBytes": 4486,
+      "sheet": {
+        "src": "/images/master-motion/musung/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 13064,
+      "crop": {
+        "left": 130,
+        "top": 80,
+        "size": 360
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 3.01,
+      "wholeDiff": 3.49,
+      "regionDiff": 32.08,
+      "colorShift": [
+        -2.02,
+        -1.52,
+        -1.3
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 1,
+        "dy": 1,
+        "score": 6.72
+      }
+    },
+    "closed": {
+      "guardDiff": 3.49,
+      "wholeDiff": 4,
+      "regionDiff": 43.45,
+      "colorShift": [
+        -0.31,
+        -0.13,
+        1.71
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 7.65
+      }
+    }
+  }
+}

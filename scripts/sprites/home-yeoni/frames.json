@@ -1,0 +1,147 @@
+{
+  "pig": {
+    "canvas": [
+      800,
+      800
+    ],
+    "poster": "public/images/home/illustrated/yeoni-character-800.webp",
+    "face": {
+      "left": 270,
+      "top": 300,
+      "width": 278,
+      "height": 171
+    },
+    "regions": {
+      "pig-half-left": {
+        "left": 274,
+        "top": 337,
+        "width": 92,
+        "height": 93
+      },
+      "pig-half-right": {
+        "left": 448,
+        "top": 305,
+        "width": 94,
+        "height": 94
+      },
+      "pig-closed-left": {
+        "left": 274,
+        "top": 337,
+        "width": 92,
+        "height": 93
+      },
+      "pig-closed-right": {
+        "left": 448,
+        "top": 305,
+        "width": 94,
+        "height": 94
+      },
+      "pig-smile-mouth": {
+        "left": 382,
+        "top": 413,
+        "width": 77,
+        "height": 54
+      }
+    },
+    "states": {
+      "half": [
+        "pig-half-left",
+        "pig-half-right"
+      ],
+      "closed": [
+        "pig-closed-left",
+        "pig-closed-right"
+      ],
+      "smile": [
+        "pig-smile-mouth"
+      ],
+      "smileClosed": [
+        "pig-closed-left",
+        "pig-closed-right",
+        "pig-smile-mouth"
+      ],
+      "smileHalf": [
+        "pig-half-left",
+        "pig-half-right",
+        "pig-smile-mouth"
+      ],
+      "wink": [
+        "pig-closed-left",
+        "pig-smile-mouth"
+      ],
+      "hum": [
+        "pig-half-right",
+        "pig-half-left"
+      ]
+    }
+  },
+  "human": {
+    "canvas": [
+      600,
+      720
+    ],
+    "poster": "public/images/master-profiles/yeoni-love-portrait.webp",
+    "face": {
+      "left": 216,
+      "top": 99,
+      "width": 132,
+      "height": 101
+    },
+    "regions": {
+      "human-half-left": {
+        "left": 221,
+        "top": 132,
+        "width": 51,
+        "height": 39
+      },
+      "human-half-right": {
+        "left": 287,
+        "top": 101,
+        "width": 59,
+        "height": 40
+      },
+      "human-closed-left": {
+        "left": 221,
+        "top": 132,
+        "width": 51,
+        "height": 39
+      },
+      "human-closed-right": {
+        "left": 287,
+        "top": 101,
+        "width": 59,
+        "height": 40
+      },
+      "human-smile-mouth": {
+        "left": 280,
+        "top": 166,
+        "width": 49,
+        "height": 32
+      }
+    },
+    "states": {
+      "half": [
+        "human-half-left",
+        "human-half-right"
+      ],
+      "closed": [
+        "human-closed-left",
+        "human-closed-right"
+      ],
+      "smile": [
+        "human-smile-mouth"
+      ],
+      "smileClosed": [
+        "human-closed-left",
+        "human-closed-right",
+        "human-smile-mouth"
+      ],
+      "smileHalf": [
+        "human-half-left",
+        "human-half-right",
+        "human-smile-mouth"
+      ]
+    },
+    "silhouette": "human-silhouette.png"
+  }
+}

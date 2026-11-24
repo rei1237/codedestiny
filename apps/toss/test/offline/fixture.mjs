@@ -1,3 +1,6 @@
+import {tossPromptLibraryScope} from '../../../../lib/fortune/toss-prompt-library.mjs';
+import {mockPromptHubRequest} from '../../private-simulation/prompt-hub.mjs';
+import {saveFixtureProfile} from './profile-mutation.mjs';
 import {sukuyoProduct,relationshipProduct,relationshipSukuyoRequest} from './relationship-sukuyo.mjs';
 import {expertProducts,mockExpertRequest} from './experts.mjs';
 import {syntheticZiweiDeep,mockZiweiDeepRequest} from './ziwei-deep.mjs';
@@ -35,7 +38,7 @@ function createAccountFixture(storage,owner,token,now){
  const secondary=owner==='offline-test-user-2';
  const key=secondary?'toss-offline-fixture-2':'toss-offline-fixture';
  let saved;try{saved=JSON.parse(storage?.getItem(key)||'null');}catch{saved=null;}
- const state={profiles:saved?.profiles||[{id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),teaDrafts:new Map(saved?.teaDrafts||[]),letters:new Map(saved?.letters||[]),fortunes:new Map(saved?.fortunes||[]),
+ const state={profiles:saved?.profiles||[{location:{tz:'Asia/Seoul',lat:37.5665,lng:126.978,label:'서울'},id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}}],loggedIn:saved?.loggedIn===true,intents:new Map(saved?.intents||[]),teaDrafts:new Map(saved?.teaDrafts||[]),letters:new Map(saved?.letters||[]),fortunes:new Map(saved?.fortunes||[]),
   daily:saved?.daily||{day:null,balance:2,attended:false,unlocked:false,readings:{}},orders:new Map(saved?.orders||[]),testOrderSkus:new Map(saved?.testOrderSkus||[]),sequence:Number.isSafeInteger(saved?.sequence)?saved.sequence:(secondary?2**40:0)};
  const save=()=>{try{storage?.setItem(key,JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,intents:[...state.intents],teaDrafts:[...state.teaDrafts],letters:[...state.letters],fortunes:[...state.fortunes],daily:state.daily,orders:[...state.orders],testOrderSkus:[...state.testOrderSkus],sequence:state.sequence}));return Boolean(storage);}catch{return false;}};
  const letterProduct=reviewCatalog.find(p=>p.id==='yeoni:chat_saju');
@@ -94,6 +97,12 @@ function createAccountFixture(storage,owner,token,now){
   }
   if(!state.loggedIn||request.headers.get('Authorization')!=='Bearer '+token)return denied();
   if(path.startsWith('/tarot-library/'))return mockTarotRequest(request,path,state,save);
+  if(path==='/unlink'&&method==='POST'){
+    const key='prompt-hub-unlink-revision:'+owner;
+    state.loggedIn=false;
+    storage?.setItem(key,String(Number(storage.getItem(key)||0)+1));
+    save();return respond({remoteUnlink:'completed',promptLibraryOwner:owner});
+  }
   if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return respond({ok:true});}
   if(path==='/session'&&method==='GET')return respond({authenticated:true,environment:'SANDBOX'});
   if(path==='/nakshatra/compat'&&method==='POST'){
@@ -117,6 +126,8 @@ function createAccountFixture(storage,owner,token,now){
    return respond({ok:true,date:[target.year,target.month,target.day].map(n=>String(n).padStart(2,'0')).join('-'),personalized:!!profileId,
     systems:{saju:demo('saju','사주 일진'),sukuyo:demo('sukuyo','숙요 27수'),vedic:demo('vedic','베다 판창가'),number}});
   }
+  if((path==='/flower/session'||path==='/canonical/moonlit-lotus/session'||path==='/canonical/fortune/prompt-hub/session')&&method==='GET')return respond({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
+  const prompt=await mockPromptHubRequest(request,path);if(prompt)return prompt;
   if(path==='/canonical/geocode'&&method==='GET'){
    return url.searchParams.get('place')==='서울'
     ?respond({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false})
@@ -141,14 +152,16 @@ function createAccountFixture(storage,owner,token,now){
   if(path==='/human-design/chart'&&method==='POST')return respond(chartFixture());
   if(path==='/canonical/auth/me'&&method==='GET')return respond({ok:true,authenticated:true,user:{id:owner,name:'테스트 사용자',role:'user'}});
   if(path==='/native/catalog'&&method==='GET')return respond({products:[...expertProducts,product,sukuyoProduct,relationshipProduct,syntheticZiweiDeep,syntheticCompass,syntheticYoga,syntheticNakshatra,...roomProducts]});
-  if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
-  if(path==='/canonical/yeongnyangi/profiles'&&method==='POST'){
-   const {profile}=await request.json();if(!profile?.profileId||!profile.birth?.year)return respond({error:'BIRTH_INVALID'},400);
-   // Persist only a synthetic profile associated with the generated ID.
-   const row={...state.profiles[0],id:profile.profileId,profileId:profile.profileId};
-   if(profile.birth.timeUnknown===false){row.timeUnknown=false;row.birth={...row.birth,timeUnknown:false,hour:8,minute:35};}
-   if(!state.profiles.some(p=>p.id===row.id))state.profiles.push(row);save();return respond({ok:true,profile:row});
+  if(path==='/canonical/astro/western-chart'&&method==='POST'){
+   const {privateStarHugChart}=await import('../../private-simulation/star-hug-chart.mjs');
+   return privateStarHugChart(await request.json());
   }
+  if(path==='/canonical/yeongnyangi/free/hat'&&method==='POST'){
+   const {privateHat}=await import('../../private-simulation/sorting-hat.mjs');
+   return privateHat(state.profiles,await request.json());
+  }
+  if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return respond({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
+  if(method==='POST'&&['/canonical/yeongnyangi/profiles','/canonical/yeongnyangi/profiles/update'].includes(path))return saveFixtureProfile(state,await request.json(),path.endsWith('/update'),()=>!storage||save());
   if(path==='/canonical/profile'&&method==='GET')return respond({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
   if(path==='/canonical/fpti/deep-report/free'&&method==='POST'){
     const {profileId,birthInput}=await request.json(),profile=state.profiles.find(row=>row.profileId===profileId);

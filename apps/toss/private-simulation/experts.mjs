@@ -4,6 +4,11 @@ export {expertProducts};
 // Only the private simulation imports this adapter. Production generation,
 // prices and owner checks remain in the existing Toss service adapters.
 export async function expertRequest(request,url,path,state,save,now){
+  if(path==='/canonical/vedic-ai/basis'&&request.method==='POST'){
+    const input=await request.json();
+    if(!input.birthDate||!input.birthTime||!input.birthPlace?.timezone||!['male','female'].includes(input.gender))return Response.json({error:'BIRTH_INVALID'},{status:422});
+    return Response.json({ok:true,groups:[{key:'core',items:[{label:'라그나',value:'양자리'},{label:'달의 라시',value:'황소자리'},{label:'나크샤트라',value:'Rohini · 모의 천문 자료'}]}]});
+  }
   return mockExpertRequest(request,url,path==='/orders/restore'?'/orders/grant':path,state,save,now,1100);
 }
 export function expertRecords(url,state){

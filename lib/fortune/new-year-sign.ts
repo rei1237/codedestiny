@@ -257,7 +257,8 @@ export function getNewYearSeason(): NewYearSeason {
   return seasonCache;
 }
 
-function samjaeFor(branch: number, season: NewYearSeason): SamjaeStatus {
+/** 띠 지지 branch 가 그해(season.year·season.branchIndex)에 삼재인지. /fortune/samjae 도 이 함수를 쓴다. */
+export function samjaeFor(branch: number, season: Pick<NewYearSeason, "year" | "branchIndex">): SamjaeStatus {
   const group = SAMJAE_START.find((g) => g.members.includes(branch));
   if (!group) throw new RangeError(`지지 ${branch} 의 삼재 그룹이 없습니다.`);
   const offset = (season.branchIndex - group.start + 12) % 12;

@@ -381,7 +381,12 @@ function basicAstrologyCalculationError(error) {
 
 async function handleAstroWesternChart(request, env) {
   const body = await readJson(request);
-  const chart = await getSwissWesternChart(env, normalizeChartInput(body), { requestUrl: request.url });
+  return calculateWesternProfileChart(body,env,request.url);
+}
+
+// The web and Toss entry points authenticate their own session before calling this calculation.
+export async function calculateWesternProfileChart(body,env,requestUrl) {
+  const chart = await getSwissWesternChart(env, normalizeChartInput(body), { requestUrl });
   const localAstroChartJson = buildAstroLocalChartJson(
     normalizeAstroPremiumBirthInput(body),
     chart,

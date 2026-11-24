@@ -9,6 +9,7 @@
 /* 장 수는 서버가 돌려준 manifest·chapters 로만 센다. 수가 없으면 막대만 흐르고 %는 쓰지 않는다. */
 .count{color:var(--yn-gold);font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
 .chapterTitle{color:var(--yn-ivory);font-size:15px}
+.libraryReturn{display:inline-flex;align-items:center;min-height:44px;color:var(--yn-gold);font-weight:650;text-underline-offset:4px}
 .elapsed{color:var(--yn-muted);font-size:14px}.elapsed time{color:var(--yn-ivory);font-weight:600;font-variant-numeric:tabular-nums}
 .flow{position:relative;display:block;width:min(100%,220px);height:6px;margin:4px 0 12px;overflow:hidden;border:1px solid var(--yn-line);border-radius:999px;background:var(--yn-surface)}
 .flow::after{content:"";position:absolute;inset:0 auto 0 0;width:40%;border-radius:inherit;background:var(--yn-gold);animation:ynReadingFlow 1.6s ease-in-out infinite}

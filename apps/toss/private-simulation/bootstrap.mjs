@@ -15,6 +15,7 @@ window.fetch=async(input,init)=>{
   const request=new Request(input instanceof Request?input:new URL(input,location.origin),init);
   const url=new URL(request.url);
   if(url.origin===location.origin&&url.pathname.startsWith('/private-simulation-api/'))return handle(request);
+  if(url.origin===location.origin&&request.method==='GET'&&url.pathname===encodeURI('/fuctionassets/연이 캐릭터 스프라이트 시트.webp'))return nativeFetch(request);
   if(url.origin===location.origin&&request.method==='GET'&&/^\/(?:assets|fonts|audio|music|images|js|css|data)\//.test(url.pathname))return nativeFetch(request);
   throw TypeError('Private simulation blocks outbound requests');
 };

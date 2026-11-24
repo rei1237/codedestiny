@@ -163,7 +163,7 @@ const cases = [
       // 셸 계정 시트(cdOpenAccount)를 열고, 프로필 카드는 그 시트의 "내 프로필 카드"(dpOpenList)로 연다.
       ["mobileTabs", "export const PROFILE_SHEET_ACTION = \"dpOpenList\""],
       ["mobileTabs", "export const ACCOUNT_SHEET_ACTION = \"cdOpenAccount\""],
-      ["mobileTabs", "href: `/?action=${ACCOUNT_SHEET_ACTION}`"],
+      ["mobileTabs", "href: \"/ggulggul/#cdAccountSheetTitle\""],
       ["homeFunnelTemplate", "<a href=\"/?action=dpOpenList\" data-action=\"dpOpenList\""],
       // React 네비는 탭 정의를 정본에서 그대로 받아 쓰고(사본 금지), 셸 홈 대상 탭은
       // 클라이언트 라우팅이 아니라 문서 로드로 보낸다 — 그래야 ?action= 을 셸이 처리한다.

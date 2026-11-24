@@ -99,13 +99,30 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0,
           <div className={styles.recordBody}>
             <div className={styles.recordMeta}><strong>{item.serviceName}</strong><span>{statusLabel(item.status)}</span>{item.character && <span>{item.character === 'neo' ? '네오' : '연이'}</span>}</div>
             <h2 className="line-clamp-2">{item.title}</h2>{item.question && <p className={`${styles.recordQuestion} line-clamp-2`}>{item.question}</p>}
-            <div className={styles.recordFooter}><time dateTime={item.createdAt || undefined}>{item.createdAt ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(item.createdAt)) : ''}</time>{['completed','conversation','saved'].includes(item.status) && locale === 'ko' && <a className={recordButton} href={reviewWriteHref(item.reviewProductId)}>후기 쓰기</a>}{item.status === 'retry_available' && item.recoveryHref && <a className={recordButton} href={item.recoveryHref}>{c.retryAction}<ArrowUpRight size={16} aria-hidden /></a>}<a className={recordButton} href={item.href}>{['completed','conversation','saved'].includes(item.status) ? c.open : c.result}<ArrowUpRight size={16} aria-hidden /></a></div>
+            <div className={styles.recordFooter}>
+              {item.createdAt && <time dateTime={item.createdAt}>{new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(item.createdAt))}</time>}
+              <div className={styles.recordActions}>
+                {['completed', 'conversation', 'saved'].includes(item.status) && locale === 'ko' && <a className={styles.recordReview} href={reviewWriteHref(item.reviewProductId)}>후기 쓰기</a>}
+                {item.status === 'retry_available' && item.recoveryHref && <a className={styles.recordReview} href={item.recoveryHref}>{c.retryAction}<ArrowUpRight size={16} aria-hidden /></a>}
+                <a className={styles.recordOpen} href={item.href}>{['completed', 'conversation', 'saved'].includes(item.status) ? c.open : c.result}<ArrowUpRight size={16} aria-hidden /></a>
+              </div>
+            </div>
           </div>
         </article>;
       })}</div>
       {loading && <div role="status" className="my-5 space-y-3"><p className="text-sm">{c.loading}</p>{!items.length && [1,2,3].map(id => <div key={id} aria-hidden className="h-36 animate-pulse rounded-[var(--cd-r-card)] bg-[var(--cd-surface)]" />)}</div>}
       {!loading && !error && !failures.length && !items.length && cursor && <p role="status">일치하는 기록을 더 확인할 수 있어요.</p>}
-      {!loading && !error && !failures.length && !items.length && !cursor && <section className={styles.emptyState}><img src="/images/yeoni/garden/yeoni-garden-library-empty-v1-320.webp" width="160" height="160" alt="" /><h2 className="text-xl font-semibold">{search || group !== 'all' ? c.emptySearch : c.empty}</h2><p>{c.emptyLead}</p><a className={recordButton} href={paymentSurface === 'toss' ? '/' : '/consultations/'}>{c.hub}</a></section>}
+      {!loading && !error && !failures.length && !items.length && !cursor && <section className={styles.emptyState}>
+        <img src="/images/yeoni/garden/yeoni-garden-library-empty-v1-320.webp" width="160" height="160" alt="" />
+        <h2 className="text-xl font-semibold">{search || group !== 'all' ? c.emptySearch : c.empty}</h2>
+        {search || group !== 'all' ? <button className={recordButton} onClick={() => { setGroup('all'); setSearch(''); }}>{c.back}</button> : <>
+          <p>{c.emptyLead}</p>
+          {paymentSurface === 'toss' ? <a className={recordButton} href="/">{c.hub}</a> : <div className={styles.emptyActions}>
+            <a className={recordButton} href="/fortune-tea-house/">{c.yeoni}</a>
+            <a className={recordButton} href="/neo-operation-room/">{c.neo}</a>
+          </div>}
+        </>}
+      </section>}
       {cursor && !loading && <button className={`${recordButton} mt-5 w-full`} onClick={() => void loadMore()}>{c.more}</button>}
     </>}
   </RecordFrame>;

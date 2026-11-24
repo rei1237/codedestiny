@@ -8,6 +8,8 @@
   max-width: 940px;
   box-sizing: border-box;
 }
+/* 위 원본 상자와 같은 16px 거터(900px 미만). */
+@media (max-width: 899px) { .slot { width: auto; margin-inline: 16px; } }
 /* 셸 기본 폭(--gf-max 40rem) 대신 위 원본 상자와 같은 폭으로 편다. */
 .slot > [data-brand] {
   max-width: none;

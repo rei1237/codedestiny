@@ -1,0 +1,87 @@
+{
+  "purpose": "숙요점 궁합 소개장 초상(서한비)·초융합 마스터 띠 아바타의 대기 모션(눈 깜빡임) 스프라이트 시트",
+  "generationTool": "Codex CLI 0.156.1 (ChatGPT OAuth) built-in image_gen = gpt-image-2, 이미지 편집 입력",
+  "references": [
+    "public/images/master-profiles/hanbi-sukuyo-portrait.webp"
+  ],
+  "promptRules": "정본과 같은 인물·얼굴·머리·의상·구도·조명·배경을 유지하고 지정 부위만 바꾼다. 텍스트·글자·숫자·워터마크·로고·서명·테두리·꽃잎 금지. 물체 추가·이동·삭제 금지.",
+  "id": "hanbi",
+  "built": "2026-11-22",
+  "builder": "scripts/sprites/build-master-motion.mjs",
+  "spec": "scripts/sprites/master-motion/hanbi.json",
+  "base": {
+    "path": "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+    "sha256": "2d5bd2f386a5112c8c2914dfcb6202782e5b1388c0f3996cf591267e3df4bf14"
+  },
+  "sources": {
+    "half": {
+      "file": "D:/CodeDestiny-Build/master-motion/hanbi/raw-half.png",
+      "sha256": "933b226db1fb176222bf4beafc47c1db4c9cf91f333b6f1611323a2d4f2eb0c6",
+      "region": [
+        {
+          "cx": 263,
+          "cy": 259,
+          "rx": 30,
+          "ry": 18,
+          "feather": 8
+        },
+        {
+          "cx": 348,
+          "cy": 235,
+          "rx": 32,
+          "ry": 19,
+          "feather": 8
+        }
+      ],
+      "keep": [
+        {
+          "cx": 361,
+          "cy": 249.5,
+          "rx": 4,
+          "ry": 3.5,
+          "feather": 2
+        }
+      ],
+      "prompt": "eyes half-closed mid-blink (upper eyelids lowered about halfway over the irises); eyebrows, mouth and expression otherwise unchanged"
+    },
+    "closed": {
+      "file": "D:/CodeDestiny-Build/master-motion/hanbi/raw-closed.png",
+      "sha256": "8a4e543f94862b96d65c0ed90b1cf9b01f725388cd1d0f33f6fc89782f7de3d6",
+      "region": [
+        {
+          "cx": 263,
+          "cy": 259,
+          "rx": 30,
+          "ry": 18,
+          "feather": 8
+        },
+        {
+          "cx": 348,
+          "cy": 235,
+          "rx": 32,
+          "ry": 19,
+          "feather": 8
+        }
+      ],
+      "keep": [
+        {
+          "cx": 361,
+          "cy": 249.5,
+          "rx": 4,
+          "ry": 3.5,
+          "feather": 2
+        }
+      ],
+      "prompt": "eyes fully closed in a gentle natural blink (upper eyelids fully lowered, lashes resting down); eyebrows, mouth and expression otherwise unchanged"
+    }
+  },
+  "operation": "정본 초상을 기본 칸으로 쓰고, 편집 생성물을 정본에 위치·배율 맞춤 뒤 영역(타원·페더)만 합성했다. 한 줄 WebP 시트와 포스터로 내보냈다.",
+  "mobilePortrait": {
+    "src": "/images/master-motion/hanbi/portrait-sheet-360.webp",
+    "cell": {
+      "width": 360,
+      "height": 432
+    },
+    "operation": "동일한 합성 원본을 칸별로 축소해 같은 순서로 묶었다."
+  }
+}

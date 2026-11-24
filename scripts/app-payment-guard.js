@@ -19,20 +19,6 @@
 
   var APP_STORE_BASE = "/api/app-store";
 
-  function apiBase() {
-    var base = window.CODE_DESTINY_API_BASE_URL || "";
-    return String(base || "").replace(/\/+$/, "");
-  }
-
-  function authHeaders() {
-    var headers = { "Content-Type": "application/json" };
-    try {
-      var token = localStorage.getItem("fortune_auth_token");
-      if (token) headers.Authorization = "Bearer " + token;
-    } catch (e) { /* noop */ }
-    return headers;
-  }
-
   // intent/verify/free-grant 왕복 상한. 셸(index.html resolveTimeoutMs)의 /api/billing/checkout·confirm
   // 과 같은 25s — 같은 워커 스택(인증 + 보안가드 + Mongo 쓰기)을 타므로 콜드 시 ~25s 까지 걸린다.
   // 상한이 없으면 망 전환 등으로 응답이 영영 안 올 때 아래 inFlight 가 풀리지 않아 재시도 버튼도
@@ -54,9 +40,11 @@
     var response;
     var payload;
     try {
-      response = await fetch(apiBase() + path, {
+      // 결제 시트에 머무는 동안 access 토큰이 만료될 수 있다.
+      // 앱 브릿지가 API 출처와 세션 헤더를 요청 시점에 결정한다.
+      response = await fetch(path, {
         method: method,
-        headers: authHeaders(),
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         cache: "no-store",
         body: method === "GET" ? undefined : JSON.stringify(body || {}),
@@ -179,6 +167,18 @@
     return "cancel";
   }
 
+  async function verifyPlayReceipt(receipt) {
+    // A lost response can follow a saved order. Replay the same receipt without reopening Play.
+    for (var attempt = 0; attempt < 2; attempt += 1) {
+      var verified = await postJson(APP_STORE_BASE + "/google/verify", receipt).catch(function () { return null; });
+      if (verified && verified.ok && verified.payload.ok === true && verified.payload.data) return verified;
+      if (verified && verified.status >= 400 && verified.status < 500 && verified.status !== 429) break;
+    }
+    throw failure("APP_STORE_VERIFY_FAILED", document.documentElement.lang === "ja"
+      ? "購入の確認を保留しています。再購入せず、アプリの購入履歴を確認してください。"
+      : "결제 확인을 마치지 못했어요. 다시 결제하기 전에 앱의 결제 내역을 확인해 주세요.");
+  }
+
   async function runPlayBillingCheckoutCore(options) {
     var opts = options || {};
     if (isIosApp()) return runIosCheckout(opts);
@@ -242,7 +242,7 @@
         : "결제 완료를 확인하지 못했어요. 앱의 구매 내역을 확인해 주세요.");
     }
 
-    var verify = await postJson(APP_STORE_BASE + "/google/verify", Object.assign({}, intentBody, {
+    var receipt = Object.assign({}, intentBody, {
       productId: product.productId,
       productType: product.productType || "inapp",
       purchaseToken: purchaseResult.purchaseToken,
@@ -251,10 +251,8 @@
       purchaseState: purchaseResult.purchaseState,
       acknowledged: purchaseResult.acknowledged,
       provider: "GOOGLE_PLAY",
-    }));
-    if (!verify.ok) {
-      throw failure("APP_STORE_VERIFY_FAILED", String((verify.payload && verify.payload.message) || "결제 검증에 실패했습니다."));
-    }
+    });
+    var verify = await verifyPlayReceipt(receipt);
 
     // 회당 결제는 소비해야 재구매가 열린다. 실패해도 지급은 되돌리지 않는다
     // (서버가 이미 승인해 자동 환불은 없고, 앱 재시작 시 복구 경로가 다시 소비한다).

@@ -22,6 +22,11 @@ Use it only for:
 
 If the first three documents disagree, do not merge rules silently. Record the mismatch here, then resolve it before coding.
 
+## 2026-11-23 · 상담 여정 검수
+
+- 마스터 모션 자산 문서의 재생 설명은 소개장에 600×720만 썼지만 규격 표에는 모바일 프레임 360×432도 있었다. 두 크기를 같은 합성 원본에서 만들고 768px까지 작은 시트를 사용하도록 구현·명세를 일치시켰다.
+- UX 지시서 초안은 생성 실패 전체에 추가 결제 없는 재시도를 안내했지만, 영냥이 서버가 이미 결제를 환불한 상태도 있다. 기존 결제 상태와 정책에 따라 저장 주문·미리보기·환불 완료를 구분해 안내한다.
+
 ## Delivery Policy
 
 > 🔴 **2026-08-14 — 이 절이 폐기된 계약을 "Active rule" 로 선언하고 있었다.** 이 파일은 우선순위 4위인데 1위 `AGENTS.md` 와 정반대 규칙을 활성으로 적어 두었고, 바로 위 "세 문서가 disagree 하면 코딩 전에 화해시켜라" 규칙 때문에 **매 세션 시작이 그 화해 작업에 막혔다.** 이 파일의 역할은 충돌·예외의 기록이지 현재 상태의 재서술이 아니다(Purpose 절 참고). 그래서 여기에는 활성 규칙을 쓰지 않는다.
@@ -433,3 +438,31 @@ PR 생성 후 필수 검사와 최신 base 충돌을 확인하고 에이전트�
 - **해소**: 저장소 계약을 따랐다. 공유 체크아웃에 다른 세션 미커밋이 있어 워크트리 `wt/moonlit-ritual-20261122-030358` 에서 Phase 별 작은 Conventional Commit 으로 작업했고, PR 은 만들지 않는다. main 머지·push·워크트리 배수는 메인 세션이 한다.
 - **남은 위험**: 워크트리 머지 직후 미러가 다시 낡을 수 있다(머지 뒤 `npm run sync:public` 재실행).
 - **롤백**: Phase 별 커밋 `git revert`. 참배만 끄려면 `_ritual/MoonlitEntry.tsx` 분기를 Space 고정으로, 전체는 `MOONLIT_LOTUS_ENABLED`.
+
+## 2026-11-22 꿀꿀 고급화(G) "도화서원처럼 고급스럽게"(명조·남색 버튼·4:5 포스터) ↔ design-canon 서체·팔레트·그림 비율
+
+- **충돌**: 참고 사이트의 기법은 명조 제목, 남색 주 버튼, 4:5 포스터다. design-canon 은 다음을 고정한다.
+  - 제목·서비스명은 주아체다(2026-11-09 사용자 승인, `--font-serif` 도 display 로 매핑).
+  - 꿀꿀·연이는 핑크 계열이고 네오는 퍼플 달빛이다. 새 색은 토큰으로만 쓴다.
+  - 카탈로그 그림은 3:2, 진입 그림은 16:9 이고 세로로 자르지 않는다.
+- **해소**: 캐논이 우선이다. 기법만 옮긴다.
+  - 서체: 명조는 쓰지 않는다. 진입 `entry()` 제목의 MaruBuri 는 캐논 위반이어서 `--font-display` 로 바꿨다.
+  - 주 버튼: 남색 대신 연이 딥 플럼(`--cd-cta-primary-bg`·`--fc-dark`)에 이중 금테(테두리 + 3px 띄운 1px 금선)를 둔다.
+  - 배너 밤 표면: 하드코딩 hex 를 `--cd-yehwa-night*`·`-champagne`·`-pearl*` 토큰으로 옮겼다(두 블록). 연이는 딥 플럼, 네오는 기존 남보라 값을 그대로 쓴다.
+  - 4:5 포스터는 적용하지 않는다. 대신 hover -3px·그림 1.04배(transform 만, 움직임 줄이기면 없음)와 금 1px 소제목 장식선을 쓴다.
+  - 크림 그라데이션 위 글: 밝은 진입 장면만 크림 단색 판 위 잉크 글자로 바꿨다(데스크톱에서 판이 늘어나 그라데이션이면 위아래 색이 갈렸다). `/ggulggul/` 카드 글 영역은 어두운 테마라 그라데이션이 회보라 띠가 되어 대비가 3.4–3.7:1 로 떨어졌으므로 되돌렸다(실측, visual-checker).
+- **남은 위험**: `fortune-consultation-entry.css` 의 `.fc-master-reading` 제목 MaruBuri(결과 화면)는 G 범위 밖이라 그대로 두었다(후속 보고).
+- **롤백**: G 커밋을 `git revert` 하고 `npm run sync:public`.
+
+## 2026-11-22 영냥이 밤꽃(H) "움직이면서 동적인 효과" ↔ docs/design/yeongnyangi-night.md:9 "캐릭터를 눌렀을 때의 짧은 반응만 유지"
+
+- **충돌**: 영냥이 디자인 캐논은 움직임을 캐릭터 탭 반응으로 한정했다. 2026-11-22 사용자가 "영냥이도 어느정도 움직이면서 동적인 효과를 줘야해"라고 배경 움직임을 요청했다.
+- **해소**: 사용자 요청이 우선이다. 범위는 `/yeongnyangi/` 히어로와 `/yeongnyangi/room/` 그림 안의 `NightBloomMotion` 한 층이다.
+  - 금빛 별가루(MasterPetals yeongnyangi sm, 3개)와 아이보리→금 꽃잎(4개)을 쓴다.
+  - transform·opacity 만 움직이고, 초당 약 9~22px 로 느리게 떨어진다.
+  - 보일 때·탭 활성일 때만 재생한다(`useSpritePlaybackGate` + `MASTER_MOTION_ENABLED`).
+  - reduced motion 이면 층을 숨긴다.
+  - 정적 장식은 연꽃 라인아트 1종이다. 목련은 세 번 그렸지만 모두 튤립으로 읽혀 넣지 않았다.
+  - 분홍은 쓰지 않는다.
+- **남은 위험**: 모바일 히어로는 사진에 이미 매화가 그려져 있어 연꽃을 숨기고 모션만 둔다. 방 380px 미만도 캡션과 붙어 연꽃을 숨긴다.
+- **롤백**: H 화면 커밋을 `git revert`. 모션만 끄려면 `lib/master-motion/flags.mjs` 의 `MASTER_MOTION_ENABLED`(F 스프라이트와 함께 꺼진다).

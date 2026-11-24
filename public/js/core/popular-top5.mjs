@@ -14,8 +14,6 @@ import { findPopularService, POPULAR_TOP_N, POPULAR_WINDOW_DAYS, rankPopularServ
 
 export const POPULAR_TOP5_ENABLED = true;
 export const POPULAR_TOP5_ENDPOINT = '/api/popular-services';
-// 행 높이 고정(64px) × 5 + 머리글. 자리를 미리 잡아 두어 데이터가 와도 아래 내용이 밀리지 않는다.
-export const POPULAR_TOP5_RESERVED_HEIGHT = 484;
 
 const CACHE_KEY = 'cd-pop5-cache-v1';
 export const POPULAR_TOP5_FETCH_TIMEOUT_MS = 3000;
@@ -73,12 +71,19 @@ export function renderPopularTop5(section, payload, { surface = 'home', fallback
   section.setAttribute('aria-labelledby', title.id);
   section.removeAttribute('aria-label');
   const asOf = formatAsOf(payload.asOf);
-  const period = fallback
-    ? '지금은 운영진이 고른 추천 상담을 먼저 보여 드려요'
-    : hasSales
-    ? `최근 ${POPULAR_WINDOW_DAYS}일 구매 기준${asOf ? ` · ${asOf}` : ''}`
-    : `최근 ${POPULAR_WINDOW_DAYS}일 구매가 아직 적어 추천 상담을 먼저 보여 드려요`;
-  head.append(title, el(doc, 'p', 'cd-pop5__period', period));
+  const period = el(doc, 'p', 'cd-pop5__period');
+  let summary = '순위를 불러오지 못했어요.';
+  let detail = '운영진이 고른 추천 상담을 보여 드려요.';
+  if (!fallback) {
+    summary = hasSales ? `최근 ${POPULAR_WINDOW_DAYS}일 구매 순위` : `최근 ${POPULAR_WINDOW_DAYS}일 구매 표본이 적어요.`;
+    if (hasSales) {
+      if (asOf) summary += ` · ${asOf}`;
+      detail = hasCurated ? '‘추천’은 운영진이 고른 상담이에요.' : '';
+    }
+  }
+  period.append(doc.createTextNode(summary));
+  if (detail) period.append(el(doc, 'span', 'cd-pop5__detail', detail));
+  head.append(title, period);
 
   const list = el(doc, 'ol', 'cd-pop5__list');
   for (const row of rows) {
@@ -110,7 +115,6 @@ export function renderPopularTop5(section, payload, { surface = 'home', fallback
   }
 
   section.replaceChildren(head, list);
-  if (hasSales && hasCurated) section.append(el(doc, 'p', 'cd-pop5__note', '‘추천’ 꼬리표는 구매 표본이 적은 자리를 운영진이 채운 상담이에요.'));
   section.dataset.cdPop5State = 'ready';
   if (fallback) section.dataset.cdPop5Fallback = ''; else delete section.dataset.cdPop5Fallback;
   return true;

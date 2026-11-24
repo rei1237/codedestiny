@@ -12,6 +12,7 @@ import {createHash} from 'node:crypto';
 import {gzipSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {extractOmikujiEngine} from './omikuji-engine-loader.mjs';
+import {hatHouses,hatImage} from '../../../lib/yeongnyangi/hat-houses.ts';
 import {TOSS_WEBP_ART} from './bundle-art.mjs';
 const publicRoot=fileURLToPath(new URL('../../../public/',import.meta.url)).replace(/[\\/]$/,'');
 const shim=fileURLToPath(new URL('../canonical/next.jsx',import.meta.url)).replaceAll('\\','/');
@@ -74,8 +75,8 @@ export function isYeongnyangi640Reference(ref){return /^\/images\/service-introd
 
 // Encode the same 600×900 screen artwork at high quality; never resize or
 // replace the shared source. Retain original bytes if recompression is larger.
-export async function screenTarotBytes(source){
- const encoded=await sharp(source).webp({quality:90,effort:6,alphaQuality:100}).toBuffer();
+export async function screenTarotBytes(source,quality=85){
+ const encoded=await sharp(source).webp({quality,effort:6,alphaQuality:100}).toBuffer();
  return encoded.length<source.length?encoded:source;
 }
 
@@ -89,10 +90,15 @@ export function tossBuildId(sha=process.env.GITHUB_SHA,now=Date.now()){
 export default function serviceCompat(){
  const references=new Set(['/fuctionassets/rune.webp']);
  let privateArt=false;
- const storyAssets=new Set();
+ const storyAssets=new Map();
  const storySource=src=>privateArt?'/__story-art'+src:'https://code-destiny.com'+src;
  const projectCuts=cuts=>cuts.map(cut=>{
-  if(privateArt&&cut.src){for(const width of cut.widths)storyAssets.add(cut.src+'-'+width+'.avif');storyAssets.add(cut.src+'-'+cut.fallback+'.webp');}
+  if(privateArt&&cut.src){
+   // Pack one mobile illustration per cut for the offline reader.
+   const width=Math.min(480,cut.fallback);
+   storyAssets.set(cut.src+'-'+width+'.webp',{original:cut.src+'-'+cut.fallback+'.webp',width});
+   return {...cut,src:storySource(cut.src),widths:[],fallback:width};
+  }
   return {...cut,src:cut.src?storySource(cut.src):''};
  });
  return {name:'canonical-service-runtime',enforce:'pre',
@@ -169,7 +175,10 @@ export default function serviceCompat(){
     const stories=Object.fromEntries(Object.entries(consultationWebtoons).map(([key,story])=>[key,{
      ...story,cuts:projectCuts(story.cuts),
     }]));
-    if(privateArt)for(const key of Object.keys(stories))storyAssets.add('/images/consultation-webtoons/covers/mobile/'+key+'.webp');
+    if(privateArt)for(const key of Object.keys(stories)){
+     const original='/images/consultation-webtoons/covers/mobile/'+key+'.webp';
+     storyAssets.set(original,{original,width:320});
+    }
     return 'export const coverDirectory='+JSON.stringify(storySource('/images/consultation-webtoons/covers/mobile/'))+';export default '+JSON.stringify(stories);
    }
    if(id==='\0toss-destiny-island'){
@@ -202,15 +211,32 @@ export default function serviceCompat(){
    try{const bytes=await readFile(path);res.setHeader('Content-Type',mime[extname(path)]);res.end(bytes);}catch{next();}
   });},
   async generateBundle(_options,bundle){
-   // Only the offline simulation embeds exact original panels. The release streams them.
-   for(const ref of storyAssets)this.emitFile({type:'asset',fileName:'__story-art'+ref,source:await readFile(resolve(publicRoot,'.'+ref))});
+   for(const [name,{original,width}] of storyAssets){
+    const source=await sharp(resolve(publicRoot,'.'+original)).resize({width,withoutEnlargement:true}).webp({quality:78}).toBuffer();
+    this.emitFile({type:'asset',fileName:'__story-art'+name,source});
+   }
    let tea640=false,yeongnyangi640=false;
    // Inspect the emitted chunks, not every imported module before tree shaking.
    // Otherwise dead catalog entries and navigation URLs copy whole art archives.
    for(const entry of Object.values(bundle)){
     const source=entry.type==='chunk'?entry.code:entry.fileName.endsWith('.css')?String(entry.source):'';
+    if(source.includes('/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90'))references.add('/fuctionassets/연이 캐릭터 스프라이트 시트.webp');
     if(source.includes('/fuctionassets/saju-relationship-temptation-768.webp'))references.add('/fuctionassets/saju-relationship-temptation-768.webp');
-    for(const match of source.matchAll(asset)){const ref=match[1];if(isTea640Reference(ref)){tea640=true;continue;}if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}const prefix=ref.split('${')[0];if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);}
+    // Recipe cards render public originals or separately packaged private mobile copies.
+    // The shared recipe data builds these URLs dynamically. A directory prefix is not a file request.
+    const recipeReader=entry.type==='chunk'&&Object.keys(entry.modules).some(id=>id.replaceAll('\\','/').endsWith('/src/RecipeReader.jsx'));
+    const lotusReader=entry.type==='chunk'&&Object.keys(entry.modules).some(id=>id.replaceAll('\\','/').endsWith('/service/TossMoonlitLotus.jsx'));
+    for(const match of source.matchAll(asset)){
+     const ref=match[1];
+     if(lotusReader&&ref.startsWith('/assets/profile-pets/'))throw Error('Unscoped web pet art in Toss Moonlit Lotus');
+     // The Moonlit Lotus adapter resolves each original to its web or private art URL.
+     if(ref.startsWith('/assets/moonlit-lotus/'))continue;
+     if(recipeReader&&ref.startsWith('/images/five-elements/'))continue;
+     if(isTea640Reference(ref)){tea640=true;continue;}
+     if(ref.startsWith('/images/service-introductions/yeongnyangi-${')&&isYeongnyangi640Reference(source.slice(match.index+match[0].indexOf(ref),match.index+512))){yeongnyangi640=true;continue;}
+     const prefix=ref.split('${')[0];
+     if(prefix.length>8&&prefix!=='/neo-operation-room/')references.add(prefix);
+    }
    }
    // Original named LOVE CODE character portraits (including Korean spaces) are used by the web engine.
    if(Object.values(bundle).some(entry=>entry.type==='chunk'&&entry.code.includes('/fuctionassets/러브 코드/'))){
@@ -241,22 +267,54 @@ export default function serviceCompat(){
     for(const match of source.matchAll(asset))references.add(match[1]);
    }
    const emitted=new Set();
+   const hatFolder='/assets/yeongnyangi/hat/';
+   if([...references].some(ref=>ref.startsWith(hatFolder))){
+    const pictures=['invitation',...hatHouses.map(house=>house.id)].map(id=>hatImage(id));
+    for(const original of [...pictures,hatFolder+'spirit-hat-v2.png']){
+     const spirit=original.endsWith('.png'),fileName=original.slice(1).replace(/\.png$/,'.webp');
+     const source=await sharp(resolve(publicRoot,'.'+original)).resize({width:spirit?320:480,withoutEnlargement:true}).webp({quality:72}).toBuffer();
+     this.emitFile({type:'asset',fileName,source});
+    }
+   }
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
+    if(privateArt&&/^assets\/result-samples\/[^/]+\.jpg$/.test(ref)){
+     return sharp(path).resize({width:780,withoutEnlargement:true}).jpeg({quality:84}).toBuffer();
+    }
+    if(privateArt&&/^assets\/yeongnyangi\/report-art\/[^/]+\.webp$/.test(ref)){
+     const width=ref.endsWith('-print.webp')?1000:780;
+     return sharp(path).resize({width,withoutEnlargement:true}).webp({quality:80}).toBuffer();
+    }
+    // Keep the tea room sprite coordinates and every animation frame in the offline archive.
+    if(privateArt&&/^images\/fortune-tea-house\/[^/]+\.webp$/.test(ref)){
+     const source=await readFile(path);
+     const mobile=await sharp(source,{animated:true}).webp({quality:76,alphaQuality:92}).toBuffer();
+     return mobile.length<source.length?mobile:source;
+    }
+    // Portraits and service thumbnails occupy a phone-width card.
+    if(/^images\/(?:service-introductions|master-profiles|expert-characters|consultation-editorial)\/.+\.webp$/.test(ref)){
+     const source=await readFile(path);
+     const mobile=await sharp(source).resize({width:privateArt?480:640,withoutEnlargement:true}).webp({quality:76,alphaQuality:96}).toBuffer();
+     return mobile.length<source.length?mobile:source;
+    }
     if(ref.startsWith('fuctionassets/러브 코드/'))return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     if(ref==='fuctionassets/love code.webp')return sharp(path).resize({width:800,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     if(ref.startsWith('images/compat-story/'))return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:82}).toBuffer();
     // Guardians occupy a 72px reading portrait; the map also supports pinch zoom.
     if(/^images\/destiny-island\/guardians\/[^/]+-v1\.webp$/.test(ref))return sharp(path).resize({width:240,withoutEnlargement:true}).webp({quality:85}).toBuffer();
     if(ref==='images/destiny-island/exploration-map-v3.webp')return sharp(path).resize({width:1200,withoutEnlargement:true}).webp({quality:84}).toBuffer();
-    if(/^assets\/yeongnyangi\/tarot\/v1\/[A-Z]\d{2}-600\.webp$/.test(ref))return screenTarotBytes(await readFile(path));
+    if(/^assets\/yeongnyangi\/tarot\/v1\/[A-Z]\d{2}-600\.webp$/.test(ref)){
+     // The private phone preview keeps every card face at mobile display size.
+     if(privateArt)return sharp(path).resize({width:480,withoutEnlargement:true}).webp({quality:78,effort:6}).toBuffer();
+     return screenTarotBytes(await readFile(path));
+    }
     if(ref==='assets/yeongnyangi/tarot/v1/back-600.webp')return sharp(path).webp({quality:88,effort:6}).toBuffer();
     // Keep the three animation frames aligned on mobile, including transparent edges.
-    if(/^assets\/yeongnyangi\/readings\/[^/]+-loading-sprite-v1\.webp$/.test(ref))return sharp(path).resize({width:1536,withoutEnlargement:true}).webp({quality:87,alphaQuality:100}).toBuffer();
+    if(/^assets\/yeongnyangi\/readings\/[^/]+-loading-sprite-v1\.webp$/.test(ref))return sharp(path).resize({width:privateArt?1152:1536,withoutEnlargement:true}).webp({quality:privateArt?82:87,alphaQuality:100}).toBuffer();
     // The web waiting scene is displayed at most 416 CSS pixels wide.
     if(ref==='images/consultation-webtoons/heukwol/portraits/moon-library.webp')return sharp(path).resize({width:640,withoutEnlargement:true}).webp({quality:84}).toBuffer();
     // These portraits and scene covers fill at most the miniapp content width.
-    if(/^images\/(master-profiles|consultation-editorial|service-introductions|fusion-fortune)\/[^/]+\.webp$/.test(ref)){
+    if(/^images\/fusion-fortune\/[^/]+\.webp$/.test(ref)){
      const source=await readFile(path);
      const {width}=await sharp(source).metadata();
      if(width>800)return sharp(source).resize({width:800}).webp({quality:88,alphaQuality:100}).toBuffer();
@@ -267,6 +325,7 @@ export default function serviceCompat(){
    const collect=async(folder,prefix)=>{
     for(const entry of await readdir(folder,{withFileTypes:true})){
      const path=resolve(folder,entry.name);
+     if(path===resolve(publicRoot,'.'+hatFolder))continue;
      if(entry.isDirectory()){if(path.startsWith(prefix)||prefix.startsWith(path+sep))await collect(path,prefix);}
      else if(path.startsWith(prefix)&&mime[extname(path)]&&!emitted.has(path)){
       if(/^images\/psychotest\/bmovie-v1\/[a-z]+-960\.webp$/.test(path.slice(publicRoot.length+1).split(sep).join('/')))continue;
@@ -277,7 +336,7 @@ export default function serviceCompat(){
    };
    for(const ref of references){
     const path=resolve(publicRoot,'.'+ref);
-    if(!path.startsWith(publicRoot+sep))continue;
+    if(!path.startsWith(publicRoot+sep)||ref.startsWith(hatFolder))continue;
     if(ref.startsWith('/assets/talismans/originals/')||ref.startsWith('/assets/talismans/widget/'))continue;
     let info;try{info=await stat(path);}catch{/* Dynamic filename prefix. */}
     if(info?.isFile()){if(!Object.hasOwn(TOSS_WEBP_ART,ref)&&!emitted.has(path)){emitted.add(path);this.emitFile({type:'asset',fileName:ref.slice(1),source:await sourceBytes(path)});}continue;}

@@ -161,12 +161,12 @@ export default function RootLayout({ children }) {
     <html lang="ko" dir="ltr" className={notoSansKRVariable} suppressHydrationWarning>
       <head>
         <script src="/js/pwa-lifecycle.js?v=build-c1ef7dbb8c51" defer />
-        <Script src="/js/core/pass-verdict.js?v=build-7244122e56ff" strategy="beforeInteractive" />
+        <Script src="/js/core/pass-verdict.js?v=build-9316ad9811a5" strategy="beforeInteractive" />
         <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20261118-app-context-v2" strategy="beforeInteractive" />
         <Script src="/js/core/play-display-price.js" strategy="beforeInteractive" />
-        <Script src="/js/core/checkout-entry.js?v=build-7244122e56ff" strategy="beforeInteractive" />
+        <Script src="/js/core/checkout-entry.js?v=build-9316ad9811a5" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
         {/* GA4 측정 ID 는 공개 식별자다. 값이 없으면 analytics.js 가 통째로 no-op 이 되므로
@@ -209,7 +209,18 @@ export default function RootLayout({ children }) {
             문장은 /diary 가 두 벌을 갖게 되면서 더 이상 참이 아니다(docs/context/design-and-ui.md). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
+            __html: `try {
+              if (localStorage.getItem('fortuneThemeModeStateV1') === 'neo') document.documentElement.dataset.cdTheme = 'neo';
+            } catch (e) {}
+            if (location.pathname === '/' && window.matchMedia && window.matchMedia('(max-width: 640px)').matches && !document.querySelector('link[data-home-floral]')) {
+              var floralPreload = document.createElement('link');
+              floralPreload.rel = 'preload';
+              floralPreload.as = 'image';
+              floralPreload.fetchPriority = 'high';
+              floralPreload.setAttribute('data-home-floral', '');
+              floralPreload.href = '/images/home/illustrated/moon-floral-' + (document.documentElement.dataset.cdTheme === 'neo' ? 'dark' : 'light') + '-480.webp';
+              document.head.appendChild(floralPreload);
+            }`,
           }}
         />
         {/* 청크 로드 실패 1회 재시도 — 실패한 URL 에 캐시 우회 쿼리를 붙여 다시 받는다.

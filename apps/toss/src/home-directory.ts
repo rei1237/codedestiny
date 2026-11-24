@@ -1,4 +1,5 @@
-export type Destination='diary'|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'nakshatra/ai'|'yoga-guru'|'destiny-compass'|'dream/tarot'|'oracle/sikojen-povailu'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
+import {fullGameShelf,miniGameRoutes} from '../canonical/mini-games.mjs';
+export type Destination='recipes'|'diary'|'app/home-widget'|'consultations/stories'|'olympus'|'meditation/cosmic'|'meditation/neville'|'saju/sections'|'ziwei/sections'|'moonlight/season-1'|'oracle/turtle'|'oracle/royal-tea'|'oracle/kemet'|'nakshatra/muhurta'|'nakshatra/vvip-codex'|'nakshatra/resolve'|'nakshatra/compat'|'nakshatra/lord-report'|'nakshatra/dasha-map'|'nakshatra/ai'|'yoga-guru'|'destiny-compass'|'dream/tarot'|'oracle/sikojen-povailu'|'oracle/ifa'|'mbti/animals'|'today'|'oracle/rune'|'saju/career-style'|'saju/animal-destiny'|'music'|'astrology'|'vedic'|'nakshatra/codex'|'novel'|'insights/famous-saju'|'saju/basic/play'|'daily'|'ziwei/chart'|'manse'|'sukuyo'|'human-design'|'pet-saju'|'tarot-library'|'flower'|'bias'|'maya'|'omikuji'|'psychotest'|'saju-fpti'|'library'|'settings';
 const fortuneServices = [
   {id:'diary' as const,title:'운기 다이어리',body:'오늘의 마음과 계획을 기록하고 날짜별로 다시 읽기'},
   {id:'meditation/cosmic' as const,title:'코스믹 소울 명상',body:'네 가지 의도로 떠나는 30분·60분 명상과 저널'},
@@ -63,16 +64,25 @@ const rooms:DirectoryItem[]=[
  {title:'연이 · 운명의 찻집',body:'마음과 관계를 다정한 편지로',art:'/assets/yeoni-flower-pig.webp',room:'yeoni'},
  {title:'네오 · 팩폭 전략실',body:'고민을 현실적인 다음 행동으로',keywords:'작전실 전략가',art:'/assets/neo.webp',room:'neo'},
  {title:'연이의 상담 편지',href:'/fortune-tea-house/?counsel=letter'},
+ {title:'달빛 연화당',body:'연이와 함께 참배하고 조용히 기도와 호흡을 기록해요.',keywords:'달빛연화당 명상 법당 절 108배 동행자 연못',href:'/moonlit-lotus/'},
+ {title:'연이의 마음 별자리',body:'오늘의 감정과 고민을 담아 읽는 별빛 상담',href:'/yeon-star-hug/'},
  {title:'네오의 상담 편지',href:'/fortune-tea-house/?counsel=letter&persona=neo'},
  {title:'네오 작전 결정서 · 이메일 상담',href:'/neo-consultation/',keywords:'작전실 이메일 메일'},
 ];
 const books:DirectoryItem[]=[
+ ...(fullGameShelf?[{href:'/mini-games/',title:'미니 운세 게임',body:'카드와 질문으로 만나는 아홉 가지 운세 게임'}]:[
+  {href:miniGameRoutes['fortune-fish'],title:'포춘 피쉬',body:'금붕어의 몸짓으로 읽는 오늘의 흐름'},
+  {href:miniGameRoutes['blood-type'],title:'혈액형 테스트',body:'혈액형별 성향과 생활 이야기'},
+  {href:miniGameRoutes['hwatu-life'],title:'화투 인생 패',body:'일곱 가지 선택으로 만나는 나의 패'},
+ ]),
+ {id:'recipes',title:'사주 요리 웹툰',body:'연이와 영냥이의 오행 요리와 조리 순서'},
  {id:'app/home-widget',title:'연이의 달빛 홈 화면',body:'연이와 영냥이의 그림·꽃말·오늘 운세 미리보기'},
  {id:'consultations/stories',title:'달빛 상담 웹툰 서가',body:'연이와 네오, 흑월의 이야기를 컷으로 읽어요'},
  {id:'music',title:'꿀꿀운세 음악실',body:'곡과 아티스트를 찾아 음악 듣기'},
  {id:'novel',title:'연이의 운명 노벨',body:'꽃돼지 연이와 함께 읽는 연재소설'},
 ];
 const reports:DirectoryItem[]=[
+  {title:"사주 고급 궁합", href:"/saju/compatibility/premium/",body:"두 사람의 원국으로 읽는 끌림·소통과 관계의 흐름"},
   {title:"내 손금 리포트", href:"/palm-reading/"},
   {title:"전문가 동물 관상", href:"/animal/physio/"},
   {title:"전생 관상", href:"/past-life-face/"},

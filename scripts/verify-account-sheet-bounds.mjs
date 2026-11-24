@@ -3,7 +3,7 @@
 // 🔴 옛 패널은 nav 안 absolute 상자라 모바일에서 왼쪽이 잘렸다(390px left −102px). 스크린샷이 아니라
 //    getBoundingClientRect·elementFromPoint 로 판정해야 다시 깨졌을 때 숫자로 드러난다.
 // 사용: npm run verify:account-sheet [-- --widths=320,390]
-// /api/* 는 전부 로컬 mock(긴 이름·이메일 회원 fixture). 결제·생성 요청이 한 건이라도 나가면 실패.
+// /api/* 는 전부 로컬 mock이다. 로그인 회원이 첫 화면에서 하는 기존 보류 주문 읽기와 시트 조작을 구분한다.
 import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
@@ -39,6 +39,7 @@ const server = http.createServer((req, res) => {
   if (url.pathname.startsWith('/api/')) {
     const json = (status, body) => { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(body)); };
     if (url.pathname === '/api/auth/me') return authMode === 'member' ? json(200, { authenticated: true, user: MEMBER }) : json(200, { authenticated: false });
+    if (req.method === 'GET' && url.pathname === '/api/payments/birth-profile-pending') return json(200, { orders: [] });
     if (url.pathname === '/api/subscription/status') return json(200, { active: false, mock: true });
     return json(401, { ok: false, mock: true });
   }
@@ -63,17 +64,35 @@ try {
       authMode = state;
       const tag = `${vp.w} ${state}`;
       const context = await browser.newContext({ viewport: { width: vp.w, height: vp.h }, isMobile: vp.mobile, hasTouch: vp.mobile, deviceScaleFactor: 1, locale: 'ko-KR' });
+      await context.route('**/*', route => {
+        const url = new URL(route.request().url());
+        return url.origin === origin || !/^https?:$/.test(url.protocol) ? route.continue() : route.abort();
+      });
       if (state === 'member') await context.addInitScript((user) => { try { localStorage.setItem('fortune_auth_user', JSON.stringify(user)); } catch (_) {} }, MEMBER);
       const page = await context.newPage();
       const watch = watchForbiddenRequests(page);
+      let recoveryReadOnLoad;
       const errors = [];
       page.on('pageerror', (e) => errors.push(String(e.message).slice(0, 160)));
       try {
         await page.goto(`${origin}/ggulggul/`, { waitUntil: 'load', timeout: 60000 });
         await page.waitForTimeout(1500);
-        const btn = page.locator('#cdhAccountBtn');
-        if (!(await btn.isVisible())) { fail(tag, 'header account button not visible'); continue; }
-        const label = await btn.evaluate((el) => el.getAttribute('data-auth'));
+        // 기존 회원 셸은 첫 조작 전에 미수령 주문을 한 번 조회한다. 이후 같은 GET의 중복도 회귀다.
+        recoveryReadOnLoad = state === 'member' && watch.forbidden.find(({ method, path }) => method === 'GET' && path === '/api/payments/birth-profile-pending');
+        const header = page.locator('#cdHomeFunnel .cdh-top');
+        const account = header.locator('#cdhAccountBtn');
+        const label = await account.getAttribute('data-auth');
+        if (state === 'guest') {
+          for (const action of ['login', 'signup']) {
+            const link = header.locator('[data-cd-guest-auth="' + action + '"]');
+            if (!(await link.isVisible()) || new URL(await link.getAttribute('href'), origin).pathname !== '/' + action + '/') fail(tag, action + ' not available in the header');
+          }
+          const menu = header.locator('.yh-menu');
+          if (!(await menu.evaluate(element => element.open))) await menu.locator('summary').click();
+        }
+        const openerId = state === 'guest' ? 'cdhGuestGardenBtn' : 'cdhAccountBtn';
+        const btn = header.locator('#' + openerId);
+        if (!(await btn.isVisible())) { fail(tag, 'garden opener not visible'); continue; }
         if (label !== state) fail(tag, `button data-auth=${label}`);
         await btn.click();
         await page.waitForTimeout(300);
@@ -119,28 +138,28 @@ try {
 
         await page.keyboard.press('Escape');
         await page.waitForTimeout(200);
-        const after = await page.evaluate(() => ({
+        const after = await page.evaluate((id) => ({
           open: document.getElementById('cdAccountSheet').open,
-          focusBack: document.activeElement && document.activeElement.id === 'cdhAccountBtn',
-          expanded: document.getElementById('cdhAccountBtn').getAttribute('aria-expanded'),
+          focusBack: document.activeElement && document.activeElement.id === id,
+          expanded: document.getElementById(id).getAttribute('aria-expanded'),
           bodyOverflow: document.body.style.overflow,
-        }));
+        }), openerId);
         if (after.open) fail(tag, 'Escape did not close');
         if (!after.focusBack) fail(tag, 'focus did not return to the header button');
         if (after.expanded !== 'false') fail(tag, `aria-expanded=${after.expanded}`);
         if (after.bodyOverflow === 'hidden') fail(tag, 'body scroll lock leaked');
 
         // 스크롤 위치 복원 + 시트 안 링크가 시트를 먼저 닫는지(프로필 카드 액션).
-        const restore = await page.evaluate(async () => {
+        const restore = await page.evaluate(async (id) => {
           window.scrollTo({ top: 400, behavior: 'instant' });
           await new Promise((r) => requestAnimationFrame(r));
           const y0 = Math.round(scrollY);
-          window.CodeDestinyShellSheet.open('cdAccountSheet', document.getElementById('cdhAccountBtn'));
+          window.CodeDestinyShellSheet.open('cdAccountSheet', document.getElementById(id));
           await new Promise((r) => setTimeout(r, 100));
           window.CodeDestinyShellSheet.close('cdAccountSheet');
           await new Promise((r) => setTimeout(r, 100));
           return { y0, y1: Math.round(scrollY) };
-        });
+        }, openerId);
         if (Math.abs(restore.y0 - restore.y1) > 1) fail(tag, `scroll not restored ${restore.y0} → ${restore.y1}`);
         await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
         if (vp.w === 1280) {
@@ -162,8 +181,9 @@ try {
         fail(tag, String(e.message).slice(0, 200));
       } finally {
         if (errors.length) fail(tag, `page errors: ${errors.join(' | ')}`);
-        for (const f of watch.forbidden) fail(tag, `forbidden request ${f.method} ${f.path} (${f.why})`);
-        console.log(`[verify-account-sheet] ${tag}: api=${watch.seen.length} forbidden=${watch.forbidden.length}`);
+        const unexpected = watch.forbidden.filter(f => f !== recoveryReadOnLoad);
+        for (const f of unexpected) fail(tag, `forbidden request ${f.method} ${f.path} (${f.why})`);
+        console.log(`[verify-account-sheet] ${tag}: api=${watch.seen.length} initialRecoveryRead=${Number(Boolean(recoveryReadOnLoad))} forbidden=${unexpected.length}`);
         await context.close();
       }
     }

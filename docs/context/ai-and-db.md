@@ -186,20 +186,12 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
     - 로그 `paid_delivery_stuck_settled`.
   - 나머지 복구 어댑터는 경보 로그 `paid_delivery_stuck_unsettled` 만 내고 상태를 바꾸지 않는다. 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로, 바깥에서 상태만 `generation_failed` 로 바꾸면 "차감됐는데 환불 없음"을 새로 만든다. 목록은 검증기 `KNOWN_STUCK_SETTLE_GAPS` 와 정확히 같아야 한다.
 
+  자동 확정 추가(D1·D2, 2026-11-22): astrology·vedic·ziwei·sukuyo·karma·naming-prompt 는 `settleStuckRetryFirst`(다시 시도 우선, 창 밖이면 기존 환불), nakshatra·human-design·destiny-compass·relationship-boundary 는 결제 회수 확인 → `generation_failed` CAS → 기존 즉시 환불 1회. 아래 표는 남은 경보 전용이다.
+
   | 정체 자동 확정 없음(경보만) | 핸들러 자체 종결 경로(근거) |
   |---|---|
-  | astrology-ai | catch → `generation_failed` + 카드·실행·이용권 환불 (`worker/routes/astrology-ai.js` 1931) |
-  | vedic-ai | catch → `generation_failed` + 이용권 복원·카드 환불 (`vedic-ai.js` 1753) |
-  | ziwei-ai | catch → `generation_failed` + 이용권 복원 (`ziwei-ai.js` 2860) |
-  | sukuyo-compatibility-ai | 본문 없음 → `generation_failed` + 복원 (2301). 저장 본문 있음 → `partial` + `recoveryReviewRequired`(수동 검토), 선결제 복원 실패 → `REFUND_REVIEW_REQUIRED` |
-  | nakshatra-ai | catch → `generation_failed` + 실행·이용권 환불 (`nakshatra-ai.js` 1011) |
-  | human-design-report | 분량 미달·빈 본문 → `generation_failed` + `failServiceExecution` (`human-design-report.js` 746·766, 237) |
-  | destiny-compass-ai | `generation_failed` + `failServiceExecution`·이용권 (`destiny-compass-ai.js` 373·570, 280) |
-  | relationship-boundary-test | `READING_INCOMPLETE` → `generation_failed` + `failServiceExecution` (`worker/lib/relationship-delivery-store.js` 106) |
-  | naming-prompt | `markNamingGenerationFailed` + 월정석·이용권 환불 (`naming-prompt.js` 1479) |
-  | celestial-harmony | 파트 시도 소진 → 축소 전달 또는 `failServiceExecution` 환불 (`worker/lib/celestial-delivery-store.js` 45, S3-K f60489b5b) |
-  | fortune | `generation_failed` + 카드·이용권 환불 (`fortune.js` 1700, 1600·1643) |
-  | karma-destiny-ai | catch → `generation_failed` + 이용권 복원·지연 차감 취소 (`karma-destiny-ai.js` 3131) |
+  | celestial-harmony | 파트 시도 소진 → 축소 전달 또는 `failServiceExecution` 환불 (`worker/lib/celestial-delivery-store.js` 45, S3-K f60489b5b). 결제 증빙(sourceTransactionId·paymentRef·billing)을 저장하지 않아 cron 이 환불 근거를 못 찾는다 — 증빙 저장 리팩터 후속 |
+  | fortune | `generation_failed` + 카드·이용권 환불 (`fortune.js` 1700, 1600·1643). 환불이 저장되지 않는 consumePayload·Request 에 기댄다 — 리팩터 후속 |
 
   공통 예외: `RESULT_STORAGE_UNAVAILABLE`·`delivery_pending` 은 환불하지 않고 503 으로 같은 전달을 다시 시도한다. 저장 장애가 계속되면 경보만 남으므로 서비스별 정체 설정자를 붙이는 것이 후속 과제다.
 - **대표 상담 완성본 전달**(S16, 2026-11-19 사용자 요청 "결제 후 전체가 제대로 생성되어야 고객에게 전달"): 인생의 책·연애 비책·흑월(웹·토스)·네오 팩폭 전략실·운명의 찻집·마스터 인연의 서.

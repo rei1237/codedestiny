@@ -25,12 +25,12 @@ test('compare section pairs 4 muted ✗ rows with 4 highlighted ✓ rows', () =>
   assert.doesNotMatch(html, /<a /);
 });
 
-test('copy lookup is fail-closed and the shell contains both sections in order', () => {
+test('My contains the sourced press record alongside the translated comparison', () => {
   assert.throws(() => ht('homeTrust.nope'));
   assert.ok(Object.keys(HOME_TRUST_COMPARE_COPY).length >= 19);
   const shell = readFileSync(new URL('../../public/ggulggul/index.html', import.meta.url), 'utf8');
-  assert.ok(shell.includes(renderTrustBar()), 'generated shell must contain current press link');
-  const order = ['yh-trustbar"', 'class="yh-situations"', 'class="yh-supplement"', 'class="yh-compare"'].map((k) => shell.indexOf(k));
+  assert.ok(shell.includes(renderTrustBar()), 'the original press record is present in My');
+  const order = ['class="yh-situations"', 'class="yh-supplement"', 'class="yh-compare"'].map((k) => shell.indexOf(k));
   assert.ok(order.every((i) => i > 0) && order.every((v, i) => i === 0 || v > order[i - 1]), String(order));
 });
 

@@ -1,0 +1,64 @@
+.yh-featured-actions {
+  display: grid;
+  gap: 8px;
+  margin: 0 12px 14px;
+  text-align: start;
+}
+.yh-featured-actions .yh-chapter-preview {
+  margin: 0;
+  border-radius: 14px;
+  box-shadow: none;
+}
+.yh-featured-actions :is(.yh-chapter-preview__toggle, .yh-webtoon-action) {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 48px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  font: 600 1rem/1.45 var(--font-body);
+  text-align: start;
+  word-break: keep-all;
+}
+.yh-featured-actions .yh-chapter-preview__toggle::after { margin-inline-start: auto; }
+.yh-featured-actions .yh-chapter-preview__toggle > small {
+  font-size: .75rem;
+  line-height: 1.4;
+}
+.yh-featured-actions .yh-webtoon-action {
+  border: 1px solid var(--cdh-line);
+  border-radius: 14px;
+  background: var(--cdh-surface);
+  color: var(--cdh-ink);
+  text-decoration: none;
+}
+.yh-featured-actions svg { flex: 0 0 auto; }
+.yh-featured-actions .yh-webtoon-action svg,
+.yh-featured-actions .yh-webtoon-action span:last-child { color: var(--cdh-gold); }
+.yh-featured-actions .yh-webtoon-action span:last-child { margin-inline-start: auto; }
+.yh-featured-actions .yh-chapter-preview__panel {
+  max-block-size: min(60svh, 34rem);
+  overflow-y: auto;
+  scrollbar-color: var(--cd-pass-ornament) var(--cd-surface);
+}
+.yh-featured-actions .yh-chapter-preview__panel:focus-visible {
+  outline: 2px solid var(--cd-pass-ink);
+  outline-offset: -3px;
+}
+.yh-featured-actions .yh-chapter-preview__heading { display: flex; }
+.yh-featured-actions .yh-chapter-preview__titles li {
+  padding-block: 6px;
+  font-size: .9375rem;
+  line-height: 1.55;
+}
+@media (hover: hover) {
+  .yh-featured-actions .yh-webtoon-action:hover {
+    border-color: var(--cdh-gold);
+    text-decoration: underline;
+    text-underline-offset: .22em;
+  }
+}
+.yh-featured-actions :is(summary, a):focus-visible {
+  outline: 3px solid var(--cdh-gold);
+  outline-offset: 2px;
+}

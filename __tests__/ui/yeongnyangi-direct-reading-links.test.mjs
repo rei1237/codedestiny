@@ -8,9 +8,10 @@ test('Korean landing has one inline chooser; localized home preserves its explic
  const home=read(root+'_home/FortuneHome.tsx');
  assert.equal((home.match(/<QuestionJourney source="home"\/>/g)||[]).length,1);
  assert.ok(home.indexOf('<NightHero/>')<home.indexOf('<HeavenLightCinema/>'));
- assert.ok(home.indexOf('<HeavenLightCinema/>')<home.indexOf('<QuestionJourney source="home"/>'));
+ assert.ok(home.indexOf('<NightHero/>')<home.indexOf('<QuestionJourney source="home"/>'));
+ assert.ok(home.indexOf('<QuestionJourney source="home"/>')<home.indexOf('<HeavenLightCinema/>'));
  const hero=read(root+'_components/NightHero.tsx');
- assert.match(hero,/href="#questions"[^>]*>[^\n]*운세 고르고 고민 적기/);
+ assert.match(hero,/href="#questions"[^>]*>[^\n]*고민 적고 운세 고르기/);
  assert.doesNotMatch(home,/<DirectReadingLinks/);
  const localized=read(root+'_components/LocalizedFortuneHome.tsx');
  assert.match(localized,/<\/section>\s*<DirectReadingLinks locale=\{locale\}/);

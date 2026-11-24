@@ -19,7 +19,11 @@
  */
 
 .shell {
+  --dy-book-font: "Iowan Old Style", "AppleMyungjo", "Batang", "Noto Serif CJK KR", serif;
+  --font-display: var(--dy-book-font);
   --dy-color-scheme: light;
+  --dy-cover-base: #342039f5;
+  --dy-cover-mid: #35203baa;
   /* 🔴 transform / filter / backdrop-filter / contain 금지 —
      시트를 포털 없이 position:fixed 로 덮으려면 조상에 containing block 이 없어야 한다. */
 
@@ -171,7 +175,7 @@ html[data-cd-theme="neo"] .shell {
   flex: 1 1 auto;
   min-width: 0;
   margin: 0;
-  font-family: var(--font-display, inherit);
+  font-family: var(--dy-book-font);
   font-size: var(--cd-t-card);
   font-weight: 600;
   white-space: nowrap;
@@ -324,17 +328,37 @@ html[data-cd-theme="neo"] .shell {
   padding: var(--cd-sp-md);
   border: 1px solid var(--dy-line);
   border-radius: 28px;
-  background: var(--dy-surface-2);
+  background: linear-gradient(130deg, var(--dy-surface), var(--dy-surface-2));
   box-shadow: 0 8px 24px color-mix(in srgb, var(--dy-text) 7%, transparent);
 }
 
 .recordAnchor { scroll-margin-top: 5rem; }
 
-.journal{position:relative;isolation:isolate;gap:6px;padding:28px 20px;background:var(--dy-surface);overflow:hidden}
+.journal{position:relative;isolation:isolate;gap:6px;padding:24px 20px;background:linear-gradient(90deg,color-mix(in srgb,var(--dy-gold) 12%,var(--dy-surface)),var(--dy-surface) 12px);overflow:hidden}
 .journal::before{content:"";position:absolute;right:-12px;top:-10px;width:130px;height:110px;background:var(--dy-gold);opacity:.14;mask:var(--cd-yehwa-mask-branch-corner) center/contain no-repeat;pointer-events:none;z-index:-1}
-.journalCrest{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 8px;border-radius:25px;background:var(--dy-accent-soft);color:var(--dy-accent);border:1px solid var(--dy-line)}
-.journalTitle{font:400 24px/1.5 var(--font-display,inherit);text-align:center;margin:0;color:var(--dy-text)}
-.journalIntro{font-size:14px;line-height:1.8;text-align:center;color:var(--dy-muted);margin:0 0 16px;word-break:keep-all}
+.journalGreeting {
+  display: grid;
+  grid-template-columns: clamp(64px, 17vw, 92px) 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 16px 12px;
+  background:
+    radial-gradient(ellipse at top right, color-mix(in srgb, var(--dy-gold) 18%, transparent), transparent 58%),
+    linear-gradient(110deg, var(--dy-accent-soft), var(--dy-surface));
+  border-block: 1px solid var(--dy-line);
+  border-radius: 3px 18px 3px 3px;
+}
+.journalCrest { display: grid; align-self: end; transform-origin: center bottom; }
+.journalCrest img { grid-area: 1 / 1; }
+.journalCrest img:last-child, .journal:has([data-saved="true"]) .journalCrest img:first-child { opacity: 0; }
+.journal:has([data-saved="true"]) .journalCrest img:last-child { opacity: 1; }
+.journalTitle { font: 400 clamp(20px, 5vw, 26px)/1.4 var(--font-display, serif); margin: 0; color: var(--dy-text); }
+.journalIntro { font-size: 14px; line-height: 1.65; color: var(--dy-text); margin: 6px 0 0; word-break: keep-all; }
+@media (prefers-reduced-motion: no-preference) {
+  .journalCrest, .journalCrest img { transition: transform 320ms ease-out, opacity 220ms ease-out; }
+  .journal:has([data-saved="true"]) .journalCrest { transform: rotate(-4deg) translateY(-2px); }
+}
 .questButtons{display:flex;gap:8px;flex-wrap:wrap}
 .questButtons button{min-height:48px;padding:10px 16px;border-radius:18px;border:1px solid var(--dy-line-ui);background:var(--dy-accent-soft);color:var(--dy-text);font:600 14px/1.5 var(--font-body);cursor:pointer}
 .questButtons button:focus-visible{outline:2px solid var(--dy-focus);outline-offset:3px}
@@ -347,6 +371,73 @@ html[data-cd-theme="neo"] .shell {
 /* 첫 카드만 강조선을 준다 — 홈에서 가장 먼저 읽어야 하는 것이 오늘의 결이다. */
 .cardLead {
   border-color: var(--dy-line-ui);
+}
+.shell[data-palette] { color-scheme: var(--dy-color-scheme); }
+div.shell[data-palette="blue"] {
+  --dy-accent: light-dark(#275783, #b2d7ff);
+  --dy-accent-ink: light-dark(#ffffff, #172c48);
+  --dy-accent-hover: light-dark(#173d66, #d4eaff);
+  --dy-accent-soft: light-dark(#dcebf8, #273e58);
+  --dy-line: light-dark(#bccfdf, #526b85);
+  --dy-line-ui: light-dark(#748a9e, #9db3c9);
+  --dy-bg: light-dark(#eef4f9, #182438);
+  --dy-surface: light-dark(#fafdff, #223046);
+  --dy-surface-2: light-dark(#e7eff7, #293a51);
+  --dy-cover-base: #142b46f5;
+  --dy-cover-mid: #1e466daa;
+}
+div.shell[data-palette="pink"] {
+  --dy-bg: light-dark(#fff5f7, #2e2130);
+  --dy-surface: light-dark(#fffafb, #392939);
+  --dy-surface-2: light-dark(#fae6ed, #483245);
+}
+.shell[data-palette="neutral"] { --dy-cover-base: #25263bf5; --dy-cover-mid: #373449aa; }
+.gardenCover {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  min-height: clamp(200px, 27vw, 300px);
+  width: 100%;
+  max-width: 1180px;
+  margin-inline: auto;
+  padding: clamp(20px, 4vw, 46px);
+  border-radius: 20px 20px 8px 8px;
+  color: #fff1f5;
+  background:
+    repeating-linear-gradient(28deg, transparent 0 3px, #e9d6ab09 3px 4px),
+    linear-gradient(90deg, #0f172d 0, #bba37f 4px, var(--dy-cover-base) 6px, var(--dy-cover-base) 32%, var(--dy-cover-mid) 65%, #19223b33 95%), url("/images/home/illustrated/yeoni-moon-garden-night-1280.webp") center 43% / cover;
+  box-shadow: inset 0 0 0 1px #bfcbe191, 0 3px 0 var(--dy-surface), 0 4px 0 var(--dy-line), 0 8px 18px color-mix(in srgb,var(--dy-text) 12%,transparent);
+}
+.gardenCover h2 { font: 500 clamp(26px, 4vw, 30px)/1.35 var(--dy-book-font); letter-spacing: -.04em; margin: 0 0 12px; }
+.bookmarks { display: flex; gap: 4px 12px; flex-wrap: wrap; }
+.bookmarks a { display: inline-flex; align-items: center; min-height: 44px; color: #fff4e5; font: 500 14px/1.5 var(--font-body); text-underline-offset: 5px; }
+.bookmarks a:first-child { padding-inline: 14px; border-radius: 24px; color: var(--dy-text); background: var(--dy-surface); text-decoration: none; }
+.journal input { scroll-margin-block: 100px; }
+.bookmarks a:focus-visible { outline: 2px solid #fff4e5; outline-offset: 2px; }
+.journalTitle { scroll-margin-top: 90px; }
+
+.cardLead .cardHead { align-items: center; flex-wrap: wrap; }
+.profileSeal {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  font: 500 24px/1 var(--dy-book-font);
+  color: var(--dy-accent);
+  background: var(--dy-accent-soft);
+  background-size: 400% 100%;
+  background-position: left center;
+  background-repeat: no-repeat;
+  border-radius: 50%;
+  border: 1px solid var(--dy-line-ui);
+  box-shadow: inset 0 0 0 3px var(--dy-surface);
+}
+.guideName {
+  overflow-wrap: anywhere;
+  display: block;
+  color: var(--dy-muted);
+  font: 500 .8rem/1.6 var(--font-body, sans-serif);
 }
 
 .cardHead {
@@ -2176,7 +2267,12 @@ html[data-cd-theme="neo"] .shell {
 .todayLayout>.card{width:100%;max-width:none;min-width:0;margin:0}
 .draftStatus{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;font:400 14px/1.7 var(--font-body);color:var(--dy-muted);margin:8px 0}
 .draftStatus button{min-height:44px;border:1px solid var(--dy-line-ui);border-radius:var(--cd-r-control);padding:8px 12px;background:var(--dy-surface);color:var(--dy-accent);font:600 14px/1.5 var(--font-body);cursor:pointer}
-.journal textarea{min-height:180px;resize:vertical;line-height:1.8}
+.journal textarea {
+  min-height:180px; resize:vertical; line-height:1.8;
+  background-color:var(--dy-surface);
+  background-image:repeating-linear-gradient(to bottom, transparent 0 calc(1.8em - 1px), color-mix(in srgb,var(--dy-line-ui) 21%,transparent) calc(1.8em - 1px) 1.8em);
+  background-origin:content-box; background-clip:padding-box; background-attachment:local;
+}
 @media(min-width:1000px){.todayLayout{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
 @media(max-width:430px){.main{padding-inline:12px}}
 
@@ -2185,3 +2281,19 @@ html[data-cd-theme="neo"] .shell {
 .drawCard p { margin:6px 0 12px; color:var(--dy-muted); line-height:1.65; }
 .drawButton { border:0; border-radius:99px; background:#493447; color:#fff; padding:10px 18px; font:inherit; cursor:pointer; }
 .cardHead time { color:var(--dy-muted); font-size:.85rem; }
+
+.ownerInitial { display:grid; place-items:center; width:28px; height:28px; flex:none; border:1px solid #c3cde1; border-radius:50%; }
+.ownerName { overflow-wrap:anywhere; font:500 14px/1.5 var(--font-body); }
+.gardenCover h2 { margin-block:8px 16px; }
+.shell .input { font-size:max(16px, 1rem); caret-color:var(--dy-accent); }
+.shell .input:focus-visible { outline:2px solid var(--dy-accent); outline-offset:2px; }
+
+.gardenCover { position:relative; padding-inline:clamp(22px, 5vw, 46px); }
+.gardenCover::before {
+  content:""; position:absolute; inset:6px 6px 6px 9px; pointer-events:none;
+  border:1px solid #d5c29d66; border-radius:15px 15px 5px 5px;
+}
+.coverCompanion { position:absolute; right:16px; top:12px; width:56px; height:56px; object-fit:contain; }
+.ownerName { padding-right:56px; }
+.shell .input::placeholder { color:var(--dy-muted); opacity:1; }
+.bookmarks a:first-child { color:var(--dy-accent-ink); background:var(--dy-accent); }

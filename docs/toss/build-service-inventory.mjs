@@ -7,9 +7,14 @@ import {execFileSync} from 'node:child_process';
 import {SAJU_BUNDLE_ALIAS_MEMBER_KEYS,SAJU_BUNDLE_SALE_CLOSED_KEYS,SAJU_BUNDLE_FEATURE_KEY} from '../../worker/lib/saju-bundle-policy.js';
 import {loadTsModule} from '../../scripts/lib/load-ts-module.mjs';
 import {extractObjectLiteral} from '../../scripts/lib/feature-marketing-extract.mjs';
+import {getBillingFeaturePricing} from '../../worker/lib/billing-feature-registry.js';
 import {APPROVED_TOSS_PRODUCTS} from '../../worker/toss/catalog.js';
 import {reviewServices} from '../../apps/toss/src/review-scope.mjs';
 import {isFreeFortuneFeatureKey} from '../../lib/payment/free-fortune-policy.mjs';
+import {FREE_PROMO_GROUPS,freePromoItemHref} from '../../lib/marketing/free-promo.mjs';
+import {PROMPT_HUB_TOOL_IDS} from '../../lib/fortune/prompt-hub-template.js';
+import {freeFortuneHref} from '../../apps/toss/src/free-fortune-routes.mjs';
+import {implementationReadiness} from '../../apps/toss/scripts/implementation-readiness.mjs';
 import {TOSS_PUBLIC_SECTIONS} from '../../lib/fortune/toss-public-sections.mjs';
 import {TOSS_TAROT_LIBRARY_FLOWS} from '../../lib/tarot/toss-library-flows.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
@@ -33,6 +38,7 @@ for(const [id,name,entry] of [['flower','운명의 꽃','app/flower/page.tsx'],[
 }
 const rows=[...ids.values()].sort((a,b)=>a.id.localeCompare(b.id));
 const aliases={
+ heukwol:'heukwol-consult','saju-compatibility':'saju-compat-premium',
  'destiny-flower':'flower','astrology-flower':'flower','ziwei-flower':'flower','sukuyo-flower':'flower',
  sukyo:'sukuyo','stonehenge-rune':'stonehenge-runes','love-simulation':'love-code',
  'daily-fortune':'today-hub','saju-lifebook':'life-book-ai','animal-guardian-unlock':'animal-destiny','saju-animal':'saju-guardian',
@@ -47,11 +53,21 @@ const aliasEvidence={
  'animal-destiny':['js/core/service-registry.js:animal-destiny-unlock','index.html:animal-guardian-unlock.inlineAliases'],
  'saju-guardian':['index.html:openSajuGuardianPage -> /saju-guardian','app/_lib/serviceFeatureRegistry.ts:saju-animal.launchRoute','app/saju-guardian/SajuGuardianClient.tsx:verifyGuardianUnlockAccess; registry free/paid descriptions conflict'],
 };
+const readJson = file => JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
+const sourceAudit=readJson('docs/toss/original-mode-audit-20261114.json');
+const auditedEntries=sourceAudit.rows.filter(row=>row.inventoryEntry);
 const groups=new Map();
 // These entries are reached from the current root or from an existing report.
 // A shared product or URL does not imply the same input or result.
 for(const [id,name,entry,implementation] of [
- ['heukwol-consult','흑월의 경고 상담','/heukwol/','app/heukwol/HeukwolClient.tsx'],
+ ...auditedEntries.map(row=>[row.id,row.inventoryEntry.name,row.webEntries[0],row.webSources[0]]),
+ ['yeongnyangi-faq','영냥이 상담 전 자주 묻는 질문','/yeongnyangi/faq/','app/yeongnyangi/faq/page.tsx'],
+ ['saju-compatibility','기존 구매 · 기본 사주 궁합 상담','js/saju-compat-archive.js:openSajuCompatArchive','js/saju-compat-flow.mjs'],
+ ['saju-compat-basic-free','무료 기본 사주 궁합','js/saju-engine.js:runCompat','js/saju-engine.js'],
+ ['free-fortune-index','무료 운세 전체 목록','/free/','app/free/page.tsx'],
+ ['saju-brain','나의 뇌구조','/ggulggul/?action=cdOneStepFreeSajuEntry&section=destinyAnatomyCard','js/core/saju/destiny-anatomy/engine.js'],
+ ['fortune-prompt-hub','운세 프롬프트 생성기','/fortune/prompt-hub/','app/fortune/prompt-hub/PromptHubClient.tsx'],
+ ['heukwol-consult','흑월의 주의 시기 상담','/heukwol/','app/heukwol/HeukwolClient.tsx'],
  ['destiny-compass-crossroads','운명의 갈림길','/destiny-compass/','app/destiny-compass/_components/Crossroads.tsx'],
  ['destiny-compass-future-sim','미래 시뮬레이션','/destiny-compass/','app/destiny-compass/_components/FutureSim.tsx'],
  ['destiny-compass-life-voyage','삶의 항로','/destiny-compass/','app/destiny-compass/_components/LifeVoyage.tsx'],
@@ -66,7 +82,7 @@ for(const [id,name,entry,implementation] of [
  ['island-consult','자미두수 섬 해설·궁별 상담','/island-consult/','app/island-consult/IslandConsultClient.tsx'],
  ['yeongnyangi-prashna','프라쉬나 질문 상담','/yeongnyangi/fortune/?mode=prashna','app/yeongnyangi/_components/QuestionSkyConsultation.tsx'],
  ['yeongnyangi-horary','호라리 질문 차트','/yeongnyangi/fortune/?mode=horary','app/yeongnyangi/_components/QuestionSkyConsultation.tsx'],
- ['yeongnyangi-daily','영냥이 출석과 오늘의 운세','/yeongnyangi/free-fortune/','app/yeongnyangi/_components/FreeFortune.tsx'],
+ ['yeongnyangi-daily','영냥이 출석과 오늘의 운세','/yeongnyangi/room/#daily','app/yeongnyangi/_components/FreeFortune.tsx'],
  ['neo-letter','네오 상담 편지','/fortune-chat/?character=neo','app/fortune-chat/ConsultationRoom.tsx'],
 ]){
  if(!fs.existsSync(path.join(root,implementation)))throw new Error('Missing web entry: '+implementation);
@@ -116,13 +132,19 @@ const localEvidence={
  'geomancy-oracle':{tossRoute:'/geomancy/',status:'local-partial',inputContract:'연금술사/술탄·질문·16줄 흙점, 웹과 공유하는 방패 차트·증인 둘·재판관 계산',resultRenderer:'worker/routes/oracle.js 7부분 원본 프롬프트·생성, apps/toss/service/TossGeomancy.tsx',storageContract:'동일 주문의 흙점과 결과 원문. 꿀꿀운세 기록에 토스 소유권 적용',verification:'geomancy-browser.mjs. 360px mock 주문·생성 1회, 테마와 초안 복원·타계정 거절, 웹 Worker 45건·UI 3건 통과'},
  'home-widget':{tossRoute:'/app/home-widget',status:'local-partial',inputContract:'캐릭터 둘, 그림·꽃말·오늘 운세 위젯 선택',resultRenderer:'app/app/home-widget/HomeWidgetStudio.tsx의 미리보기',storageContract:'게스트 미리보기. OS 홈 고정은 기존 Android 앱 플러그인 전용',verification:'widget-preview-browser.mjs에서 360px, 6개 선택, 실제 그림 디코드, 결제 요청 0건'},
  'dream-psycho-analysis':{tossRoute:'/dream/psycho/',status:'local-partial',inputContract:'꿈 기록 8~6000자와 원본 자동 말투, 로그인 뒤 원래 주문으로 복귀',resultRenderer:'apps/toss/service/TossDream.tsx 및 worker/routes/dream.js의 원본 5장·10부분 생성',storageContract:'동일 토스 계정의 주문·저장된 원문. 기존 작업 재개와 환불·타 계정 접근 거절',verification:'dream-browser.mjs · native-dream.test.mjs. 실판매 SKU 미확인'},
- 'heukwol-consult':{tossRoute:'/heukwol/?consult=1',status:'local-partial',inputContract:'원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문',resultRenderer:'apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx',storageContract:'TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록',verification:'360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 테스트. 운영 실패 주문 처리 및 기기 PDF 미검증'},
+ 'yeongnyangi-faq':{tossRoute:'/yeongnyangi/faq/',status:'local-partial',inputContract:'영냥이 상담 안내와 질문 선택. 출생정보 없음',resultRenderer:'apps/toss/src/YeongnyangiFaq.tsx · 웹 원본 YeongnyangiFaqToon',storageContract:'공개 설명 화면. 상담 생성·지급·저장 없음',verification:'UnifiedHome에서 원본 FAQ 컷 열람 경로를 연결. Linux AIT·실기기 미검증'},
+ 'heukwol-consult':{tossRoute:'/heukwol/?consult=1',status:'local-partial',inputContract:'원본 buildHeukwolAnalysis·generateHeukwolChapter, 소유 프로필의 출생 시각·선택 연도·질문',resultRenderer:'apps/toss/service/TossHeukwol.tsx + app/heukwol/HeukwolResult.tsx',storageContract:'TossNativeConsultation과 소유 구매. 원 주문과 마지막 성공 장에서 복구. 신규 SKU 미등록',verification:'360px mock 두 장으로 생성 중 이탈·다른 계정 차단. 원본 27개 프롬프트·저장 임대 및 7일 이내 기존 소유 실패 주문 수동 재개 테스트. 실제 토스 환불 정산 및 기기 PDF 미검증'},
 
  'dream':{tossRoute:'/dream/tarot',status:'local-partial',inputContract:'index.html:openDreamModal + js/dream-ledger.js → worker/routes/dream.js → lib/tarot/dream-prompt.mjs',resultRenderer:'apps/toss/src/DreamPrompt.tsx',storageContract:'게스트 현재 화면 및 원문 복사. 정신분석 해몽은 별도 유료 기능',verification:'360px 일반 홈에서 1~5장 원본 카드와 프롬프트, 잘못된 입력 및 다시 쓰기 검증'},
  'mbti-animal-compat':{tossRoute:'/mbti/animals',status:'local-partial',inputContract:'js/astral-soul.js:ASTRAL_DATA / getPairScore / getSynergyText',resultRenderer:'apps/toss/src/AstralAnimals.tsx',storageContract:'게스트 화면 계산. 두 동물 256쌍 원본 점수·조언',verification:'astral-animals.test.mjs + 일반 홈 두 동물 선택'},
  'ziwei-island':{tossRoute:'/ziwei/sections?reading=island',status:'local-partial',inputContract:'원본 양력·음력·윤달, 생일·성별·시각 미상, 연도 선택',resultRenderer:'public/destiny-island.html → worker/routes/ziwei-island.js → 12궁·대한·유년·수호자·섬 일지·퀘스트',storageContract:'기기 내 게스트·토스 계정별 명반, 당일 청사진, 방문 도장과 퀘스트 EXP 복원',verification:'island-browser.mjs 360px 홈, 열두 궁 원문과 초상, 유년 변경, 재진입. 구매 종료 궁별 AI 웹 원문 복구는 별도. 토스 실기기·운영 Worker 미검증'},
  'love-code':{tossRoute:'/saju/love-simulation/',status:'local-partial',inputContract:'원본 16인 프리셋 또는 상대 출생정보 사주 매칭. 내 명식·상대 선택·데이트 장면 선택으로 결말',resultRenderer:'app/saju/love-simulation/_components/LoveSimulationEngine.tsx + 원본 명식·호감 점수·스토리',storageContract:'현재 세션의 원본 결말. 다음 진입 때 다시 플레이. 타 계정 프로필·웹 결제 복구와 독립',verification:'love-code-browser.mjs 360px 일반 홈, 게스트 탐색, mock 토스 로그인, 두 출생정보·네오 원화·선택과 결말. 실기기 미검증'},
- 'saju-compatibility':{tossRoute:'/saju/compatibility/',status:'local-partial',inputContract:'두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts',resultRenderer:'js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js',storageContract:'토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람',verification:'saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건'},
+ 'saju-compat-premium':{tossRoute:'/saju/compatibility/premium/',status:'local-partial',inputContract:'두 사람의 출생정보·성별·관계 유형. normalizeSajuCompatPremiumInput 및 calculateSajuCompatPremiumFacts',resultRenderer:'apps/toss/service/TossPremiumCompat.tsx 및 웹 원본 SajuCompatPremiumResultClient.tsx',storageContract:'토스 전용 고급 궁합 소유 주문·저장 원문. 기본 궁합 구매와 별도',verification:'native-compat-premium.test.mjs 원본 서버 계산·4장, 경쟁·환불 경계 검사. 2026-11-22 Windows 모의 AIT에서 홈·입력·mock 로그인·구매·생성 중 이탈·구매 기록 재열람·계정 B 차단 확인. 최신 일반 Linux AIT 및 실기기 별도'},
+ 'free-fortune-index':{tossRoute:'/free/',status:'local-partial',inputContract:'FREE_PROMO_GROUPS에서 주제 선택',resultRenderer:'apps/toss/src/FreeFortuneList.tsx',storageContract:'탐색 목록은 비회원 공개이며 카드별 실제 로그인·저장 정책은 각 연결 화면이 담당',verification:'원본 카드별 목적지와 토스 연결 주소는 freeDirectoryItems 참조. 링크 매핑과 각 기능의 결과 검사는 별도'},
+ 'saju-brain':{tossRoute:'/saju/basic/play/?reading=brain',status:'local-partial',inputContract:'생일·달력·출생 시각 또는 시간 모름·도시로 만든 원본 명식의 오행·십신·조후·종격',resultRenderer:'apps/toss/src/BrainReading.jsx → 원본 DestinyAnatomyEngine과 DestinyAnatomyRender, HD·베다 추가 차트와 원본 공유 카드',storageContract:'출생정보로 재계산. 계정 변경 시 보조 차트 초기화. 사용자가 피드·스토리 이미지를 기기에 저장·공유',verification:'f1e2f347ed 관련 55개 검사 및 Chrome에서 두 형식의 원본 PNG 생성. 토스 실기기 저장·공유 미검증'},
+ 'fortune-prompt-hub':{tossRoute:'/fortune/prompt-hub/',status:'local-partial',inputContract:'도구별 질문·출생정보·선택과 계산값을 웹 PromptHubClient에서 수집. 호라리는 원본 prepareHoraryPrompt 경유',resultRenderer:'apps/toss/service/TossPromptHub.jsx → app/fortune/prompt-hub/PromptHubClient.tsx 및 worker/routes/prompt-hub.js',storageContract:'같은 기기 내 소유 계정별 프롬프트 보관함. 계정 변경 시 화면의 결과 폐기',verification:'prompt-hub.test.mjs 및 01a200e2 Windows 모의 AIT --prompt-hub. 원본 16개 도구 저장·재진입·계정 격리, 주문 0건. 후속 저장 키 보강과 실기기 클립보드는 별도'},
+ 'saju-compat-basic-free':{tossRoute:'/saju/compatibility/',status:'local-partial',inputContract:'본인과 상대 출생정보·시간 모름·관계 유형. 원본 명식과 analyzeCompat 및 analyzePastLifeCompat',resultRenderer:'apps/toss/service/TossSajuCompat.jsx + 원본 정적 궁합 렌더러',storageContract:'현재 화면에서 정적 결과 확인. 계정·주문·생성 없이 재계산',verification:'이전 유료 상담의 저장 원문 및 고급 궁합과 별도'},
+ 'saju-compatibility':{tossRoute:'/saju/compatibility/?orderId=<소유 주문 ID>',status:'local-partial',inputContract:'두 출생정보·시간 미상·달력·상대 호칭·연인/친구/사업. 웹 정본 명식과 analyzeCompat·analyzePastLifeCompat facts',resultRenderer:'js/saju-compat-render.mjs + worker/routes/saju-compat-basic.js',storageContract:'토스 계정·주문별 paidNarrative 불변 원문. 꿀꿀운세 구매 기록에서 생성 재개와 원문 재열람',verification:'saju-compat-browser.mjs 360px 홈, mock 로그인·입력 복원·1주문·생성 도중 이탈·원문·타 계정 거절. native-saju-compat.test.mjs, 웹 정본 전달 34건'},
  points:{tossRoute:'/settings#web-history',status:'local-partial',inputContract:'토스 내 정보 → 웹 이용 내역 → 기존 웹 계정 인증',resultRenderer:'app/points/history/PointHistoryClient.tsx · GET /api/payments/me?view=history · 소유 주문 상세',storageContract:'원래 웹 계정의 이용권·월정석·단건 주문 및 이용권 사용 이력. 토스 IAP와 별도',verification:'web-history-browser.mjs: 360px 일반 홈에서 순수 웹 구매 내역 주소만 이동, 토스 토큰·주문·결제 전달 없음'},
  'island-consult':{tossRoute:'/ziwei/sections#island-history',status:'local-partial',resultRenderer:'웹 /records/ 원본 궁별 기록, /island-consult/?view=report 원래 저장 프로필의 고정 12궁 리포트'},
  'saju-guardian':{tossRoute:'/saju-guardian/',status:'local-partial',inputContract:'계정에 저장한 프로필의 birthKey, calendar·시각 미상. 원본 calculateNatalSaju 네 기둥',resultRenderer:'웹 guardianReading + ResultCard 원본 인장·십성·영문 프롬프트, 단말 레거시 그림은 웹 귀속',storageContract:'계정·환경·출생정보·상품별 주문 및 저장 원본, 환불 재검사. 콘솔 SKU 미확인',verification:'birth-readings.test.mjs 검증. birth-readings-browser.mjs 360px 일반 홈, mock 주문 후 프롬프트, 타 계정 거절'},
@@ -151,7 +173,7 @@ const localEvidence={
  maya:{tossRoute:'/maya/',status:'local-partial',inputContract:'일반 진입은 웹 원본 MayaPromptGeneratorCard의 날짜·이름·출생일·주제·질문. maya-prompt-generator 무료 정책',resultRenderer:'Screens.jsx가 일반 무료 프롬프트와 verifiedReceipt 과거 구매 TossMayaPrompt를 구분. 원본 generateMayaReadingPrompt 재사용',storageContract:'신규 무료 프롬프트는 비회원 현재 화면. 과거 구매의 저장 원문·주문 복구는 소유 계정에만 제공',verification:'private-maya-free.mjs 실제 로컬 AIT 홈 → 비회원 윤일·질문 → 웹 원본 프롬프트 완전 일치, 360·390·430px, 로그인·주문 0. 기존 구매 계정/환불/초안복구 테스트 유지. Linux AIT·과거 주문 실기기 복구는 별도 확인'},
  novel:{tossRoute:'/novel',status:'local-partial',inputContract:'원본 한국어 공개 텍스트판의 회차·인물·현실/운명 선택',resultRenderer:'apps/toss/src/NovelReader.tsx',storageContract:'공개 콘텐츠의 회차·쪽·개정값을 같은 기기에 저장. 개정된 회차는 첫 쪽부터. 웹 텍스트판과 비주얼노벨의 제공 범위는 구분',verification:'novel-reader.test.mjs 원본 공개 회차·분기·재진입·개정·잘못된 값·저장 불가 확인. private-free-reading.mjs 로컬 AIT 홈에서 2쪽을 읽고 탭 종료·재진입해 같은 위치 복원, 360·390·430px 및 0주문 확인. Linux AIT·휴대폰은 별도 확인'},
  'famous-saju':{tossRoute:'/insights/famous-saju',status:'local-partial',inputContract:'웹 getFamousArchive의 공개 인물·분야·국가·일간·일주·정렬·페이지, 60일주와 원본 상세',resultRenderer:'apps/toss/src/FamousLibrary.tsx + 원본 getCelebritySajuPage·getCelebrityEditorial·buildCelebrityMultiSystem·getIljuReading',storageContract:'공개 원문 227명과 60일주. 검색/상세/필터 URL로 재진입. 승인 글과 원본 검수 전 해설 상태를 구분',verification:'famous-library.test.mjs 원문·공개 경계·227명·60일주 대조. 로컬 AIT 홈 → 60일주·계산 후보 → 원본 상세·세 체계 → 새로고침 동일 상세. 360·390·430px, 로그인·주문 0. Linux AIT 및 휴대폰은 별도 확인'},
- music:{tossRoute:'/music',status:'local-partial',inputContract:'원본 allTracks/free_full 무료 재생. MP3는 곡별 독립 featureKey·토스 승인 SKU의 소유 다운로드',resultRenderer:'apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts',storageContract:'동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리',verification:'음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 홈·모의구매1건·합성파일저장·cold보관함·B차단 PASS. 32MiB 초과 원곡 저장은 현 어댑터 메모리 상한으로 미완료(SDK 공식 한도/구매정책 제한 아님; SDK 스트림 API 없음), 실곡/기기 확인 필요'},
+ music:{tossRoute:'/music',status:'local-partial',inputContract:'원본 allTracks/free_full 무료 재생. MP3는 곡별 독립 featureKey·토스 승인 SKU의 소유 다운로드',resultRenderer:'apps/toss/src/MusicShelf.tsx + MusicDownload.tsx + music-download-file.ts',storageContract:'동일 곡 주문의 원본 음원권리·보관함·재열람, 웹 구매·이용권과 토스 계정은 분리',verification:'음악 source/원본 proxy/모의 API/SDK 파일 경계 targeted 검증. 실제 AIT 홈·모의구매1건·합성파일저장·cold보관함·B차단 PASS. 네이티브 저장 방어 상한 32MiB. 123개 MP3 키 중 122개 정상 응답·최대 12,396,644바이트. neo-15(music-track-1x0675y) 404 원본 복구 및 실기기 저장 확인 필요'},
  astrology:{tossRoute:'/astrology',status:'local-partial',inputContract:'게스트 국제 출생·IANA시간대·시각미상. 원본 strict Swiss 차트·10종 풀이 및 직접/305명 유명인 시너스트리2종',resultRenderer:'apps/toss/src/AstroHome.tsx + AstroReading.tsx + AstroChartView.tsx + AstroReadingBody.tsx + AstroSynastry.tsx',storageContract:'현재 화면의 원본 휠·행성·각도와 10종 풀이. 저장 출생정보와 별도 유료 전문가 상담의 권리는 분리',verification:'ce93c3eac. 서양·숙요 원본 계약 targeted 81개와 Toss 타입 검사 통과. 새 private fixture·실제 AIT·기기 검증은 후속 기록 참조'},
  vedic:{tossRoute:'/vedic',status:'local-partial',inputContract:'기본 guest 명반은 국제 출생·IANA 시간대와 strict Swiss Lahiri. 궁합은 로그인 뒤 두 출생정보, 독립 Prashna는 단일 질문·현재시각·위도/경도',resultRenderer:'apps/toss/src/VedicHome.tsx + service/VedicReading.jsx + service/VedicCompatibility.jsx + src/VedicPrashna.tsx',storageContract:'기본 명반·무료 궁합·Prashna는 현재 화면. 원본정책대로 새 구매 보관함 저장 없음',verification:'기본7토픽/8상세·남북명반, 궁합27×27/8항목, Prashna원본 prompt·chart 동등성 및 실제 Windows AIT 홈·로그인/무료·3폭 확인'},
  nakshatra:{tossRoute:'/nakshatra/resolve',status:'local-partial',publicSubflows:['/nakshatra/codex','/nakshatra/codex/[0..26]'],inputContract:'웹 /nakshatra/calc/ 양력·출생시각/미상·도시와 국가. 원본 resolveNatal과 일본 구력, Lahiri',resultRenderer:'apps/toss/src/MansionReading.tsx + app/nakshatra/_components/LifeReading.tsx',storageContract:'게스트 현재 화면 무료 리딩 5개 주제. 기존 웹 주문·개인 AI 리포트 별도',verification:'studio-mansion-reading-browser.mjs 360px 게스트→출생→5장·계산 근거·오늘의 달/격각/타라발라. 토스 세션에서는 소유 프로필 입력도 지원. 서비스별 이력·실기기 미검증'},
@@ -274,7 +296,6 @@ for(const row of rows){
  row.toss.candidateStatus=group.status;
  row.toss.canonicalRoute=group.tossRoute;
 }
-const readJson = file => JSON.parse(fs.readFileSync(path.join(root,file),'utf8'));
 const archiveEvidence = readJson('docs/toss/ait-verification-20261114.json');
 function routeKey(route){
  const url=new URL(route,'https://example.invalid');
@@ -387,8 +408,42 @@ for(const group of canonicalCandidates){
   group.freeCalculation=true;group.tossLogin='탐색과 상대 매칭은 공개. 시뮬레이션 시작 시 토스 로그인 확인';group.reducedBundle='홈 진입 없음';
   group.webSources=[...new Set([...group.webSources,'app/saju/love-simulation/_components/LoveSimulationEngine.tsx','app/saju/love-simulation/_services/sajuApi.ts','app/saju/love-simulation/_engine/compatibilityEngine.ts'])];
  }
+ if(group.id==='free-fortune-index'){
+  group.freeDirectoryItems=FREE_PROMO_GROUPS.flatMap(section=>section.items.map(item=>({id:item.id,title:item.ko,group:section.id,webEntry:freePromoItemHref(item),policyKey:item.policyKey||null,freeStart:item.freeStart||null,tossRoute:freeFortuneHref(item)})));
+  group.webSources.push('lib/marketing/free-promo.mjs','lib/payment/free-fortune-policy.mjs');
+  group.tossLogin='목록 공개. 카드별 로그인 조건 유지';
+ }
+ if(group.id==='saju-brain'){
+  const item=FREE_PROMO_GROUPS.flatMap(section=>section.items).find(item=>item.id==='brain');
+  group.tossRoute=freeFortuneHref(item);group.webProductIds=[item.policyKey];group.freeCalculation=isFreeFortuneFeatureKey(item.policyKey);
+  group.tossLogin='원본 정적 뇌구조는 게스트. 생시를 입력한 로그인 계정은 HD·베다 보조 차트를 요청할 수 있음';group.webSources.push('js/core/saju/destiny-anatomy/copy.js','js/core/saju/destiny-anatomy/render.js','js/core/saju/destiny-anatomy/boot.js','js/core/saju/destiny-anatomy/share-card.js');
+ }
+ if(group.id==='fortune-prompt-hub'){
+  group.freeCalculation=isFreeFortuneFeatureKey('fortune-prompt-hub-generate');group.webProductIds=['fortune-prompt-hub-generate'];
+  group.tossLogin='입력은 공개. 무료 생성과 보관은 로그인한 소유 계정 필요';
+  group.webSources.push('worker/routes/prompt-hub.js','lib/fortune/prompt-hub-template.js','app/fortune/prompt-hub/prompt-hub-storage.ts');
+  group.webModes=PROMPT_HUB_TOOL_IDS;
+ }
+ if(group.id==='saju-compat-basic-free'){
+  const item=FREE_PROMO_GROUPS.flatMap(section=>section.items).find(item=>item.id==='compat');
+  group.webEntries=[freePromoItemHref(item)];group.webSources.push('js/saju-compat-render.mjs','lib/payment/free-fortune-policy.mjs');
+  group.freeCalculation=isFreeFortuneFeatureKey(item.policyKey);group.webProductIds=[item.policyKey];group.tossLogin='공개 입력과 무료 정적 계산';
+ }
+ if(group.id==='saju-compat-premium'){
+  group.webEntries=['/saju/compatibility/premium/','/saju/compatibility/'];
+  group.webProductIds=['saju-compat-premium'];
+  group.webRegistryPriceKRW=getBillingFeaturePricing({featureKey:'saju-compat-premium'}).pricing.amountKRW;
+  group.webSources=['app/saju/compatibility/premium/SajuCompatPremiumClient.tsx','worker/lib/saju-compat-premium-facts.js','worker/lib/saju-compat-premium-prompt.js','worker/routes/saju-compat-premium.js','app/saju/compatibility/premium/result/SajuCompatPremiumResultClient.tsx'];
+  group.saleStatus='전용 SKU 미등록 · 신규 판매 닫힘';
+  group.tossLogin='구매·저장 결과 조회에 토스 계정 필요';
+  group.webGenerator='worker/toss/native-compat-premium.js → worker/routes/saju-compat-premium.js:generateSajuCompatPremiumGroup';
+ }
  if(group.id==='saju-compatibility'){
-  group.freeCalculation=false;group.reducedBundle='홈 진입 없음';group.tossLogin='입력은 공개, 구매 및 원문은 토스 계정 필요';group.saleStatus='콘솔·운영 설정 필요';
+  group.webProductIds=['compat-saju-compatibility'];
+  group.webRegistryPriceKRW=getBillingFeaturePricing({featureKey:'compat-saju-compatibility'}).pricing.amountKRW;
+  group.freeCalculation=false;group.reducedBundle='기존 구매 기록에서 진입';group.tossLogin='기존 주문을 소유한 토스 계정 필요';group.saleStatus='기존 주문 이어쓰기·저장 원문 재열람만 가능';
+  group.currentEntry='꿀꿀운세 구매 기록의 소유 주문';
+  group.verification='과거 기본 궁합의 구매·생성 검사는 당시 버전 이력이다. 현재 기본형의 신규 구매 승인 또는 출시 증거로 사용하지 않는다';
   group.webSources=[...new Set([...group.webSources,'js/saju-engine.js','js/saju-compat-flow.mjs','worker/routes/saju-compat-basic.js','worker/lib/saju-compat-schema.js'])];
  }
  if(group.id==='saju-fpti'){
@@ -488,7 +543,10 @@ for(const group of canonicalCandidates){
   });
  }
  if(group.id==='fortune-chat')group.saleStatus='연이 기본 사주는 콘솔 SKU 확인·신규 판매 닫힘. 다른 기본·질문 편지는 개별 SKU 등록 필요';
- const destinations=archiveEvidence.directory.filter(row=>group.tossRoute&&routeKey(row.path)===routeKey(group.tossRoute));
+ // The previous directory pointed this URL at the paid consultation. It cannot
+ // establish either the new free result or today's owner-only history entry.
+ const compatibilityEntryChanged=['saju-compat-basic-free','saju-compatibility'].includes(group.id);
+ const destinations=compatibilityEntryChanged?[]:archiveEvidence.directory.filter(row=>group.tossRoute&&routeKey(row.path)===routeKey(group.tossRoute));
  const checks=archiveEvidence.checks.filter(check=>check.features.includes(group.id));
  group.archiveTests=checks.map(({id})=>id);
  group.archiveHomeButtons=destinations.map(row=>row.title);
@@ -499,19 +557,45 @@ for(const group of canonicalCandidates){
 // A code gap, a missing production configuration and a device check are separate
 // stages. Preserve historical status fields, but stop labelling every device-only
 // follow-up as unfinished implementation.
-const sourceAudit=readJson('docs/toss/original-mode-audit-20261114.json');
-if(sourceAudit.rows.length!==canonicalCandidates.length||new Set(sourceAudit.rows.map(row=>row.id)).size!==canonicalCandidates.length)throw Error('Original mode audit scope changed');
-const localOnly=new Set(['consultation-webtoons','heukwol-story','home-widget','juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle','lenormand-six','mbti-animal-compat','novel','psychotest','famous-saju','bias-destiny','tin-oracle','yeongnyangi-season']);
+const mockFlowPath='docs/toss/mock-service-flow-20261122.json';
+const mockArchive=readJson(mockFlowPath);
+for(const archive of [mockArchive,...(mockArchive.followups||[])]){
+ for(const check of archive.checks){
+  for(const id of check.canonicalIds){
+   const group=groups.get(id);
+   if(!group)throw Error('Unknown mock archive service: '+id);
+   (group.mockArchiveCases??=[]).push({deploymentId:archive.deploymentId,case:check.case});
+  }
+ }
+}
+const auditedIds=new Set(sourceAudit.rows.map(row=>row.id));
+const missingAudit=canonicalCandidates.filter(row=>!auditedIds.has(row.id)).map(row=>row.id);
+const staleAudit=sourceAudit.rows.filter(row=>!groups.has(row.id)).map(row=>row.id);
+if(missingAudit.length||staleAudit.length||auditedIds.size!==sourceAudit.rows.length){
+ throw Error('Original mode audit scope changed: '+JSON.stringify({missingAudit,staleAudit,duplicates:sourceAudit.rows.length-auditedIds.size}));
+}
+const pendingEvidence=new Set(implementationReadiness({canonicalCandidates},sourceAudit).evidencePending.map(row=>row.id));
+const localOnly=new Set([...auditedEntries.filter(row=>row.inventoryEntry.guest).map(row=>row.id),'free-fortune-index','saju-compat-basic-free','yeongnyangi-faq','consultation-webtoons','heukwol-story','home-widget','juyuk-turtle','kemet-oracle','royal-tea-oracle','stonehenge-runes','ifa-oracle','lenormand-six','mbti-animal-compat','novel','psychotest','famous-saju','bias-destiny','tin-oracle','yeongnyangi-season']);
 for(const group of canonicalCandidates){
  const audit=sourceAudit.rows.find(row=>row.id===group.id);if(!audit)throw Error('Missing original mode audit: '+group.id);
  group.sourceAudit={path:'docs/toss/original-mode-audit-20261114.json',reviewState:audit.reviewState,reviewedModes:audit.reviewedModes,codeGaps:audit.codeGaps};
- group.implementationStage=audit.codeGaps.length?'확인된 코드/모의 연결 누락 있음':'기존 원본 계약 및 개발 검증 근거 대조 완료';
+ group.implementationStage=audit.codeGaps.length?'확인된 코드/모의 연결 누락 있음':pendingEvidence.has(group.id)?'원본 연결 이후 개발 검증 근거 대조 중':'기존 원본 계약 및 개발 검증 근거 대조 완료';
  group.deviceStage='토스 휴대폰의 SDK·키보드·네트워크·파일/오디오 확인 미완료';
- group.portStatus=audit.codeGaps.length?'일부만 이식':localOnly.has(group.id)?'이미 동작':'콘솔·운영 설정 필요';
+ group.portStatus=audit.codeGaps.length||pendingEvidence.has(group.id)?(group.tossRoute||audit.tossRoute||group.publicSubflows?.length?'일부만 이식':'미이식'):localOnly.has(group.id)?'이미 동작':'콘솔·운영 설정 필요';
  group.portStatusScope='개발 구현 판정이며 운영 출시 완료를 뜻하지 않음';
+ if(group.id==='yeongnyangi-faq'){group.tossLogin='공개 진입';group.webProductIds=[];}
  if(group.id==='vedic')group.tossLogin='기본 명반은 게스트, 무료 궁합·Prashna는 로그인';
  if(group.id==='astrology')group.tossLogin='기본 차트·10풀이·두 궁합 모두 게스트';
  if(group.id==='music')group.tossLogin='무료 재생은 게스트, MP3 구매·저장은 소유 계정';
+ if(audit.inventoryEntry){
+  const entry=audit.inventoryEntry;
+  Object.assign(group,{status:'local-partial',webEntries:audit.webEntries,webSources:audit.webSources,tossRoute:audit.tossRoute,webModes:audit.reviewedModes,
+   currentEntry:entry.homePath+' · 소스 연결',reducedBundle:'QR21 이후 추가',tossLogin:entry.login,freeCalculation:entry.calculation===true,
+   inputContract:audit.recordedContract,resultRenderer:audit.renderer,tossResult:audit.renderer,storageContract:audit.recordedStorage,reread:audit.recordedStorage,
+   saleStatus:'신규 구매 없음',verification:audit.priorEvidence,bundleVerification:audit.archiveEvidence});
+ }
+ if(group.id==='yeongnyangi-daily'){group.webSources=audit.webSources;group.currentEntry='영냥이 → 오늘의 운세와 출석 또는 영냥이의 방 → 오늘의 무료 운세';group.tossAliases=['/yeongnyangi/room/#daily'];}
+ if(audit.regularDiscovery){group.regularDiscovery=audit.regularDiscovery;group.currentEntry=audit.regularDiscovery;}
  if(audit.currentArchiveEvidence)group.currentArchiveEvidence=audit.currentArchiveEvidence;
 }
 for(const row of rows){
@@ -528,6 +612,7 @@ const report={
  sourceCounts:{home:context.window.__cdServiceRegistry.length,react:react.length,visual:Object.keys(visual).length},
  scope:'홈 별칭, 상담 상품·모드, 무료 카테고리, 과거 상품 원장은 서로 다른 단위다. 코드상 진입과 실기기 검증을 분리한다.',
  archiveEvidence:'docs/toss/ait-verification-20261114.json',
+ mockServiceFlowEvidence:{path:mockFlowPath,platform:mockArchive.platform,deploymentId:mockArchive.deploymentId},
  entries:rows,canonicalCandidates,consultationProducts,daily,letterProducts,productContracts,
  registeredProducts,newPurchasesAvailable:NEW_PURCHASES_AVAILABLE,
 };
@@ -539,7 +624,7 @@ const cell=value=>String(value||'—').replaceAll('|','\\|').replace(/\s+/g,' ')
 const standaloneTitles={'lenormand-six':'르노르망 6장','pet-saju':'반려동물 사주','relationship-boundary-test':'관계 경계 상담','saju-image-prompts':'사주 그림 프롬프트','tarot-healing':'태양 회복 타로','tarot-self-esteem':'자기 기준 타로','tin-oracle':'핀란드 주석점',yeongnyangi:'운세보는 영냥이','ziwei-island':'자미두수 운명의 섬'};
 const indexRows=canonicalCandidates.map(group=>{
  const name=group.evidence.find(item=>item.name)?.name||standaloneTitles[group.id]||group.id;
- const home=group.archiveHomeButtons.length?'홈 버튼 · '+group.archiveHomeButtons.join(', '):group.currentEntry;
+ const home=group.regularDiscovery||(group.archiveHomeButtons.length?'홈 버튼 · '+group.archiveHomeButtons.join(', '):group.currentEntry);
  return [name,group.webEntries[0],group.tossRoute,home,group.portStatus,group.archiveTests.join(', ')||'상품별 로컬 근거는 JSON 참조']
   .map(cell).join(' | ');
 });

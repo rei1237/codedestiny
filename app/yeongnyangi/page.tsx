@@ -10,7 +10,6 @@ import {buildKrwOffer} from '@/lib/seo/paid-offer';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
 import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy';
 import Home from './_components/Home';
-import ServiceEntryScene from './_components/ServiceEntryScene';
 import KoreanOnly from './_components/KoreanOnly';
 import YeongnyangiGuide from './_components/YeongnyangiGuide';
 import {getAlternatesByRouteKey} from '@/lib/i18n/routes';
@@ -36,7 +35,6 @@ const jsonLd=[
  buildServiceJsonLd({name:YEONGNYANGI.serviceName,alternateName:[...YEONGNYANGI.alternateNames],description:'사주·자미두수·숙요점·베다점·서양 점성술·타로 중 한 체계의 계산을 바탕으로 AI가 고민을 챕터별로 해설하는 유료 운세 상담',path:PATH,offer:mackerelOffer&&{...mackerelOffer,name:'고등어 질문 상담',description:`한 체계, 신규 한국어 질문 기준 ${EXPANDED_CHAPTERS.mackerel}챕터, 추가 질문 없음`}}),
 ];
 export default function Page(){return <>
- <ServiceEntryScene/>
  <Home guide={<KoreanOnly><YeongnyangiGuide/></KoreanOnly>}/>
  {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(item)}}/>)}
 </>;}

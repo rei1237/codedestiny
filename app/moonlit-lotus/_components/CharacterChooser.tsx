@@ -60,8 +60,8 @@ export default function CharacterChooser({profile,reduced,onChange}:Props){
    <p className={styles.small}>{reduced?'동작 줄이기 설정에 따라 정지 자세로 보여요.':'동작 미리보기는 108배 횟수에 포함되지 않아요.'}</p>
    {failed&&<p role="alert">동작 그림을 불러오지 못했어요. 다른 친구를 고르거나 잠시 후 다시 시도해 주세요.</p>}
   </section>
-  <button type="button" className={styles.profileCompanion} disabled={profile.loading} onClick={()=>{onChange();void profile.loadImage();}}>{profile.loading?'프로필 친구 확인 중':'내 프로필의 동물로 고르기'}</button>
-  <p className={styles.small}>프로필 친구가 12지신 또는 영냥이면 같은 동물로 선택해요. 연화당 전용 전신 그림을 사용하며 프로필의 꾸밈·성장 기록은 바꾸지 않아요.</p>
+  {profile.savedCompanionAvailable&&<><button type="button" className={styles.profileCompanion} disabled={profile.loading} onClick={()=>{onChange();void profile.loadImage();}}>{profile.loading?'프로필 친구 확인 중':'내 프로필의 동물로 고르기'}</button>
+  <p className={styles.small}>프로필 친구가 12지신 또는 영냥이면 같은 동물로 선택해요. 연화당 전용 전신 그림을 사용하며 프로필의 꾸밈·성장 기록은 바꾸지 않아요.</p></>}
   {profile.imageError&&<p role="status">{profile.imageError}</p>}
  </div>;
 }

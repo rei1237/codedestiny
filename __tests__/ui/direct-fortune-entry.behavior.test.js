@@ -15,7 +15,10 @@ test("홈은 자바스크립트 준비 전에도 사주 직행 액션으로 연�
   const famousSaju = read("app/insights/famous-saju/[slug]/page.tsx");
   const profile = read("js/destiny-profile.js");
 
-  assert.match(home, /href="\/\?action=cdOneStepFreeSajuEntry" data-action="cdOneStepFreeSajuEntry" data-cd-service-id="saju"/);
+  const { JSDOM, VirtualConsole } = require("jsdom");
+  const dom = new JSDOM(home, { virtualConsole: new VirtualConsole() });
+  assert.ok(dom.window.document.querySelector('a[data-action="cdOneStepFreeSajuEntry"][href*="action=cdOneStepFreeSajuEntry"]'));
+  dom.window.close();
   assert.match(registry, /id: "saju"[\s\S]*?href: "\/?\?action=cdOneStepFreeSajuEntry"[\s\S]*?action: "cdOneStepFreeSajuEntry"/);
   assert.match(appHome, /href="\/?\?action=cdOneStepFreeSajuEntry"/);
   assert.match(homeSections, /"\/saju": "\/?\?action=cdOneStepFreeSajuEntry"/);

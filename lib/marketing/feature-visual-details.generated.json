@@ -2,7 +2,7 @@
   "index": [
     {
       "slug": "heukwol",
-      "title": "흑월의 주의 시기",
+      "title": "흑월의 경고",
       "href": "/heukwol/",
       "featureKey": "heukwol-warning-consultation",
       "accessType": "unknown",
@@ -1535,7 +1535,7 @@
   "items": {
     "heukwol": {
       "slug": "heukwol",
-      "title": "흑월의 주의 시기",
+      "title": "흑월의 경고",
       "href": "/heukwol/",
       "featureKey": "heukwol-warning-consultation",
       "featureKeyTo": "",

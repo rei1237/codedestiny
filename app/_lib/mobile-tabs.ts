@@ -9,7 +9,7 @@
  */
 import { stripLocalePrefix } from "./localePath";
 
-export type MobileTabKey = "home" | "fortunes" | "consult" | "library" | "my";
+export type MobileTabKey = "home" | "fortunes" | "consult" | "webtoon" | "library" | "my";
 
 export interface MobileTab {
   key: MobileTabKey;
@@ -65,12 +65,16 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   {
     key: "fortunes",
     label: "모든 운세",
-    href: `/?action=${ALL_FORTUNES_ACTION}`,
+    href: `/ggulggul/?action=${ALL_FORTUNES_ACTION}`,
     ariaLabel: "모든 운세 둘러보기",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel",
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
+  },
+  {
+    key: "webtoon", label: "웹툰", href: "/ggulggul/#homeStoryTitle", ariaLabel: "웹툰", glyph: "▤",
+    transKey: "home.shelf.webtoon", ariaTransKey: "home.shelf.webtoon",
   },
   {
     key: "library",
@@ -84,7 +88,7 @@ export const MOBILE_TABS: readonly MobileTab[] = [
   {
     key: "my",
     label: "마이",
-    href: `/?action=${ACCOUNT_SHEET_ACTION}`,
+    href: "/ggulggul/#cdAccountSheetTitle",
     ariaLabel: "마이페이지",
     transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s",
     ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel",
@@ -97,6 +101,9 @@ const TAB_KEYS: readonly MobileTabKey[] = MOBILE_TABS.map((tab) => tab.key);
 
 /** pathname prefix → 탭 key. 위에서부터 먼저 맞는 것을 쓴다(구체적인 것이 앞). */
 const PATH_RULES: ReadonlyArray<{ prefix: string; key: MobileTabKey }> = [
+  { prefix: "/yeongnyangi/season-1", key: "webtoon" },
+  { prefix: "/recipes", key: "webtoon" },
+  { prefix: "/entry-webtoon", key: "webtoon" },
   { prefix: "/consultations", key: "fortunes" },
   { prefix: "/records", key: "library" },
   { prefix: "/fortune-chat", key: "fortunes" },

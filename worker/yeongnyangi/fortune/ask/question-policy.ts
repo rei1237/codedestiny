@@ -99,6 +99,9 @@ export function assertQuestionOrder(product:{domain:DomainId;fishId:string;readi
  if(!Object.hasOwn(FOLLOWUP_LIMITS,product.fishId))throw new FortuneError('QUESTION_PRODUCT_MISMATCH');
  return plan;
 }
+// Long questions mix background with the actual worry; the answer keeps to the worry (2026-11-22).
+export const LONG_QUESTION_FOCUS='질문이 길면 출생 정보·자기소개·경위 같은 배경은 상황 자료로만 쓰고 되풀이하지 않는다. 실제로 묻거나 바라는 핵심 고민을 최대 3개로 추려 우선순위대로 한 줄씩 먼저 답한 뒤 이유와 행동을 설명한다.';
+export const LONG_QUESTION_BACKGROUND='질문이 길면 출생 정보·자기소개·경위 같은 배경은 상황 자료로만 쓰고 되풀이하지 않으며, 각 질문의 핵심부터 짚어 답한다.';
 export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDecision,spread?:{positions:{id:string;label:string;question:string;role:string;readOrder:number}[]},question='',expanded=true):ChapterSpec[]{
  if(!expanded)return legacyQuestionManifest(domain,fish,d,spread);
  // A job change is a move between employers; the business basis framed it as starting a business (Z 2026-10-09 ch6).
@@ -115,7 +118,10 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  const editorial=intent?.title?{...baseEditorial,answer:intent.title}:baseEditorial;
  const basics=foundationGuide[domain];
  const subject=questionTopics.find(topic=>topic.id===d.category)?.label||'질문';
- const title=question.trim().replace(/\s+/g,' ').slice(0,120)||[d.period,subject].filter(Boolean).join(' · ');
+ // A long question carries birth data and backstory: only a short one-line question reads well as a chapter title.
+ const asked=question.trim(),flat=asked.replace(/\s+/g,' '),multiline=/\n/.test(asked);
+ const longQuestion=flat.length>120||multiline;
+ const title=(!multiline&&flat.length<=40&&flat)||[d.period,subject].filter(Boolean).join(' · ');
  // D7 layout: foundation 2 (nature + current flow, strengths) → answer → question middle → bonus/life → synthesis.
  const topic=questionTopic(d.category) as LayoutTopic;
  const tarot=domain==='tarot'&&Boolean(spread?.positions.length);
@@ -127,6 +133,7 @@ export function questionManifest(domain:DomainId,fish:QuestionFish,d:QuestionDec
  const meaning:Section={id:'meaning',title:editorial.answer,role:'interpretation',instruction:'질문에 먼저 직접 답하고 관련 성향 또는 상황 패턴·강점·주의 조건을 설명한다. 기본 장의 기질 설명은 한 줄로만 참조한다.'};
  if(intent)meaning.instruction+=' '+intent.direct;
  if(d.target==='pair'&&!intent?.symbolicPair)meaning.instruction+=' 두 사람 각각의 성향, 잘 맞는 점과 어긋나는 점, 표현·갈등·생활·돈·책임의 합의를 다룬다.';
+ if(longQuestion&&!composite)meaning.instruction+=' '+LONG_QUESTION_FOCUS;
  if(composite)meaning.instruction+=` 질문 원문에서 서로 독립된 고민을 최대 ${fish==='flounder'||fish==='tuna'?4:3}개로 나누고 합칠 수 있는 것은 합친다. 먼저 어떤 순서로 다룰지 우선순위와 이유를 밝히고 고민마다 한 줄로 먼저 답한다. 자세한 해석은 뒤 장에 맡기고 여기서 근거를 길게 풀지 않는다.`+noRepeat;
  const actions:Section[]=[
   {id:'example-1',title:'생활 속에서 적용해 보기',role:'example',instruction:'입력으로 확인된 사실과 가상 생활 장면을 구분한다. 앞 장의 장면을 재사용하지 않는다.'},

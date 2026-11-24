@@ -39,7 +39,7 @@ const cssMutations = [
   ['distorted image ratio', 'height:auto;aspect-ratio:1;object-fit:contain', 'height:auto;aspect-ratio:2;object-fit:contain'],
 ];
 for (const [name, before, after] of cssMutations) test(`first-paint guard rejects ${name}`, () => {
-  const mutated = css.replace(before, after);
+  const mutated = css.replaceAll(before, after);
   assert.notEqual(mutated, css);
   assert.throws(() => assertYehwaFirstPaint(html, mutated), { name: 'AssertionError' });
 });

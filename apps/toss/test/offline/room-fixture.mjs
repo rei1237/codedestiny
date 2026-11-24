@@ -10,6 +10,7 @@ const neo={service:'neo',name:'가상 네오 전략 상담',featureKey:'neo-oper
 const heukwol={service:'heukwol',name:'가상 흑월 상담',featureKey:'heukwol-warning-consultation',path:'/heukwol/'};
 const dream={service:'dream',name:'가상 정신분석 해몽',featureKey:'dream-psycho-analysis',path:'/dream/psycho/'};
 const naming={service:'naming',name:'가상 사주 작명첩',featureKey:'premium-naming-prompt',path:'/naming-ai/result/'};
+const premiumCompat={service:'saju-compat-premium',name:'가상 사주 고급 궁합',featureKey:'saju-compat-premium',path:'/saju/compatibility/premium/result/'};
 const sajuCompat={service:'saju-compat',name:'가상 사주 궁합',featureKey:'compat-saju-compatibility',path:'/saju/compatibility/'};
 const codex={service:'codex',name:'가상 마스터 인연의 서 · 개인',featureKey:'master-love-codex',path:'/master-love-codex/result/'};
 const compat={...codex,name:'가상 마스터 인연의 서 · 궁합',featureKey:'master-love-codex-compat'};
@@ -21,11 +22,12 @@ const guardian={service:'guardian',name:'가상 사주 가디언',featureKey:'sa
 const sibyl={service:'sibyl',name:'가상 시빌라 심층 리포트',featureKey:'premium-sibyl-dominator',path:'/saju/sibyl/'};
 const lifeBook={service:'life-book',name:'가상 인생의 책',featureKey:'life-book-ai-consultation',path:'/life-book-ai/result/'};
 const lifeFortune={...lifeBook,name:'가상 인생 총운',featureKey:'life-fortune-ai-consultation'};
-const rooms=[lifeBook,lifeFortune,guardian,sibyl,...totems,sajuCompat,geomancy,...teaModes,neo,heukwol,dream,naming,codex,compat,palm];
-export const roomProducts=rooms.map(room=>({
+const rooms=[lifeBook,lifeFortune,guardian,sibyl,...totems,premiumCompat,sajuCompat,geomancy,...teaModes,neo,heukwol,dream,naming,codex,compat,palm];
+export const roomProducts=rooms.filter(room=>room!==sajuCompat).map(room=>({
   id:'native:'+room.service+':'+room.featureKey,name:room.name,featureKey:room.featureKey,
   sku:'mock-unregistered-room-'+(room.service==='tea'&&room!==tea?'tea-'+room.mode:room===compat?'codex-compat':room===lifeFortune?'life-fortune':room.service),available:true,approvedPriceKRW:1,
 }));
+export const retainedCompatSku='mock-unregistered-room-saju-compat';
 export const roomSdkProducts=roomProducts.map(p=>({sku:p.sku,type:'CONSUMABLE',displayName:p.name,displayAmount:'1원',iconUrl:'',description:'오프라인 가상 결제'}));
 const reply=(data,status=200)=>Response.json(data,{status});
 const fail=(error,status)=>reply({ok:false,error,reason:error},status);
@@ -45,9 +47,9 @@ export function roomPurchases(state){
     return {requestId:row.id,orderId:row.orderId,sku:row.sku,serviceId:room.service,nativeService:room.service,
       productId:room.featureKey,featureKey:room.featureKey,status:'PURCHASED',state:row.result?'COMPLETED':'PENDING',createdAt:row.createdAt,
       ...(room.service==='life-book'?{entryHref:'/life-book-ai/result?attemptId='+encodeURIComponent(row.input.requestId)}:{}),
-      href:room.service==='life-book'?room.path+'?attemptId='+encodeURIComponent(row.id):room===guardian||room===sibyl||room===palm||totems.includes(room)||room===sajuCompat||room===geomancy||room===dream||room===naming||room.service==='codex'?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
+      href:room===premiumCompat?room.path+'?resultId='+row.id:room.service==='life-book'?room.path+'?attemptId='+encodeURIComponent(row.id):room===guardian||room===sibyl||room===palm||totems.includes(room)||room===sajuCompat||room===geomancy||room===dream||room===naming||room.service==='codex'?room.path+'?intentId='+row.id:room.service==='heukwol'?room.path+'?result='+row.id:room.service==='neo'?room.path+'?attemptId='+encodeURIComponent(row.result?row.resultId:'toss_'+row.id):
         room.path+'?'+(row.result?'resultId=':'recoverResultId=')+encodeURIComponent(row.resultId),
-      question:room.service==='life-book'?row.input.topic:room===guardian||room===sibyl?room.name:room===palm?'내 손금 리포트':room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
+      question:room===premiumCompat?'사주 고급 궁합':room.service==='life-book'?row.input.topic:room===guardian||room===sibyl?room.name:room===palm?'내 손금 리포트':room===sajuCompat?row.input.partnerName:room.service==='codex'?room.name.slice(3):room===naming?row.input.input.familyName+' 작명첩':row.input.question||row.input.dreamText,resultId:row.resultId};
   });
 }
 export function roomRecords(url,state){
@@ -71,6 +73,7 @@ export async function roomOrderRequest(request,url,path,state,save,now){
     }
     if(post&&match[2]==='prepare'){
       let {input,orderId}=await request.json();
+      if(room===sajuCompat&&!orderId)return fail('PRODUCT_UNAVAILABLE',409);
       if(room===guardian||room===sibyl){
         const card=state.profiles.find(p=>p.profileId===input?.profileId);
         if(!card)return fail('PROFILE_REQUIRED',400);
@@ -88,7 +91,7 @@ export async function roomOrderRequest(request,url,path,state,save,now){
       if(room.service==='tea'){room=teaModes.find(item=>item.mode===teaMode(input));if(!room)return fail('REQUEST_INPUT_MISMATCH',400);
         if(input.consultationMode==='tarot'){try{readMockTeaDraw(state,input);}catch(error){return fail(error.code,error.status);}}
       }
-      const valid=room.service==='life-book'?input?.serviceType===room.featureKey&&input?.birthInfo?.birthDate&&input?.topic:room===guardian||room===sibyl?input.profileId:room===palm?input.uploadedHands.length:totems.includes(room)?Array.isArray(input?.animalIds)&&input.animalIds.length===({one:1,three:3,five:5})[input.mode]&&(input.mode==='five')===(room===totems[1]):room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
+      const valid=room===premiumCompat?['some','dating','married','reunion','premarital'].includes(input?.relationType)&&[input?.self,input?.partner].every(p=>p?.birthDate&&['female','male'].includes(p.gender)):room.service==='life-book'?input?.serviceType===room.featureKey&&input?.birthInfo?.birthDate&&input?.topic:room===guardian||room===sibyl?input.profileId:room===palm?input.uploadedHands.length:totems.includes(room)?Array.isArray(input?.animalIds)&&input.animalIds.length===({one:1,three:3,five:5})[input.mode]&&(input.mode==='five')===(room===totems[1]):room===sajuCompat?input?.self?.pillars?.length===4&&input?.partner?.pillars?.length===4&&input?.facts?.score:room===geomancy?input?.question?.length>=2&&input?.counts?.length===16:room.service==='codex'?input?.reading?.birthInfo?.birthDate&&Boolean(input.reading.partnerInfo?.birthDate)===(room===compat):room===naming?input?.input?.familyName&&input.input.birthDate:room===dream?typeof input?.dreamText==='string'&&input.dreamText.trim().length>=8&&input.dreamText.length<=6000:input?.question;
       if(!key||!valid||input.featureKey&&input.featureKey!==room.featureKey)return fail('REQUEST_INPUT_MISMATCH',400);
       if(room===heukwol){const card=state.profiles.find(p=>p.profileId===input.profileId);if(!card)return fail('PROFILE_REQUIRED',400);if(card.birth?.timeUnknown!==false)return fail('BIRTH_TIME_REQUIRED',400);}
       let row=[...state.intents.values()].find(item=>item.service===room.service&&requestKey(item.input)===key);
@@ -109,6 +112,10 @@ export async function roomOrderRequest(request,url,path,state,save,now){
   }
   if((path==='/orders/restore'||path==='/orders/grant')&&post){
     const {sku,orderId,requestId}=await request.clone().json();
+    if(path==='/orders/restore'&&sku===retainedCompatSku){
+      const row=state.intents.get(state.orders.get(orderId));
+      return row?.service==='saju-compat'&&row.paid&&row.sku===sku&&row.orderId===orderId?reply({orderId,requestId:row.id,entitlement:'granted',durable:true}):fail('ORDER_MISMATCH',403);
+    }
     if(roomProducts.some(p=>p.sku===sku)){
       if(path==='/orders/grant'){
         const row=state.intents.get(requestId);
@@ -164,6 +171,21 @@ export async function roomRequest(request,url,path,state,save,now){
       }save();
     }
     return row.result?reply(row.result):reply({ok:true,mode,done:false,status:'generating',retryable:true,generationProgress:{completed:0,total:1}},202);
+  }
+  const premiumMatch=/^\/native\/saju-compat-premium\/results\/([a-f0-9]{64})$/.exec(path);
+  if(premiumMatch){
+    const row=state.intents.get(premiumMatch[1]);
+    if(row?.service!==premiumCompat.service||!row.paid)return fail('RESULT_NOT_FOUND',404);
+    if(post&&!row.result){
+      row.progress=(row.progress||0)+1;
+      if(row.progress===4){
+        const labels=['관계 총론','성향·소통','신뢰·이성 기질','전생 인연·앞으로의 관계'];
+        row.result={summaryTitle:'[모의] 사주 고급 궁합',chapters:labels.map((label,index)=>({key:String(index),label,sections:[{title:label,body:'[테스트 전용] '+label+'의 저장된 원문입니다.'}]}))};
+        row.generationCount=1;
+      }
+      save();
+    }
+    return reply({completed:row.progress||0,...(row.result?{result:row.result}:{})});
   }
   const compatMatch=/^\/native\/saju-compat\/results\/([a-f0-9]{64})$/.exec(path);
   if(compatMatch){

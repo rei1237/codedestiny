@@ -1,3 +1,6 @@
+import {tossPromptLibraryScope} from '../../../lib/fortune/toss-prompt-library.mjs';
+import {mockPromptHubRequest} from './prompt-hub.mjs';
+import {saveFixtureProfile} from '../test/offline/profile-mutation.mjs';
 import {createMusicSimulation} from './music-download.mjs';
 import {privateFreeOriginal} from './free-originals.mjs';
 import {privateAstroSynastry} from './astro-synastry.mjs';
@@ -35,7 +38,7 @@ function exampleReading(kind,body){
   return replies(skyExample[kind]);
 }
 const unavailable=()=>replies({error:'PRIVATE_SIMULATION_UNAVAILABLE'},404);
-const sample={id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}};
+const sample={location:{tz:'Asia/Seoul',lat:37.5665,lng:126.978,label:'서울'},id:'mock-profile',profileId:'mock-profile',name:'테스트 프로필',gender:'F',birthDate:'1990-01-01',timeUnknown:true,calendarType:'solar',birth:{year:1990,month:1,day:1,timeUnknown:true,calType:'solar'}};
 
 export function createSimulationApi(storage,person,musicTracks=[]){
   const music=createMusicSimulation(musicTracks);
@@ -43,10 +46,10 @@ export function createSimulationApi(storage,person,musicTracks=[]){
   const token='private-simulation-token-'+person;
   const owner='private-simulation-person-'+person;
   const saved=JSON.parse(storage.getItem('consultations')||'{}');
-  const state={profiles:saved.profiles||[sample],loggedIn:saved.loggedIn===true,sequence:saved.sequence??(person==='B'?2**40:0),
+  const state={daily:saved.daily||{day:null,balance:2,attended:false,unlocked:false,readings:{}},profiles:saved.profiles||[sample],loggedIn:saved.loggedIn===true,sequence:saved.sequence??(person==='B'?2**40:0),
     fortunes:new Map(saved.fortunes),orders:new Map(saved.orders),letters:new Map(saved.letters),intents:new Map(saved.intents),teaDrafts:new Map(saved.teaDrafts)};
   const save=()=>{try{
-    storage.setItem('consultations',JSON.stringify({profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders],letters:[...state.letters],intents:[...state.intents],teaDrafts:[...state.teaDrafts]}));return true;
+    storage.setItem('consultations',JSON.stringify({daily:state.daily,profiles:state.profiles,loggedIn:state.loggedIn,sequence:state.sequence,fortunes:[...state.fortunes],orders:[...state.orders],letters:[...state.letters],intents:[...state.intents],teaDrafts:[...state.teaDrafts]}));return true;
   }catch{return false;}};
   return async request=>{
     const url=new URL(request.url);
@@ -74,31 +77,39 @@ export function createSimulationApi(storage,person,musicTracks=[]){
     const publicReport=await nativeReportPublicRequest(request.clone(),path);if(publicReport)return publicReport;
     const publicCalculation=await privatePublicCalculation(request.clone(),url,path);if(publicCalculation)return publicCalculation;
     if(!state.loggedIn||request.headers.get('authorization')!=='Bearer '+token)return replies({error:'LOGIN_REQUIRED'},401);
+    if((path==='/flower/session'||path==='/canonical/moonlit-lotus/session'||path==='/canonical/fortune/prompt-hub/session')&&method==='GET')return replies({owner,scope:tossPromptLibraryScope(owner,Number(storage?.getItem('prompt-hub-unlink-revision:'+owner)||0),'SANDBOX')});
+    const prompt=await mockPromptHubRequest(request,path);if(prompt)return prompt;
     if(path==='/sukuyo/past-life'&&method==='POST')return privateSukuyoPastLife(await request.json());
     const ownedCalculation=await privateOwnedCalculation(request.clone(),url,path,state);if(ownedCalculation)return ownedCalculation;
     if(path.startsWith('/native/neo-email'))return neoEmailFixture(storage,owner).handle(request,path);
     if(['/vedic/compatibility','/vedic/prashna','/flower/match'].includes(path)&&method==='POST')return privateFreeOriginal(path,await request.json());
     if(path==='/session'&&method==='GET')return replies({authenticated:true,environment:'SANDBOX'});
+    if(path==='/unlink'&&method==='POST'){
+      const key='prompt-hub-unlink-revision:'+owner;
+      state.loggedIn=false;
+      storage?.setItem(key,String(Number(storage.getItem(key)||0)+1));
+      save();return replies({remoteUnlink:'completed',promptLibraryOwner:owner});
+    }
     if(path==='/logout'&&method==='POST'){state.loggedIn=false;save();return replies({ok:true});}
     if(path==='/canonical/auth/me'&&method==='GET')return replies({ok:true,authenticated:true,user:{id:owner,name:'모의 계정 '+person,role:'user'}});
     if(path==='/canonical/geocode'&&method==='GET')return url.searchParams.get('place')==='서울'?replies({name:'서울',lat:37.5665,lng:126.978,timezone:'Asia/Seoul',fallback:false}):replies({error:'PLACE_NOT_FOUND'},404);
     if(path==='/canonical/profile'&&method==='GET')return replies({ok:true,profiles:state.profiles.map(profile=>({...profile,timezone:'Asia/Seoul'}))});
-    if(path==='/canonical/yeongnyangi/profiles'){
-      if(method==='GET')return replies({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
-      if(method==='POST'){
-        const {profile}=await request.json();
-        if(!profile?.profileId||!profile.birth?.year)return replies({error:'BIRTH_INVALID'},400);
-        const row={...sample,id:profile.profileId,profileId:profile.profileId};
-        if(profile.birth.timeUnknown===false){row.timeUnknown=false;row.birth={...sample.birth,timeUnknown:false,hour:8,minute:35};}
-        if(!state.profiles.some(item=>item.id===row.id))state.profiles.push(row);
-        return save()?replies({ok:true,profile:row}):replies({error:'MOCK_STORAGE_UNAVAILABLE'},503);
-      }
+    if(path==='/canonical/astro/western-chart'&&method==='POST'){
+      const {privateStarHugChart}=await import('./star-hug-chart.mjs');
+      return privateStarHugChart(await request.json());
     }
+    if(path==='/canonical/yeongnyangi/free/hat'&&method==='POST'){
+      const {privateHat}=await import('./sorting-hat.mjs');
+      return privateHat(state.profiles,await request.json());
+    }
+    if(path==='/canonical/yeongnyangi/profiles'&&method==='GET')return replies({ok:true,profiles:state.profiles,currentId:state.profiles.at(-1)?.profileId});
+    if(method==='POST'&&['/canonical/yeongnyangi/profiles','/canonical/yeongnyangi/profiles/update'].includes(path))return saveFixtureProfile(state,await request.json(),path.endsWith('/update'),save);
     if(path==='/human-design/chart'&&method==='POST')return privateHumanDesign((await request.json()).birth);
     if(path==='/sukuyo/yearly'&&method==='POST')return privateSukuyoYearly(person,state.profiles,await request.json());
     if(path==='/events'&&method==='POST')return replies({ok:true});
     const now=()=>new Date();
     if(path==='/canonical/records'&&method==='GET'){const records=await roomRecords(url,state).json();return replies({...records,items:[...records.items,...expertRecords(url,state),...humanDesignRecords(url,state),...extendedRecords(url,state),...paidFamilyRecords(url,state),...music.musicRecords(url,state)]});}
+    if(path.startsWith('/daily/'))return await handleReviewFixture(request,url,path,state,save,now)||unavailable();
     if(path==='/library'&&method==='GET'){const response=await handleReviewFixture(request,url,path,state,save,now);const body=await response.json();return replies({...body,purchases:[...body.purchases,...humanDesignPurchases(state),...paidFamilyPurchases(state).filter(row=>row.nativeService!=='sukuyo'),...music.musicPurchases(state)]});}
     if(path==='/native/catalog'&&method==='GET')return replies({products:[...characterRooms,...expertProducts,...nativeReportProducts,...humanDesignProducts,...extendedProducts,...paidFamilyProducts,...music.musicProducts]});
     if(path.startsWith('/native/music/'))return await music.musicRequest(request,url,path,state,save,now)||unavailable();

@@ -23,7 +23,7 @@ export default async function ConsultationStory({params}:Props){
  if(!story||!service||!webtoon)notFound();
  return <main className={`${entryStyles.page} ${styles.page}`} lang="ko" data-cd-no-trans>
   <link rel="stylesheet" href="/styles/service-intro-fonts.css"/>
-  <nav className={styles.nav}><a href="/entry-webtoon/#service-guide">이용 안내 웹툰 목차</a><a href={service.href}>상담 바로 가기</a></nav>
+  <nav className={styles.nav}><a href="/ggulggul/#homeStoryTitle">웹툰 서가</a><a href="/entry-webtoon/#service-guide">이용 안내 웹툰 목차</a><a href={service.href}>상담 바로 가기</a></nav>
   <header className={styles.cover}>
    <h1>{webtoon.episode || webtoon.title}</h1><p className={styles.serviceName}>{service.name} · 서비스 이용 안내 웹툰</p><p className={styles.lead}>{story.lead}</p>
    <ul className={styles.benefits} aria-label="이 상담에서 얻는 것">{storyBenefits[slug].map(benefit=><li key={benefit}>{benefit}</li>)}</ul>

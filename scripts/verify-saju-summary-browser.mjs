@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { openFreeSajuForm } from './lib/open-free-saju-form.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
@@ -35,7 +36,7 @@ const server = createServer(async (req, res) => {
   if (pathname === '/api/honey/catalog') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,products:HONEY_UNLOCK_PRODUCTS,otherUses:[]})); return; }
   if (pathname === '/api/honey/attendance') { res.writeHead(200, {'content-type':'application/json'}); res.end(JSON.stringify({ok:true,balance:0,attended:false})); return; }
   if (pathname.startsWith('/api/')) { res.writeHead(200, {'content-type':'application/json'}); res.end('{"ok":true,"unlocks":[],"profiles":[]}'); return; }
-  const file = resolve(root, '.' + (pathname === '/' ? '/index.html' : pathname));
+  const file = resolve(root, '.' + (pathname === '/' || pathname === '/ggulggul/' ? '/index.html' : pathname));
   if (!file.startsWith(root + '/') && !file.startsWith(root + '\\')) { res.writeHead(403); res.end(); return; }
   try {
     const data = await readFile(file).catch(() => readFile(resolve(root, 'public', '.' + pathname)));
@@ -80,6 +81,12 @@ async function openReading(page, cardId = 'summaryCard', group = 'more') {
 async function assertSummaryVisible(page, label) {
   await openReading(page);
   await page.locator('#summaryArea .saju-summary-report').waitFor({state:'visible'});
+  // 🔴 홈 입구 링크(section=sajuCard)로 들어오면 destiny-profile.js(_dpRevealHomeSection)가 결과
+  // 도착 뒤 8초 동안 #sajuCard 를 붙잡고, #resultPage 의 DOM 변경마다 그 카드로 되돌려 스크롤한다.
+  // 실사용자의 스크롤(wheel·touch·key·pointer)은 그 붙잡기를 바로 놓지만 스크립트 scrollIntoView 는
+  // 사용자 입력이 아니라 놓지 못한다 — 느린 러너에서 단정이 8초 창 안에 걸리면 #summaryCard 가 화면
+  // 밖으로 끌려가 리빌 전 상태로 남았다(실측: scrollY 80 = #sajuCard). 사용자처럼 휠로 스크롤해 놓는다.
+  await page.mouse.wheel(0, 1);
   // The report can exceed 30,000px; scrollIntoViewIfNeeded can consider a
   // sliver of its body visible while the card's reveal threshold is unmet.
   await page.locator('#summaryCard').evaluate(el => el.scrollIntoView({ block: 'start', behavior: 'instant' }));
@@ -134,11 +141,7 @@ try {
   page.on('dialog', dialog => dialog.dismiss());
   page.on('pageerror', error => { browserErrors.push({ case: activeCase, error: error.message }); console.log('PAGE ERROR:', error.message); });
   page.on('console', message => { if (message.type() === 'error' && /Summary|renderSummary/.test(message.text())) console.log(message.text()); });
-  await page.goto(origin, {waitUntil:'domcontentloaded'});
-  await page.waitForFunction(() => typeof window.cdOneStepFreeSajuEntry === 'function');
-  // 무료 사주 입구: 700px 미만은 첫 줄 7개 입구(.yh-entries)만 보이고 아래 '무료로 먼저' 격자는 중복이라 숨긴다(6e44d94eb). 화면에 보이는 쪽을 누른다.
-  if (await page.locator('#cdhMore:not([open]) > summary').count()) await page.locator('#cdhMore > summary').click();
-  await page.locator('#cdQuickServices a[data-action="cdOneStepFreeSajuEntry"], .yh-entries a[data-action="cdOneStepFreeSajuEntry"]').filter({visible:true}).first().click();
+  await openFreeSajuForm(page, origin);
   await page.locator('#nameInput').fill('회귀검증');
   await page.locator('#birthDate').fill('1990-05-15');
   if (alreadyUnlocked) await page.evaluate(() => {

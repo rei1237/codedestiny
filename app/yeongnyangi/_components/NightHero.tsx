@@ -1,6 +1,6 @@
 'use client';
 import {mascotName,mascotPrefix} from '../_lib/mascot-name.mjs';
-import {useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,Moon,PawPrint} from 'lucide-react';
 import {products} from '@/worker/yeongnyangi/payments/catalog';
 import {EXPANDED_CHAPTERS} from '@/worker/yeongnyangi/fortune/consultation-expansion';
@@ -10,6 +10,7 @@ import TrustRecordLine from '@/app/components/conversion/TrustRecordLine';
 import {launchOffer,plannedPriceFor} from '@/lib/brand/launch-offer';
 import styles from './night-hero.module.css';
 import PetMascot from './PetMascot';
+import NightBloomMotion from './NightBloomMotion';
 
 const starter=products.find(product=>product.id==='saju_mackerel')!;
 const planned=plannedPriceFor(starter.fishId,starter.priceKRW);
@@ -24,13 +25,32 @@ export function NightPriceDetails(){
 }
 export default function NightHero(){
  const [greeting,setGreeting]=useState(0);
+ const room = useRef<HTMLImageElement>(null);
+ const [sceneReady, setSceneReady] = useState(false);
+ useEffect(() => {
+   const image = room.current;
+   if (!image) return;
+   let cancelled = false;
+   const paint = () => { if (!cancelled) setSceneReady(true); };
+   // A cached image can finish before hydration attaches a load listener.
+   if (image.complete) paint();
+   else { image.addEventListener('load', paint); image.addEventListener('error', paint); }
+   return () => { cancelled = true; image.removeEventListener('load', paint); image.removeEventListener('error', paint); };
+ }, []);
  return <section className={styles.hero} aria-labelledby="hero-title">
-  <picture className={styles.room}><source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/></picture>
+  <picture className={styles.room}>
+    <source media="(max-width: 699px)" type="image/avif" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.avif"/>
+    <source media="(max-width: 699px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/>
+    <source type="image/avif" srcSet="/assets/yeongnyangi/night/consultation-room.avif"/>
+    <img ref={room} src="/assets/yeongnyangi/night/consultation-room.webp" width={1440} height={960} alt="" fetchPriority="high"/>
+  </picture>
+  <span className={styles.garden} aria-hidden="true"><span className={styles.lotus} data-yn-bloom="lotus"/></span>
+  {sceneReady && <NightBloomMotion className={styles.bloomMotion}/>}
   <div className={styles.copy}>
    <h1 id="hero-title"><span className={styles.brandPrefix}>{mascotPrefix}</span>{' '}<span className={styles.brandName}>{mascotName}</span></h1>
    <p className={styles.desktopIntro}>간단한 고민 상담은 영냥이에게 물어봐! 답과 근거, 지금 해볼 행동을 함께 살펴봐요.</p>
    <div className={styles.actions}>
-    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>운세 고르고 고민 적기<ArrowRight size={19} aria-hidden="true"/></a>
+    <a className={styles.primary} href="#questions" data-cd-business-entry="question"><PawPrint size={20} aria-hidden="true"/>고민 적고 운세 고르기<ArrowRight size={19} aria-hidden="true"/></a>
     <a className={styles.roomLink} href="/yeongnyangi/room/"><Moon size={16} aria-hidden="true"/>영냥이의 방</a>
    </div>
    <p className={styles.price}>{planned!==null?<>선착순 {launchOffer.limit.toLocaleString('ko-KR')}명 체험가 · <LaunchPlannedPrice amount={planned}/> · </>:null}<span className={styles.keep}>질문 상담 {starter.priceKRW.toLocaleString('ko-KR')}원부터</span></p>
@@ -39,7 +59,7 @@ export default function NightHero(){
 
   </div>
   <div className={styles.character}>
-   <PetMascot className={styles.cat} variant="landing" alt="달빛 모자를 쓰고 이야기를 기다리는 흰 고양이 영냥이" sizes="(min-width: 900px) 420px, (max-width: 699px) 184px, 210px" priority onReact={()=>setGreeting(value=>(value+1)%greetings.length)}/>
+   <PetMascot className={styles.cat} variant="landing" alt="달빛 모자를 쓰고 이야기를 기다리는 흰 고양이 영냥이" sizes="(min-width: 900px) 420px, (max-width: 699px) 184px, 210px" onReact={()=>setGreeting(value=>(value+1)%greetings.length)}/>
    <p aria-live="polite" data-greeted={greeting ? true : undefined}>{greetings[greeting]}</p>
   </div>
  </section>;

@@ -76,122 +76,6 @@
     syncConcernArrows();
   }
 
-  // Signature banner: one consultation at a time, auto-advancing only while visible and idle.
-  // The comparison list and the moonlight letter popup below keep their own controls.
-  var signatureBanner = home.querySelector('[data-sig-banner]');
-  var bannerSlides = signatureBanner ? Array.prototype.slice.call(signatureBanner.querySelectorAll('[data-sig-banner-slide]')) : [];
-  var bannerControls = signatureBanner && signatureBanner.querySelector('[data-sig-banner-controls]');
-  if (bannerSlides.length > 1 && bannerControls) {
-    var bannerTrack = signatureBanner.querySelector('.cd-sig-banner__track');
-    var bannerPrevious = bannerControls.querySelector('[data-sig-banner-prev]');
-    var bannerNext = bannerControls.querySelector('[data-sig-banner-next]');
-    var bannerPause = bannerControls.querySelector('[data-sig-banner-pause]');
-    var bannerPosition = bannerControls.querySelector('[data-sig-banner-position]');
-    var bannerDots = Array.prototype.slice.call(bannerControls.querySelectorAll('[data-sig-banner-dot]'));
-    var bannerMotion = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
-    var BANNER_INTERVAL = 5000, BANNER_GRACE = 12000;
-    var bannerIndex = 0, bannerPaused = false, bannerVisible = typeof IntersectionObserver !== 'function', bannerHover = false;
-    var bannerTimer = 0, bannerManualUntil = 0, bannerTouch = null;
-    function bannerBlockingModal() {
-      return Array.prototype.some.call(document.querySelectorAll('dialog[open],[aria-modal="true"]:not([hidden])'), function (node) {
-        return node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden';
-      });
-    }
-    function bannerIdle() {
-      return !bannerPaused && !bannerMotion.matches && bannerVisible && !bannerHover && !document.hidden && !signatureBanner.contains(document.activeElement) && !bannerBlockingModal();
-    }
-    function renderBanner(nextIndex) {
-      bannerIndex = (nextIndex + bannerSlides.length) % bannerSlides.length;
-      bannerSlides.forEach(function (slide, index) {
-        var active = index === bannerIndex;
-        slide.toggleAttribute('data-active', active);
-        if (active) slide.removeAttribute('inert'); else slide.setAttribute('inert', '');
-      });
-      bannerDots.forEach(function (dot, index) { dot.setAttribute('aria-pressed', String(index === bannerIndex)); });
-      if (bannerPosition) bannerPosition.textContent = (bannerIndex + 1) + ' / ' + bannerSlides.length;
-    }
-    function scheduleBanner() {
-      window.clearTimeout(bannerTimer); bannerTimer = 0;
-      if (bannerPause) {
-        bannerPause.hidden = !!bannerMotion.matches;
-        bannerPause.setAttribute('aria-pressed', String(bannerPaused));
-        bannerPause.setAttribute('aria-label', bannerPaused ? '대표 상담 자동 넘김 다시 시작' : '대표 상담 자동 넘김 멈추기');
-      }
-      if (bannerTrack) bannerTrack.setAttribute('aria-live', bannerPaused || bannerMotion.matches ? 'polite' : 'off');
-      if (!bannerIdle()) return;
-      var wait = Math.max(BANNER_INTERVAL, bannerManualUntil - Date.now());
-      bannerTimer = window.setTimeout(function () {
-        bannerTimer = 0;
-        if (bannerIdle()) renderBanner(bannerIndex + 1);
-        scheduleBanner();
-      }, wait);
-    }
-    function moveBanner(index) {
-      var focusInSlide = bannerSlides.some(function (slide) { return slide.contains(document.activeElement); });
-      bannerManualUntil = Date.now() + BANNER_GRACE;
-      renderBanner(index);
-      // Keyboard users never land on an inert slide.
-      if (focusInSlide) {
-        var link = bannerSlides[bannerIndex].querySelector('a[href]');
-        if (link) link.focus({ preventScroll: true });
-      }
-      scheduleBanner();
-    }
-    bannerControls.hidden = false;
-    if (bannerPrevious) bannerPrevious.addEventListener('click', function () { moveBanner(bannerIndex - 1); });
-    if (bannerNext) bannerNext.addEventListener('click', function () { moveBanner(bannerIndex + 1); });
-    bannerDots.forEach(function (dot) { dot.addEventListener('click', function () { moveBanner(Number(dot.getAttribute('data-sig-banner-dot')) || 0); }); });
-    if (bannerPause) bannerPause.addEventListener('click', function () {
-      bannerPaused = !bannerPaused;
-      if (!bannerPaused) bannerManualUntil = 0;
-      scheduleBanner();
-    });
-    signatureBanner.addEventListener('keydown', function (event) {
-      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-      event.preventDefault();
-      moveBanner(bannerIndex + (event.key === 'ArrowRight' ? 1 : -1));
-    });
-    signatureBanner.addEventListener('touchstart', function (event) {
-      var touch = event.changedTouches && event.changedTouches[0];
-      bannerTouch = touch ? { x: touch.clientX, y: touch.clientY } : null;
-    }, { passive: true });
-    signatureBanner.addEventListener('touchend', function (event) {
-      var touch = event.changedTouches && event.changedTouches[0];
-      var start = bannerTouch; bannerTouch = null;
-      if (!touch || !start) return;
-      var dx = touch.clientX - start.x, dy = touch.clientY - start.y;
-      if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
-      moveBanner(bannerIndex + (dx < 0 ? 1 : -1));
-    }, { passive: true });
-    signatureBanner.addEventListener('mouseenter', function () { bannerHover = true; scheduleBanner(); });
-    signatureBanner.addEventListener('mouseleave', function () { bannerHover = false; scheduleBanner(); });
-    signatureBanner.addEventListener('focusin', scheduleBanner);
-    signatureBanner.addEventListener('focusout', function () { requestAnimationFrame(scheduleBanner); });
-    if (typeof bannerMotion.addEventListener === 'function') bannerMotion.addEventListener('change', scheduleBanner);
-    else if (typeof bannerMotion.addListener === 'function') bannerMotion.addListener(scheduleBanner);
-    document.addEventListener('visibilitychange', scheduleBanner);
-    var bannerObserver = typeof IntersectionObserver === 'function' ? new IntersectionObserver(function (entries) {
-      bannerVisible = entries[entries.length - 1].intersectionRatio >= 0.5;
-      scheduleBanner();
-    }, { threshold: [0, 0.5] }) : null;
-    if (bannerObserver) bannerObserver.observe(signatureBanner);
-    // Any dialog (the letter popup included) pauses the banner until it closes.
-    var bannerOverlayObserver = typeof MutationObserver === 'function' ? new MutationObserver(function (changes) {
-      if (changes.some(function (change) {
-        if (change.type === 'childList') return Array.prototype.some.call(change.addedNodes, function (node) { return node.nodeType === 1 && (node.matches('dialog,[aria-modal="true"]') || !!node.querySelector('dialog,[aria-modal="true"]')); });
-        return !!(change.target.matches && change.target.matches('dialog,[aria-modal="true"]'));
-      })) scheduleBanner();
-    }) : null;
-    if (bannerOverlayObserver) bannerOverlayObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['open', 'hidden', 'aria-modal'] });
-    window.addEventListener('pagehide', function () {
-      window.clearTimeout(bannerTimer);
-      if (bannerObserver) bannerObserver.disconnect();
-      if (bannerOverlayObserver) bannerOverlayObserver.disconnect();
-    }, { once: true });
-    renderBanner(0);
-    scheduleBanner();
-  }
-
   function setupSignatureLetter() {
     var letter = home.querySelector('[data-signature-letter]');
     if (!letter) return;
@@ -212,32 +96,13 @@
     var seenKey = 'cd_signature_consult_seen_v3';
     var lockKey = 'signature-consult-popup';
     var previousFocus = null;
-    var frame = 0;
     var memorySeen = '';
     var memoryHidden = 0;
     var index = 0;
-    var returnDocument = isPaymentReturnDocument();
-    var explicitEntry = !!location.hash || new URLSearchParams(location.search).has('action');
     function dayKey() { return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10); }
-    function read(store, key) { try { return window[store].getItem(key); } catch (_) { return null; } }
     function write(store, key, value) { try { window[store].setItem(key, value); return true; } catch (_) { return false; } }
-    function isPaymentReturnDocument() {
-      var RETURN_QUERY = /[?&](?:portone_redirect|paid_pass_resume|paymentId|payment_id|imp_uid)=/;
-      var navigation = null;
-      try { navigation = performance.getEntriesByType('navigation')[0]; } catch (_) {}
-      if (RETURN_QUERY.test(location.search) || (navigation && RETURN_QUERY.test(navigation.name))) return true;
-      var stores = [];
-      try { stores = [localStorage, sessionStorage]; } catch (_) {}
-      return stores.some(function (store) {
-        try {
-          var ticket = JSON.parse(store.getItem('cd_direct_payment_resume') || 'null');
-          var age = Date.now() - (Number(ticket && ticket.at) || 0);
-          return !!ticket && !!ticket.merchantUid && !!ticket.confirmBody && age >= 60000 && age <= 1800000;
-        } catch (_) { return false; }
-      });
-    }
-    function blocked(manual) {
-      if ((!manual && document.hidden) || document.documentElement.classList.contains('cdh-input-open')) return true;
+    function blocked() {
+      if (document.documentElement.classList.contains('cdh-input-open')) return true;
       return Array.prototype.some.call(document.querySelectorAll('dialog[open],[role="dialog"][aria-modal="true"],.payment-modal.active,#cdCookieConsent.is-visible,#tarotModalOverlay'), function (node) {
         return node !== letter && !node.hidden && node.getClientRects().length > 0 && getComputedStyle(node).visibility !== 'hidden' && getComputedStyle(node).display !== 'none';
       });
@@ -248,31 +113,38 @@
       dots.forEach(function (dot, dotIndex) { dot.setAttribute('aria-pressed', String(dotIndex === index)); });
       position.textContent = (index + 1) + ' / ' + slides.length;
     }
+    var desktopLetterEntry = false;
+    window.addEventListener('popstate', function () {
+      if (!desktopLetterEntry) return;
+      desktopLetterEntry = false;
+      closeLetter(true);
+    });
     function closeLetter(restore) {
       if (!letter.open) return;
       letter.close();
+      if (desktopLetterEntry) {
+        desktopLetterEntry = false;
+        if (history.state && history.state.cdSignatureLetter && restore !== false) history.back();
+      }
       if (typeof window.__cdUnlockBodyScroll === 'function') window.__cdUnlockBodyScroll(lockKey);
       document.documentElement.removeAttribute('data-signature-popup-open');
-      if (restore !== false && previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
+      if (restore !== false && previousFocus && document.activeElement !== previousFocus && document.contains(previousFocus)) previousFocus.focus({ preventScroll: true });
       previousFocus = null;
     }
-    function openLetter(manual) {
-      if (letter.open || blocked(manual)) return;
-      if (!manual) {
-        if (returnDocument || explicitEntry || !/^ko(?:-|$)/i.test(document.documentElement.lang || 'ko')) return;
-        if (memorySeen === dayKey() || read('sessionStorage', seenKey) === dayKey() || Math.max(memoryHidden, Number(read('localStorage', hideKey)) || 0) > Date.now()) return;
-      }
+    function openLetter() {
+      if (letter.open || blocked()) return;
       previousFocus = document.activeElement;
       memorySeen = dayKey();
       write('sessionStorage', seenKey, memorySeen);
       render(index);
       letter.showModal();
+      // The mobile shell already owns its history guard. Desktop needs one entry per open letter.
+      if (!window.__cdMobileNav && window.matchMedia && window.matchMedia('(min-width: 769px) and (hover: hover) and (pointer: fine)').matches) {
+        try { history.pushState(Object.assign({}, history.state, { cdSignatureLetter: true }), ''); desktopLetterEntry = true; } catch (_) {}
+      }
       document.documentElement.setAttribute('data-signature-popup-open', '');
-      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(lockKey);
+      if (typeof window.__cdLockBodyScroll === 'function') window.__cdLockBodyScroll(lockKey, 'viewport');
       closeButton.focus({ preventScroll: true });
-    }
-    function schedule() {
-      if (!frame) frame = requestAnimationFrame(function () { frame = 0; openLetter(false); });
     }
     previous.addEventListener('click', function () { render(index - 1); });
     next.addEventListener('click', function () { render(index + 1); });
@@ -282,7 +154,7 @@
       if (nextIndex === null) return;
       event.preventDefault(); render(nextIndex);
     });
-    opener.addEventListener('click', function () { openLetter(true); });
+    opener.addEventListener('click', function () { openLetter(); });
     closeButton.addEventListener('click', function () { closeLetter(true); });
     todayButton.addEventListener('click', function () {
       var DAY = 86400000, KST = 9 * 3600000;
@@ -298,13 +170,8 @@
       var rect = letter.getBoundingClientRect();
       if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) closeLetter(true);
     });
-    var observer = new MutationObserver(schedule);
-    observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'class', 'open', 'aria-hidden', 'aria-modal'] });
-    document.addEventListener('visibilitychange', schedule);
-    window.addEventListener('pageshow', function () { observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'class', 'open', 'aria-hidden', 'aria-modal'] }); schedule(); });
-    window.addEventListener('pagehide', function () { closeLetter(false); observer.disconnect(); cancelAnimationFrame(frame); frame = 0; }, { once: true });
+    window.addEventListener('pagehide', function () { closeLetter(false); });
     render(0);
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', schedule, { once: true }); else schedule();
   }
   setupSignatureLetter();
 
@@ -364,6 +231,11 @@
   var authCard = move('#authQuickLinks', 'cdAccountSheetCard');
   // 헤더 계정 버튼 글자(로그인/내 계정)는 시트 안 로그인 카드가 회원 카드인지로 정한다.
   var accountBtn = document.getElementById('cdhAccountBtn');
+  var guestAuthLinks = home.querySelectorAll('[data-cd-guest-auth]');
+  var shellReturn = location.pathname === '/index.html' || location.pathname === '/' ? '/ggulggul/' : location.pathname;
+  guestAuthLinks.forEach(function (link) {
+    link.href = '/' + link.dataset.cdGuestAuth + '/?next=' + encodeURIComponent(shellReturn + location.search + location.hash);
+  });
   function syncAccountState() {
     if (!accountBtn || !authCard) return;
     accountBtn.setAttribute('data-auth', authCard.querySelector('.cd-user-card') ? 'member' : 'guest');
@@ -451,6 +323,15 @@
     var deepTarget = hash ? document.getElementById(hash) : null;
     for (var parent = deepTarget && deepTarget.parentElement; parent && parent !== home; parent = parent.parentElement) {
       if (parent.tagName === 'DETAILS') parent.open = true;
+    }
+    if (deepTarget && accountSheet && accountSheet.contains(deepTarget)) {
+      var openMySection = function () {
+        if (window.cdOpenAccount && window.cdOpenAccount()) {
+          requestAnimationFrame(function () { deepTarget.scrollIntoView({ block: 'start' }); });
+        }
+      };
+      if (window.cdOpenAccount) openMySection();
+      else window.addEventListener('load', openMySection, { once: true });
     }
     var isFinder = hash === 'services' || hash.indexOf('services/') === 0 || hash === 'cdServiceIndex' || hash === 'cdFinder';
     home.hidden = false;

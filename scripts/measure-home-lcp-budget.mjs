@@ -20,7 +20,7 @@
  *   B  히어로 앞 파서 차단 `<script src>` 를 **같은 자리에 인라인**으로 (실행 순서·의미 동일, 요청 0회)
  *   C  히어로 앞 파서 차단 `<script src>` 를 **삭제** (상한 측정 전용 — JS 의미가 깨진다)
  *   D  `<body>` 안 · 히어로 앞의 인라인 `<style>` **전부**를 `</body>` 직전으로 이동
- *   E  같은 블록들을 히어로의 `</header>` 직후로 이동
+ *   E  같은 블록들을 히어로 컨테이너 직후로 이동
  *   F  히어로 앞 인라인 `<style>` 중 **첫 화면에서 사용 바이트가 0 인 것만** 골라 `</body>` 앞으로
  *      이동. 대상은 손으로 적지 않고 `page.coverage` 로 그때그때 발견한다(D/E 의 수술적 버전).
  *
@@ -67,7 +67,7 @@ const VARIANTS = String(flag("variants", "A"))
   .filter(Boolean);
 const OUT = flag("out", "");
 
-const HERO_MARK = '<h1 class="moon-hero__title';
+const HERO_TITLE = /<h1\b[^>]*(?:\sid="cdhTitle"|\sclass="moon-hero__title\b)[^>]*>/i;
 
 /** 히어로 앞에서 파서를 세우는 `<script src>` — prefix 로 잡는다(캐시키 `?v=` 가 붙는다). */
 const BLOCKING_PREFIXES = [
@@ -92,8 +92,8 @@ const median = (list) => {
 
 // ─────────────────────────────────────────────────────────── 문서 변형
 function heroOffset(html) {
-  const idx = html.indexOf(HERO_MARK);
-  if (idx < 0) throw new Error(`히어로 마커를 못 찾았다: ${HERO_MARK}`);
+  const idx = html.search(HERO_TITLE);
+  if (idx < 0) throw new Error('히어로 제목을 못 찾았다 (#cdhTitle, .moon-hero__title)');
   return idx;
 }
 
@@ -176,16 +176,23 @@ async function buildVariants(baseHtml) {
 
   for (const [key, anchor] of [
     ["D", (h) => h.lastIndexOf("</body>")],
-    ["E", (h) => {
-      const close = h.indexOf("</header>", heroOffset(h));
-      return close < 0 ? -1 : close + "</header>".length;
+    ["E", async (html) => {
+      const { JSDOM } = await import("jsdom");
+      const dom = new JSDOM(html, { includeNodeLocations: true });
+      try {
+        const title = dom.window.document.querySelector("h1#cdhTitle, h1.moon-hero__title");
+        const hero = title?.closest("[data-home-hero], header");
+        return hero ? dom.nodeLocation(hero)?.endTag?.endOffset ?? -1 : -1;
+      } finally {
+        dom.window.close();
+      }
     }],
   ]) {
     if (!need.has(key)) continue;
     const hits = findBodyPreHeroStyles(baseHtml);
     const moved = hits.map((h) => h.text).join("\n");
     const stripped = cut(baseHtml, hits);
-    const at = anchor(stripped);
+    const at = await anchor(stripped);
     if (at < 0) throw new Error(`${key}: 삽입 지점을 못 찾았다`);
     built[key] = stripped.slice(0, at) + moved + stripped.slice(at);
     console.log(`${key}: body 안 히어로 앞 인라인 <style> ${hits.length}개(${bytes(moved)}B) 이동`);

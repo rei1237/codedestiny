@@ -2009,9 +2009,9 @@ const app = {
   // 🔴 크론이 둘이므로 event.cron 으로 반드시 분기한다. 분기 없이 두면 일일 태스크(운세 발송·구독 정산 등)가
   // 10분마다 돌아 중복 지급이 난다. 알 수 없는 cron 값은 일일 세트로 폴백한다(스케줄을 추가했는데
   // 분기를 빠뜨렸을 때 태스크가 통째로 멈추는 것보다 낫다).
-  async queue(batch, env) {
+  async queue(batch, env, ctx) {
     const { consumeConsultationQueue } = await import('./yeongnyangi/queue.js');
-    await consumeConsultationQueue(batch, env);
+    await consumeConsultationQueue(batch, env, { ctx });
   },
   async scheduled(event, env, ctx) {
     const cron = String(event?.cron || "").trim();
@@ -2090,6 +2090,12 @@ const app = {
       ctx.waitUntil(runYeongnyangiRecovery(env).catch((error) => {
         console.error("[yeongnyangi-recovery] task failed:", error?.code || 'RECOVERY_FAILED');
       }));
+      // 생성 중 화면을 떠난 구매자에게 완료 메일(거래성 안내, 마케팅 한도와 별개). 큐 훅이 놓친 건을 24시간 안에서 다시 잡는다.
+      ctx.waitUntil(import("./yeongnyangi/completion-mail.js")
+        .then(({ sendPendingCompletionMails }) => sendPendingCompletionMails(env))
+        .catch(() => {
+          console.error('[yeongnyangi-completion-mail] sweep failed');
+        }));
       // 공통 유료 상담(paid-narrative)의 탭 종료 백스톱. 등록된 상품만, 원래 실행 기록의 항목당
       // 2회 예산 안에서 이어 생성한다. 환불·취소 건은 엔진의 revoked() 가 공급자 호출 전에 막는다.
       const { runPaidNarrativeRecovery } = await import("./lib/paid-narrative-recovery-task.js");

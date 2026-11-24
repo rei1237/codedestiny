@@ -55,3 +55,12 @@ test('original readiness and deep-link signals survive; no paid or result routin
  assert.match(source,/cd-deeplink-boot/);assert.match(source,/window\.__cdDismissBootGate = release/);assert.match(source,/duo-stars-entry-480\.webp/);
  const component=readFileSync(new URL('../../app/yeongnyangi/_components/ServiceEntryScene.tsx',import.meta.url),'utf8');assert.match(component,/cat-reading-entry-480\.webp/);assert.doesNotMatch(component,/router\.push|location\.assign|pushState|fetch\(/);
 });
+
+test('the service landings expose their primary action immediately', () => {
+ const page = readFileSync(new URL('../../app/yeongnyangi/page.tsx', import.meta.url), 'utf8');
+ assert.doesNotMatch(page, /<ServiceEntryScene/);
+ const home = readFileSync(new URL('../../app/page.js', import.meta.url), 'utf8');
+ assert.doesNotMatch(home, /HomeCardDeck|attachHomeCardMotion/);
+ assert.match(home, /const CardSurface = IS_APP_BUILD \? "div" : "a"/);
+ assert.match(source, /if\(!cdEntryHome&&[^\n]+cd-boot-gate/);
+});

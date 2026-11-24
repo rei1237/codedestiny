@@ -1,0 +1,92 @@
+{
+  "id": "yun",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/yun-astrology-portrait.webp",
+  "baseSha256": "183a996a85ca1a04afee22fbe4132ba8a90c4024ab41c0416a2ed4cd795295de",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/yun/portrait-poster.webp",
+      "posterBytes": 53932,
+      "sheet": {
+        "src": "/images/master-motion/yun/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/yun/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
+        }
+      },
+      "sheetBytes": 199770,
+      "mobileSheetBytes": 86596
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/yun/avatar-poster.webp",
+      "posterBytes": 4870,
+      "sheet": {
+        "src": "/images/master-motion/yun/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 14032,
+      "crop": {
+        "left": 160,
+        "top": 30,
+        "size": 420
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 3.01,
+      "wholeDiff": 2.97,
+      "regionDiff": 26.66,
+      "colorShift": [
+        3.31,
+        3.44,
+        2.69
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 6.23
+      }
+    },
+    "closed": {
+      "guardDiff": 3.45,
+      "wholeDiff": 2.62,
+      "regionDiff": 41.71,
+      "colorShift": [
+        3.74,
+        5.26,
+        4.9
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 6.13
+      }
+    }
+  }
+}

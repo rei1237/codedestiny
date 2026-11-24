@@ -2,12 +2,17 @@
 <!-- 2026-10-17 "직관성": 홈은 짧은 히어로 → 대표 상담 덱 → 무료 세 장 → 이용권 → 모든 운세 버튼 → 링크 한 줄. 나머지 운세는 시트·기능 페이지에 그대로 있다. -->
 <div class="cdh cdh--simple cdh--focused" id="cdHomeFunnel" data-cd-funnel-section="home">
   <header class="cdh-top" aria-label="공통 헤더">
-    <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
+    <a href="/ggulggul/" class="cdh-brand"><img class="cdh-brand__mark" src="/images/home/illustrated/yeoni-brand-96.webp" width="40" height="40" alt="" decoding="async"><span>꿀꿀 운세<small data-cd-trans="home.simpleHome.tagline">명리학 기반 운세 상담</small></span></a>
+    <div class="yh-account-entry">
+      <a href="/login/?next=%2Fggulggul%2F" data-cd-guest-auth="login" data-cd-trans="auth.login">로그인</a>
+      <a href="/signup/?next=%2Fggulggul%2F" data-cd-guest-auth="signup" data-cd-trans="auth.signup">회원가입</a>
+      <button type="button" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><circle cx="12" cy="8.3" r="3.1"/><path d="M5.6 19a6.5 6.5 0 0 1 12.8 0"/></svg><span data-cd-trans="home.funnelCopy.account">내 계정</span></button>
+    </div>
     <details class="yh-menu"><summary><span data-cd-trans="home.mobileEntry.menu">메뉴</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></summary><div class="yh-menu-panel">
     <nav class="cdh-nav" aria-label="홈 주요 메뉴">
       <a class="cdh-account-btn yh-featured-link" href="#cdSignatureConsult"><span data-cd-trans="home.guideCopy.signatureFeatured">대표 상담</span></a>
       <a class="cdh-account-btn" href="#cdhPass" data-cd-trans="home.myGarden.pass">이용권 · 월정석</a>
-      <a class="cdh-account-btn" href="/login/" id="cdhAccountBtn" data-cd-sheet-open="cdAccountSheet" data-cd-account-open data-auth="guest" role="button" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><span class="cdh-account-btn__guest" data-cd-trans="home.funnelCopy.login">로그인</span><span class="cdh-account-btn__member" data-cd-trans="home.funnelCopy.account">내 계정</span></a>
+      <button type="button" class="cdh-account-btn yh-guest-garden" id="cdhGuestGardenBtn" data-cd-sheet-open="cdAccountSheet" aria-haspopup="dialog" aria-controls="cdAccountSheet" aria-expanded="false"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"><circle cx="12" cy="8.3" r="3.1"/><path d="M5.6 19a6.5 6.5 0 0 1 12.8 0"/></svg><span data-cd-trans="home.myGarden.title">마이</span></button>
     </nav>
     <div class="cdh-tools"><div id="cdhThemeSlot"></div><div id="cdhLanguageSlot"></div></div>
     </div></details>
@@ -29,12 +34,21 @@
           </div>
           <a class="my-garden-open" href="/?action=dpOpenList" data-action="dpOpenList"><span data-cd-trans="home.myGarden.open">프로필 · 오늘의 운 가꾸기</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h15m-6-6 6 6-6 6"/></svg></a>
         </section>
-        <section class="my-garden-section" aria-labelledby="myGardenRecords"><h3 id="myGardenRecords" data-cd-trans="home.myGarden.records">나의 기록</h3>
-          <ul class="cd-sheet__menu my-garden-menu">
-            <li><a href="/fortune-chat/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 4h16v13H9l-5 4Z"/><path d="M8 8h8m-8 4h5"/></svg><span data-cd-trans="home.gardenCopy.libraryChat">연이 상담 기록</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
-            <li><a href="/?action=cdOpenLibrary" data-action="cdOpenLibrary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 5h16v15H4Zm-1 0V2h18v3M9 10h6"/></svg><span data-cd-trans="home.gardenCopy.sheetLibrary">보관함</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
-          </ul>
+        <section class="my-garden-section my-daily" aria-labelledby="myDailyTitle">
+          <h3 id="myDailyTitle">나의 정원과 오늘의 기록</h3>
+          <div class="my-daily-cards">
+            <a href="/ggulggul/?action=dpOpenList&amp;petEntry=my"><img src="/images/home/free-garden-yeoni-v1-480.webp" width="480" height="320" alt="" loading="lazy" decoding="async"><span>나의 정원</span></a>
+            <a href="/diary/"><img src="/images/service-introductions/luck-sync-diary-320.webp" width="320" height="213" alt="" loading="lazy" decoding="async"><span>오늘의 기록 · 출석</span></a>
+          </div>
+          <nav class="my-daily-links" aria-label="나의 일상"><a href="/moonlit-lotus/">달빛 연화당 명상</a></nav>
         </section>
+        <section class="my-garden-section my-archive" id="myGardenRecords" aria-labelledby="yhRecordsTitle">
+          <h3 id="yhRecordsTitle">나의 상담 다시 보기</h3>
+          <ul class="cd-sheet__menu my-garden-menu"><li><a href="/records/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16v14H4zM3 3h18v3H3zM9 10h6"/></svg><span>꿀꿀운세 상담 기록</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li><li><a href="/yeongnyangi/library/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h7a3 3 0 0 1 2 1 3 3 0 0 1 2-1h7v14h-7a3 3 0 0 0-2 1 3 3 0 0 0-2-1H3zM12 5v14"/></svg><span>영냥이 상담 기록</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li><li><a href="/fortune-chat/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v13H9l-5 4zM8 8h8m-8 4h5"/></svg><span>연이 상담 기록</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li></ul>
+        </section>
+        <details class="my-fortune-guide"><summary><span>기본 운세와 이용 안내</span></summary>
+          <div class="my-guide-content">{{myFortuneGuide}}</div>
+        </details>
         <section class="my-garden-section" aria-labelledby="myGardenUsage"><h3 id="myGardenUsage" data-cd-trans="home.myGarden.usage">이용 관리</h3>
           <ul class="cd-sheet__menu my-garden-menu">
             <li><a href="/points/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg><span data-cd-trans="home.myGarden.pass">이용권 · 월정석</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
@@ -42,7 +56,8 @@
             <li><a href="/contact/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 4m0 3v1"/></svg><span data-cd-trans="home.gardenCopy.sheetSupport">고객센터</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></a></li>
           </ul>
         </section>
-        <details class="my-garden-settings"><summary data-cd-trans="home.myGarden.settings">계정 설정</summary><div class="cd-sheet__card" id="cdAccountSheetCard"></div></details>
+        <a class="my-service-switch" href="/"><span>서비스 선택</span> <span aria-hidden="true">→</span></a>
+        <details class="my-garden-settings"><summary data-cd-trans="home.myGarden.settings">계정 설정</summary><label class="yh-motion-setting"><input type="checkbox" data-yeoni-motion checked><span>연이 표정 움직임</span></label><div class="cd-sheet__card" id="cdAccountSheetCard"></div></details>
       </div>
     </div>
   </dialog>
@@ -138,6 +153,7 @@
             <div class="cd-af__region-intro" data-cd-region-intro hidden></div>
           </details>
           <div class="cd-af__results" id="cdAllFortunesResults" aria-live="polite"></div>
+          {{popularRanking}}
           <a class="cd-af__signature" href="/ggulggul/#cdSignatureConsult" data-cd-af-signature><span data-cd-trans="home.gardenCopy.allSignatureLink">대표 상담 둘러보기</span><span aria-hidden="true">→</span></a>
           <button type="button" class="cd-af__browse" data-cd-af-browse data-cd-trans="home.gardenCopy.allBrowse">카테고리로 둘러보기</button>
         </div>
@@ -208,39 +224,7 @@
   <div class="cdh-flow">
 
 <div class="cdh-slot" id="cdhFusionSignatureSlot">{{fusionSignature}}</div>
-<details class="yh-secondary"><summary data-cd-trans="home.consultChoice.title">내 고민에 맞는 상담을 골라보세요</summary>
-<section class="cdh-consult-choice" id="cdhYeongnyangiSlot" aria-labelledby="cdhConsultChoiceTitle" data-marker="cd-yeongnyangi-neo-choice-v1">
-  <img class="cdh-consult-choice__room" src="/assets/yeongnyangi/original/room-780.webp" srcset="/assets/yeongnyangi/original/room-780.webp 780w, /assets/yeongnyangi/original/room-1440.webp 1440w" sizes="(max-width: 640px) calc(100vw - 32px), min(100vw - 80px, 1280px)" width="1440" height="810" loading="lazy" decoding="async" alt="">
-  <header class="cdh-consult-choice__head">
-    <svg class="cdh-consult-choice__moon" aria-hidden="true" viewBox="0 0 160 24" width="160" height="24" fill="none"><path d="M2 12h52m52 0h52" stroke="currentColor"/><path d="M85 3a9 9 0 1 0 5 15A9 9 0 0 1 85 3Z" fill="currentColor"/></svg>
-    <h2 id="cdhConsultChoiceTitle" data-cd-trans="home.consultChoice.title">내 고민에 맞는 상담을 골라보세요</h2>
-    <p data-cd-trans="home.consultChoice.subtitle">지금, 달빛 아래에서 당신의 질문이 더 선명해질 거예요.</p>
-  </header>
-  <div class="cdh-consult-choice__cards">
-    <article class="cdh-choice-card cdh-choice-card--yeongnyangi" aria-labelledby="cdhYeongnyangiCardTitle">
-      <div class="cdh-choice-card__art cdh-choice-card__art--yeongnyangi" aria-hidden="true">
-        <img class="cdh-choice-card__character" src="/assets/yeongnyangi/original/hero-480.webp" width="480" height="480" loading="lazy" decoding="async" alt="">
-      </div>
-      <div class="cdh-choice-card__copy">
-        <h3 id="cdhYeongnyangiCardTitle" data-cd-trans="home.yeongnyangiEntry.badge">영냥이의 질문 상담</h3>
-        <p class="cdh-choice-card__method" data-cd-trans="home.consultChoice.yeongnyangi.method">질문과 상황을 중심으로</p>
-        <p data-cd-trans="home.consultChoice.yeongnyangi.body">내 질문과 상황을 운세 체계별로 읽어요. 고민의 흐름과 다음 행동을 챕터별 해설로 확인할 수 있어요.</p>
-        <a class="cdh-choice-card__cta cdh-choice-card__cta--primary" href="/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-portal-link data-cd-portal-placement="home_hero"><span data-cd-trans="home.yeongnyangiEntry.start">영냥이에게 물어보기</span> <span aria-hidden="true">→</span></a>
-      </div>
-    </article>
-    <div class="cdh-consult-choice__neo" id="cdhNeoLetterSlot">{{neoEmailConsultation}}</div>
-  </div>
-  <table class="cdh-consult-choice__compare">
-    <caption data-cd-trans="home.consultChoice.compare.caption">영냥이 질문 상담과 네오 작전 결정서 비교</caption>
-    <thead><tr><th scope="col" data-cd-trans="home.consultChoice.compare.selection">상담 선택</th><th scope="col" data-cd-trans="home.yeongnyangiEntry.badge">영냥이의 질문 상담</th><th scope="col" data-cd-trans="home.consultChoice.neo.title">네오 작전 결정서</th></tr></thead>
-    <tbody>
-      <tr><th scope="row" data-cd-trans="home.consultChoice.compare.format">상담 방식</th><td data-service="영냥이의 질문 상담" data-cd-trans-attr="data-service:home.yeongnyangiEntry.badge" data-cd-trans="home.consultChoice.compare.yeongnyangi.format">질문을 반영한 운세 체계별 챕터 해설</td><td data-service="네오 작전 결정서" data-cd-trans-attr="data-service:home.consultChoice.neo.title" data-cd-trans="home.consultChoice.compare.neo.format">AI가 작성하고 사람이 검수</td></tr>
-      <tr><th scope="row" data-cd-trans="home.consultChoice.compare.fit">잘 맞는 고민</th><td data-service="영냥이의 질문 상담" data-cd-trans-attr="data-service:home.yeongnyangiEntry.badge" data-cd-trans="home.consultChoice.compare.yeongnyangi.fit">내 상황과 흐름을 폭넓게 살펴보고 싶을 때</td><td data-service="네오 작전 결정서" data-cd-trans-attr="data-service:home.consultChoice.neo.title" data-cd-trans="home.consultChoice.compare.neo.fit">한 가지 선택의 기준과 실행안이 필요할 때</td></tr>
-      <tr><th scope="row" data-cd-trans="home.consultChoice.compare.delivery">결과 전달</th><td data-service="영냥이의 질문 상담" data-cd-trans-attr="data-service:home.yeongnyangiEntry.badge" data-cd-trans="home.consultChoice.compare.yeongnyangi.delivery">상담 화면과 기록에서 확인</td><td data-service="네오 작전 결정서" data-cd-trans-attr="data-service:home.consultChoice.neo.title" data-cd-trans="home.consultChoice.compare.neo.delivery">검수한 답변을 이메일로 전달</td></tr>
-    </tbody>
-  </table>
-</section>
-</details>
+
 <section class="cdh cdh-honey" data-cd-honey-widget aria-labelledby="cdHoneyTitle" hidden>
     <details class="cdh-honey__details"><summary><span id="cdHoneyTitle">출석 · 꿀방울</span><span class="cdh-honey__chip" data-cd-honey-streak hidden></span><div class="cdh-honey__wallet"><img src="/images/fortune-tea-house/honey-drop-jewel-v1.webp" width="192" height="192" loading="lazy" decoding="async" alt=""><p class="cdh-honey__balance"><span>내가 모은 꿀방울</span><strong data-cd-honey-balance>확인 중</strong></p></div></summary>    <div class="cdh-honey__story">
       <img class="cdh-honey__yeoni" src="/images/fortune-tea-house/flower-pig-honey-hug.webp" width="361" height="411" loading="lazy" decoding="async" alt="꿀방울을 품에 안고 웃는 꽃돼지 연이">
@@ -263,54 +247,12 @@
 <!-- 달빛 이야기 — 라이트 노벨·달빛 음악을 한 묶음으로. 열면 표지와 소개가 담긴 두 장의 서재 카드가 펼쳐진다(JS 없음). -->
 
 
-<details class="cdh-story">
-  <summary class="cdh-story__toggle"><span class="cdh-story__backs" aria-hidden="true"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"><img src="/images/fortune-tea-house/moonlight-tarot-card-back.webp" width="120" height="180" alt="" loading="lazy" decoding="async"></span><span class="cdh-story__label"><strong data-cd-trans="home.simpleHome.storyTitle">달빛 이야기</strong><small data-cd-trans="home.simpleHome.storyNote">노벨과 음악</small></span><span class="cdh-disclosure-state"><span class="cdh-when-closed">펼치기</span><span class="cdh-when-open">접기</span></span><span class="cdh-story__chev" aria-hidden="true"></span></summary>
-  <div class="cdh-story__spread">
-    <a class="cdh-story__card cdh-story__card--novel" href="/codedestiny-novel.html">
-      <span class="cdh-story__window"><img src="/images/novel/yeongnyangi-cover-640.webp" srcset="/images/novel/yeongnyangi-cover-640.webp 640w, /images/novel/yeongnyangi-cover-960.webp 960w" sizes="(max-width:640px) calc(100vw - 48px), 400px" width="640" height="427" alt="인간형 연이와 영냥이, 모카, 윤달, 서한비가 등장하는 운명 모험 표지" loading="lazy" decoding="async"></span>
-      <strong class="cdh-story__name" data-cd-trans="footer.story.novel">라이트 노벨</strong>
-      <small class="cdh-story__note">영냥이와 연이, 잃어버린 운명을 찾는 여행</small>
-    </a>
 
-    <a class="cdh-story__card cdh-story__card--music" href="/music/"><span class="cdh-story__window"><img src="/images/home/mv/moonlight-destiny-poster-640.webp" width="640" height="360" loading="lazy" decoding="async" alt=""></span><strong class="cdh-story__name" data-cd-trans="home.mv.playlist">음악 플레이리스트</strong><small class="cdh-story__note" data-cd-trans="home.mv.more">달빛 음악 더 듣기</small></a>
-  </div>
-
-</details>
-<div class="cdh-entry-card" data-cdh-entry-card="entry-webtoon"><a class="cdh-all-cta__btn" href="/entry-webtoon/" aria-label="서비스 설명 이용 안내 웹툰" data-cd-trans-attr="aria-label:home.entryCards.webtoon"><img src="/images/entry-webtoon/imagine-desk-720.webp" alt="" width="64" height="64" loading="lazy" decoding="async"><span class="cdh-all-cta__copy"><span class="cdh-all-cta__label" data-cd-trans="home.entryCards.webtoon">서비스 설명 이용 안내 웹툰</span></span><svg class="cdh-all-cta__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></a></div>
 <!-- 색인 대상 허브로 가는 정본 내부 링크. 크롤러가 착지하는 /ggulggul/ 에서 2홉 안에 모든 색인 라우트가
      닿아야 한다(scripts/verify-internal-link-depth.mjs). 2026-10-17 "직관성" 단순화로 홈 안내 섹션은 뺐지만
      이 목록이 /fortune·/insights·/stories 같은 허브로 가는 유일한 길이라 작은 색인으로 남긴다. -->
 <span id="homeMethods" aria-hidden="true"></span>
-<nav class="cdh-directory" aria-labelledby="cdhDirectoryTitle">
-  <h2 class="cdh-directory__title" id="cdhDirectoryTitle" data-cd-trans="home.simpleHome.directoryTitle">운세 콘텐츠 둘러보기</h2>
-  <a href="/saju/" data-cd-trans="home.nav.saju">사주</a>
-  <a href="/tarot/" data-cd-trans="home.nav.tarot">타로</a>
-  <a href="/ziwei/" data-cd-trans="home.nav.ziwei">자미두수</a>
-  <a href="/astrology/" data-cd-trans="home.nav.astrology">점성술</a>
-  <a href="/sukuyo/" data-cd-trans="home.nav.sukuyo">숙요점</a>
-  <a href="/vedic/" data-cd-trans="home.nav.vedic">베다점</a>
-  <a href="/nakshatra/" data-cd-trans="home.nav.nakshatra">나크샤트라</a>
-  <a href="/manse/" data-cd-trans="home.homeGuide.linkManse">만세력</a>
-  <a href="/compatibility/" data-cd-trans="home.homeGuide.compatTitle">궁합</a>
-  <a href="/love/" data-cd-trans="home.homeGuide.linkLove">연애운</a>
-  <a href="/dream/" data-cd-trans="home.homeGuide.linkDream">꿈해몽</a>
-  <a href="/physiognomy/" data-cd-trans="home.homeGuide.linkPhysiognomy">관상</a>
-  <a id="homeExample" href="/fortune/tomorrow/rat/">공개 운세 결과 예시</a>
-  <a href="/fortune/" data-cd-trans="home.homeGuide.linkFortuneHub">띠·별자리 운세</a>
-  <a href="/fortune/date/" aria-label="최근 30일 띠별 날짜 운세" data-cd-trans="home.overseasCopy.daily">날짜별 띠 운세</a>
-  <a href="/saju/monthly/2026-09/" aria-label="2026년 9월 일간별 운세" data-cd-trans="home.overseasCopy.monthly">일간별 월간 운세</a>
-  <a href="/insights/" data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</a>
-  <a href="/recipes/" data-cd-trans="home.homeGuide.linkRecipes">연이의 사주 요리법 · 무료 웹툰</a>
-  <a href="/insights/famous-saju/" data-cd-trans="home.homeGuide.linkFamous">연예인·인물 사주</a>
-  <a href="/guides/" data-cd-trans="home.homeGuide.linkGuideHub">운세 가이드</a>
-  <a href="/saju/guide/" data-cd-trans="home.homeGuide.linkSajuGuide">사주 입문 가이드</a>
-  <a href="/tarot/guide/" data-cd-trans="home.homeGuide.linkTarotGuide">타로 가이드</a>
-  <a href="/stories/" data-cd-trans="home.homeGuide.linkStories">연이의 운명 노벨</a>
-  <a href="/" data-cd-trans="home.nav.brandAlias">꿀꿀 운세</a>
-  <!-- 다국어 첫 화면(/en/ 등)은 이 셸이라, 영냥이 입구 블록을 뺀 뒤로는 여기가 영냥이로 가는 유일한 길이다(2026-10-17). data-cd-localized-route 로 /en/yeongnyangi/ 등 로케일 주소가 된다. -->
-  <a href="/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-trans="sajuReading.catTitle">영냥이 상담</a>
-</nav>
-<a class="cdh-widget-entry" href="/app/home-widget/"><img src="/images/home/illustrated/yeoni-hanbok-240.webp" width="48" height="64" loading="lazy" alt=""><span><strong data-cd-trans="home.widget.title">홈 화면 꾸미기</strong><small data-cd-trans="home.widget.description">연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</small></span></a>
+<details class="yh-footer-directory"><summary><span class="yh-directory-emblem" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 8c5-1 8 0 12 3 4-3 7-4 12-3v16c-4-1-8 0-12 3-4-3-8-4-12-3zM16 11v16"/><path d="M9 12l3 1m8 0 3-1"/></svg></span><strong id="cdhDirectoryTitle" data-cd-trans="home.simpleHome.directoryTitle">운세 콘텐츠 둘러보기</strong><span class="yh-directory-toggle" aria-hidden="true"></span></summary><nav class="cdh-directory" aria-labelledby="cdhDirectoryTitle"><div><h3>운세 방식</h3><div><a href="/saju/" data-cd-trans="home.nav.saju">사주</a><a href="/tarot/" data-cd-trans="home.nav.tarot">타로</a><a href="/ziwei/" data-cd-trans="home.nav.ziwei">자미두수</a><a href="/astrology/" data-cd-trans="home.nav.astrology">점성술</a><a href="/sukuyo/" data-cd-trans="home.nav.sukuyo">숙요점</a><a href="/vedic/" data-cd-trans="home.nav.vedic">베다점</a><a href="/nakshatra/" data-cd-trans="home.nav.nakshatra">나크샤트라</a><a href="/manse/" data-cd-trans="home.homeGuide.linkManse">만세력</a></div></div><div><h3>주제별 운세</h3><div><a href="/compatibility/" data-cd-trans="home.homeGuide.compatTitle">궁합</a><a href="/love/" data-cd-trans="home.homeGuide.linkLove">연애운</a><a href="/dream/" data-cd-trans="home.homeGuide.linkDream">꿈해몽</a><a href="/physiognomy/" data-cd-trans="home.homeGuide.linkPhysiognomy">관상</a><a id="homeExample" href="/fortune/tomorrow/rat/">공개 운세 결과 예시</a><a href="/fortune/" data-cd-trans="home.homeGuide.linkFortuneHub">띠·별자리 운세</a><a href="/fortune/date/" aria-label="최근 30일 띠별 날짜 운세" data-cd-trans="home.overseasCopy.daily">날짜별 띠 운세</a><a href="/saju/monthly/2026-09/" aria-label="2026년 9월 일간별 운세" data-cd-trans="home.overseasCopy.monthly">일간별 월간 운세</a><a href="/insights/" data-cd-trans="home.homeGuide.linkInsights">운세 인사이트</a></div></div><div><h3>이야기와 가이드</h3><div><a href="/recipes/" data-cd-trans="home.homeGuide.linkRecipes">연이의 사주 요리법 · 무료 웹툰</a><a href="/insights/famous-saju/" data-cd-trans="home.homeGuide.linkFamous">연예인·인물 사주</a><a href="/guides/" data-cd-trans="home.homeGuide.linkGuideHub">운세 가이드</a><a href="/saju/guide/" data-cd-trans="home.homeGuide.linkSajuGuide">사주 입문 가이드</a><a href="/tarot/guide/" data-cd-trans="home.homeGuide.linkTarotGuide">타로 가이드</a><a href="/stories/" data-cd-trans="home.homeGuide.linkStories">연이의 운명 노벨</a><a href="/ggulggul/" data-cd-trans="home.nav.brandAlias">꿀꿀 운세</a><a href="/yeongnyangi/" data-cd-localized-route="yeongnyangi" data-cd-trans="sajuReading.catTitle">영냥이 상담</a></div></div></nav></details>
 <!-- 운세 컬렉션(#featureBegin·카드 그리드)은 home-funnel.js 가 여기로 옮긴다. 기본은 숨김 — 컬렉션 딥링크(__cdOpenGarden)만 연다. -->
 <section class="cdh-collections" id="cdhCollectionsWrap" aria-labelledby="cdhCollectionsTitle" hidden>
   <div class="cdh-collections__head"><h2 id="cdhCollectionsTitle" data-cd-trans="home.gardenCopy.allFortunes">모든 운세 보기</h2><button type="button" class="cdh-collections__close" data-cdh-garden-close data-cd-trans="home.gardenCopy.moreClose">접기</button></div>

@@ -1,0 +1,92 @@
+{
+  "id": "hanbi",
+  "frameMs": 120,
+  "sequence": [
+    "half",
+    "closed",
+    "half"
+  ],
+  "base": "public/images/master-profiles/hanbi-sukuyo-portrait.webp",
+  "baseSha256": "2d5bd2f386a5112c8c2914dfcb6202782e5b1388c0f3996cf591267e3df4bf14",
+  "variants": {
+    "portrait": {
+      "kind": "portrait",
+      "poster": "/images/master-motion/hanbi/portrait-poster.webp",
+      "posterBytes": 52294,
+      "sheet": {
+        "src": "/images/master-motion/hanbi/portrait-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 600,
+          "height": 720
+        },
+        "mobile": {
+          "src": "/images/master-motion/hanbi/portrait-sheet-360.webp",
+          "cell": {
+            "width": 360,
+            "height": 432
+          }
+        }
+      },
+      "sheetBytes": 199314,
+      "mobileSheetBytes": 83584
+    },
+    "avatar": {
+      "kind": "avatar",
+      "poster": "/images/master-motion/hanbi/avatar-poster.webp",
+      "posterBytes": 4112,
+      "sheet": {
+        "src": "/images/master-motion/hanbi/avatar-sheet.webp",
+        "frames": 3,
+        "cols": 3,
+        "cell": {
+          "width": 112,
+          "height": 112
+        }
+      },
+      "sheetBytes": 11890,
+      "crop": {
+        "left": 60,
+        "top": 30,
+        "size": 420
+      }
+    }
+  },
+  "qa": {
+    "half": {
+      "guardDiff": 2.5,
+      "wholeDiff": 2.35,
+      "regionDiff": 26.12,
+      "colorShift": [
+        -2.21,
+        -1.53,
+        -0.81
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 1,
+        "dy": 0,
+        "score": 6.65
+      }
+    },
+    "closed": {
+      "guardDiff": 3.26,
+      "wholeDiff": 4.25,
+      "regionDiff": 33.33,
+      "colorShift": [
+        -3.97,
+        -1.83,
+        -1.62
+      ],
+      "pass": true,
+      "registration": {
+        "scale": 1,
+        "dx": 0,
+        "dy": 0,
+        "score": 7.21
+      }
+    }
+  }
+}

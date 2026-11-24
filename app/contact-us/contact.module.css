@@ -53,3 +53,9 @@
 @media (prefers-color-scheme: dark) { .page { --contact-on-accent: #21182a; } }
 :global(html.neo-mode) .page, :global(html[data-cd-theme="neo"]) .page { --contact-on-accent: #21182a; }
 @media (prefers-reduced-motion: reduce) { .page .primaryAction, .page .secondaryAction { transition: none; } }
+
+.bugReport { display:flex; align-items:center; gap:14px; margin:14px 0; min-height:64px; padding:12px 18px; border:1px solid var(--cd-border,#c9b5a4); border-radius:18px; color:var(--cd-text,#3c2534); background:var(--cd-surface,#fffbf5); text-decoration:none; }
+.bugReport svg { width:21px; flex:none; }
+.bugReport svg:last-child { margin-inline-start:auto; }
+.bugReport strong,.bugReport small { display:block; }
+.bugReport small { font-size:15px; margin-top:3px; color:var(--cd-text-muted,#68565e); }
