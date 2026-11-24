@@ -12,6 +12,7 @@ import ProductMasterStrip from '@/app/components/ProductMasterStrip';
 import {FLAGSHIP_DETAIL_PREMIUM_ENABLED,FLAGSHIP_PREMIUM_SLUGS} from '@/lib/flagship-premium/flags.mjs';
 import '@/styles/fonts-serif.css';
 import styles from './story.module.css';
+import {keepDotRuns} from '@/app/components/keep-dot-runs';
 type Props={params:Promise<{slug:string}>};
 const webtoons=consultationWebtoons as Record<string,{title:string;episode?:string;ending:{action:string;href:string};cuts:WebtoonCut[]}>;
 export function generateStaticParams(){return Object.keys(consultationStories).map(slug=>({slug}));}
@@ -36,7 +37,7 @@ export default async function ConsultationStory({params}:Props){
   {premium&&<section className={styles.premium} aria-labelledby="premium-outcomes">
    <ProductMasterStrip label={`${service.name} 마스터`} masters={storyMasters[slug]||[]}/>
    <h2 id="premium-outcomes" className={styles.premiumTitle}>이 상담에서 함께 읽는 것</h2>
-   <ul className={styles.yehwaCards}>{storyOutcomes[slug].map(([title,body])=><li key={title} className={styles.yehwaCard}><h3>{title}</h3><p>{body}</p></li>)}</ul>
+   <ul className={styles.yehwaCards}>{storyOutcomes[slug].map(([title,body])=><li key={title} className={styles.yehwaCard}><h3>{title}</h3><p>{keepDotRuns(body)}</p></li>)}</ul>
    <p className={styles.trust}>완료된 상담지는 내 기록에 남아요. 다시 열어도 추가 결제나 차감이 없어요.</p>
   </section>}
   <section id="story" className={styles.story} aria-label={`${service.name} 이용 안내 웹툰`}>
@@ -46,8 +47,8 @@ export default async function ConsultationStory({params}:Props){
   </section>
   {!premium&&<section className={styles.reading} aria-label="이야기에서 상담으로">
    {(storyMasters[slug]||[]).map(master=><div key={master.name} className={styles.master}><Image unoptimized src={master.avatar} width={72} height={72} alt=""/><div><h2>{master.name}</h2><p>{master.role}</p><p className={styles.voice}>{master.line}</p></div></div>)}
-   {storyOutcomes[slug].map(([title,body])=><article key={title}><h3>{title}</h3><p>{body}</p></article>)}
+   {storyOutcomes[slug].map(([title,body])=><article key={title}><h3>{title}</h3><p>{keepDotRuns(body)}</p></article>)}
   </section>}
-  <section className={styles.invitation} data-cd-cross-sell={`/consultations/${slug}/`}><p className={styles.caption}>도입 이야기의 예시 · 개인 분석 결과가 아닙니다</p><h2>{story.invitation}</h2><p>{story.basis}</p><div className={styles.price}>{slug==='codex'?'개인판 · ':''}<PriceBadge className={styles.priceBadge} featureKey={service.featureKey}/>{slug==='codex'&&<p>궁합판 · <PriceBadge featureKey="master-love-codex-compat"/></p>}</div><a className={styles.action} href={service.href}>{slug==='tea'?'상담 고르기':'상담 시작하기'}</a><p className={styles.caption}>상담 화면에서 저장한 프로필을 선택하거나 새로 만들 수 있어요. 이용 조건을 확인한 뒤 상담을 시작합니다.</p><a href="/consultations/">다른 상담 둘러보기</a></section>
+  <section className={styles.invitation} data-cd-cross-sell={`/consultations/${slug}/`}><p className={styles.caption}>도입 이야기의 예시 · 개인 분석 결과가 아닙니다</p><h2>{story.invitation}</h2><p>{keepDotRuns(story.basis)}</p><div className={styles.price}>{slug==='codex'?'개인판 · ':''}<PriceBadge className={styles.priceBadge} featureKey={service.featureKey}/>{slug==='codex'&&<p>궁합판 · <PriceBadge featureKey="master-love-codex-compat"/></p>}</div><a className={styles.action} href={service.href}>{slug==='tea'?'상담 고르기':'상담 시작하기'}</a><p className={styles.caption}>상담 화면에서 저장한 프로필을 선택하거나 새로 만들 수 있어요. 이용 조건을 확인한 뒤 상담을 시작합니다.</p><a href="/consultations/">다른 상담 둘러보기</a></section>
  </main>;
 }

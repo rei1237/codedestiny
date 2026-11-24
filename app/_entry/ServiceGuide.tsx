@@ -4,6 +4,7 @@ import { consultationWebtoons } from '@/lib/brand/consultation-webtoons.mjs';
 import { consultationStories } from '@/lib/brand/consultation-stories.mjs';
 import { RECORD_SERVICES } from '@/lib/records/service-registry';
 import styles from './service-guide.module.css';
+import {keepDotRuns} from '@/app/components/keep-dot-runs';
 
 const webtoons = consultationWebtoons as Record<string, { title: string; episode?: string }>;
 const stories = consultationStories as Record<string, { basis: string }>;
@@ -30,19 +31,19 @@ export default function ServiceGuide() {
       </details>)}
     </section>
     {guideGroups.map(group => <section key={group.id} id={`guide-${group.id}`} className={styles.group} aria-labelledby={`guide-${group.id}-title`}>
-      <h3 id={`guide-${group.id}-title`}>{group.title}</h3><p>{group.intro}</p>
+      <h3 id={`guide-${group.id}-title`}>{group.title}</h3><p>{keepDotRuns(group.intro)}</p>
       <ul className={styles.stories}>{group.ids.map(id => {
         const service = RECORD_SERVICES.find(item => item.id === id)!;
         return <li key={id}><a className={styles.story} href={`/consultations/${id}/`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={`/images/consultation-webtoons/covers/${id}.webp`} alt="" width={720} height={480} loading="lazy" decoding="async"/>
-          <span><small>{service.name}</small><strong>{webtoons[id].episode}</strong><span className={styles.basis}>{stories[id].basis}</span><span className={styles.read}>이야기 읽기 <span aria-hidden="true">→</span></span></span>
+          <span><small>{service.name}</small><strong>{webtoons[id].episode}</strong><span className={styles.basis}>{keepDotRuns(stories[id].basis)}</span><span className={styles.read}>이야기 읽기 <span aria-hidden="true">→</span></span></span>
         </a></li>;
       })}</ul>
     </section>)}
     <aside className={styles.afterword}>
       <h3>읽고 나서, 나의 이야기로</h3>
-      <p>상담을 고른 뒤 해당 화면에서 필요한 출생 정보나 질문을 준비해요. 상담마다 쓸 수 있는 결제 방법은 그 상담 화면에서 먼저 보여드리고, 단건 결제·꿀단지 이용권·월정석의 차이는 FAQ에 정리해 두었어요.</p>
+      <p>{keepDotRuns('상담을 고른 뒤 해당 화면에서 필요한 출생 정보나 질문을 준비해요. 상담마다 쓸 수 있는 결제 방법은 그 상담 화면에서 먼저 보여드리고, 단건 결제·꿀단지 이용권·월정석의 차이는 FAQ에 정리해 두었어요.')}</p>
       <a href="/faq/">자주 묻는 질문에서 결제 방법 보기 <span aria-hidden="true">→</span></a>
       <a href="/heukwol/">흑월의 주의 시기 · 월별 흐름과 대비 <span aria-hidden="true">→</span></a>
       <a href="/consultations/">상담의 정원에서 비교하기 <span aria-hidden="true">→</span></a>
