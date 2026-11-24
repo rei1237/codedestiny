@@ -31,7 +31,8 @@ html:not([lang|=ko]) .cd-pop5{display:none!important}
 .cd-pop5__link{display:flex;align-items:center;gap:12px;min-height:64px;padding:6px 6px;box-sizing:border-box;color:var(--cd-text);text-decoration:none;border-radius:14px;transition:background-color .15s ease,transform .1s ease}
 .cd-pop5__link:focus-visible{outline:2px solid var(--cd-focus-ring);outline-offset:1px}
 .cd-pop5__link:active{transform:scale(.985);background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 55%,transparent)}
-@media (hover:hover){.cd-pop5__link:hover{background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 40%,transparent)}}
+/* 행 전체가 링크라 밑줄 대신 배경으로 hover 를 보인다. `/ggulggul/` 본문의 `.yh-home a:hover` 밑줄(styles/yehwa-home.css)이 이기지 않게 범위를 높인다. */
+@media (hover:hover){.cd-pop5 .cd-pop5__link:hover{background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 40%,transparent);text-decoration:none}}
 
 /* 순위 메달: 1~3위 달 메달(톤 차등), 4~5위 얇은 링 */
 .cd-pop5__rank{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;box-sizing:border-box;font-family:var(--font-display,var(--font-body));font-size:1.0625rem;line-height:1;color:var(--cd-text);border:1px solid var(--cd-yehwa-line,#c9a46a);background:transparent}
