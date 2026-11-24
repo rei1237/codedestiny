@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-24
-next: 원격 main의 웹툰 탭 번역 폭 검사 복구를 확인한 뒤 검증된 상담 변경을 전달하고 승인된 운영 릴리스를 시작한다.
+next: 후속 회귀는 GitHub의 해당 커밋 CI와 운영 릴리스 실행에서 확인한다.
 ---
 
 ## 첫 행동
@@ -29,5 +29,9 @@ next: 원격 main의 웹툰 탭 번역 폭 검사 복구를 확인한 뒤 검증
 - [x] 새 시트와 선택한 상담의 장면 연결, 정적 배포 미러 동기화
 - [x] 390px/1280px Chromium에서 인간형 네 동작, 홈 MP4 0개, 대기 미디어 단일 마운트·제거, 동작 줄이기 검증
 - [x] 초융합·영냥이 모바일·데스크톱 프리뷰와 커밋된 트리 check:pre-push 확인
-- [ ] 원격 main 복구 확인, 필요 시 최신 main 통합 및 재검증
-- [ ] main 푸시와 Release Cloudflare Pages and Worker의 mode=production 실행, 전달 상태 기록 및 작업트리 정리
+- [x] 원격 main 복구 확인, 필요 시 최신 main 통합 및 재검증
+- [x] main 푸시와 Release Cloudflare Pages and Worker의 mode=production 실행, 전달 상태 기록 및 작업트리 정리
+
+## 전달 결과
+
+웹툰 탭 단축 번역 복구 CI 45322248795 통과. 상담 통합본의 Node 5826개·Jest 8600개 통과(1개 건너뜀). 운영 릴리스 45326250035 성공, Pages와 Worker 모두 afbedf76ab 확인. 이어서 네오 사진 설명과 토스 모바일 번들 크기 회귀를 46659792e4에서 수정했다. 네오 브라우저 시나리오와 실제 토스 아카이브 검사 통과(압축 해제 98,872,702바이트).
