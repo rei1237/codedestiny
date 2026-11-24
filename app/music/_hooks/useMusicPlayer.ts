@@ -1,5 +1,6 @@
 "use client";
 
+import { registerSoundtrack } from '@/lib/soundtrack-session';
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Track } from "../_data/musicManifest";
 import { useMusicProgressStore } from "../_stores/useMusicProgressStore";
@@ -489,6 +490,12 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     audio.volume = clamp(options.initialVolume ?? 1, 0, 1);
     audio.muted = false;
     audioRef.current = audio;
+    const releaseSound = registerSoundtrack(audio, () => {
+      wantsPlaybackRef.current = false;
+      isPlayingRef.current = false;
+      setIsPlaying(false);
+      setStatus("paused");
+    });
 
     const handleLoadStart = () => {
       setIsLoading(true);
@@ -593,6 +600,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
 
     return () => {
       audio.pause();
+      releaseSound();
       audio.removeEventListener("loadstart", handleLoadStart);
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("timeupdate", handleTimeUpdate);

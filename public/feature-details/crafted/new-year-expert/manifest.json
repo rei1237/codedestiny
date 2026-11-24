@@ -18,9 +18,9 @@
         "단정 대신 조건으로 말한다",
         "깎아내리지 않는다"
       ],
-      "avatar": "/images/master-profiles/avatars/neo-new-year.webp",
-      "portrait": "/images/master-profiles/neo-new-year-portrait.webp",
-      "portraitSrcSet": "/images/master-profiles/neo-new-year-portrait-360.webp 360w, /images/master-profiles/neo-new-year-portrait.webp 600w"
+      "avatar": "/images/home/illustrated/neo-human-240.webp",
+      "portrait": "/images/consultation-rooms/neo.webp",
+      "portraitSrcSet": "/images/consultation-rooms/neo.webp 960w"
     }
   ],
   "chapters": [

@@ -716,7 +716,9 @@ export default function TeaHouseResultSheet({
             <img src="/images/consultation/saju-yeoni-neo-joint-v1-640.webp" width="640" height="427" alt="명식을 펼치고 함께 이야기를 나누는 연이와 네오" />
             <figcaption>연이는 마음의 패턴을, 네오는 선택의 조건을 짚어요.</figcaption>
           </figure>}
+          {result.sajuReportVersion !== "saju-specialist-v2" && <img className={styles.coverSeal} src="/images/fortune-tea-house/renewal/state-completed.webp" width="76" height="84" alt="" />}
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
+          {result.createdAt && !Number.isNaN(Date.parse(result.createdAt)) && <time dateTime={result.createdAt}>{new Date(result.createdAt).toLocaleDateString(locale)}</time>}
           {(result.sajuReportVersion === 'saju-specialist-v1' || result.sajuReportVersion === 'saju-specialist-v2') && <>
             <h3>내 질문에 대한 핵심 답</h3>
             <LlmParagraphs text={result.questionSummary} />

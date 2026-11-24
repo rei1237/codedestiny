@@ -1,4 +1,5 @@
 'use client';
+import EntryOrnament from "@/app/components/service-intro/EntryOrnament";
 import {mascotName,mascotPrefix} from '../_lib/mascot-name.mjs';
 import {useEffect,useRef,useState} from 'react';
 import {ArrowRight,Moon,PawPrint} from 'lucide-react';
@@ -47,6 +48,7 @@ export default function NightHero(){
   <span className={styles.garden} aria-hidden="true"><span className={styles.lotus} data-yn-bloom="lotus"/></span>
   {sceneReady && <NightBloomMotion className={styles.bloomMotion}/>}
   <div className={styles.copy}>
+   <EntryOrnament fish />
    <h1 id="hero-title"><span className={styles.brandPrefix}>{mascotPrefix}</span>{' '}<span className={styles.brandName}>{mascotName}</span></h1>
    <p className={styles.desktopIntro}>간단한 고민 상담은 영냥이에게 물어봐! 답과 근거, 지금 해볼 행동을 함께 살펴봐요.</p>
    <div className={styles.actions}>
