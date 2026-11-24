@@ -1,4 +1,5 @@
 "use client";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import SavedBirthProfilePicker from "@/app/components/SavedBirthProfilePicker";
 import BirthTimeInput from "@/app/components/BirthTimeInput";
 
@@ -1852,10 +1853,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
     <main className={intro.bookPage}>
       <section className={intro.shell}>
         <header className={intro.hero}>
-          <div className={intro.bookObject} aria-hidden="true">
-            <p className={intro.coverTitle}>{copy.modeOptions[form.mode].label}</p>
-            <p className={intro.coverSubtitle}>꿀꿀운세</p>
-          </div>
+          <MasterRoomScene master="yun" shot="intro" />
           <div className={intro.heroCopy}>
             <h2>{copy.heroTitle}</h2>
             {copy === LIFE_BOOK_CLIENT_COPY.ko && <ProductMasterStrip label="인생의 책 마스터" masters={productMasters.lifeBook} profileHref={!isBusy && !resultUrl ? "#life-book-master" : undefined} />}
@@ -2087,6 +2085,7 @@ export default function LifeBookAiClient({ paymentNotice, paymentSurface = "web"
             {isBusy && (
               <GenerationProgress
                 persona="neo"
+                roomMaster={status === "generating" ? "yun" : undefined}
                 counselor={{ src: masterProfiles.yunLifeBook.portrait, srcSet: masterProfiles.yunLifeBook.portraitSrcSet }}
                 title={copy.writingHeading}
                 description={copy.writingDescription}

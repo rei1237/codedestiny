@@ -108,7 +108,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete, o
   <div className={styles.illustration}>
    <Image src={illustration} alt={humanScene ? copy.humanAlt : ""} fill priority sizes="100vw" className={styles.sceneImage} />
    {!humanScene && sceneIndex > 0 && <Image src={fortuneTeaHouseAssets.landingPig.welcome} alt={copy.pigAlt} width={320} height={380} className={styles.pigActor} />}
-   {humanScene && <YeoniTalkingPortrait className={styles.humanActor} talking={speaker === "연이" && !complete && !artOnly && !logOpen} />}
+   {humanScene && <YeoniTalkingPortrait className={styles.humanActor} cue={stage + "-" + lineIndex} paused={logOpen} action={stage === "transformPreview" ? "welcome" : line.mood === "closing" || (stage === "teaIntro" && lineIndex === 0) ? "offer" : speaker === "연이" && line.mood !== "thinking" ? "speak" : "listen"} />}
    {stage === "transformPreview" && humanScene && <span key={stage} className={styles.transformation} aria-hidden />}
   </div>
   <header className={styles.chapter}><h2 id="teaHouseEntryTitle">{scene.title}</h2><span>{sceneIndex + 1} / {scenes.length} · {lineIndex + 1} / {scene.lines.length}</span></header>

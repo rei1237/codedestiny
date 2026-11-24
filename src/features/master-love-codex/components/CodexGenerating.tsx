@@ -10,10 +10,9 @@
  *    '구성 확인 중'으로 두고 막대를 움직이지 않는다 — 앞질러 그리지 않는다.
  */
 
-import Image from "next/image";
+import MasterRoomScene from '@/app/components/expert-consulting/MasterRoomScene';
 import { useEffect, useState } from "react";
 import { PriceBadge } from "@/app/components/PriceBadge";
-import { getNarratorAsset } from "../data/assets";
 import { actsForMode } from "../data/acts";
 import { codexAccessLabel } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
@@ -137,15 +136,7 @@ export default function CodexGenerating({
           ) : null}
         </p>
 
-        <Image
-          src={getNarratorAsset("calm")}
-          alt={copy.narratorReadingAlt}
-          width={360}
-          height={500}
-          unoptimized
-          className="mx-auto h-[24svh] w-auto object-contain"
-          style={{ filter: "drop-shadow(0 22px 46px rgba(0,0,0,.65))" }}
-        />
+        <MasterRoomScene master="codex" still={Boolean(error)}/>
 
         {/* 표제 글자는 장식이다 — 읽어 주는 것은 아래 단계 문구와 오류 알림이다(이중 낭독 방지). */}
         <p

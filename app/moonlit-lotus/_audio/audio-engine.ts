@@ -5,10 +5,16 @@
 //   그 밖(로컬·스테이징)이나 AudioContext 가 안 열리면 element.volume 램프로 대체한다.
 // - play() 는 호출한 그 자리에서 동기적으로 element.play() 를 부른다(탭 제스처 안에서 불러야 자동재생 차단을 넘는다).
 export type Playback='idle'|'loading'|'playing'|'paused'|'blocked'|'error';
-export type SfxName='mokugyo'|'bell'|'windChime'|'fire';
+export type SfxName='mokugyo'|'bell'|'windChime'|'fire'|'lantern';
 export type EngineTrack={id:string;url:string};
-/** 에셋이 아직 없는 소리는 null(무음 슬롯). 파일이 생기면 경로만 채운다. */
-export const SFX_SOURCES:Record<SfxName,string|null>={mokugyo:'/assets/moonlit-lotus/audio-v1/mokugyo.mp3',bell:null,windChime:null,fire:null};
+/** 에셋이 아직 없는 소리는 null(무음 슬롯). 파일이 생기면 경로만 채운다. audio-v3 은 직접 합성(CC0, scripts/synth-moonlit-sfx.mjs). */
+export const SFX_SOURCES:Record<SfxName,string|null>={
+ mokugyo:'/assets/moonlit-lotus/audio-v1/mokugyo.mp3',
+ bell:'/assets/moonlit-lotus/audio-v3/bell.mp3',
+ windChime:'/assets/moonlit-lotus/audio-v3/windchime.mp3',
+ fire:'/assets/moonlit-lotus/audio-v3/ignite.mp3',
+ lantern:'/assets/moonlit-lotus/audio-v3/lantern.mp3',
+};
 export const CROSSFADE_MS=1500,RESUME_FADE_MS=600,DUCK_LEVEL=.4,DUCK_IN_MS=150,DUCK_HOLD_MS=800,DUCK_OUT_MS=600,SFX_VOLUME=.7,SFX_POOL=3,TICK_MS=40;
 export const GAIN_ORIGINS=['https://code-destiny.com'];
 export type EngineSnapshot={playback:Playback;trackId:string|null;volume:number;volumeFixed:boolean;sfx:boolean;gain:boolean};

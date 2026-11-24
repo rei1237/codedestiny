@@ -278,10 +278,10 @@ export default function serviceCompat(){
    }
    async function sourceBytes(path){
     const ref=path.slice(publicRoot.length+1).split(sep).join('/');
-    if(privateArt&&/^assets\/result-samples\/[^/]+\.jpg$/.test(ref)){
+    if(/^assets\/result-samples\/[^/]+\.jpg$/.test(ref)){
      return sharp(path).resize({width:780,withoutEnlargement:true}).jpeg({quality:84}).toBuffer();
     }
-    if(privateArt&&/^assets\/yeongnyangi\/report-art\/[^/]+\.webp$/.test(ref)){
+    if(/^assets\/yeongnyangi\/report-art\/[^/]+\.webp$/.test(ref)){
      const width=ref.endsWith('-print.webp')?1000:780;
      return sharp(path).resize({width,withoutEnlargement:true}).webp({quality:80}).toBuffer();
     }

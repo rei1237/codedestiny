@@ -1,7 +1,7 @@
 ---
-status: in-progress
-updated: 2026-11-22
-next: 승인 게이트 A — 네오 승인 후 Phase 1(결제→생성→전달 무결성 감사, docs/handoff/trait-first-phase1-integrity.md)
+status: done
+updated: 2026-11-24
+next: 완료. 2026-11-24 확인 — Phase 1(trait-first-phase1-integrity.md)은 done 이고 이 보고서의 커밋은 운영(654da81ac9)에 들어 있다. 이어지는 일은 trait-first-upgrade.md 를 본다.
 ---
 
 # Trait-First Phase 0 진단 보고서 (읽기 전용)

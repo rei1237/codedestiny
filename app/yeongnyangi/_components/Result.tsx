@@ -24,6 +24,8 @@ import ResultBenefits from '@/app/components/activation/ResultBenefits';
 import {shouldInvitePaidReview} from '@/js/review-reward-copy.mjs';
 import styles from '../yeongnyangi.module.css';
 import {trackFortuneDelivery,trackFortuneView} from '@/lib/analytics';
+import {RoomSoundControls,useRoomSoundtrack} from '../_home/RoomSoundtrack';
+import YeongnyangiRoomScene from './YeongnyangiRoomScene';
 import ReadingLoading from './ReadingLoading';
 const ResultSharing = dynamic(() => import('./ResultSharing'), { ssr: false });
 const ImageReport = dynamic(() => import('./ImageReport'), { ssr: false });
@@ -100,6 +102,11 @@ function sameRequest(fortune:FortuneRecord,id:string){
  if(fortune.id!==id||(fortune.recovery?.requestId&&fortune.recovery.requestId!==id))throw new FortuneApiError('RECOVERY_ID_MISMATCH','원래 상담과 복구 응답이 일치하지 않아요. 다시 결제하지 말고 주문번호와 함께 문의해 주세요.',409,false);
  return fortune;
 }
+function ReadingSoundtrack() {
+ const sound=useRoomSoundtrack('room',undefined,'cd:yn:room-sound');
+ return <RoomSoundControls sound={sound}/>;
+}
+
 export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  const {siteLocale}=useReadingLanguage();
  const siteLanguage=useRef(siteLocale);siteLanguage.current=siteLocale;
@@ -216,7 +223,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   return ()=>{cancelled=true;clearTimeout(timer);};
  },[row,payWatching]);
  const tarotChart=row?.charts?.find(chart=>chart.domain==='tarot');
- const ritualEligible=!!row?.paid&&row.state!=='REFUNDED'&&!!tarotChart;
+ const ritualEligible=!!row?.paid&&row.state!=='COMPLETED'&&row.state!=='REFUNDED'&&!!tarotChart;
  const spreadReveal=row?.tarotSpread?spreadCards(row.tarotSpread,tarotChart):undefined;
  const ritualRequestId=row?.id;
  useEffect(()=>{
@@ -228,17 +235,24 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
  const locale=row?.locale||siteLocale;
  const copy=readingCopy(locale);
  const stateCopy=resultStateCopy(locale);
+
+ const soundControl=row?.paid && row.state!=='REFUNDED' && locale==='ko'
+  ? <ReadingSoundtrack/> : null;
  const needsSupport=!!row?.paid&&row.state!=='COMPLETED'&&row.state!=='REFUNDED'&&!row.recovery?.canRetryNow&&['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'');
  const supportLink=needsSupport?<p><a href={resolveCheckoutPolicyHrefs(row?.locale||'ko').support}>{locale==='ko'?'주문번호로 상담 문의하기':chromeCopy(locale).contact}</a></p>:null;
   const askReading=!!row?.consultation?.questions?.length;
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  const interpreting=!!row?.paid&&['PAID','GENERATING'].includes(row.state)&&!row.errorCode&&!row.recovery?.canRetryNow&&!error;
  // While a paid reading is written the buyer may leave: the completion mail and My readings carry it, so the card says so (2026-11-23).
- const loading=interpreting?<ReadingLoading stage={row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} leaveNote={interpreting&&paymentSurface!=='toss'?questionMemoCopy(row!.locale).leaveOk:undefined} compact={row!.chapters.length>0} manifest={row!.manifest} timing libraryHref={paymentSurface==='toss'?undefined:`/yeongnyangi/library/?lang=${siteLocale}`}/>:null;
+ const waitedFor=useRef("");
+ useEffect(()=>{if(interpreting && row)waitedFor.current=row.id;},[interpreting,row]);
+ const justCompleted=row?.state==="COMPLETED" && row.paid && waitedFor.current===row.id;
+ const loading=interpreting?<ReadingLoading stage={row!.manifest.length>0&&row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} leaveNote={interpreting&&paymentSurface!=='toss'?questionMemoCopy(row!.locale).leaveOk:undefined} compact={row!.chapters.length>0} manifest={row!.manifest} timing libraryHref={paymentSurface==='toss'?undefined:`/yeongnyangi/library/?lang=${siteLocale}`}/>:null;
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {paymentSurface==='toss'&&row.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
   {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&<FishReceipt product={row.product} locale={row.locale}/>}
   {loading}
+  {soundControl}
   <SpiritResult row={row} onRow={setRow} paymentSurface={paymentSurface} {...(paymentSurface === "toss" ? {onFollowupStart:startTossFollowup,onFollowupResult:finishTossFollowup,onFollowupError:failTossFollowup} : {})}/>
   {row.state==='COMPLETED'&&<>{row.paid&&<FishReceipt product={row.product} locale={row.locale}/>}{shouldInvitePaidReview(row)&&<ReviewRewardBanner afterResult brand="yeongnyangi" locale={row.locale||'ko'} reviewProductId="yeongnyangi"/>}<ResultBenefits requestId={row.id} locale={row.locale||'ko'}/><ResultBridge row={row} locale={row.locale} paymentSurface={paymentSurface}/><ImageReport key={`report-${row.id}`} row={row}/><ResultSharing key={row.id} row={row}/><RecommendationResult service={row.product.id} locale={row.locale} brand="yeongnyangi" practiceTags={chapterAdviceTopics(row.chapters)}/></>}
   {row.state==='REFUNDED'?<p>{autoRefundCopy(row.locale,row.errorCode)||stateCopy.refunded}</p>:!row.paid?<><p>{stateCopy.paymentRequired}</p>{payWatching&&<p role="status">{stateCopy.paymentWaiting}</p>}<button onClick={()=>window.location.reload()}>{stateCopy.checkPayment}</button>{!error&&<a className={styles.primaryAction} href={checkoutPath(row,siteLocale)}>{copy.checkout}</a>}</>:!['COMPLETED','AWAITING_FOLLOWUP'].includes(row.state)&&<>
@@ -251,7 +265,11 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   {paymentSurface==='toss'&&row?.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
   {(row || error) && <header className={row?.state==='COMPLETED' && row.chapters.length ? styles.bookCover : undefined}>
    <h1>{row?(locale==='ko'?`${row.product.name} · ${row.product.fishName}`:`${localizedSystem(row.product.readingKind==='single'?row.product.domain:'fusion',locale)} · ${localizedTier(row.product.fishId,locale)}`):stateCopy.result}</h1>
-   {row?.state==='COMPLETED' && row.chapters.length>0 && <ReportIllustration scene="cover" header/>}
+   {row?.state==='COMPLETED' && row.paid && row.chapters.length>0 && <>
+    {row.completedAt && !Number.isNaN(Date.parse(row.completedAt)) && <time dateTime={row.completedAt}>{new Date(row.completedAt).toLocaleDateString(locale)}</time>}
+    {row.consultation?.relationship?.participants?.self && <p>{row.consultation.relationship.participants.self}</p>}
+    {row.consultation?.question && <p>{row.consultation.question}</p>}
+    {justCompleted?<YeongnyangiRoomScene domain={row.product.readingKind === "single" ? row.product.domain : "fusion"} shot="complete"/>:<ReportIllustration scene="cover" header/>}{locale==='ko'&&row.manifest[0]&&<a className={styles.primaryAction} href={`#chapter-${row.manifest[0].id}`}>첫 장 읽기</a>}</>}
   </header>}
   {row&&row.state!=='COMPLETED'&&<OrderReference id={row.id} locale={row.locale}/>}
 
@@ -260,6 +278,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   {row&&row.state==='AWAITING_DRAW'&&row.tarotSpread?<TarotCardPick row={row} spread={row.tarotSpread} siteLocale={siteLocale} onRow={setRow}/>:row&&<>
    {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?row.tarotSpread&&spreadReveal?<TarotSpreadReveal requestId={row.id} locale={row.locale} spread={row.tarotSpread} cards={spreadReveal} onComplete={finishRitual}/>:<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
    {loading}
+  {soundControl}
    <div id="reading-progress" className={styles.progress} data-state={row.state}>
      <div>{row.correction&&<p role="status">{row.correction.reason}</p>}{!unpaid&&!interpreting&&<p>{row.state==='COMPLETED'?copy.complete:askReading?stateCopy.answering:stateCopy.saved(row.chapters.length,row.manifest.length)}</p>}
       {!unpaid&&<progress value={row.chapters.length+(row.state==='COMPLETED'?1:0)} max={row.manifest.length+1} aria-label={askReading?stateCopy.answerProgress:stateCopy.progress}/>}

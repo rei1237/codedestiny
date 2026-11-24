@@ -11,7 +11,10 @@
   image.decoding = 'async';
   image.fetchPriority = 'high';
   image.sizes = '(max-width:600px) 136px, 220px';
-  if (human) {
+  if (human && /^\/ggulggul(?:\/|$)/.test(location.pathname)) {
+    image.width = image.height = 256;
+    image.src = '/images/fortune-tea-house/hanbok-yeoni/portrait.webp';
+  } else if (human) {
     var portrait = '/images/home/yeoni-expressions/human-portrait-';
     image.srcset = portrait + '320.webp 320w, ' + portrait + '600.webp 600w';
     image.src = portrait + '320.webp';

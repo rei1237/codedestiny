@@ -17,6 +17,8 @@ import SpeechBubble from './SpeechBubble';
 import BreathGuide from './BreathGuide';
 import HoldToLight from './HoldToLight';
 import WishLantern from './WishLantern';
+import RitualBackdrop from './RitualBackdrop';
+import {COURTYARD_STEPS,PROPS,chimeDelay} from './ritual-views';
 import {useAmbientAudio} from '../_audio/use-ambient-audio';
 import MiniPlayer from '../_audio/MiniPlayer';
 import CompanionStage,{type BreathBeat} from './CompanionStage';
@@ -47,14 +49,25 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
   media.addEventListener('change',sync);return()=>media.removeEventListener('change',sync);
  },[]);
  useEffect(()=>{dispatch({type:'bowDone',completed:bow.session.completed});},[bow.session.completed]);
- // 한 번 절을 마치고 일어설 때마다 목탁 한 번. 향·범종은 에셋이 오기 전까지 무음 슬롯이다.
+ // 한 번 절을 마치고 일어설 때마다 목탁 한 번. 향 불붙기·연등 떠오름·범종은 그 행동이 끝날 때 한 번.
+ // 효과음은 모두 입장 탭 뒤에만 난다(입장 전 단계에는 소리 효과가 없다). 미니 플레이어의 효과음 끔을 따른다.
  useEffect(()=>{
   const completed=bow.session.completed;
   if(completed>heardBows.current)sfx('mokugyo');
   heardBows.current=completed;
  },[bow.session.completed,sfx]);
  useEffect(()=>{if(state.lit)sfx('fire');},[state.lit,sfx]);
+ useEffect(()=>{if(state.wishSent)sfx('lantern');},[state.wishSent,sfx]);
  useEffect(()=>{if(state.step==='dedication')sfx('bell');},[state.step,sfx]);
+ // 마당(호흡·향)에 있는 동안 처마 풍경이 가끔 운다. 탭이 숨으면 울리지 않는다.
+ const courtyard=COURTYARD_STEPS.includes(state.step);
+ useEffect(()=>{
+  if(!courtyard)return;
+  let timer:ReturnType<typeof setTimeout>;
+  const ring=()=>{timer=setTimeout(()=>{if(!document.hidden)sfx('windChime');ring();},chimeDelay(Math.random));};
+  ring();
+  return()=>clearTimeout(timer);
+ },[courtyard,sfx]);
  useEffect(()=>{if(bow.save==='failed')setNotice(t('bow.saveFailed'));},[bow.save,t]);
  // 한 단계의 행동을 마치면 잠시 반응을 보여 준 뒤 다음 화면으로 넘어간다.
  const bowing=bow.session.status==='running';
@@ -97,12 +110,11 @@ export default function RitualFlow({onBrowse}:{onBrowse:()=>void}){
    <Link href="/" className={styles.exit}><X size={16} aria-hidden="true"/>{t('exit')}</Link>
   </header>
   <section className={styles.stage} aria-label={t('steps.'+state.step)}>
-   <picture className={styles.backdrop} aria-hidden="true">
-    <source media="(min-width:701px)" srcSet="/assets/moonlit-lotus/space-v1/hall-1536.webp"/>
-    <img src="/assets/moonlit-lotus/space-v1/hall-768.webp" alt="" decoding="async"/>
-   </picture>
+   {/* 단계마다 다른 각도의 절 그림(장식, aria-hidden). 다음 단계 그림 한 장만 미리 받는다. */}
+   <RitualBackdrop step={state.step}/>
    <SpeechBubble speaker={speaker} text={t('speech.'+voice+'.'+lineKey(state,bowing))} instant={reduced} fast={state.fast} t={t}/>
    <SceneFx smoke={state.lit} reduced={reduced}/>
+   {state.step==='incense'&&<img className={styles.burner} src={PROPS.incenseBurner} alt={t('props.incenseBurner')} decoding="async" draggable={false}/>}
    {!characterError&&<div className={styles.figure}>
     <CompanionStage kind={kind} look={profile.avatar} image={profile.image} portrait={profile.portrait} scene={{step:state.step,lit:state.lit,bowing,bows:state.bows,wishSent:state.wishSent}} elapsed={bow.session.elapsed} breath={breath} reduced={reduced} speaker={speaker} t={t} onFailure={()=>setCharacterError(true)}/>
    </div>}

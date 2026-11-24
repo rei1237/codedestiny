@@ -3,6 +3,9 @@ const art = document.querySelector('[data-home-yeoni]');
 const toggle = document.querySelector('[data-yeoni-motion]');
 const preference = matchMedia('(prefers-reduced-motion: reduce)');
 const loaded = new Map();
+const connection = navigator.connection;
+const constrained = () => connection?.saveData || /(^|-)2g$/.test(connection?.effectiveType || '');
+const ggulggul = /^\/ggulggul(?:\/|$)/.test(location.pathname);
 const base = '/images/home/yeoni-expressions/';
 
 async function frames(form) {
@@ -36,13 +39,53 @@ if (art) {
   let turn = 0;
   let timer;
   try { enabled = localStorage.getItem('cd:yeoni:motion') !== 'off'; } catch {}
+  const humanActs = [
+    ['welcome','먼 길 오셨지요. 이쪽에 편히 앉으세요.'],
+    ['listen','천천히 말씀하세요. 어떤 대목에서 마음이 걸렸나요?'],
+    ['offer','잔을 조금 가까이 놓아 드릴게요.'],
+    ['speak','오늘은 그 이야기부터 함께 읽어 볼까요?']
+  ];
+  let nextAct = 0;
+  let activeAct;
+  const hero = art.closest('[data-home-hero]');
+  const petals = document.createElement('span');
+  petals.className = 'yh-drifting-petals';
+  petals.setAttribute('aria-hidden', 'true');
+  if (ggulggul && hero) {
+    for (let i=0; i<4; i++) petals.appendChild(document.createElement('i'));
+    hero.appendChild(petals);
+  }
+  async function perform(action, current) {
+    const sheet = new Image();
+    sheet.src = '/images/fortune-tea-house/hanbok-yeoni/' + action + '.webp';
+    try { await sheet.decode(); } catch { return; }
+    if (turn !== current) return;
+    const layer = document.createElement('span');
+    layer.className = 'yh-human-performance';
+    layer.setAttribute('aria-hidden','true');
+    layer.style.backgroundImage = 'url(' + sheet.src + ')';
+    art.appendChild(layer);
+    activeAct = layer;
+    const poses = [0,1,2,3,2,1,0].map((frame, i) => ({
+      backgroundPosition: frame*100/3 + '% 0%',
+      offset:i/6, easing:'steps(1,end)'
+    }));
+    const motion = layer.animate(poses,{duration:2000,fill:'forwards'});
+    motion.onfinish = () => { if (turn === current) timer = setTimeout(() => refresh(), 650); };
+  }
   function refresh(reaction) {
     const current = ++turn;
     clearTimeout(timer);
+    activeAct?.remove();
+    activeAct = undefined;
     patch.hidden = true;
     effect.hidden = true;
     if (toggle) toggle.checked = enabled;
-    if (!visible || !enabled || document.hidden || preference.matches) return;
+    const moving = visible && enabled && !document.hidden && !preference.matches && !constrained();
+    petals.hidden = !moving;
+    if (!moving) return;
+    if (reaction?.action && art.animate) { void perform(reaction.action, current); return; }
+    if (ggulggul && form === 'human') return;
     frames(form).then(info => {
       if (current !== turn) return;
       const { left, top, width, height } = info.face;
@@ -86,6 +129,13 @@ if (art) {
     }).catch(() => { if (turn === current) patch.hidden = true; });
   }
   function greet() {
+    if (ggulggul && form === 'human') {
+      const [action,line] = humanActs[nextAct];
+      nextAct = (nextAct + 1) % humanActs.length;
+      setHomeLabel(speech, 'home.shelf.human.' + action, line);
+      refresh({action});
+      return;
+    }
     const reaction = reactions[nextReaction];
     nextReaction = (nextReaction + 1 + Math.floor(Math.random() * (reactions.length - 1))) % reactions.length;
     setHomeLabel(speech, 'home.shelf.' + reaction.name, reaction.text);
@@ -101,8 +151,56 @@ if (art) {
   const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; refresh(); });
   observer.observe(art);
   document.addEventListener('visibilitychange', refresh);
-  window.addEventListener('pagehide', () => { ++turn; clearTimeout(timer); patch.hidden = true; });
+  window.addEventListener('pagehide', () => { ++turn; clearTimeout(timer); activeAct?.remove(); petals.hidden = true; patch.hidden = true; });
   window.addEventListener('pageshow', refresh);
   preference.addEventListener('change', refresh);
+  connection?.addEventListener('change', refresh);
   refresh();
+}
+
+if (ggulggul && !customElements.get('cd-saju-reading-film')) {
+  class ReadingFilm extends HTMLElement {
+    connectedCallback() {
+      this.visible = false;
+      this.failed = false;
+      this.sync = () => {
+        const enabled = this.visible && !document.hidden && !preference.matches && !constrained() && !this.failed;
+        if (!enabled) { this.release(); return; }
+        if (this.firstChild) return;
+        const neo = this.dataset.master === 'neo';
+        const film = document.createElement('video');
+        film.muted = film.defaultMuted = film.playsInline = film.loop = true;
+        film.setAttribute('aria-hidden','true');
+        film.poster = neo ? '/images/consultation-rooms/neo.webp' : '/images/fortune-tea-house/renewal/yeoni-room-poster.webp';
+        film.src = neo ? '/images/consultation-rooms/neo.mp4' : '/images/saju/yeoni-pig-analysis.mp4';
+        this.append(film);
+        film.onerror = () => { if (film.parentNode === this) { this.failed = true; this.release(); } };
+        void film.play().catch(() => film.onerror?.());
+      };
+      this.observer = new IntersectionObserver(([entry]) => { this.visible = entry.isIntersecting; this.sync(); });
+      this.observer.observe(this);
+      this.style.display = 'block';
+      this.style.minHeight = '1px';
+      document.addEventListener('visibilitychange', this.sync);
+      preference.addEventListener('change', this.sync);
+      connection?.addEventListener('change', this.sync);
+    }
+    release() {
+      const film = this.firstChild;
+      if (!film) return;
+      film.onerror = null;
+      film.remove();
+      film.pause();
+      film.removeAttribute('src');
+      film.load();
+    }
+    disconnectedCallback() {
+      this.observer.disconnect();
+      this.release();
+      document.removeEventListener('visibilitychange', this.sync);
+      preference.removeEventListener('change', this.sync);
+      connection?.removeEventListener('change', this.sync);
+    }
+  }
+  customElements.define('cd-saju-reading-film', ReadingFilm);
 }

@@ -8279,8 +8279,19 @@ function _bindSajuQuestionPromptCard(rootEl) {
     generateBtn.disabled = isLoading || len < 5;
     generateBtn.style.opacity = generateBtn.disabled ? '0.62' : '1';
   }
+  function showReadingFilm(active) {
+    if (!progressEl || !/^\/ggulggul(?:\/|$)/.test(location.pathname)) return;
+    var current = progressEl.querySelector('cd-saju-reading-film');
+    if (!active) { if (current) current.remove(); return; }
+    if (!current) {
+      current = document.createElement('cd-saju-reading-film');
+      current.dataset.master = rootEl.dataset.readingMode === 'neo' ? 'neo' : 'pig';
+      progressEl.appendChild(current);
+    }
+  }
   function setProgress(percent, message, done) {
     if (!progressEl) return;
+    if (done || Number(percent) < 0) showReadingFilm(false);
     if (Number(percent) < 0) {
       progressEl.style.display = 'none';
       return;
@@ -8370,6 +8381,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   }
   function setLoading(next) {
     isLoading = !!next;
+    if (!isLoading) showReadingFilm(false);
     if (isLoading) { userRequestedReading = true; openConsultation(); }
     if (!isLoading && paidResumeDone) { paidResumeDone(false); paidResumeDone = null; }
     inputEl.disabled = isLoading;
@@ -8573,6 +8585,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
           }));
         }
         var status = String(payload.status || '').trim();
+        showReadingFilm(status === 'pending' || status === 'generating' || status === 'partial');
         var percent = Number(payload.progress || (payload.progressState && payload.progressState.progress) || 0);
         var stepMessage = String(payload.stepMessage || (payload.progressState && payload.progressState.stepMessage) || '명식의 흐름을 읽고 있어요');
         if (status === 'partial' || status === 'delivery_pending') {
@@ -8665,6 +8678,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         accessConfirmed = true;
         rememberPendingJob(job);
         if (!isCurrent()) return;
+        showReadingFilm(true);
         setProgress(15, '사주 명식 불러오는 중', false);
         // 서버는 동기 응답이라, /status 폴링은 서버가 실제로 pending(202)을 돌려줄 때만 시작한다(아래 .then).
         // 여기서 미리 폴링하면 서버에 없는 /status를 404치다 POLL_TIMEOUT 거짓 실패를 내므로 시작하지 않는다.
@@ -8686,6 +8700,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
       var status = String(payload.status || '').trim();
       if ((result && result.ok && (status === 'pending' || status === 'generating')) || result.status === 202) {
         keepWaiting = true;
+        showReadingFilm(true);
         rememberPendingJob(Object.assign({}, activePendingJob || {}, {
           jobId: payload.jobId || payload.executionId,
           executionId: payload.executionId || payload.jobId,

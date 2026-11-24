@@ -1,7 +1,7 @@
 ---
-status: in-progress
-updated: 2026-11-23
-next: 5단계 — npm run sitemap:generate && npm run llms:generate && npm run rss:generate, diff 검토, 커밋
+status: done
+updated: 2026-11-24
+next: 완료. 코드·운영 반영·IndexNow 제출 끝. 남은 것은 저장소 밖 일이다 — D+7(11-30)·D+14(12-07)·D+30(12-23) 측정은 메인 세션이 예약하고, 서치어드바이저 수동 제출은 사용자 몫이다. 워크트리 배수는 소유 세션 몫.
 ---
 
 # 네이버 검색 의도 SEO 라운드 인수인계
@@ -80,6 +80,6 @@ next: 5단계 — npm run sitemap:generate && npm run llms:generate && npm run r
 - [x] 4a sinsal-rules + 대조 테스트 (09c0ab099, 25cbbbf77) — 만세력 엔진 1440케이스·12신살 144칸·공망 60일주 전수 + 사주 엔진 상수 고정 대조, 변이 시 실패 확인
 - [x] 4b 허브 + 5쪽 (b40b85fa5 글 5쪽, 4307fe6d7 허브·레지스트리·sitemap·llms·/saju·/manse 링크, e72c0b160 고지문 중복 수정, 85e2abd1f 원장) — build:cf exit=0, verify:internal-link-depth OK, dist 6쪽 H1=1·noindex 0·직답 확인, check:fast --base=7b0a35ce1 통과. 슬러그: yangin-sal-meaning·sangmun-sal-meaning·dohwa-sal-saju·yeokma-sal-meaning·hwagae-sal-meaning. 허브 레지스트리 primary "신살 종류"(natal-chart 와 비충돌). 허브는 AdSense 목록 밖(2단계와 동일 정책)
 - [x] 4c 8쪽 (6d23b276c 글 8쪽·seo-titles·sinsal-rules basis 문구 구분, f666a4979 허브 "그 밖의 신살" 8링크, 8bf6c248c sitemap·원장) — build:cf exit=0, dist 8쪽 H1=1·title·noindex 0·직답 strong·FAQPage 0, 허브 dist 8링크, 원진·상충 /compatibility/tti/ 링크, verify:internal-link-depth OK, verify:sitemap-drift OK, check:fast --base=7b0a35ce1 exit=0. 슬러그: hongyeom-sal-meaning·cheoneul-gwiin-meaning·goegang-sal-meaning·baekho-sal-meaning·gongmang-meaning·gwimun-gwan-sal-meaning·wonjin-sal-meaning·sangchung-yukchung. 비공백 본문 1807~1951자. rss 는 빌드 잡음이라 되돌림(5단계에서 생성). 사이트맵은 KST 날짜 넘김(11-23)으로 daily URL lastmod 가 함께 바뀜
-- [ ] 5 생성물
-- [ ] 6 머지·push·CI·운영(재확인 후)
-- [ ] 7 측정·정리
+- [x] 5 생성물 (1c74bd667d rss 재생성, sitemap·llms 변화 없음)
+- [x] 6 머지·push·CI·운영 — 2026-11-24 실측: 새 쪽이 처음 운영에 오른 것은 run 45069586367(660bafbb77, cbfeadaa6b·b8e5752777 포함), 2026-11-23 06:16 KST IndexNow 687건 200 OK. 이후 run 45304568449(654da81ac9, 현재 운영) 2026-11-24 10:52 KST IndexNow 541건 200 OK. 운영 `/saju/sinsal/`·`/insights/dohwa-sal-saju/` 200, sitemap.xml 에 둘 다 있음. 이하 당시 기록 — push 완료: cbfeadaa6b(본작업), b8e5752777(새 5쪽 GuideCta — verify-guide-feature-cta 실패 수정 + sitemap 재생성). 운영 run 45041447671 은 `next build` 가 45분 멈춰 60분 timeout 으로 취소(러너 이상 추정). 사용자 11/23 선택 "main HEAD 재배포 (Recommended)" — main CI green 확인 직후 HEAD 를 production dispatch(다시 묻지 않음). 차단 요인: 옆 세션 66d2f4a72e·fbdce9449a 이후 `/recipes/lemon-chickpea-salad` prerender 가 결정적으로 실패(lib/lifestyle/recipes.mjs·recipe-variety.mjs) — 옆 세션 몫, 보고만. main 이 green 이 되면 dispatch.
+- [x] 7 측정·정리 — 저장소 일은 끝. 기준일 D+0 = 2026-11-23(첫 운영 반영·IndexNow 제출). 측정 D+7 2026-11-30(수집 여부·site:·IndexNow 로그), D+14 2026-12-07(대상 키워드 노출·CTR, 내일 쪽 설명 전후), D+30 2026-12-23(순위·RPM·2차 후보 판단, 그 전에는 제목 변경 금지) — 메인 세션이 예약한다. 서치어드바이저 수동 제출(허브+상위 5쪽 수집 요청, 사이트맵 인덱스·rss 제출 확인)은 사용자 몫. 워크트리 `naver-intent-seo-20261122-003824` 배수는 소유 세션 몫으로 남김.

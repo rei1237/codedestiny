@@ -4954,3 +4954,14 @@
   .methodCard[data-active="true"] .methodText { display: contents; }
   .methodCard[data-active="true"] .methodDetail { grid-column: 1 / -1; }
 }
+
+.vnRoomFilm {
+  position: absolute;
+  right: 4%;
+  top: 43%;
+  transform: translateY(-50%);
+  width: min(52%, 42rem);
+}
+@media (max-width: 760px) {
+  .vnRoomFilm { top: 48%; right: 5%; width: 90%; }
+}

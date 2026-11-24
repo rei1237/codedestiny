@@ -244,6 +244,7 @@ function FeatureBackHomeNav() {
         <Home className={styles.icon} aria-hidden="true" />
         <span>{copy.home}</span>
       </button>
+      <img className={styles.navLotus} src="/images/home/mv/ornament-lotus-crest-160.webp" width={80} height={32} alt="" />
     </nav>
   );
 }

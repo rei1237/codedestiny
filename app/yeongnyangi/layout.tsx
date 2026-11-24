@@ -1,4 +1,5 @@
 "use client";
+import EntryOrnament from "@/app/components/service-intro/EntryOrnament";
 import {useEffect,useState,type ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -53,5 +54,5 @@ export default function Layout({children}:{children:ReactNode}){
  const libraryLink=<a href={`/yeongnyangi/library/?lang=${siteLocale}`}>{copy.library}</a>;
  return <main className={styles.page} data-reading-result={readingResult || undefined} data-yn-night lang={siteLocale}>{resume}<nav className={styles.nav} aria-label={copy.home}><a href={`/yeongnyangi/?lang=${siteLocale}`}>{copy.home}</a><div>{!readingResult && libraryLink}<a href={`/?lang=${siteLocale}`}>꿀꿀운세</a><LocaleSwitcher preservePath locale={siteLocale}/></div></nav>
   {readingResult && <div className={styles.readingReturn}>{libraryLink}</div>}
-  {children}<footer className={styles.footer}><p>Yeongnyangi · 꿀꿀운세</p><a href={`/terms/?lang=${siteLocale}`}>{copy.terms}</a> · <a href={`/privacy-policy/?lang=${siteLocale}`}>{copy.privacy}</a> · <a href={`/refund-policy/?lang=${siteLocale}`}>{copy.refund}</a> · <a href={`/contact/?lang=${siteLocale}`}>{copy.contact}</a></footer></main>;
+  {children}<footer className={styles.footer}><EntryOrnament fish /><p>Yeongnyangi · 꿀꿀운세</p><a href={`/terms/?lang=${siteLocale}`}>{copy.terms}</a> · <a href={`/privacy-policy/?lang=${siteLocale}`}>{copy.privacy}</a> · <a href={`/refund-policy/?lang=${siteLocale}`}>{copy.refund}</a> · <a href={`/contact/?lang=${siteLocale}`}>{copy.contact}</a></footer></main>;
 }

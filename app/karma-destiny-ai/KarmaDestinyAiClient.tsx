@@ -1,4 +1,5 @@
 "use client";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
 import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
@@ -2072,8 +2073,6 @@ const KARMA_SECTION_SYMBOLS = ["業", "源", "流", "課", "緣", "情", "財", 
 
 // 진행 화면 6노드(사주 → 자미두수 → 숙요 → 서양 → 베다 → 종합)와 1:1로 맞춘다.
 // 이 화면에는 서버 진행률이 없어 시간 기반으로 넘어간다. 아이콘은 한자 상징이라 로케일 무관.
-const LOADING_STAGE_ICONS = ["柱", "紫", "宿", "星", "梵", "業"] as const;
-const LOADING_STAGE_DURATIONS = [1800, 2000, 2000, 2000, 2000, 2600] as const;
 
 function splitAssistantSections(content: string, copy: KarmaDestinyCopy): ParsedSection[] {
   let normalized = content.replace(/\r\n/g, "\n").trim();
@@ -2136,36 +2135,11 @@ function AssistantMessageContent({ content, copy }: { content: string; copy: Kar
   );
 }
 
-function KarmaLoadingScreen({ status, copy }: { status: FlowStatus; copy: KarmaDestinyCopy }) {
-  const [stage, setStage] = useState(0);
-
-  useEffect(() => {
-    setStage(status === "reading" ? 1 : 0);
-    const timers = LOADING_STAGE_DURATIONS.map((_, index) => {
-      const delay = LOADING_STAGE_DURATIONS.slice(0, index).reduce((total, duration) => total + duration, 0);
-      return window.setTimeout(() => setStage(index), delay);
-    });
-    return () => timers.forEach((timer) => window.clearTimeout(timer));
-  }, [status]);
-
-  const activeIndex = Math.min(stage, LOADING_STAGE_ICONS.length - 1);
-
+function KarmaLoadingScreen({ label }: { label: string }) {
   return (
-    <div className="kdai-loading" role="status" aria-live="polite">
-      <div className="kdai-loading__seal" aria-hidden="true">
-        <div className="kdai-loading__core">{LOADING_STAGE_ICONS[activeIndex]}</div>
-        <svg viewBox="0 0 128 128">
-          <circle cx="64" cy="64" r="58" />
-        </svg>
-      </div>
-      <div className="kdai-loading__text">
-        <p>{copy.loadingStageLabels[activeIndex]}</p>
-        <div className="kdai-loading__dots" aria-hidden="true">
-          {LOADING_STAGE_ICONS.map((_, index) => (
-            <span key={index} data-active={index <= stage} />
-          ))}
-        </div>
-      </div>
+    <div className="kdai-loading" role="status">
+      <MasterRoomScene master="karma" />
+      <p>{label}</p>
     </div>
   );
 }
@@ -2895,7 +2869,7 @@ export default function KarmaDestinyAiPage({paymentSurface="web",ProfilePicker,T
         </section>
       </section>
 
-      {(status === "preparing" || status === "reading") && <KarmaLoadingScreen status={status} copy={copy} />}
+      {(status === "preparing" || status === "reading") && <KarmaLoadingScreen label={statusText} />}
       {resultOpen && latestAssistantContent && (
         <KarmaResultModal
           content={latestAssistantContent}
