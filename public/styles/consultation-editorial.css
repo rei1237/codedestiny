@@ -14,6 +14,8 @@
 .craftedEditorial > header > img { display: block; width: 100%; height: auto; }
 .craftedEditorial .craftedEditorialCopy { padding: 28px 24px 32px; }
 .craftedEditorial .craftedEditorialCopy h3 { color: #fff8eb; }
+/* The cover copy sits on navy; .featureVisualDetail p would otherwise paint it --fortune-muted (dark). */
+.craftedEditorial .craftedEditorialCopy p { color: #eadfcb; }
 .craftedEditorial h3 {
   margin: 0 0 16px;
   font-family: var(--font-serif, Georgia, serif);
