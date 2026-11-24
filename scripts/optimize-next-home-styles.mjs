@@ -30,7 +30,11 @@ function coversText(range, codepoints) {
   });
 }
 
-export function initialStyles(css, classes, codepoints) {
+// The popular TOP5 draws its rows only in the display and body families
+// (styles/popular-top5.css), so its late glyphs keep only those faces.
+const POPULAR_TOP5_FONT_FAMILIES = new Set(['CodeDestinyRounded', 'CodeDestinyBody']);
+
+export function initialStyles(css, classes, codepoints, lateCodepoints = []) {
   const ast = postcss.parse(css);
   ast.walkRules(rule => {
     if (rule.parent.type === 'atrule' && rule.parent.name.endsWith('keyframes')) return;
@@ -38,7 +42,9 @@ export function initialStyles(css, classes, codepoints) {
   });
   ast.walkAtRules('font-face', face => {
     const range = face.nodes.find(node => node.prop === 'unicode-range');
-    if (range && !coversText(range.value, codepoints)) face.remove();
+    if (!range || coversText(range.value, codepoints)) return;
+    const family = face.nodes.find(node => node.prop === 'font-family')?.value.replace(/["']/g, '').trim();
+    if (!(lateCodepoints.length && POPULAR_TOP5_FONT_FAMILIES.has(family) && coversText(range.value, lateCodepoints))) face.remove();
   });
   ast.walkAtRules(rule => { if (rule.nodes?.length === 0) rule.remove(); });
   return ast.toString();
@@ -99,8 +105,9 @@ export function optimizeNextHomeStyles(directory) {
     const text = [...doc.body.querySelectorAll('*')].filter(el => !el.closest('script, style, template')).flatMap(el => [
       ...[...el.childNodes].filter(node => node.nodeType === 3).map(node => node.textContent),
       el.getAttribute('placeholder') || '', el.getAttribute('aria-label') || '', el.getAttribute('alt') || '',
-    ]).join('') + (popularTop5 ? popularTop5Copy() : '');
+    ]).join('');
     const codepoints = [...new Set(Array.from(text, ch => ch.codePointAt(0)))];
+    const lateCodepoints = popularTop5 ? [...new Set(Array.from(popularTop5Copy(), ch => ch.codePointAt(0)))] : [];
     dom.window.close();
     let before = 0;
     const sheets = [];
@@ -110,7 +117,7 @@ export function optimizeNextHomeStyles(directory) {
       const source = readFileSync(file, 'utf8');
       const originalBytes = Buffer.byteLength(source);
       before += originalBytes;
-      sheets.push(initialStyles(source, classes, codepoints));
+      sheets.push(initialStyles(source, classes, codepoints, lateCodepoints));
     }
     if (!sheets.length) continue;
     // Prefer compact versions of the same two official UI fonts. Existing
