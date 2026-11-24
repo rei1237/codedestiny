@@ -64,9 +64,8 @@ export const KNOWN_REFUND_GAPS = Object.freeze([
 
 // 정체 감시가 자동 확정하지 않고 경보(paid_delivery_stuck_unsettled)만 내는 복구 어댑터(정확히 일치해야 한다).
 // 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로 바깥에서 상태만 바꾸면 "차감됐는데 환불 없음"이 생긴다.
-export const KNOWN_STUCK_SETTLE_GAPS = Object.freeze([
-  "celestial-harmony", "fortune",
-]);
+// 2026-11-24 celestial-harmony·fortune 도 settleStuckDelivery(저장 증빙으로 즉시 환불)로 확정해 목록이 비었다.
+export const KNOWN_STUCK_SETTLE_GAPS = Object.freeze([]);
 // R8 (2026-11-20) 다시 시도 우선 정책: 실패 → 무료 다시 시도(추가 결제·차감 없음) → 생성 + 7일 또는 고객 요청 때 환불.
 // 서비스마다 (1) 실패 표지를 paid-delivery-stuck.js 의 생성+7일 계산(marker)으로 만들고 (2) POST /retry (3) POST /refund-request
 // 라우트가 있고 (4) 창이 지난 보류를 환불로 넘기는 정산(settle)이 크론에 배선돼 있어야 한다.

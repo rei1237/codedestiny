@@ -6,8 +6,10 @@ import { getAmbientAiLocale } from "./ai-locale-context.js";
 import { isPaidResultRevoked } from "./paid-result-revocation.js";
 import { celestialDeliveryComplete, celestialDeliveryExhausted, celestialReadingFromDelivery, generateCelestialWave } from "./celestial-report-delivery.js";
 import { failServiceExecution } from "./service-execution-task.js";
+import { STUCK_LIVE_LEASE_MS, logStuckSettled, logStuckUnsettled } from "./paid-delivery-stuck.js";
 
 const FEATURE="tarot-celestial-harmony";
+const SERVICE="celestial-harmony";
 const hash=value=>createHash("sha256").update(JSON.stringify(value)).digest("hex");
 const failure=id=>Object.assign(new Error("Result storage unavailable"),{code:"RESULT_STORAGE_UNAVAILABLE",resultId:id,status:503});
 function originalBody(body) {
@@ -40,12 +42,25 @@ export function celestialPending(doc) {
 const celestialFailed=(doc,refunded)=>json({ok:false,retryable:false,code:"CELESTIAL_GENERATION_FAILED",resultId:doc.executionKey,refunded,
   message:"리딩을 완성하지 못했습니다. 결제한 금액·이용권·월정석은 자동으로 환불됩니다."},{status:503});
 const refundedDoc=doc=>doc?.status==="refunded";
-async function closeCelestialFailure(env,userId,doc) {
-  if(doc.status!=="pending")return celestialFailed(doc,refundedDoc(doc));
+async function refundCelestialFailure(env,userId,doc) {
+  if(doc.status!=="pending")return refundedDoc(doc);
   const closed=await failServiceExecution(env,userId,{executionKey:doc.executionKey,reasonCode:"CELESTIAL_GENERATION_FAILED",
     reasonMessage:"천체의 선율 리딩을 완성하지 못했습니다.",failureStage:"generation",forceRefundOnClose:true}).catch(error=>{
     console.error("[celestial-harmony] generation failure refund failed",{message:String(error?.message||error).slice(0,300)});return null;});
-  return celestialFailed(doc,closed?.execution?.status==="refunded"||closed?.settlement?.status==="refunded");
+  return closed?.execution?.status==="refunded"||closed?.settlement?.status==="refunded";
+}
+async function closeCelestialFailure(env,userId,doc) {
+  return celestialFailed(doc,await refundCelestialFailure(env,userId,doc));
+}
+// 저장된 파트 없이 끝난 실행을 실패로 표시하고 정산기가 원 결제를 찾을 증빙을 남긴 뒤 잠금을 푼다(소진 종결·정체 확정 공용).
+async function markCelestialFailed(filter,stored,snapshot,body,access,cost) {
+  stored=await save(filter,{metadata:{...stored.metadata,celestialDelivery:{...snapshot,failed:true},
+    billing:{requestId:body.requestId||"",purchaseId:body.purchaseId||"",sessionId:body.sessionId||"",reportId:body.reportId||""}},
+    sourceTransactionId:String(access.matchedTransactionId||"").slice(0,120),cost,
+    paymentRef:{paymentId:String(body.payment?.paymentId||body.paymentId||""),merchantUid:String(body.payment?.merchantUid||body.merchantUid||"")}});
+  // 정산기는 잠긴 실행을 환불하지 않는다(settleExecutionById lockClauses).
+  await ServiceExecutionTransaction.updateOne(filter,{$set:{"lock.token":"","lock.until":null}});
+  return {...stored,lock:{token:"",until:null}};
 }
 async function revoked(userId,doc,body) {
   return ["refunded","cancelled"].includes(doc?.status) || await isPaidResultRevoked(userId,FEATURE,[doc?.executionKey,body.requestId,body.transactionId,body.paymentId,body.purchaseId,body.payment?.paymentId,body.payment?.requestId]);
@@ -100,14 +115,7 @@ export async function runCelestialDelivery(request,env,auth,supplied,{verify,leg
       if(!celestialDeliveryExhausted(snapshot.delivery))return celestialPending(stored);
       // 저장된 파트가 있으면 빈 파트를 건너뛰고(meta.skippedParts) 아래에서 전달한다.
       if(!Object.keys(snapshot.delivery.parts).length) {
-        snapshot={...snapshot,failed:true};
-        stored=await save(filter,{metadata:{...stored.metadata,celestialDelivery:snapshot,
-          billing:{requestId:body.requestId||"",purchaseId:body.purchaseId||"",sessionId:body.sessionId||"",reportId:body.reportId||""}},
-          sourceTransactionId:String(access.matchedTransactionId||"").slice(0,120),cost,
-          paymentRef:{paymentId:String(body.payment?.paymentId||body.paymentId||""),merchantUid:String(body.payment?.merchantUid||body.merchantUid||"")}});
-        // 정산기는 잠긴 실행을 환불하지 않는다(settleExecutionById lockClauses).
-        await ServiceExecutionTransaction.updateOne(filter,{$set:{"lock.token":"","lock.until":null}});
-        stored={...stored,lock:{token:"",until:null}};
+        stored=await markCelestialFailed(filter,stored,snapshot,body,access,cost);
         return await closeCelestialFailure(env,auth.userId,stored);
       }
     }
@@ -120,6 +128,45 @@ export async function runCelestialDelivery(request,env,auth,supplied,{verify,leg
   } finally {
     await ServiceExecutionTransaction.updateOne({userId:auth.userId,executionKey:id,"lock.token":token},{$set:{"lock.token":"","lock.until":null}}).catch(()=>{});
   }
+}
+
+// 2026-11-24 복구 크론 정체 자동 확정(S16). 진전 없는 결제 건 중 저장된 파트가 하나도 없는 것만 소진 종결과 같은
+// 증빙 저장 → 잠금 해제 → 즉시 자동 환불로 닫는다. 저장된 파트가 있거나(체크포인트 가드도 환불하지 않는다)
+// 결제를 확인할 수 없거나 이미 회수된 건은 쓰지 않고 경보만 남겨 이어쓰기에 둔다. 환불이 실패한 실패 건은 다음 확정이 다시 닫는다.
+export async function settleStuckCelestialDelivery(env,{doc,now=Date.now(),verify,cost=0}={}) {
+  if(!doc?.userId||!doc?.executionKey)return {outcome:"unsupported"};
+  const userId=String(doc.userId),id=String(doc.executionKey),stalls=Number(doc.deliveryWatch?.stalls||0);
+  const settled=refunded=>{const refundStatus=refunded?"refunded":"pending";
+    if(!refunded)logStuckUnsettled(SERVICE,doc);
+    logStuckSettled({service:SERVICE,sessionId:id,outcome:"generation_failed",refundStatus,stalls});return {outcome:"generation_failed",refundStatus};};
+  let fresh;
+  try { fresh=await findCelestialDelivery(env,userId,id); } catch { return {outcome:"pending"}; }
+  const snapshot=fresh?.metadata?.celestialDelivery;
+  if(!fresh||fresh.status!=="pending"||fresh.premiumStatus==="completed"||!snapshot?.delivery)return {outcome:"progressed"};
+  if(snapshot.failed)return settled(await refundCelestialFailure(env,userId,fresh));
+  if(now-new Date(fresh.updatedAt||0).getTime()<STUCK_LIVE_LEASE_MS||(fresh.lock?.token&&new Date(fresh.lock.until||0).getTime()>now))return {outcome:"leased"};
+  if(Object.keys(snapshot.delivery.parts||{}).length){logStuckUnsettled(SERVICE,doc);return {outcome:"unsettled"};}
+  const body=snapshot.body||{};
+  let access;
+  try {
+    access=await verify(body,{userId});
+    if(access?.ok&&await revoked(userId,fresh,body))access=null;
+  } catch { return {outcome:"pending"}; }
+  if(!access?.ok){logStuckUnsettled(SERVICE,doc);return {outcome:"unsettled"};}
+  const token=randomUUID();
+  let stored;
+  try {
+    stored=await ServiceExecutionTransaction.findOneAndUpdate({userId,executionKey:id,status:"pending",updatedAt:fresh.updatedAt,"lock.token":fresh.lock?.token??null},
+      {$set:{lock:{token,until:new Date(now+120000)}}},{returnDocument:"after"}).lean();
+  } catch { return {outcome:"pending"}; }
+  if(!stored||stored.lock?.token!==token)return {outcome:"progressed"};
+  try {
+    stored=await markCelestialFailed({userId,executionKey:id,status:"pending","lock.token":token},stored,snapshot,body,access,cost);
+  } catch {
+    await ServiceExecutionTransaction.updateOne({userId,executionKey:id,"lock.token":token},{$set:{"lock.token":"","lock.until":null}}).catch(()=>{});
+    return {outcome:"pending"};
+  }
+  return settled(await refundCelestialFailure(env,userId,stored));
 }
 
 export async function restoreCelestialDelivery(env,auth,bindings,verify) {

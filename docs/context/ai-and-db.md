@@ -184,14 +184,13 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
     - 자기 실패·환불 경로(S16, 2026-11-19): `love-secret-ai`·`neo-operation-room`·`heukwol`·`fortune-tea-house` 는 라우트 모듈이 `settleStuckDelivery(env, { doc, now, model })` 를 내보내고 cron 이 그것을 부른다. 완성본이면 전달, 아니면 본문 없이 창 안이면 다시 시도 보류(R2b·R5~R7), 창 밖이면 기존 환불 경로(1회). 모델 없는 찻집은 `recordDeliveryWatch` 도 내보낸다. 검증기는 공용 밖 설정자의 계약 파일에 이 export 가 없으면 실패한다.
     - `master-love-codex` 는 복구 어댑터가 아니라 자체 복구 작업(`worker/lib/master-love-codex-recovery-task.js`)에서 정체·상한을 닫는다. 웹 종결 실패는 다시 시도 보류, 창이 지나면 `expireCodexRetryHolds` 가 실패+환불로 닫는다.
     - 로그 `paid_delivery_stuck_settled`.
-  - 나머지 복구 어댑터는 경보 로그 `paid_delivery_stuck_unsettled` 만 내고 상태를 바꾸지 않는다. 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로, 바깥에서 상태만 `generation_failed` 로 바꾸면 "차감됐는데 환불 없음"을 새로 만든다. 목록은 검증기 `KNOWN_STUCK_SETTLE_GAPS` 와 정확히 같아야 한다.
+  - 설정자가 없는 복구 어댑터는 경보 로그 `paid_delivery_stuck_unsettled` 만 내고 상태를 바꾸지 않는다. 환불을 핸들러 실패 경로 안에서 인라인으로 하는 서비스는 바깥에서 상태만 `generation_failed` 로 바꾸면 "차감됐는데 환불 없음"을 새로 만들기 때문이다. 목록은 검증기 `KNOWN_STUCK_SETTLE_GAPS` 와 정확히 같아야 한다(2026-11-24 기준 비어 있음 — 새 어댑터는 설정자를 붙이거나 사유와 함께 올린다).
 
-  자동 확정 추가(D1·D2, 2026-11-22): astrology·vedic·ziwei·sukuyo·karma·naming-prompt 는 `settleStuckRetryFirst`(다시 시도 우선, 창 밖이면 기존 환불), nakshatra·human-design·destiny-compass·relationship-boundary 는 결제 회수 확인 → `generation_failed` CAS → 기존 즉시 환불 1회. 아래 표는 남은 경보 전용이다.
+  자동 확정 추가(D1·D2, 2026-11-22): astrology·vedic·ziwei·sukuyo·karma·naming-prompt 는 `settleStuckRetryFirst`(다시 시도 우선, 창 밖이면 기존 환불), nakshatra·human-design·destiny-compass·relationship-boundary 는 결제 회수 확인 → `generation_failed` CAS → 기존 즉시 환불 1회.
 
-  | 정체 자동 확정 없음(경보만) | 핸들러 자체 종결 경로(근거) |
-  |---|---|
-  | celestial-harmony | 파트 시도 소진 → 축소 전달 또는 `failServiceExecution` 환불 (`worker/lib/celestial-delivery-store.js` 45, S3-K f60489b5b). 결제 증빙(sourceTransactionId·paymentRef·billing)을 저장하지 않아 cron 이 환불 근거를 못 찾는다 — 증빙 저장 리팩터 후속 |
-  | fortune | `generation_failed` + 카드·이용권 환불 (`fortune.js` 1700, 1600·1643). 환불이 저장되지 않는 consumePayload·Request 에 기댄다 — 리팩터 후속 |
+  자동 확정 추가(2026-11-24, 경보 전용 0개):
+  - celestial-harmony(`settleStuckCelestialDelivery`, `worker/lib/celestial-delivery-store.js`): 저장된 파트가 하나도 없을 때만 소진 종결과 같은 증빙(sourceTransactionId·paymentRef·metadata.billing) 저장 → 잠금 해제 → `failServiceExecution` 즉시 환불. 파트가 있거나 결제 확인 불가·회수된 건은 경보만.
+  - fortune(`settleStuckDelivery`, `worker/routes/fortune.js`): 글이 있는 묶음이 하나도 없을 때만, 저장된 resumeBody 의 결제 필드로 핸들러와 같은 증빙 함수(`findAIPromptPaidAccessEvidence`, 차감 없는 조회)·`buildAIPromptVerifiedConsumePayload` 를 다시 불러 catch 와 같은 환불 함수(월정석·코인·카드·이용권)로 즉시 환불한다. 2-스트라이크를 기다리지 않는다. 환불이 실패하면 결제 보존(`LLM_GENERATION_RETRYABLE`) + 경보.
 
   공통 예외: `RESULT_STORAGE_UNAVAILABLE`·`delivery_pending` 은 환불하지 않고 503 으로 같은 전달을 다시 시도한다. 저장 장애가 계속되면 경보만 남으므로 서비스별 정체 설정자를 붙이는 것이 후속 과제다.
 - **대표 상담 완성본 전달**(S16, 2026-11-19 사용자 요청 "결제 후 전체가 제대로 생성되어야 고객에게 전달"): 인생의 책·연애 비책·흑월(웹·토스)·네오 팩폭 전략실·운명의 찻집·마스터 인연의 서.
