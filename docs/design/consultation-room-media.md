@@ -4,15 +4,15 @@
 
 | 마스터 | 원본 이미지 | Higgsfield 작업 ID | 배포 영상 |
 |---|---|---|---|
-| 꽃돼지 연이 | `/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp` | `b9bacf46-476d-44e9-b595-0bcb9bb0898d` | `/images/fortune-tea-house/renewal/yeoni-tea-loop.mp4` |
+| 꽃돼지 연이 | `/images/fortune-tea-house/renewal/yeoni-tea-welcome.webp` | `dd4f3867-ddc9-4b4f-817e-13d38280b921` | `/images/fortune-tea-house/renewal/yeoni-tea-loop.mp4` |
 | 영냥이 타로 | `/assets/yeongnyangi/readings/tarot-v5.webp` | `1906b75e-4a2a-4010-8623-a5bf11550468` | `/assets/yeongnyangi/readings/tarot-room.mp4` |
-| 윤달 | `/images/expert-characters/yun/hero.webp` | `e281f3df-8842-4d02-8bf2-b949d13fb28a` | `/images/consultation-rooms/yun.mp4` |
+| 윤달 | `/images/expert-characters/yun/hero.webp` | `476ef663-c578-49f2-a647-fbc1ec2b1d44` | `/images/consultation-rooms/yun.mp4` |
 | 무성 | `/images/expert-characters/musung/hero.webp` | `f2ec304f-dcec-4b69-ab82-891c0c2480a7` | `/images/consultation-rooms/musung.mp4` |
-| 인간형 서한비 | `/images/expert-characters/hanbi/hero.webp` | `52f978e5-4b3f-4ffd-9ced-4f406642491c` | `/images/consultation-rooms/hanbi.mp4` |
+| 인간형 서한비 | `/images/expert-characters/hanbi/hero.webp` | `3bd36702-c705-43a7-80a3-cb3abe04de10` | `/images/consultation-rooms/hanbi.mp4` |
 | 인간형 연이 | `/images/master-profiles/yeoni-love-portrait.webp` | `984c3956-c2a3-495a-94c2-4f46ebe5ccea` | `/images/consultation-rooms/human.mp4` |
 | 인연의 서 마스터 | `/images/service-introductions/master-love-codex-960.webp` | `d4c52860-f01f-414c-9ecf-3c9b5fd27ca3` | `/images/consultation-rooms/codex.mp4` |
-| 네오 팩폭 전략실 | `D:/CodeDestiny-Build/네오 인간 프로필1.png`와 동일 도안인 `/images/consultation-webtoons/heukwol/portraits/neo.webp` (얼굴), `/images/service-introductions/neo-operation-room-960.webp` (의상) | `64d1df50-a729-478b-a8a4-208e41045398` | `/images/consultation-rooms/neo.mp4` |
-| 네오 작전 결정서 | 같은 인간형 네오 프로필·전략실 의상, 밝은 창가 장면 | `584f32c9-1f2f-4979-9a8b-22ac7001e185` | `/images/consultation-rooms/neo-decision.mp4` |
+| 네오 팩폭 전략실 | `D:/CodeDestiny-Build/네오 인간 프로필1.png`와 동일 도안인 `/images/consultation-webtoons/heukwol/portraits/neo.webp` (얼굴), `/images/service-introductions/neo-operation-room-960.webp` (의상) | `1ac7f583-69ee-4f4c-8f41-c461205d506b` | `/images/consultation-rooms/neo.mp4` |
+| 네오 작전 결정서 | 같은 인간형 네오 프로필·전략실 의상, 밝은 창가 장면 | `c0fadee3-01d5-40e6-a31f-c7f367f655cc` | `/images/consultation-rooms/neo-decision.mp4` |
 | 영냥이 saju | `/assets/yeongnyangi/readings/saju-v5.webp` | `3b986404-e80c-4872-a1cf-1341c1812c86` | `/assets/yeongnyangi/readings/saju-room.mp4` |
 | 영냥이 ziwei | `/assets/yeongnyangi/readings/ziwei-v5.webp` | `9d9db704-a5cd-4694-b71e-be3e0634d31c` | `/assets/yeongnyangi/readings/ziwei-room.mp4` |
 | 영냥이 vedic | `/assets/yeongnyangi/readings/vedic-v5.webp` | `e5baf4a1-2656-471c-ba48-b500c044799c` | `/assets/yeongnyangi/readings/vedic-room.mp4` |
@@ -26,11 +26,15 @@
 
 ### 인간형 네오
 
-Identity from image one: the adult human Neo in the large upper left portrait of the supplied Korean character sheet. Preserve his delicate angular face, narrow grey-blue eyes, pale complexion, tousled layered silver fringe, earrings and youthful proportions. Use image two for his strategist outfit only: navy-black formal uniform, ivory cape with fine gold embroidery and black gloves. Single premium illustrated 16:9 shot, waist up in the moonlit strategy study, unlettered decision folio and a folded strategy map clearly visible on the desk. Keep face centered with headroom. At rest, quietly look down at the decision folio, gently align its edge with one gloved hand, blink and look up again. Return to opening pose. Locked camera, subtle natural motion. Do not show a character sheet, panel, lettering, tattoo, UI, voices or text. Human ears only. No animals. Silent.
+Adult human Neo, a charismatic silver-haired young strategist with pale cool eyes and his precise official face and signature unruly silver fringe from reference 1. Use reference 2 for his navy gold-embroidered uniform, ivory cape, black gloves and late-afternoon strategy library. Keep his full head, shoulders and hands in central safe area of a waist-up composition. Clean amber rim light and window catchlights; engaging, self-assured, gently teasing, no exaggerated smirk. Opening: his eyes study a brass marker on the desk, forearm resting, relaxed shoulders. He lifts only his eyes to meet the viewer, a very slight head tilt follows, the corner of his mouth warms into an understated knowing smile. Hold that contact for a beat. He breathes out and his gaze naturally settles back at the map. Keep both gloves resting in place and fingertips clear of face. One seamless continuous shot. Premium existing 2D Korean fantasy illustration with stable identity, proportions, eyes and costume. Locked camera, soft natural breathing, independent subtle eye and hair timing. Match the opening pose, framing and light at the end. No generated lettering, crests with words, speech, vocals, music, extra fingers or rapid camera movement.
+
+### 작전 결정서 네오
+
+Same approved adult human silver-haired Neo from sheet 1, exact fine face, blue-grey eyes, hair and earrings. Formal ivory cape, navy uniform with gold embroidery and black gloves from illustration 2. Bright, airy morning window in a cream and pale blue study. Intimate eye-level waist-up portrait at a light oak desk, unlettered ivory decision letter clearly visible, head and gloved hands safely within frame. He reads the letter with a relaxed brow and composed smile; slight shift of the eyes toward the guest before his chin follows, an attentive warm held look, then a soft blink back towards the folio. A loose strand settles after the movement. Elegant assured personal attention, distinct from the tactical map scene, retain the luminous exposure across the shot. Hands rest on the folio throughout. Premium existing 2D Korean fantasy illustration with stable identity, proportions, eyes and costume. Locked camera, soft natural breathing, independent subtle eye and hair timing. Match the opening pose, framing and light at the end. No generated lettering, crests with words, speech, vocals, music, extra fingers or rapid camera movement.
 
 ### 꽃돼지 연이
 
-Animate the supplied illustration in place, locked camera. The little pale pink flower pig holds her teacup, blinks once, and rests in the starting pose. Preserve her pink lotus, folded ears, lilac scarf, hooves, tea table and warm light exactly. Subtle steam. No text or sound.
+New adorable welcome shot of the exact illustrated flower pig Yeoni from reference. Small round pale pink piglet, two folded pig ears, round two-nostril snout, shiny dark eyes, blush, large pink lotus over the same ear, lavender scarf, little cloven hooves and very short limbs. In a cream and blush blossom teahouse on a honey-colored counter; center her so ears, lotus, cheeks, hooves and teacup stay visible on a phone. A little porcelain teacup sits on the counter between her front hooves. A wisp of steam curls upwards; she leans towards its scent ever so slightly, blinks, tilts her head and offers a delighted closed-mouth smile with a tiny ear bounce, then settles in her starting pose. Natural stagger to breath, head and ears. Tender and lovely, plush round silhouette preserved, never human hands, no lifting or spilling the cup. Soft daylight and pale rose reflected light, traditional fine illustration, gentle shimmer only in her eyes. Premium existing 2D Korean fantasy illustration with stable identity, proportions, eyes and costume. Locked camera, soft natural breathing, independent subtle eye and hair timing. Match the opening pose, framing and light at the end. No generated lettering, crests with words, speech, vocals, music, extra fingers or rapid camera movement.
 
 ### 영냥이 타로
 
@@ -38,7 +42,7 @@ Use the supplied approved existing consultation artwork as the entire identity a
 
 ### 윤달
 
-Use the supplied approved existing consultation artwork as the entire identity and setting reference. Locked camera, preserve the existing dark-haired astrologer, dark embroidered robe, pendant, folding fan, and the small white cat. A restrained blink and a slight downward glance at the fan. Return to the initial pose. Quiet repeatable motion, keep proportions and facial landmarks. No text, no generated audio, no additional limbs, no zoom or cuts.
+The exact adult human scholar Yundal in the approved illustration: official swept dark hair, slender face, dark robes with lunar embroidery, pendant, folding fan, white cat and brass telescope at the indigo observatory. Waist-up portrait, eyes and fan both clear and face within central safe area. A languid, calculating genius with rakish elegance: relaxed asymmetrical shoulders, half-lidded alert eyes, an elusive knowing almost-smile. He notices a point on the star map before anyone else, shifts eyes sideways toward the guest, rotates the already-open fan by only a few degrees and holds their gaze for a beat, then settles back to the constellation. The hand maintains one natural grip. Soft violet reflected light on cheek, thin warm lantern rim, keep facial features readable; cat stays quietly seated. Make his expression intelligent and mischievous, subtle and human. Premium existing 2D Korean fantasy illustration with stable identity, proportions, eyes and costume. Locked camera, soft natural breathing, independent subtle eye and hair timing. Match the opening pose, framing and light at the end. No generated lettering, crests with words, speech, vocals, music, extra fingers or rapid camera movement.
 
 ### 무성
 
@@ -46,7 +50,7 @@ An assured, charismatic Musung welcomes a guest in an illuminated celestial libr
 
 ### 인간형 서한비
 
-Keep the exact human woman Seo Hanbi, long dark hair, face, embroidered dark hanbok, book against her chest, moonlit river and bridge. Lower her gaze slightly toward the book and blink once. Use the reference composition exactly. Locked camera. Very subtle motion. Return gently to the initial pose. No written text or audio.
+The exact adult human woman Seo Hanbi in the supplied moonlit bridge artwork. Long glossy black hair, official facial structure and dark embroidered hanbok, closed black book held against her chest. Compose a cinematic waist-up view, face near center, warm lantern reflection catches her eyes against cool moonlight. Magnetic, poised and slightly dangerous elegance expressed only by eye contact and timing. Looking just past the guest, she turns her eyes to meet theirs before lifting her chin a fraction. A restrained almost-smile stays for a beat, then settles as a strand of hair slips back. Preserve her calm, self-possessed femininity and exact wardrobe. Never change into an animal. Fingers rest around the book without opening it. Quiet continuous shot, no dramatic cuts or melodrama. Premium existing 2D Korean fantasy illustration with stable identity, proportions, eyes and costume. Locked camera, soft natural breathing, independent subtle eye and hair timing. Match the opening pose, framing and light at the end. No generated lettering, crests with words, speech, vocals, music, extra fingers or rapid camera movement.
 
 ### 인간형 연이
 
