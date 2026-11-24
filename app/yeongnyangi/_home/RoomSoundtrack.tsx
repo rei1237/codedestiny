@@ -1,5 +1,6 @@
 "use client";
 
+import { hasPlayingSoundtrack, registerSoundtrack } from '@/lib/soundtrack-session';
 import {useEffect, useRef, useState} from 'react';
 import {Volume2, VolumeX} from 'lucide-react';
 
@@ -12,7 +13,7 @@ const tracks = {
  warm: novelTrack('연이와 네오'),
  gold: 'https://music.code-destiny.com/DestinyWar/Moonlit%20Strategy%20Map.mp3',
 };
-export function useRoomSoundtrack(mood:keyof typeof tracks,previewSource?:string) {
+export function useRoomSoundtrack(mood:keyof typeof tracks,previewSource?:string,sessionKey?:string) {
  const audio = useRef<HTMLAudioElement|null>(null);
  const [enabled,setEnabled] = useState(false);
  const [playing,setPlaying] = useState(false);
@@ -24,8 +25,15 @@ export function useRoomSoundtrack(mood:keyof typeof tracks,previewSource?:string
   player.loop = true;
   player.preload = 'none';
   audio.current = player;
-  return () => { player.pause(); player.removeAttribute('src'); player.load(); audio.current = null; };
- },[]);
+  if(sessionKey){
+   try { setEnabled(sessionStorage.getItem(sessionKey)==="on" && !hasPlayingSoundtrack()); } catch {}
+  }
+  const releaseSound = registerSoundtrack(player, () => {
+    setEnabled(false);
+    try { if(sessionKey)sessionStorage.setItem(sessionKey,"off"); } catch {}
+  });
+  return () => { releaseSound(); player.pause(); player.removeAttribute('src'); player.load(); audio.current = null; };
+ },[sessionKey]);
  useEffect(() => { if(audio.current) audio.current.volume = volume; },[volume]);
  useEffect(() => {
   const player = audio.current;
@@ -42,7 +50,7 @@ export function useRoomSoundtrack(mood:keyof typeof tracks,previewSource?:string
   player.addEventListener('pause',paused);
   if(enabled){
    // Re-selecting the source clears a previous media error on explicit retry.
-   player.pause();player.src = source;
+   if(player.src!==source || player.error){player.pause();player.src = source;}
    play();
   }else{player.pause();setPlaying(false);}
   document.addEventListener('visibilitychange',visibility);
@@ -61,7 +69,13 @@ export function useRoomSoundtrack(mood:keyof typeof tracks,previewSource?:string
    window.removeEventListener('pageshow',resume);
   };
  },[enabled,source]);
- return {enabled,playing,error,volume,setVolume,toggle:()=>{setError('');setEnabled(value=>!value);}};
+ function toggle() {
+  const next=!enabled;
+  setError("");
+  setEnabled(next);
+  try { if(sessionKey)sessionStorage.setItem(sessionKey,next?"on":"off"); } catch {}
+ }
+ return {enabled,playing,error,volume,setVolume,toggle};
 }
 export function RoomSoundControls({sound}:{sound:ReturnType<typeof useRoomSoundtrack>}){
  return <div className="room-sound">

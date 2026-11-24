@@ -1,4 +1,5 @@
 "use client";
+import { hasPlayingSoundtrack, registerSoundtrack } from '@/lib/soundtrack-session';
 import { readSajuTeaDraft } from "@/js/core/saju/tea-entry.mjs";
 // These light styles are shared by lazy consultation scenes and must be available
 // before a saved result is restored directly (without mounting the question form).
@@ -54,48 +55,14 @@ type BeginPaidFeatureGateCheck = typeof import("@/app/_lib/billing-client")["beg
 type CompletePaidFeatureGateCheck = typeof import("@/app/_lib/billing-client")["completePaidFeatureGateCheck"];
 type FailPaidFeatureGateCheck = typeof import("@/app/_lib/billing-client")["failPaidFeatureGateCheck"];
 
-const FORTUNE_TEA_BGM_TRACKS = {
-  moonlitTeaHouse: {
-    key: "moonlit-tea-house",
-    url: "https://music.code-destiny.com/DestinyCafe/Moonlit%20Tea%20House.mp3",
-    volume: 0.28,
-  },
-  gentleOrientalGirl: {
-    key: "gentle-oriental-girl",
-    url: "https://music.code-destiny.com/DestinyCafe/Gentle%20Oriental%20Girl.mp3",
-    volume: 0.24,
-  },
-  moonlightTea: {
-    key: "moonlight-tea",
-    url: "https://music.code-destiny.com/DestinyCafe/Moonlight%20Tea.mp3",
-    volume: 0.26,
-  },
-  kindness: {
-    key: "kindness",
-    url: "https://music.code-destiny.com/DestinyCafe/Kindness.mp3",
-    volume: 0.26,
-  },
-  moonlitDestinyRoom: {
-    key: "moonlit-destiny-room",
-    url: "https://music.code-destiny.com/DestinyCafe/Moonlit%20Destiny%20Room.mp3",
-    volume: 0.26,
-  },
-  fortuneReveal: {
-    key: "fortune-reveal",
-    url: "https://music.code-destiny.com/DestinyCafe/Fortune%20Reveal.mp3",
-    volume: 0.25,
-  },
+const teaRoomTrack = {
+  key: "moonlit-tea-house",
+  url: "https://music.code-destiny.com/DestinyCafe/Moonlit%20Tea%20House.mp3",
+  volume: 0.22,
 } as const;
 
 const FORTUNE_TEA_BGM_STORAGE_KEY = "code-destiny-fortune-tea-house-bgm";
 const FORTUNE_TEA_ENTRY_PROLOGUE_SEEN_STORAGE_KEY = "code-destiny-fortune-tea-house-entry-prologue-seen:v1";
-const FORTUNE_TEA_LOADING_PLAYLIST = [
-  FORTUNE_TEA_BGM_TRACKS.moonlightTea,
-  FORTUNE_TEA_BGM_TRACKS.moonlitDestinyRoom,
-  FORTUNE_TEA_BGM_TRACKS.fortuneReveal,
-] as const;
-
-type FortuneTeaBgmTrack = (typeof FORTUNE_TEA_BGM_TRACKS)[keyof typeof FORTUNE_TEA_BGM_TRACKS];
 type FortuneTeaBillingGateInput = Parameters<RunBillingCoinGate>[0];
 type FortuneTeaBillingGateResult = Awaited<ReturnType<RunBillingCoinGate>>;
 type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]>;
@@ -480,14 +447,6 @@ type BrowserIdleWindow = Window & {
   cancelIdleCallback?: (handle: number) => void;
 };
 
-function getFortuneTeaBgmTrack(stage: TeaHouseStage) {
-  if (stage === "scentLoading") return FORTUNE_TEA_BGM_TRACKS.moonlightTea;
-  if (stage === "tarotReveal" || stage === "result") return FORTUNE_TEA_BGM_TRACKS.kindness;
-  if (stage === "yeoniReveal" || stage === "teaIntro" || stage === "teaSelect" || stage === "teaCupRitual" || stage === "questionInput") {
-    return FORTUNE_TEA_BGM_TRACKS.gentleOrientalGirl;
-  }
-  return FORTUNE_TEA_BGM_TRACKS.moonlitTeaHouse;
-}
 
 function logSubmitStep(message: string, _payload?: unknown) {
   if (process.env.NODE_ENV !== "production") {
@@ -588,7 +547,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
   const [isEnteringTeaHouse, setIsEnteringTeaHouse] = useState(false);
   const [hasSeenEntryPrologue, setHasSeenEntryPrologue] = useState(false);
   const [isEntryPrologueSkipped, setIsEntryPrologueSkipped] = useState(false);
-  const [bgmEnabled, setBgmEnabled] = useState(true);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
@@ -646,7 +605,6 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
   // R7 다시 시도 먼저: 서버가 종결 실패를 다시 시도 보류로 둔 상담(추가 결제·차감 없이 다시 시도 또는 환불 요청).
   const [retryOffer, setRetryOffer] = useState<{ resultId: string } | null>(null);
   const [retryBusy, setRetryBusy] = useState(false);
-  const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
   const [generationProgress, setGenerationProgress] = useState<FortuneTeaGenerationProgress>({
     percent: 5,
     label: "요청 접수",
@@ -797,8 +755,6 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     };
   }, [recoveryOwner, probeFortuneTeaPending]);
 
-  const loadingBgmIndexRef = useRef(0);
-  const currentBgmTrack = stage === "scentLoading" ? FORTUNE_TEA_LOADING_PLAYLIST[loadingBgmIndex] : getFortuneTeaBgmTrack(stage);
   const reduceMotion = useReducedMotion();
 
   const clearGenerationProgressTimer = useCallback(() => {
@@ -846,11 +802,12 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
 
   useEffect(() => {
     const audio = bgmAudioRef.current;
-    if (audio) audio.volume = FORTUNE_TEA_BGM_TRACKS.moonlitTeaHouse.volume;
+    const releaseSound = audio && registerSoundtrack(audio, () => setBgmEnabled(false));
+    if (audio) audio.volume = teaRoomTrack.volume;
 
     try {
       const savedPreference = window.localStorage.getItem(FORTUNE_TEA_BGM_STORAGE_KEY);
-      setBgmEnabled(savedPreference !== "off");
+      setBgmEnabled(savedPreference === "on" && !hasPlayingSoundtrack());
     } catch {
       void 0;
     }
@@ -863,6 +820,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     setIsBgmPreferenceReady(true);
 
     return () => {
+      releaseSound?.();
       if (audio) audio.pause();
       if (enterTimerRef.current) window.clearTimeout(enterTimerRef.current);
       clearGenerationProgressTimer();
@@ -929,10 +887,10 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     }
   }, [stage]);
 
-  const playBgm = useCallback(async (forceEnabled = false, trackOverride?: FortuneTeaBgmTrack) => {
+  const playBgm = useCallback(async (forceEnabled = false) => {
     const audio = bgmAudioRef.current;
     if (!audio || (!forceEnabled && !bgmEnabled) || !isBgmPreferenceReady) return;
-    const nextTrack = trackOverride ?? currentBgmTrack;
+    const nextTrack = teaRoomTrack;
     try {
       audio.volume = nextTrack.volume;
       if (audio.src !== nextTrack.url) {
@@ -944,78 +902,16 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     } catch {
       setBgmStatus("blocked");
     }
-  }, [bgmEnabled, currentBgmTrack, isBgmPreferenceReady]);
-
-  // 화면 진입 즉시 BGM 재생 시도. 브라우저 자동재생 정책으로 차단되면
-  // 첫 사용자 상호작용(탭/스크롤/키 입력)에서 즉시 재생되도록 one-time unlock 등록.
-  useEffect(() => {
-    if (!isBgmPreferenceReady || !bgmEnabled) return;
-
-    void playBgm();
-
-    let unlocked = false;
-    const unlockOnFirstInteraction = () => {
-      if (unlocked) return;
-      const audio = bgmAudioRef.current;
-      if (audio && !audio.paused) {
-        unlocked = true;
-        removeUnlockListeners();
-        return;
-      }
-      unlocked = true;
-      void playBgm();
-      removeUnlockListeners();
-    };
-    const removeUnlockListeners = () => {
-      window.removeEventListener("pointerdown", unlockOnFirstInteraction);
-      window.removeEventListener("keydown", unlockOnFirstInteraction);
-      window.removeEventListener("touchstart", unlockOnFirstInteraction);
-    };
-    window.addEventListener("pointerdown", unlockOnFirstInteraction, { once: false });
-    window.addEventListener("keydown", unlockOnFirstInteraction, { once: false });
-    window.addEventListener("touchstart", unlockOnFirstInteraction, { once: false });
-
-    return removeUnlockListeners;
-  }, [isBgmPreferenceReady, bgmEnabled, playBgm]);
+  }, [bgmEnabled, isBgmPreferenceReady]);
 
   useEffect(() => {
-    loadingBgmIndexRef.current = 0;
-    setLoadingBgmIndex(0);
-  }, [stage]);
-
-  useEffect(() => {
-    const audio = bgmAudioRef.current;
-    if (!audio) return;
-
-    const playNextLoadingTrack = () => {
-      if (stage !== "scentLoading" || !bgmEnabled) return;
-      const nextIndex = (loadingBgmIndexRef.current + 1) % FORTUNE_TEA_LOADING_PLAYLIST.length;
-      const nextTrack = FORTUNE_TEA_LOADING_PLAYLIST[nextIndex];
-      loadingBgmIndexRef.current = nextIndex;
-      setLoadingBgmIndex(nextIndex);
-      void playBgm(false, nextTrack);
-    };
-
-    audio.addEventListener("ended", playNextLoadingTrack);
-    return () => {
-      audio.removeEventListener("ended", playNextLoadingTrack);
-    };
-  }, [bgmEnabled, playBgm, stage]);
-
-  useEffect(() => {
-    const audio = bgmAudioRef.current;
-    if (!audio || !isBgmPreferenceReady) return;
-    if (!bgmEnabled) {
-      audio.pause();
+    if (!isBgmPreferenceReady) return;
+    if (bgmEnabled) void playBgm();
+    else {
+      bgmAudioRef.current?.pause();
       setBgmStatus("off");
-      return;
     }
-    if (!audio.paused) {
-      void playBgm();
-      return;
-    }
-    setBgmStatus("idle");
-  }, [bgmEnabled, currentBgmTrack.key, isBgmPreferenceReady, playBgm]);
+  }, [bgmEnabled, isBgmPreferenceReady, playBgm]);
 
   function goToStage(nextStage: TeaHouseStage) {
     if (nextStage === "doorOpened") {
@@ -1176,7 +1072,6 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     let deliveryStarted = false;
 
     try {
-      const startedAt = Date.now();
       const { buildFortuneTeaHouseConsultResult } = await import('./lib/buildConsultResult');
       if (consultRunRef.current !== consultRunId) return;
       const localDraft = buildFortuneTeaHouseConsultResult({
@@ -1468,11 +1363,6 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
       markGenerationComplete();
       setPartialSections([]);
 
-      const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
-      if (remainingDelay > 0) {
-        await new Promise((resolve) => window.setTimeout(resolve, remainingDelay));
-      }
-
       if (consultRunRef.current !== consultRunId) return;
       const resultId = payload.result.resultId || attemptId;
       const serverHoneyDrops = normalizeHoneyDropsState(payload.honeyDrops);
@@ -1705,7 +1595,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
     }
 
     if (stage === "scentLoading") {
-      return <><ScentLoadingScene selectedCup={selectedCup} consultationMode={questionInput.consultationMode} progress={generationProgress} />
+      return <><ScentLoadingScene question={questionInput.question} selectedCup={selectedCup} consultationMode={questionInput.consultationMode} progress={generationProgress} />
         {renderSavedSections()}</>;
     }
 
@@ -1767,8 +1657,8 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
       <audio
         ref={bgmAudioRef}
         className={styles.bgmAudio}
-        data-track={currentBgmTrack.key}
-        loop={stage !== "scentLoading"}
+        data-track={teaRoomTrack.key}
+        loop
         preload="none"
       />
 
@@ -1804,6 +1694,7 @@ export default function FortuneTeaHousePage({paymentSurface = "web",TossPrice}: 
             onResume={() => { setIsHistoryOpen(false); if (recoveryOwner) void probeFortuneTeaPending(recoveryOwner); }}
             onClose={() => setIsHistoryOpen(false)}
             onSelectResult={(result) => {
+              setTeaGreetingDismissed(true);
               trackEvent("tea_result_reopened", { method: result.consultationMode });
               setConsultResult(result);
               setIsHistoryOpen(false);

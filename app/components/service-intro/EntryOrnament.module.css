@@ -1,0 +1,18 @@
+.blossoms, .school {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  pointer-events: none;
+}
+.blossoms { height: clamp(38px, 5vw, 65px); }
+.branch { position: absolute; top: 0; left: 0; width: auto; height: 120%; object-fit: contain; }
+.branch:last-child { left: auto; right: 0; transform: scaleX(-1); }
+.crest { width: clamp(64px, 14%, 118px); height: 76%; object-fit: contain; }
+.school { gap: clamp(5px, 1vw, 12px); padding-block: 5px; }
+.school::before, .school::after {
+  content: ""; width: min(8%, 44px); height: 4px;
+  border-block: 1px solid #ae9ac488; border-radius: 50%;
+}
+.school img { width: clamp(25px, 5vw, 44px); height: 24px; object-fit: contain; }

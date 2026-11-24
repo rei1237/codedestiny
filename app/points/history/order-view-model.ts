@@ -93,10 +93,15 @@ function copyFor(locale: LoadingLocale): Copy {
   return locale === "ko" ? COPY.ko : COPY.en;
 }
 
+// 폐지된 귀인 운세 대화권의 키만 이 유형이다: productId guardian_fortune_chat_3·_10,
+// featureKey guardian_fortune_conversation_credit. "guardian" 부분 일치는 현행 단건
+// saju-guardian-unlock(사주 가디언 소환진)까지 "귀인 운세"로 잘못 붙였다.
+const LEGACY_GUARDIAN_FORTUNE_KEY = /(?:^|\s)guardian[_-]fortune/;
+
 function resolveType(order: PaymentOrderRecord): OrderType {
   const product = `${order.productId || ""} ${order.featureKey || ""}`.toLowerCase();
   const paymentType = String(order.paymentType || "").toLowerCase();
-  if (product.includes("guardian")) return "guardian-fortune";
+  if (LEGACY_GUARDIAN_FORTUNE_KEY.test(product)) return "guardian-fortune";
   if (product.includes("fusion")) return "fusion-fortune";
   if (paymentType.includes("membership") || product.includes("pass") || order.subscriptionTier) return "pass";
   if (paymentType.includes("point") || product.includes("moonstone") || product.includes("monthly")) return "moonstone";

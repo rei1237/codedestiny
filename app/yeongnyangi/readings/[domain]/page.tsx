@@ -1,5 +1,5 @@
 import type {Metadata} from 'next';
-import Image from 'next/image';
+import YeongnyangiRoomScene from '../../_components/YeongnyangiRoomScene';
 import {notFound} from 'next/navigation';
 import {systemNames} from '@/worker/yeongnyangi/payments/catalog';
 import type {DomainId} from '@/worker/yeongnyangi/fortune/shared/contracts';
@@ -26,7 +26,7 @@ export default async function ReadingGuide({params}:Props){
  return <LocalizedGuideScreen domain={domain}><article className={styles.page}>
   <h1>{productCuriosity[domain].hook}</h1>
   <p>{systemNames[domain]} · 사주보는 고양이 영냥이</p>
-  <Image className={styles.art} src={productArtwork(domain)} width={960} height={640} alt={domain==='saju'?'달빛 아래 펼친 네 기둥의 한지 그림':`${systemNames[domain]} 상담을 안내하는 영냥이`} priority/>
+  <YeongnyangiRoomScene domain={domain} shot="intro"/>
   <ProductGuide domain={domain} offers={productOffers[domain]} surface="product_page"/>
  </article></LocalizedGuideScreen>;
 }

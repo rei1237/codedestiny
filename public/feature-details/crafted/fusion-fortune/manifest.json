@@ -99,8 +99,9 @@
       "role": "사주 · 재물 · 직업과 일 · 시기와 행동 전략",
       "part": "사주 · 재물 · 직업과 일 · 시기와 행동 전략",
       "basis": "선택한 사주·자미두수·베다점·점성술의 근거를 바탕으로 판세를 읽습니다. 직설적으로 짚되, 당신을 깎아내리지 않고 다음 행동을 함께 정리합니다.",
-      "avatar": "/images/master-profiles/avatars/neo.webp",
-      "portrait": "/images/master-profiles/neo-strategy-portrait.webp"
+      "avatar": "/images/home/illustrated/neo-human-240.webp",
+      "portrait": "/images/consultation-rooms/neo.webp",
+      "portraitSrcSet": "/images/consultation-rooms/neo.webp 960w"
     },
     {
       "key": "yeoni",

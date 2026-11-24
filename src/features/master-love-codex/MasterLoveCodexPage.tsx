@@ -672,7 +672,7 @@ export default function MasterLoveCodexPage() {
   // 타입이라 React 가 유지하므로, 트랙이 바뀌지 않는 한 음악이 끊기지 않는다.
   const ambience = (
     <CodexAmbience
-      track={phase === "generating" ? masterLoveCodexBgmTracks.scriptorium : masterLoveCodexBgmTracks.libraryGate}
+      track={masterLoveCodexBgmTracks.libraryGate}
       landing={phase === "landing"}
     />
   );

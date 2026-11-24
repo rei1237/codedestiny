@@ -1,5 +1,6 @@
 "use client";
 
+import MasterRoomScene from "./MasterRoomScene";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -94,6 +95,7 @@ export default function ExpertCharacterStage({
   const name = getExpertCharacterName(character, locale);
   const announces = placement === "loading" || mood === "error";
   const isHero = placement === "hero";
+  const roomGreeting = isHero || (placement === "inline" && mood === "greet");
   // 결과 표지·끝맺음은 PDF 캡처 대상 안에 있다. 지연 로드면 화면 밖 컷이 빈 칸으로 찍힌다.
   const loading = isHero ? undefined : placement === "result" ? "eager" : "lazy";
   const masterMotion = MASTER_MOTION_ENABLED && placement !== "result";
@@ -110,7 +112,7 @@ export default function ExpertCharacterStage({
       data-aspect={spriteAspect ? "custom" : undefined}
       data-master-motion={masterMotion ? "ggulggul" : undefined}
     >
-      <div className={styles.frame} style={{ aspectRatio: spriteAspect ?? config.spriteAspect }}>
+      {(placement === "loading" || roomGreeting) && character !== "yeoni" ? <MasterRoomScene master={character} shot={roomGreeting ? "intro" : "wait"}/> : <div className={styles.frame} style={{ aspectRatio: spriteAspect ?? config.spriteAspect }}>
         <Image
           key={sprite.src}
           className={styles.sprite}
@@ -139,7 +141,7 @@ export default function ExpertCharacterStage({
             ))
           : null}
         {masterMotion && gate.canAnimate ? <MasterPetals density={placement === "inline" ? "sm" : "md"} /> : null}
-      </div>
+      </div>}
       {line ? (
         <figcaption className={styles.bubble} aria-live={announces ? "polite" : undefined}>
           <span className={styles.name}>{name}</span>

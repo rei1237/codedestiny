@@ -1,4 +1,6 @@
 "use client";
+import EntryOrnament from "@/app/components/service-intro/EntryOrnament";
+import MasterRoomScene from '@/app/components/expert-consulting/MasterRoomScene';
 import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
 import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
@@ -2939,14 +2941,18 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
       <Link href="/#fortuneGatewayEntry">{copy.navHome}</Link>
     </nav>
     <section ref={heroRef} className={styles.hero}>
-      <img className={styles.heroImage} src="/images/service-introductions/fusion-fortune-masters-v3-960.webp" srcSet="/images/service-introductions/fusion-fortune-masters-v3-320.webp 320w, /images/service-introductions/fusion-fortune-masters-v3-640.webp 640w, /images/service-introductions/fusion-fortune-masters-v3-960.webp 960w, /images/service-introductions/fusion-fortune-masters-v3.webp 1200w" width={1200} height={800} alt="다섯 마스터가 여섯 점술 체계의 근거를 함께 살피는 초융합 상담" loading="eager" fetchPriority="high" decoding="async" sizes="(max-width: 760px) calc(100vw - 20px), (max-width: 1000px) 96vw, 960px" />
-      <div className={styles.heroVeil} />
+      <div className={styles.councilCrest}><EntryOrnament /></div>
+      <figure className={styles.councilPortrait}>
+        <MasterRoomScene master="fusion" shot="intro" still={loading} />
+        {copy === FUSION_FORTUNE_COPY.ko && <figcaption>{productMasters.fusion.map(master => master.name).join(" · ")}</figcaption>}
+      </figure>
       <div className={styles.heroCopy}>
         {/* 귀인 배지는 실제로 「오늘의 귀인」에서 넘어온 세션에만 맞는 문구다. 직접 들어온
             사람에게도 조건 없이 띄우면 없는 맥락을 만든다 — 핸드오프 상태가 있을 때만 건다. */}
         {guardianHandoff && <Link className={styles.guardianLink} href="/#guardian-fortune">{copy.guardianLinkText}</Link>}
         {/* 🔴 h1/p 는 expert-labels.ts(ko·en 2개뿐)가 아니라 11개 로케일을 모두 갖춘
             FUSION_FORTUNE_COPY 에서 읽는다. 전에는 ja·vi·hi·es·fr·de·nl·ms 사용자가 영어 h1 을 봤다. */}
+        {copy === FUSION_FORTUNE_COPY.ko && <span className={styles.editionName}>초융합 운세</span>}
         <h1>{copy.heroTitleLine1}<br />{copy.heroTitleLine2}</h1>
         <p>{copy.heroDesc}</p>
         <div className={styles.heroMeta}>
@@ -2957,12 +2963,16 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
         </div>
         {/* reviewFlow("분석이 완료되면 이 화면에서 확인") 는 결과 대기 안내라 구매 전 히어로에
             맥락이 없다. 신뢰 한 줄(10년차 명리학자 설계)을 CTA 바로 위로 올린다. */}
-        {copy === FUSION_FORTUNE_COPY.ko && <ProductMasterStrip label="초융합 운세 마스터" masters={productMasters.fusion} />}
+
         <p className={styles.expertTrust}>{splitTrustLine(expertCopy.trust).map((part, index) => part && <span key={index} className={index === 0 ? styles.expertTrustLabel : undefined}>{part}</span>)}</p>
         <a className={styles.heroCta} href="#fusion-form">{copy.heroFormCta}</a>
       </div>
     </section>
 
+    {copy === FUSION_FORTUNE_COPY.ko && <details className={styles.councilDossier}>
+      <summary>다섯 마스터의 상담 분야</summary>
+      <ProductMasterStrip label="초융합 운세 마스터" masters={productMasters.fusion} />
+    </details>}
     <FusionRecentList items={recentList} activeId={openedConsultationId} busyId={reopeningId} onOpen={(id) => void openConsultation(id)} />
 
     <section className={styles.panel}>
@@ -3064,9 +3074,9 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
         </div>
       </header>
 
-      {!exporting && loading && <div className="mx-4 my-5 flex items-center gap-4 rounded-[var(--cd-r-section)] border border-white/20 p-4 sm:mx-9" role="status">
-        <PaymentPigVisual tone="pass" className="!m-0 !h-24 !w-24 shrink-0" />
-        <div><p className="font-display text-[var(--fx-ink-1)]">{getCurrentLoadingLocale() === "ko" ? "연이가 질문에 맞춰 상담을 준비하고 있어요." : copy.buttonLoadingLabel}</p>
+      {!exporting && loading && <div className={styles.writingRoom}>
+        <MasterRoomScene master="fusion"/>
+        <div><p className="font-display text-[var(--fx-ink-1)]">{getCurrentLoadingLocale() === "ko" ? "질문에 맞춰 상담서를 준비하고 있어요." : copy.buttonLoadingLabel}</p>
         <p className="mt-2 text-sm text-[var(--fx-ink-2)]">{completedStageCount} / 6 · {getCurrentLoadingLocale() === "ko" ? "완료한 해석부터 아래에서 읽을 수 있어요." : copy.stageDefaultProgressMessage}</p></div>
       </div>}
       {!exporting && (loading || stageTwoFailed) && <FusionConvergence stageStates={stageStates} result={result} loading={loading} composeProgress={composeProgress} />}

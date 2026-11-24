@@ -21,7 +21,7 @@ next: 완료. Android 1.0.63의 QA63PAY 실기기 검증과 증거를 확인한�
 - [Play 내부 출시 20](https://play.google.com/console/u/0/developers/8929260153073799668/app/4971977067602742831/tracks/4701642016388647854/releases/20/details)은 1.0.63, 버전 코드 63, 내부 테스터에게 제공됨 상태를 확인했다. Ego Lite 공간 12, p1.
 - 실제 스테이징 모바일 보관함에서 기존 QA62PAY를 한 건 찾아 다시 열었다. 상담 고르기와 보관함은 360·390·430px 가로 넘침이 없고 주요 CTA 44px, 후기 제출은 48px와 공개 동의 기본 해제를 확인했다. 검수 그림과 로그는 `D:/Development/releases/codedestiny/1.0.63/verification`.
 - 연결된 Android 기기에 Play 스토어를 통해 1.0.63, 코드 63을 설치했다. ADB 설치 관리자는 `com.android.vending`이다. Google 테스트 계정을 선택하고 앱 복귀와 로그인 상태를 확인했다.
-- 이전 버전, QA62PAY 사건 및 기존 영수증 복구 증거는 `D:/Development/codedestiny-worktrees/android-internal-play-20261122-080050/docs/handoff/android-play-internal-2026-11-22.md`에 있다. 해당 주문은 수동 복구 후 1.0.62를 종료하고 다시 열어 보관함에서 확인했다. 새 버전 검증과 구분한다.
+- 이전 버전, QA62PAY 사건 및 기존 영수증 복구 증거는 `docs/handoff/android-play-internal-2026-11-22.md`(2026-11-24 main 에 머지)에 있다. 해당 주문은 수동 복구 후 1.0.62를 종료하고 다시 열어 보관함에서 확인했다. 새 버전 검증과 구분한다.
 
 ## 승인 상태
 
