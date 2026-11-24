@@ -2212,7 +2212,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
             </div>
           </div>
 
-          <div className={styles.vnCharacter} data-scene={activeHeroCharacter}>
+          {!isPrologueActive ? <div className={styles.vnRoomFilm}><MasterRoomScene master="neo" shot="intro" /></div> : <div className={styles.vnCharacter} data-scene={activeHeroCharacter}>
             <div
               className={styles.vnCharacterCrop}
               role="img"
@@ -2266,7 +2266,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
                 </div>
               )}
             </div>
-          </div>
+          </div>}
 
           <div
             className={styles.vnDialogueBox}
@@ -2336,7 +2336,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
 
       {!showOperationMap && !displayBriefing && !displayRefinedOrder && <section className={styles.consultationValue} aria-label={welcome.results}>
         <div className={styles.consultationValueIntro}>
-          <MasterRoomScene master="neo" shot="intro"/>
+          <MasterRoomScene master="neo" still/>
           <div><h2>{welcome.results}</h2><p>{welcome.lead}</p><Link href="/neo-operation-room/strategy-books/">{bookCopy.title} →</Link><p className={styles.strategyBookHint}>{bookCopy.rule}</p></div>
         </div>
         <ExpertValueCards theme="neo" points={welcome.points} />

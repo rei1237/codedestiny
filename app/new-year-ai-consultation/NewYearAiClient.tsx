@@ -1,4 +1,5 @@
 "use client";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import {useTossExpertPrice} from "@/app/_lib/use-toss-expert-price";
 import type {TossTeaPriceComponent} from "@/src/features/fortune-tea-house/lib/tossPriceSelection";
 import {tossExpertResultHref} from "@/lib/fortune/toss-expert-result.mjs";
@@ -2338,6 +2339,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           </div>
         </div>)}
         <div className="nyai-intro-copy">
+          <MasterRoomScene master="neo" shot="intro" />
           {!tossJapanese&&<span className="nyai-eyebrow">서비스 소개</span>}
           <h2><Moon size={20} aria-hidden="true" /> {tossJapanese?.title||'신년운세 전문가 상담'}</h2>
           {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}

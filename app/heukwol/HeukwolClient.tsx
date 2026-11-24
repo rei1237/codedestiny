@@ -170,7 +170,7 @@ export default function HeukwolClient(){
   <nav className={styles.nav}><a href="/ggulggul/">꿀꿀 운세 홈</a><button onClick={()=>{setShowForm(true);document.getElementById('heukwol-profile')?.scrollIntoView();}}>이야기 건너뛰기</button></nav>
   {priceFailed && !pricing && <p role="status">가격을 확인하지 못했어요. <button type="button" onClick={loadPrice}>가격 다시 확인하기</button></p>}
   {state?.report?<HeukwolResult report={state.report} isCurrent={validOwner}/>:<>
-  {!showForm && <><header className={styles.cover}><p className={styles.eyebrow}>연이와 네오가 함께 읽는 다른 선택</p><h1>흑월의 경고</h1><p className={styles.subtitle}>사주와 자미두수로 살펴보는 월별 흐름과 대비</p><p>어디로 가야 할지 막막할 때,<br/>흑월이 짚은 주의 흐름을 살펴보세요.<br/>연이와 네오가 다음 방향을 정리하도록 도와드립니다.</p><a className={styles.primary} href="#heukwol-story">이야기 읽기</a><p>단건 {priceLabel} · 약 5만 자 · PDF</p><small>도입 이야기의 예시 · 개인 운세 결과가 아닙니다</small></header>
+  {!showForm && <><header className={styles.cover}><p className={styles.eyebrow}>연이와 네오가 함께 읽는 다른 선택</p><h1>흑월의 경고</h1><MasterRoomScene master="heukwol" shot="intro"/><p className={styles.subtitle}>사주와 자미두수로 살펴보는 월별 흐름과 대비</p><p>어디로 가야 할지 막막할 때,<br/>흑월이 짚은 주의 흐름을 살펴보세요.<br/>연이와 네오가 다음 방향을 정리하도록 도와드립니다.</p><a className={styles.primary} href="#heukwol-story">이야기 읽기</a><p>단건 {priceLabel} · 약 5만 자 · PDF</p><small>도입 이야기의 예시 · 개인 운세 결과가 아닙니다</small></header>
   <FateWarningEpisode />
   <section className={styles.invitation}><h2>아직 쓰이지 않은<br/>당신의 다음 장</h2><p>타고난 성향과 반복되는 선택부터 살펴봐요.<br/>연애·재물·인간관계·안전·건강의 점검과<br/>선택한 해의 열두 달 대응을 27장에 담아요.</p><a className={styles.primary} href="#heukwol-profile">저장한 프로필 선택하기</a><p>단건 {priceLabel} · 약 5만 자 · 월별 리포트와 PDF</p></section></>}
   <section id="heukwol-profile" className={styles.form}>

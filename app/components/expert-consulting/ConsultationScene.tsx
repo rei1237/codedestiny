@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import styles from "./ConsultationScene.module.css";
 
-export default function ConsultationScene({ poster, clip, loop = false }: {
+export default function ConsultationScene({ poster, clip, loop = false, priority = false }: {
   poster: string;
   clip: string;
   loop?: boolean;
+  priority?: boolean;
 }) {
   const gate = useSpritePlaybackGate<HTMLDivElement>({ rootMargin: "0px" });
   const video = useRef<HTMLVideoElement>(null);
@@ -44,6 +45,6 @@ export default function ConsultationScene({ poster, clip, loop = false }: {
     {mounted
       ? <video key={clip} ref={video} src={clip} poster={poster} muted playsInline loop={loop}
           preload="none" onError={() => setFailedClip(clip)} />
-      : <img src={poster} alt="" width="960" height="540" loading="lazy" decoding="async" />}
+      : <img src={poster} alt="" width="960" height="540" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" />}
   </div>;
 }

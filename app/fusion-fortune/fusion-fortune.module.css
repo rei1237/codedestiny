@@ -1895,3 +1895,11 @@
 .tarotCardBack, .tarotCardFront { position: absolute; inset: 0; display: grid; place-items: center; backface-visibility: hidden; }
 .tarotCardFront { transform: rotateY(180deg); }
 @media (prefers-reduced-motion: reduce) { .tarotCardInner { transition: none; } }
+
+@media (min-width: 761px) {
+  .hero:has([data-shot="intro"]) {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  }
+  .hero > [data-shot="intro"] { grid-column: 2; grid-row: 1; }
+  .heroCopy { grid-column: 1; grid-row: 1; }
+}
