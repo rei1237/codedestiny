@@ -55,6 +55,8 @@ import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year"
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
 import { splitGanji, tenGodOfStem } from "@/lib/five-element-colors";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import ChapterReaderDock from "@/components/fortune/reader/ChapterReaderDock";
+import { FLAGSHIP_CHAPTER_READER_ENABLED } from "@/lib/flagship-premium/flags.mjs";
 
 // 접근성 속성(aria-label/title)만 다국어화한다 — 이 파일의 본문 표시 텍스트 전체 번역은
 // 훨씬 큰 별도 작업이라 이번 범위 밖이다(docs/handoff/global-i18n-audit-remaining.md 참고).
@@ -552,7 +554,7 @@ type NewYearChapter = { key: string; label: string; glyph: string; hint: string;
  * 분야 카드와 열두 달 흐름을 번호 붙은 장으로 통일한다. 순서는 서버 생성 순서(열두 달은 건강 앞)이고,
  * 본문이 있는 장만 번호를 받는다. 첫 장(타고난 성향)은 강조 카드로 보인다.
  */
-function DomainConsultationCards({ bodies, monthly }: { bodies: Map<string, string>; monthly?: ReactNode }) {
+function DomainConsultationCards({ bodies, monthly, reader = false }: { bodies: Map<string, string>; monthly?: ReactNode; reader?: boolean }) {
   const copy = useNewYearAiCopy();
   const cards = DOMAIN_CARDS.filter((card) => bodies.get(card.key));
   if (!cards.length) return null;
@@ -565,6 +567,15 @@ function DomainConsultationCards({ bodies, monthly }: { bodies: Map<string, stri
   if (monthlyChapter && !chapters.includes(monthlyChapter)) chapters.push(monthlyChapter);
   return (
     <div className="nyai-domain-report" aria-label={copy.domainResultsAria}>
+      {reader && (
+        <ChapterReaderDock
+          serviceName="신년운세"
+          rootSelector=".nyai-domain-report"
+          chapters={chapters.map((chapter, index) => ({ key: chapter.key, title: chapter.label, kicker: chapter.kicker, targetId: `nyai-chapter-${index + 1}` }))}
+          onSelect={(index) => document.getElementById(`nyai-chapter-${index + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          cover={{ title: "올해의 흐름을 장마다 펼쳐 읽어요", masters: productMasters.newYear }}
+        />
+      )}
       <nav className="nyai-toc" aria-label="상담 차례" data-pdf-skip="true">
         <span className="nyai-eyebrow">차례</span>
         <ol>
@@ -2593,7 +2604,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
                       />
                     </RevealBlock>
                   )}
-                  <DomainConsultationCards bodies={domainBodies} monthly={index === 0 ? monthlyBlock : null} />
+                  <DomainConsultationCards bodies={domainBodies} monthly={index === 0 ? monthlyBlock : null} reader={FLAGSHIP_CHAPTER_READER_ENABLED && paymentSurface !== "toss" && index === 0 && status === "ready"} />
                   {index === 0 && (
                     <RevealBlock index={1}>
                       <ResultReference><SajuProfilePanel profile={sajuProfile} /></ResultReference>

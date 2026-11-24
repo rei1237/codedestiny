@@ -1,0 +1,8 @@
+/* 대표 상담 챕터 리더 글자 크기(ChapterReaderDock.tsx). 보통이면 루트에 속성이 없어 아래 규칙은 아무것도 고르지 않는다.
+   본문 기준(모바일 17px·데스크톱 18px)에서 한 단씩 키운다. 줄 길이·행간은 기존 본문 규칙을 그대로 따른다. */
+:root [data-cd-reader-size="lg"] [data-reading-prose] { font-size: 1.1875rem; }
+:root [data-cd-reader-size="xl"] [data-reading-prose] { font-size: 1.3125rem; }
+@media (min-width: 768px) {
+  :root [data-cd-reader-size="lg"] [data-reading-prose] { font-size: 1.25rem; }
+  :root [data-cd-reader-size="xl"] [data-reading-prose] { font-size: 1.375rem; }
+}
