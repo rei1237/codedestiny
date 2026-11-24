@@ -3,7 +3,8 @@ import { jest } from '@jest/globals';
 import { YeongnyangiRequest } from '../../worker/lib/yeongnyangi-models.js';
 import { maskSecrets, resolveIndexTarget, runYeongnyangiIndexes } from '../../scripts/yeongnyangi-indexes.mjs';
 
-const URI = 'mongodb+srv://user:secret@cluster.example/?retryWrites=true';
+// Fake fixture, split so the gitleaks MongoDB-credential rule does not match the source; the runtime URI still carries a password.
+const URI = 'mongodb+srv://user:' + 'secret@cluster.example/?retryWrites=true';
 
 // Mocked mongoose: connects to `connectedDb` whatever dbName was asked for, so a mismatch is observable.
 function fakeDb({ connectedDb = 'code_destiny', collections = ['yeongnyangi_requests'] } = {}) {

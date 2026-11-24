@@ -38,3 +38,16 @@
 .priceBadge{display:inline-block;color:var(--ew-ivory);font-weight:700;line-height:1.8}
 .page .action{display:flex;align-items:center;justify-content:center;min-height:56px;padding:14px 16px;margin:28px 0;background:var(--ew-lantern);color:var(--ew-ink);text-decoration:none;font-weight:700;border:1px solid var(--ew-paper-line);border-radius:var(--cd-r-control)}
 .invitation>a:last-child{display:inline-flex;align-items:center;min-height:48px}
+/* Flagship premium (lib/flagship-premium/flags.mjs): master strip, moonlit yehwa cards, one trust line under the first CTA. */
+.page a.yehwaStart,.page a.yehwaStart:hover{color:var(--cd-cta-primary-ink);text-decoration:none;font-size:15px}
+.premium{--pe-ink:var(--ew-ivory);--pe-muted:var(--ew-muted);--pe-accent:var(--cd-yehwa-champagne);padding:4px 24px 32px}
+.premium>[role=group]{max-width:none}
+.page .premiumTitle{margin:28px 0 0;font:400 22px/1.5 var(--font-display);color:var(--cd-yehwa-champagne);word-break:keep-all}
+.yehwaCards{display:grid;gap:12px;margin:14px 0 0;padding:0;list-style:none}
+@media (min-width:640px){.yehwaCards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.yehwaCard{position:relative;padding:20px 20px 22px;border:1px solid color-mix(in srgb,var(--cd-yehwa-champagne) 46%,transparent);border-radius:var(--cd-r-card);background:linear-gradient(165deg,var(--cd-yehwa-night),var(--cd-yehwa-night-deep))}
+.yehwaCard::before{content:"";position:absolute;inset:4px;border:1px solid color-mix(in srgb,var(--cd-yehwa-champagne) 20%,transparent);border-radius:calc(var(--cd-r-card) - 4px);pointer-events:none}
+.yehwaCard::after{content:"";position:absolute;top:12px;right:12px;width:26px;height:26px;background:var(--cd-yehwa-line);-webkit-mask:var(--cd-button-sprig-mask) center/contain no-repeat;mask:var(--cd-button-sprig-mask) center/contain no-repeat;opacity:.6;pointer-events:none}
+.page .yehwaCard h3{margin:0 34px 8px 0;font:400 19px/1.5 var(--font-display);color:var(--cd-yehwa-champagne);word-break:keep-all}
+.page .yehwaCard p{margin:0;font-size:15px;line-height:1.8;color:var(--cd-yehwa-pearl-muted)}
+.page .trust{margin:18px 0 0;padding-top:14px;border-top:1px solid var(--ew-line);font-size:14px;color:var(--ew-muted)}

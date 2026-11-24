@@ -30,6 +30,8 @@ import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import styles from "./LifeBookAiResultClient.module.css";
 import { masterAvatars } from "@/components/fortune/master-profiles";
 import { lifeBookChapterKicker } from "./life-book-pdf-chapters";
+import ChapterReaderDock from "@/components/fortune/reader/ChapterReaderDock";
+import { FLAGSHIP_CHAPTER_READER_ENABLED } from "@/lib/flagship-premium/flags.mjs";
 
 type LifeBookMessage = {
   role: "user" | "assistant";
@@ -1986,6 +1988,23 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
             </dl>
             </div>
           </header>
+
+          {FLAGSHIP_CHAPTER_READER_ENABLED && paymentSurface !== "toss" && !exportExpand && (
+            <ChapterReaderDock
+              serviceName="인생의 책"
+              rootSelector="#life-book-result-document"
+              clearSelector="[data-life-book-dock]"
+              chapters={report.chapters.map((chapter, index) => ({ key: `chapter-${index + 1}`, title: chapter.title || copy.chapterPageLabel(chapter.chapterNumber || index + 1), kicker: lifeBookChapterKicker(chapter.title || "") || undefined, targetId: `chapter-${index + 1}` }))}
+              onSelect={(index) => {
+                if (viewAll) {
+                  document.getElementById(`chapter-${index + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  return;
+                }
+                setChapterPage(index);
+                document.getElementById("life-book-chapter-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+            />
+          )}
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[300px_1fr]">
             <aside className={styles.contentsPage}>

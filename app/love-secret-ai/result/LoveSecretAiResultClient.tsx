@@ -44,6 +44,9 @@ import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
 import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 import { getLoveSecretRetryCopy, loveSecretRetryClosed, loveSecretRetryOffer } from "../love-secret-retry";
+import ChapterReaderDock from "@/components/fortune/reader/ChapterReaderDock";
+import { productMasters } from "@/components/fortune/master-profiles";
+import { FLAGSHIP_CHAPTER_READER_ENABLED } from "@/lib/flagship-premium/flags.mjs";
 
 type LoveSecretResultCopy = {
   genResultTimeoutError: string;
@@ -1258,6 +1261,7 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
         {!loading && !pending && consultation && (!consultation.status || consultation.status === "completed") && <>
           {paymentSurface === 'toss' && <p role="note">AI가 작성한 상담 결과예요.</p>}
           <LoveSecretResultPageContent
+            readerEnabled={FLAGSHIP_CHAPTER_READER_ENABLED && paymentSurface !== "toss" && consultation.saved !== false}
             consultation={consultation}
             sections={sections}
             myName={myName}
@@ -1318,7 +1322,9 @@ function LoveSecretResultPageContent({
   viewAll,
   onViewAllChange,
   expandForExport,
+  readerEnabled = false,
 }: {
+  readerEnabled?: boolean;
   consultation: Consultation;
   sections: ResultSection[];
   myName: string;
@@ -1446,6 +1452,16 @@ function LoveSecretResultPageContent({
             </div>
             <p className="whitespace-pre-wrap text-sm leading-7 text-[var(--ls-text-muted)]">{consultation.userQuestion}</p>
           </section>
+        )}
+
+        {readerEnabled && !expandForExport && (
+          <ChapterReaderDock
+            serviceName="연애 비책"
+            rootSelector="#love-secret-result-document"
+            chapters={chapterEntries.map((entry) => ({ key: String(entry.number), title: toDisplayText(entry.section.title) || copy.chapterFallback(entry.number), targetId: `love-chapter-${entry.number}` }))}
+            onSelect={(index) => { const entry = chapterEntries[index]; if (entry) jumpToChapter(entry); }}
+            cover={{ title: "두 사람의 마음을 장마다 펼쳐 읽어요", masters: productMasters.love }}
+          />
         )}
 
         {chapterEntries.length > 1 && !expandForExport && (
