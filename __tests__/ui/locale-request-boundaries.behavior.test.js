@@ -292,7 +292,7 @@ function sajuFixture() {
     _sajuPromptResolveProfileId: () => 'fixture-profile',
     clearVisibleConsultation: () => { ctx.activePendingJob = null; }, clearPaidEvidence() {},
     setTimeout: fn => { timers.set(++id, fn); return id; }, clearTimeout: key => timers.delete(key),
-    stopProgress() {}, setLoading() {}, setProgress() {},
+    stopProgress() {}, setLoading() {}, setProgress() {}, filmStates: [], showReadingFilm(active) { ctx.filmStates.push(active); },
     rememberPendingJob: job => { ctx.activePendingJob = job; },
     handleCompletedPayload: payload => { events.push(payload); return true; },
     markFailedForRetry: () => events.push('failed'),
@@ -321,6 +321,7 @@ test('saju still delivers the current paid result without a locale change', asyn
   f.ctx._sajuPromptFetchStatus = async () => ({ payload: { status: 'completed' } });
   f.ctx._sajuPromptFetchResult = async () => ({ payload: { resultText: 'current' } });
   f.ctx.pollPendingJob({ requestId: 'paid-1' }, true); await f.tick();
+  assert.deepEqual(f.ctx.filmStates, [false]);
   assert.equal(f.events[0].resultText, 'current');
 });
 for (const file of [fusionFile, astroFile]) {
