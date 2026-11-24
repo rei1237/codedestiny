@@ -178,7 +178,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       },
       {
         "speaker": "연이",
-        "text": "아까 인사한 연이예요. 모습은 달라져도, 당신 이야기를 기다리는 마음은 그대로랍니다.",
+        "text": "아까 문을 열어 드린 연이예요. 이쪽에 앉으세요. 찻잔은 제가 들고 있을 테니, 오늘 가장 마음에 남은 일부터 들려주시겠어요?",
         "mood": "welcome"
       },
       {
@@ -200,7 +200,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       },
       {
         "speaker": "연이",
-        "text": "이 찻집에서는 미래를 한 문장으로 정해 드리지는 않아요. 대신 지금의 고민을 여러 각도에서 살펴볼 수 있도록 도와드려요.",
+        "text": "같은 고민도 어디서부터 읽느냐에 따라 다른 면이 보여요. 마음이 걸린 대목에 잠깐 머물러 볼까요?",
         "mood": "playful"
       },
       {
@@ -220,7 +220,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       },
       {
         "speaker": "연이",
-        "text": "무슨 답이 나오든, 당신이 고를 수 있는 길을 남겨둘게요. 자, 이제 오늘의 차를 만나 볼까요?",
+        "text": "잔을 조금 가까이 놓아 드릴게요. 지금 이야기하고 싶은 쪽으로, 마음이 가는 차를 골라 보세요.",
         "mood": "closing"
       }
     ]

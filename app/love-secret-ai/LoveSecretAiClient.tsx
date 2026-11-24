@@ -2610,7 +2610,7 @@ function LoveSecretHero({ onStart, busy, mastersHref, showWebPrice }: { showWebP
   const copy = useLoveSecretClientCopy();
   return (
     <header className={intro.hero}>
-      <MasterRoomScene master="love" shot="intro" />
+      <MasterRoomScene master="love" shot="intro" still={busy} />
       <div className={intro.heroCopy}>
         <h2>{copy.heroTitle}</h2>
         {copy === LOVE_SECRET_CLIENT_COPY.ko && <ProductMasterStrip label="연애 비책 공동 마스터" masters={productMasters.love} profileHref={mastersHref} />}

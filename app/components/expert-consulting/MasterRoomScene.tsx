@@ -1,3 +1,4 @@
+import EntryOrnament from "@/app/components/service-intro/EntryOrnament";
 import ConsultationScene from "./ConsultationScene";
 
 import styles from "./ConsultationScene.module.css";
@@ -8,6 +9,7 @@ export default function MasterRoomScene({ master, still = false, shot = "wait" }
   const base = `/images/consultation-rooms/${master}`;
   const cover = base + ".webp";
   return <div className={styles.roomFrame} data-shot={shot}>
+    {shot === "intro" && master !== "fusion" && <EntryOrnament />}
     {still ? <img src={cover} width={960} height={540} style={{width:"100%",height:"auto",borderRadius:16}} alt=""/>
      : <ConsultationScene priority={shot === "intro"} key={master} poster={cover} clip={base + ".mp4" + (shot === "complete" ? "#t=3,8" : shot === "intro" ? "#t=0,6" : "")} loop={shot === "wait"}/>}
     <img className={styles.roomPetals} src="/images/fortune-tea-house/renewal/prop-petals.webp" width={32} height={20} alt="" loading="lazy" />

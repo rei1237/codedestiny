@@ -1896,10 +1896,63 @@
 .tarotCardFront { transform: rotateY(180deg); }
 @media (prefers-reduced-motion: reduce) { .tarotCardInner { transition: none; } }
 
-@media (min-width: 761px) {
-  .hero:has([data-shot="intro"]) {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-  }
-  .hero > [data-shot="intro"] { grid-column: 2; grid-row: 1; }
-  .heroCopy { grid-column: 1; grid-row: 1; }
+
+.hero:has(.councilPortrait) {
+  width: min(100%, 70rem);
+  max-width: 70rem;
+  min-height: 0;
+  padding: clamp(18px, 3.5vw, 44px);
+  grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr);
+  grid-template-areas: "crest crest" "copy art";
+  gap: clamp(20px, 3vw, 44px);
+  align-items: center;
+  background: radial-gradient(ellipse at 94% 8%, #493846 0, transparent 47%), #211b2b;
+  border-color: #725b53;
 }
+.hero .heroCopy { grid-area: copy; padding: 0; }
+.editionName {
+  display: block;
+  color: #e6c98f;
+  font: 600 .87rem/1.6 var(--fx-serif);
+  margin-bottom: .65rem;
+}
+.hero .heroCopy h1 { font-size: clamp(1.85rem, 3.5vw, 2.9rem); text-wrap: balance; }
+.councilPortrait { grid-area: art; min-width: 0; margin: 0; }
+.councilPortrait figcaption {
+  margin-top: .75rem;
+  text-align: center;
+  color: #e7d0bd;
+  font: 500 .87rem/1.6 var(--fx-serif);
+}
+.councilDossier {
+  width: min(100%, 70rem);
+  margin: -12px auto 24px;
+  border-block: 1px solid #66543f;
+  color: var(--fx-ink-1);
+}
+.councilDossier summary {
+  padding: 13px 12px;
+  cursor: pointer;
+  font-family: var(--fx-serif);
+}
+.councilDossier[open] { padding-bottom: 12px; }
+.writingRoom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, .85fr);
+  align-items: center;
+  gap: clamp(16px, 3vw, 32px);
+  margin: 16px clamp(12px, 3vw, 36px);
+  padding: clamp(14px, 2vw, 24px);
+  border: 1px solid #79644e;
+  border-radius: 16px;
+  background: #27212d;
+}
+@media (max-width: 760px) {
+  .hero:has(.councilPortrait) { grid-template: "crest" auto "art" auto "copy" auto / minmax(0, 1fr); gap: 16px; }
+  .councilPortrait figcaption { margin-top: 5px; font-size: .78rem; }
+  .hero .heroCopy > p { line-height: 1.65; }
+  .writingRoom { grid-template-columns: minmax(0, 1fr); }
+  .writingRoom > div:last-child { grid-row: 1; }
+}
+
+.councilCrest { grid-area: crest; margin: calc(-1 * clamp(18px, 3.5vw, 44px)) calc(-1 * clamp(18px, 3.5vw, 44px)) 0; }

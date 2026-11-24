@@ -86,3 +86,9 @@ Keep the supplied official consultation illustration. The same woman with dark h
 - yn-fusion: Keep the exact adorable white divination cat Yeongnyangi in the attached illustration, the crescent hat, lavender-dark cape and gem, eyes, ears and fluffy tail. Gently blink, glance at the open book and the astronomical instruments, then relax into the starting pose. Keep round soft feline paws and a tiny affectionate smile. Do not substitute tarot cards or another practice. Preserve the exact original room, props, palette and composition.
 
 공통 지시: Locked camera. Subtle repeatable 2D illustrated idle movement. Retain the first and final framing and character landmarks. No sound, dialogue, text, logos, wardrobe or species changes.
+
+## 인간형 연이 스프라이트와 사주 LLM 상담
+
+꿀꿀운세 홈과 운명 찻집 도입부는 한복 원본 `/images/master-profiles/yeoni-love-portrait.webp`을 참조해 따로 그린 16개 포즈를 쓴다. `/images/fortune-tea-house/hanbok-yeoni/`의 welcome, speak, offer, listen 시트는 각각 가로 네 칸이며, 한 칸은 256×256px이다. 홈은 선택한 행동의 시트만 읽는다.
+
+운명 찻집의 이용 권한 확인 뒤 사주 LLM 생성에는 꽃돼지 컷 `/images/saju/yeoni-pig-analysis.mp4` (Seedance 작업 ac571d78-866f-4858-a08b-c0af0bffc053), 사주 궁합 LLM 생성에는 인간형 컷 `/images/saju/yeoni-human-analysis.mp4` (80a42e83-6d31-4a64-bf0a-0d783160016d)를 사용한다. 이전 유료 명식 상담의 이어받기 화면은 선택한 연이·네오 모드에 맞는 한 편을 표시한다. 일반 명식 계산기는 자체 로딩 화면을 사용한다. 합동 상품의 대기 화면은 상품별 기존 영상을 사용한다.

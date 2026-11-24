@@ -64,7 +64,7 @@ export default function ScentLoadingScene({ question, consultationMode = "tarot"
   const excerpt = Array.from(question?.trim() || "");
   const complete = activeProgress.status === "complete";
   return <section className={styles.scene} aria-label={copy.sceneAria}>
-    <div className={styles.visual}><YeoniWaitingPortrait label="" complete={complete} /></div>
+    <div className={styles.visual}><YeoniWaitingPortrait label="" complete={complete} mode={consultationMode} failed={activeProgress.status === "error"} /></div>
     <div className={styles.content}>
       <h2 className={styles.title}>{copy.waitingTitle}</h2>
       <p className={styles.intro}>{excerpt.length ? excerpt.slice(0, 90).join("") + (excerpt.length > 90 ? "…" : "") : copy.introduction}</p>
