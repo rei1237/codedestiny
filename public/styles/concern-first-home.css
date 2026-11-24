@@ -123,7 +123,7 @@
 .cdh-fold > summary::after { content: ''; width: 8px; height: 8px; flex: none; margin-left: auto; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg); }
 .cdh-fold[open] > summary::after { transform: rotate(225deg); }
 .cdh-fold[open] > .cdh-fold__content { animation: cdhPanelIn var(--hm-motion-panel) var(--cd-ease-out); }
-#cdHomeFunnel.cdh--focused :is(.cdh-primary, .cdh-pass__btn, .cdh-all-cta__btn, .cdh-search-entry, .cd-sig-card__cta) { min-height: 48px; font-family: var(--font-body); font-size: 15px; line-height: 1.5; letter-spacing: 0; transition: background-color var(--cd-dur-fast) ease-out, border-color var(--cd-dur-fast) ease-out, transform var(--cd-dur-fast) var(--cd-ease-out); }
+#cdHomeFunnel.cdh--focused :is(.cdh-primary, .cdh-pass__btn, .cdh-search-entry, .cd-sig-card__cta) { min-height: 48px; font-family: var(--font-body); font-size: 15px; line-height: 1.5; letter-spacing: 0; transition: background-color var(--cd-dur-fast) ease-out, border-color var(--cd-dur-fast) ease-out, transform var(--cd-dur-fast) var(--cd-ease-out); }
 #cdHomeFunnel.cdh--focused :is(.cdh-pass__btn, .cd-sig-card__cta)::before { content: ''; width: 18px; height: 18px; flex: none; background: currentColor; mask: var(--hm-lotus) center / contain no-repeat; margin-right: 6px; }
 #cdHomeFunnel.cdh--focused :is(a,button,summary):focus-visible { outline: 3px solid var(--cdh-accent); outline-offset: 4px; }
 #cdHomeFunnel.cdh--focused .cdh-hero::before { animation: none; transform: translateY(var(--hm-moon-offset, 0px)); }
