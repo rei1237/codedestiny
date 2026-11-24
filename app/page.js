@@ -13,6 +13,8 @@ import { HOME_QUICK_LINKS } from "../lib/seo/home-discovery.mjs";
 import HomeAccountEntry from "./components/HomeAccountEntry";
 import HomeDailyEntry from "./components/HomeDailyEntry";
 import HomeMoonlitEntry from "./components/HomeMoonlitEntry";
+import PopularTop5 from "./components/PopularTop5";
+import { POPULAR_TOP5_ENABLED, POPULAR_TOP5_HOME_BODY_ENABLED } from "../js/core/popular-top5.mjs";
 import { trustRecordCopy } from "../lib/marketing/trust-record.mjs";
 import { NativeHomeRoot, NativeHomeNav, NativeHomeText, NativeHomeCardLink, NativeHomeDictionaryText } from "./components/NativeHomeCopy";
 import "./yeongnyangi/night-tokens.css";
@@ -145,6 +147,8 @@ export default function HomePage() {
           </div>
         </section>}
         {!IS_APP_BUILD && <p className={styles.entryChoiceNote}>여러 상담을 둘러보고 싶다면 꿀꿀운세로, 떠오른 질문이 있다면 영냥이에게 가보세요.</p>}
+        {/* 실제 인기 순위 TOP5(최근 30일 구매). 첫 화면 카드 아래, 스켈레톤으로 자리 예약·요청은 하이드레이션 뒤(2026-11-24 "두 홈 모두 복귀"). 끄기: js/core/popular-top5.mjs 의 POPULAR_TOP5_HOME_BODY_ENABLED */}
+        {!IS_APP_BUILD && POPULAR_TOP5_ENABLED && POPULAR_TOP5_HOME_BODY_ENABLED && <PopularTop5 />}
         {IS_APP_BUILD && <><HomeMoonlitEntry /><HomeDailyEntry /></>}
         <a className={styles.widgetEntry} href={IS_APP_BUILD ? "/app/home-widget/index.html" : "/app/home-widget/"} data-cd-home-widget-entry><img src="/images/home/illustrated/yeoni-hanbok-240.webp" alt="" width="48" height="64" loading="lazy" /><span><strong><NativeHomeText>홈 화면 꾸미기</NativeHomeText></strong><small><NativeHomeText>연이의 한마디, 꽃말, 오늘의 운세와 부적을 골라 보세요.</NativeHomeText></small></span><span aria-hidden="true">→</span></a>
       </main>

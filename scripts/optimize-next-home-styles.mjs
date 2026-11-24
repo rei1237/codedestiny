@@ -4,6 +4,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import postcss from 'postcss';
 import { JSDOM, VirtualConsole } from 'jsdom';
+import { popularTop5Copy } from '../js/core/popular-top5.mjs';
 
 // Keep styles in their exported cascade order. The reduced sheet covers the
 // server-rendered document; the original Next resource also loads for later
@@ -91,10 +92,14 @@ export function optimizeNextHomeStyles(directory) {
     // Consent reads browser storage after hydration and can appear before any
     // interaction. Its fixed positioning prevents it from shifting the home.
     classes.add('AnalyticsConsent_*');
+    // The popular TOP5 skeleton is server-rendered, but its ranked rows and
+    // their copy arrive after hydration. Keep the whole block and its glyphs.
+    const popularTop5 = classes.has('cd-pop5');
+    if (popularTop5) classes.add('cd-pop5_*');
     const text = [...doc.body.querySelectorAll('*')].filter(el => !el.closest('script, style, template')).flatMap(el => [
       ...[...el.childNodes].filter(node => node.nodeType === 3).map(node => node.textContent),
       el.getAttribute('placeholder') || '', el.getAttribute('aria-label') || '', el.getAttribute('alt') || '',
-    ]).join('');
+    ]).join('') + (popularTop5 ? popularTop5Copy() : '');
     const codepoints = [...new Set(Array.from(text, ch => ch.codePointAt(0)))];
     dom.window.close();
     let before = 0;
