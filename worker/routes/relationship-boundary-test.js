@@ -240,7 +240,9 @@ async function refundExecution(env, userId, requestId, sessionId, reasonMessage,
     reportId: sessionId, reasonCode: "relationship_boundary_test_generation_failed",
     reasonMessage: clean(reasonMessage, 300), failureStage: "generation", forceRefundOnClose: true,
   }).catch((error) => { console.error("[relationship-boundary-test] execution refund failed", clean(error?.message || error, 200)); return null; });
-  return result?.refundStatus === "refunded";
+  // failServiceExecution 은 { execution: toSummary, settlement } 를 돌려준다. 이미 닫힌 실행(멱등)은 execution.status,
+  // 이번 정산은 settlement.status 가 "refunded" 일 때만 환불 완료다. 보류(pending)·실패·404 는 미환불.
+  return result?.execution?.status === "refunded" || result?.settlement?.status === "refunded";
 }
 
 async function handleStart(request, env, recoveryAuth = null) {

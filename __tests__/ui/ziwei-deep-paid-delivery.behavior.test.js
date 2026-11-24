@@ -581,3 +581,35 @@ test('결제 확인 뒤 기록 전에 명반 계산이 실패하면 원래 결�
   f.permitted(false);
   assert.equal((await f.post()).status, 402); assert.equal(f.refunds, 1);
 });
+
+// 2026-11-24 승인 수선: 결제 화면 영수증이 없는 이용권 결제도 접근 판정이 찾은 증빙(사용 기록·passRefund)으로 실행을 열어
+// 실패 때 이용권을 되돌린다. 환불 여부는 정산 결과(이번 정산 settlement 또는 이미 닫힌 execution)가 refunded 일 때만 참이다.
+test('이용권 결제 증빙으로 되돌릴 실행을 열고, 환불 여부는 실제 정산 결과로만 판정한다', async () => {
+  const passRefund = { cycleKey: '2026-11', cost: 300 };
+  const outcomes = [
+    [{ ok: true, status: 200, idempotent: false, execution: { status: 'refunded' }, settlement: { ok: true, status: 'refunded' } }, true],
+    [{ ok: true, status: 202, idempotent: false, execution: { status: 'pending' }, settlement: { ok: false, status: 'failed' } }, false],
+    [{ ok: true, status: 200, idempotent: true, execution: { status: 'refunded' } }, true],
+    [{ ok: true, status: 202, idempotent: false, execution: { status: 'pending' }, settlement: { ok: true, status: 'pending', deferred: true } }, false],
+    [{ ok: false, status: 404 }, false],
+  ];
+  for (const [outcome, refunded] of outcomes) for (const proof of [{ passRefund }, { transactionId: 'pass-usage-row' }]) {
+    const f = fixture('paid'); const opened = [];
+    const none = { lean: async () => null };
+    Object.assign(f.ctx, { executionKeyOf: key => key, SERVICE_KEY: 'ziwei-deep-report', REPORT_TYPE: 'ziweiDeepReport', getPricing: () => ({ coinPrice: 300, amountKRW: 30000 }),
+      resolveSourceTransactionId: () => '', asObject: value => value || {}, verifyAccessToken: async () => ({}), isAdmin: () => false,
+      PaidExecutionRecord: { findOne: () => none }, Payment: { findOne: () => none }, PointHistory: { findOne: () => none }, MonthlyCreditLedger: { findOne: () => none },
+      findMoonstoneSpendEvidence: async () => null, canAccessPaidFeature: async () => ({ allowed: true, accessType: 'pass' }),
+      settlePerUseAccessDecision: async () => ({ allowed: true, source: 'pass', reason: '', ...proof }),
+      startServiceExecution: async (_env, _owner, payload) => { opened.push(payload); return { execution: { status: 'pending' } }; },
+      failServiceExecution: async () => outcome,
+      calculateZiweiConsumerChart: () => { throw new Error('mock chart failure'); } });
+    load(f.ctx, 'worker/routes/ziwei-deep-report.js', ['resolveGenerateAccess', 'startRefundableExecution', 'refundExecution']);
+    const payload = await (await f.post()).json();
+    assert.equal(payload.reason, 'CALCULATION_FAILED');
+    assert.equal(opened.length, 1, JSON.stringify(proof));
+    assert.equal(opened[0].sourceTransactionId, proof.transactionId || '');
+    assert.deepEqual(opened[0].metadata.passRefund, proof.passRefund);
+    assert.equal(payload.refunded, refunded, JSON.stringify(outcome));
+  }
+});

@@ -359,19 +359,22 @@ function resolveSourceTransactionId(body = {}) {
   );
 }
 
-async function startRefundableExecution(env, userId, sourceTransactionId, idempotencyKey, reportId, pricing) {
-  if (!sourceTransactionId) return false; // 이용권·관리자 통과 등 차감이 없던 경로 → 되돌릴 것도 없다.
+async function startRefundableExecution(env, userId, sourceTransactionId, idempotencyKey, reportId, pricing, passRefund) {
+  // 관리자·월정석 장부만 있는 통과는 되돌릴 실행 근거가 없다. 이용권 통과는 접근 판정이 찾은 사용 기록(sourceTransactionId)이나
+  // passRefund(monthlySpendCoin 실제 차감)가 있으면 되돌릴 것이 있다(2026-11-24 승인 수선, human-design-report 와 같은 규칙).
+  const hasPassRefund = Number(passRefund?.cost) > 0 && Boolean(passRefund?.cycleKey);
+  if (!sourceTransactionId && !hasPassRefund) return false;
   const result = await startServiceExecution(env, userId, {
     executionKey: executionKeyOf(idempotencyKey),
     requestId: executionKeyOf(idempotencyKey),
     featureKey: FEATURE_KEY,
-    cost: pricing.coinPrice,
+    cost: sourceTransactionId ? pricing.coinPrice : 0,
     amountKRW: pricing.amountKRW,
-    sourceTransactionId,
+    sourceTransactionId: sourceTransactionId || "",
     reportId,
     reportType: REPORT_TYPE,
     idempotencyKey,
-    metadata: { serviceKey: SERVICE_KEY, featureKey: FEATURE_KEY, reportId },
+    metadata: { serviceKey: SERVICE_KEY, featureKey: FEATURE_KEY, reportId, ...(hasPassRefund ? { passRefund } : {}) },
   }).catch((error) => {
     console.warn("[ziwei-deep-report] execution guard start failed", clean(error?.message || error, 300));
     return null;
@@ -411,7 +414,9 @@ async function refundExecution(env, userId, idempotencyKey, reportId, reasonMess
     console.error("[ziwei-deep-report] execution guard refund failed", clean(error?.message || error, 300));
     return null;
   });
-  return Boolean(result?.ok);
+  // ok 는 "닫기 요청을 받았다"일 뿐이다 — 정산 실패·유예(pending)도 ok 다. 실제로 되돌렸을 때만 환불됐다고 말한다
+  // (이번 정산 settlement, 또는 이미 닫힌 실행을 다시 닫은 멱등 응답의 execution).
+  return result?.execution?.status === "refunded" || result?.settlement?.status === "refunded";
 }
 
 // ─── 영속화 ──────────────────────────────────────────────────────
@@ -661,7 +666,10 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
   const settled = await settlePerUseAccessDecision(env, { decision, userId: auth.userId, featureKey: FEATURE_KEY,
     coinPrice: getPricing().coinPrice, requestId: idempotencyKey, acceptSettled: true });
   if (settled.allowed === null) throw resultStorageUnavailable(idempotencyKey);
-  return settled.allowed ? { ok: true, accessType: "paid", locale: normalized.locale } : { ok: false, reason: settled.reason || "PAYMENT_REQUIRED" };
+  // 되돌릴 근거(사용 기록 transactionId·이용권 passRefund)를 함께 넘긴다 — 결제 화면 영수증이 없는 이용권 결제도 실패 때 환불된다.
+  return settled.allowed ? { ok: true, accessType: "paid", locale: normalized.locale,
+    ...(settled.transactionId ? { transactionId: clean(settled.transactionId, 120) } : {}),
+    ...(settled.passRefund ? { passRefund: settled.passRefund } : {}) } : { ok: false, reason: settled.reason || "PAYMENT_REQUIRED" };
 }
 
 /**
@@ -767,7 +775,7 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
     // 결제 확인 뒤에는 같은 입력으로 다시 해도 계산이 똑같이 실패한다. 원래 결제를 되돌린다(토스는 주문 쪽 정본).
     let refunded = false;
     if (!auth.assertTossReport) {
-      if (!stored) await startRefundableExecution(env, auth.userId, resolveSourceTransactionId(body), idempotencyKey, reportId, getPricing());
+      if (!stored) await startRefundableExecution(env, auth.userId, resolveSourceTransactionId(body) || access.transactionId, idempotencyKey, reportId, getPricing(), access.passRefund);
       refunded = await refundExecution(env, auth.userId, idempotencyKey, reportId, clean(error?.message || 'chart calculation failed', 300));
     }
     return json({ ok: false, reason: 'CALCULATION_FAILED', refunded, message: MESSAGES.calculationFailed }, { status: 422 });
@@ -787,7 +795,7 @@ export async function runZiweiDeepReportDeliveryBatch(request, env, body, auth, 
       if(auth.assertTossReport)await auth.assertTossReport(duplicate);
       return duplicate.status === 'completed' ? replayCompletedDeepReport(env, auth, duplicate) : json(publicStoredReport(duplicate), { status: 202 });
     }
-    if(!auth.assertTossReport)await startRefundableExecution(env, auth.userId, resolveSourceTransactionId(body), idempotencyKey, reportId, getPricing());
+    if(!auth.assertTossReport)await startRefundableExecution(env, auth.userId, resolveSourceTransactionId(body) || access.transactionId, idempotencyKey, reportId, getPricing(), access.passRefund);
   }
   const lockToken = sha256(`${reportId}|${Date.now()}|${Math.random()}`);
   const claimed = await withMongoRetry(env, () => ZiweiDeepReport.findOneAndUpdate({ id: reportId, userId: clean(auth.userId), status: { $in: ['partial', 'generating'] },
