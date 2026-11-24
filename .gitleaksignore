@@ -430,3 +430,5 @@ c4d928dd8628c8f38ca3e293419440094b32c6c1:public/js/core/home-funnel.js:generic-a
 5c6d3dcf291019347234b1a9b99b74735cb49f8d:__tests__/ui/saju-compat-premium-paid-delivery.behavior.test.js:generic-api-key:184
 5c6d3dcf291019347234b1a9b99b74735cb49f8d:__tests__/ui/saju-compat-premium-paid-delivery.behavior.test.js:generic-api-key:232
 5c6d3dcf291019347234b1a9b99b74735cb49f8d:__tests__/ui/saju-compat-premium-paid-delivery.behavior.test.js:generic-api-key:247
+# 2026-11-25 오탐: 영냥이 인덱스 스크립트 테스트의 가짜 URI 픽스처(cluster.example, 자격증명 아님)
+8ea3b2cd697b4199afee19cadb5190639c58c969:__tests__/worker/yeongnyangi-sweep-index.test.js:code-destiny-mongodb-uri-credentials:6
