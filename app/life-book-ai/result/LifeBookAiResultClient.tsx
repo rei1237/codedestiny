@@ -1993,6 +1993,7 @@ function LifeBookResultContent({ paymentSurface }: { paymentSurface?: "toss" }) 
             <ChapterReaderDock
               serviceName="인생의 책"
               rootSelector="#life-book-result-document"
+              clearSelector="[data-life-book-dock]"
               chapters={report.chapters.map((chapter, index) => ({ key: `chapter-${index + 1}`, title: chapter.title || copy.chapterPageLabel(chapter.chapterNumber || index + 1), kicker: lifeBookChapterKicker(chapter.title || "") || undefined, targetId: `chapter-${index + 1}` }))}
               onSelect={(index) => {
                 if (viewAll) {

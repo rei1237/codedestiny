@@ -5,7 +5,7 @@
 // 장 이동은 호스트가 넘긴 onSelect(기존 목차 버튼과 같은 이동 로직)로만 하고, 본문 DOM 은 바꾸지 않는다.
 // 글자 크기는 루트에 data-cd-reader-size 속성만 붙인다(보통이면 속성 없음 = 기존 화면 그대로).
 
-import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
 import type { ProductMaster } from "@/app/components/ProductMasterStrip";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
@@ -51,6 +51,7 @@ export default function ChapterReaderDock({
   rootSelector,
   onSelect,
   cover,
+  clearSelector,
 }: {
   serviceName: string;
   chapters: readonly ReaderChapter[];
@@ -60,6 +61,8 @@ export default function ChapterReaderDock({
   onSelect: (index: number) => void;
   /** 결과 화면에 표지가 따로 없을 때만 넘긴다(인생의 책은 기존 표지를 쓴다). */
   cover?: ChapterReaderCover;
+  /** 호스트가 화면 아래에 고정해 둔 자기 막대(예: 인생의 책 모바일 저장·공유 독). 고정돼 있을 때만 그 위로 올라간다. */
+  clearSelector?: string;
 }) {
   const korean = useKoreanReader();
   const [mounted, setMounted] = useState(false);
@@ -67,6 +70,7 @@ export default function ChapterReaderDock({
   const [visible, setVisible] = useState(false);
   const [open, setOpen] = useState(false);
   const [size, setSize] = useState<ReaderSize>("md");
+  const [lift, setLift] = useState(0);
   const openerRef = useRef<HTMLElement | null>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -108,7 +112,12 @@ export default function ChapterReaderDock({
         if (top <= viewport * 0.35) current = index;
       });
       setActive((previous) => (current >= 0 ? current : firstTop === Number.POSITIVE_INFINITY ? previous : 0));
-      setVisible(firstTop < viewport * 0.9 && root.getBoundingClientRect().bottom > viewport * 0.5);
+      // 마지막 장이 짧으면 맨 위로 올려도 상담지 끝이 화면 절반 위에 있다 — 끝이 위 4분의 1을 지난 뒤에만 숨긴다.
+      setVisible(firstTop < viewport * 0.9 && root.getBoundingClientRect().bottom > viewport * 0.25);
+      // 호스트의 하단 고정 막대를 가리지 않는다 — 고정(position: fixed)일 때만 그 높이만큼 올린다.
+      const clear = clearSelector ? document.querySelector<HTMLElement>(clearSelector) : null;
+      const clearTop = clear && window.getComputedStyle(clear).position === "fixed" ? clear.getBoundingClientRect().top : viewport;
+      setLift(Math.max(0, Math.round(viewport - clearTop)));
     };
     const schedule = () => { if (!frame) frame = window.requestAnimationFrame(measure); };
     schedule();
@@ -119,7 +128,7 @@ export default function ChapterReaderDock({
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, [signature, rootSelector, korean, total]);
+  }, [signature, rootSelector, korean, total, clearSelector]);
 
   const select = useCallback((index: number) => {
     if (index < 0 || index >= total) return;
@@ -192,7 +201,13 @@ export default function ChapterReaderDock({
       {mounted && createPortal(
         <>
           {visible && (
-            <div className={styles.bar} role="toolbar" aria-label={`${serviceName} 읽기 도구`}>
+            <div
+              className={styles.bar}
+              role="toolbar"
+              aria-label={`${serviceName} 읽기 도구`}
+              data-lift={lift > 0 ? "true" : undefined}
+              style={lift > 0 ? ({ "--cd-reader-lift": `${lift}px` } as CSSProperties) : undefined}
+            >
               <button type="button" className={styles.tocTrigger} onClick={openSheet} aria-haspopup="dialog" aria-label={`차례 열기. 지금 ${active + 1}장 ${current.title}`}>
                 <span className={styles.tocCount}>{pad(active + 1)}<span aria-hidden="true">/</span>{pad(total)}</span>
                 <span className={styles.tocTitle}>{current.title}</span>

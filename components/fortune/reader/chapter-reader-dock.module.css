@@ -66,6 +66,16 @@
 }
 :global(body.cd-mnav-mounted) .bar { bottom: calc(var(--cd-mnav-offset) + 8px); }
 :global(body.cd-mnav-mounted.cd-mobile-nav-hidden) .bar { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+/* 769px 이상에서는 쿠키 안내 배너가 화면 아래(24px)로 내려와 막대를 덮는다. 배너가 떠 있는 동안 그 위로 올린다
+   (AnalyticsConsent 가 html.cd-consent-open·--cd-consent-offset 을 단다). 768 이하에서는 배너가 100px 위에 떠 겹치지 않는다. */
+@media (min-width: 769px) {
+  :global(html.cd-consent-open) .bar { bottom: calc(var(--cd-consent-offset, 0px) + 8px); }
+  :global(html.cd-consent-open) .sheet { bottom: calc(var(--cd-consent-offset, 0px) + 8px + 64px); max-height: min(70vh, 560px, calc(100vh - var(--cd-consent-offset, 0px) - 96px)); }
+}
+/* 호스트 하단 고정 막대(인생의 책 모바일 독) 위. 쿠키 배너가 떠 있으면 둘 중 더 높은 것 위로 올린다
+   (배너는 768 이하에서 바닥 100px 위에 떠서 독 위로 올린 막대와 겹친다). */
+.bar[data-lift] { bottom: calc(var(--cd-reader-lift, 0px) + 8px); }
+:global(html.cd-consent-open) .bar[data-lift] { bottom: calc(max(var(--cd-reader-lift, 0px), var(--cd-consent-offset, 0px)) + 8px); }
 .bar button { min-height: 44px; border: 0; font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 .tocTrigger { display: flex; flex: 1 1 auto; align-items: center; gap: var(--cd-sp-sm); min-width: 0; padding: 0 var(--cd-sp-sm) 0 var(--cd-sp-md); border-radius: var(--cd-r-pill); background: none; text-align: start; }
 .tocCount { flex: none; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--cd-yehwa-champagne); }
@@ -75,8 +85,8 @@
 .size { display: grid; place-items: center; align-content: center; width: 52px; border-radius: var(--cd-r-pill); font: 400 17px / 1 var(--font-display); }
 .size small { margin-top: 2px; font: 700 10px / 1.2 var(--font-body, inherit); color: var(--cd-yehwa-pearl-muted); }
 
-/* 차례: 모바일은 하단 시트, 넓은 화면은 막대 위 패널. 내비(960)보다 위다. */
-.layer { position: fixed; inset: 0; z-index: 1000; }
+/* 차례: 모바일은 하단 시트, 넓은 화면은 막대 위 패널. 모달이라 내비(960)와 쿠키 안내 배너(100260)보다 위다. */
+.layer { position: fixed; inset: 0; z-index: 100270; }
 .backdrop { position: absolute; inset: 0; width: 100%; border: 0; background: color-mix(in srgb, var(--cd-yehwa-night-deep) 62%, transparent); cursor: pointer; }
 .sheet {
   position: absolute;

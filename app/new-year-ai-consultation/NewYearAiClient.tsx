@@ -1598,6 +1598,8 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [accessType, setAccessType] = useState<AccessType | "">("");
+  // 장 읽기 도구는 서버가 저장을 확정한 결과(completed·saved)에만 붙인다 — 표지의 재열람 안내가 사실이어야 한다.
+  const [resultSaved, setResultSaved] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [serverSections, setServerSections] = useState<ConsultationSection[]>([]);
   const [readingCount, setReadingCount] = useState<{ completed: number; total: number } | null>(null);
@@ -1653,6 +1655,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
       trackConsultationCompleted({id:result.sessionId || result.resultId || '',status:'completed',featureKey:FEATURE_KEY});
     }
     setAccessType(result.accessType || "");
+    setResultSaved(result.status === "completed" && result.saved === true);
     setMessages(Array.isArray(result.messages) ? result.messages : []);
     setServerSections(Array.isArray(result.sections) ? result.sections : []);
     setReadingCount(result.status && result.status !== "completed" ? result.progress ?? null : null);
@@ -2604,7 +2607,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
                       />
                     </RevealBlock>
                   )}
-                  <DomainConsultationCards bodies={domainBodies} monthly={index === 0 ? monthlyBlock : null} reader={FLAGSHIP_CHAPTER_READER_ENABLED && paymentSurface !== "toss" && index === 0 && status === "ready"} />
+                  <DomainConsultationCards bodies={domainBodies} monthly={index === 0 ? monthlyBlock : null} reader={FLAGSHIP_CHAPTER_READER_ENABLED && paymentSurface !== "toss" && index === 0 && status === "ready" && resultSaved} />
                   {index === 0 && (
                     <RevealBlock index={1}>
                       <ResultReference><SajuProfilePanel profile={sajuProfile} /></ResultReference>
