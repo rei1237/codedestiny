@@ -51,6 +51,27 @@ test('저장 프로필은 고른 필드만 답으로 옮기고, 필수 답이 �
   assert.equal(lib.nextBirthStepAfterProfile(steps, { gender: 'male', date: '1988-02-03', calendar: 'lunar' }), 'confirm');
 });
 
+test('생년월일 한 칸은 숫자만 눌러도 0000.00.00 으로 채우고, 월 2~9·일 4~9 는 앞에 0 을 붙여 넘긴다', () => {
+  const m = (raw) => lib.maskBirthDate(raw).text;
+  assert.equal(m('1990'), '1990');
+  assert.equal(m('19900'), '1990.0');
+  assert.equal(m('199005'), '1990.05');
+  assert.equal(m('19900515'), '1990.05.15');
+  assert.equal(m('1990515'), '1990.05.15', '월 5 는 05 로 넘긴다');
+  assert.equal(m('1990124'), '1990.12.04', '일 4 는 04 로 넘긴다');
+  assert.equal(m('1990.1.5'), '1990.01.05', '구분자가 칸을 닫는다(붙여넣기)');
+  assert.equal(m('1990-05-15'), '1990.05.15');
+  assert.equal(m('1990년 5월 15일'), '1990.05.15');
+  assert.equal(m('199005159'), '1990.05.15', '여덟 자리 뒤는 버린다');
+  assert.equal(m('1990.0'), '1990.0', '지우는 중인 값은 그대로 둔다');
+  assert.deepEqual(lib.maskBirthDate('1990.05.15').parts, { year: '1990', month: '05', day: '15' });
+  const now = new Date(2026, 10, 21);
+  assert.equal(lib.dateFromParts(lib.maskBirthDate('19900230').parts, now).invalid, true, '판정은 세 칸과 같은 dateFromParts');
+  assert.equal(lib.dateFromParts(lib.maskBirthDate('18991231').parts, now).invalid, true);
+  assert.equal(lib.birthDateText('1990-05-15'), '1990.05.15');
+  assert.equal(lib.birthDateText(''), '');
+});
+
 test('장소 답은 확인된 좌표가 있을 때만 출생지로 읽고, 비우면 null(서울 경도 기준 유지)', () => {
   const resolved = lib.placeAnswer('부산', { lat: 35.1, lng: 129.04, timezone: 'Asia/Seoul', name: '부산광역시' });
   assert.deepEqual(lib.readBirthAnswers({ place: resolved }).place, { text: '부산', lat: 35.1, lng: 129.04, timezone: 'Asia/Seoul', name: '부산광역시' });

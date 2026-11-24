@@ -12,8 +12,8 @@ import { useGuidedT } from '../useGuidedT';
 import { formatBirthTime, maskBirthTimeInput, normalizeBirthTime } from '@/lib/birthTimeInput';
 import {
   BIRTH_CONFIRM, type BirthField, type BirthProfileSeed, type BirthStepsConfig, type DateParts, SIJIN,
-  birthAnswersFromSeed, dateFromParts, isBirthField, nextBirthStepAfterProfile, placeAnswer, readBirthAnswers,
-  sijinForValue, splitBirthDate,
+  birthAnswersFromSeed, birthDateText, dateFromParts, isBirthField, maskBirthDate, nextBirthStepAfterProfile, placeAnswer,
+  readBirthAnswers, sijinForValue, splitBirthDate,
 } from './birth-steps';
 import styles from './guided-birth.module.css';
 
@@ -31,6 +31,13 @@ export type GuidedBirthOptions = BirthStepsConfig & {
   /** 성별에 '밝히지 않을래요'(unknown)를 둔다(기본 true). */
   genderUnknown?: boolean;
   nameMaxLength?: number;
+  /** 생년월일 입력 모양. 'single' 은 한 칸(숫자만 누르면 0000.00.00), 기본은 년·월·일 세 칸. 판정(dateFromParts)·답 형식은 같다. */
+  dateInput?: 'segments' | 'single';
+  /** 태어난 장소. 기본 'lookup' 은 위치 조회(/api/geocode)로 경도·시간대를 확인한다.
+   *  'record' 는 적은 글자만 남기고 확인 요약에 보인다 — 계산에 장소를 쓰지 않는 흐름용(조회·서버 전송 없음). */
+  placeMode?: 'lookup' | 'record';
+  /** 확인 요약 아래 '브라우저에서만 계산' 안내. 출생 정보를 서버로 보내지 않는 흐름만 켠다. */
+  localNote?: boolean;
 };
 
 type T = ReturnType<typeof useGuidedT>;
@@ -63,14 +70,14 @@ export function GuidedBirthStep({ flow, step, options }: StepProps) {
     { value: 'male', label: t('birth.male') },
     ...(options.genderUnknown === false ? [] : [{ value: 'unknown', label: t('birth.genderUnknown') }]),
   ]} />;
-  else if (id === 'date') body = <DateStep flow={flow} options={options} t={t} />;
+  else if (id === 'date') body = options.dateInput === 'single' ? <DateSingleStep flow={flow} options={options} t={t} /> : <DateStep flow={flow} options={options} t={t} />;
   else if (id === 'calendar') body = <GuidedChoiceList flow={flow} label={t('birth.calendarTitle')} options={[
     { value: 'solar', label: t('birth.solar') },
     { value: 'lunar', label: t('birth.lunar') },
     { value: 'leap', label: t('birth.leap'), hint: t('birth.leapHint') },
   ]} />;
   else if (id === 'time') body = <TimeStep flow={flow} options={options} t={t} />;
-  else if (id === 'place') body = <PlaceStep flow={flow} options={options} t={t} />;
+  else if (id === 'place') body = options.placeMode === 'record' ? <PlaceRecordStep flow={flow} options={options} t={t} /> : <PlaceStep flow={flow} options={options} t={t} />;
   else body = <ConfirmStep flow={flow} options={options} t={t} />;
   return <div className={styles.step}>{picker}{body}</div>;
 }
@@ -181,6 +188,32 @@ function DateStep({ flow, options, t }: { flow: GuidedFlow; options: GuidedBirth
   </>;
 }
 
+/* ── 생년월일 한 칸: 숫자만 누르면 점이 들어간다(0000.00.00). 판정은 세 칸과 같은 dateFromParts(1900년 ~ 오늘). ── */
+function DateSingleStep({ flow, options, t }: { flow: GuidedFlow; options: GuidedBirthOptions; t: T }) {
+  const answer = String(flow.state.answers.date || '');
+  const [text, setText] = useState(() => birthDateText(answer));
+  const inputId = `${options.idPrefix}-date`;
+  const errorId = `${options.idPrefix}-date-error`;
+  const hintId = `${options.idPrefix}-date-hint`;
+  // 바깥(저장 프로필)에서 답이 바뀌면 칸을 다시 채운다. 입력 중 미완성·잘못된 값은 답이 ''라 건드리지 않는다.
+  useEffect(() => {
+    if (answer && dateFromParts(maskBirthDate(text).parts).value !== answer) setText(birthDateText(answer));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- text 는 비교용으로만 읽는다
+  }, [answer]);
+  const verdict = dateFromParts(maskBirthDate(text).parts);
+  return <>
+    <label className={styles.label} htmlFor={inputId}>{t('birth.dateLabel')}</label>
+    <input id={inputId} name="birth-date" className={`${styles.field} ${styles.dateField}`} type="text" inputMode="numeric"
+      autoComplete="bday" enterKeyHint="next" maxLength={20} placeholder={t('birth.dateSinglePlaceholder')}
+      aria-invalid={verdict.invalid || undefined} aria-describedby={verdict.invalid ? errorId : hintId} value={text}
+      onChange={(event) => { const masked = maskBirthDate(event.target.value); setText(masked.text); flow.controller.setAnswer(dateFromParts(masked.parts).value); }}
+      onKeyDown={advanceOnEnter(flow)} />
+    {verdict.invalid
+      ? <p className={styles.error} id={errorId} role="alert">{t('birth.dateInvalid')}</p>
+      : <p className={styles.hint} id={hintId}>{t('birth.dateSingleHint')}</p>}
+  </>;
+}
+
 /* ── 태어난 시각: 12지 시진 칩 + 직접 입력 + '시간을 몰라요' ── */
 function TimeStep({ flow, options, t }: { flow: GuidedFlow; options: GuidedBirthOptions; t: T }) {
   const answer = String(flow.state.answers.time || '');
@@ -235,8 +268,25 @@ function PlaceStep({ flow, options, t }: { flow: GuidedFlow; options: GuidedBirt
   </>;
 }
 
+/* ── 태어난 장소(기록만): 적은 글자를 확인 요약에 남긴다. 계산에 쓰지 않고 위치 조회도 하지 않는다. 모르면 건너뛴다. ── */
+const PLACE_MAX = 60;
+function PlaceRecordStep({ flow, options, t }: { flow: GuidedFlow; options: GuidedBirthOptions; t: T }) {
+  const current = readBirthAnswers(flow.state.answers);
+  const inputId = `${options.idPrefix}-place`;
+  return <>
+    <label className={styles.label} htmlFor={inputId}>{t('birth.placeLabel')}</label>
+    <input id={inputId} name="birth-place" className={styles.field} type="text" maxLength={PLACE_MAX} autoComplete="off" enterKeyHint="next"
+      placeholder={t('birth.placePlaceholder')} value={current.placeText}
+      onChange={(event) => flow.controller.setAnswer(placeAnswer(event.target.value.slice(0, PLACE_MAX), null))} onKeyDown={advanceOnEnter(flow)} />
+    <p className={styles.hint}>{t('birth.placeRecordHint')}</p>
+    <button type="button" className={styles.unknown} onClick={() => { flow.controller.setAnswer([]); flow.controller.next('cta'); }}>
+      {t('birth.placeSkip')}
+    </button>
+  </>;
+}
+
 /* ── 확인 요약: 줄마다 '수정하기'(그 단계로 이동), 하단 CTA '확인'. ── */
-function ConfirmStep({ flow, t }: { flow: GuidedFlow; options: GuidedBirthOptions; t: T }) {
+function ConfirmStep({ flow, options, t }: { flow: GuidedFlow; options: GuidedBirthOptions; t: T }) {
   const answers = readBirthAnswers(flow.state.answers);
   const fields = flow.controller.steps.map((item: GuidedStep) => item.id).filter(isBirthField) as BirthField[];
   const value = (field: BirthField): string => {
@@ -252,6 +302,7 @@ function ConfirmStep({ flow, t }: { flow: GuidedFlow; options: GuidedBirthOption
       const chip = sijinForValue(answers.time);
       return chip ? `${t(`birth.sijin.${chip.key}`)} (${chip.from}~${chip.to})` : answers.time;
     }
+    if (options.placeMode === 'record') return answers.placeText.trim() ? t('birth.placeRecorded', { place: answers.placeText.trim() }) : t('birth.placeDefault');
     return answers.place ? (answers.place.name || answers.place.text) : t('birth.placeDefault');
   };
   const rows = useMemo(() => fields, [fields.join('|')]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -272,6 +323,7 @@ function ConfirmStep({ flow, t }: { flow: GuidedFlow; options: GuidedBirthOption
           </div>
         ))}
       </dl>
+      {options.localNote ? <p className={styles.hint}>{t('birth.localNote')}</p> : null}
     </section>
   );
 }
