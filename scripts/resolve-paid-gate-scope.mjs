@@ -542,7 +542,28 @@ function selfTest() {
     if (got.join(",") !== "a.js,b.js") fail(`합법 paths 를 잘못 읽었다: ${got.join(",")}`);
   }
 
-  const total = VALUES.length + NON_LEAF.length + 10;
+  // 결제 후 전달·정체 확정·환불 축(2026-11-24). 와일드카드에 안 걸려 이 게이트가 깨어나지 않던 파일들이다.
+  {
+    const patterns = triggerGlobs.map(globToRegExp);
+    const missing = [
+      "app/astrology-ai/page.tsx",
+      "app/components/ExpertRetryPanel.tsx",
+      "worker/lib/service-execution-task.js",
+      "worker/lib/pass-consumption.js",
+      "worker/lib/consultation-delivery-refund.js",
+      "worker/lib/checkpoint-refund-guard.js",
+      "worker/lib/paid-delivery-stuck.js",
+      "worker/lib/consultation-recovery-registry.js",
+      "worker/lib/consultation-recovery-task.js",
+      "worker/lib/celestial-delivery-store.js",
+      "worker/routes/celestial-harmony.js",
+      "worker/routes/relationship-boundary-test.js",
+      "worker/routes/ziwei-deep-report.js",
+    ].filter((file) => !patterns.some((re) => re.test(file)));
+    if (missing.length) fail(`결제 후 전달·환불 파일이 트리거 paths 에 없다: ${missing.join(", ")}`);
+  }
+
+  const total = VALUES.length + NON_LEAF.length + 11;
   console.log(`[paid-gate-scope] self-test ${total - failed}/${total} ${failed ? "FAILED" : "OK"}`);
   return failed ? 1 : 0;
 }
