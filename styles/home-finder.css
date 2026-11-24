@@ -91,7 +91,7 @@ html.neo-mode .yh-finder, html[data-cd-theme="neo"] .yh-finder {
 .yh-more-consults>summary { color:#fff8ec; background:#413145; border:1px solid #bb9972; border-radius:15px; }
 .yh-more-chevron { font:24px/1 sans-serif; color:#e8c890; }
 .yh-more-consults[open]>summary .yh-more-chevron { transform:rotate(180deg); }
-.yh-story-entry { margin:clamp(20px,4vw,38px) auto 0; padding:clamp(16px,2.8vw,32px); border:1px solid var(--cd-border); border-radius:24px; background:var(--cd-surface); }
+.yh-story-entry { padding:0; border:0; background:none; }
 .yh-home .yh-story-entry>h2,.yh-home .yh-library h2 { color:var(--cd-text); font:400 clamp(1.65rem,3.4vw,2.4rem)/1.25 var(--font-display); }
 .yh-story-entry .cdh-story__spread { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
 .yh-story-entry .cdh-story__window { aspect-ratio:3/2; }
@@ -151,27 +151,22 @@ html.neo-mode .yh-finder, html[data-cd-theme="neo"] .yh-finder {
 .yh-library .yh-shelf-more:not([open]) .yh-book-grid { display:none; }
 
 .yh-home .yh-story-entry { padding:0; }
-.yh-story-summary { display:flex; align-items:center; gap:14px; min-height:64px; padding:10px 16px; list-style:none; cursor:pointer; color:var(--cd-text); }
-.yh-story-summary::-webkit-details-marker { display:none; }
-.yh-story-summary img { width:68px; height:48px; object-fit:cover; border-radius:10px; }
-.yh-story-summary strong,.yh-story-summary small { display:block; }
-.yh-story-summary strong { font:400 1.4rem/1.4 var(--font-display); }
-.yh-story-summary b { margin-inline-start:auto; }
-.yh-story-entry[open]>.yh-story-summary b { transform:rotate(180deg); }
 .yh-story-entry>.cdh-story__spread { padding:0 14px 10px; }
-.yh-home .yh-story-entry>.yh-library { margin:6px 0 0; border-inline:0; border-bottom:0; border-radius:0 0 24px 24px; }
+.yh-home .yh-story-entry>.yh-library { margin:8px 0 0; }
 .yh-character .yh-character-caption { min-height:44px; padding:5px 12px; background:color-mix(in srgb,#fff4e4 89%,transparent); border:1px solid #ac846faa; color:#503342; border-radius:20px 20px 20px 6px; font:500 14px/1.45 var(--font-body); cursor:pointer; }
 .yh-character-caption::before { content:"✧"; color:#82582f; margin-right:4px; }
 
-#cdHomeFunnel .yh-footer-directory { display:block; box-sizing:border-box; width:min(calc(100% - 24px),60rem); max-width:none; margin:20px auto 8px; overflow:hidden; text-align:start; border:1px solid #b79a79; border-radius:20px; background:var(--cd-surface); box-shadow:0 6px 22px -17px #644554; }
-#cdHomeFunnel .yh-footer-directory>summary { display:flex; justify-content:flex-start; gap:12px; min-height:62px; box-sizing:border-box; padding:10px 16px; color:var(--cd-text); background:linear-gradient(110deg,color-mix(in srgb,var(--cd-surface) 88%,#e8cda4),var(--cd-surface)); }
-#cdHomeFunnel .yh-footer-directory>summary::after { content:none; }
-.yh-directory-emblem { display:grid; place-items:center; width:40px; height:40px; flex:none; border:1px solid #bba17f; border-radius:50%; color:var(--cd-text); }
-.yh-directory-emblem svg { width:24px; height:24px; }
-#cdHomeFunnel .yh-footer-directory summary strong { color:var(--cd-text); font:400 clamp(1.1rem,2vw,1.4rem)/1.4 var(--font-display); }
-.yh-directory-toggle { margin-inline-start:auto; width:10px; height:10px; border:solid currentColor; border-width:0 1.5px 1.5px 0; transform:rotate(45deg); }
+/* 운세 콘텐츠 둘러보기: 버튼은 home-funnel.css 의 달빛 예화 공용 버튼(440×88)을 쓰고, 열면 아래에 색인 패널이 펼쳐진다. */
+#cdHomeFunnel .yh-footer-directory { display:block; box-sizing:border-box; width:min(100%,60rem); max-width:none; margin:0 auto 8px; text-align:start; border:0; background:none; }
+#cdHomeFunnel .yh-footer-directory>summary { cursor:pointer; list-style:none; }
+#cdHomeFunnel .yh-footer-directory>summary::-webkit-details-marker { display:none; }
+#cdHomeFunnel .yh-footer-directory>summary:focus-visible { outline:3px solid var(--cdh-accent); outline-offset:4px; }
+.yh-directory-emblem { display:grid; place-items:center; width:46px; height:46px; flex:none; border:1px solid color-mix(in srgb,var(--cdh-gold) 45%,transparent); border-radius:50%; color:var(--cdh-gold); }
+.yh-directory-emblem svg { width:26px; height:26px; }
+#cdHomeFunnel .yh-footer-directory summary strong { color:inherit; font:inherit; }
+.yh-directory-toggle { flex:none; margin:0 3px 4px auto; width:10px; height:10px; border-right:1.5px solid var(--cdh-gold); border-bottom:1.5px solid var(--cdh-gold); transform:rotate(45deg); transition:transform .2s ease; }
 .yh-footer-directory[open] .yh-directory-toggle { transform:rotate(225deg); }
-#cdHomeFunnel .yh-footer-directory .cdh-directory { width:auto; max-width:none; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin:0; padding:14px 18px 19px; gap:16px; justify-content:stretch; border-top:1px solid var(--cd-border); }
+#cdHomeFunnel .yh-footer-directory .cdh-directory { width:auto; max-width:none; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); margin:16px 0 0; padding:14px 18px 19px; gap:16px; justify-content:stretch; border:1px solid #b79a79; border-radius:20px; background:var(--cd-surface); box-shadow:0 6px 22px -17px #644554; }
 #cdHomeFunnel .yh-footer-directory .cdh-directory h3 { margin:0 0 6px; font:650 16px/1.5 var(--font-body); color:var(--cd-text); }
 .yh-footer-directory .cdh-directory>div>div { display:flex; align-items:flex-start; flex-wrap:wrap; gap:2px 7px; }
 #cdHomeFunnel .yh-footer-directory .cdh-directory a { justify-content:flex-start; min-height:44px; padding:3px 6px; color:var(--cd-text-muted); font:400 15px/1.5 var(--font-body); border-radius:8px; text-underline-offset:3px; }
@@ -185,7 +180,7 @@ html.neo-mode .yh-finder, html[data-cd-theme="neo"] .yh-finder {
 #cdSiteFooter.yh-site-footer .cd-footer-legal__links,#cdSiteFooter.yh-site-footer .cd-footer-legal__meta { justify-content:flex-start; }
 #cdSiteFooter.yh-site-footer .cd-footer-legal__disclaimer { text-align:start; line-height:1.6; }
 #cdSiteFooter.yh-site-footer .cd-footer-business-details { width:min(100%,60rem); text-align:start; }
-@media(max-width:700px) { #cdHomeFunnel .yh-footer-directory .cdh-directory { grid-template-columns:1fr; gap:12px; } .yh-directory-emblem { width:34px; height:34px; } #cdSiteFooter.yh-site-footer { padding-bottom:96px; } }
+@media(max-width:700px) { #cdHomeFunnel .yh-footer-directory .cdh-directory { grid-template-columns:1fr; gap:12px; } #cdSiteFooter.yh-site-footer { padding-bottom:96px; } }
 
 #cdSiteFooter.yh-site-footer .cd-footer-legal { box-sizing:border-box; display:grid; grid-template-columns:minmax(0,1fr); align-items:start; gap:8px; padding:0; }
 #cdSiteFooter.yh-site-footer .cd-footer-byline { box-sizing:border-box; padding:10px 0 6px; border:0; color:var(--cd-text); font-size:15px; line-height:1.6; }

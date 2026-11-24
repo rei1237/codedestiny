@@ -15,6 +15,7 @@ import { brandCopy } from '../../lib/seo/brand-copy.mjs';
 import { renderYehwaHome, renderSituationCards, renderLightSajuAndMasters } from '../../lib/marketing/yehwa-home.mjs';
 import { renderTrustBar, renderCompareSection } from '../../lib/marketing/home-trust-compare.mjs';
 import { renderHomeConsultationPicker } from '../../lib/marketing/home-consultation-picker.mjs';
+import { renderStoryLibrary } from '../../lib/marketing/home-story-library.mjs';
 import { chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { renderFreePromoShellBanner } from '../../lib/marketing/free-promo-shell.mjs';
@@ -272,9 +273,10 @@ const introCards = [
   { id: 'fortune-chat', href: '/fortune-chat/?character=yeoni', title: '연이와 대화하기', desc: '말로 풀어놓고 싶은 고민을 연이와 차근차근 살펴봐요.', image: '/images/service-introductions/fortune-chat-yeoni.webp', action: '연이와 상담하기' },
   { id: 'yeongnyangi-question', href: '/yeongnyangi/', title: '영냥이 고민 상담', desc: '연애·일·돈 고민을 남기면, 질문에 맞춘 AI 운세 해석과 행동 조언을 받아요.', image: '/images/service-introductions/yeongnyangi-question-v2-640.webp', action: '영냥이에게 물어보기' },
 ];
+// 달빛 이야기는 대표 상담이 아니라 MV 아래 슬롯({{moonStories}})에 둔다.
+vars.moonStories = readFileSync("templates/home-moon-stories.html", "utf8").replace("{{webtoonShelf}}", renderStoryLibrary());
 vars.signature = renderHomeConsultationPicker({
   concernComparisonHtml: readFileSync("templates/home-concern-comparison.html", "utf8").replace("{{neoEmailConsultation}}", vars.neoEmailConsultation),
-  moonStoriesHtml: readFileSync("templates/home-moon-stories.html", "utf8"),
   catalog: registryWindow.__cdServiceRegistry,
   products: signatureProducts.map(product => ({...product, priceLabel:signaturePrice(product.featureKey, product.priceSuffix), resultFormat:product.resultFormat || storyBenefits[storySlugByProduct[product.id]].join(' · ')})),
   intros: introCards.map(card => card.id === 'yeongnyangi-question' ? {...card, featureKey:chatQuestionFeatureKey('mackerel'), priceLabel:signaturePrice(chatQuestionFeatureKey('mackerel'), '부터'), priceSuffix:'부터'} : card),
