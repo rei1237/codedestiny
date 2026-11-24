@@ -1,7 +1,7 @@
 ---
-status: in-progress
-updated: 2026-11-22
-next: 단계 D — ritual-v1 장면(gate·bell, AVIF source)·소품(향로·연등 dim/lit)과 audio-v3 SFX 를 RitualFlow 에 연결(설계 절 전환·프리로드·low tier/reduced-motion), i18n 소품 alt, 테스트, check:fast, 커밋
+status: done
+updated: 2026-11-24
+next: 없음 — 후속 과제는 `docs/design/moonlit-lotus-ritual.md` "알려진 위험"·"아직 없는 것"(별도 요청 때)
 ---
 
 # 달빛 연화당 참배 흐름 — 다각도 사찰 그림·효과음 에셋
@@ -122,6 +122,16 @@ next: 단계 D — ritual-v1 장면(gate·bell, AVIF source)·소품(향로·연
 - [x] A. 조사: 화풍·기존 시점·에셋 이력·도구(ffmpeg, codex-image) 확인, 설계 확정, 이 문서 갱신·커밋
 - [x] B. 효과음 합성: 범종·풍경·향 불붙기·연등 떠오름 → `public/assets/moonlit-lotus/audio-v3/` + manifest, 합성 스크립트, 커밋 (42b187b60)
 - [x] C. 그림 생성: 새로 필요한 장면·소품 생성 → 리사이즈·포맷 변환 → `public/assets/moonlit-lotus/ritual-v1/` + manifest(프롬프트 기록), visual-checker 로 화풍 일치 판정, 커밋
-- [ ] D. 연결: 단계별 시점·전환·소품·SFX 를 RitualFlow 에 연결, i18n alt 키, preload, low tier/reduced-motion, 테스트 추가/갱신, check:fast, 커밋
-- [ ] E. 화면 검증: dev(mock) 360·390·844×390·1440 전 흐름 캡처 → visual-checker, 수정, 커밋
-- [ ] F. 마무리: docs/design/moonlit-lotus-ritual.md 갱신, check:pre-push, origin/main 머지 → `git push origin HEAD:main`(메인 세션이 수행), 이 문서 status: done
+- [x] D. 연결: 단계별 시점·전환·소품·SFX 를 RitualFlow 에 연결, i18n alt 키, preload, low tier/reduced-motion, 테스트 추가/갱신, check:fast, 커밋 (a26bee08aa)
+- [x] E. 화면 검증: dev(mock) 360·390·844×390·1440 전 흐름 캡처 → visual-checker, 수정, 커밋 (4184e5d194)
+- [x] F. 마무리: docs/design/moonlit-lotus-ritual.md 갱신(00f009c26d), check:pre-push, origin/main 머지 → `git push origin HEAD:main`(2755f4e0d5..00f009c26d), 이 문서 status: done
+
+## 단계 D·E·F 결과 (2026-11-24)
+- 이어받기: 남은 미커밋 3파일은 WIP be88633b23 로 보존 → origin/main 머지 → D a26bee08aa(RitualBackdrop 두 겹 크로스페이드·카메라, 다음 단계 1장 프리로드, img error 시 마지막 그림 유지, 향로·연등 소품, SFX 불붙기·연등·범종·풍경(14–24s, 숨김 탭 쉼), `moonlitRitual` 100키, 테스트 2파일).
+- 검증(실측): `npx tsc --noEmit` exit 0; check:fast 통과(jest 493 suites/8600 tests, BLOCKED 없음); moonlit 테스트 74/74; check:pre-push exit 0.
+- E 캡처: headed Chrome(`channel:'chrome'` — Playwright chromium-1228 미설치), 쿠키 동의 `cd_cookie_consent=essential` 미리 설정, 매 장 `scrollTo(0,0)`·마우스 치움. 콘솔 오류·실패 요청 0. 프리로드는 단계마다 다음 그림 1장+소품만.
+- E 수정 4184e5d194: 향로가 오른쪽 아래 음악 버튼(44px·"소리 켜기" 알약)에 가려 → 캐릭터 왼편 바닥으로. 재판정 통과(360 x7·390 x8·844 x21·1440 x430, 겹침 0).
+- 이미지 무게(실측): 첫 화면 세로 hall-768 106KB → gate-768.avif 64KB, 가로 hall-1536 391KB → gate-1536.avif 119KB. 전 흐름 누적 세로 약 1.0MB·가로 약 1.9MB(단계별로 나눠 받음).
+- SEO: title·description·robots noindex,nofollow·H1 변경 전후 동일, canonical 없음 동일, page.tsx 무변경, sitemap 밖 — 영향 없음.
+- visual-checker 남긴 것(보고만): 회향 달이 휴대폰·844 에서 말풍선 뒤, 844 삼배 불상이 말풍선 뒤(기존 hall 그림), 360·390 소원 단계 상단 단계명 "소원 ..." 잘림(이전 상단 캡처 없음 — 기존 여부 미확인), 844 5·5b 패널 안쪽 스크롤바, 삼배 캐릭터 뒤 사각 바탕(기존).
+- 롤백: 플래그 없음 → `git revert 4184e5d194 a26bee08aa`(문서 커밋은 남겨도 무방).
