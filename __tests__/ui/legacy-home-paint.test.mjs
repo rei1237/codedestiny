@@ -44,3 +44,33 @@ test('the recorded home keeps layout, first-action styles and the original casca
     assert.equal(optimizeLegacyHomePaint(html,dir,profile),html);
   } finally { rmSync(dir,{recursive:true,force:true}); }
 });
+
+test('deferred workflows keep their CSS import base and only the short sheet is preloaded', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'ggul-style-hints-'));
+  try {
+    mkdirSync(path.join(dir,'styles'), {recursive:true});
+    const full = '/styles/saju-reading.css', base = '/styles/cosmic-main.css';
+    const needed = 'p{color:blue}';
+    const imported = '@import"./saju-compact.css";' + needed + '.hidden-reading{color:grey}'.repeat(40);
+    const cosmic = needed + '.distant{color:grey}'.repeat(40);
+    writeFileSync(path.join(dir,full),imported);
+    writeFileSync(path.join(dir,base),cosmic);
+    const html = '<html><head><link data-cd-home-preload rel="preload" as="style" href="' + base + '"><link rel="preload" href="' + base + '" as="style"><link rel="stylesheet" href="' + base + '"><link rel="stylesheet" href="' + full + '" media="print" onload="this.onload=null;this.media=\'all\'"></head><body><p id="cdHomeFunnel">운세</p></body></html>';
+    const before = new JSDOM(html,{includeNodeLocations:true});
+    const structure = homeStructure(before.window.document);
+    before.window.close();
+    const profile = {structure,styles:{
+      [base]:{sha256:digest(cosmic),ranges:[[0,needed.length]]},
+      [full]:{sha256:digest(imported),ranges:[[imported.indexOf(needed),imported.indexOf(needed)+needed.length]]},
+    }};
+    const rendered = new JSDOM(optimizeLegacyHomePaint(html,dir,profile));
+    const doc = rendered.window.document;
+    assert.equal(doc.querySelectorAll('link[rel=preload]').length,1);
+    assert.equal(doc.querySelector('link[rel=preload]').getAttribute('href'),doc.querySelector('link[rel=stylesheet]').getAttribute('href'));
+    const partial = doc.querySelector('link[media="print"]').getAttribute('href');
+    assert.ok(partial.startsWith('/styles/first-'));
+    assert.ok(readFileSync(path.join(dir,partial),'utf8').includes('@import"./saju-compact.css";'));
+    assert.equal(doc.querySelector('link[media="print"]').nextElementSibling.content.firstElementChild.getAttribute('href'),full);
+    rendered.window.close();
+  } finally { rmSync(dir,{recursive:true,force:true}); }
+});
