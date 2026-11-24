@@ -69,3 +69,12 @@ test("the existing section labels and unknown old products keep readable fallbac
   expect(resolveOrderProductName({ featureKey: "retired-product", pricingSnapshot: { orderName: "이전 상담 상품" } })).toBe("이전 상담 상품");
   expect(adaptOrderToViewModel({ id: "old", featureKey: "retired-product" }).title).toBe("개별 운세 이용권");
 });
+
+test("saju guardian unlock is a single feature, not the retired guardian fortune conversation pass", () => {
+  const unlock = adaptOrderToViewModel({ id: "sg", featureKey: "saju-guardian-unlock", productId: "saju-guardian-unlock" });
+  expect(unlock.type).toBe("single-feature");
+  expect(unlock.title).toBe("개별 운세 이용권");
+  const legacy = adaptOrderToViewModel({ id: "gf", featureKey: "guardian_fortune_conversation_credit", productId: "guardian_fortune_chat_3" });
+  expect(legacy.type).toBe("guardian-fortune");
+  expect(legacy.title).toBe("오늘의 귀인 운세 대화권");
+});

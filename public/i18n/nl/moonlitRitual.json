@@ -130,6 +130,9 @@
       "bless": "Offering a blessing",
       "react": "Reacting with delight",
       "rest": "Dozing off"
+    },
+    "props": {
+      "incenseBurner": "A golden incense burner with a lotus lid and three incense sticks"
     }
   }
 }
