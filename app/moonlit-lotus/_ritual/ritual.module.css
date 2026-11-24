@@ -52,8 +52,8 @@
 .warm { position:absolute; width:1px; height:1px; overflow:hidden; opacity:0; pointer-events:none; }
 .warm img { width:1px; height:1px; }
 .figure { position:relative; }
-/* 향로: 향 단계에서 캐릭터 오른편 바닥. 캐릭터(.figure)보다 먼저 그려 뒤에 선다. */
-.burner { position:absolute; z-index:0; bottom:2%; left:calc(50% + min(26vw,150px)); width:min(22vw,140px); height:auto; pointer-events:none; animation:ritual-fade 450ms ease-out both; }
+/* 향로: 향 단계에서 캐릭터 왼편 바닥(오른쪽 아래는 음악 버튼 자리). 캐릭터(.figure)보다 먼저 그려 뒤에 선다. */
+.burner { position:absolute; z-index:0; bottom:2%; right:calc(50% + min(26vw,150px)); width:min(22vw,140px); height:auto; pointer-events:none; animation:ritual-fade 450ms ease-out both; }
 .backdrop::after { content:''; position:absolute; inset:0; background:linear-gradient(to bottom,transparent 45%,var(--ml-paper)); }
 /* 겹침은 그림 크기 기준(퍼센트 margin 은 무대 너비 기준이라 넓은 화면에서 발·절 포즈가 잘렸다). 그림 아래 여백은 3.4% 이상. */
 .figure { --figure-size:min(62vw,300px,42dvh); align-self:end; width:var(--figure-size); aspect-ratio:1; margin-bottom:calc(var(--figure-size) * -.03); }
@@ -136,7 +136,7 @@
   .figure { --figure-size:min(40vw,50dvh); }
   .flow .action { min-height:48px; }
   .lantern { width:56px; height:56px; }
-  .burner { left:calc(50% + min(20vw,100px)); width:min(14vw,90px); }
+  .burner { right:calc(50% + min(20vw,100px)); width:min(14vw,90px); }
   .flow .wishInput { min-height:52px; }
   .flow .quiet { min-height:44px; padding-block:4px; }
   .breathLight,.flow .holdButton { width:88px; height:88px; min-height:88px; }
