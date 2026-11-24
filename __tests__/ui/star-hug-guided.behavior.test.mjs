@@ -161,7 +161,7 @@ test('저장 프로필을 고르면 원본 onProfileSelect 로 생년월일·이
 
 // ── W1 공용 출생 입력(GUIDED_BIRTH_STAR_HUG_ENABLED): 감정 → 이름 → 생년월일(선택) → 시각 → 확인 → 별자리 → 고민, 원본 상태·run 은 같다 ──
 {
-  const { default: BirthGuided } = await load({ GUIDED_BIRTH_STAR_HUG_ENABLED: true });
+  const { default: BirthGuided } = await load({ GUIDED_BIRTH_STAR_HUG_ENABLED: true, GUIDED_BIRTH_INPUT_V2_ENABLED: false });
 
   test('W1 출생 입력: 이름 → 년·월·일 → 시진 → 확인 → 별자리(자동 매칭) → 원본 run 1회, 원본 값 형식(8·4자리) 유지', async () => {
     YeonStarHugGuided = BirthGuided;
@@ -207,6 +207,40 @@ test('저장 프로필을 고르면 원본 onProfileSelect 로 생년월일·이
     await v.click(v.byText('다음')); await v.click(v.byText('다음'));
     await waitFor(() => v.q('#original'));
     assert.deepEqual(globalThis.__runs[0], { emotion: 'calm', birthDate: '19880203', birthTime: '2310', name: '별', sign: '물병자리', concern: '' });
+    await v.close();
+  });
+}
+
+// ── 출생 입력 확대(GUIDED_BIRTH_INPUT_V2_ENABLED): 한 칸 날짜, 시각 다음 태어난 장소(건너뛰기) — 원본 run 값은 같다 ──
+{
+  const { default: BirthV2 } = await load({ GUIDED_BIRTH_STAR_HUG_ENABLED: true, GUIDED_BIRTH_INPUT_V2_ENABLED: true });
+
+  test('출생 입력 확대: 한 칸 날짜 → 시진 → 장소 건너뛰기 → 확인(서울 기준) → 원본 run 은 장소 단계 없는 W1 과 같다', async () => {
+    YeonStarHugGuided = BirthV2;
+    globalThis.__profile = undefined;
+    const v = await mount();
+    await v.click(v.byText('마음 별자리 시작'));
+    await v.click(v.byText('걱정돼')); await v.click(v.byText('다음'));
+    await v.setValue(v.q('input[name="name"]'), '달님');
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '생년월일을 알려 주세요');
+    const date = v.q('input[name="birth-date"]');
+    await v.setValue(date, '19900515');
+    assert.equal(date.value, '1990.05.15');
+    await v.click(v.byText('다음'));
+    await v.click(v.byText('묘시'));
+    await v.click(v.byText('다음'));
+    assert.equal(v.heading(), '태어난 곳을 알려 주세요');
+    await v.click(v.byText('잘 몰라요, 건너뛸게요'));
+    assert.equal(v.heading(), '입력한 정보가 맞나요?');
+    const confirm = v.w.document.body.textContent;
+    assert.ok(confirm.includes('서울 기준'));
+    assert.ok(!confirm.includes('브라우저에서만 계산'), '별자리 신호를 서버에서 계산하는 흐름이라 안내하지 않는다');
+    await v.click(v.byText('확인'));
+    assert.equal(v.q('select[name="sign"]').value, '황소자리');
+    await v.click(v.byText('다음')); await v.click(v.byText('다음'));
+    await waitFor(() => v.q('#original'));
+    assert.deepEqual(globalThis.__runs, [{ emotion: 'worried', birthDate: '19900515', birthTime: '0630', name: '달님', sign: '황소자리', concern: '' }]);
     await v.close();
   });
 }
