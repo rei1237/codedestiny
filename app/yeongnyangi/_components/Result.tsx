@@ -243,11 +243,14 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   const askReading=!!row?.consultation?.questions?.length;
  const unpaid=!!row&&!row.paid&&row.state!=='REFUNDED';
  const interpreting=!!row?.paid&&['PAID','GENERATING'].includes(row.state)&&!row.errorCode&&!row.recovery?.canRetryNow&&!error;
+ // A paid reading the server is still writing or resumes by itself (a transient poll error, FORTUNE_FAILED awaiting the automatic retry)
+ // keeps its waiting film mounted so it does not restart from the poster; the status and error copy render below it (2026-11-25).
+ const serverWorking=!!row?.paid&&['PAID','GENERATING','FORTUNE_FAILED'].includes(row.state)&&!row.recovery?.canRetryNow&&!['GENERATION_REVIEW_REQUIRED','AUTOMATIC_RECOVERY_STOPPED','ASK_LIMITED_REVIEW_REQUIRED','DELIVERY_REFUND_PENDING','PAYMENT_NOT_ACTIVE'].includes(row.errorCode||'');
  // While a paid reading is written the buyer may leave: the completion mail and My readings carry it, so the card says so (2026-11-23).
  const waitedFor=useRef("");
  useEffect(()=>{if(interpreting && row)waitedFor.current=row.id;},[interpreting,row]);
  const justCompleted=row?.state==="COMPLETED" && row.paid && waitedFor.current===row.id;
- const loading=interpreting?<ReadingLoading stage={row!.manifest.length>0&&row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} leaveNote={interpreting&&paymentSurface!=='toss'?questionMemoCopy(row!.locale).leaveOk:undefined} compact={row!.chapters.length>0} manifest={row!.manifest} timing libraryHref={paymentSurface==='toss'?undefined:`/yeongnyangi/library/?lang=${siteLocale}`}/>:null;
+ const loading=interpreting||serverWorking?<ReadingLoading stage={row!.manifest.length>0&&row!.chapters.length===row!.manifest.length?'verifying':'generating'} saved={row!.chapters.length} total={row!.manifest.length} product={row!.product} locale={row!.locale} leaveNote={interpreting&&paymentSurface!=='toss'?questionMemoCopy(row!.locale).leaveOk:undefined} compact={row!.chapters.length>0} manifest={row!.manifest} timing libraryHref={paymentSurface==='toss'?undefined:`/yeongnyangi/library/?lang=${siteLocale}`}/>:null;
  if(row?.consultation?.spirit||row?.consultation?.questionSky)return <section className={styles.reader}>
   {paymentSurface==='toss'&&row.paid&&row.chapters.length>0&&<p role="note">AI가 작성한 상담 결과예요.</p>}
   {row.paid&&row.state!=='REFUNDED'&&row.state!=='COMPLETED'&&<FishReceipt product={row.product} locale={row.locale}/>}
@@ -276,7 +279,7 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   {row&&<QuestionConversationEntry row={row}/>}
   {!row&&!error&&<p className={styles.readingPending} role="status">{copy.loading}</p>}
   {row&&row.state==='AWAITING_DRAW'&&row.tarotSpread?<TarotCardPick row={row} spread={row.tarotSpread} siteLocale={siteLocale} onRow={setRow}/>:row&&<>
-   {ritualEligible&&ritualGate?.id!==row.id?<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>:ritualEligible&&!ritualGate?.done&&tarotChart?row.tarotSpread&&spreadReveal?<TarotSpreadReveal requestId={row.id} locale={row.locale} spread={row.tarotSpread} cards={spreadReveal} onComplete={finishRitual}/>:<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
+   {ritualEligible&&ritualGate?.id!==row.id?(loading||<ReadingLoading stage="generating" product={row.product} locale={row.locale}/>):ritualEligible&&!ritualGate?.done&&tarotChart?row.tarotSpread&&spreadReveal?<TarotSpreadReveal requestId={row.id} locale={row.locale} spread={row.tarotSpread} cards={spreadReveal} onComplete={finishRitual}/>:<TarotDrawRitual requestId={row.id} chart={tarotChart} locale={row.locale} onComplete={finishRitual}/>:<>
    {loading}
   {soundControl}
    <div id="reading-progress" className={styles.progress} data-state={row.state}>
