@@ -2212,7 +2212,7 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
             </div>
           </div>
 
-          {!isPrologueActive ? <div className={styles.vnRoomFilm}><MasterRoomScene master="neo" shot="intro" still={flowPhase === "generating" || previewOperationMap} /></div> : <div className={styles.vnCharacter} data-scene={activeHeroCharacter}>
+          {!isPrologueActive ? <div className={styles.vnRoomFilm}><MasterRoomScene master="neo" shot="intro" /></div> : <div className={styles.vnCharacter} data-scene={activeHeroCharacter}>
             <div
               className={styles.vnCharacterCrop}
               role="img"
