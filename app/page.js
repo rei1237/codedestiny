@@ -147,6 +147,8 @@ export default function HomePage() {
           </div>
         </section>}
         {!IS_APP_BUILD && <p className={styles.entryChoiceNote}>여러 상담을 둘러보고 싶다면 꿀꿀운세로, 떠오른 질문이 있다면 영냥이에게 가보세요.</p>}
+        {/* 달빛 연화당: 두 서비스 카드 아래 혼자만의 온라인 절 참배 입구(2026-11-25 사용자 요청). 끄기: app/moonlit-lotus/_lib/config.ts */}
+        {!IS_APP_BUILD && <HomeMoonlitEntry />}
         {/* 실제 인기 순위 TOP5(최근 30일 구매). 첫 화면 카드 아래, 스켈레톤으로 자리 예약·요청은 하이드레이션 뒤(2026-11-24 "두 홈 모두 복귀"). 끄기: js/core/popular-top5.mjs 의 POPULAR_TOP5_HOME_BODY_ENABLED */}
         {!IS_APP_BUILD && POPULAR_TOP5_ENABLED && POPULAR_TOP5_HOME_BODY_ENABLED && <PopularTop5 />}
         {IS_APP_BUILD && <><HomeMoonlitEntry /><HomeDailyEntry /></>}
