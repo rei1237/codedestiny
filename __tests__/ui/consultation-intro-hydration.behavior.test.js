@@ -47,6 +47,8 @@ function screenFixture(file) {
     '@/components/fortune/master-profiles': { masterProfiles: { yun: {}, hanbi: {}, neoNewYear: {} }, productMasters: { newYear: [] } },
     './KarmaRelationshipGuide': { emptyRelationshipContext: () => ({}), KarmaRelationshipGuide: leaf, KarmaRelationshipFields: leaf },
     '@/lib/marketing/service-introduction-art.json': { default: require('../../lib/marketing/service-introduction-art.json') },
+    // 입장 영상 부품은 서버 렌더에서 포스터 그림을 먼저 내보낸다(ConsultationScene). 픽스처는 그 포스터 경로만 남긴다.
+    '@/app/components/expert-consulting/MasterRoomScene': { default: ({ master }) => React.createElement('img', { src: `/images/consultation-rooms/${master}.webp`, alt: '' }) },
     './namingRecommendations': { STYLE_PRESETS: [], buildNamingRecommendation: () => null },
     '@/app/_lib/auth-store': { useAuthStore: () => ({user:null,isAuthenticated:false}), refreshAuth: async () => {}, handleSessionInvalidated() {} },
     './v2/NamingEngineFields': { default: leaf, INITIAL_ENGINE_FIELDS:{}, readNamingEngineOptIn: () => state.engineOptIn },
@@ -90,7 +92,7 @@ for (const config of [
   const fixture = screenFixture(config.file);
   const html = renderToString(React.createElement(fixture.Screen));
   assert.ok(html.includes('<'+config.heading));
-  if (config.heading === 'h1') assert.match(html, /astrology-ai-960.webp/);
+  if (config.heading === 'h1') assert.match(html, /consultation-rooms.yun.webp/);
   assert.doesNotMatch(html, /<form\b|<textarea\b|<input\b/);
   assert.equal(fixture.state.requests.length, 0, 'SSR cannot query private state');
   const dom = new JSDOM(`<div id="root">${html}</div>`, { url: 'https://example.test/astrology-ai/?lang=en' });
