@@ -2937,7 +2937,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                 priority
               />
             ) : (
-              <div className="flex h-full min-h-44 w-full flex-col items-center justify-center rounded-2xl bg-pink-50/80 text-pink-500">
+              <div className="flex h-full min-h-44 w-full flex-col items-center justify-center rounded-2xl bg-pink-50/80 text-pink-700">
                 <Sparkles className="mb-2 h-8 w-8" />
                 <p className="text-sm font-semibold">{copy.heroArtLoading}</p>
               </div>
@@ -2969,7 +2969,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
             className="rounded-3xl border border-[#f4d8e3] bg-white/88 p-5 shadow-[0_14px_34px_rgba(150,72,104,0.12)] backdrop-blur-sm lg:sticky lg:top-6"
           >
             <h2 className="text-xl font-black text-slate-700">{copy.inputPanelTitle}</h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">{copy.inputPanelIntro}</p>
+            <p className="mb-4 mt-1 text-sm text-slate-600">{copy.inputPanelIntro}</p>
 
             <SavedBirthProfilePicker onSelect={async(_seed,profile)=>{const version=++profileSyncVersionRef.current;await applyProfileAndAstro(profile,()=>version!==profileSyncVersionRef.current);}} />
             <details data-moonlit-form="" className="mb-4">
@@ -3009,7 +3009,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                   value={profileNameInput}
                   onChange={(event) => setProfileNameInput(event.target.value.slice(0, 30))}
                   placeholder={copy.namePlaceholder}
-                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
+                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-500 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
                 />
               </label>
 
@@ -3023,7 +3023,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                   value={birthDateInput}
                   onChange={(event) => handleBirthDateInputChange(event.target.value)}
                   placeholder="19990125"
-                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
+                  className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-500 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
                 />
               </label>
 
@@ -3060,7 +3060,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
             </div>
 
             </fieldset>
-            <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-500">{copy.zodiacFieldLabel}</label>
+            <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-700">{copy.zodiacFieldLabel}</label>
             <select
               id="yeon-zodiac-select"
               value={selectedSign}
@@ -3073,7 +3073,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
               ))}
             </select>
 
-            <label htmlFor="yeon-concern-input" className="mt-4 block text-xs font-semibold text-pink-500">{copy.concernFieldLabel}</label>
+            <label htmlFor="yeon-concern-input" className="mt-4 block text-xs font-semibold text-pink-700">{copy.concernFieldLabel}</label>
             <textarea
               id="yeon-concern-input"
               value={concernText}
@@ -3084,7 +3084,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
             />
 
             <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
-              <p className="text-xs font-semibold text-rose-500">{copy.concernSamplesLabel}</p>
+              <p className="text-xs font-semibold text-rose-700">{copy.concernSamplesLabel}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {GENERAL_CONCERN_SAMPLES.map((sample) => (
                   <button
@@ -3104,12 +3104,12 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
               type="button"
               onClick={runConsultation}
               disabled={isGenerating}
-              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-600 to-fuchsia-600 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isGenerating ? <Download className="h-4 w-4 animate-pulse" /> : <Sparkles className="h-4 w-4" />}
               {isGenerating ? copy.generateButtonLoading : copy.generateButtonIdle}
             </button>
-            <p className="mt-2 text-xs text-slate-500">{copy.flowHint}</p>
+            <p className="mt-2 text-xs text-slate-600">{copy.flowHint}</p>
           </m.article>
 
           <div className="flex min-w-0 flex-col gap-5">
@@ -3120,7 +3120,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                 transition={{ duration: 0.35 }}
                 className="rounded-3xl border border-[#f4d8e3] bg-white/85 p-8 text-center shadow-[0_14px_34px_rgba(150,72,104,0.1)] backdrop-blur-sm"
               >
-                <p className="text-sm font-semibold text-pink-500">{copy.emptyStateTitle}</p>
+                <p className="text-sm font-semibold text-pink-700">{copy.emptyStateTitle}</p>
                 <p className="mt-2 text-xs text-slate-500">{copy.emptyStateHint}</p>
               </m.article>
             ) : (
@@ -3142,19 +3142,19 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                       </span>
                     ) : null}
                     <span className="rounded-full border border-purple-100 bg-purple-50 px-3 py-1 text-[#5b2544]">기간: {consultation.period}</span>
-                    <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-500">태양: {consultation.todaySunSign}</span>
-                    <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-violet-500">달: {consultation.moon.label}</span>
-                    <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-500">요일 행성: {consultation.dayRuler.label}</span>
-                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-600">별자리 각도: {consultation.aspect.label}</span>
+                    <span className="rounded-full border border-pink-200 bg-pink-50 px-3 py-1 text-pink-700">태양: {consultation.todaySunSign}</span>
+                    <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-violet-700">달: {consultation.moon.label}</span>
+                    <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-indigo-700">요일 행성: {consultation.dayRuler.label}</span>
+                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-amber-700">별자리 각도: {consultation.aspect.label}</span>
                   </div>
 
                   <div className="mt-5 rounded-2xl border border-[#f4d8e3] bg-white p-4 text-[#3c1830] sm:p-6">
                     <div className="rounded-xl border border-rose-100 bg-rose-50/60 px-4 py-3">
-                      <p className="text-xs font-semibold text-rose-500">{consultation.recipientLabel}께,</p>
+                      <p className="text-xs font-semibold text-rose-700">{consultation.recipientLabel}께,</p>
                       <p className="mt-1 text-sm font-bold leading-relaxed text-[#3c1830] md:text-base">{reading.displayCard.oneLineMessage}</p>
                       <div className="mt-2 flex flex-wrap gap-2">
                         {reading.displayCard.keywords.map((keyword) => (
-                          <span key={keyword} className="rounded-full border border-pink-200 bg-pink-50 px-2.5 py-1 text-[11px] font-semibold text-pink-600">
+                          <span key={keyword} className="rounded-full border border-pink-200 bg-pink-50 px-2.5 py-1 text-[11px] font-semibold text-pink-700">
                             {keyword}
                           </span>
                         ))}
@@ -3180,7 +3180,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                                 />
                               </svg>
                             </div>
-                            <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-500">{copy.stampCaption}</p>
+                            <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-700">{copy.stampCaption}</p>
                           </div>
 
                           <AnimatePresence mode="wait">
@@ -3192,7 +3192,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                               transition={{ duration: 0.25 }}
                               className="min-h-[160px] whitespace-pre-line rounded-xl border border-rose-100 bg-white/85 px-4 py-4 text-[15px] leading-7 text-[#3c1830] sm:px-5"
                             >
-                              <p className="text-xs font-semibold text-rose-500">{consultation.recipientLabel}께 드리는 오늘의 편지</p>
+                              <p className="text-xs font-semibold text-rose-700">{consultation.recipientLabel}께 드리는 오늘의 편지</p>
                               <p className="mt-1.5 text-[15px] font-semibold leading-7 text-[#3c1830]">{displayWarmMessage}</p>
                             </m.div>
                           </AnimatePresence>
@@ -3204,7 +3204,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                         <div className="mt-2.5 grid gap-2">
                           {consultation.concernReasoning.map((line, idx) => (
                             <div key={`reason-${idx}`} className="rounded-xl border border-amber-200 bg-white/90 px-3 py-3">
-                              <p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-amber-600">{copy.evidenceLabel} {idx + 1}</p>
+                              <p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-amber-700">{copy.evidenceLabel} {idx + 1}</p>
                               <p className="mt-1 text-sm leading-7 text-amber-950">{line}</p>
                             </div>
                           ))}
@@ -3215,14 +3215,14 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                       </div>
 
                         <div className="rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2">
-                          <p className="text-[11px] font-semibold text-purple-500">{copy.sevenReadingsEyebrow}</p>
+                          <p className="text-[11px] font-semibold text-purple-700">{copy.sevenReadingsEyebrow}</p>
                           <div className="mt-3 grid gap-3 sm:grid-cols-2">
                             {reading.categories.map((section) => (
                               <div key={section.id} className="min-w-0 rounded-xl border border-white/70 bg-white/80 p-3">
                                 <p className="text-sm font-bold text-[#3c1830]">{section.icon} {section.label}</p>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
                                   {section.keywords.slice(0, 3).map((keyword) => (
-                                    <span key={`${section.id}-${keyword}`} className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-600">
+                                    <span key={`${section.id}-${keyword}`} className="rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
                                       {keyword}
                                     </span>
                                   ))}
@@ -3244,7 +3244,7 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                   transition={{ duration: 0.35, delay: 0.04 }}
                   className="rounded-3xl border border-white/45 bg-white/80 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
                 >
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">{copy.shareCardEyebrow}</p>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-700">{copy.shareCardEyebrow}</p>
                   <h2 className="text-lg font-black text-slate-700">{copy.shareCardTitle}</h2>
 
                   <div className="mt-3 rounded-2xl border border-white/25 bg-white/90 p-3">
@@ -3259,23 +3259,23 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
                     type="button"
                     onClick={handleShare}
                     disabled={isExporting || !reading}
-                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-600 to-fuchsia-600 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
                     {isExporting ? copy.shareButtonLoading : toss?"상징 카드 저장하기":copy.shareButtonIdle}
                   </button>
                   {toss&&reading&&<button type="button" className="mt-2 min-h-11 rounded-xl border px-4" onClick={()=>void toss.share(`${reading.displayCard.zodiacLabel} · ${reading.displayCard.oneLineMessage}`).then(()=>setShareFeedback('별자리 메시지 공유 창을 열었어요.'),()=>setShareFeedback('공유 창을 열지 못했어요. 다시 눌러 주세요.'))}>별자리 메시지 공유하기</button>}
-                  <p className="mt-2 min-h-5 text-xs text-slate-500">{shareFeedback}</p>
+                  <p className="mt-2 min-h-5 text-xs text-slate-600">{shareFeedback}</p>
 
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-pink-200/35 bg-white/90 p-3 text-slate-700">
-                      <p className="text-xs font-semibold text-pink-500">{copy.focusLabel}</p>
+                      <p className="text-xs font-semibold text-pink-700">{copy.focusLabel}</p>
                       <p className="mt-1 text-xs font-semibold text-purple-600">{reading.summary.title}</p>
                       <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-slate-600">{reading.summary.description}</p>
                     </div>
 
                     <div className="rounded-xl border border-rose-200/35 bg-white/90 p-3 text-slate-700">
-                      <p className="text-xs font-semibold text-rose-500">{copy.actionStepsLabel}</p>
+                      <p className="text-xs font-semibold text-rose-700">{copy.actionStepsLabel}</p>
                       <ol className="mt-2 list-inside list-decimal space-y-1 text-xs leading-relaxed text-slate-600">
                         {reading.categories.slice(0, 3).map((section) => (
                           <li key={section.id} className="break-words">{section.tinyAction}</li>
@@ -3325,16 +3325,16 @@ export default function YeonStarHugPage({toss}:{toss?:TossHeartTools}={}) {
           className="grid grid-cols-2 gap-2 pb-2 sm:grid-cols-4"
           aria-label={copy.navAriaLabel}
         >
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-xs font-semibold text-pink-500 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-xs font-semibold text-pink-700 shadow-sm">
             <Heart className="h-4 w-4" /> {copy.navPillInput}
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200 bg-white/80 px-4 py-2 text-xs font-semibold text-purple-500 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200 bg-white/80 px-4 py-2 text-xs font-semibold text-purple-700 shadow-sm">
             <Sparkles className="h-4 w-4" /> {copy.navPillKeyword}
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200 bg-white/80 px-4 py-2 text-xs font-semibold text-amber-600 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200 bg-white/80 px-4 py-2 text-xs font-semibold text-amber-700 shadow-sm">
             <Cloud className="h-4 w-4" /> {copy.navPillAstro}
           </div>
-          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-500 shadow-sm">
+          <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-700 shadow-sm">
             <Coins className="h-4 w-4" /> {copy.navPillShare}
           </div>
         </m.nav>

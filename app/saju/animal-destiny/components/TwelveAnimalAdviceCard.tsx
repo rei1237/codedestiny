@@ -30,14 +30,14 @@ export default function TwelveAnimalAdviceCard({ result }: Props) {
             {copy.adviceDesc(result.animalName)}
           </p>
         </div>
-        <span className="rounded-full border border-[#d9d3a2] bg-[#fff8de] px-3 py-1 text-xs font-black text-[#8e7b34]">
+        <span className="rounded-full border border-[#d9d3a2] bg-[#fff8de] px-3 py-1 text-xs font-black text-[#7d6c2e]">
           {copy.routineBadge(result.stageName)}
         </span>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {routineCards.map((card) => (
           <article key={card.time} className="rounded-2xl border border-[#d9d3a2] bg-[#fffaf0]/88 p-4">
-            <p className="text-[11px] font-black text-[#8e7b34]">{card.time}</p>
+            <p className="text-[11px] font-black text-[#7d6c2e]">{card.time}</p>
             <p className="mt-1 text-sm font-black text-[#654f21]">{card.label}</p>
             <p className="mt-2 text-xs font-semibold leading-relaxed text-[#6a5a33]">{card.text}</p>
           </article>
