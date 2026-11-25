@@ -2353,7 +2353,8 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
           </div>
         </div>)}
         <div className="nyai-intro-copy">
-          <MasterRoomScene master="neo" shot="intro" />
+          {/* While writing, GenerationProgress plays the one waiting film; two Neo films must not run together (2026-11-25). */}
+          {status !== "reading" && <MasterRoomScene master="neo" shot="intro" />}
           {!tossJapanese&&<span className="nyai-eyebrow">서비스 소개</span>}
           <h2><Moon size={20} aria-hidden="true" /> {tossJapanese?.title||'신년운세 전문가 상담'}</h2>
           {paymentSurface!=='toss' && copy === NEW_YEAR_AI_COPY.ko && <ProductMasterStrip label="신년운세 마스터" masters={productMasters.newYear} profileHref={!isBusy && messages.length === 0 ? "#new-year-master" : undefined} />}
