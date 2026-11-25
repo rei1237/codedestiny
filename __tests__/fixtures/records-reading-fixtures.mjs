@@ -40,6 +40,7 @@ export const sharedFeatureFixtures = {
  'compat-astro-synastry':{astrologyChart:{name:'아이유',relationType:'소울메이트',score:88},...base},
  'compat-astro-direct-synastry':{astrologyChart:{name:'상대',score:71},...base},
  'compat-ziwei-compatibility':{ziweiChart:{name:'상대',score:77},...base},
+ 'saju-compat-light':{facts:{partnerName:'상대',relationType:'연애·결혼',grade:'A',score:72},...base},
  'destiny-compass-crossroads':{facts:{optionA:'이직',optionB:'잔류',recommended:'이직',score:74},...base},
  'destiny-compass-future-sim':{facts:{score:62,d30:58,d90:66,y1:71},...base},
  'destiny-compass-life-voyage':{facts:{score:62,d30:58,d90:66,y1:71,y3:69},...base},

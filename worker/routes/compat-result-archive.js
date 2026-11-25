@@ -1,5 +1,5 @@
-// 점성술 궁합(셀럽·직접 입력) · 자미두수 궁합 — 브라우저가 계산하는 회당 결제 결과의 보관함 저장.
-// POST /api/compat-archive/<astro-synastry|astro-direct-synastry|ziwei-compat>
+// 점성술 궁합(셀럽·직접 입력) · 자미두수 궁합 · 사주 라이트 궁합 — 브라우저가 계산하는 회당 결제 결과의 보관함 저장.
+// POST /api/compat-archive/<astro-synastry|astro-direct-synastry|ziwei-compat|saju-compat-light>
 //
 // 이 결과들은 js/saju-engine.js 가 그리고 서버는 결제만 안다. 렌더가 끝나면 셸이 구조화 결과를 보내고,
 // 서버는 그 결제 requestId 로 **이 사용자가 이 기능을 실제로 결제했는지** 확인한 뒤에만 남긴다
@@ -35,6 +35,7 @@ export const COMPAT_ARCHIVE_LOGIC_VERSION = "compat-result-archive-v1";
 const ASTRO_SYNASTRY_FEATURE_KEY = "compat-astro-synastry";
 const ASTRO_DIRECT_SYNASTRY_FEATURE_KEY = "compat-astro-direct-synastry";
 const ZIWEI_COMPAT_FEATURE_KEY = "compat-ziwei-compatibility";
+const SAJU_COMPAT_LIGHT_FEATURE_KEY = "saju-compat-light";
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9:_.|-]{12,120}$/;
 
 const ASTRO_FACTS = Object.freeze({
@@ -92,6 +93,21 @@ export const COMPAT_ARCHIVE_FEATURES = Object.freeze({
           ...(Number.isFinite(facts.score) ? { score: facts.score } : {}),
         },
       },
+    }),
+  }),
+  // 사주 라이트 궁합(30코인) — 정적 풀이라 서버는 결제만 확인하고 화면 글을 그대로 남긴다.
+  "saju-compat-light": Object.freeze({
+    featureKey: SAJU_COMPAT_LIGHT_FEATURE_KEY,
+    reportType: "saju-compat-light",
+    title: "사주 라이트 궁합",
+    facts: {
+      textKeys: ["partnerName", "relationType", "grade", "label"],
+      numberKeys: ["score"],
+    },
+    describe: (facts) => ({
+      summary: [facts.relationType, facts.grade, Number.isFinite(facts.score) ? `${facts.score}점` : ""].filter(Boolean).join(" · "),
+      targetName: facts.partnerName || "",
+      chart: {},
     }),
   }),
 });

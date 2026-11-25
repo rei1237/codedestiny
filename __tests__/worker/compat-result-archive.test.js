@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  *
- * POST /api/compat-archive/<astro-synastry|astro-direct-synastry|ziwei-compat> — 점성술·자미두수 궁합 결과의 보관함 저장.
+ * POST /api/compat-archive/<astro-synastry|astro-direct-synastry|ziwei-compat|saju-compat-light> — 점성술·자미두수·사주 라이트 궁합 결과의 보관함 저장.
  * 상대가 매번 바뀌는 회당 결제라 requestId 는 셸이 결제마다 새로 만든다. 서버는 그 requestId 가
  * 이 사용자·이 기능의 결제인지 확인한 뒤에만 저장하고, 결제 1건 = 기록 1건이다.
  * POST /api/result-archive/<destiny-compass-*> 도 같은 처리기로 운명의 나침반 심화 3종을 남긴다.
@@ -130,6 +130,31 @@ test("이용권 즉시 사용은 기록이 아직 없으면 같은 requestId 로
   expect(verifyPerUsePayment.mock.calls[1][1].requireExisting).toBeUndefined();
   expect(store.executions[0].metadata.accessType).toBe("pass");
   expect(store.executions[0].metadata.archive.result.ziweiChart).toEqual({ name: "아이유", score: 88 });
+});
+
+test("사주 라이트 궁합은 30코인 결제를 확인한 뒤 등급·점수와 화면 글을 남긴다", async () => {
+  const response = await save(payload({
+    facts: { partnerName: "지민", relationType: "연애·결혼", grade: "A", label: "잘 맞는 인연", score: 72, secret: "버린다" },
+    sections: [{ title: "🌸 두 사람의 타고난 성향·성격", body: "나 · 무토(戊)\n지민 · 신금(辛)" }],
+  }), "saju-compat-light");
+
+  expect(response.status).toBe(200);
+  expect(verifyPerUsePayment).toHaveBeenCalledWith({}, expect.objectContaining({
+    featureKey: "saju-compat-light",
+    coinPrice: 30,
+    requestId: REQUEST_ID,
+    requireExisting: true,
+  }));
+  const [row] = store.executions;
+  expect(row).toMatchObject({ featureKey: "saju-compat-light", retentionUntil: null });
+  expect(row.metadata.archive.targetName).toBe("지민");
+  expect(row.metadata.archive.result).toMatchObject({
+    title: "사주 라이트 궁합",
+    summary: "연애·결혼 · A · 72점",
+    facts: { partnerName: "지민", relationType: "연애·결혼", grade: "A", label: "잘 맞는 인연", score: 72 },
+  });
+  expect(row.metadata.archive.result.sections[0].title).toBe("🌸 두 사람의 타고난 성향·성격");
+  expect(JSON.stringify(row)).not.toContain("버린다");
 });
 
 test("결제가 다르면 기록도 따로, 같은 결제를 다시 저장하면 1건만 남는다", async () => {

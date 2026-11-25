@@ -5851,7 +5851,8 @@ var _SE_SAJU_COMPAT_LLM_ENABLED = true;
 var _SE_COMPAT_ARCHIVE_SLUGS = {
   'compat-astro-synastry': 'astro-synastry',
   'compat-astro-direct-synastry': 'astro-direct-synastry',
-  'compat-ziwei-compatibility': 'ziwei-compat'
+  'compat-ziwei-compatibility': 'ziwei-compat',
+  'saju-compat-light': 'saju-compat-light'
 };
 var _SE_COMPAT_ARCHIVE_RETRY_DELAYS_MS = [4000, 12000, 30000];
 var _SE_COMPAT_ARCHIVE_SECTION_MAX = 2400;
@@ -6115,7 +6116,7 @@ function _seRunZiweiCompatResume(descriptor, grant) {
   });
 }
 
-function _seBuildSajuCompatResumeDescriptor(name, bd, type, requestId) {
+function _seBuildSajuCompatResumeDescriptor(name, bd, type, requestId, lightArchive) {
   if (!bd) return null;
   var descriptor = {
     kind: _SE_SAJU_COMPAT_RESUME_KIND,
@@ -6132,6 +6133,11 @@ function _seBuildSajuCompatResumeDescriptor(name, bd, type, requestId) {
   };
   // LLM 흐름: 복귀 뒤에도 같은 requestId 로 서버가 결제 차감을 찾는다(서술자 인자는 원시값만 통과한다).
   if (requestId) descriptor.args.requestId = String(requestId);
+  // 라이트 궁합 보관함: requestId 와 다른 이름으로 넘긴다 — requestId 가 있으면 복귀가 옛 LLM 분기를 탄다.
+  if (lightArchive && lightArchive.requestId) {
+    descriptor.args.lightRequestId = String(lightArchive.requestId);
+    if (lightArchive.profileId) descriptor.args.profileId = String(lightArchive.profileId);
+  }
   return descriptor;
 }
 
@@ -6165,6 +6171,8 @@ function _seRunSajuCompatResume(descriptor, grant) {
       }, function() { return false; });
     }
     // 결제 복귀(라이트 궁합·옛 3,000원/5,000원 비LLM 주문) — 결제는 끝났으므로 전체 풀이를 연다.
+    // 라이트 궁합은 requestId 가 아니라 lightRequestId 로 넘긴다 — requestId 는 위 LLM 분기를 탄다.
+    if (args.lightRequestId) _seSetCompatArchiveContext(_SE_SAJU_COMPAT_LIGHT_FEATURE_KEY, String(args.lightRequestId), args.profileId, grant);
     runCompatCore(compatBtn, compatName, compatBd, compatType, undefined, { lightPaid: true });
     return true;
   });
@@ -23610,15 +23618,50 @@ function _seSajuCompatLightGate(triggerBtn, name, bd, type) {
     return;
   }
   if (triggerBtn) { triggerBtn.disabled = true; triggerBtn.style.opacity = '0.7'; }
-  window._cdCoinGatePerUse(_SE_SAJU_COMPAT_LIGHT_COST, _SE_SAJU_COMPAT_LIGHT_REASON, function() {
+  // 보관함 저장: 결제 requestId 로 서버가 이 결제를 확인한 뒤에만 /records/ 에 남긴다.
+  var requestId = _seNewCompatArchiveRequestId(_SE_SAJU_COMPAT_LIGHT_FEATURE_KEY);
+  var profileId = _sajuPromptResolveProfileId();
+  window._cdCoinGatePerUse(_SE_SAJU_COMPAT_LIGHT_COST, _SE_SAJU_COMPAT_LIGHT_REASON, function(_txId, grant) {
+    _seSetCompatArchiveContext(_SE_SAJU_COMPAT_LIGHT_FEATURE_KEY, requestId, profileId, grant);
     runCompatCore(compatRunBtn, name, bd, type, undefined, { lightPaid: true });
   }, function() {
     release();
   }, {
     featureKey: _SE_SAJU_COMPAT_LIGHT_FEATURE_KEY,
+    requestId: requestId,
+    profileId: profileId || undefined,
     action: 'cdSajuTabEntry',
-    resume: _seBuildSajuCompatResumeDescriptor(name, bd, type) || undefined
+    resume: _seBuildSajuCompatResumeDescriptor(name, bd, type, undefined, { requestId: requestId, profileId: profileId }) || undefined
   });
+}
+
+/* 라이트 궁합 보관함 저장: 화면에 그린 섹션 글을 그대로 담는다(재열람은 저장 원본만 쓴다 — 추가 결제·재계산 없음). */
+var _SE_SAJU_COMPAT_LIGHT_RELATION_LABEL = { love: '연애·결혼', business: '비즈니스', friend: '우정' };
+function _seArchiveSajuCompatLight(context, compat, resultArea, name, type) {
+  if (!context || !compat || !resultArea || !resultArea.querySelectorAll) return;
+  var t = function(v) { return _seCompatArchiveText(v, 200); };
+  var facts = {
+    partnerName: t(name),
+    relationType: t(_SE_SAJU_COMPAT_LIGHT_RELATION_LABEL[type] || type),
+    grade: t(compat.grade),
+    label: t(compat.label),
+    score: Number(compat.integratedScore)
+  };
+  var rows = [{ title: '궁합 요약', body: [
+    facts.grade ? '등급: ' + facts.grade + (facts.label ? ' · ' + facts.label : '') : '',
+    isFinite(facts.score) ? '명리 궁합 점수: ' + facts.score + '/100' : '',
+    _seCompatArchiveText(compat.comment, 600)
+  ].filter(Boolean).join('\n') }];
+  var blocks = resultArea.querySelectorAll('.compat-section, .pastlife-card');
+  for (var i = 0; i < blocks.length; i += 1) {
+    var node = blocks[i];
+    var titleNode = node.querySelector('.compat-section-title, .pastlife-title-text');
+    rows.push({
+      title: titleNode ? String(titleNode.textContent || '').replace(/\s+/g, ' ').trim() : '',
+      body: _seCompatArchiveBlockText(node, '.compat-section-title, .pastlife-title-text')
+    });
+  }
+  _seSaveCompatArchive(_SE_SAJU_COMPAT_LIGHT_FEATURE_KEY, context, facts, _seCompatArchiveSections(rows));
 }
 
 /* 결제 전 화면: 등급 배지·점수·총평 첫 문장 + 「라이트 궁합에서 볼 수 있는 것」 잠금 카드. 상세 섹션 html 은 넣지 않는다.
@@ -24156,6 +24199,8 @@ async function runCompatCore(compatRunBtn, name, bd, type, llm, access){
     }
     if(resultArea&&!llmDone) resultArea.innerHTML=llmNotice+compat.html;
     if(resultArea&&!llmDone) resultArea.insertAdjacentHTML('beforeend',pastHtml);
+    // 라이트 궁합 결제분만 /records/ 에 남긴다(CTA 를 붙이기 전, 풀이 섹션만).
+    if(resultArea&&!llm&&access&&access.lightPaid===true) _seArchiveSajuCompatLight(_seTakeCompatArchiveContext(_SE_SAJU_COMPAT_LIGHT_FEATURE_KEY), compat, resultArea, name, type);
     if(resultArea&&!llmDone&&!llm) _seSajuCompatAppendPremiumCta(resultArea, name, bd, compatCalType, type);
     if(!llmDone) cdEnsureCompatLlmReady(function(){
       var host = cdEnsureCompatLlmHost();
