@@ -124,7 +124,7 @@ Chromium의 한국어 웹 화면에서 실제 클릭, Tab·Enter·Esc, `getBound
 | 영냥이 방의 키보드 경로와 쿠키 패널 간격 | `app/yeongnyangi/_home/yeongnyangi-bottom-dock.module.css:55`, `app/components/AnalyticsConsent.module.css:78` | `787276d72b`, `49a6729d30` |
 | 실효 터치, 최신 로케일·성능 시나리오와 색인 | `scripts/measure-touch-targets.mjs` 관련 측정 경로, `scripts/design/verify-home-entry-locale.cjs`, `scripts/measure-app-route-perf.mjs`, `config/sitemap-lastmod.json` | `e9e89aaf50`, `0d4d76ebd5`, `c2706def56`, `b79d080a80`, `c158aa970b`, `a4b3128f81`, `5763376ee6`, `26cab335f3` |
 | 11-25 편지 첫 열기 프리웜 | `js/core/home-funnel.js`, `__tests__/ui/signature-inline-letter.behavior.test.js`, 정적 미러 | `99f31bd8ce` |
-| 11-25 `/` LCP: 지연 시트 우선순위·배경 이미지 선행 힌트 | `scripts/optimize-next-home-styles.mjs`, `__tests__/ui/next-home-critical-styles.test.mjs` | (이 커밋) |
+| 11-25 `/` LCP: 지연 시트 우선순위·배경 이미지 선행 힌트 | `scripts/optimize-next-home-styles.mjs`, `__tests__/ui/next-home-critical-styles.test.mjs` | `4b2617e036`, 정적 힌트 교정(이 커밋) |
 
 ### 현재 꿀꿀 셸의 입력 지연
 
@@ -169,7 +169,7 @@ Chromium의 한국어 웹 화면에서 실제 클릭, Tab·Enter·Esc, `getBound
 **11-25 `/` LCP 수정.** 조건은 위와 같다(운영 HTML을 가로채 바꾼 출력과 교차 비교, 경로별 3–4회).
 
 - 원인 1: 후처리가 `disabled`로 둔 Next 시트 16개(영냥이 20개)를 Chrome 프리로드 스캐너가 최고 우선순위로 먼저 받았다. 첫 상호작용 때 시트를 켜면 같은 파일을 한 번 더 요청했다. `media="print"`를 붙이면 LCP 전에는 받지 않는다. 활성화할 때 `media`를 지우고, `load` 뒤 유휴 시간에 `rel=prefetch`로 캐시를 데워 둔다. 저속망에서 첫 탭 시트는 16/16(영냥이 20/20)이 캐시에서 나왔고, 탭부터 시트 준비까지 513–636ms다(변경 전 527ms).
-- 원인 2: LCP인 꽃 배경(17KB)의 힌트를 `app/layout.js` 인라인 스크립트가 만드는데, 렌더링 차단 시트 뒤에서 실행돼 1.78초에야 요청됐다. 같은 순간 시작한 `entry-rounded`·`entry-body` 글꼴(140KB)과 회선을 나눠 끝나기까지 2.2초가 걸렸다. 후처리가 같은 힌트를 시트 앞 인라인 스크립트로 넣는다. 테마와 640px 기준은 기존 힌트와 같고, 기존 힌트는 `data-home-floral`을 보고 건너뛴다.
+- 원인 2: LCP인 꽃 배경(17KB)의 힌트를 `app/layout.js` 인라인 스크립트가 만드는데, 렌더링 차단 시트 뒤에서 실행돼 1.78초에야 요청됐다. 같은 순간 시작한 `entry-rounded`·`entry-body` 글꼴(140KB)과 회선을 나눠 끝나기까지 2.2초가 걸렸다. 후처리가 시트 앞에 밝은 테마용 정적 `<link rel="preload" media="(max-width: 640px)">`를 넣는다. 처음에는 테마를 고르는 인라인 스크립트로 넣었다. 그러자 운영 승격 스모크에서 React 하이드레이션 오류 #418이 나 승격이 막혔다(운영 미반영, run 45684966898). `<head>`의 인라인 `<script>`는 React가 대조하는 노드이기 때문이다. 정적 링크로 바꾼 뒤 운영 HTML 교차 4회에서 오류 0, LCP 1,668–2,292ms(변경 전 2,720–3,296)였다. 네오 테마 휴대폰은 밝은 이미지 17KB를 더 받고, 다크 힌트는 기존 `app/layout.js` 스크립트가 그대로 추가한다.
 - 글꼴 자체: 시트 수정 뒤 글꼴을 막으면 2,660 → 2,272ms로 노이즈 범위다. 글꼴을 늦추면 글자 바뀜(CLS)이 생겨 글꼴 전달은 바꾸지 않았다.
 
 | 경로 | 변경 전 LCP | 시트만 | 시트+배경 힌트 | FCP 전→후 | CLS |
