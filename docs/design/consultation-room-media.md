@@ -30,6 +30,26 @@
 | 흑월 | heukwol.webp와 두 인물의 원본에서 만든 장면 58e62c32-7f27-4ef7-93c2-551e46c28dc8 | bcf2d9df-44a3-4764-b7d3-8471b16c0491 | heukwol.mp4 · heukwol.webp |
 | 초융합 | fusion-fortune-masters-v3.webp | 3e2067ee-5eb3-443a-b26c-ea78dfc774a5 | fusion.mp4 · fusion.webp |
 
+## 화면별 배치 (2026-11-25)
+
+원칙: 한 화면 상태(입장·대기·완료)에 영상 한 편. 입장 영상은 히어로의 첫 시각 요소이며 390px에서 본문 폭을 다 쓰고 첫 화면 안에 든다. 같은 마스터의 정지 그림을 영상 옆에 겹쳐 두지 않는다(마스터 소개 카드의 작은 초상·띠 아바타는 신원 표시라 유지). 영상은 `MasterRoomScene` 한 부품으로만 넣는다 — 입장(`shot="intro"`)은 포스터를 우선 로드하고 0~6초만, 대기는 반복 재생한다. 저데이터·동작 줄이기·화면 밖·탭 숨김이면 포스터만 둔다.
+
+| 화면 | 상태 | 영상 | 위치 |
+|---|---|---|---|
+| `/astrology-ai/` | 입장 | yun | 헤더 카드 맨 위(옛 3:2 정지 키아트 자리). 말풍선 옆 인사 무대는 스프라이트 |
+| `/ziwei-ai/` | 입장 | musung | 히어로 맨 위(`.musungHeroFilm`). 토스 일본어는 정지 키아트 유지 |
+| `/sukuyo-compatibility-ai/` | 입장 | hanbi | `.hanbiKeyArt` 자리, 모바일에서 문구 위(order -1) |
+| `/palm-reading/` | 입장 | human | 배지 줄 다음·제목 위. 옛 3:2 정지 그림은 뺐다 |
+| `/love-secret-ai/` | 입장 | love | 히어로 첫 칸. 아래 연이 마스터 카드는 영상 대신 초상(`roomMaster` 제거, 중복 방지) |
+| `/life-book-ai/` | 입장 | yun | 히어로 첫 칸. 700px 이하에서 88px 썸네일이 아니라 한 줄 전체 |
+| `/neo-operation-room/` | 입장 | neo | 비주얼노벨 무대 위(`.vnRoomFilm`). 상담 가치 절의 같은 네오 정지 그림은 뺐다 |
+| `/neo-operation-room/` | 대기·작전 | neo(정지/재생) | 작전 지도 화면 한 편 |
+| `/master-love-codex/` | 입장 | codex | 639px 이하에서 제목 위(`.landingPortrait` order -1) |
+| `/vedic-ai/` | 입장 / 대기 | yun / yun | 입장 마스터 소개 / `GenerationProgress roomMaster="yun"`(정지 초상 대신) |
+| `/karma-destiny-ai/result/` | 대기 | karma | 관측소 로더 안 한 편. 생성 중에는 위 compact 마스터 소개를 숨긴다 |
+
+`ExpertCharacterStage`는 `placement="hero"`일 때만 상담실 영상을 붙인다. inline 인사(`hero` 대사·greet)는 말풍선과 스프라이트만 둔다.
+
 ## 프롬프트
 
 ### 인간형 네오
