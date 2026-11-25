@@ -283,6 +283,14 @@ export function checkSaveBeforeCharge({ contract, src, saveBeforeCharge = SAVE_B
     if (PAY_RE.test(gen)) errors.push(`${id}: 생성 경로 ${rule.generation} 가 결제 원시함수를 직접 쓴다 — 결제 뒤 생성 실패가 가능해졌으니 refunds 를 붙이고 SAVE_BEFORE_CHARGE 에서 뺀다`);
     if (save && PAY_RE.test(save)) errors.push(`${id}: 저장 함수 '${rule.save}' 가 결제 원시함수를 쓴다 — 저장이 결제보다 먼저여야 한다`);
     if (!/\bverifyPerUsePayment\s*\([^)]*requireExisting:\s*true/.test(read)) errors.push(`${id}: 열람 함수 '${rule.read}' 가 기존 결제 확인(verifyPerUsePayment requireExisting: true) 없이 결과를 연다`);
+    // requireExisting 없는 확인은 결제(이용권 소비)를 할 수 있다 — 열람마다 차감되지 않도록 '기존 확인 실패 + 이용권(pass)' 조건 안에서만 허용한다.
+    // 한 줄짜리 `if (…) x = await verifyPerUsePayment(…)` 만 인정한다(fail-closed): 조건을 지우거나 모양을 바꾸면 실패하고, 그때 이 검사를 함께 고친다.
+    for (const call of read.matchAll(/\bverifyPerUsePayment\s*\([^)]*\)/g)) {
+      if (/requireExisting:\s*true/.test(call[0])) continue;
+      const line = read.slice(read.lastIndexOf("\n", call.index) + 1, call.index);
+      const guard = /^\s*if\s*\((.*)\)\s*[\w.]+\s*=\s*await\s*$/.exec(line)?.[1] || "";
+      if (!/\bproven\s*===\s*false\b/.test(guard) || !/===\s*['"]pass['"]/.test(guard)) errors.push(`${id}: 열람 함수 '${rule.read}' 가 requireExisting 없는 결제 확인을 '기존 확인 실패 + 이용권(pass)' 조건 밖에서 부른다 — 열람마다 결제될 수 있다`);
+    }
   }
   return errors;
 }
@@ -296,6 +304,8 @@ export function saveBeforeChargeMutationCheck(input, saveBeforeCharge = SAVE_BEF
       "save-call": { ...s, [rule.generation]: (s[rule.generation] || "").replace(new RegExp(`\\b${escapeRe(rule.save)}\\s*\\(`, "g"), "__sbc_mutated__(") },
       "charge-in-generation": { ...s, [rule.generation]: `${s[rule.generation] || ""}\nverifyPerUsePayment(env, {});` },
       "read-existing": { ...s, [rule.lib]: (s[rule.lib] || "").replace(/requireExisting:\s*true/g, "requireExisting: false") },
+      // 이용권 조건을 지우면 열람마다 requireExisting 없는 확인(=결제)이 돈다.
+      "read-pass-guard": { ...s, [rule.lib]: (s[rule.lib] || "").replace(/\s*&&\s*String\(accessMethod\)\.toLowerCase\(\)\s*===\s*['"]pass['"]/g, "") },
     };
     for (const [kind, src] of Object.entries(mutants)) {
       if (!checkSaveBeforeCharge({ ...input, src, saveBeforeCharge }).some(e => e.startsWith(`${id}:`))) survivors.push(`${id}/${kind}`);
@@ -435,7 +445,7 @@ async function main() {
   const retryFirstCount = Object.keys(RETRY_FIRST_POLICY).length;
   console.log(`  다시 시도 우선 ${retryFirstCount}개(대표 상담 ${input.signatureFeatureKeys.length}종 — 실패 표지·/retry·/refund-request·7일 정산 크론), 대기 ${KNOWN_RETRY_PENDING.length}개, 변이 ${retryFirstCount * 4}/${retryFirstCount * 4} 탐지`);
   const sbc = Object.keys(SAVE_BEFORE_CHARGE);
-  console.log(`  저장 후 결제 ${sbc.length}개(${sbc.join(", ")}) — 생성 경로 결제 없음·저장 호출·기존 결제 확인 열람, 변이 ${sbc.length * 4}/${sbc.length * 4} 탐지`);
+  console.log(`  저장 후 결제 ${sbc.length}개(${sbc.join(", ")}) — 생성 경로 결제 없음·저장 호출·기존 결제 확인 열람, 변이 ${sbc.length * 5}/${sbc.length * 5} 탐지`);
   if (gaps.length) console.log(`  알려진 자동 환불 구멍 ${gaps.length}개: ${gaps.map(e => e.service).join(", ")}`);
 }
 

@@ -229,6 +229,10 @@ describe('(b) 커버리지: 계약의 모든 서비스가 자기 전달 테스�
     const { generation, lib } = SAVE_BEFORE_CHARGE.palm;
     expect(checkSaveBeforeCharge({ contract: PAID_LLM_DELIVERY_CONTRACT, src: { ...src, [generation]: src[generation] + '\nawait verifyPerUsePayment(env, {});' } })).not.toEqual([]);
     expect(checkSaveBeforeCharge({ contract: PAID_LLM_DELIVERY_CONTRACT, src: { ...src, [lib]: src[lib].replace(/requireExisting:\s*true/g, 'requireExisting: false') } })).not.toEqual([]);
+    // 이용권(pass) 조건을 지우면 열람마다 requireExisting 없는 확인(결제)이 돈다 — 검사가 문다.
+    const unguarded = src[lib].replace(/\s*&&\s*String\(accessMethod\)\.toLowerCase\(\)\s*===\s*['"]pass['"]/g, '');
+    expect(unguarded).not.toBe(src[lib]);
+    expect(checkSaveBeforeCharge({ contract: PAID_LLM_DELIVERY_CONTRACT, src: { ...src, [lib]: unguarded } })).not.toEqual([]);
   });
   test('정체 확정 서비스는 복구 어댑터이고, 상태 기반 공용 환불 또는 자기 settleStuckDelivery 로 확정한다', () => {
     const recovery = CONSULTATION_RECOVERY_ADAPTERS.map(([route]) => route);
