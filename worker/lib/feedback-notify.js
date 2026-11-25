@@ -55,12 +55,18 @@ async function postWebhook(url, payload) {
   }
 }
 
-function buildNotificationText(doc) {
+// 🔴 PRIV-006: 웹훅은 외부 서비스(Discord/Slack)로 나간다. 제목·본문·URL·제보자 정보는 사용자가 쓴
+//    개인정보를 담을 수 있으므로 싣지 않고, ID·카테고리·관리 화면 링크만 보낸다. 상세는 관리자 메일·관리 화면.
+function adminFeedbackLink(env) {
+  const origin = String(getEnv(env, "PUBLIC_SITE_URL") || getEnv(env, "SITE_URL") || "").trim().replace(/\/+$/, "");
+  return `${origin}/admin/feedback/`;
+}
+
+function buildNotificationText(env, doc) {
   const lines = [
     `🐞 새 제보 · ${labelOf(FEEDBACK_CATEGORY_LABELS, doc?.category)}`,
-    clamp(doc?.title, 80),
-    doc?.url ? `URL: ${clamp(doc.url, 200)}` : "",
-    clamp(doc?.content, 400),
+    doc?._id ? `ID: ${clamp(doc._id, 40)}` : "",
+    `관리 화면: ${adminFeedbackLink(env)}`,
   ];
   return lines.filter(Boolean).join("\n");
 }
@@ -159,7 +165,7 @@ async function sendAdminEmail(env, doc, { attachmentUrls }) {
  */
 export async function notifyNewFeedback(env, doc, { attachmentUrls = [] } = {}) {
   try {
-    const text = buildNotificationText(doc);
+    const text = buildNotificationText(env, doc);
 
     const tasks = [sendAdminEmail(env, doc, { attachmentUrls })];
     for (const channel of WEBHOOK_CHANNELS) {
