@@ -109,6 +109,8 @@ Keep the supplied official consultation illustration. The same woman with dark h
 
 ## 인간형 연이 스프라이트와 사주 LLM 상담
 
-꿀꿀운세 홈과 운명 찻집 도입부는 한복 원본 `/images/master-profiles/yeoni-love-portrait.webp`을 참조해 따로 그린 16개 포즈를 쓴다. `/images/fortune-tea-house/hanbok-yeoni/`의 welcome, speak, offer, listen 시트는 각각 가로 네 칸이며, 한 칸은 256×256px이다. 홈은 선택한 행동의 시트만 읽는다.
+꿀꿀운세 홈과 운명 찻집 도입부는 한복 원본 `/images/master-profiles/yeoni-love-portrait.webp`을 참조해 따로 그린 24개 포즈를 쓴다(2026-11-25 codex-image로 다시 그림). `/images/fortune-tea-house/hanbok-yeoni/`의 welcome, speak, offer, listen 시트는 각각 가로 여섯 칸(1536×256px)이며, 한 칸은 256×256px이다. 네 시트와 `portrait.webp`는 같은 인물 크기·발밑 기준선으로 정규화했으므로 초상화만 따로 바꾸지 않는다. 행동이 바뀔 때 인물 크기가 튀지 않게 하려면 새 시트도 같은 기준으로 맞춘다.
+
+홈(`js/core/home-yeoni.mjs`)은 선택한 행동의 시트만 읽고, 칸 수를 시트 비율(가로÷세로, 기본 6)로 계산한다. welcome·listen·speak는 0→5 칸을 320ms씩, offer는 0→5→0 칸을 200ms씩 보여 주며, 두 겹 레이어를 120ms 불투명도 교차 페이드로 바꿔 끊김을 줄인다. 동작 줄이기 설정·모션 토글·데이터 절약 연결에서는 재생하지 않는다. 운명 찻집(`YeoniTalkingPortrait.module.css`)은 같은 시트를 600% 배경과 CSS 키프레임으로 재생하며 offer만 왕복한다.
 
 운명 찻집의 이용 권한 확인 뒤 사주 LLM 생성에는 꽃돼지 컷 `/images/saju/yeoni-pig-analysis.mp4` (Seedance 작업 ac571d78-866f-4858-a08b-c0af0bffc053), 사주 궁합 LLM 생성에는 인간형 컷 `/images/saju/yeoni-human-analysis.mp4` (80a42e83-6d31-4a64-bf0a-0d783160016d)를 사용한다. 이전 유료 명식 상담의 이어받기 화면은 선택한 연이·네오 모드에 맞는 한 편을 표시한다. 일반 명식 계산기는 자체 로딩 화면을 사용한다. 합동 상품의 대기 화면은 상품별 기존 영상을 사용한다.

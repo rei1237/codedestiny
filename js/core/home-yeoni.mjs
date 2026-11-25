@@ -60,18 +60,37 @@ if (art) {
     sheet.src = '/images/fortune-tea-house/hanbok-yeoni/' + action + '.webp';
     try { await sheet.decode(); } catch { return; }
     if (turn !== current) return;
+    const ratio = sheet.naturalWidth / sheet.naturalHeight;
+    const count = Number.isFinite(ratio) && Math.round(ratio) > 1 ? Math.round(ratio) : 6;
     const layer = document.createElement('span');
     layer.className = 'yh-human-performance';
     layer.setAttribute('aria-hidden','true');
-    layer.style.backgroundImage = 'url(' + sheet.src + ')';
+    const cells = [0,1].map(() => {
+      const cell = document.createElement('span');
+      cell.style.cssText = 'position:absolute;inset:0;border-radius:inherit;background-repeat:no-repeat;opacity:0';
+      cell.style.backgroundImage = 'url(' + sheet.src + ')';
+      cell.style.backgroundSize = count*100 + '% 100%';
+      layer.appendChild(cell);
+      return cell;
+    });
     art.appendChild(layer);
     activeAct = layer;
-    const poses = [0,1,2,3,2,1,0].map((frame, i) => ({
-      backgroundPosition: frame*100/3 + '% 0%',
-      offset:i/6, easing:'steps(1,end)'
-    }));
-    const motion = layer.animate(poses,{duration:2000,fill:'forwards'});
-    motion.onfinish = () => { if (turn === current) timer = setTimeout(() => refresh(), 650); };
+    const forward = Array.from({length:count}, (_, frame) => frame);
+    const order = action === 'offer' ? forward.concat(forward.slice(0, -1).reverse()) : forward;
+    const hold = action === 'offer' ? 200 : 320;
+    const fades = [];
+    function show(step) {
+      if (turn !== current) return;
+      if (step >= order.length) { timer = setTimeout(() => refresh(), 650); return; }
+      const cell = cells[step % 2];
+      cells[(step + 1) % 2].style.zIndex = '1';
+      cell.style.zIndex = '2';
+      cell.style.backgroundPosition = order[step]*100/(count-1) + '% 0%';
+      fades[step % 2]?.cancel();
+      fades[step % 2] = cell.animate([{opacity:step ? 0 : 1},{opacity:1}],{duration:120,easing:'ease-out',fill:'forwards'});
+      timer = setTimeout(() => show(step + 1), hold);
+    }
+    show(0);
   }
   function refresh(reaction) {
     const current = ++turn;
