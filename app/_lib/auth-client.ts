@@ -537,7 +537,7 @@ function authRequestTimeoutMs(request: Request) {
   const path = new URL(request.url).pathname.replace(/\/$/, "");
   const reportRoute = /^\/api\/(?:life-book-ai|love-secret-ai|new-year-ai|karma-destiny-ai|astrology-ai|vedic-ai|ziwei-ai|ziwei-island-ai|ziwei-deep-report|sukuyo-compatibility-ai|nakshatra-ai|neo-operation-room|master-love-codex|destiny-compass-ai|pet-saju-ai|fusion-fortune)\/(?:start|generate|generate-batch|message|refine)(?:\/stream)?$/.test(path);
   const fortuneRoute = /^\/api\/fortune\/(?:(?:saju|ziwei|sukuyo|astrology|vedic)\/(?:ai-prompt|question-prompt)|saju-ai-consultation\/create|vedic\/prashna\/generate|guardian\/(?:generate|chat))$/.test(path);
-  const otherRoute = /^\/api\/(?:destiny-compass-ai\/report(?:\/continue)?|pet-saju-ai\/(?:report|compat)|fortune-tea-house\/consult|tarot\/(?:oracle-consultation|ijik-reading|crystal-soul|mindscan|reading|love-reading|numerology-reading))$/.test(path);
+  const otherRoute = /^\/api\/(?:destiny-compass-ai\/report(?:\/continue)?|pet-saju-ai\/(?:report|compat)|fortune-tea-house\/consult|sibyl\/report|tarot\/(?:oracle-consultation|ijik-reading|crystal-soul|mindscan|reading|love-reading|numerology-reading))$/.test(path);
   const additionalRoute = /^\/api\/(?:oracle\/geomancy|celestial-harmony|heukwol\/(?:start|continue)|dream\/(?:psycho-analysis|dream-tarot|dream-prompt|prompt-maker|tarot-consult))$/.test(path);
   const honeyLetterRoute = /^\/api\/fortune-tea-house\/results\/(?:(?:[^/]+\/)?honey-letter|[^/]+\/follow-up)$/.test(path);
   const yeongnyangiRoute = /^\/api\/yeongnyangi\/requests\/[a-f0-9]{64}\/generate$/.test(path);

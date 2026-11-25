@@ -192,14 +192,20 @@ export default function Result({paymentSurface}:{paymentSurface?:"toss"}={}){
   let cancelled=false;
   const progress=`${row.state}:${row.chapters.length}:${row.errorCode||''}`,idle=idlePolls.current;
   idle.count=idle.key===progress?idle.count+1:0;idle.key=progress;
-  const timer=setTimeout(async()=>{
+  let polled=false;
+  const poll=async()=>{
+   if(polled)return;polled=true;
    const permission=paymentSurface==='toss'?++permissionEpoch.current:0;
    try{
     const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${row.id}`);
     if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current)){setRow(sameRequest(fortune,row.id));setError('');}
    }catch(e){if(!cancelled&&(paymentSurface!=='toss'||permission===permissionEpoch.current)){if(hideDeniedTossResult(e)){if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();}else if(e instanceof FortuneApiError&&e.status===401)loginForCurrentPage();else {setError(resultStateCopy(row.locale).pollFailed);setRow({...row});}}}
-  },held?HELD_POLL_MS:Math.min(IDLE_POLL_MAX_MS,RESULT_POLL_MS*2**Math.min(idle.count,2)));
-  return ()=>{cancelled=true;clearTimeout(timer);};
+  };
+  const timer=setTimeout(poll,held?HELD_POLL_MS:Math.min(IDLE_POLL_MAX_MS,RESULT_POLL_MS*2**Math.min(idle.count,2)));
+  // 다른 탭·오프라인에서 돌아오면 남은 대기 시간을 기다리지 않고 바로 다시 확인한다.
+  const wake=()=>{if(document.hidden||navigator.onLine===false)return;clearTimeout(timer);void poll();};
+  document.addEventListener('visibilitychange',wake);window.addEventListener('online',wake);
+  return ()=>{cancelled=true;clearTimeout(timer);document.removeEventListener('visibilitychange',wake);window.removeEventListener('online',wake);};
  },[row]);
  useEffect(()=>{
   if(!row || row.paid || row.state==='REFUNDED' || row.state==='AWAITING_DRAW' || !payWatching)return;

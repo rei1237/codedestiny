@@ -19,8 +19,8 @@ export default function SavedSibylReading({value}:{value:unknown}) {
     try {
       const post=async()=>{
         const response=await authFetch('/api/sibyl/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profileId:report.profileId,year:report.year})});
-        const result=await response.json();
-        if(!response.ok) throw new Error(result.message || copy.resumeError);
+        const result=await response.json().catch(()=>null);
+        if(!response.ok || !result) throw new Error(result?.message || copy.resumeError);
         return {status:response.status,partial:response.status===202 && result?.partial===true};
       };
       // 배달 2판: 202 partial 은 남은 장이 있다는 뜻이라 짧게 쉬고 다시 보낸다. 상한을 넘으면 버튼으로 넘긴다.
@@ -32,7 +32,7 @@ export default function SavedSibylReading({value}:{value:unknown}) {
       }
       if(outcome.status!==202) window.location.reload();
       else setMessage(outcome.partial?copy.resumePartialStalled:copy.resumePending);
-    } catch(error) {setMessage(error instanceof Error?error.message:copy.connectionError);}
+    } catch(error) {setMessage(error instanceof Error && error.name!=='AbortError'?error.message:copy.connectionError);}
     finally {setBusy(false);}
   }
   if(!list(report.chapters).length) return <section className={styles.report}><h2>{text(report.title)}</h2><p>{copy.incomplete}</p>{text(report.profileId)&&<button type="button" disabled={busy} onClick={()=>void resume()}>{busy?copy.checking:copy.resume}</button>}<p role="status">{message}</p></section>;

@@ -23,7 +23,7 @@ for (const family of families) test(`${family}: 생성 중 22초를 넘겨도 �
 });
 test('실제 사주·찻집·반려·나침반·타로 생성 경로도 서버 응답을 기다린다', () => {
   const f = fixture();
-  for (const path of ['fortune/saju/ai-prompt', 'fortune/saju-ai-consultation/create', 'fortune/vedic/prashna/generate', 'fortune-tea-house/consult', 'fortune-tea-house/results/honey-letter', 'fortune-tea-house/results/result-1/honey-letter', 'fortune-tea-house/results/result-1/follow-up','pet-saju-ai/report', 'pet-saju-ai/compat', 'destiny-compass-ai/report/continue', 'tarot/oracle-consultation']) assert.equal(f.ctx.authRequestTimeoutMs(new Request(`https://mock.test/api/${path}`, { method: 'POST' })), 95000);
+  for (const path of ['fortune/saju/ai-prompt', 'fortune/saju-ai-consultation/create', 'fortune/vedic/prashna/generate', 'fortune-tea-house/consult', 'sibyl/report', 'fortune-tea-house/results/honey-letter', 'fortune-tea-house/results/result-1/honey-letter', 'fortune-tea-house/results/result-1/follow-up','pet-saju-ai/report', 'pet-saju-ai/compat', 'destiny-compass-ai/report/continue', 'tarot/oracle-consultation']) assert.equal(f.ctx.authRequestTimeoutMs(new Request(`https://mock.test/api/${path}`, { method: 'POST' })), 95000);
 });
 
 for (const action of ['start', 'continue']) test(`흑월 ${action}: 60초 생성 응답을 기다리고 95초 상한을 유지한다`, async () => {

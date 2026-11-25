@@ -47,7 +47,11 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0,
   useEffect(() => {
     if (!auth.authReady || !auth.isAuthenticated || readyUser !== userKey || (paymentSurface === 'toss' && !userKey)) { if (auth.authReady && !auth.isAuthenticated) setLoading(false); return; }
     const controller = new AbortController(), current = ++epoch.current;
+    // authFetch skips its own time limit when a signal is passed, so a stalled request is cut here.
+    // `disposed` tells an unmount (stay silent) apart from that limit (show the retry state).
+    let disposed = false, limit = 0;
     const timeout = window.setTimeout(() => {
+      limit = window.setTimeout(() => controller.abort(), 25_000);
       setLoading(true); setError(''); setItems([]); setFailures([]); pages.current = 0;
       void (async () => {
         let next: string | null = null, collected: SavedRecord[] = [], missing: Page['failures'] = [];
@@ -60,11 +64,11 @@ export default function RecordsClient({ showWebReception = true, refreshKey = 0,
           setItems(collected); setFailures(missing); setCursor(next);
           const y = restore.current.y; restore.current = { y: 0, pages: 1 };
           pendingScroll.current = y;
-        } catch (cause) { if (!controller.signal.aborted && epoch.current === current) { setError(paymentSurface === 'toss' && isAccessDenied(cause) ? 'denied' : 'unavailable'); setCursor(null); } }
-        finally { if (epoch.current === current) setLoading(false); }
+        } catch (cause) { if (!disposed && epoch.current === current) { setError(paymentSurface === 'toss' && isAccessDenied(cause) ? 'denied' : 'unavailable'); setCursor(null); } }
+        finally { window.clearTimeout(limit); if (epoch.current === current) setLoading(false); }
       })();
     }, 250);
-    return () => { window.clearTimeout(timeout); controller.abort(); };
+    return () => { disposed = true; window.clearTimeout(timeout); window.clearTimeout(limit); controller.abort(); };
     // requestPage intentionally captures the current search and filter for this epoch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auth.authReady, auth.isAuthenticated, readyUser, userKey, search, group, retry, refreshKey, paymentSurface]);

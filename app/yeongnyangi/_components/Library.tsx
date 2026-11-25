@@ -96,7 +96,7 @@ export default function Library({paymentSurface}:{paymentSurface?:'toss'}={}){
   catch(reason){
    if(paymentSurface==='toss'){revision.current++;active.current?.abort();active.current=null;setLoading(false);setRows(null);setCursor(null);setRecovering('');requestedCursor.current=null;if(reason instanceof FortuneApiError&&reason.status===401){setNeedsLogin(true);return;}setError(reason instanceof FortuneApiError&&reason.status===403?'구매 내역에 접근할 권한을 확인할 수 없어요. 구매한 계정과 주문 내역을 확인해 주세요.':'상담 기록을 확인하지 못했어요. 다시 불러와 주세요.');return;}
    if(reason instanceof FortuneApiError&&reason.status===401){loginForCurrentPage();return;}
-   setRecoverError({id:row.id,message:locale!=='ko'?stateCopy.generateFailed:friendlyErrorMessage(reason,stateCopy.generateFailed)});setRecovering('');void load();
+   setRecoverError({id:row.id,message:locale!=='ko'?stateCopy.generateFailed:friendlyErrorMessage(reason,stateCopy.generateFailed)});setRecovering('');
   }
  }
  // Loading is not an empty library: keep the normal artwork until the server
