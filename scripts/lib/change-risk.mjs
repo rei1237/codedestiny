@@ -141,6 +141,13 @@ const deepVerificationRules = [
   [/^worker\/lib\/(consultation-recovery-registry|service-execution-task)\.js$/i, "유료 LLM 전달 계약·실행 기록 정산"],
   //    그 계약을 지키는 검증기(level=medium). 판정을 느슨하게 바꾼 커밋에서 전체 회귀가 깨어나야 한다.
   [/^scripts\/verify-paid-llm-delivery-contract\.mjs$/i, "유료 LLM 전달·환불 계약 검증기"],
+  // 🔴 같은 축의 공용 환불·전달 lib(2026-11-26 실측). paid-flow-gates.yml 트리거(2026-11-24·11-25 블록)와
+  //    SHARED_REFUND_PATHS 정의 파일인데 전부 level=high·deepRequired=false 였다 — 이 lib 만 고친 커밋은
+  //    deploy:critical 전체 회귀가 돌지 않았다. 서비스별 전달 파일은 계약 테스트가 따로 지키므로 여기 넣지 않는다.
+  [/^worker\/lib\/(payment-refund|consultation-delivery-refund|consultation-refund-state|checkpoint-refund-guard|coin-refund-eligibility|refund-delivery-protection)\.js$/i, "결제 후 전달 실패 환불·환불 가드"],
+  [/^worker\/lib\/pass-consumption\.js$/i, "이용권·월정석 차감·환불"],
+  [/^worker\/lib\/(paid-delivery-stuck|consultation-recovery-task)\.js$/i, "정체 자동 확정·복구 크론"],
+  [/^worker\/lib\/paid-narrative-delivery\.js$/i, "서술형 공용 전달 엔진(실행 기록·환불 근거)"],
 
   // ── 유료 기능 UI (정적 계약 테스트가 지키는 곳, preview 스모크는 게스트 경로만 두드린다)
   // 🔴 2026-08-22 실측: app/fusion-fortune/** 가 이 목록에도 paid-flow-gates.yml 트리거에도
@@ -324,6 +331,16 @@ export function selfTest() {
     ["worker/lib/consultation-recovery-registry.js", true],
     ["worker/lib/service-execution-task.js", true],
     ["scripts/verify-paid-llm-delivery-contract.mjs", true],
+    ["worker/lib/payment-refund.js", true],
+    ["worker/lib/consultation-delivery-refund.js", true],
+    ["worker/lib/consultation-refund-state.js", true],
+    ["worker/lib/checkpoint-refund-guard.js", true],
+    ["worker/lib/coin-refund-eligibility.js", true],
+    ["worker/lib/refund-delivery-protection.js", true],
+    ["worker/lib/pass-consumption.js", true],
+    ["worker/lib/paid-delivery-stuck.js", true],
+    ["worker/lib/consultation-recovery-task.js", true],
+    ["worker/lib/paid-narrative-delivery.js", true],
     // 아래는 level=high 여도 전체 회귀까지는 필요 없다. 이 구분이 두 축의 요점이다.
     ["worker/routes/fortune-tea-house.js", false],
     ["worker/routes/ziwei-ai.js", false],
@@ -360,6 +377,8 @@ export function selfTest() {
     ["app/hooks/usePaidResume.ts", true],
     ["worker/lib/consultation-recovery-registry.js", true],
     ["scripts/verify-paid-llm-delivery-contract.mjs", false],
+    ["worker/lib/paid-delivery-stuck.js", true],
+    ["worker/lib/pass-consumption.js", true],
   ];
   for (const [file, expected] of stagingCases) {
     const actual = Boolean(stagingWatchReason(file));
