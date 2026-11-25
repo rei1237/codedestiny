@@ -746,11 +746,11 @@ async function generateChapter(env, {
   const basePrompt = modeDef.mode === "compat"
     ? buildMasterLoveCodexCompatChapterPrompt({
       selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
-      compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true,
+      compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true, consultation: evidenceContract.consultation,
     })
-    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true,
+    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true, consultation: evidenceContract.consultation,
       ...(traitFirst ? { traitFacts: codexTraitFacts(saju, chapter, { traitFirst, traitSeed, locale }) } : {}) });
-  const prompt = appendAnswerVoice(`${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, answerVoice, { master: "master", locale });
+  const prompt = appendAnswerVoice(`${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, answerVoice, { master: "hanbi", locale });
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
   // S16: Workers AI 폴백은 장의 마지막 시도에서만 켠다. 짧은 폴백은 최소 분량 × 0.3 문턱으로 거른다.
   const fallback = providerFallback

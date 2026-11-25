@@ -3,7 +3,8 @@ import { buildCodexConsultation, normalizeCodexConsultation, assertCodexConsulta
 import { buildCodexEvidence } from "../../worker/lib/master-love-codex-evidence.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart, FOUR_TRANSFORMATIONS } from "../../worker/lib/ziwei-ai-chart.js";
-import { MASTER_LOVE_CODEX_CHAPTERS } from "../../worker/lib/master-love-codex-prompt.mjs";
+import { MASTER_LOVE_CODEX_CHAPTERS, buildMasterLoveCodexChapterPrompt } from "../../worker/lib/master-love-codex-prompt.mjs";
+import { MASTER_LOVE_CODEX_COMPAT_CHAPTERS, buildMasterLoveCodexCompatChapterPrompt } from "../../worker/lib/master-love-codex-compat-prompt.mjs";
 
 const birth = { name: "검증", gender: "female", birthDate: "1993-03-21", birthTime: "14:30", calendarType: "solar" };
 test("Toss prepares the original solo and compatibility charts and binds each question to its own purchase",async()=>{
@@ -51,6 +52,29 @@ test("questions route to marriage, reunion, crush and dating chapters in both mo
   expect(build().questions.map(q => q.chapterOrder)).toEqual([15, 16, 9]);
   expect(build(input, undefined, "compat").questions.map(q => q.chapterOrder)).toEqual([15, 16, 15]);
   expect(build({ relationship: "dating", questions: ["관계를 어떻게 이어갈까요?"] }).questions[0].chapterOrder).toBe(10);
+});
+test("family planning questions use both child palaces in the answer and timing chapters", () => {
+  const partner = { ...birth, name: "상대", gender: "male", birthDate: "1992-06-01" };
+  const pair = { ...charts, partnerSaju: calculateLifeBookAiSaju(partner, { year: 2026 }),
+    partnerZiweiChart: calculateZiweiAiChart({ birthInfo: partner }, { year: 2026 }) };
+  const now = new Date("2026-10-14T03:00:00Z");
+  const consultation = buildCodexConsultation({ relationship: "dating", questions: ["임신과 출산을 준비할 때 무엇부터 합의할까요?"] },
+    "compat", pair, birth, partner, now);
+  expect(consultation.questions[0].chapterOrder).toBe(16);
+  const forChapter = (order, reading = consultation) => buildCodexEvidence({
+    ...pair, chapter: MASTER_LOVE_CODEX_COMPAT_CHAPTERS[order - 1], consultation: reading,
+  });
+  const children = evidence => evidence.records.filter(r => r.path === "palaces.자녀궁").map(r => r.id);
+  const answer = forChapter(16);
+  expect(children(answer)).toEqual(["self.ziwei.palaces.자녀궁", "partner.ziwei.palaces.자녀궁"]);
+  expect(children(forChapter(19))).toEqual(children(answer));
+  expect(children(forChapter(13))).toEqual([]);
+  expect(children(forChapter(16, null))).toEqual([]);
+  expect(codexConsultationPrompt(answer)).toContain("가임기, 임신 가능성·시점·결과, 출산 예정일");
+  expect(() => assertCodexConsultation({ questionAnswers: [{
+    questionId: "q1", answer: prose, reasoning: prose, outlook: prose, actions: [prose, prose], reassess: prose,
+    evidenceIds: ["self.saju.dayMaster", ...children(answer)],
+  }] }, answer)).not.toThrow();
 });
 test("twelve fixed monthly intervals and three years span KST year rollover and short months", () => {
   const c = build(input, new Date("2026-12-31T15:01:00Z"));
@@ -100,6 +124,21 @@ test("question contents are data, and each chapter only gets its assigned questi
   expect(prompt).toContain("결혼 이야기는 언제");
   expect(prompt).not.toContain("다시 연락하면 재회");
   expect(codexConsultationPrompt({})).toBe("");
+});
+
+test("the chapter JSON schema includes assigned structured output before the long body", () => {
+  for (const [chapters, builder] of [[MASTER_LOVE_CODEX_CHAPTERS, buildMasterLoveCodexChapterPrompt],
+    [MASTER_LOVE_CODEX_COMPAT_CHAPTERS, buildMasterLoveCodexCompatChapterPrompt]]) {
+    const buildPrompt = (order, consultation) => builder({ chapter: chapters[order - 1], consultation, evidenceProvided: true });
+    for (const [order, field] of [[16, '"questionAnswers"'], [19, '"periodReadings"']]) {
+      const prompt = buildPrompt(order, contract(build(), order).consultation);
+      expect(prompt).toContain("냉정한 연애 고수 서한비");
+      expect(prompt).toContain("신(申)이 세 개");
+      expect(prompt).toContain(field);
+      expect(prompt.indexOf(field)).toBeLessThan(prompt.indexOf('"body"'));
+      expect(buildPrompt(order)).not.toContain(field);
+    }
+  }
 });
 
 test("consultation changes never alter the birth/payment access hash", async () => {

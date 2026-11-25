@@ -18,6 +18,7 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
   const records = [];
   const focus = (chapter.sajuFocus || []).join(" ");
   const palaces = (chapter.ziweiPalaces || []).join(" ");
+  const chapterConsultation = consultationForChapter(consultation, chapter);
   const add = (subject, system, path, value, certainty = "calculated", period = "natal") => {
     if (present(value)) records.push({ id: `${subject}.${system}.${path}`, subject, system, path, value, certainty, period,
       ...(consultation ? { source: subject === "pair" ? `compatibility.${system}` : system === "saju" ? "life-book-ai-saju" : "ziwei-ai-chart" } : {}) });
@@ -41,7 +42,7 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
     // specialist factor (e.g. monthly luck) is not produced by the engine.
     add(subject, "saju", "dayMaster", s?.dayMaster);
     for (const palace of z?.palaces || []) {
-      if (palaces.includes(palace.name)) add(subject, "ziwei", `palaces.${palace.name}`, palace,
+      if (palaces.includes(palace.name) || (chapterConsultation?.familyPlanning && palace.name === "자녀궁")) add(subject, "ziwei", `palaces.${palace.name}`, palace,
         z?.uncertainty?.birthTimeUnknown ? "provisional" : "calculated");
     }
   }
@@ -53,7 +54,6 @@ export function buildCodexEvidence({ chapter, saju, ziweiChart, partnerSaju, par
         compatibility?.uncertainty?.length ? "provisional" : "calculated");
     }
   }
-  const chapterConsultation = consultationForChapter(consultation, chapter);
   if (chapterConsultation && (chapterConsultation.questions.length || chapterConsultation.forecast)) {
     records.push(...consultation.records.filter(r => !chapter.evidenceSubjects || chapter.evidenceSubjects.includes(r.subject)));
   }
@@ -74,10 +74,10 @@ export function formatCodexEvidence(contract) {
   return [
     "[이 장의 검증 가능한 근거 — 아래 기록의 값만 근거로 쓴다]",
     JSON.stringify({ ...contract, consultation: undefined }),
-    "id는 evidence.evidenceId와 crossChecks.id 필드에만 적는다. narration·body·insight 등 독자용 문장에는 id·path·영문 키를 쓰지 말고 한국어 용어로 풀어 쓴다.",
+    "id는 evidence.evidenceId, crossChecks.id, 질문 답변과 시기 해석의 evidenceIds처럼 근거를 연결하는 필드에만 적는다. narration·body·insight 등 독자용 문장에는 id·path·영문 키를 쓰지 말고 한국어 용어로 풀어 쓴다.",
     "evidence 각 항목에 evidenceId, subject, system(saju 또는 ziwei), period, certainty를 아래 기록과 정확히 일치시킨다. natal은 원국, 연도는 해당 세운, major-luck-cycles는 기록된 대운 기간만 뜻한다. label과 explanation은 요청된 출력 언어로 쓴다.",
     "crossChecks는 아래 각 판정을 {id,status,explanation}으로 설명한다. status를 바꾸지 않는다. pending은 판단 보류이며 일치나 불일치로 확정하지 않는다.",
-    "사주와 자미두수의 근거를 각각 인용하되 provisional은 가정임을 설명한다. 한 체계의 근거가 없으면 새로 만들어 채우지 않는다.",
+    "두 체계의 기록이 모두 있으면 evidence 배열에 사주와 자미두수 기록의 실제 id를 각각 최소 하나 넣는다. 본문이나 crossChecks에서 언급하는 것만으로 대신하지 않는다. provisional은 가정임을 설명하고, 한 체계의 기록이 없으면 새로 만들지 않는다.",
     "핵심 해석 → 사주 근거 → 자미두수 근거 → 일치·상충·판단 보류의 이유 → 행동 순서로 전개한다.",
     // R3/R4 (2026-10-09): both distinctions are in the records, but the keys were never explained.
     "기록 키의 뜻: 궁 기록의 transformations는 생년사화, selfTransformations는 그 궁 천간이 일으키는 자화(自化)다. 자화는 '자화록·자화과'처럼 적어 생년사화와 섞지 않는다. stemTenGod는 천간 십성, branchTenGods·hiddenStemTenGods는 지지(지장간) 십성이므로 한 기둥의 십성을 말할 때 천간인지 지지인지 밝힌다.",
