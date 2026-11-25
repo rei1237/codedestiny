@@ -38,8 +38,10 @@ test('home export leaves original sheets dormant and styles the first-visit cons
   for (const page of ['entry', 'yeongnyangi']) writeFileSync(path.join(root, 'assets/fonts/home', page + '.css'), '');
   optimizeNextHomeStyles(root);
   const result = readFileSync(path.join(root, 'index.html'), 'utf8');
-  assert.match(result, /rel="stylesheet" disabled data-cd-home-deferred/);
+  assert.match(result, /rel="stylesheet" media="print" disabled data-cd-home-deferred/, 'print media keeps dormant sheets behind the LCP image');
   assert.ok(result.includes('<noscript>' + original + '</noscript>'));
+  assert.ok(result.indexOf('preloadHomeFloral') > -1 && result.indexOf('preloadHomeFloral') < result.indexOf('data-cd-home-critical'), 'floral hint runs before the blocking sheet');
+  assert.doesNotMatch(readFileSync(path.join(root, 'yeongnyangi/index.html'), 'utf8'), /preloadHomeFloral/);
   const href = result.match(/data-cd-home-critical href="([^"]+)"/)[1];
   assert.match(readFileSync(path.join(root, href), 'utf8'), /AnalyticsConsent_banner__abc\{position:fixed\}/);
   assert.doesNotMatch(readFileSync(path.join(root, href), 'utf8'), /\.unused\{/);

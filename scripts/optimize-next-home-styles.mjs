@@ -51,6 +51,23 @@ export function initialStyles(css, classes, codepoints, lateCodepoints = []) {
 }
 
 // Serialized into an async resource so React can hydrate the original head.
+// Runs inline ahead of the critical stylesheet: a parser-blocking sheet would otherwise hold the
+// layout hint until the fonts share the line, and the 17KB floral then finishes last (11-25).
+function preloadHomeFloral() {
+  if (location.pathname !== '/' || !matchMedia('(max-width: 640px)').matches) return;
+  let theme = 'light';
+  try {
+    if (localStorage.getItem('fortuneThemeModeStateV1') === 'neo') theme = 'dark';
+  } catch { /* Storage is optional. */ }
+  const hint = document.createElement('link');
+  hint.rel = 'preload';
+  hint.as = 'image';
+  hint.fetchPriority = 'high';
+  hint.href = '/images/home/illustrated/moon-floral-' + theme + '-480.webp';
+  hint.setAttribute('data-home-floral', '');
+  document.head.append(hint);
+}
+
 function prepareHomeStyles() {
   if (location.pathname === '/' && matchMedia('(max-width: 640px)').matches && !document.querySelector('link[data-home-floral]')) {
     let theme = 'light';
@@ -68,8 +85,29 @@ function prepareHomeStyles() {
   const events = ['pointerdown', 'keydown', 'focusin', 'beforeprint'];
   function activate() {
     for (const event of events) window.removeEventListener(event, activate, true);
-    for (const sheet of document.querySelectorAll('link[data-cd-home-deferred]')) sheet.disabled = false;
+    for (const sheet of document.querySelectorAll('link[data-cd-home-deferred]')) {
+      sheet.removeAttribute('media');
+      sheet.disabled = false;
+    }
   }
+  // Warm the cache once the page has loaded, so the first tap does not wait on the network.
+  function warm() {
+    for (const sheet of document.querySelectorAll('link[data-cd-home-deferred]')) {
+      if (!sheet.disabled) continue;
+      const hint = document.createElement('link');
+      hint.rel = 'prefetch';
+      hint.as = 'style';
+      hint.href = sheet.href;
+      document.head.append(hint);
+    }
+  }
+  function scheduleWarm() {
+    if (window.requestIdleCallback) requestIdleCallback(warm, { timeout: 3000 });
+    else setTimeout(warm, 200);
+  }
+  if (document.readyState === 'complete') scheduleWarm();
+  else window.addEventListener('load', scheduleWarm, { once: true });
+
   // A deep link can open a dialog without a pointer or keyboard event.
   if (location.search || location.hash) {
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', activate, { once: true });
@@ -127,8 +165,10 @@ export function optimizeNextHomeStyles(directory) {
     const reduced = sheets.concat(fonts).join('\n');
     const name = 'home-' + createHash('sha256').update(reduced).digest('hex').slice(0, 16) + '.css';
     writeFileSync(path.join(directory, '_next/static/css', name), reduced);
-    // Disabled stylesheets keep Next's resource identity, but do not enter the
-    // browser's request queue until a route, account menu or keyboard action needs them.
+    // Disabled stylesheets keep Next's resource identity and stay unapplied until a route,
+    // account menu or keyboard action needs them. Chrome's preload scanner still fetches
+    // disabled sheets at the highest priority, so media="print" drops them to the lowest
+    // priority behind the LCP image and fonts on slow phones (11-25: LCP 4.6s -> 2.2s).
     const loader = '(' + prepareHomeStyles.toString() + ')();';
     const loaderName = 'home-styles-' + createHash('sha256').update(loader).digest('hex').slice(0, 12) + '.js';
     writeFileSync(path.join(directory, '_next/static', loaderName), loader);
@@ -136,13 +176,15 @@ export function optimizeNextHomeStyles(directory) {
     let first = true;
     let output = html;
     let imageHint = '';
-    if (route !== 'index.html') {
+    if (route === 'index.html') {
+      imageHint = '<script>(' + preloadHomeFloral.toString() + ')();</script>';
+    } else {
       imageHint = '<link rel="preload" as="image" type="image/avif" media="(max-width: 699px)" href="/assets/yeongnyangi/night/consultation-room-mobile.avif" fetchpriority="high"/>';
     }
     output = output.replace(links, original => {
       const critical = first ? imageHint + loaderTag + '<link rel="stylesheet" data-cd-home-critical href="/_next/static/css/' + name + '"/>' : '';
       first = false;
-      const deferred = original.replace('rel="stylesheet"', 'rel="stylesheet" disabled data-cd-home-deferred');
+      const deferred = original.replace('rel="stylesheet"', 'rel="stylesheet" media="print" disabled data-cd-home-deferred');
       return critical + deferred + '<noscript>' + original + '</noscript>';
     });
     writeFileSync(target, output);
