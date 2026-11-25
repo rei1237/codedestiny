@@ -24420,7 +24420,8 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
   if (!care.length) care.push('흐름이 순할수록 익숙함에 기대기 쉬워요. 서운한 점은 쌓아 두지 말고 작게, 자주 말해 주세요.');
   var list = function(items, icon) {
     return items.slice(0, 4).map(function(t) {
-      return '<div class="compat-check-item"><span class="compat-check-icon">' + icon + '</span><span style="font-size:.8rem;line-height:1.72;color:#4e5358;">' + t + '</span></div>';
+      // cd-compat-light-point: 엔진 판정 이유(compat-check-reason)와 구분한다 — facts 계약은 이유 항목만 센다.
+      return '<div class="compat-check-item cd-compat-light-point"><span class="compat-check-icon">' + icon + '</span><span style="font-size:.8rem;line-height:1.72;color:#4e5358;">' + t + '</span></div>';
     }).join('');
   };
   var pointsHtml = '<div class="compat-section cd-compat-light-points">'
