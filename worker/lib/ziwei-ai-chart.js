@@ -6,6 +6,7 @@ import { sexagenaryYearIndexes, solarToLunar, lunarToSolar, resolveAuthorityFlag
 import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-minor-limit.js";
 // 화성·영성 기점도 같은 이유로 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
 import { placeFireAndBell } from "../../lib/ziwei-fire-bell.js";
+import { redactForLog } from "./log-redact.js";
 // 별 강약은 정본 하나만 읽는다(lib/ziwei-star-strength.js 머리말 참고).
 import { normalizeZiweiStrengthNotation, starStrength } from "../../lib/ziwei-star-strength.js";
 // 출생 시각 보정(경도·과거 서머타임)은 셸·앱 진입점과 같은 정본을 쓴다(lib/ziwei-birth-clock.js 머리말 참고).
@@ -570,10 +571,10 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
     note: timeParts.unknown ? "birth_time_unknown_noon_basis" : "",
   };
   if (timeParts.unknown) {
-    console.warn("[ziwei-ai-chart] birth time unknown; calculated on noon basis", {
+    console.warn("[ziwei-ai-chart] birth time unknown; calculated on noon basis", redactForLog({
       birthDate: birthInfo.birthDate,
       calendarType,
-    });
+    }));
   }
 
   return {

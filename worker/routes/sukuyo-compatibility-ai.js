@@ -2,6 +2,7 @@ import { resolveExpertCalculation } from '../lib/expert-consumer-facts.js';
 import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { jsonSchemaFromExample } from "../lib/json-text-repair.js";
 import { trimPaidReportText } from "../lib/paid-report-length.js";
+import { redactForLog } from "../lib/log-redact.js";
 // 음력 월·일은 화면 표시 메타데이터에만 사용한다. 숙 판정은 출생 장소·시각을
 // UTC/JD로 정규화한 뒤 공통 Swiss 항성 달 황경에서 직접 계산한다.
 import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
@@ -432,13 +433,13 @@ async function calculatePersonSukuyo(person, label, env = {}, requestUrl = "") {
     if (!sukuyo) throw new Error("SUKUYO_EMPTY");
     return { ...sukuyo, lunarYear: sukuyo.lunarYear };
   } catch (error) {
-    console.warn("[sukuyo-compatibility-ai] calculation failed", {
+    console.warn("[sukuyo-compatibility-ai] calculation failed", redactForLog({
       label,
       birthDate: person.birthDate,
       calendarType: person.calendarType,
       isLeapMonth: person.isLeapMonth,
       error: clean(error?.message || error),
-    });
+    }));
     throw Object.assign(new Error(MESSAGES.calculationFailed), { code: "CALCULATION_FAILED", status: 422 });
   }
 }
