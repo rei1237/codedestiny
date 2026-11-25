@@ -802,7 +802,9 @@ export default {
 
     // Retired SoulCat test entry points now use native Code Destiny pages.
     if (/^\/yeongnyangi\/free-fortune(?:\/|$)/.test(url.pathname)) {
-      return Response.redirect(new URL('/today/', url), 302);
+      // Campaign keys on the old link stay on the visit that lands on /today/.
+      const today = new URL('/today/', url); today.search = url.search;
+      return Response.redirect(today, 302);
     }
     // /yeongnyangi/1000-won-fortune/ is now the static 천원사주 hub page, so it is not redirected.
 

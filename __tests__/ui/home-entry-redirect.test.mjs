@@ -11,6 +11,14 @@ const worker = runInNewContext(source.replace("export default {", "globalThis.wo
 const routes = JSON.parse(readFileSync(new URL("../../public/_routes.json", import.meta.url), "utf8"));
 const noAsset = { ASSETS: { fetch() { throw new Error("The brand home must not be served for this request"); } } };
 
+test("the retired free-fortune entry lands on /today/ and keeps its campaign query", async () => {
+  for (const [path, search] of [["/yeongnyangi/free-fortune", ""], ["/yeongnyangi/free-fortune/", "?utm_source=kakao&utm_campaign=free"]]) {
+    const response = await worker.fetch(new Request(`https://code-destiny.com${path}${search}`), noAsset);
+    assert.equal(response.status, 302);
+    assert.equal(response.headers.get("Location"), `https://code-destiny.com/today/${search}`);
+  }
+});
+
 // 2026-10-15: `/` is the 200 brand home. Only app inputs leave it.
 test("plain and campaign-only home visits serve the brand home to people and crawlers", async () => {
   for (const search of ["", "?utm_source=google&utm_campaign=first%20visit", "?gclid=a", "?gbraid=a&wbraid=b", "?fbclid=a", "?msclkid=a"]) {
