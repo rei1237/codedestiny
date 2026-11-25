@@ -12211,7 +12211,7 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo astro-compat-panel astro-compat-panel--celeb" id="astroSynastrySection">'
-        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#818cf8;margin-bottom:0;">유명인 시나스트리 (셀럽 궁합 실험실)</div><span class="astro-price-pill">무료</span></div>'
+        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#818cf8;margin-bottom:0;">유명인 시나스트리 (셀럽 궁합 실험실)</div><span class="astro-price-pill" data-cd-fun-label>재미로 보는 케미</span><span class="astro-price-pill">무료</span></div>'
         +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 무료</strong><span>셀럽을 선택하면 무료 궁합 리포트가 열립니다.</span></div>'
         +'<div class="astro-desc">'
 
@@ -12270,6 +12270,15 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── [시나스트리 결과판] ── */
         +'<div id="astroSyResult" style="display:none;"></div>'
+        /* 재미 콘텐츠 → 실제 사주 궁합 상품 안내(2026-11-26). 금액은 paid-feature-registry 의 saju-compat-light·premium 과 같아야 한다. */
+        +'<div class="astro-paid-note" data-cd-fun-compat-cta data-cd-cross-sell="astro-celeb-synastry" style="margin-top:14px;flex-direction:column;align-items:flex-start;gap:10px;">'
+        +'<strong>실제 상대와의 궁합은 라이트 궁합(3,000원) · 고급 궁합(10,000원)</strong>'
+        +'<span>유명인 궁합은 공개된 정보로 가볍게 즐기는 재미 콘텐츠예요.</span>'
+        +'<span style="display:flex;flex-wrap:wrap;gap:8px;">'
+        +'<a class="cd-yehwa-button cd-yehwa-button--primary" href="/ggulggul/?action=cdOneStepFreeSajuEntry&amp;section=compatCard">라이트 궁합 보기</a>'
+        +'<a class="cd-yehwa-button cd-yehwa-button--secondary" href="/saju/compatibility/premium/">고급 궁합 보기</a>'
+        +'</span>'
+        +'</div>'
 
         +'</div>'
         +'</div>'

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import ContentIntegrityNote from "../../../components/ContentIntegrityNote";
 import { FusionCrossSell } from "../../../components/FusionCrossSell";
+import { FunCompatCta, FunLabel } from "../../../components/FunCompatCta";
 import { generatePageMetadata } from "../../../../lib/generate-page-metadata";
 import { getFamousSajuHeroImage, type FamousSajuHeroImage } from "../../../../lib/famous-saju/famous-saju-image";
 import { getCelebrityRelatedList, getCelebritySajuPage, getFamousSajuSeoMetadata, getPublishedCelebrityStaticSlugs, publishedCelebritySajuSeeds, type CelebritySajuMagazineResult } from "../../../../lib/famous-saju/celebrity-saju-service";
@@ -246,7 +247,8 @@ function CelebritySajuHero({ magazine, heroImage, profile }: { magazine: Celebri
 
   return (
     <header className="pt-8 text-center sm:pt-10">
-      <p className="text-xs font-semibold text-[#242139] [font-family:var(--font-decorative)]">사주 통식 분석 · 유명인</p>
+      <FunLabel>재미로 보는 유명인 사주</FunLabel>
+      <p className="mt-3 text-xs font-semibold text-[#242139] [font-family:var(--font-decorative)]">사주 통식 분석 · 유명인</p>
       <h1 className="mt-4 text-4xl font-semibold leading-tight text-[#242139] sm:text-5xl [font-family:var(--font-premium)]">
         {profile ? `${profile.name} 사주` : magazine.profile.displayName}
       </h1>
@@ -885,6 +887,7 @@ body:has(main[data-famous-saju-detail]) {
             <CelebritySajuFAQ faq={magazine.faq} />
             <CelebritySajuCTA cta={magazine.cta} />
             <FusionCrossSell fromPath={`/insights/famous-saju/${slug}`} tone="neo" />
+            <FunCompatCta fromPath={`/insights/famous-saju/${slug}`} label="재미로 보는 유명인 사주" />
             <RelatedCelebritySajuList related={related} />
             <p className="mt-6 text-xs leading-6 text-[#242139]">{magazine.profile.sourceNote}</p>
             {/* 검수된 고유 원고(reviewedAt)가 있는 인물만 "사람이 검토했다"고 말한다. 나머지는

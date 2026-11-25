@@ -36,6 +36,7 @@ import {
 } from "@/app/_lib/feature-session-draft";
 import { useDestinyBiasTouchGuard } from "./lib/destinyBiasTouchGuard";
 import { packPaidResumeArg, unpackPaidResumeArg, usePaidResume } from "@/app/hooks/usePaidResume";
+import { FunCompatCta, FunLabel } from "@/app/components/FunCompatCta";
 import ChemiHook from "./components/chemi/ChemiHook";
 import IdolPicker from "./components/chemi/IdolPicker";
 import MyInfoPanel, { type MyInfoValue } from "./components/chemi/MyInfoPanel";
@@ -707,6 +708,7 @@ export default function DestinyBiasClient() {
         {step === "result" && outcome ? (
           <section className={styles.result} aria-labelledby="dbk-result-title">
             <h2 id="dbk-result-title" className="sr-only">케미 결과</h2>
+            <FunLabel className="self-start">재미로 보는 최애 케미</FunLabel>
             <ChemiCoreCard ref={coreCardRef} report={outcome.report} themeKey={themeKey} photoUrl={photoUrl} />
             <BiasPhotoPicker
               photoUrl={photoUrl}
@@ -755,6 +757,7 @@ export default function DestinyBiasClient() {
             <TypeCollection collected={collected} currentTypeId={outcome.result.chemiTypeId} />
             <RecentResults items={recentResults.filter((r) => r.partner.id !== outcome.partner.id)} onReplay={handleReplay} />
             <RecommendationResult service="destiny-bias" groupId={outcome.partner.groupId || ""}/>
+            <FunCompatCta fromPath="/saju/destiny-bias" label="재미로 보는 최애 케미" />
             <p className={styles.footLinks}>
               <button type="button" className={styles.linkButton} onClick={() => router.push("/saju/")}>
                 다른 사주 콘텐츠 보기
