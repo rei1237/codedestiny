@@ -773,6 +773,8 @@
 .orderTools a { min-height:44px; display:inline-flex; align-items:center; }
 .progress>div { flex:1; min-width:0; }
 .progress { scroll-margin-top:24px; }
+/* 생성 중 카드가 장 그래프를 그리면 이 카드는 비어 있어 숨긴다(2026-11-25). */
+.progress[hidden]{display:none}
 .progress[data-state="COMPLETED"] { border:0; background:transparent; padding:0; margin:12px 0 20px; border-radius:0; }
 .progress[data-state="COMPLETED"] p { color:#c1e2d8; margin:0 0 8px; font-size:.9rem; }
 .page :is(h1,h2,h3,button,a,summary) { overflow-wrap:anywhere; }

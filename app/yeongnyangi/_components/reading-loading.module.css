@@ -17,3 +17,19 @@
 .flow::after{content:"";position:absolute;inset:0 auto 0 0;width:40%;border-radius:inherit;background:var(--yn-gold);animation:ynReadingFlow 1.6s ease-in-out infinite}
 @keyframes ynReadingFlow{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
 @media(prefers-reduced-motion:reduce){.flow::after{animation:none;width:100%;opacity:.45}}
+/* 생성 중 영냥이 스프라이트(4x2 시트): 칸 위치는 %만 쓴다(서비스별로 시트 크기가 줄어든다). inset -1% 로 칸 사이 가는 선을 잘라낸다. */
+.sprite{position:relative;box-sizing:border-box;width:min(100%,30rem);aspect-ratio:3/2;overflow:hidden;border:1px solid var(--yn-line);border-radius:20px;background:var(--yn-surface)}
+.frame{position:absolute;inset:-1%;background-size:400% 200%;background-repeat:no-repeat}
+.c0{background-position:0 0}.c1{background-position:33.3333% 0}.c2{background-position:66.6667% 0}.c3{background-position:100% 0}
+.c4{background-position:0 100%}.c5{background-position:33.3333% 100%}.c6{background-position:66.6667% 100%}.c7{background-position:100% 100%}
+.enter{animation:ynSpriteFade .45s ease-out both}
+@keyframes ynSpriteFade{from{opacity:0}to{opacity:1}}
+.compact .sprite{width:100%;border-radius:12px}
+/* 장 그래프: 칸 수는 manifest 장 수, 채운 칸은 저장된 장. 지금 쓰는 장은 금테 안에서 금빛이 흐른다(정지 화면에서도 완료 칸과 다르다). */
+.graph{display:flex;gap:4px;width:min(100%,260px);margin:4px 0 12px;padding:0;list-style:none}
+.graph li{flex:1 1 0;min-width:0;height:8px;box-sizing:border-box;border:1px solid var(--yn-line);border-radius:999px;background:var(--yn-surface);transition:background-color .6s ease,border-color .6s ease}
+.graph li[data-yn-segment=done]{background:var(--yn-gold);border-color:var(--yn-gold)}
+.graph li[data-yn-segment=current]{position:relative;overflow:hidden;border-color:var(--yn-gold)}
+.graph li[data-yn-segment=current]::after{content:"";position:absolute;inset:0 auto 0 0;width:55%;border-radius:inherit;background:var(--yn-gold);animation:ynSegmentSweep 1.8s ease-in-out infinite alternate}
+@keyframes ynSegmentSweep{from{transform:translateX(-50%)}to{transform:translateX(130%)}}
+@media(prefers-reduced-motion:reduce){.enter,.graph li[data-yn-segment=current]::after{animation:none}.graph li[data-yn-segment=current]::after{width:100%;opacity:.5}}

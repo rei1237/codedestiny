@@ -1,6 +1,7 @@
 'use client';
 
 import YeongnyangiRoomScene from './YeongnyangiRoomScene';
+import YeongnyangiReadingSprite from './YeongnyangiReadingSprite';
 import type {Product} from '@/worker/yeongnyangi/payments/catalog';
 import type {ChapterSpec} from '@/worker/yeongnyangi/fortune/book-contracts';
 import {formatElapsed,useElapsed} from '@/components/fortune/useElapsed';
@@ -29,7 +30,7 @@ const leaveKo='창을 닫아도 괜찮아. 남은 장은 서버가 이어서 써
 export default function ReadingLoading({stage='fetching',saved=0,total=0,product,locale,compact=false,manifest,timing=false,libraryHref,leaveNote}:{stage?:'fetching'|'generating'|'verifying';saved?:number;total?:number;product?:Product;locale?:ReadingLocale;compact?:boolean;manifest?:ChapterSpec[];timing?:boolean;libraryHref?:string;leaveNote?:string}){
  const copy=readingCopy(locale),stateCopy=resultStateCopy(locale),wait=waitCopy[locale||'ko']||waitCopy.ko;
  const ko=!locale||locale==='ko';
- const title=stage==='fetching'?copy.loading:stage==='verifying'?copy.reviewing:ko?'영냥이가 네 질문의 흐름을 읽고 있어.':copy.generating;
+ const title=stage==='fetching'?copy.loading:stage==='verifying'?copy.reviewing:ko?(product?`영냥이가 ${product.name} 운세를 봐 주고 있어.`:'영냥이가 네 질문의 흐름을 읽고 있어.'):copy.generating;
  // 한국어 생성 제목은 영냥이 말투라 서버 이어쓰기 안내가 빠진다. 기다리는 동안 나가도 된다는 사실을 따로 알린다.
  // A paid result passes the completion-mail note instead (2026-11-23); it replaces this hint so the card says it once.
  const leaveHint=stage!=='generating'?'':leaveNote||(title!==copy.generating?leaveKo:'');
@@ -41,12 +42,14 @@ export default function ReadingLoading({stage='fetching',saved=0,total=0,product
  const chapterTitle=spec?(ko?spec.title:v7Label(spec.titleKey,locale)):undefined;
  const elapsed=useElapsed(timing&&stage!=='fetching');
  return <div className={[styles.loading,compact?styles.compact:''].join(' ')} data-reading-stage={stage} data-reading-domain={domain} data-reading-count={counted?'determinate':'indeterminate'}>
-  {timing && product ? <YeongnyangiRoomScene domain={domain}/> : <div className={styles.scene} aria-hidden="true">
+  {/* While the server writes, Yeongnyangi reads from a sprite sheet; the room film stays as the fallback (2026-11-25). */}
+  {timing && product ? <YeongnyangiReadingSprite domain={domain} fallback={<YeongnyangiRoomScene domain={domain}/>}/> : <div className={styles.scene} aria-hidden="true">
    <picture><source media="(max-width: 600px)" srcSet="/assets/yeongnyangi/night/consultation-room-mobile.webp"/><img src="/assets/yeongnyangi/night/consultation-room.webp" alt="" decoding="async"/></picture>
    <img className={styles.master} src="/images/brand/yeongnyangi-meditating-v2.webp" alt="" width="480" height="480"/>
   </div>}
   <div className={styles.copy}>
    <div role="status" aria-live="polite" aria-atomic="true"><p className={styles.title}>{title}</p>{writing>0?<p className={styles.count}>{wait.writing(writing,total)}</p>:counted&&<p className={styles.detail}>{stateCopy.saved(saved,total)}</p>}{chapterTitle&&<p className={styles.chapterTitle}>{chapterTitle}</p>}</div>
+   {counted&&stage!=='fetching'&&<ol className={styles.graph} aria-hidden="true">{Array.from({length:total},(_,index)=><li key={index} data-yn-segment={index<saved?'done':stage==='generating'&&index===saved?'current':'pending'}/>)}</ol>}
    {!counted&&stage!=='fetching'&&<span className={styles.flow} aria-hidden="true"/>}
    {timing&&stage!=='fetching'&&<p className={styles.elapsed}>{wait.elapsed} <time dateTime={`PT${Math.floor(elapsed/1000)}S`}>{formatElapsed(elapsed)}</time></p>}
    {leaveHint&&<p className={styles.detail}>{leaveHint}</p>}
