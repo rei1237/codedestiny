@@ -455,6 +455,43 @@ on:
       - "worker/routes/neo-operation-room.js"
       - "worker/routes/fortune-tea-house.js"
       - "worker/routes/saju-compat-premium.js"
+      # 🔴 유료 LLM 전달 계약 파일 전부(2026-11-25 추가). PAID_LLM_DELIVERY_CONTRACT 의 files 중 아래는
+      #    needsPaidGateSuite 실측 false 였다. 셀프 테스트(verify:paid-gate-scope)가 계약 파일·공용 환불 정의
+      #    파일 전부를 요구한다 — 계약에 새 파일을 올리면 여기에도 올린다. 기존 항목은 그대로 둔다.
+      # 서술형 엔진 10종 공용 엔진·다시 시도/환불 라우트·서비스 전달 파일
+      - "worker/lib/paid-narrative-delivery.js"
+      - "worker/lib/paid-narrative-intent.js"
+      - "worker/lib/paid-narrative-recovery-task.js"
+      - "worker/routes/paid-narrative-retry.js"
+      - "worker/lib/tarot-oracle-delivery.js"
+      - "worker/lib/love-tarot-delivery.js"
+      - "worker/lib/mindscan-delivery.js"
+      - "worker/lib/guardian-paid-delivery.js"
+      - "worker/lib/feature-question-delivery.js"
+      - "worker/routes/dream.js"
+      - "worker/routes/yoga-guru.js"
+      - "worker/routes/saju-compat-basic.js"
+      - "worker/routes/oracle.js"
+      - "worker/routes/animal-totem.js"
+      # 손금(저장 후 결제)
+      - "worker/routes/palm.js"
+      - "worker/lib/palm-result-delivery.js"
+      # 운세 채팅 질문·영냥이 단건 이용·종결 환불
+      - "worker/routes/fortune-chat-consultations.js"
+      - "worker/yeongnyangi/per-use-access.js"
+      - "worker/yeongnyangi/repository.js"
+      - "worker/yeongnyangi/service.ts"
+      - "worker/yeongnyangi/terminal-refund.js"
+      # 토스 네이티브 유료 생성
+      - "worker/toss/routes.js"
+      - "worker/toss/owned-narrative.js"
+      - "worker/toss/native-pet-paid.js"
+      - "worker/toss/native-saju-compat.js"
+      - "worker/toss/native-yoga.js"
+      - "worker/toss/tarot-library-generator.js"
+      - "worker/toss/native-palm.js"
+      # 계약 인벤토리(카탈로그 LLM 판매 키)
+      - "scripts/lib/paid-delivery-inventory.mjs"
   # ⚠️ 이 게이트의 가드는 트리거 paths 밖 파일도 읽는다(예: verify:nakshatra-premium 은 규약
   #    문서를 읽는다). paths 에 안 걸리는 커밋이 가드를 깨뜨릴 수 있다 — 2026-08-11 에 실제로
   #    그랬다(PR #678, CLAUDE.md 분할). paths 를 넓히면 2026-08-08 에 일부러 좁힌 트리거가
