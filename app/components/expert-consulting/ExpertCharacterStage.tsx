@@ -95,7 +95,8 @@ export default function ExpertCharacterStage({
   const name = getExpertCharacterName(character, locale);
   const announces = placement === "loading" || mood === "error";
   const isHero = placement === "hero";
-  const roomGreeting = isHero || (placement === "inline" && mood === "greet");
+  // 입장 영상은 각 화면의 히어로 자리에 한 편만 둔다. inline 인사 무대는 말풍선 옆 스프라이트로 남긴다(중복·찌그러짐 방지).
+  const roomGreeting = isHero;
   // 결과 표지·끝맺음은 PDF 캡처 대상 안에 있다. 지연 로드면 화면 밖 컷이 빈 칸으로 찍힌다.
   const loading = isHero ? undefined : placement === "result" ? "eager" : "lazy";
   const masterMotion = MASTER_MOTION_ENABLED && placement !== "result";

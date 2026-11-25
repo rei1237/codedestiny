@@ -22,6 +22,7 @@ import { tossZiweiJapanese } from "@/app/_lib/toss-ziwei-copy";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled, MUSUNG_FEATHER_ASPECT, MUSUNG_FEATHER_STAGES } from "@/src/features/expert-characters";
@@ -1338,7 +1339,12 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
   return (
     <main className="ziweiAiShell" lang={paymentSurface === "toss" ? tossLocale : undefined} style={paymentSurface === "toss" ? {paddingBottom:"var(--toss-service-bottom, 0px)"} : undefined}>
       <section className={`ziweiHero${musungOn ? " isMusung" : ""}`}>
-        {musungOn ? (
+        {/* 입장 영상은 히어로 아트 자리에 한 편만. 토스 일본어판은 인사 무대가 없던 그대로 정지 키아트를 쓴다. */}
+        {musungOn && !tossJapanese ? (
+          <div className="musungHeroFilm">
+            <MasterRoomScene master="musung" shot="intro" />
+          </div>
+        ) : musungOn ? (
           <div className="musungHeroArt">
             <picture>
               <source srcSet={[320, 480, 640, 960].map(width => `${introductionArt["ziwei-ai"].cardImage.replace("-320", `-${width}`)} ${width}w`).join(", ")} sizes="(min-width: 1400px) 1316px, 100vw" />
@@ -1882,13 +1888,14 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
         .musungHeroArt img{object-fit:cover;object-position:center}
         .musungHeroArt::after{content:"";position:absolute;inset:auto 0 0;height:42%;background:linear-gradient(0deg,#0a0c18,transparent);pointer-events:none}
         .ziweiHero.isMusung .heroCopy{padding:4px 40px 18px}
+        .musungHeroFilm{position:relative;z-index:2;padding:28px 40px 6px}
         .musungHeroStage{position:relative;z-index:2;max-width:620px;margin:0 40px 40px}
         .musungEmptyStage{width:min(100%,440px);margin-top:6px;text-align:left}
         .musungCoverStage{max-width:560px;margin-top:6px}
         .musungClose{justify-self:end;width:min(100%,520px)}
         @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
         @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:calc(env(safe-area-inset-top,0px) + 54px) 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.chartDataGrid{grid-template-columns:1fr}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceBoard{padding:10px}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
-        @media(max-width:620px){.musungHeroArt{aspect-ratio:3/2;max-height:none}.ziweiHero.isMusung .heroCopy{padding:2px 18px 14px}.musungHeroStage{margin:0 18px 26px}}
+        @media(max-width:620px){.musungHeroArt{aspect-ratio:3/2;max-height:none}.ziweiHero.isMusung .heroCopy{padding:2px 18px 14px}.musungHeroStage{margin:0 18px 26px}.musungHeroFilm{padding:10px 10px 4px}}
       `}</style>
     </main>
   );

@@ -20,9 +20,10 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { ExpertStickyCta, ExpertValueCards } from "@/app/components/expert-consulting/ExpertConsultationFrame";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles } from "@/components/fortune/master-profiles";
-import { getExpertCharacter, getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
+import { getExpertCharacterName, getExpertCharacterTitle, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { expertRetryHoldOf, probeExpertRetryHold } from "@/app/components/ExpertRetryPanel";
@@ -2018,7 +2019,6 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
   const progressPercent = phase === "idle" ? 8 : Math.round(((activeStep + 1) / progressSteps.length) * 100);
   // 윤달 — enabled 를 끄면 기존 Moon 궤도 헤더와 문구만 남는다.
   const yunOn = isExpertCharacterEnabled("yun");
-  const yunHero = { ...getExpertCharacter("yun").hero, src: "/images/service-introductions/astrology-ai-960.webp", alt: "윤달이 서양 점성술 출생차트의 행성과 하우스를 짚는 상담 장면" };
   const yunGreet = getExpertLine("yun", "hero", locale);
   const yunBirth = getExpertLine("yun", form.birthTimeUnknown ? "birth.unknown" : form.birthTime ? "birth.known" : "hero.sub", locale);
   // 시간 기반 가짜 진행 없이 실제 단계만 본다: 근거가 오기 전은 계산, 온 뒤는 상담 생성.
@@ -2035,20 +2035,10 @@ export default function AstrologyAiClient({paymentSurface = "web", ProfilePicker
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
           <div className="space-y-6">
             <header className="overflow-hidden rounded-lg border border-white/10 bg-[#0b1027]/[0.82] p-6 shadow-2xl shadow-black/30 ring-1 ring-white/[0.03] backdrop-blur sm:p-8">
+              {/* 입장 영상은 히어로의 첫 시각 요소 한 편만 — 말풍선 옆 인사 무대는 스프라이트로 둔다. */}
               {yunOn && (
-                <div className="relative -mx-6 -mt-6 mb-6 aspect-[3/2] overflow-hidden sm:-mx-8 sm:-mt-8">
-                  <img
-                    src={yunHero.src}
-                    srcSet="/images/service-introductions/astrology-ai-320.webp 320w, /images/service-introductions/astrology-ai-480.webp 480w, /images/service-introductions/astrology-ai-640.webp 640w, /images/service-introductions/astrology-ai-960.webp 960w"
-                    alt={yunHero.alt}
-                    width={1536}
-                    height={1024}
-                    fetchPriority="high"
-                    decoding="async"
-                    sizes="(min-width: 1280px) 830px, (min-width: 1024px) 64vw, 100vw"
-                    className="absolute inset-0 h-full w-full object-cover object-center"
-                  />
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#0b1027] to-transparent" aria-hidden="true" />
+                <div className="-mx-4 -mt-4 mb-6 sm:-mx-6 sm:-mt-6">
+                  <MasterRoomScene master="yun" shot="intro" />
                 </div>
               )}
               <div className={yunOn ? undefined : "grid gap-7 lg:grid-cols-[minmax(0,1fr)_220px] lg:items-center"}>

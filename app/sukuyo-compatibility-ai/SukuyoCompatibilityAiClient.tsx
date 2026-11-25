@@ -56,9 +56,10 @@ import {
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles } from "@/components/fortune/master-profiles";
-import { getExpertCharacter, getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
+import { getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
@@ -1365,7 +1366,6 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
   const copy = getSukuyoCompatCopy(locale);
   // 서한비 — enabled 를 끄면 기존 예화 씬과 문구만 남는다.
   const hanbiOn = isExpertCharacterEnabled("hanbi");
-  const hanbiHero = { ...getExpertCharacter("hanbi").hero, src: "/images/service-introductions/sukuyo-compatibility-ai-960.webp", alt: "서한비가 두 사람의 달 자리와 관계의 거리를 비교하는 숙요점 상담 장면" };
   const hanbiGreet = getExpertLine("hanbi", "hero", locale);
   const hanbiEmpty = getExpertLine("hanbi", "empty", locale);
   const hanbiError = getExpertLine("hanbi", "error", locale);
@@ -1986,8 +1986,9 @@ export default function SukuyoCompatibilityAiClient({paymentSurface="web",draftO
           className={styles.visualPanel}
         >
           {hanbiOn ? (
+            /* 입장 영상은 키아트 자리에 한 편만 — 문구보다 위에 둔다. 말풍선 옆 인사 무대는 스프라이트로 남는다. */
             <div className={styles.hanbiKeyArt}>
-              <img src={hanbiHero.src} srcSet="/images/service-introductions/sukuyo-compatibility-ai-320.webp 320w, /images/service-introductions/sukuyo-compatibility-ai-480.webp 480w, /images/service-introductions/sukuyo-compatibility-ai-640.webp 640w, /images/service-introductions/sukuyo-compatibility-ai-960.webp 960w" alt={hanbiHero.alt} width={1536} height={1024} fetchPriority="high" decoding="async" sizes="(max-width: 900px) 100vw, 46vw" className={`${styles.hanbiKeyArtImage} absolute inset-0 h-full w-full`} />
+              <MasterRoomScene master="hanbi" shot="intro" />
             </div>
           ) : (
             <div className={styles.visualVeil} aria-hidden="true">
