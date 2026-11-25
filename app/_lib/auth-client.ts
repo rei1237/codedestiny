@@ -97,6 +97,25 @@ export function clearEntitlementLocalStorage() {
   }
 }
 
+// PRIV-009: 계정 프로필 카드 캐시(생년월일 포함)도 공용 기기에 남기지 않는다. 로그인 스코프 카드는 서버가
+// 정본이라 다음 로그인 때 다시 받는다. ::guest 스코프는 계정 데이터가 아니고 서버 사본이 없으므로 남긴다.
+const ACCOUNT_PROFILE_STORAGE_PREFIXES = ["FORTUNE_APP_USER_PROFILES", "code-destiny.activeProfile"];
+
+function clearAccountProfileLocalStorage() {
+  try {
+    const swept: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key && !key.endsWith("::guest") && ACCOUNT_PROFILE_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+        swept.push(key);
+      }
+    }
+    swept.forEach((key) => localStorage.removeItem(key));
+  } catch (e) {
+    // ignore storage failures
+  }
+}
+
 const AUTH_COOKIE_NAMES = [
   "fortune_auth_token",
   "fortune_auth_refresh",
@@ -398,6 +417,7 @@ export function clearClientAuthState() {
     // ignore storage failures
   }
   clearEntitlementLocalStorage();
+  clearAccountProfileLocalStorage();
   try {
     sessionStorage.clear();
   } catch (e) {

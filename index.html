@@ -11261,6 +11261,17 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
             ].forEach(function (k) {
               try { localStorage.removeItem(k); } catch (_) {}
             });
+            // PRIV-009: 계정 프로필 카드 캐시(생년월일 포함)도 공용 기기에 남기지 않는다(React clearClientAuthState 와 같은 규칙).
+            // ::guest 스코프는 계정 데이터가 아니고 서버 사본이 없으므로 남긴다.
+            try {
+              var _cdProfileKeys = [];
+              for (var _i = 0; _i < localStorage.length; _i += 1) {
+                var _k = localStorage.key(_i) || '';
+                if (/::guest$/.test(_k)) continue;
+                if (_k.indexOf('FORTUNE_APP_USER_PROFILES') === 0 || _k.indexOf('code-destiny.activeProfile') === 0) _cdProfileKeys.push(_k);
+              }
+              _cdProfileKeys.forEach(function (k) { localStorage.removeItem(k); });
+            } catch (_) {}
             try { sessionStorage.clear(); } catch (_) {}
             [
               'fortune_auth_token',
