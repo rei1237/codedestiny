@@ -142,8 +142,13 @@ export async function sendCompletionMail(env, row, options = {}) {
 
 /**
  * 10-minute cron backstop: completions the immediate queue hook missed (recovery cron, HTTP path, failed send).
- * `lastViewedAt: {$exists:true}` limits it to rows created after the field existed (schema default null), so the
- * first deploy does not mail buyers whose readings finished before the heartbeat could record them watching.
+ * A row created before `lastViewedAt` existed has no such field; once its reading completes and nobody opened it,
+ * it is eligible like any other leaver (leftAtCompletion treats a missing heartbeat as left). The backlog stays
+ * bounded by the same three limits as every row: completedAt within COMPLETION_MAIL_MAX_AGE_MS (24h, older
+ * completions are never reached), BATCH_LIMIT per run, and the `completionMailSentAt` claim (mailed once).
+ * The heartbeat has been live in every deployed build since 2026-11-22, so inside the 24h window a missing field
+ * means "never viewed", not "viewed before the heartbeat existed".
+ * Filter = the completion_mail_sweep index exactly (state, completionMailSentAt equality, completedAt range/sort).
  */
 export async function sendPendingCompletionMails(env, options = {}) {
   const { now = new Date(), limit = BATCH_LIMIT, send = sendEmailViaResend } = options;
@@ -151,7 +156,7 @@ export async function sendPendingCompletionMails(env, options = {}) {
   await connectDb(env);
   const rows = await withMongoRetry(env, () => YeongnyangiRequest.find({
     state: 'COMPLETED', completedAt: { $gte: new Date(now.getTime() - COMPLETION_MAIL_MAX_AGE_MS) },
-    completionMailSentAt: null, lastViewedAt: { $exists: true },
+    completionMailSentAt: null,
   }).select('_id userId state persona completedAt lastViewedAt completionMailSentAt snapshot.locale snapshot.product.name snapshot.product.fishName')
     .sort({ completedAt: 1 }).limit(limit).lean());
   const outcomes = [];
