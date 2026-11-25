@@ -2336,7 +2336,6 @@ export default function NeoOperationRoomPage({ paymentSurface = "web", TossPrice
 
       {!showOperationMap && !displayBriefing && !displayRefinedOrder && <section className={styles.consultationValue} aria-label={welcome.results}>
         <div className={styles.consultationValueIntro}>
-          <MasterRoomScene master="neo" still/>
           <div><h2>{welcome.results}</h2><p>{welcome.lead}</p><Link href="/neo-operation-room/strategy-books/">{bookCopy.title} →</Link><p className={styles.strategyBookHint}>{bookCopy.rule}</p></div>
         </div>
         <ExpertValueCards theme="neo" points={welcome.points} />

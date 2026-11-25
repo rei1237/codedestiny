@@ -1007,6 +1007,8 @@
 
 @media (max-width: 639px) {
   .landingHero { grid-template-columns: minmax(0, 1fr); gap: 22px; padding-top: 24px; }
+  /* 한 열일 때 입장 영상을 제목 위 첫 시각 요소로 올린다. */
+  .landingPortrait { order: -1; }
   .landingHeroTitle { font-size: clamp(2.5rem, 10.5vw, 3.6rem); }
   .landingLead { margin-top: 20px; line-height: 1.7; }
   .landingEdition { margin-top: 18px; padding-top: 10px; }
