@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-26
-next: 단계 1 — PRIV-003 access 검증에서 refresh 토큰(typ=refresh) 거부
+next: 단계 3 — PRIV-008 worker/lib/log-redact.js redactForLog 신설·LLM 로그 3곳 적용
 ---
 
 # 개인정보 보안 개선 (PRIV) 인수인계
@@ -45,8 +45,8 @@ next: 단계 1 — PRIV-003 access 검증에서 refresh 토큰(typ=refresh) 거�
 11. 머지·전달: `npm run check:pre-push` → main 반영(루트 체크아웃을 건드리지 않고 `git push origin HEAD:main` 이 fast-forward 인지 확인 후) → main CI 결과 1회 확인 → 루트에서 `npm run worktree:remove -- <경로>` 는 루트가 옆 세션 작업 중이므로 **보고만**(사용자/세션 주도).
 
 ## 단계
-- [ ] 1 PRIV-003
-- [ ] 2 PRIV-002 neo
+- [x] 1 PRIV-003 (93f73a0bb2)
+- [x] 2 PRIV-002 neo (c87f7fe4ac)
 - [ ] 3 PRIV-008
 - [ ] 4 PRIV-006
 - [ ] 5 PRIV-009
@@ -58,5 +58,19 @@ next: 단계 1 — PRIV-003 access 검증에서 refresh 토큰(typ=refresh) 거�
 ## 결과 기록
 (단계별 커밋 SHA·테스트 명령·출력 요약)
 
+### 단계 1 PRIV-003 — `93f73a0bb2`
+- 수정: `worker/lib/auth.js` `extractTokenUserId` 첫 줄에서 `typ === "refresh"` 면 "" (requireAuth·getOptionalUserFromRequest·peekAccessTokenUserId 가 모두 이 함수를 지남). typ 없음·"access" 허용.
+- 재현 테스트: `__tests__/worker/auth.reject-refresh-typ.test.js` — 수정 전 `node scripts/run-mock-tests.mjs jest --runInBand __tests__/worker/auth.reject-refresh-typ.test.js` → 2 failed / 2 passed(refresh 토큰이 requireAuth·peek 통과). 수정 후 관련 4개 스위트(reject-refresh-typ, require-exp, app-refresh-token, require-auth.fallback) 36/36 pass.
+- `npm run check:fast`: tier critical 자동 승격(typecheck·test:node·test:jest 전체 포함, 약 35분), exit 0. jest `Tests: 1 skipped, 8635 passed, 8636 total`.
+
+### 단계 2 PRIV-002(neo) — `c87f7fe4ac`
+- 동결 확인: `config/payment-freeze.json`·`docs/context/payment-gating.md` 에 `worker/routes/neo-consultations.js` 없음(`git grep -n "neo-consultations" -- scripts config docs/context/payment-gating.md` → verify-neo-consultation-ui.mjs 참조만) → 직접 수정.
+- 수정: `worker/routes/neo-consultations.js` 에 `resolveNeoCustomerUserId(request, env)`(export) 신설 — `resolvePaidRouteAuth`(활성·탈퇴 DB 확인) 결과 userId, 없으면 . `handleNeoRuntimeRequest` 는 peek 대신 이 함수 사용, 503 HttpError 는 `{code:AUTH_STATUS_TEMPORARILY_UNAVAILABLE, retryable:true}` 503 JSON 으로 응답. status GET·admin 경로 무변경.
+- 재현 테스트: `__tests__/worker/neo-consultations.withdrawn-auth.test.js`(db.js·models.js 목, 탈퇴→·401·create 미호출 / 활성→userId / 토큰 없음→ / DB 장애→503). 헬퍼를 옛 peek 동작으로 바꿔 돌리면 2 failed(탈퇴·503) 확인 후 원복. 수정 후 이 파일 + `payments-v2.neo-consultation.test.js` 11/11 pass, `node --test __tests__/ui/neo-consultation.test.mjs` 41/41 pass.
+- `npm run check:fast`: tier critical, exit 0. test:node `tests 5842 pass 5842 fail 0`, jest `Tests: 1 skipped, 8639 passed, 8640 total`.
+- payments/index.js:2191·gift-routes.js:53 diff 초안은 단계 10 에서.
+
 ## 후속
 (범위 밖 발견)
+- [PRIV-003 연장, 결정 필요] 서비스별 단기 토큰(예: `worker/routes/love-secret-ai.js:402` `createAccessToken` typ="love-secret-ai-access", astrology·karma·life-book 동형)이 로그인 access 와 같은 시크릿·issuer·audience 로 서명되고 `userId` 를 실어, `extractTokenUserId` 가 이를 로그인 토큰으로도 받아들인다(TTL 45m 등). refresh 만 막은 현재 수정 범위 밖. 더 엄격한 안: typ 허용 목록(없음·"access"만). 발급처 전수 확인 후 별도 RED 로 다룰지 사용자 판단 필요. (social grant/oauth state 는 aud 없음 → audience 검증에서 이미 거부됨, 확인함.)
+- [측정] 이 워크트리에서 auth·결제 인접 파일 변경 시 check:fast 가 critical 로 승격돼 1회 약 30~35분. 남은 단계 계획 시 참고.
