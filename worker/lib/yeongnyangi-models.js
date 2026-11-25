@@ -60,8 +60,8 @@ const schema = new mongoose.Schema({
   lastFailure: { code: String, stage: String, at: Date },
   firstContentAt: { type: Date, default: null },
   completedAt: { type: Date, default: null },
-  // Result polling heartbeat (view-heartbeat.js, at most one write per 20s). The null default marks rows created
-  // after this field existed, so the completion-mail sweep never reaches orders completed before it shipped.
+  // Result polling heartbeat (view-heartbeat.js, at most one write per 20s). Rows created before this field existed
+  // lack it; the completion-mail sweep treats missing like null (never viewed) inside its 24h completedAt window.
   lastViewedAt: { type: Date, default: null },
   // Completion mail claim and marker (completion-mail.js): null = not sent yet; skipped says why none went out.
   completionMailSentAt: { type: Date, default: null },

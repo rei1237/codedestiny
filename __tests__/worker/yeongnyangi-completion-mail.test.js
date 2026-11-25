@@ -125,16 +125,35 @@ test('the real sender without a key skips before any database work',async()=>{
  expect(YeongnyangiRequest.find).not.toHaveBeenCalled();
 });
 
-test('the sweep mails recent leavers only, skips pre-heartbeat and old rows, and marks watchers',async()=>{
+test('the sweep mails recent leavers only, skips old rows, and marks watchers',async()=>{
  const left=row('3'),watching=row('4',{lastViewedAt:new Date(now.getTime()-5000)}),old=row('5',{completedAt:new Date(now.getTime()-25*3600000)});
- const legacy=row('6');delete legacy.lastViewedAt;
- rows.push(left,watching,old,legacy);const send=ok();
+ rows.push(left,watching,old);const send=ok();
  const summary=await mail.sendPendingCompletionMails({},{now,send});
  expect(summary).toMatchObject({scanned:2,configError:false});
  expect(summary.outcomes.sort()).toEqual(['sent','watching']);
  expect(send).toHaveBeenCalledTimes(1);
  expect(send.mock.calls[0][1].idempotencyKey).toBe(`yn-complete:${left._id}`);
- expect(old.completionMailSentAt).toBeNull();expect(legacy.completionMailSentAt).toBeNull();
+ expect(old.completionMailSentAt).toBeNull();
  const again=await mail.sendPendingCompletionMails({},{now,send});
  expect(again.scanned).toBe(0);expect(send).toHaveBeenCalledTimes(1);
+});
+
+// Regression (2026-11-25): `lastViewedAt: {$exists:true}` dropped never-viewed rows created before the heartbeat field.
+test('a never-viewed row without lastViewedAt is mailed once, inside the 24h window and the per-run cap',async()=>{
+ const legacy=(id,patch={})=>{const r=row(id,patch);delete r.lastViewedAt;delete r.completionMailSentAt;return r;};
+ const recent=['7','8','9','c','d','e','f'].map((id,i)=>legacy(id,{completedAt:new Date(now.getTime()-(i+1)*60000)}));
+ const backlog=legacy('0',{completedAt:new Date(now.getTime()-24*3600000-1000)});
+ const unfinished=legacy('1',{state:'GENERATING'});
+ rows.push(backlog,unfinished,...recent);const send=ok();
+ const first=await mail.sendPendingCompletionMails({},{now,send});
+ expect(first).toMatchObject({scanned:5,configError:false});
+ expect(first.outcomes).toEqual(Array(5).fill('sent'));
+ const second=await mail.sendPendingCompletionMails({},{now,send});
+ expect(second.outcomes).toEqual(['sent','sent']);
+ expect((await mail.sendPendingCompletionMails({},{now,send})).scanned).toBe(0);
+ expect(send).toHaveBeenCalledTimes(7);
+ expect(new Set(send.mock.calls.map(([,m])=>m.idempotencyKey)).size).toBe(7);
+ expect(backlog).not.toHaveProperty('completionMailSentAt');expect(unfinished).not.toHaveProperty('completionMailSentAt');
+ const filter=YeongnyangiRequest.find.mock.calls[0][0];
+ expect(Object.keys(filter)).toEqual(['state','completedAt','completionMailSentAt']);
 });
