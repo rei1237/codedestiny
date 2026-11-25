@@ -532,18 +532,18 @@
     "ms": "Aktiviti harian saya"
   },
   "home.shelf.meditation": {
-    "ko": "달빛 연화당 명상",
-    "en": "Moonlit Lotus Meditation",
-    "ja": "月明かりの蓮花堂瞑想",
-    "zh-CN": "月下莲花堂冥想",
-    "zh-TW": "月下蓮花堂冥想",
-    "vi": "Thiền sen dưới trăng",
-    "hi": "चाँदनी कमल ध्यान",
-    "es": "Meditación del loto lunar",
-    "fr": "Méditation du lotus au clair de lune",
-    "de": "Lotusmeditation im Mondlicht",
-    "nl": "Lotusmeditatie bij maanlicht",
-    "ms": "Meditasi Teratai Cahaya Bulan"
+    "ko": "달빛 연화당 · 혼자만의 온라인 절 참배",
+    "en": "Moonlit Lotus Hall · A private online temple visit",
+    "ja": "月明かりの蓮華堂 · ひとりだけのオンライン参拝",
+    "zh-CN": "月下莲花堂 · 一个人的线上寺院参拜",
+    "zh-TW": "月下蓮花堂 · 一個人的線上寺院參拜",
+    "vi": "Điện Sen dưới trăng · Viếng chùa trực tuyến một mình",
+    "hi": "चाँदनी कमल मंदिर · अकेले ऑनलाइन मंदिर दर्शन",
+    "es": "Salón del loto lunar · Una visita al templo en línea, a solas",
+    "fr": "Pavillon du lotus au clair de lune · Une visite de temple en ligne, en solo",
+    "de": "Lotushalle im Mondlicht · Ein stiller Online-Tempelbesuch",
+    "nl": "Lotushal bij maanlicht · Een eigen online tempelbezoek",
+    "ms": "Dewan Teratai Cahaya Bulan · Kunjungan kuil dalam talian sendirian"
   },
   "home.shelf.basicGuide": {
     "ko": "기본 운세와 이용 안내",
