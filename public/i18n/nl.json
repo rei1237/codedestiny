@@ -16678,7 +16678,7 @@
       ]
     },
     "compatibility": {
-      "tagline": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
+      "tagline": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
       "feats": [
         "When all you're told is whether you match or not",
         "When you keep colliding at the same point",
@@ -16695,9 +16695,9 @@
         "Where do we collide?",
         "What should we be careful about in this relationship?"
       ],
-      "fallbackCta": "See free compatibility",
+      "fallbackCta": "See compatibility",
       "headline": "Overlay two Four Pillars charts to see the shape of your relationship.",
-      "badge": "Free compatibility reading"
+      "badge": "Light compatibility ₩3,000"
     },
     "saju": {
       "tagline": "One payment gives permanent access to the Light Saju reading and ten-year cycles. Public free basic and fun readings need no purchase; AI consultations are separate.",
@@ -17860,7 +17860,7 @@
       "headline": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "premiumIntro": "Compare two birth charts to explore relationship patterns and areas to work on together.",
       "fallbackCta": "Prepare a compatibility reading",
-      "ctaNote": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
+      "ctaNote": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
       "premiumOutcomes": {
         "0": "The result does not determine your relationship; use it as a reference for conversation and choices."
       }
@@ -22581,9 +22581,8 @@
       "business": "Ontdek hoe jullie taken verdelen en samen beslissingen nemen.",
       "friend": "Ontdek hoeveel contact en ruimte jullie allebei prettig vinden.",
       "preview": "Bekijk de inhoud",
-      "freeBadge": "Free",
-      "showcaseBadge": "Basic free",
-      "showcasePrice": "Free",
+      "showcaseBadge": "Light · Premium",
+      "showcasePrice": "Light compatibility ₩3,000",
       "showcaseNote": "Premium reading ₩10,000",
       "lightBadge": "Light compatibility ₩3,000"
     },

@@ -1,18 +1,18 @@
 {
   "_comment": "Directly authored 21 basic feature detail namespaces from canonical Korean. EN reviewed; JA, Simplified and Traditional Chinese authored offline. Other seven locales intentionally use English per release scope. No translation API.",
   "featureMarketing.compatibility.tagline": {
-    "ko": "각자의 명식을 계산해 서로의 기운이 어디서 맞물리고 어디서 부딪히는지 나눠 보여 주는 무료 궁합입니다.",
-    "en": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
-    "ja": "二人それぞれの命式を計算し、気質がかみ合う点とぶつかる点を分けて示す無料の相性占いです。",
-    "zh-CN": "分别计算两人的命式，区分彼此气质契合与碰撞之处的免费合盘。",
-    "zh-TW": "分別計算兩人的命式，區分彼此氣質契合與碰撞之處的免費合盤。",
-    "vi": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
-    "hi": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
-    "es": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
-    "fr": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
-    "de": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
-    "nl": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind.",
-    "ms": "A free compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind."
+    "ko": "각자의 명식을 계산해 서로의 기운이 어디서 맞물리고 어디서 부딪히는지 나눠 보여 주는 사주 궁합입니다. 라이트 궁합은 3,000원, 고급 궁합은 10,000원이에요.",
+    "en": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
+    "ja": "二人それぞれの命式を計算し、気質がかみ合う点とぶつかる点を分けて示す四柱の相性占いです。ライト相性は3,000ウォン、高級相性は10,000ウォンです。",
+    "zh-CN": "分别计算两人的命式，区分彼此气质契合与碰撞之处的四柱合盘。轻量合盘3,000韩元，高级合盘10,000韩元。",
+    "zh-TW": "分別計算兩人的命式，區分彼此氣質契合與碰撞之處的四柱合盤。輕量合盤3,000韓元，高級合盤10,000韓元。",
+    "vi": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
+    "hi": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
+    "es": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
+    "fr": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
+    "de": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
+    "nl": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000.",
+    "ms": "A Four Pillars compatibility reading that calculates each person's chart and shows separately where your energies mesh and where they grind. Light ₩3,000, Premium ₩10,000."
   },
   "featureMarketing.compatibility.headline": {
     "ko": "두 사람의 사주를 겹쳐 놓으면 관계의 결이 먼저 보입니다.",
@@ -29,18 +29,18 @@
     "ms": "Overlay two Four Pillars charts to see the shape of your relationship."
   },
   "featureMarketing.compatibility.badge": {
-    "ko": "무료 궁합",
-    "en": "Free compatibility reading",
-    "ja": "無料の相性占い",
-    "zh-CN": "免费合盘",
-    "zh-TW": "免費合盤",
-    "vi": "Free compatibility reading",
-    "hi": "Free compatibility reading",
-    "es": "Free compatibility reading",
-    "fr": "Free compatibility reading",
-    "de": "Free compatibility reading",
-    "nl": "Free compatibility reading",
-    "ms": "Free compatibility reading"
+    "ko": "라이트 궁합 3,000원",
+    "en": "Light compatibility ₩3,000",
+    "ja": "ライト相性 3,000ウォン",
+    "zh-CN": "轻量合盘 3,000韩元",
+    "zh-TW": "輕量合盤 3,000韓元",
+    "vi": "Light compatibility ₩3,000",
+    "hi": "Light compatibility ₩3,000",
+    "es": "Light compatibility ₩3,000",
+    "fr": "Light compatibility ₩3,000",
+    "de": "Light compatibility ₩3,000",
+    "nl": "Light compatibility ₩3,000",
+    "ms": "Light compatibility ₩3,000"
   },
   "featureMarketing.compatibility.feats.0": {
     "ko": "잘 맞는지 아닌지만 듣고 끝날 때",
@@ -183,18 +183,18 @@
     "ms": "It doesn't just score you -- it separates out which areas are strong and which call for care."
   },
   "featureMarketing.compatibility.fallbackCta": {
-    "ko": "무료 궁합 보기",
-    "en": "See free compatibility",
-    "ja": "無料の相性を見る",
-    "zh-CN": "查看免费合盘",
-    "zh-TW": "查看免費合盤",
-    "vi": "See free compatibility",
-    "hi": "See free compatibility",
-    "es": "See free compatibility",
-    "fr": "See free compatibility",
-    "de": "See free compatibility",
-    "nl": "See free compatibility",
-    "ms": "See free compatibility"
+    "ko": "사주 궁합 보기",
+    "en": "See compatibility",
+    "ja": "相性を見る",
+    "zh-CN": "查看合盘",
+    "zh-TW": "查看合盤",
+    "vi": "See compatibility",
+    "hi": "See compatibility",
+    "es": "See compatibility",
+    "fr": "See compatibility",
+    "de": "See compatibility",
+    "nl": "See compatibility",
+    "ms": "See compatibility"
   },
   "featureMarketing.saju.headline": {
     "ko": "생년월일시 하나로 삶의 큰 흐름부터 펼쳐 보세요.",

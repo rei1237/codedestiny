@@ -197,18 +197,18 @@
     "ms": "Sediakan bacaan keserasian"
   },
   "featureMarketing.saju_compatibility.ctaNote": {
-    "ko": "두 사람의 정보를 입력하면 기본 궁합은 무료로 바로 보여 드려요. 고급 궁합(10,000원)은 결과 아래에서 이어 볼 수 있어요.",
-    "en": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
-    "ja": "二人の情報を入力すると、基本の相性は無料ですぐにご覧いただけます。高級相性（10,000ウォン）は結果の下から続けて見られます。",
-    "zh-CN": "输入两人的信息，即可立即免费查看基础合盘。高级合盘（10,000韩元）可在结果下方继续查看。",
-    "zh-TW": "輸入兩人的資訊，即可立即免費查看基礎合盤。高級合盤（10,000韓元）可在結果下方繼續查看。",
-    "vi": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
-    "hi": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
-    "es": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
-    "fr": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
-    "de": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
-    "nl": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result.",
-    "ms": "Enter both people’s details to see the basic compatibility free right away. The premium reading (₩10,000) continues below the result."
+    "ko": "두 사람의 정보를 입력하면 궁합 점수와 한 줄 요약을 먼저 보여 드려요. 전체 풀이는 라이트 궁합(3,000원), 네 장의 AI 풀이는 고급 궁합(10,000원)에서 볼 수 있어요.",
+    "en": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
+    "ja": "二人の情報を入力すると、相性スコアと一行の要約を先にお見せします。全体の解説はライト相性（3,000ウォン）、4章のAI解説は高級相性（10,000ウォン）でご覧いただけます。",
+    "zh-CN": "输入两人的信息，会先显示合盘分数和一句话摘要。完整解读在轻量合盘（3,000韩元）中查看，四章AI解读在高级合盘（10,000韩元）中查看。",
+    "zh-TW": "輸入兩人的資訊，會先顯示合盤分數和一句話摘要。完整解讀在輕量合盤（3,000韓元）中查看，四章AI解讀在高級合盤（10,000韓元）中查看。",
+    "vi": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
+    "hi": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
+    "es": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
+    "fr": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
+    "de": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
+    "nl": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000).",
+    "ms": "Enter both people’s details to see the score and a one-line summary first. The full reading opens with Light compatibility (₩3,000), and the four-chapter AI reading with Premium (₩10,000)."
   },
   "featureMarketing.saju_compatibility.premiumOutcomes.0": {
     "ko": "결과는 관계를 단정하지 않으며, 대화와 선택을 위한 참고로 읽어 주세요.",
