@@ -109,7 +109,7 @@ Keep the supplied official consultation illustration. The same woman with dark h
 
 ## 인간형 연이 스프라이트와 사주 LLM 상담
 
-꿀꿀운세 홈과 운명 찻집 도입부는 한복 원본 `/images/master-profiles/yeoni-love-portrait.webp`을 참조해 따로 그린 24개 포즈를 쓴다(2026-11-25 codex-image로 다시 그림). `/images/fortune-tea-house/hanbok-yeoni/`의 welcome, speak, offer, listen 시트는 각각 가로 여섯 칸(1536×256px)이며, 한 칸은 256×256px이다. 네 시트와 `portrait.webp`는 같은 인물 크기·발밑 기준선으로 정규화했으므로 초상화만 따로 바꾸지 않는다. 행동이 바뀔 때 인물 크기가 튀지 않게 하려면 새 시트도 같은 기준으로 맞춘다.
+꿀꿀운세 홈과 운명 찻집 도입부는 한복 원본 `/images/master-profiles/yeoni-love-portrait.webp`을 참조해 따로 그린 24개 포즈를 쓴다(2026-11-25 codex-image로 다시 그림). `/images/fortune-tea-house/hanbok-yeoni/`의 welcome, speak, offer, listen 시트는 각각 가로 여섯 칸(1536×256px)이며, 한 칸은 256×256px이다. 네 시트는 같은 인물 크기·기준선으로 정규화했고, 쉬는 초상 `portrait.webp`는 welcome 시트의 첫 칸을 그대로 잘라 쓴다(행동 시작·끝에서 크기·위치가 튀지 않게). 초상화만 따로 바꾸지 않는다. 홈 선반의 그림 상자는 113×136px(5:6)이지만 초상은 정사각형으로 가운데 놓이므로 시트도 `600% auto`·세로 50%로 정사각형 칸을 유지한다. 행동이 바뀔 때 인물 크기가 튀지 않게 하려면 새 시트도 같은 기준으로 맞춘다.
 
 홈(`js/core/home-yeoni.mjs`)은 선택한 행동의 시트만 읽고, 칸 수를 시트 비율(가로÷세로, 기본 6)로 계산한다. welcome·listen·speak는 0→5 칸을 320ms씩, offer는 0→5→0 칸을 200ms씩 보여 주며, 두 겹 레이어를 120ms 불투명도 교차 페이드로 바꿔 끊김을 줄인다. 동작 줄이기 설정·모션 토글·데이터 절약 연결에서는 재생하지 않는다. 운명 찻집(`YeoniTalkingPortrait.module.css`)은 같은 시트를 600% 배경과 CSS 키프레임으로 재생하며 offer만 왕복한다.
 
