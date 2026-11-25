@@ -4,7 +4,8 @@
 // purchase is refunded in full through the existing idempotent settle (settleExecutionById), by the same
 // executionId. An incomplete result is never delivered as complete.
 // The refund needs evidence the existing refunders can restore: a PointHistory deduct row (coin, pass use),
-// a Payment row with a PG reference (card), or the pass cycle the route consumed. A run without such evidence
+// a Payment row with a PG reference (card), the pass cycle the route consumed, or (2026-11-25) a moonstone V2
+// MonthlyCreditLedger spend for this feature and request, which runMonthlyCreditRefund restores in the same settle. A run without such evidence
 // stays held for an operator (PAID_NARRATIVE_REFUND_EVIDENCE_MISSING) instead of being marked refunded.
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
@@ -14,6 +15,7 @@ import { RETRY_REFUND_AFTER_MS, retryRefundAt } from "../lib/paid-delivery-stuck
 import { isPaidNarrativeExecution } from "../lib/checkpoint-refund-guard.js";
 import { settlePaidNarrativeExecution } from "../lib/service-execution-task.js";
 import { passUsageEvidenceId } from "../payments/passes.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 
 const RETRY_LEASE_MS = 600000, MAX_REOPENS = 3;
 // Hold codes the C1 guard writes for a run that cannot progress on its own (checkpoint-refund-guard.js).
@@ -73,7 +75,7 @@ export async function reopenPaidNarrativeRetry(env, { userId, resultId, now = Da
 }
 
 // Evidence the settle chain can restore. Only rows owned by this user for this featureKey count.
-export async function provePaidNarrativeRefundEvidence(env, doc, { pointHistory = PointHistory, payment = Payment } = {}) {
+export async function provePaidNarrativeRefundEvidence(env, doc, { pointHistory = PointHistory, payment = Payment, moonstone = findMoonstoneSpendEvidence } = {}) {
   const userId = doc.userId, featureKey = doc.featureKey, sid = String(doc.sourceTransactionId || "");
   if (sid && mongoose.Types.ObjectId.isValid(sid)) {
     // A coin deduct (delta < 0) is what runCoinRefund restores; a 0-delta pass row is proven below the way runPassQuotaRefund reads it.
@@ -91,7 +93,12 @@ export async function provePaidNarrativeRefundEvidence(env, doc, { pointHistory 
   const meta = usage?.metadata || {};
   const passUse = usage && Number(usage.delta || 0) === 0 && ["PASS", "FAMILY"].includes(String(meta.accessMethod || "").toUpperCase())
     && meta.passBudgetExempt !== true && Number(meta.coinCost) > 0 && meta.passCycleKey;
-  return passUse ? { ok: true, kind: "pass" } : { ok: false };
+  if (passUse) return { ok: true, kind: "pass" };
+  // A V2 moonstone spend leaves no PointHistory row and no transactionId; its ledger row (not yet refunded) is the
+  // evidence runMonthlyCreditRefund finds by the same request tokens. Narrower keys/tokens than the refunder's on purpose.
+  const tokens = [sid, String(doc.idempotencyKey || "")].filter(Boolean);
+  const spend = tokens.length ? await withMongoRetry(env, () => moonstone(env, { userId, featureKeys: [featureKey], tokens })) : null;
+  return spend ? { ok: true, kind: "moonstone" } : { ok: false };
 }
 
 // One refund of a held run, by its own executionId. Returns the settle's refundStatus or a hold reason.

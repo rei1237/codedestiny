@@ -201,3 +201,33 @@ test("편지와 다른 모달을 어느 순서로 닫아도 기존 스크롤 설
     }
   }
 });
+
+test("열기 버튼이 다가오면 유휴 시간에 스타일만 미리 계산하고 편지는 닫힌 채 둔다", () => {
+  const observed = [];
+  const idle = [];
+  const seen = [];
+  const window = boot({
+    before(window) {
+      window.IntersectionObserver = class {
+        constructor(callback) { this.callback = callback; observed.push(this); }
+        observe(target) { this.target = target; }
+        disconnect() { this.disconnected = true; }
+      };
+      window.requestIdleCallback = callback => { idle.push(callback); return idle.length; };
+    },
+  });
+  const letter = window.document.querySelector("[data-signature-letter]");
+  const realRect = letter.getBoundingClientRect.bind(letter);
+  letter.getBoundingClientRect = () => { seen.push([letter.hasAttribute("open"), letter.style.visibility]); return realRect(); };
+  assert.equal(observed.length, 1);
+  assert.equal(observed[0].target, window.document.querySelector("[data-signature-open]"));
+  observed[0].callback([{ isIntersecting: true }]);
+  assert.equal(observed[0].disconnected, true);
+  assert.equal(idle.length, 1);
+  idle[0]();
+  assert.deepEqual(seen, [[true, "hidden"]]);
+  assert.equal(popupOpen(window), false);
+  assert.equal(letter.style.visibility, "");
+  window.document.querySelector("[data-signature-open]").click();
+  assert.equal(popupOpen(window), true);
+});

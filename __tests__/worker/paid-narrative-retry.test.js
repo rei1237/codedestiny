@@ -5,6 +5,7 @@ import { jest } from '@jest/globals';
 
 const DAY = 86400000, NOW = Date.parse('2026-11-21T00:00:00Z'), UID = '64b7f2a1c3d4e5f601234567';
 let reopen, settleRefund, settleDue, prove, findProtected, paidNarrativeRefundEvidence;
+const none = async () => null;
 const get = (doc, path) => path.split('.').reduce((v, k) => (v == null ? undefined : v[k]), doc);
 function matches(doc, filter) {
   return Object.entries(filter).every(([key, cond]) => {
@@ -167,7 +168,7 @@ describe('payment evidence', () => {
     const row = { _id: id, userId: UID, featureKey: 'geomancy', kind: 'deduct', delta: 0, metadata: { accessMethod: 'PASS', coinCost: 2, passCycleKey: 'c-1' } };
     expect(await prove({}, doc, { pointHistory: store([row]), payment: store([]) })).toEqual({ ok: true, kind: 'pass' });
     row.metadata.refundedForServiceExecution = true;
-    expect((await prove({}, doc, { pointHistory: store([row]), payment: store([]) })).ok).toBe(false);
+    expect((await prove({}, doc, { pointHistory: store([row]), payment: store([]), moonstone: none })).ok).toBe(false);
   });
   test('a coin deduct row owned by the user for this feature proves a coin refund', async () => {
     const doc = narrative({ sourceTransactionId: '64b7f2a1c3d4e5f601230001' });
@@ -177,7 +178,7 @@ describe('payment evidence', () => {
   test('a row for another feature does not count', async () => {
     const doc = narrative({ sourceTransactionId: '64b7f2a1c3d4e5f601230001' });
     const pointHistory = store([{ _id: '64b7f2a1c3d4e5f601230001', userId: UID, featureKey: 'openGeomancyOracle', kind: 'deduct', delta: -3 }]);
-    expect((await prove({}, doc, { pointHistory, payment: store([]) })).ok).toBe(false);
+    expect((await prove({}, doc, { pointHistory, payment: store([]), moonstone: none })).ok).toBe(false);
   });
   test('a card payment with a PG reference proves a card cancel', async () => {
     const doc = narrative({ sourceTransactionId: '64b7f2a1c3d4e5f601230002' });
@@ -187,7 +188,14 @@ describe('payment evidence', () => {
   test('the stored pass cycle proves a pass refund; nothing at all does not', async () => {
     const doc = narrative(); doc.metadata.passRefund = { cycleKey: '2026-11', cost: 1 };
     expect(await prove({}, doc, { pointHistory: store([]), payment: store([]) })).toEqual({ ok: true, kind: 'pass' });
-    expect((await prove({}, narrative(), { pointHistory: store([]), payment: store([]) })).ok).toBe(false);
+    expect((await prove({}, narrative(), { pointHistory: store([]), payment: store([]), moonstone: none })).ok).toBe(false);
+  });
+  test('a moonstone ledger spend for this feature and request proves the monthly refund the settle runs', async () => {
+    const calls = [];
+    const moonstone = async (_env, input) => { calls.push(input); return input.tokens.includes('req-1') ? { ledgerId: 'l-1', amount: 3 } : null; };
+    expect(await prove({}, narrative(), { pointHistory: store([]), payment: store([]), moonstone })).toEqual({ ok: true, kind: 'moonstone' });
+    expect(calls[0]).toMatchObject({ userId: UID, featureKeys: ['geomancy'] });
+    expect((await prove({}, narrative({ idempotencyKey: 'req-2' }), { pointHistory: store([]), payment: store([]), moonstone })).ok).toBe(false);
   });
   test('billing evidence keeps only the refund fields, never auth', () => {
     expect(paidNarrativeRefundEvidence({ ok: true, auth: { token: 'secret' }, evidence: { transactionId: 'tx-1', passRefund: { cycleKey: 'c', cost: 2 } } }))

@@ -28,6 +28,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { requiresDeepVerification } from "./lib/change-risk.mjs";
+import { PAID_LLM_DELIVERY_CONTRACT } from "../worker/lib/consultation-recovery-registry.js";
+import { SHARED_REFUND_PATHS } from "./verify-paid-llm-delivery-contract.mjs";
 
 const WORKFLOW = ".github/workflows/paid-flow-gates.yml";
 
@@ -563,7 +565,17 @@ function selfTest() {
     if (missing.length) fail(`결제 후 전달·환불 파일이 트리거 paths 에 없다: ${missing.join(", ")}`);
   }
 
-  const total = VALUES.length + NON_LEAF.length + 11;
+  // 유료 LLM 전달 계약(2026-11-25): 계약 파일과 공용 환불 경로 정의 파일은 전부 이 게이트를 깨워야 한다.
+  // 목록을 손으로 적지 않고 계약 정본에서 읽는다 — 계약에 새 파일이 오르면 paths 에 없을 때 실패한다(fail-closed).
+  {
+    const patterns = triggerGlobs.map(globToRegExp);
+    const files = [...new Set([...PAID_LLM_DELIVERY_CONTRACT.flatMap((entry) => entry.files), ...Object.values(SHARED_REFUND_PATHS)])];
+    if (files.length < 40) fail(`전달 계약 파일을 거의 못 읽었다(${files.length}개) — 레지스트리 형식이 바뀌었는지 확인`);
+    const missing = files.filter((file) => !patterns.some((re) => re.test(file)));
+    if (missing.length) fail(`유료 LLM 전달 계약 파일이 트리거 paths 에 없다: ${missing.join(", ")}`);
+  }
+
+  const total = VALUES.length + NON_LEAF.length + 12;
   console.log(`[paid-gate-scope] self-test ${total - failed}/${total} ${failed ? "FAILED" : "OK"}`);
   return failed ? 1 : 0;
 }
