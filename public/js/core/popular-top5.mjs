@@ -9,10 +9,13 @@
 //   홈 select_item·home_section_click 수치에 섞이지 않는다.
 // - 한국어 전용 구역(data-cd-korean-only, 문서 lang 이 ko 가 아니면 CSS 로 숨김). 쓰는 곳: app/components/PopularTop5.tsx(`/`), js/core/yehwa-home.mjs(`/ggulggul/`).
 // 롤백: POPULAR_TOP5_ENABLED=false — 섹션도, 요청도 생기지 않는다.
+// 두 홈 본문 복귀(2026-11-24 사용자 결정 "두 홈 모두 복귀"): POPULAR_TOP5_HOME_BODY_ENABLED=false 면 `/` 와
+// `/ggulggul/` 본문에서만 빠지고 '모든 운세' 시트 안 랭킹은 남는다(복귀 전 화면). 끈 뒤 sync:public.
 
-import { findPopularService, POPULAR_TOP_N, POPULAR_WINDOW_DAYS, rankPopularServices } from './popular-services.mjs';
+import { findPopularService, POPULAR_SERVICES, POPULAR_TOP_N, POPULAR_WINDOW_DAYS, rankPopularServices } from './popular-services.mjs';
 
 export const POPULAR_TOP5_ENABLED = true;
+export const POPULAR_TOP5_HOME_BODY_ENABLED = true;
 export const POPULAR_TOP5_ENDPOINT = '/api/popular-services';
 
 const CACHE_KEY = 'cd-pop5-cache-v1';
@@ -23,6 +26,19 @@ const TITLE = '지금 많이 찾는 상담 TOP5';
 export function popularTop5SkeletonHtml() {
   const row = '<li class="cd-pop5__item"><span class="cd-pop5__link cd-pop5__link--skel"><span class="cd-pop5__skel cd-pop5__skel--rank"></span><span class="cd-pop5__skel cd-pop5__skel--thumb"></span><span class="cd-pop5__skel cd-pop5__skel--name"></span></span></li>';
   return `<div class="cd-pop5__head"><h2 class="cd-pop5__title">${TITLE}</h2><p class="cd-pop5__period">불러오는 중이에요</p></div><ol class="cd-pop5__list" aria-hidden="true">${row.repeat(POPULAR_TOP_N)}</ol>`;
+}
+
+/**
+ * 이 모듈이 그릴 수 있는 모든 글자. `/` 의 초기 CSS 축소(scripts/optimize-next-home-styles.mjs)는 서버 HTML 글자만
+ * 보고 글꼴 조각을 남기므로, 하이드레이션 뒤 채우는 순위 줄 글자가 대체 글꼴로 섞이지 않게 이 목록을 함께 넘긴다.
+ */
+export function popularTop5Copy() {
+  return [
+    TITLE, '불러오는 중이에요', '순위를 불러오지 못했어요.', '운영진이 고른 추천 상담을 보여 드려요.',
+    `최근 ${POPULAR_WINDOW_DAYS}일 구매 순위 · `, `최근 ${POPULAR_WINDOW_DAYS}일 구매 표본이 적어요.`,
+    '‘추천’은 운영진이 고른 상담이에요.', '월 일 기준', '추천', '위', '›', '0123456789',
+    ...POPULAR_SERVICES.map((service) => service.name),
+  ].join('');
 }
 
 function apiUrl(view) {
@@ -206,15 +222,24 @@ export async function mountPopularTop5(section, { surface = 'home', fetchImpl, r
   return true;
 }
 
-/** `/ggulggul/` 정적 셸: 생성기가 미리 그린 자리를 채운다. 자리가 없으면 상황별 고르기 뒤(없으면 "모든 운세 보기" 앞)에 만든다. */
+/**
+ * `/ggulggul/` 정적 셸: 생성기가 미리 그린 자리(본문 `data-cd-pop5-shell="ggulggul-home"`, '모든 운세' 시트 안 빈 값)를
+ * 모두 채운다. 자리가 없으면 상황별 고르기 뒤(없으면 "모든 운세 보기" 앞)에 만든다.
+ */
 export function mountPopularTop5InShell(doc) {
   if (!POPULAR_TOP5_ENABLED || !doc?.defaultView) return;
-  const existing = doc.querySelector('[data-cd-pop5-shell]');
-  if (existing) {
+  const view = doc.defaultView;
+  const shells = [...doc.querySelectorAll('[data-cd-pop5-shell]')];
+  if (shells.length) {
     // 생성기가 미리 그린 자리(스켈레톤). 한국어가 아니거나 앱 셸이면 자리째 치운다.
     const korean = String(doc.documentElement.lang || 'ko').toLowerCase().startsWith('ko');
-    if (!korean || doc.defaultView.__cdAppContext?.isApp?.()) { existing.remove(); return; }
-    mountPopularTop5(existing, { surface: 'ggulggul' });
+    if (!korean || view.__cdAppContext?.isApp?.()) { for (const shell of shells) shell.remove(); return; }
+    // 자리가 둘이면 같은 응답을 나눠 써서 요청은 한 번만 보낸다.
+    let shared = null;
+    const fetchImpl = shells.length > 1
+      ? (...args) => (shared ||= Promise.resolve().then(() => view.fetch(...args))).then((response) => (typeof response?.clone === 'function' ? response.clone() : response))
+      : undefined;
+    for (const shell of shells) mountPopularTop5(shell, { surface: shell.dataset.cdPop5Shell || 'ggulggul', fetchImpl });
     return;
   }
   if (!String(doc.documentElement.lang || 'ko').toLowerCase().startsWith('ko')) return;

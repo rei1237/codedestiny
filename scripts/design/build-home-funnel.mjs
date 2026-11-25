@@ -19,11 +19,13 @@ import { renderStoryLibrary } from '../../lib/marketing/home-story-library.mjs';
 import { chatQuestionFeatureKey } from '../../lib/fortune/chat-products.js';
 import { isFreeFortuneFeatureKey } from '../../lib/payment/free-fortune-policy.mjs';
 import { renderFreePromoShellBanner } from '../../lib/marketing/free-promo-shell.mjs';
-import { popularTop5SkeletonHtml, POPULAR_TOP5_ENABLED } from '../../js/core/popular-top5.mjs';
+import { popularTop5SkeletonHtml, POPULAR_TOP5_ENABLED, POPULAR_TOP5_HOME_BODY_ENABLED } from '../../js/core/popular-top5.mjs';
 
 const original = readFileSync('index.html', 'utf8');
 // 인기 TOP5 자리·스켈레톤을 미리 그린다(2026-11-22 즉시 표시·CLS 방지). 채우기는 js/core/yehwa-home.mjs → popular-top5.mjs.
 const popularTop5ShellHtml = () => POPULAR_TOP5_ENABLED ? '<link rel="stylesheet" href="/styles/popular-top5.css?v=build-000000000000"><section class="cd-pop5" data-cd-pop5-shell data-cd-no-trans data-cd-korean-only aria-label="지금 많이 찾는 상담 TOP5">' + popularTop5SkeletonHtml() + '</section>' : '';
+// 본문 자리(2026-11-24 "두 홈 모두 복귀"). 스타일 link 는 문서에서 먼저 나오는 '모든 운세' 시트 자리의 것을 함께 쓴다.
+const popularTop5BodyHtml = () => POPULAR_TOP5_ENABLED && POPULAR_TOP5_HOME_BODY_ENABLED ? '<section class="cd-pop5" data-cd-pop5-shell="ggulggul-home" data-cd-no-trans data-cd-korean-only aria-label="지금 많이 찾는 상담 TOP5">' + popularTop5SkeletonHtml() + '</section>' : '';
 const vars = {mvSrc720:moonlightVideo.src720,mvSrc1080:moonlightVideo.src1080,mvCaptions:moonlightVideo.captions};
 vars.popularRanking = popularTop5ShellHtml();
 vars.consultationMethods = renderConsultationMethodGuide('ggul-consultation-methods');
@@ -361,6 +363,7 @@ vars.myFortuneGuide = [
 ].join('');
 
 vars.yehwaHome = renderYehwaHome(registryWindow.__cdServiceRegistry, {
+  popularHtml: popularTop5BodyHtml(),
   consultationHtml: '<div class="cdh-slot" id="cdhFeatured"><div id="cdhSignatureSlot"><span id="homeSignature"></span>' + vars.signature + '</div></div>',
   installHtml: "<aside class=\"cd-home-install-entry\" data-pwa-install-entry hidden aria-label=\"홈 화면에 추가\" lang=\"ko\" data-cd-no-trans><img src=\"/icons/moonlight-garden-v1-192.png\" width=\"48\" height=\"48\" alt=\"\" loading=\"lazy\"><div><strong>다음에도 바로 찾아오세요</strong><p>홈 화면의 아이콘으로 꿀꿀 운세를 열어요.</p></div><button type=\"button\" data-pwa-install>홈 화면에 추가하기</button></aside>",
   passHtml: '<div class="cdh-slot cdh-slot--pass" id="cdhPass"><div id="cdhPassSlot">' + vars.pass + '</div></div>',

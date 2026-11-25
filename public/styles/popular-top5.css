@@ -4,7 +4,7 @@
 .cd-pop5{
   --pop5-paper:color-mix(in srgb,var(--cd-yehwa-ivory,#fdf6f0) 88%,var(--cd-surface,#fff));
   --pop5-rose:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 70%,var(--pop5-paper));
-  position:relative;isolation:isolate;box-sizing:border-box;width:100%;margin:24px auto;max-width:640px;
+  position:relative;isolation:isolate;box-sizing:border-box;width:100%;margin:24px auto;max-width:30rem;
   padding:22px 18px 18px;border:1px solid var(--cd-yehwa-line,#c9a46a);border-radius:var(--cd-r-card,20px);
   background:radial-gradient(120% 70% at 100% 0%,var(--pop5-rose) 0%,transparent 55%),var(--pop5-paper);
   color:var(--cd-text);
@@ -14,10 +14,15 @@
 /* 모서리 꽃가지 */
 .cd-pop5::after{content:"";position:absolute;top:10px;right:14px;width:46px;height:46px;background:var(--cd-yehwa-line,#c9a46a);opacity:.55;-webkit-mask:var(--cd-button-sprig-mask) center/contain no-repeat;mask:var(--cd-button-sprig-mask) center/contain no-repeat;pointer-events:none;z-index:-1}
 .cd-pop5[data-cd-pop5-shell]{max-width:none;margin:24px 0}
+/* `/` 는 바로 아래 위젯 입구(width:min(100%,30rem))와 폭을 맞춘다. `/ggulggul/` 본문은 찾기 영역과 안쪽 여백을 맞춘다(styles/home-finder.css .yh-finder). */
+.cd-pop5[data-cd-pop5-shell="ggulggul-home"]{padding-inline:clamp(23px,4vw,44px)}
+@media(max-width:380px){.cd-pop5[data-cd-pop5-shell="ggulggul-home"]{padding-inline:15px}}
 html:not([lang|=ko]) .cd-pop5{display:none!important}
 
 .cd-pop5__head{margin:0 2px 10px}
 .cd-pop5__title{margin:0;padding-inline-end:32px;font-family:var(--font-display,var(--font-body));font-size:1.25rem;font-weight:400;line-height:1.4;color:var(--cd-text)}
+/* 스켈레톤 제목은 기기 글꼴로 그린다. 표시 글꼴의 "많·찾·담" 조각(Jua)이 첫 페인트 전에 받아지지 않게 하고, 결과가 채워진 뒤 표시 글꼴로 바꾼다. 기기 글꼴은 표시 글꼴보다 넓어 줄바꿈되면 블록 높이가 달라지므로 한 줄로 둔다. */
+.cd-pop5:not([data-cd-pop5-state=ready]) .cd-pop5__title{font-family:"Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cd-pop5__period{min-block-size:3.2em;margin:4px 0 0;font-size:.875rem;line-height:1.6;color:var(--cd-text-muted)}
 
 .cd-pop5__detail{display:block}
@@ -26,7 +31,8 @@ html:not([lang|=ko]) .cd-pop5{display:none!important}
 .cd-pop5__link{display:flex;align-items:center;gap:12px;min-height:64px;padding:6px 6px;box-sizing:border-box;color:var(--cd-text);text-decoration:none;border-radius:14px;transition:background-color .15s ease,transform .1s ease}
 .cd-pop5__link:focus-visible{outline:2px solid var(--cd-focus-ring);outline-offset:1px}
 .cd-pop5__link:active{transform:scale(.985);background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 55%,transparent)}
-@media (hover:hover){.cd-pop5__link:hover{background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 40%,transparent)}}
+/* 행 전체가 링크라 밑줄 대신 배경으로 hover 를 보인다. `/ggulggul/` 본문의 `.yh-home a:hover` 밑줄(styles/yehwa-home.css)이 이기지 않게 범위를 높인다. */
+@media (hover:hover){.cd-pop5 .cd-pop5__link:hover{background:color-mix(in srgb,var(--cd-accent-soft,#f6dbe3) 40%,transparent);text-decoration:none}}
 
 /* 순위 메달: 1~3위 달 메달(톤 차등), 4~5위 얇은 링 */
 .cd-pop5__rank{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;box-sizing:border-box;font-family:var(--font-display,var(--font-body));font-size:1.0625rem;line-height:1;color:var(--cd-text);border:1px solid var(--cd-yehwa-line,#c9a46a);background:transparent}
