@@ -47,6 +47,9 @@
 | `/master-love-codex/` | 입장 | codex | 639px 이하에서 제목 위(`.landingPortrait` order -1) |
 | `/vedic-ai/` | 입장 / 대기 | yun / yun | 입장 마스터 소개 / `GenerationProgress roomMaster="yun"`(정지 초상 대신) |
 | `/karma-destiny-ai/result/` | 대기 | karma | 관측소 로더 안 한 편. 생성 중에는 위 compact 마스터 소개를 숨긴다 |
+| `/new-year-ai-consultation/` | 입장 / 생성 중 | neo / neo | 입장 `MasterRoomScene`. 생성 중(`status==='reading'`)에는 `GenerationProgress` 한 편만 재생하고 위 입장 영상은 뺀다(네오 두 편 중복 제거) |
+| `/yeongnyangi/fortune/?flow=question&domain=X` | 질문 입력 | 분야별 `X-room`(intro) | 제목 위 `.entryFilm`. 상품·분야가 정해지지 않은 빠른 입장은 fusion 방. 옛 88px 정지 그림 대체 |
+| `/yeongnyangi/result/` | 생성 중 | 없음(스프라이트) | `YeongnyangiReadingSprite`: `readings/X-loading-sprite-v1.webp` 4×2 칸을 1초마다 0.45초 교차 페이드. 시트 실패 시 분야 방 영상으로 대체. 튀는 칸은 순서에서 뺀다(saju 5, vedic·fusion 4–6, sukuyo 0·4·5·7). 아래 장 그래프는 manifest 장 수만큼 칸(완료·지금 쓰는 장·대기), 장 수가 없으면 흐르는 막대. %는 쓰지 않으며 옛 `<progress>` 카드는 생성 중 숨긴다 |
 
 `ExpertCharacterStage`는 `placement="hero"`일 때만 상담실 영상을 붙인다. inline 인사(`hero` 대사·greet)는 말풍선과 스프라이트만 둔다.
 
