@@ -43,6 +43,9 @@ test('guest pass follows the flag only; session check stays fail-closed', async 
 test('/today/ opens the result for guests only through the flag, and keeps login-only resume and identity reset', () => {
   const s = read('app/today/TodayHubClient.tsx');
   assert.ok(s.includes('const signedIn = await hasFreeReadingSession();'), 'session is still checked');
+  const early = s.indexOf('if (freeReadingGuestAllowed()) setAccessGranted(true);');
+  assert.ok(early > 0 && early < s.indexOf('const signedIn = await hasFreeReadingSession();'), 'guests open before the session check returns');
+  assert.equal(s.split('fetchLimit(controller)').length - 1, 3, 'every public read has a time limit');
   assert.ok(s.includes('if (signedIn || freeReadingGuestAllowed()) setAccessGranted(true); else setAccessError(freeCopy.description);'));
   assert.ok(s.includes('catch { if (request.valid()) { if (freeReadingGuestAllowed()) setAccessGranted(true); else setAccessError(freeCopy.description); } }'));
   assert.ok(s.includes('usePaidResume(TODAY_FEATURE_KEY'), 'historical resume unchanged');

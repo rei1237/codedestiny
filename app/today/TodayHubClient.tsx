@@ -1029,6 +1029,14 @@ function CardPanel({
   );
 }
 
+// A stalled public read is cut after this long so the result shows its retry state instead of loading forever.
+const TODAY_FETCH_LIMIT_MS = 15_000;
+function fetchLimit(controller: AbortController) {
+  const limit = { expired: false, clear: () => window.clearTimeout(timer) };
+  const timer = window.setTimeout(() => { limit.expired = true; controller.abort(); }, TODAY_FETCH_LIMIT_MS);
+  return limit;
+}
+
 export default function TodayHubClient({ children, dailyTarotCards, weeklyContent }: { children?: ReactNode; dailyTarotCards?: DailyTarotCard[]; weeklyContent?: ReactNode }) {
   const [isPaying, setIsPaying] = useState(false);
   const [accessError, setAccessError] = useState('');
@@ -1058,6 +1066,8 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
   const unlockToday = useCallback(async () => {
     const request = beginFreeReading(); if (!request) return;
     setIsPaying(true); setAccessError('');
+    // Guests may read this page, so the result opens at once instead of waiting on the session check.
+    if (freeReadingGuestAllowed()) setAccessGranted(true);
     try {
       const signedIn = await hasFreeReadingSession();
       if (!request.valid()) return;
@@ -1117,6 +1127,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
     setGuestState("idle");
     Object.values(detailControllers.current).forEach((item) => item?.abort());
     detailControllers.current = {};
+    const limit = fetchLimit(controller);
     fetch(getApiUrl(`/api/fortune/today-hub?${summaryQuery}`), {
       credentials: "omit",
       headers: { "x-code-destiny-locale": locale },
@@ -1132,11 +1143,13 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         setData(payload);
       })
       .catch((error) => {
-        if (error?.name === "AbortError" || seq !== requestSeq.current) return;
+        if ((error?.name === "AbortError" && !limit.expired) || seq !== requestSeq.current) return;
         setFailed(true);
-      });
+      })
+      .finally(limit.clear);
     return () => {
       requestSeq.current++;
+      limit.clear();
       controller.abort();
       Object.values(detailControllers.current).forEach((item) => item?.abort());
       detailControllers.current = {};
@@ -1161,7 +1174,8 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
     setGuestState("busy");
     const seq = requestSeq.current;
     const params = new URLSearchParams({ detail: "1", locale, birth: guestBirth, only: "number", period: period === "tomorrow" ? "tomorrow" : "today" });
-    fetch(getApiUrl(`/api/fortune/today-hub?${params.toString()}`), { credentials: "omit", headers: { "x-code-destiny-locale": locale } })
+    const controller = new AbortController(), limit = fetchLimit(controller);
+    fetch(getApiUrl(`/api/fortune/today-hub?${params.toString()}`), { credentials: "omit", headers: { "x-code-destiny-locale": locale }, signal: controller.signal })
       .then((res) => {
         if (!res.ok) throw new Error(`http_${res.status}`);
         return res.json();
@@ -1173,7 +1187,8 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         setGuestCard(card);
         setGuestState("idle");
       })
-      .catch(() => { if (seq === requestSeq.current) setGuestState("failed"); });
+      .catch(() => { if (seq === requestSeq.current) setGuestState("failed"); })
+      .finally(limit.clear);
   }, [guestBirth, guestState, locale, period]);
 
   const loadDetails = useCallback((system: TodaySystem) => {
@@ -1188,6 +1203,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
 
     const params = new URLSearchParams(summaryQuery);
     params.set("detail", "1");
+    const limit = fetchLimit(controller);
     fetch(getApiUrl(`/api/fortune/today-hub?${params.toString()}`), {
       credentials: "omit",
       headers: { "x-code-destiny-locale": locale },
@@ -1206,10 +1222,11 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         setDetailState(Object.fromEntries(TAB_KEYS.map((tab) => [tab.key, payload.systems[tab.key]?.sections?.length ? "loaded" : "failed"])));
       })
       .catch((error) => {
-        if (error?.name === "AbortError" || seq !== requestSeq.current) return;
+        if ((error?.name === "AbortError" && !limit.expired) || seq !== requestSeq.current) return;
         setDetailState(Object.fromEntries(TAB_KEYS.map((tab) => [tab.key, "failed"])));
       })
       .finally(() => {
+        limit.clear();
         if (detailControllers.current[system] === controller) delete detailControllers.current[system];
       });
   }, [data, detailState, locale, summaryQuery]);
@@ -1401,7 +1418,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         {data && !personalized && (
           <p className="mt-6 break-keep rounded-2xl border border-rose-300/20 bg-rose-400/10 px-4 py-3 text-sm leading-7 text-rose-50">
             {copy.profileNudgePrefix}<strong className="font-bold">{copy.profileNudgeBold}</strong>{copy.profileNudgeSuffix}{" "}
-            <Link href="/#dpMasterCard" className="font-bold text-rose-200 underline underline-offset-2">
+            <Link href="/ggulggul/#dpMasterCard" className="font-bold text-rose-200 underline underline-offset-2">
               {copy.profileCreateLink}
             </Link>
           </p>
@@ -1431,7 +1448,7 @@ export default function TodayHubClient({ children, dailyTarotCards, weeklyConten
         {/* 결제 안내는 가치 다음에 온다(DESIGN.md §5 Button Tiers) — 무료 설명을 먼저 보여 준다. */}
         {accessError && <p role="alert">{accessError}</p>}
         {!accessGranted && <section className="mt-8 rounded-3xl border border-rose-200/30 bg-rose-200/10 p-6 text-center">
-          <h2 className="text-xl font-black text-rose-50">{period==='tomorrow'?'내일':'오늘'}, 어떤 흐름이 궁금하세요?</h2>
+          <h2 className="text-xl font-black text-rose-50">{period==='tomorrow'?'내일':period==='weekly'?'이번 주':'오늘'}, 어떤 흐름이 궁금하세요?</h2>
           <p className="mt-3 break-keep text-sm leading-7 text-slate-200">사주 일진·숙요 27수·베다 판창가·수비학에서 오늘의 핵심 신호를 한 번에 확인합니다.</p>
           <button type="button" onClick={() => void unlockToday()} data-cd-reading-action="primary" disabled={isPaying} className="mt-5 min-h-12 rounded-full bg-rose-200 px-6 font-black text-rose-950 hover:bg-rose-100 disabled:opacity-60">
             {isPaying && !freeReadingGuestAllowed() ? freeCopy.checking : freeCopy.start}

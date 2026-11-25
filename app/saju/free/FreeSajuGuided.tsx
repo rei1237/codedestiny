@@ -100,9 +100,14 @@ export default function FreeSajuGuided() {
     computeFreeSaju(engineInput(controller.getState().answers as Answers)).then((next) => {
       running.current = false; computed.current = next; setReading(next);
     }).catch(() => {
-      running.current = false; controller.goTo("date");
+      running.current = false;
+      setError("입력한 날짜와 달력 구분을 확인해 주세요.");
+      controller.goTo("date");
     });
   }, [stepId, reading, controller]);
+
+  // 날짜를 고치기 시작하면 지난 계산의 오류 문구를 거둔다.
+  useEffect(() => { setError(""); }, [answers.date, birthDate]);
 
   const begin = useCallback(() => {
     void preloadFreeSajuEngine().catch(() => {});

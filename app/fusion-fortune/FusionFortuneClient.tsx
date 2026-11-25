@@ -2921,7 +2921,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
     [fusionStages, stageStates, result],
   );
   const leaveExperience = useCallback(() => {
-    const fallback = "/#fortuneGatewayEntry";
+    const fallback = "/ggulggul/#fortuneGatewayEntry";
     if (typeof window === "undefined") return;
     try {
       const previous = document.referrer ? new URL(document.referrer) : null;
@@ -2938,7 +2938,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
   return <main className={styles.page}>
     <nav className={styles.experienceNav} aria-label={copy.navAriaLabel}>
       <button type="button" onClick={leaveExperience}>{copy.navBack}</button>
-      <Link href="/#fortuneGatewayEntry">{copy.navHome}</Link>
+      <Link href="/ggulggul/#fortuneGatewayEntry">{copy.navHome}</Link>
     </nav>
     <section ref={heroRef} className={styles.hero}>
       <div className={styles.councilCrest}><EntryOrnament /></div>
@@ -2949,7 +2949,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
       <div className={styles.heroCopy}>
         {/* 귀인 배지는 실제로 「오늘의 귀인」에서 넘어온 세션에만 맞는 문구다. 직접 들어온
             사람에게도 조건 없이 띄우면 없는 맥락을 만든다 — 핸드오프 상태가 있을 때만 건다. */}
-        {guardianHandoff && <Link className={styles.guardianLink} href="/#guardian-fortune">{copy.guardianLinkText}</Link>}
+        {guardianHandoff && <Link className={styles.guardianLink} href="/ggulggul/#guardian-fortune">{copy.guardianLinkText}</Link>}
         {/* 🔴 h1/p 는 expert-labels.ts(ko·en 2개뿐)가 아니라 11개 로케일을 모두 갖춘
             FUSION_FORTUNE_COPY 에서 읽는다. 전에는 ja·vi·hi·es·fr·de·nl·ms 사용자가 영어 h1 을 봤다. */}
         {copy === FUSION_FORTUNE_COPY.ko && <span className={styles.editionName}>초융합 운세</span>}
@@ -3156,7 +3156,7 @@ export function FusionFortuneClient({ seoContent, valuePreview, paymentNotice, T
             <div className="grid grid-cols-2 gap-3 sm:contents">
               <button type="button" onClick={() => void share()} className={`min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none ${openedConsultationId ? "" : "col-span-2"}`}>{copy.shareCta}</button>
               {openedConsultationId && <button type="button" onClick={() => void copyReopenLink()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">{copy.copyReopenLinkCta}</button>}
-              <Link href="/#guardian-fortune" className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none sm:justify-start">{copy.continueGuardianLink}</Link>
+              <Link href="/ggulggul/#guardian-fortune" className="col-span-2 inline-flex min-h-11 items-center justify-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none sm:justify-start">{copy.continueGuardianLink}</Link>
             </div>
           </>}
       </footer>}

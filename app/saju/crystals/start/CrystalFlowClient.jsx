@@ -293,7 +293,7 @@ export default function CrystalFlowClient({ stoneImageIds = [] }) {
         <h2>저장된 프로필이 필요해요</h2>
         <p>원석 추천은 저장된 프로필 카드의 출생 정보로만 계산해요. 프로필을 만들거나 고른 뒤 다시 와 주세요.</p>
         <div className={styles.ctaRow}>
-          <a className={styles.cta} href="/#dpMasterCard">프로필 만들기·고르기</a>
+          <a className={styles.cta} href="/ggulggul/#dpMasterCard">프로필 만들기·고르기</a>
         </div>
       </section>
     );

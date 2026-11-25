@@ -159,7 +159,7 @@ test('화면: 프로필 없음은 프로필 만들기·고르기 안내만, 쿼�
   assert.equal(flow.split('URLSearchParams').length - 1, 1);
   const noProfile = flow.slice(flow.indexOf('phase === "no-profile"'), flow.indexOf('const who ='));
   assert.equal((noProfile.match(/<a /g) || []).length, 1, 'CTA는 하나');
-  assert.ok(noProfile.includes('href="/#dpMasterCard"'));
+  assert.ok(noProfile.includes('href="/ggulggul/#dpMasterCard"'));
   assert.ok(noProfile.includes('프로필 만들기·고르기'));
   assert.equal(/<input|<select|<form/.test(noProfile), false);
   assert.equal(/searchParams|birth/i.test(read('app/saju/crystals/start/page.js')), false, '페이지가 쿼리로 출생정보를 넘기지 않는다');
