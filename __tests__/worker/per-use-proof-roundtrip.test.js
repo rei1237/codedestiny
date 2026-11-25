@@ -300,6 +300,12 @@ const DYNAMIC_ROUTE_KEYS = Object.freeze({
   tarot: () => ORACLE_CONSULTATION_TIERS.map((tier) => tier.featureKey),
   // saju-section 은 해금 본문 라우트이고, 회당 결제 증빙을 읽는 것은 숙요 기본/정밀 궁합 두 키뿐이다(본문 렌더러 정본의 표).
   "saju-section": () => [...SUKUYO_COMPAT_FEATURE_KEYS],
+  // paid-narrative-retry 는 환불 근거로 월정석 원장을 읽는다. 정적 import 는 목보다 먼저 실제 db·models 를 올리므로
+  // 정본 상수 PAID_NARRATIVE_RETRY_FEATURES 를 소스에서 그대로 읽는다(키를 손으로 적지 않는다).
+  "paid-narrative-retry": () => {
+    const body = readRouteSource("paid-narrative-retry").match(/PAID_NARRATIVE_RETRY_FEATURES\s*=\s*Object\.freeze\(\[([\s\S]*?)\]\)/)?.[1] || "";
+    return [...body.matchAll(/["']([a-z0-9-]+)["']/g)].map((m) => m[1]);
+  },
 });
 
 function readRouteFeatureKeys(routeName) {
