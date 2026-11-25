@@ -69,7 +69,7 @@ if (art) {
       const cell = document.createElement('span');
       cell.style.cssText = 'position:absolute;inset:0;border-radius:inherit;background-repeat:no-repeat;opacity:0';
       cell.style.backgroundImage = 'url(' + sheet.src + ')';
-      cell.style.backgroundSize = count*100 + '% 100%';
+      cell.style.backgroundSize = count*100 + '% auto';
       layer.appendChild(cell);
       return cell;
     });
@@ -85,7 +85,7 @@ if (art) {
       const cell = cells[step % 2];
       cells[(step + 1) % 2].style.zIndex = '1';
       cell.style.zIndex = '2';
-      cell.style.backgroundPosition = order[step]*100/(count-1) + '% 0%';
+      cell.style.backgroundPosition = order[step]*100/(count-1) + '% 50%';
       fades[step % 2]?.cancel();
       fades[step % 2] = cell.animate([{opacity:step ? 0 : 1},{opacity:1}],{duration:120,easing:'ease-out',fill:'forwards'});
       timer = setTimeout(() => show(step + 1), hold);
