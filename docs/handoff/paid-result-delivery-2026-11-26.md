@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-26
-next: A-1 실화면 검수 — 결제 성공 직후 메인 스레드 정체/페이지 크래시 원인 판정(베이스라인도 정체)
+next: A-3 — check:critical(감사 권고) → fetch·rebase origin/main(충돌 시 미러는 sync:public, 사이트맵은 sitemap:generate 재생성) → check:pre-push → push → CI 1회 → 운영 dispatch → 스모크
 ---
 
 # 11/25 결제 후 결과 미표시(A) + 이용권 결제 조회 멈춤·한도(B) 인수인계
@@ -46,6 +46,29 @@ next: A-1 실화면 검수 — 결제 성공 직후 메인 스레드 정체/페�
   - 후보: 성공 뒤 `_cdUpdatePaidFeatureGate(paymentSuccess)`·`cd:unlocks-changed` ↔ access-store reconcile 핑퐁, mock `/api/billing/unlock-status`·`/api/me/access-state` 응답 형태.
 - owned 모드(신고자 재진입 재현): `ownedBefore true`인데 카드 클릭 뒤 `privacy-modal-overlay`(개인정보 동의)가 뜨고 마지막 `isTileKeyUnlocked` false, 결과 섹션 top 6281(화면 밖). mock 프로필에 동의 플래그가 없어서인지, 실제 재진입 결함인지 판정 필요(실사용자는 동의 완료 상태일 가능성 높음 — 추정).
 
+## A-1 결과 (2026-11-26, 완료)
+- 🔴 원인(실측, **운영 결함**, 베이스라인도 동일): 모바일 지연 마운트 `wrapMethod`(index.html ≈39357)가 `window.__cdPaidFeatureGate.open/update/preload`를 감싸면 `_cdForwardPaidFeatureGateToReact`(≈25218)의 `bridge.open === _cdOpenPaidFeatureGate` 동일성 검사가 깨져, 셸 update/holdOpen/release → forward → 감싼 셸 update 로 무한 재귀. 412px에서 결제 성공 직후 메인 스레드 정체(베이스라인)·탭 크래시(수정 1 뒤 호출이 늘어 크래시로 커짐). 약 2026-07-02부터 잠복.
+  - 근거: CDP 브레이크 트레이스 335회, 스택 `wrapped:41139 < forward:27009 < update:27125` 반복. `.tmp/light-saju-probe.mjs` 412: 수정 전 update 1회가 20s+ 정체 → 수정 후 재진입 1회·104ms.
+- 수정 **34effaf1f7**: 셸 브리지 객체에 `__cdShellPaidFeatureGate: true` 표식, forward 는 표식 또는 동일성일 때 false. index.html + 미러 7. 테스트 `__tests__/ui/paid-gate-bridge-reentry.behavior.test.js` `node --test` 2/2(표식 제거 변이 시 1 fail 확인).
+- mock 산출물(코드 결함 아님, 스크립트만 수정): ① "개인정보 동의 모달"은 오버레이 필터 오탐(실제 `aria-hidden` true·`.show` 없음, hasLogin true·privacyAgreed "true") ② mock 성별 'female' → 실제 API 형태 'F' + `birth{}` 객체(아니면 `profilesReferToSameBirth` 불일치로 2.6s 뒤 scope id '' → 생년 해금 제거) ③ 서버의 묶음 멤버 키 확장(`SAJU_BUNDLE_ALIAS_MEMBER_KEYS`) 누락 ④ `/api/saju/section` 미모킹(501 → "풀이를 불러오지 못했어요"). 일주·십성·조후·억부·절기 풀이 오류 문구도 미모킹 API 탓.
+- 실화면 최종(`.tmp/light-saju-pay.mjs`, 판정에 #summaryGate 안 목업 본문 배달·오류 0 포함): buy 412 PASS, buy 1280 PASS(1회 체크박스 클릭 타이밍 플레이크 → 재실행 PASS), owned 412 PASS, owned 1280 PASS. errors [] 전부.
+- visual-checker: buy-412/1280-5-result 통과(잠금 해제 배지 + 목업 본문, 오버레이·오류 없음), owned-*-5-result 통과(결과 페이지, 결제 패널·모달 없음), 2-panel·4-method 통과.
+- 범위 밖 관찰(보고만, 미수정):
+  1. 보유자 재진입(bundle-offer.js:392 `cdOneStepFreeSajuEntry()` 인자 없음)은 결과 **맨 위**로 열린다 — 라이트 사주 본문은 약 6000px 아래.
+  2. access 수화 전(`/api/me/access-state` 호출 전) 클릭하면 보유자에게도 묶음 결제 패널이 뜬다. 결제를 눌러도 서버가 차감 전 `already_unlocked`(billing.js:3737-3902) → 이중 과금 없음. UX만 나쁨(계획 4단계의 `cd:unlocks-changed` 대기 최소 수정 후보).
+  3. 결제 선택 대화창 우상단 72×60 평면 베이지 사각형: `js/core/checkout-entry.js:54` `.cd-direct-payment-dialog::after` 장식의 `mask: var(--yn-…, var(--cd-yehwa-mask-branch-spray))` — 변수가 `styles/yehwa-motifs.css` 에서 `.cdh, .cd-yehwa-scope …` 범위에만 정의돼 모달에서 마스크가 무효 → 사각형으로 칠해짐(추정, 412·1280 재현). 기존 결함.
+  4. 결과 페이지 "내 사주를 더 깊게 읽기" 안내 카드(index.html ≈18556, 정적)가 보유자에게도 "한 번 결제로 영구 소장해요"를 보인다. 1280에서 "소장해/요." 줄바꿈(keep-all 누락 추정).
+  5. 섹션 제목 분홍 #FF8BA7/흰 배경 2.21:1(기존 토큰).
+
+## A-2 결과 (2026-11-26, 완료)
+- payment-freeze: `node scripts/verify-payment-freeze.mjs` 통과(region 4 · file 3 · cap 2), `--update` 불필요.
+- paid-gate-auditor(diff vs 4b2617e036): **PASS, 차단 없음**. 렌더러·동결 구역 미변경, 금지 패턴 없음, 이중 과금·무권리 개방·비보유자 노출 없음. 실행한 verify 15종 + node 테스트 5파일 50/50 통과.
+  - 메모 1: `_cdRunSajuSectionUnlockResume`(index.html ≈30898)의 낙관 재기록은 섹션·묶음 키가 단건 전용이라 도달 불가. 이용권 구매 가능한 키가 추가되면 두 번째 finalize 를 건너뛰게 후속 처리.
+  - 메모 2: 결제 성공 경로가 바뀌었는데 deepRequired false → **A-3 push 전에 `npm run check:critical` 1회 권고**.
+- check:fast(`--base=4b2617e036`, critical 자동 승격): 통과(exit 0, 2회차 07:14→08:05). 1회차는 verify:sitemap-drift 차단 → f82e5443ba 로 해소, 2회차 직전 1회차 test:node 5848/1 은 `__tests__/ui/talisman-locale.test.js:110` 부하 타이밍 플레이크(diff 밖 파일, 단독 3/3 통과). 2회차: test:node 5849/0, test:jest 493 스위트·8631 pass·1 skip, build:worker·verify:entry-encoding 등 전 단계 통과.
+  - 1차는 `verify:sitemap-drift` 차단 — 셸 5라우트(/ggulggul/·/en/·/ja/·/zh/·/zh-tw/) 서명 변경(이 index.html 수정) + KST 날짜 롤링. `npm run sitemap:generate` 재생성 커밋 **f82e5443ba**. A-3 rebase 뒤 다시 드리프트하면 같은 방식으로 재생성.
+  - 주의: `npm run check:fast` 인자 없이는 "작업 트리 = HEAD"라 아무것도 안 돈다. 커밋된 워크트리는 `-- --base=4b2617e036` 필수.
+
 ## B-0 조사 결과 (서브에이전트, 코드 읽기)
 - 서버 판정상 premium(중간 꿀단지, 상한 100코인)은 100코인 이하 건당·해금 항목을 모두 통과: 운명 찻집 tarot/tarot-five(50/70)·saju/saju-compat/sukuyo-compat(100) 정상, joint(150)는 상한 초과로 의도. 영냥이 고등어(`yeongnyangi-*-mackerel` 6종, 100) direct_or_pass로 정상(테스트 `__tests__/ui/pass-fish-coverage.test.mjs:7`). fusion=family 전용, profile-card-manage=passExcluded, 묶음·판매종료=direct_only, 이메일 상담=direct_only — 전부 문서상 의도(payment-gating.md 27, 240, 408, 11-05 절).
 - 신고자가 산 것은 **standard**(20:21)일 수 있음 → 상한 50이라 고등어·100코인 상담 미적용은 정책상 정상. DB로 신고자 entitlement tier 확인 필수.
@@ -58,8 +81,8 @@ next: A-1 실화면 검수 — 결제 성공 직후 메인 스레드 정체/페�
 
 ## 단계
 - [x] A 조사·수정 1·테스트
-- [ ] A-1 실화면: 결제 직후 정체/크래시 원인 판정 → 수정본이 원인이면 원인 지점 수정(덧대지 말고), 베이스라인 결함이면 같이 고칠지 판단(실사용 영향 있으면 A 범위 — "모든 유료 기능 결제 후 결과 제공"). buy 412/1280, owned 412/1280 통과 + visual-checker 판정.
-- [ ] A-2 check:fast, paid-gate-auditor, payment-freeze
+- [x] A-1 실화면: 결제 직후 정체/크래시 원인 판정 → 수정본이 원인이면 원인 지점 수정(덧대지 말고), 베이스라인 결함이면 같이 고칠지 판단(실사용 영향 있으면 A 범위 — "모든 유료 기능 결제 후 결과 제공"). buy 412/1280, owned 412/1280 통과 + visual-checker 판정.
+- [x] A-2 check:fast, paid-gate-auditor, payment-freeze (결과는 위 A-2 절)
 - [ ] A-3 커밋 정리 → rebase origin/main → check:pre-push → push → CI 1회 → 운영 dispatch → 스모크
 - [ ] B-1 운영 DB 읽기 전용: 17:48 premium·20:21 standard 주문 status, 사용자 `lastPassOrderId`/`passGrantOrderIds` 포함 여부, 현재 tier·잔여 한도, 지급 실패 사유(스크립트는 워크트리 `.tmp/`에 커밋 안 되는 파일로; 참고 `.tmp/survey-1125.mjs`, find+projection만, fetch 차단, 해시 출력). 지급 누락이면 수동 쓰기 금지 → 고친 confirm 재실행 경로로 복구되게 하고, 안 되면 멈추고 승인 요청.
 - [ ] B-2 클라이언트: PointsClient GRANT_PENDING·직후 422를 "확인 중"으로, 3→5→10→20s 백오프 약 2분 자동 재확인, 대기 기록 24h, 확정은 성공/명확 실패만.
