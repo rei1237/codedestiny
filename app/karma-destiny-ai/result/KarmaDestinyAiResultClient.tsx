@@ -1272,7 +1272,8 @@ function KarmaDestinyResultInner({paymentSurface}:{paymentSurface:"web"|"toss"})
     <main className="kdai-result-page">
       {notice && <div className="kdai-toast">{notice}</div>}
 
-      <ConsultationMasterIntro kind="karma" compact />
+      {/* 생성 중에는 아래 관측소 대기 영상 한 편만 둔다(같은 마스터 소개 카드를 겹쳐 두지 않는다). */}
+      {!isGenerating && <ConsultationMasterIntro kind="karma" compact />}
 
       {isGenerating && (
         <ObservatoryLoader

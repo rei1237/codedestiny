@@ -2661,6 +2661,7 @@ function CosmosLoadingScreen({ status, basis, toss }: { status: string; basis: A
       <GenerationProgress
         persona="neo"
         counselor={{ src: masterProfiles.yun.portrait }}
+        roomMaster="yun"
         title={copy.generationTitle}
         status={status}
         timing
