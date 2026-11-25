@@ -2,6 +2,7 @@
 
 import CraftedProductDisclosure from '@/app/components/CraftedProductDisclosure';
 import ExpertCharacterStage from "@/app/components/expert-consulting/ExpertCharacterStage";
+import MasterRoomScene from "@/app/components/expert-consulting/MasterRoomScene";
 import MasterProfile from "@/components/fortune/MasterProfile";
 import { masterProfiles } from "@/components/fortune/master-profiles";
 import { getExpertLine, isExpertCharacterEnabled } from "@/src/features/expert-characters";
@@ -1804,10 +1805,6 @@ export default function PalmDestinyMain({native}: {native?: PalmNativeAdapter} =
   const loadingPhaseText = copy.loadingPhases[loadingPhaseIndex] ?? copy.loadingPhases[0];
   // 손금 상담가 연이(소설 캐주얼 연이). 대사는 화면 상태에서만 고르고, 문구는 사실 안내를 대신하지 않는다.
   const yeoniOn = isExpertCharacterEnabled("yeoni");
-  const yeoniHero = {
-    src: "/images/service-introductions/palm-reading-960.webp",
-    alt: "인간 연이가 손님의 펼친 손바닥을 받치고 지시봉으로 손금의 선을 함께 살피는 상담 장면",
-  };
   const yeoniGreet = getExpertLine("yeoni", "hero", detailLocale);
   const yeoniUpload = getExpertLine("yeoni", "upload", detailLocale);
   const yeoniGuide = getExpertLine("yeoni", "guide", detailLocale);
@@ -2998,6 +2995,13 @@ export default function PalmDestinyMain({native}: {native?: PalmNativeAdapter} =
               <div aria-hidden className="h-px flex-1 opacity-50" style={{ background: "linear-gradient(90deg, #c9a46a, transparent)" }} />
             </div>
 
+            {/* 입장 영상: 한옥 찻방에서 손님의 이야기를 듣는 인간형 연이. 제목보다 먼저 보이는 히어로 한 편. */}
+            {yeoniOn ? (
+              <div className="mx-auto mt-5 w-full max-w-3xl">
+                <MasterRoomScene master="human" shot="intro" />
+              </div>
+            ) : null}
+
             <h1
               className="cd-title mt-6 text-center text-5xl font-black leading-tight md:text-6xl"
               style={{
@@ -3021,12 +3025,7 @@ export default function PalmDestinyMain({native}: {native?: PalmNativeAdapter} =
               {copy.pageDescriptionSub}
             </p>
             {yeoniOn ? (
-              <>
-                <div className="relative mx-auto mt-6 aspect-[3/2] w-full max-w-3xl overflow-hidden rounded-3xl border border-[#b53660]/15 bg-[#f8e4ea] shadow-[0_18px_40px_rgba(64,42,56,0.12)]">
-                  <NextImage src={yeoniHero.src} alt={yeoniHero.alt} fill priority sizes="(max-width: 820px) 100vw, 768px" className="object-cover" unoptimized />
-                </div>
-                <ExpertCharacterStage character="yeoni" mood={yeoniGreet.mood} line={yeoniGreet.text} placement="inline" locale={detailLocale} className="mx-auto mt-4 max-w-3xl" />
-              </>
+              <ExpertCharacterStage character="yeoni" mood={yeoniGreet.mood} line={yeoniGreet.text} placement="inline" locale={detailLocale} className="mx-auto mt-6 max-w-3xl" />
             ) : null}
           </div>
 

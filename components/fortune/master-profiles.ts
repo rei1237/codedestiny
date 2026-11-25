@@ -91,7 +91,7 @@ export const masterProfiles = {
       { label: "이 상담에서 맡는 부분", text: "타고난 연애 기질 · 핵심 연애운과 질문의 답 · 나의 연애 성향 — 장점·약점·심리 · 썸 전략·대화·매력·실천" },
     ],
     principles: ["마음을 먼저 듣고, 판단은 그다음에 해요", "누구를 탓하는 말로 위로하지 않아요", "그대로 보낼 수 있는 문장과 이번 주의 한 걸음으로 맺어요"],
-    ...dedicated("yeoni-love"), roomMaster: "human", portraitAlt: "분홍빛 한복을 입고 달빛 찻집의 연서 책상에서 찻잔을 건네는 연애 비책 공동 마스터 연이", theme: "yeoni",
+    ...dedicated("yeoni-love"), portraitAlt: "분홍빛 한복을 입고 달빛 찻집의 연서 책상에서 찻잔을 건네는 연애 비책 공동 마스터 연이", theme: "yeoni",
     motion: masterMotionArt("yeoni", "portrait"),
   },
   hanbiLove: {
