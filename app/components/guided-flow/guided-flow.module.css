@@ -349,6 +349,19 @@
   background: currentColor;
   opacity: 0.55;
 }
+/* 비활성 '다음': 전역 .cd-yehwa-button:disabled 의 opacity .5 는 글자 대비를 3.9:1 로 떨어뜨렸다.
+   불투명도 대신 금 채움을 빼고 점선 테두리 + 흐린 글자(--gf-muted, 표면 위 4.5:1 이상)로 구분한다. */
+.flow .primary:disabled {
+  opacity: 1;
+  background: transparent;
+  border: 1px dashed var(--gf-line);
+  color: var(--gf-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.flow .primary:disabled::after {
+  opacity: 0.4;
+}
 .flow .primary:focus-visible {
   outline-color: var(--gf-ink);
 }
