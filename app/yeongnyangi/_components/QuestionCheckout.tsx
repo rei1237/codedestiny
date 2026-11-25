@@ -17,7 +17,7 @@ export default function QuestionCheckout({formatProductPrice,value,open,busy,gui
  useEffect(()=>{setDirect(allowTypedScope&&!new URLSearchParams(window.location.search).has('questionId'));},[allowTypedScope]);
  useEffect(()=>{if(open){heading.current?.focus();heading.current?.scrollIntoView({block:'start'});}},[open]);
  const update=(patch:Partial<QuestionDecision>)=>onChange({...value,decision:{...value.decision,...patch}});
- if(!open)return <QuestionEntry question={value.question} onQuestion={question=>onChange({...value,question})} onOpen={onOpen} busy={busy}/>;
+ if(!open)return <QuestionEntry question={value.question} onQuestion={question=>onChange({...value,question})} onOpen={onOpen} busy={busy} domain={value.domainFixed?value.domain:'fusion'}/>;
  const candidate=questionCandidate(value.question),details=questionNeedsDecisionDetails(value.decision);
  const suggestion=direct&&value.decision.category==='self'&&value.decision.target==='self'?typedScopeSuggestion(value.question):undefined;
  return <div ref={heading} tabIndex={-1} className={styles.content}><FirstVisitProgress ready={guidanceReady&&Boolean(value.question.trim())&&preparation.every(item=>item.valid&&!item.pending)}/>{suggestion&&<div className={styles.typedSuggestion}>

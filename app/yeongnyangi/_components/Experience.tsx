@@ -41,7 +41,7 @@ export default function Experience({view}:{view:'fortune'|'result'|'library'}){
   setQuestion(value);
   try{sessionStorage.setItem(CONSULTATION_DRAFT_KEY,JSON.stringify({accountId:readDestinyProfileAccountId(),path:window.location.pathname+window.location.search,locale:'ko',question:value,chatStep:'question',savedAt:Date.now()}));}catch{/* Input remains usable without draft storage. */}
  };
- const content=view==='fortune'?(mode===null?<ConsultationLoading/>:['spirit','prashna','horary'].includes(mode)?<QuestionSkyConsultation key={mode} mode={mode==='horary'?'horary-v1':'prashna-v1'}/>:quickEntry&&siteLocale==='ko'&&!submitted?<QuestionEntry question={question} onQuestion={changeQuestion} onOpen={()=>setSubmitted(true)}/>:<Consultation initialQuestion={quickEntry&&submitted?question:undefined} loadProfilePetArt={loadProfilePetArt}/>):view==='result'?<Result/>:<Library/>;
+ const content=view==='fortune'?(mode===null?<ConsultationLoading/>:['spirit','prashna','horary'].includes(mode)?<QuestionSkyConsultation key={mode} mode={mode==='horary'?'horary-v1':'prashna-v1'}/>:quickEntry&&siteLocale==='ko'&&!submitted?<QuestionEntry question={question} onQuestion={changeQuestion} onOpen={()=>setSubmitted(true)} domain="fusion"/>:<Consultation initialQuestion={quickEntry&&submitted?question:undefined} loadProfilePetArt={loadProfilePetArt}/>):view==='result'?<Result/>:<Library/>;
  return <div className={styles.experience}>{content}{storyOpen&&view==='fortune'&&siteLocale==='ko'&&<StoryPanel onClose={()=>{
   setStoryOpen(false);document.getElementById('yn-question')?.focus({preventScroll:true});
  }}/>}</div>;
