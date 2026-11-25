@@ -23630,7 +23630,11 @@ function _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type) {
   var firstSentence = (comment.match(/^[^.!?。]*[.!?。]/) || [comment])[0];
   var items = [
     '🌡️ 에너지 조화 — 두 사람의 조후(온도·습도) 흐름',
-    '🧩 세부 해석 — 일간·일지·보완 오행·십성 네 갈래',
+    '🧩 세부 해석 — 감정·갈등·생활·장기 흐름 네 갈래',
+    '🌸 두 사람의 타고난 성향·성격 — 일간·두드러진 십성·성격 키워드',
+    '⚖️ 오행 밸런스 비교 — 서로 채워 주는 기운과 함께 부족한 기운',
+    type === 'business' ? '💬 협업·소통 스타일 비교 — 일하는 방식과 갈등 대처' : type === 'friend' ? '💬 우정·소통 스타일 비교 — 표현 방식과 갈등 대처' : '💬 연애·소통 스타일 비교 — 표현 방식과 갈등 대처',
+    '🤝 잘 맞는 포인트 · 함께할 때 조심할 점',
     '📋 궁합 포인트 체크 — 합충과 점수 근거',
     type === 'love' ? '💍 연애·결혼 궁합 심화 — 감정 표현·갈등 회복·생활 운영·장기 성장' : '',
     '💥 팩폭 분석과 🎯 천기적 처방',
@@ -24130,7 +24134,8 @@ async function runCompatCore(compatRunBtn, name, bd, type, llm, access){
     var resultArea=document.getElementById('compatResult');
     var llmHost=cdEnsureCompatLlmHost();
     if(llmHost) llmHost.innerHTML='';
-    var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name);
+    var partnerTimeUnknown=!String((document.getElementById('compatBirthTimeText')||{}).value||'').trim();
+    var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name,{partnerTimeUnknown:partnerTimeUnknown});
     if(!fullAccess){
       if(resultArea){
         _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type);
@@ -24185,7 +24190,204 @@ async function runCompatCore(compatRunBtn, name, bd, type, llm, access){
   }
 }
 
-function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
+/* ─── 라이트 궁합 확장 섹션(결정론·정적) ─────────────────────────────────────────
+   두 명식에서 이미 계산된 값(일간 DB ILJU_DB._stems, 십성 getTenGod·TS_DB, 겉으로 보이는 오행 수, 신강·신약)만 읽어
+   성향·오행·소통·주의/강점 네 섹션을 만든다. 점수·등급·기존 섹션에는 영향을 주지 않는다. 문구는 경향으로만 말한다. */
+var _SE_COMPAT_TEN_KEYWORD={비견:'자립심·주관',겁재:'승부욕·추진력',식신:'여유·표현력',상관:'재치·비판적 시선',편재:'활동성·사교성',정재:'성실함·꼼꼼함',편관:'책임감·결단력',정관:'원칙·신중함',편인:'직관·독창성',정인:'수용·배려'};
+var _SE_COMPAT_TEN_GROUP={비견:'비겁',겁재:'비겁',식신:'식상',상관:'식상',편재:'재성',정재:'재성',편관:'관성',정관:'관성',편인:'인성',정인:'인성'};
+var _SE_COMPAT_GROUP_ORDER=['비겁','식상','재성','관성','인성'];
+var _SE_COMPAT_GROUP_LABEL={비겁:'비겁(자기 주관)',식상:'식상(표현·재능)',재성:'재성(현실·실리)',관성:'관성(원칙·책임)',인성:'인성(생각·수용)'};
+var _SE_COMPAT_EL_THEME={wood:'새로 시작하고 키워 가는 힘',fire:'표현과 열정',earth:'안정과 중재',metal:'결단과 정리',water:'생각의 깊이와 유연함'};
+var _SE_COMPAT_STYLE={
+  비겁:{express:{love:'좋아하는 마음을 행동으로 먼저 보여 주고, 관계 안에서도 자기 영역을 지키려는 편이에요.',business:'자기 판단으로 일을 끌고 가는 편이라 맡은 몫이 분명할 때 힘을 내요.',friend:'한 번 내 사람이라고 정하면 의리 있게 챙기는 편이에요.'},
+    conflict:'서운한 일이 생기면 자존심이 먼저 올라와 물러서기 어려워할 수 있어요. 이기고 지는 문제가 아니라는 걸 먼저 확인하면 대화가 한결 쉬워져요.'},
+  식상:{express:{love:'감정을 말과 표정으로 솔직하게 드러내고, 함께하는 순간을 즐겁게 만들려는 편이에요.',business:'아이디어와 말로 일을 풀어 가는 편이라 기획·설득 장면에서 강점이 드러나요.',friend:'분위기를 띄우고 이야기를 이끄는 역할을 자주 맡아요.'},
+    conflict:'불편한 점을 바로 말하는 편이라 시원하지만, 순간의 말이 날카롭게 들릴 수 있어요. 한 박자 쉬고 요청하는 말로 바꿔 전하면 좋아요.'},
+  재성:{express:{love:'마음을 챙김과 실제 도움으로 표현하는 편이라, 말보다 함께 쓰는 시간과 계획에서 애정이 보여요.',business:'성과와 실리를 따져 현실적인 결정을 내리는 편이에요.',friend:'함께할 일을 계획하고 실제로 챙겨 주는 쪽에 가까워요.'},
+    conflict:'갈등을 감정보다 해결책으로 정리하려는 편이에요. 상대가 아직 마음을 풀지 못했다면 결론을 조금 미루는 것이 도움이 돼요.'},
+  관성:{express:{love:'약속과 책임으로 마음을 보여 주는 편이라, 꾸준함과 신뢰를 중요하게 여겨요.',business:'원칙과 체계를 세우고 책임지는 역할에서 안정감을 주는 편이에요.',friend:'믿고 기댈 수 있는 든든한 쪽이지만, 기준이 분명해 가끔은 엄격해 보일 수 있어요.'},
+    conflict:'옳고 그름을 먼저 따지는 편이라 상대에게는 지적처럼 들릴 수 있어요. 기준을 말하기 전에 상대의 사정을 먼저 물어보는 순서를 권해요.'},
+  인성:{express:{love:'천천히 마음을 열지만, 한 번 신뢰하면 깊이 이해하고 받아 주는 편이에요.',business:'정보를 충분히 모으고 생각한 뒤 움직이는 편이라 분석과 검토에서 힘을 보태요.',friend:'이야기를 잘 들어 주는 편이라 속 깊은 대화를 나누는 친구가 되기 쉬워요.'},
+    conflict:'갈등이 생기면 바로 말하기보다 혼자 생각을 정리할 시간이 필요한 편이에요. 침묵이 거절로 오해받지 않게 "생각해 보고 말할게"라고 알려 주면 좋아요.'}
+};
+
+function _seCompatJosa(word, withFinal, withoutFinal) {
+  var w = String(word || '');
+  var code = w.charCodeAt(w.length - 1);
+  if (!(code >= 0xAC00 && code <= 0xD7A3)) return w + withFinal + '(' + withoutFinal + ')';
+  return w + ((code - 0xAC00) % 28 > 0 ? withFinal : withoutFinal);
+}
+
+function _seCompatPersonProfile(p, n, pw) {
+  var dg = p && p.d ? p.d.g : '';
+  var stems = (typeof ILJU_DB !== 'undefined' && ILJU_DB && ILJU_DB._stems) ? ILJU_DB._stems : {};
+  var stem = stems[dg] || [];
+  var tenCnt = {}, groupCnt = { 비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0 };
+  [p.y.g, p.y.j, p.m.g, p.m.j, p.d.j, p.h.g, p.h.j].forEach(function(c) {
+    var t = getTenGod(dg, c);
+    if (!t || t === '?') return;
+    tenCnt[t] = (tenCnt[t] || 0) + 1;
+    groupCnt[_SE_COMPAT_TEN_GROUP[t]]++;
+  });
+  var tens = Object.keys(tenCnt).sort(function(a, b) { return tenCnt[b] - tenCnt[a]; });
+  var topTens = tens.filter(function(t, i) { return i < 2 && (i === 0 || tenCnt[t] >= 2); });
+  var group = _SE_COMPAT_GROUP_ORDER.reduce(function(best, g) { return groupCnt[g] > groupCnt[best] ? g : best; }, _SE_COMPAT_GROUP_ORDER[0]);
+  var surface = (n && n.surface && n.surface.counts) ? n.surface.counts : ((n && n.counts) || {});
+  var counts = {};
+  ['wood', 'fire', 'earth', 'metal', 'water'].forEach(function(el) { counts[el] = Number(surface[el] || 0); });
+  return {
+    dayEl: (GAN[dg] || {}).e || '',
+    stemName: stem[0] || ((GAN[dg] || {}).n || dg),
+    stemChar: dg,
+    image: stem[1] || '',
+    keywords: String(stem[2] || '').split(',').map(function(s) { return s.trim(); }).filter(Boolean),
+    topTens: topTens,
+    tenCnt: tenCnt,
+    group: group,
+    strong: !!(pw && pw.isStrong),
+    counts: counts
+  };
+}
+
+function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, partnerName, opts) {
+  var escMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  var esc = function(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function(c) { return escMap[c]; }); };
+  var kind = type === 'business' || type === 'friend' ? type : 'love';
+  var me = _seCompatPersonProfile(p1, n1, pw1);
+  var you = _seCompatPersonProfile(p2, n2, pw2);
+  var A = String(selfName || '나'), B = String(partnerName || '상대방');
+  var people = [{ name: A, pr: me }, { name: B, pr: you }];
+  var els = ['wood', 'fire', 'earth', 'metal', 'water'];
+  var elName = function(el) { return (EL_E[el] || '') + (EL_K[el] || el); };
+  var card = function(inner) {
+    return '<div class="cd-compat-light-card" style="background:rgba(255,255,255,0.72);border:1px solid rgba(216,27,96,0.12);border-radius:14px;padding:14px;">' + inner + '</div>';
+  };
+  var cardHead = function(t) { return '<div style="font-size:.84rem;font-weight:900;color:#c2185b;margin-bottom:6px;">' + t + '</div>'; };
+  var line = function(label, body) {
+    return '<div style="font-size:.8rem;color:#4e5358;line-height:1.72;margin-top:4px;"><b>' + label + '</b> ' + body + '</div>';
+  };
+  var grid = function(inner) { return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">' + inner + '</div>'; };
+
+  // 1) 타고난 성향·성격
+  var natureCards = people.map(function(x) {
+    var pr = x.pr;
+    var tenText = pr.topTens.map(function(t) {
+      return '<b>' + esc(t) + '</b>(' + pr.tenCnt[t] + '개) — ' + esc((TS_DB[t] || {}).meaning || '');
+    }).join('<br>');
+    var stemWords = pr.keywords.slice(0, 3);
+    var stemJoined = stemWords.join(' ');
+    var traitWords = stemWords.concat(pr.topTens.map(function(t) { return _SE_COMPAT_TEN_KEYWORD[t]; }).filter(function(w) {
+      return w && !w.split('·').some(function(part) { return stemJoined.indexOf(part) >= 0; });
+    }));
+    return card(cardHead(esc(x.name) + ' · ' + esc(pr.stemName) + (pr.stemChar ? ' (' + esc(pr.stemChar) + ')' : ''))
+      + (pr.image ? line('타고난 결', esc(pr.image) + '에 비유되는 일간이에요.') : '')
+      + line('기운의 세기', pr.strong
+        ? '자기 힘이 넉넉한 편(신강)이라 스스로 판단하고 밀고 나가는 힘이 커요.'
+        : '주변과 호흡을 맞출 때 힘이 나는 편(신약)이라 혼자 떠안기보다 도움을 주고받을 때 안정돼요.')
+      + (tenText ? line('두드러진 십성', '<br>' + tenText) : '')
+      + (traitWords.length ? line('성격 키워드', esc(traitWords.join(' · '))) : ''));
+  }).join('');
+  var timeNote = opts && opts.partnerTimeUnknown
+    ? '<p class="cd-compat-light-note" style="font-size:.74rem;color:#7a6f74;margin:8px 0 0;">' + esc(B) + '의 태어난 시간을 몰라 정오(12시) 기준으로 계산했어요. 시주에 걸린 십성·오행은 가볍게 참고해 주세요.</p>'
+    : '';
+  var natureHtml = '<div class="compat-section cd-compat-light-nature">'
+    + '<div class="compat-section-title">🌸 두 사람의 타고난 성향·성격</div>'
+    + grid(natureCards) + timeNote + '</div>';
+
+  // 2) 오행 밸런스 비교 — 겉으로 보이는 여덟 글자 기준
+  var barRow = function(pr) {
+    return els.map(function(el) {
+      var c = pr.counts[el];
+      return '<span style="display:inline-block;margin:2px 8px 2px 0;font-size:.78rem;color:#4e5358;">' + elName(el) + ' <b>' + c + '</b></span>';
+    }).join('');
+  };
+  var fills = [];
+  var fillFor = function(giver, taker) {
+    els.forEach(function(el) {
+      if (giver.pr.counts[el] >= 2 && taker.pr.counts[el] <= 1) fills.push({ giver: giver.name, taker: taker.name, el: el });
+    });
+  };
+  fillFor(people[0], people[1]);
+  fillFor(people[1], people[0]);
+  var sharedLack = els.filter(function(el) { return me.counts[el] === 0 && you.counts[el] === 0; });
+  var sharedExcess = els.filter(function(el) { return me.counts[el] >= 3 && you.counts[el] >= 3; });
+  var elementLines = [];
+  [people[0], people[1]].forEach(function(giver) {
+    var mine = fills.filter(function(f) { return f.giver === giver.name; });
+    if (!mine.length) return;
+    var taker = mine[0].taker;
+    elementLines.push(_seCompatJosa(esc(giver.name), '은', '는') + ' ' + esc(taker) + '에게 적은 ' + mine.map(function(f) { return elName(f.el); }).join('·') + ' 기운을 넉넉히 갖고 있어요. '
+      + mine.map(function(f) { return _SE_COMPAT_EL_THEME[f.el]; }).join(', ') + ' 쪽에서 ' + esc(taker) + '에게 기댈 곳이 되어 줄 수 있어요.');
+  });
+  if (!fills.length) elementLines.push('어느 한쪽이 크게 채워 주는 기운은 두드러지지 않아요. 비슷한 결의 기운을 나눠 가진 편이라 서로의 방식이 낯설지 않을 수 있어요.');
+  if (sharedLack.length) {
+    elementLines.push('두 사람 모두 ' + sharedLack.map(elName).join('·') + ' 기운이 겉으로 드러나지 않아요. '
+      + sharedLack.map(function(el) { return _SE_COMPAT_EL_THEME[el]; }).join(', ') + '이 필요한 일은 둘 다 미루기 쉬우니, 일정이나 규칙으로 일부러 챙겨 두면 좋아요.');
+  } else {
+    elementLines.push('두 사람이 함께 비어 있는 오행은 없어요. 한 사람에게 부족한 기운은 다른 사람의 명식에 조금씩이라도 들어 있어요.');
+  }
+  var elementHtml = '<div class="compat-section cd-compat-light-elements">'
+    + '<div class="compat-section-title">⚖️ 오행 밸런스 비교</div>'
+    + grid(people.map(function(x) { return card(cardHead(esc(x.name)) + barRow(x.pr)); }).join(''))
+    + '<div style="font-size:.8rem;color:#4e5358;line-height:1.72;margin-top:10px;">' + elementLines.map(function(t) { return '<p style="margin:0 0 6px;">' + t + '</p>'; }).join('') + '</div>'
+    + '<p style="font-size:.72rem;color:#7a6f74;margin:4px 0 0;">천간·지지 여덟 글자에 겉으로 보이는 오행 수를 센 값이에요(지장간·계절 가중은 넣지 않았어요).</p>'
+    + '</div>';
+
+  // 3) 연애·소통 스타일 비교 (관계 유형별 문구)
+  var styleTitle = kind === 'business' ? '💬 협업·소통 스타일 비교' : kind === 'friend' ? '💬 우정·소통 스타일 비교' : '💬 연애·소통 스타일 비교';
+  var expressLabel = kind === 'business' ? '일하는 방식' : '마음을 표현하는 방식';
+  var styleCards = people.map(function(x) {
+    var st = _SE_COMPAT_STYLE[x.pr.group] || _SE_COMPAT_STYLE.비겁;
+    return card(cardHead(esc(x.name) + ' · ' + esc(_SE_COMPAT_GROUP_LABEL[x.pr.group] || x.pr.group))
+      + line(expressLabel, st.express[kind])
+      + line('갈등이 생기면', st.conflict));
+  }).join('');
+  var pairLine = me.group === you.group
+    ? '두 사람 모두 ' + esc(_SE_COMPAT_GROUP_LABEL[me.group]) + ' 성향이 두드러져 말이 잘 통하는 편이에요. 다만 같은 지점에서 함께 고집하거나 함께 놓칠 수 있으니, 서로 다른 역할을 하나쯤 정해 두면 좋아요.'
+    : '표현하는 방식이 서로 달라, ' + (kind === 'business' ? '같은 의도라도' : '같은 마음이라도') + ' 상대에게는 다르게 전달될 수 있어요. 상대가 ' + (kind === 'business' ? '신뢰' : '애정') + '를 보여 주는 방식을 한 가지씩 알아 두면 오해가 줄어요.';
+  var styleHtml = '<div class="compat-section cd-compat-light-style">'
+    + '<div class="compat-section-title">' + styleTitle + '</div>'
+    + grid(styleCards)
+    + '<p style="font-size:.8rem;color:#4e5358;line-height:1.72;margin:10px 0 0;">' + pairLine + '</p>'
+    + '</div>';
+
+  // 4) 잘 맞는 포인트 / 함께할 때 조심할 점
+  var good = [], care = [];
+  var aEl = me.dayEl, bEl = you.dayEl;
+  if (aEl && bEl) {
+    if (aEl === bEl) good.push('두 사람의 일간이 같은 ' + elName(aEl) + ' 기운이라 생각의 출발점이 비슷해 서로를 빨리 이해하는 편이에요.');
+    else if (SHENG[aEl] === bEl) good.push(esc(A) + '의 일간이 ' + esc(B) + '의 일간을 살려 주는 상생 관계라, ' + esc(A) + ' 쪽이 자연스럽게 힘을 보태는 장면이 많아요.');
+    else if (SHENG[bEl] === aEl) good.push(esc(B) + '의 일간이 ' + esc(A) + '의 일간을 살려 주는 상생 관계라, ' + esc(B) + ' 쪽에서 든든한 지원을 받는 장면이 많아요.');
+    else if (KE[aEl] === bEl) care.push(esc(A) + '의 일간이 ' + esc(B) + '의 일간을 누르는 상극 관계라, ' + esc(A) + '의 말이 의도보다 세게 전달될 수 있어요. 결정하기 전에 상대 의견을 먼저 묻는 습관이 도움이 돼요.');
+    else if (KE[bEl] === aEl) care.push(esc(B) + '의 일간이 ' + esc(A) + '의 일간을 누르는 상극 관계라, ' + esc(A) + ' 쪽이 맞춰 주느라 지칠 수 있어요. 원하는 것을 작게라도 먼저 말해 주세요.');
+  }
+  if (fills.length) good.push('서로에게 적은 오행을 상대가 갖고 있어, 혼자서는 부족했던 부분을 함께 있을 때 채우기 쉬워요.');
+  var commonY = opts && Array.isArray(opts.commonY) ? opts.commonY : [];
+  if (commonY.length) good.push('두 사람에게 도움이 되는 기운(' + commonY.map(elName).join('·') + ')이 같아, 함께 고르는 환경과 생활 방식이 비슷해지기 쉬워요.');
+  if (me.strong !== you.strong) good.push('한 사람이 이끌고 한 사람이 받쳐 주는 역할 분담이 자연스러운 조합이에요. 다만 역할이 굳지 않게 가끔 바꿔 보세요.');
+  if (me.group !== you.group) good.push('반응하는 방식이 달라서, 한쪽이 놓치는 부분을 다른 쪽이 채워 줄 수 있어요.');
+  if (sharedLack.length) care.push('두 사람 모두 ' + sharedLack.map(elName).join('·') + ' 기운이 드러나지 않아, ' + sharedLack.map(function(el) { return _SE_COMPAT_EL_THEME[el]; }).join(', ') + '이 필요한 순간에 함께 미루기 쉬워요.');
+  if (sharedExcess.length) care.push('두 사람 모두 ' + sharedExcess.map(elName).join('·') + ' 기운이 많아 같은 방향으로 쏠리기 쉬워요. 한쪽이 과열될 때 다른 쪽이 속도를 늦춰 주세요.');
+  if (me.strong && you.strong) care.push('두 사람 모두 자기 기준이 강한 편(신강)이라 주도권을 두고 부딪힐 수 있어요. 각자 결정할 몫을 미리 나눠 두면 좋아요.');
+  if (!me.strong && !you.strong) care.push('두 사람 모두 상대에게 맞춰 주는 편(신약)이라 중요한 결정을 서로 미룰 수 있어요. 결정을 맡을 사람을 주제별로 정해 두세요.');
+  if (me.group === you.group) care.push('같은 방식으로 반응하기 쉬워, 갈등이 생기면 둘 다 같은 자리에서 버틸 수 있어요. 먼저 한 걸음 물러서는 신호를 정해 두면 좋아요.');
+  if (!good.length) good.push('큰 충돌 요인이 두드러지지 않아, 서로의 생활 리듬을 천천히 맞춰 가기 좋은 바탕이에요.');
+  if (!care.length) care.push('흐름이 순할수록 익숙함에 기대기 쉬워요. 서운한 점은 쌓아 두지 말고 작게, 자주 말해 주세요.');
+  var list = function(items, icon) {
+    return items.slice(0, 4).map(function(t) {
+      return '<div class="compat-check-item"><span class="compat-check-icon">' + icon + '</span><span style="font-size:.8rem;line-height:1.72;color:#4e5358;">' + t + '</span></div>';
+    }).join('');
+  };
+  var pointsHtml = '<div class="compat-section cd-compat-light-points">'
+    + '<div class="compat-section-title">🤝 잘 맞는 포인트 · 함께할 때 조심할 점</div>'
+    + grid(card(cardHead('잘 맞는 포인트') + list(good, '💛')) + card(cardHead('함께할 때 조심할 점') + list(care, '⚠️')))
+    + '<p style="font-size:.72rem;color:#7a6f74;margin:8px 0 0;">명식 계산으로 정리한 경향이에요. 실제 관계는 두 사람의 경험과 대화로 확인해 주세요.</p>'
+    + '</div>';
+
+  return natureHtml + elementHtml + styleHtml + pointsHtml;
+}
+
+function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,opts){
   var score=0;
   var reasons=[];
   /* 구조화 사실(facts): 화면 문구와 같은 지점에서 코드·가감을 수집한다. 화면 html 은 이 값에 의존하지 않는다. */
@@ -24542,6 +24744,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     '<div class="compat-section-title">🧩 세부 해석</div>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">'+detailCardsHtml+'</div>'+
     '</div>'+
+    _seCompatLightSectionsHtml(p1,n1,pw1,p2,n2,pw2,type,USER_NAME,name,{commonY:commonY||[],partnerTimeUnknown:!!(opts&&opts.partnerTimeUnknown)})+
     '<div class="compat-section">'+
     '<div class="compat-section-title">📋 궁합 포인트 체크 <span style="font-size:.7rem;font-weight:400;color:#aaa">총점 '+score.toFixed(1)+'점</span></div>'+
     reasons.map(function(r){
