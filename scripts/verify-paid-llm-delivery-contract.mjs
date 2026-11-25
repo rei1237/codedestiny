@@ -9,6 +9,7 @@
 //   3. CONSULTATION_RECOVERY_ADAPTERS 의 서비스, 카탈로그의 LLM 판매 키(buildPaidDeliveryInventory)가
 //      계약에서 빠지면 실패.
 //   4. 자동 환불 구멍(gap)은 KNOWN_REFUND_GAPS 와 정확히 같아야 한다 — 새 구멍은 실패, 메운 구멍은 목록에서 지운다.
+//      저장 후 결제(SAVE_BEFORE_CHARGE) 서비스는 환불 경로 대신 "생성 경로 결제 없음·저장 뒤 결제·기존 결제 확인 열람"을 변이로 확인한다.
 //   5. 계약 테스트(__tests__/worker/paid-llm-delivery-contract.test.js)가 있고 레지스트리를 import 해야 하며,
 //      PAID_LLM_DELIVERY_TESTS 가 계약 서비스 전부를 덮고 그 테스트 파일이 실재해야 한다.
 //   6. 정체 감시: 복구 어댑터 중 STUCK_SETTLERS(자동 확정) 밖의 서비스는 KNOWN_STUCK_SETTLE_GAPS 와 정확히 같아야 한다.
@@ -59,8 +60,15 @@ export const EXEMPT_FILES = Object.freeze({
 export const KNOWN_REFUND_GAPS = Object.freeze([
   "fortune-chat-question",
   "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic", "pet-saju-ai",
-  "geomancy-oracle", "animal-totem", "guardian-fortune", "palm", "toss-native",
+  "geomancy-oracle", "animal-totem", "guardian-fortune", "toss-native",
 ]);
+
+// 저장 후 결제(2026-11-25): 생성 경로는 결제하지 않고 결과를 먼저 저장하며, 결제는 저장 뒤 클라이언트 게이트가 하고,
+// 본문은 기존 결제 확인(requireExisting) 뒤에만 연다. "결제됐는데 생성 실패"가 구조적으로 없으므로 환불 경로 대신 이 순서를 검사한다.
+// 생성 경로에 결제 원시함수가 들어오면 실패한다 — 그때는 refunds 를 붙이고 여기서 뺀다.
+export const SAVE_BEFORE_CHARGE = Object.freeze({
+  palm: Object.freeze({ generation: "worker/routes/palm.js", lib: "worker/lib/palm-result-delivery.js", save: "savePalmAnalysis", read: "readPaidPalmAnalysis" }),
+});
 
 // 정체 감시가 자동 확정하지 않고 경보(paid_delivery_stuck_unsettled)만 내는 복구 어댑터(정확히 일치해야 한다).
 // 이 서비스들은 환불을 핸들러 실패 경로 안에서 인라인으로 하므로 바깥에서 상태만 바꾸면 "차감됐는데 환불 없음"이 생긴다.
@@ -253,9 +261,56 @@ const keyMatches = (pattern, key) => pattern.endsWith("*") ? key.startsWith(patt
 
 const OWN_STUCK_SETTLER_RE = /export\s+(?:async\s+)?function\s+settleStuckDelivery\b|export\s+const\s+settleStuckDelivery\b/;
 
-export function checkContract({ contract, adapters, llmFeatureKeys, src, discovered, tests, testFiles, stuckSettlers, genericStuckSettlers, knownGaps = KNOWN_REFUND_GAPS, knownStuckGaps = KNOWN_STUCK_SETTLE_GAPS, exempt = EXEMPT_FILES, shared = SHARED_REFUND_PATHS }) {
+const fnBody = (symbol, text = "") => {
+  const m = exportsFn(symbol).exec(text);
+  if (!m) return "";
+  const rest = text.slice(m.index + m[0].length), next = rest.search(/\nexport\s/);
+  return next < 0 ? rest : rest.slice(0, next);
+};
+
+export function checkSaveBeforeCharge({ contract, src, saveBeforeCharge = SAVE_BEFORE_CHARGE }) {
+  const errors = [];
+  for (const [id, rule] of Object.entries(saveBeforeCharge)) {
+    const entry = (contract || []).find(e => e?.service === id);
+    if (!entry) { errors.push(`SAVE_BEFORE_CHARGE 의 '${id}' 가 전달 계약에 없다`); continue; }
+    if (entry.gap) errors.push(`${id}: 저장 후 결제(SAVE_BEFORE_CHARGE)인데 계약 gap 이 남아 있다 — 둘 중 하나만 둔다`);
+    for (const f of [rule.generation, rule.lib]) if (!entry.files?.includes(f)) errors.push(`${id}: ${f} 가 계약 files 에 없다`);
+    const gen = src?.[rule.generation] || "", lib = src?.[rule.lib] || "";
+    const save = fnBody(rule.save, lib), read = fnBody(rule.read, lib);
+    if (!save) errors.push(`${id}: ${rule.lib} 가 저장 함수 '${rule.save}' 를 export 하지 않는다`);
+    if (!read) errors.push(`${id}: ${rule.lib} 가 열람 함수 '${rule.read}' 를 export 하지 않는다`);
+    if (!importsFrom(rule.save, rule.lib).test(gen) || !new RegExp(`\\b${escapeRe(rule.save)}\\s*\\(`).test(gen)) errors.push(`${id}: 생성 경로 ${rule.generation} 가 결과를 '${rule.save}' 로 저장하지 않는다`);
+    if (PAY_RE.test(gen)) errors.push(`${id}: 생성 경로 ${rule.generation} 가 결제 원시함수를 직접 쓴다 — 결제 뒤 생성 실패가 가능해졌으니 refunds 를 붙이고 SAVE_BEFORE_CHARGE 에서 뺀다`);
+    if (save && PAY_RE.test(save)) errors.push(`${id}: 저장 함수 '${rule.save}' 가 결제 원시함수를 쓴다 — 저장이 결제보다 먼저여야 한다`);
+    if (!/\bverifyPerUsePayment\s*\([^)]*requireExisting:\s*true/.test(read)) errors.push(`${id}: 열람 함수 '${rule.read}' 가 기존 결제 확인(verifyPerUsePayment requireExisting: true) 없이 결과를 연다`);
+  }
+  return errors;
+}
+
+// 저장 후 결제 근거를 하나씩 깨뜨린 소스로 다시 판정해 매번 실패해야 한다. 분류를 빼면 계약 검사도 실패해야 한다.
+export function saveBeforeChargeMutationCheck(input, saveBeforeCharge = SAVE_BEFORE_CHARGE) {
+  const survivors = [];
+  for (const [id, rule] of Object.entries(saveBeforeCharge)) {
+    const s = input.src || {};
+    const mutants = {
+      "save-call": { ...s, [rule.generation]: (s[rule.generation] || "").replace(new RegExp(`\\b${escapeRe(rule.save)}\\s*\\(`, "g"), "__sbc_mutated__(") },
+      "charge-in-generation": { ...s, [rule.generation]: `${s[rule.generation] || ""}\nverifyPerUsePayment(env, {});` },
+      "read-existing": { ...s, [rule.lib]: (s[rule.lib] || "").replace(/requireExisting:\s*true/g, "requireExisting: false") },
+    };
+    for (const [kind, src] of Object.entries(mutants)) {
+      if (!checkSaveBeforeCharge({ ...input, src, saveBeforeCharge }).some(e => e.startsWith(`${id}:`))) survivors.push(`${id}/${kind}`);
+    }
+    const without = Object.fromEntries(Object.entries(saveBeforeCharge).filter(([k]) => k !== id));
+    if (!checkContract({ ...input, saveBeforeCharge: without }).some(e => e.startsWith(`${id}:`))) survivors.push(`${id}/classification`);
+  }
+  return survivors;
+}
+
+export function checkContract({ contract, adapters, llmFeatureKeys, src, discovered, tests, testFiles, stuckSettlers, genericStuckSettlers, knownGaps = KNOWN_REFUND_GAPS, knownStuckGaps = KNOWN_STUCK_SETTLE_GAPS, exempt = EXEMPT_FILES, shared = SHARED_REFUND_PATHS, saveBeforeCharge = SAVE_BEFORE_CHARGE }) {
   const errors = [];
   // 필수 입력이 비면 통과가 아니라 실패(fail-closed).
+  // 저장 후 결제 서비스는 자기 계약 항목이 있어야 한다 — 판매 키가 다른 항목(예: 토스 네이티브)과 겹쳐도 빠지면 실패.
+  for (const id of Object.keys(saveBeforeCharge || {})) if (!(contract || []).some(e => e?.service === id)) errors.push(`${id}: SAVE_BEFORE_CHARGE 에 있지만 계약 항목이 없다`);
   if (!tests || typeof tests !== "object") errors.push("PAID_LLM_DELIVERY_TESTS 를 읽지 못했다 — 레지스트리에 서비스→전달 테스트 표가 있어야 한다");
   if (!testFiles || typeof testFiles !== "object") errors.push("테스트 파일 목록을 읽지 못했다");
   if (!Array.isArray(stuckSettlers) || !stuckSettlers.length) errors.push("STUCK_SETTLERS 를 읽지 못했다 — worker/lib/paid-delivery-stuck.js");
@@ -282,7 +337,7 @@ export function checkContract({ contract, adapters, llmFeatureKeys, src, discove
       else if (!wordRe(symbol).test(src[shared[symbol]] || "")) errors.push(`${id}: 공용 경로 '${symbol}' 이 정의 파일 ${shared[symbol]} 에 없다`);
       if (!wordRe(symbol).test(body)) errors.push(`${id}: 환불 경로 '${symbol}' 을 계약 파일들이 참조하지 않는다`);
     }
-    if (!entry.refunds.length && !entry.gap) errors.push(`${id}: 공용 환불 경로가 없다 — refunds 를 채우거나(권장) gap 사유를 적는다`);
+    if (!entry.refunds.length && !entry.gap && !Object.hasOwn(saveBeforeCharge, id)) errors.push(`${id}: 공용 환불 경로가 없다 — refunds 를 채우거나(권장), 저장 후 결제면 SAVE_BEFORE_CHARGE 에 올리거나, gap 사유를 적는다`);
   }
   const gaps = contract.filter(e => e?.gap).map(e => e.service).sort();
   const expectedGaps = [...knownGaps].sort();
@@ -366,6 +421,8 @@ async function main() {
   const errors = checkContract(input);
   const survivors = mutationCheck(input);
   for (const s of survivors) errors.push(`변이 검사: 계약 항목 '${s}' 을 빼도 검증이 통과한다 — 그 항목을 지키는 근거(판매 키·파일)가 없다`);
+  errors.push(...checkSaveBeforeCharge(input));
+  for (const s of saveBeforeChargeMutationCheck(input)) errors.push(`변이 검사(저장 후 결제): '${s}' 근거를 깨도 검증이 통과한다 — 그 검사는 아무것도 지키지 않는다`);
   errors.push(...checkRetryFirst(input));
   for (const s of retryFirstMutationCheck(input)) errors.push(`변이 검사(다시 시도 우선): '${s}' 근거를 지워도 검증이 통과한다 — 그 검사는 아무것도 지키지 않는다`);
   if (errors.length) {
@@ -377,6 +434,8 @@ async function main() {
   console.log(`verify:paid-llm-delivery ok — 계약 ${input.contract.length}개, LLM 판매 키 ${input.llmFeatureKeys.length}개, 결제+LLM 파일 ${input.discovered.length}개, 전달 테스트 ${Object.keys(input.tests).length}개, 정체 자동 확정 ${input.stuckSettlers.length}개(경보만 ${KNOWN_STUCK_SETTLE_GAPS.length}개), 변이 ${input.contract.length}/${input.contract.length} 탐지`);
   const retryFirstCount = Object.keys(RETRY_FIRST_POLICY).length;
   console.log(`  다시 시도 우선 ${retryFirstCount}개(대표 상담 ${input.signatureFeatureKeys.length}종 — 실패 표지·/retry·/refund-request·7일 정산 크론), 대기 ${KNOWN_RETRY_PENDING.length}개, 변이 ${retryFirstCount * 4}/${retryFirstCount * 4} 탐지`);
+  const sbc = Object.keys(SAVE_BEFORE_CHARGE);
+  console.log(`  저장 후 결제 ${sbc.length}개(${sbc.join(", ")}) — 생성 경로 결제 없음·저장 호출·기존 결제 확인 열람, 변이 ${sbc.length * 4}/${sbc.length * 4} 탐지`);
   if (gaps.length) console.log(`  알려진 자동 환불 구멍 ${gaps.length}개: ${gaps.map(e => e.service).join(", ")}`);
 }
 
