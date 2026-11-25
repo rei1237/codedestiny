@@ -37,7 +37,7 @@ function boot(options) {
   });
   const { window } = dom;
   openWindows.push(window);
-  const calls = { run: [], finalize: [], scroll: [], tile: [], gates: 0, registered: {} };
+  const calls = { run: [], finalize: [], scroll: [], tile: [], gates: 0, registered: {}, fallback: [] };
   const unlocked = new Set();
   window.Element.prototype.scrollIntoView = function () { calls.scroll.push(this.id); };
   window.__currentProfile = opts.currentProfile || "";
@@ -49,6 +49,8 @@ function boot(options) {
   };
   window.isTileKeyUnlocked = (featureKey) => unlocked.has(featureKey);
   window._cdInvokeUnlockedTileAction = (action, node) => { calls.tile.push({ action, node }); };
+  window._cdScrollUnlockedSectionIntoView = (featureKey) => { calls.fallback.push(featureKey); };
+  for (const key of opts.preUnlocked || []) unlocked.add(key);
   // 결제 게이트들 — 재개 중 하나라도 불리면 결제 선택이 다시 열린다.
   for (const gate of ["tryUnlockFeature", "_cdOpenPaidServiceGate", "_cdRunDirectKrwCheckout", "_cdCoinGatePerUse"]) {
     window[gate] = () => { calls.gates += 1; };
@@ -184,3 +186,57 @@ for (const eventName of ["touchstart", "wheel", "pointerdown", "keydown"]) {
     assert.equal(calls.scroll.length, 1);
   });
 }
+
+// 2026-11-25 신고: 홈(/ggulggul/) 라이트 사주 패널에서 PC·인페이지로 결제하면 tryUnlockFeature 가
+// 섹션 게이트로 스크롤만 했다. 묶음 키는 게이트 표에 없고 홈엔 사주 결과도 없어 "완료" 안내만 남았다.
+// 지금은 같은 문서의 성공 분기도 _cdOpenSajuSectionAfterUnlock 으로 복귀 핸들러를 그대로 탄다.
+const flush = () => new Promise((resolve) => setTimeout(resolve, 600));
+
+test("홈에서 같은 문서 결제 성공: 묶음 결제는 결제한 카드로 사주를 열고 요약 본문으로 옮긴다 — 게이트 0회", async () => {
+  const { window, calls } = boot({ currentProfile: "p1" });
+  window._cdOpenSajuSectionAfterUnlock("saju_lifetime_bundle", "", GRANT_PAYLOAD);
+  await flush();
+  assert.deepEqual(calls.run, ["p1"]);
+  assert.deepEqual(calls.finalize, [{ featureKey: "saju_lifetime_bundle", payload: GRANT_PAYLOAD }]);
+  assert.deepEqual(calls.scroll, ["summaryGate"]);
+  assert.deepEqual(calls.fallback, []);
+  assert.equal(calls.gates, 0);
+});
+
+test("이미 보유 분기(결제 응답 없음)는 해금 마무리를 다시 하지 않고 보유 판정만 보고 연다", async () => {
+  const { window, calls } = boot({ currentProfile: "p1", preUnlocked: ["saju_lifetime_bundle"] });
+  window._cdOpenSajuSectionAfterUnlock("saju_lifetime_bundle", "");
+  await flush();
+  assert.deepEqual(calls.run, ["p1"]);
+  assert.deepEqual(calls.finalize, []);
+  assert.deepEqual(calls.scroll, ["summaryGate"]);
+  assert.equal(calls.gates, 0);
+});
+
+test("사주 섹션 키가 아니거나 출생 카드가 없으면 기존 섹션 스크롤로만 처리한다", async () => {
+  const { window, calls } = boot({ currentProfile: "p1" });
+  window._cdOpenSajuSectionAfterUnlock("tarot_premium", "", GRANT_PAYLOAD);
+  window.__currentProfile = "";
+  window._cdOpenSajuSectionAfterUnlock("saju_lifetime_bundle", "", GRANT_PAYLOAD);
+  await flush();
+  assert.deepEqual(calls.fallback, ["tarot_premium", "saju_lifetime_bundle"]);
+  assert.deepEqual(calls.run, []);
+  assert.equal(calls.gates, 0);
+});
+
+test("결과를 열지 못하면(해금 미확인) 기존 섹션 스크롤로 폴백한다", async () => {
+  const { window, calls } = boot({ currentProfile: "p1", finalizeUnlocks: false });
+  window._cdOpenSajuSectionAfterUnlock("section_summary", "", GRANT_PAYLOAD);
+  await flush();
+  assert.deepEqual(calls.fallback, ["section_summary"]);
+  assert.equal(calls.gates, 0);
+});
+
+test("tryUnlockFeature 의 성공 분기는 모두 결과 열기 헬퍼를 부른다(스크롤만 하는 분기 0)", () => {
+  const start = shell.indexOf("async function tryUnlockFeature(button)");
+  const end = shell.indexOf("\n  }\n", shell.indexOf("} catch (error) {", start));
+  const body = shell.slice(start, end);
+  assert.ok(start > 0 && end > start);
+  assert.equal((body.match(/_cdScrollUnlockedSectionIntoView\(/g) || []).length, 0);
+  assert.equal((body.match(/_cdOpenSajuSectionAfterUnlock\(featureKey, contentKey/g) || []).length, 6);
+});
