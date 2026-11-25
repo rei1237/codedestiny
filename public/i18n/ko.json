@@ -11055,7 +11055,8 @@
       "freeBadge": "무료",
       "showcaseBadge": "기본 무료",
       "showcasePrice": "무료",
-      "showcaseNote": "고급 궁합 10,000원"
+      "showcaseNote": "고급 궁합 10,000원",
+      "lightBadge": "라이트 궁합 3,000원"
     },
     "reading": {
       "contents": "궁합 결과 목차",

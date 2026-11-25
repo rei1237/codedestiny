@@ -22584,7 +22584,8 @@
       "freeBadge": "免费",
       "showcaseBadge": "基础免费",
       "showcasePrice": "免费",
-      "showcaseNote": "高级合盘 10,000韩元"
+      "showcaseNote": "高级合盘 10,000韩元",
+      "lightBadge": "轻量合盘 3,000韩元"
     },
     "reading": {
       "contents": "合盘目录",

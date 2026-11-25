@@ -130,6 +130,7 @@
     "premium-fpti-report",
     "premium-sukuyo-compat-extra",
     "saju-guardian-unlock",
+    "saju-compat-light",
     "flower-fc",
     "olympus-fc",
     "nakshatra-lord-report",

@@ -42,6 +42,8 @@ const expectedCosts = {
   "compat-astro-direct-synastry": 50,
   "compat-ziwei-compatibility": 50,
   "compat-saju-compatibility": 50,
+  // 2026-11-26 사주 라이트 궁합(정적 풀이) — 11-11 계산형 무료의 사용자 승인 예외, 3,000원.
+  "saju-compat-light": 30,
   "compat-sukuyo-compatibility": 50,
   "premium-sukuyo-compat-extra": 50,
   "sukuyo-relationship-encyclopedia": 50,
@@ -99,6 +101,7 @@ for (const featureKey of [
   "compat-astro-direct-synastry",
   "compat-ziwei-compatibility",
   "compat-saju-compatibility",
+  "saju-compat-light",
   "compat-sukuyo-compatibility",
   "love-code",
   "relationship-boundary-test",
@@ -199,18 +202,59 @@ assert.doesNotMatch(registrySource, /navigateToZiweiChart:/, "free ziwei chart e
 for (const text of ["점성술 셜럭 시나스트리 궁합", "점성술 직접 입력 시나스트리 궁합", "자미두수 궁합 분석"]) {
   assert.match(sajuEngineSource, new RegExp(text), `${text} must still call the common paid gate`);
 }
-// 2026-11-20: 기본 사주 궁합(runCompat)은 무료 정적 결과다. 새 구매는 사주 고급 궁합(/saju/compatibility/premium/)에서만
-// 받는다. runCompat 본문이 다시 코인 게이트·옛 LLM 진입을 부르면 무료 약속이 깨지고 이중 과금 위험이 생기므로 막는다.
+// 2026-11-26: 사주 라이트 궁합(saju-compat-light, 3,000원). 사용자 승인으로 11-20 무료화를 되돌렸다.
+// runCompat 은 미리보기(등급·점수·총평 첫 문장)와 잠금 카드만 그리고, 전체 정적 풀이는 결제 증빙(lightPaid)이 있을 때만 연다.
+// fail-closed: 전체 풀이를 여는 lightPaid 가 게이트 성공 콜백·결제 복귀 밖에서 생기거나, 미리보기 분기가 상세 html 보다
+// 늦게 오거나, 레지스트리 가격이 어긋나면 막는다.
 {
-  const start = sajuEngineSource.indexOf("async function runCompat(");
-  assert.ok(start >= 0, "runCompat must exist in js/saju-engine.js");
-  const end = sajuEngineSource.indexOf("async function _seSajuCompatLegacyPending(", start);
-  assert.ok(end > start, "runCompat body boundary (_seSajuCompatLegacyPending) must follow runCompat");
-  const body = sajuEngineSource.slice(start, end).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-  assert.doesNotMatch(body, /_cdCoinGatePerUse|_seSajuCompatLlmEntry|cdRequirePaid|_cdCoinGate/, "free runCompat must not call the paid gate or the legacy LLM entry");
-  assert.match(body, /runCompatCore\(/, "free runCompat must render the static result");
-  assert.match(sajuEngineSource, /_seSajuCompatAppendPremiumCta\(resultArea/, "free saju compatibility result must keep the premium CTA");
-  assert.match(sajuEngineSource, /\/saju\/compatibility\/premium\//,"premium CTA must link to /saju/compatibility/premium/");
+  const code = (text) => text.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+  const fnBody = (marker, nextMarker) => {
+    const start = sajuEngineSource.indexOf(marker);
+    assert.ok(start >= 0, `${marker} must exist in js/saju-engine.js`);
+    const end = sajuEngineSource.indexOf(nextMarker, start + marker.length);
+    assert.ok(end > start, `${marker} body boundary (${nextMarker}) must follow it`);
+    return { start, end, body: sajuEngineSource.slice(start, end) };
+  };
+  const runCompat = fnBody("async function runCompat(", "var _SE_SAJU_COMPAT_LIGHT_FEATURE_KEY");
+  const runCompatCode = code(runCompat.body);
+  assert.doesNotMatch(runCompatCode, /_cdCoinGatePerUse|_seSajuCompatLlmEntry|cdRequirePaid|_cdCoinGate|lightPaid/, "runCompat must render only the preview: no paid gate, no legacy LLM entry, no lightPaid");
+  assert.match(runCompatCode, /runCompatCore\(/, "runCompat must render through runCompatCore");
+
+  const gate = fnBody("function _seSajuCompatLightGate(", "function _seSajuCompatRenderLightPreview(");
+  const gateCode = code(gate.body);
+  assert.match(sajuEngineSource, /var _SE_SAJU_COMPAT_LIGHT_FEATURE_KEY = 'saju-compat-light';/, "light compat gate must use the saju-compat-light featureKey");
+  assert.match(sajuEngineSource, /var _SE_SAJU_COMPAT_LIGHT_COST = 30;/, "light compat gate must request 30 coins (3,000원)");
+  assert.match(gateCode, /window\._cdCoinGatePerUse\(_SE_SAJU_COMPAT_LIGHT_COST,/, "light compat gate must call the common per-use paid gate");
+  assert.match(gateCode, /featureKey: _SE_SAJU_COMPAT_LIGHT_FEATURE_KEY/, "light compat gate must pass its featureKey");
+  assert.match(gateCode, /resume: _seBuildSajuCompatResumeDescriptor\(/, "light compat gate must pass a resume descriptor");
+
+  const resume = fnBody("function _seRunSajuCompatResume(", "_seRegisterResumeHandler(_SE_SAJU_COMPAT_RESUME_KIND");
+  const allowed = [
+    [gate.start, gate.end],
+    [resume.start, resume.end],
+  ];
+  let count = 0;
+  for (const m of sajuEngineSource.matchAll(/lightPaid:\s*true/g)) {
+    count += 1;
+    assert.ok(allowed.some(([s0, e0]) => m.index > s0 && m.index < e0), `lightPaid: true at offset ${m.index} must be inside _seSajuCompatLightGate or _seRunSajuCompatResume`);
+  }
+  assert.ok(count >= 2, "light compat gate success and payment resume must both open the full reading");
+
+  const core = fnBody("async function runCompatCore(", "\nfunction ");
+  const coreCode = code(core.body);
+  assert.match(coreCode, /var fullAccess = !!llm \|\| !!\(access && access\.lightPaid === true\);/, "runCompatCore must derive full access only from paid evidence");
+  const previewAt = coreCode.indexOf("if(!fullAccess){");
+  assert.ok(previewAt >= 0, "runCompatCore must branch to the preview without paid evidence");
+  const previewReturn = coreCode.indexOf("return;", previewAt);
+  const firstFull = Math.min(...["compat.html", "pastHtml"].map((t) => { const i = coreCode.indexOf(t); return i < 0 ? Infinity : i; }));
+  assert.ok(previewReturn > previewAt && previewReturn < firstFull, "preview branch must return before any full reading html is built or inserted");
+  assert.match(coreCode.slice(previewAt, previewReturn), /_seSajuCompatRenderLightPreview\(/, "preview branch must render the light preview");
+
+  assert.match(sajuEngineSource, /data-cd-compat-light-unlock>라이트 궁합 3,000원 보기</, "preview must offer the 3,000원 light unlock button");
+  assert.match(sajuEngineSource, /_seSajuCompatAppendPremiumCta\(resultArea/, "saju compatibility result must keep the premium CTA");
+  assert.match(sajuEngineSource, /\/saju\/compatibility\/premium\//, "premium CTA must link to /saju/compatibility/premium/");
+  assert.match(registrySource, /"saju-compat-light": \{ cost: 30, amountKRW: 3000/, "saju-compat-light must be priced 30 coins / 3,000원 in the registry");
+  assert.doesNotMatch(source("lib/payment/free-fortune-policy.mjs"), /saju-compat-light/, "saju-compat-light must not be on the free policy allowlist");
 }
 
 assert.match(sukuyoEngineSource, /SY_PAID_FEATURES/, "Sukuyo runtime must centralize paid feature metadata");

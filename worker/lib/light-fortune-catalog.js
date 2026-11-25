@@ -118,6 +118,8 @@ export const LIGHT_FORTUNE_FEATURE_KEYS = Object.freeze([
   'premium-sukuyo-compat-extra',
   // 2026-11-12 사용자 결정: 이미지 생성을 끝내고 그림 설명문만 주므로 라이트에 넣는다. 비이용권 판매가 3,000원은 그대로.
   'saju-guardian-unlock',
+  // 2026-11-26 사용자 지시: 사주 라이트 궁합은 명식 계산 정적 풀이(LLM·이미지 없음)라 라이트에 넣는다. 비이용권 판매가 3,000원.
+  'saju-compat-light',
   ...LIGHT_FORTUNE_UNLOCK_ONLY_KEYS,
 ]);
 

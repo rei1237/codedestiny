@@ -22584,7 +22584,8 @@
       "freeBadge": "Free",
       "showcaseBadge": "Basic free",
       "showcasePrice": "Free",
-      "showcaseNote": "Premium reading ₩10,000"
+      "showcaseNote": "Premium reading ₩10,000",
+      "lightBadge": "Light compatibility ₩3,000"
     },
     "reading": {
       "contents": "Inhoud van de duiding",

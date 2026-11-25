@@ -110,6 +110,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "love-secret-ai-consultation",
       "compat-saju-compatibility",
       "saju-compat-premium",
+      "saju-compat-light",
       "compat-astro-synastry",
       "compat-astro-direct-synastry",
       "compat-sukuyo-compatibility",

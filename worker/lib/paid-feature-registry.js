@@ -119,6 +119,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
   "saju-compat-premium",
+  "saju-compat-light",
   "relationship-boundary-test",
   "master-love-codex",
   "master-love-codex-compat",
@@ -367,6 +368,9 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
   // 2026-11-20 사주 고급 궁합(사용자 승인): 두 사람 명식의 결정적 계산 + LLM 4장. 기존 compat-saju-compatibility 와 별개 SKU다.
   "saju-compat-premium": { cost: 100, amountKRW: 10000, reason: "사주 고급 궁합" },
+  // 2026-11-26 사주 라이트 궁합(사용자 지시, 11-11 계산형 무료 결정의 예외): 사주 화면 기본 궁합의 정적 전체 풀이. LLM 없음.
+  //    옛 compat-saju-compatibility(판매 종료) 와 별개 SKU다. 월정석은 MOONSTONE_MIN_PRODUCT_KRW 로 자동 제외.
+  "saju-compat-light": { cost: 30, amountKRW: 3000, reason: "사주 라이트 궁합" },
   "love-code": { cost: 50, amountKRW: 5000, accessModel: "per_use", reason: "러브 코드 1회 이용" },
   // 대상자 1인의 관계 경계 성향을 매 회차 분석하는 상담이다. 영구 해금으로 등록하면
   // 다른 출생 정보까지 재열람되는 정책 오류가 생기므로 회당 결제 목록에만 둔다.
@@ -694,6 +698,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
   "saju-compat-premium",
+  // 두 사람 입력마다 새로 계산하는 궁합 → 회당 결제(영구 해금 아님).
+  "saju-compat-light",
   "master-love-codex",
   "master-love-codex-compat",
   "life-book-ai-consultation",

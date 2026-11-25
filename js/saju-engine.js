@@ -6164,7 +6164,8 @@ function _seRunSajuCompatResume(descriptor, grant) {
         return true;
       }, function() { return false; });
     }
-    runCompatCore(compatBtn, compatName, compatBd, compatType);
+    // 결제 복귀(라이트 궁합·옛 3,000원/5,000원 비LLM 주문) — 결제는 끝났으므로 전체 풀이를 연다.
+    runCompatCore(compatBtn, compatName, compatBd, compatType, undefined, { lightPaid: true });
     return true;
   });
 }
@@ -23571,12 +23572,88 @@ async function runCompat(){
     return;
   }
 
-  /* 2026-11-20 기본 사주 궁합 무료화: 결제·로그인 없이 정적 결과(analyzeCompat + 전생 인연)를 바로 그린다.
-     AI 4장 풀이는 사주 고급 궁합(/saju/compatibility/premium/, 10,000원)으로 옮겼다 — 결과 아래 진입 카드가 보낸다.
+  /* 2026-11-26 사주 라이트 궁합(saju-compat-light, 3,000원): 결제·로그인 없이 미리보기(등급·점수·총평 첫 문장)와 잠금 카드만 그린다.
+     전체 정적 풀이(analyzeCompat + 전생 인연)는 잠금 카드 버튼 → _seSajuCompatLightGate 의 결제 성공 콜백에서만 연다.
+     🔴 이 함수는 결제 게이트를 부르지 않고 lightPaid 를 넘기지 않는다(scripts/verify-paid-feature-billing-policy.mjs).
+     AI 4장 풀이는 사주 고급 궁합(/saju/compatibility/premium/, 10,000원) — 결과 아래 진입 카드가 보낸다.
      🔴 예전 5,000원 구매자의 진행 중 생성만 결제 없이 잇는다(_seSajuCompatLegacyPending). 새 결제는 여기서 만들지 않는다.
      레거시 함수(_seSajuCompatLlmEntry·_seSajuCompatLlmDeliver)와 결제 복귀(_seRunSajuCompatResume)·보관함은 기존 구매자 재열람용으로 남긴다. */
   var legacy = await _seSajuCompatLegacyPending(name, bd, type);
   runCompatCore(compatRunBtn, name, bd, type, legacy || undefined);
+}
+
+/* ─── 사주 라이트 궁합 결제 게이트(2026-11-26 사용자 지시, 3,000원) ─────────────────────────────
+   공통 셸 게이트(_cdCoinGatePerUse)가 이용권 스냅샷 → 결제창(이용권·단건)을 처리한다. 월정석은 서버 카탈로그가
+   10,000원 미만 상품이라 자동으로 뺀다. 결제 복귀는 _seRunSajuCompatResume 이 같은 입력으로 전체 풀이를 다시 그린다.
+   🔴 전체 풀이(runCompatCore 의 lightPaid)는 이 함수의 성공 콜백과 결제 복귀에서만 연다. */
+var _SE_SAJU_COMPAT_LIGHT_FEATURE_KEY = 'saju-compat-light';
+var _SE_SAJU_COMPAT_LIGHT_COST = 30;
+var _SE_SAJU_COMPAT_LIGHT_REASON = '사주 라이트 궁합';
+
+function _seSajuCompatLightGate(triggerBtn, name, bd, type) {
+  var compatRunBtn = document.getElementById('compatRunBtn');
+  function release() {
+    if (triggerBtn) { triggerBtn.disabled = false; triggerBtn.style.opacity = ''; }
+  }
+  if (typeof window._cdCoinGatePerUse !== 'function') {
+    // 미로그인 상태에서는 셸 게이트가 아직 없다 — 결제 없이 열지 않고 로그인으로 보낸다.
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    release();
+    if (!token) {
+      if (window.confirm(_sajuEngineText("se_23638_call_confirm"))) {
+        window.location.href = '/login?next=' + getSajuEncodedReturnPath('saju-login-return-path');
+      }
+      return;
+    }
+    window.alert('서비스 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  if (triggerBtn) { triggerBtn.disabled = true; triggerBtn.style.opacity = '0.7'; }
+  window._cdCoinGatePerUse(_SE_SAJU_COMPAT_LIGHT_COST, _SE_SAJU_COMPAT_LIGHT_REASON, function() {
+    runCompatCore(compatRunBtn, name, bd, type, undefined, { lightPaid: true });
+  }, function() {
+    release();
+  }, {
+    featureKey: _SE_SAJU_COMPAT_LIGHT_FEATURE_KEY,
+    action: 'cdSajuTabEntry',
+    resume: _seBuildSajuCompatResumeDescriptor(name, bd, type) || undefined
+  });
+}
+
+/* 결제 전 화면: 등급 배지·점수·총평 첫 문장 + 「라이트 궁합에서 볼 수 있는 것」 잠금 카드. 상세 섹션 html 은 넣지 않는다.
+   모양은 다음 단계에서 cd-compat-light-* 클래스로 입힌다. */
+function _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type) {
+  var escMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  var esc = function(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function(c) { return escMap[c]; }); };
+  var comment = String(compat.comment || '');
+  var firstSentence = (comment.match(/^[^.!?。]*[.!?。]/) || [comment])[0];
+  var items = [
+    '🌡️ 에너지 조화 — 두 사람의 조후(온도·습도) 흐름',
+    '🧩 세부 해석 — 일간·일지·보완 오행·십성 네 갈래',
+    '📋 궁합 포인트 체크 — 합충과 점수 근거',
+    type === 'love' ? '💍 연애·결혼 궁합 심화 — 감정 표현·갈등 회복·생활 운영·장기 성장' : '',
+    '💥 팩폭 분석과 🎯 천기적 처방',
+    '🔮 전생 인연 풀이'
+  ].filter(Boolean);
+  resultArea.innerHTML = '<div class="compat-wrap cd-compat-light-preview">'
+    + '<div class="compat-grade-area">'
+    + '<div class="compat-grade-icon">' + esc(compat.emoji) + '</div>'
+    + '<div>'
+    + '<div class="compat-grade-badge ' + esc(compat.gradeCls) + '">' + esc(compat.grade) + '</div>'
+    + '<div class="compat-grade-label">' + esc(typeof USER_NAME === 'string' ? USER_NAME : '나') + ' × ' + esc(name) + '<br><span class="cd-compat-light-preview__label">' + esc(compat.label) + '</span></div>'
+    + '<div class="compat-grade-desc">' + esc(firstSentence) + '</div>'
+    + '<div class="cd-compat-light-preview__score">명리 전용 궁합 점수: ' + esc(compat.integratedScore) + '/100</div>'
+    + '</div></div>'
+    + '<section class="cd-compat-light-lock" aria-labelledby="cdCompatLightLockTitle">'
+    + '<h4 id="cdCompatLightLockTitle" class="cd-compat-light-lock__title">라이트 궁합에서 볼 수 있는 것</h4>'
+    + '<ul class="cd-compat-light-lock__list">' + items.map(function(item) { return '<li>' + esc(item) + '</li>'; }).join('') + '</ul>'
+    + '<button type="button" class="cd-compat-light-lock__btn" data-cd-compat-light-unlock>라이트 궁합 3,000원 보기</button>'
+    + '<p class="cd-compat-light-lock__fine">이용권으로도 열 수 있어요. 명식 계산으로 바로 보여 드리는 정적 풀이예요.</p>'
+    + '</section>'
+    + '</div>';
+  var unlockBtn = resultArea.querySelector('[data-cd-compat-light-unlock]');
+  if (unlockBtn) unlockBtn.addEventListener('click', function() { _seSajuCompatLightGate(unlockBtn, name, bd, type); });
 }
 
 /* 예전 유료 흐름에서 결제는 끝났지만 생성이 안 끝난 같은 입력이 있으면 그 상태를 돌려준다. 없거나 모듈을 못 올리면 null(무료 결과). */
@@ -23926,7 +24003,7 @@ function _seSajuCompatAppendPremiumCta(resultArea, name, bd, calType, type) {
     + '<span class="cd-yehwa-sparkle cd-scp-cta__sparkle" aria-hidden="true"></span>'
     + '<span class="cd-scp-cta__eyebrow">달빛 아래 연이가 쓰는 두 사람의 이야기</span>'
     + '<h4 id="cdScpCtaTitle" class="cd-scp-cta__title">사주 고급 궁합</h4>'
-    + '<p class="cd-scp-cta__desc">지금 본 기본 궁합은 무료예요. 고급 궁합은 두 사람의 명식을 근거와 함께 다시 계산하고, 연이가 네 장의 풀이로 관계의 흐름과 실천을 정리해 드려요.</p>'
+    + '<p class="cd-scp-cta__desc">라이트 궁합(3,000원)은 명식 계산으로 바로 보여 드리는 정적 풀이예요. 고급 궁합은 두 사람의 명식을 근거와 함께 다시 계산하고, 연이가 네 장의 풀이로 관계의 흐름과 실천을 정리해 드려요.</p>'
     + '<ul class="cd-scp-cta__list">'
     + '<li>관계 총론 · 성향·소통 · 신뢰·이성 기질 · 시기·실천, 네 장의 해석</li>'
     + '<li>상대의 이성 기질 지표 — 단정하지 않고 명식 근거와 함께 보여 드려요</li>'
@@ -23942,7 +24019,9 @@ function _seSajuCompatAppendPremiumCta(resultArea, name, bd, calType, type) {
   });
 }
 
-async function runCompatCore(compatRunBtn, name, bd, type, llm){
+async function runCompatCore(compatRunBtn, name, bd, type, llm, access){
+  /* 🔴 전체 풀이는 결제 증빙이 있을 때만: 옛 유료 LLM 상태(llm) 또는 라이트 궁합 게이트·결제 복귀가 넘긴 lightPaid. 그 밖은 미리보기. */
+  var fullAccess = !!llm || !!(access && access.lightPaid === true);
   var compatCalBtns = document.getElementsByName('compatCalType');
   var compatCalType = 'solar';
   for(var i=0; i<compatCalBtns.length; i++) { if(compatCalBtns[i].checked) { compatCalType = compatCalBtns[i].value; break; } }
@@ -24052,6 +24131,14 @@ async function runCompatCore(compatRunBtn, name, bd, type, llm){
     var llmHost=cdEnsureCompatLlmHost();
     if(llmHost) llmHost.innerHTML='';
     var compat=analyzeCompat(G_PILLARS,G_NATAL,G_POWER,G_JOHU,G_JONG,p2,natal2,power2,johu2,jong2,type,name);
+    if(!fullAccess){
+      if(resultArea){
+        _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type);
+        _seSajuCompatAppendPremiumCta(resultArea, name, bd, compatCalType, type);
+        setTimeout(function(){ resultArea.scrollIntoView({behavior:'smooth', block:'start'}); }, 50);
+      }
+      return;
+    }
     /* LLM 흐름이면 엔진이 확정한 사실(compat.facts·pastOut.facts)을 서버로 보내 서술을 받는다. 못 받으면 아래 기존 결과가 폴백이다. */
     var pastOut=llm?{}:null;
     var pastHtml=analyzePastLifeCompat(G_PILLARS,p2,name,pastOut);
@@ -24505,7 +24592,7 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name){
     adjustments:F.adjustments,
     sok:sok.facts
   };
-  return{score:score,integratedScore:integratedScore,grade:grade,gradeCls:gradeCls,label:gradeLabel,emoji:gradeIcon,html:html,facts:facts};
+  return{score:score,integratedScore:integratedScore,grade:grade,gradeCls:gradeCls,label:gradeLabel,comment:gradeComment,emoji:gradeIcon,html:html,facts:facts};
 }
 function analyzeSokCompat(jh1,mj1,jh2,mj2,p1,p2,type,n1,n2){
   type = type || 'love';

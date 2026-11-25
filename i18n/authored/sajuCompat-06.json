@@ -153,6 +153,20 @@
     "nl": "Free",
     "ms": "Free"
   },
+  "sajuCompat.entry.lightBadge": {
+    "ko": "라이트 궁합 3,000원",
+    "en": "Light compatibility ₩3,000",
+    "ja": "ライト相性 3,000ウォン",
+    "zh-CN": "轻量合盘 3,000韩元",
+    "zh-TW": "輕量合盤 3,000韓元",
+    "vi": "Light compatibility ₩3,000",
+    "hi": "Light compatibility ₩3,000",
+    "es": "Light compatibility ₩3,000",
+    "fr": "Light compatibility ₩3,000",
+    "de": "Light compatibility ₩3,000",
+    "nl": "Light compatibility ₩3,000",
+    "ms": "Light compatibility ₩3,000"
+  },
   "sajuCompat.entry.showcaseBadge": {
     "ko": "기본 무료",
     "en": "Basic free",

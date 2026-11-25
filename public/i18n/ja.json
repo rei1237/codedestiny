@@ -22584,7 +22584,8 @@
       "freeBadge": "無料",
       "showcaseBadge": "基本無料",
       "showcasePrice": "無料",
-      "showcaseNote": "高級相性 10,000ウォン"
+      "showcaseNote": "高級相性 10,000ウォン",
+      "lightBadge": "ライト相性 3,000ウォン"
     },
     "reading": {
       "contents": "相性鑑定の目次",
