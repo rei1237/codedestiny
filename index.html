@@ -12206,12 +12206,20 @@ html[data-cd-lang]:not([data-cd-lang="ko"]) #cdPickWhyJosa{display:none}
 
           function __cdBootstrapLocalFamilyProfile() {
             try {
+              // 🔴 PRIV-016: 개발 서버(http://localhost) 전용. Capacitor 앱 WebView 는 https://localhost 로 떠서
+              // 호스트 검사만으로는 운영 앱에서도 열린다 — 프로토콜·Capacitor·앱 런타임 표식으로 막는다.
               var host = String(location.hostname || '').toLowerCase();
               if (host !== '127.0.0.1' && host !== 'localhost' && host !== '::1') return;
+              if (location.protocol !== 'http:' || window.Capacitor || window.__CODE_DESTINY_RUNTIME_TARGET === 'mobile-app') return;
               var params = new URLSearchParams(location.search || '');
               if (String(params.get('familyTest') || '').toLowerCase() !== 'family') return;
 
-              var apiBase = String(params.get('api') || 'http://localhost:4000').trim();
+              var apiBase = 'http://localhost:4000';
+              try {
+                var apiParam = String(params.get('api') || '').trim();
+                var apiHost = apiParam ? new URL(apiParam).hostname.toLowerCase() : '';
+                if (apiHost === 'localhost' || apiHost === '127.0.0.1' || apiHost === '[::1]') apiBase = apiParam;
+              } catch (_) {}
               var userId = '6a3488397ae7980637758bcb';
               var expiresAt = new Date(Date.now() + (30 * 24 * 60 * 60 * 1000)).toISOString();
               var authUser = {
@@ -26849,6 +26857,8 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     try {
       var host = String(location.hostname || '').toLowerCase();
       if (host !== '127.0.0.1' && host !== 'localhost' && host !== '::1') return null;
+      // PRIV-016: __cdBootstrapLocalFamilyProfile 와 같은 개발 전용 조건(Capacitor 앱 https://localhost 제외).
+      if (location.protocol !== 'http:' || window.Capacitor || window.__CODE_DESTINY_RUNTIME_TARGET === 'mobile-app') return null;
       var params = new URLSearchParams(location.search || '');
       if (String(params.get('familyTest') || '').toLowerCase() !== 'family') return null;
       var user = window.__cdFamilyPassUser && typeof window.__cdFamilyPassUser === 'object' ? window.__cdFamilyPassUser : null;
