@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-25
-next: ① 신년운세 생성 중 히어로 MasterRoomScene 숨김(NewYearAiClient.tsx:2356)
+next: 없음(완료). 운영 배포는 미승인 — 별도 요청 때만
 ---
 
 # 신년운세 네오 영상 중복 제거 + 영냥이 질문 화면 영상·생성 화면 스프라이트
@@ -34,10 +34,10 @@ main push까지 승인(2026-11-25 계획 승인), 운영 배포 미승인.
 4. 문서: docs/design/consultation-room-media.md 표에 신년·영냥이 질문/생성 행.
 
 ## 단계
-- [ ] ① 신년운세 중복 제거
-- [ ] ② 영냥이 질문 화면 상담별 영상
-- [ ] ③ 생성 화면 스프라이트 + 칸 그래프
-- [ ] ④ 문서 표
-- [ ] 실화면 검증 390·1280 (visual-checker)
-- [ ] origin/main 머지 → sync:public → check:fast → check:pre-push → CI 확인 → push
-- [ ] 정리(문서 done, 워크트리 배수, 스크래치)
+- [x] ① 신년운세 중복 제거 — b3af99b346 (생성 중 상태는 mock 에서 재현 불가, 코드로만 확인)
+- [x] ② 영냥이 질문 화면 상담별 영상 — bb124704a2
+- [x] ③ 생성 화면 스프라이트 + 칸 그래프 — 1d7746aeba
+- [x] ④ 문서 표 — e961709595
+- [x] 실화면 검증 390·1280 (visual-checker 3회: 빈 진행 카드·현재 칸 구분 지적 반영 후 통과)
+- [x] origin/main 머지(이동 없음, 불필요) → sync:public → check:fast → check:pre-push → CI 확인 → push
+- [x] 정리(문서 done, 워크트리 배수, 스크래치)
