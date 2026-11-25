@@ -77,6 +77,7 @@ Cloudflare Workers는 런타임에 파일을 읽을 수 없으므로, 이 문서
 | 상담 | featureKey | 가격(KRW) | cost(코인) | 비고 |
 |------|-----------|-----------|-----------|------|
 | 레거시 사주 궁합 | `compat-saju-compatibility` | 5,000원 | 50 | 2026-11-04 승인 인하 · LLM 서술형 · 운명 찻집과 무관 |
+| 사주 라이트 궁합 | `saju-compat-light` | 3,000원 | 30 | 2026-11-26 사용자 승인 · 계산 기반 정적 풀이 · 11-11 계산형 무료의 예외 · 옛 `compat-saju-compatibility`와 별도 키 |
 | 레거시 숙요점 궁합 | `compat-sukuyo-compatibility` | 5,000원 | 50 | 2026-10-11 승인 인상 · 계산 기반 · 운명 찻집과 무관 |
 | 숙요점 궁합 AI | `sukuyo-compatibility-ai` | 30,000원 | 300 | 현행 유지 · 운명 찻집과 무관 |
 
