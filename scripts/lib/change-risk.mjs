@@ -134,6 +134,13 @@ const deepVerificationRules = [
   [/^app\/yeongnyangi\/_components\/Consultation\.tsx$/i, "영냥이 생선 단계 결제창"],
   [/^worker\/yeongnyangi\/payments\//i, "영냥이 상품 가격 카탈로그"],
   [/^app\/yeongnyangi\/page\.tsx$/i, "영냥이 랜딩 고등어 Offer"],
+  // 🔴 결제 후 전달 실패 환불 축(2026-11-26). 셋 다 level=high 였지만 deepRequired=false 라, 서술형 다시 시도·환불
+  //    라우트 · 유료 LLM 전달 계약(서비스별 환불 경로·KNOWN_REFUND_GAPS 근거) · 실행 기록 정산만 고친 커밋은
+  //    전체 회귀가 돌지 않았다. 환불이 틀려도 200 을 돌려주므로 preview 스모크가 못 잡는다.
+  [/^worker\/routes\/paid-narrative-retry\.js$/i, "서술형 다시 시도·환불 라우트"],
+  [/^worker\/lib\/(consultation-recovery-registry|service-execution-task)\.js$/i, "유료 LLM 전달 계약·실행 기록 정산"],
+  //    그 계약을 지키는 검증기(level=medium). 판정을 느슨하게 바꾼 커밋에서 전체 회귀가 깨어나야 한다.
+  [/^scripts\/verify-paid-llm-delivery-contract\.mjs$/i, "유료 LLM 전달·환불 계약 검증기"],
 
   // ── 유료 기능 UI (정적 계약 테스트가 지키는 곳, preview 스모크는 게스트 경로만 두드린다)
   // 🔴 2026-08-22 실측: app/fusion-fortune/** 가 이 목록에도 paid-flow-gates.yml 트리거에도
@@ -215,6 +222,8 @@ const stagingWatchExcludedPatterns = [
   /^scripts\/lib\/mock-(network-guard\.cjs|dev-settings\.mjs)$/i,
   /^scripts\/fixtures\/mock-dev-responses\.mjs$/i,
   /(^|\/)package-lock\.json$/i,
+  // 검증기는 배포 산출물에 들어가지 않는다 — critical 검증 대상이지만 스테이징 도달까지 추적할 이유는 없다.
+  /^scripts\/verify-paid-llm-delivery-contract\.mjs$/i,
 ];
 
 export function stagingWatchReason(file) {
@@ -311,6 +320,10 @@ export function selfTest() {
     ["app/components/service-packs/service-pack-client.ts", true],
     ["app/yeongnyangi/_components/Consultation.tsx", true],
     ["worker/yeongnyangi/payments/catalog.ts", true],
+    ["worker/routes/paid-narrative-retry.js", true],
+    ["worker/lib/consultation-recovery-registry.js", true],
+    ["worker/lib/service-execution-task.js", true],
+    ["scripts/verify-paid-llm-delivery-contract.mjs", true],
     // 아래는 level=high 여도 전체 회귀까지는 필요 없다. 이 구분이 두 축의 요점이다.
     ["worker/routes/fortune-tea-house.js", false],
     ["worker/routes/ziwei-ai.js", false],
@@ -345,6 +358,8 @@ export function selfTest() {
     ["worker/lib/models.js", true],
     ["scripts/migrations/20260908-example.mjs", true],
     ["app/hooks/usePaidResume.ts", true],
+    ["worker/lib/consultation-recovery-registry.js", true],
+    ["scripts/verify-paid-llm-delivery-contract.mjs", false],
   ];
   for (const [file, expected] of stagingCases) {
     const actual = Boolean(stagingWatchReason(file));
