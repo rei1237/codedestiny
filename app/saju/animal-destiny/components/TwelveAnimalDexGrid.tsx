@@ -54,7 +54,7 @@ export default function TwelveAnimalDexGrid({ currentAnimal, dex }: Props) {
     <section className="rounded-[1.9rem] border border-[#bad7ed] bg-white/90 p-4 shadow-[0_16px_36px_rgba(58,109,153,0.14)] sm:p-6">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <h3 className="text-lg font-black text-[#27557c]">{copy.dexTitle}</h3>
-        <p className="text-xs font-bold text-[#557d9f]">{copy.dexDesc}</p>
+        <p className="text-xs font-bold text-[#4f7494]">{copy.dexDesc}</p>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-6">
@@ -73,7 +73,7 @@ export default function TwelveAnimalDexGrid({ currentAnimal, dex }: Props) {
                 {ANIMAL_EMOJI[entry.saju_stage] || "🐾"}
               </div>
               <p className="mt-2 text-xs font-black text-[#2f5d81]">{entry.animal_ko}</p>
-              <p className="text-[11px] font-semibold text-[#547c9d]">{entry.saju_stage}</p>
+              <p className="text-[11px] font-semibold text-[#4c718f]">{entry.saju_stage}</p>
             </button>
           );
         })}
@@ -89,7 +89,7 @@ export default function TwelveAnimalDexGrid({ currentAnimal, dex }: Props) {
             <p className="mt-2 text-sm leading-relaxed text-[#355f81]">{selectedDetail.growthMission}</p>
           </>
         ) : (
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-[#6b84a0]">{copy.dexLockedNote}</p>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-[#5c728a]">{copy.dexLockedNote}</p>
         )}
         <div className="mt-3 flex flex-wrap gap-2">
           <span className="rounded-full border border-[#c9deef] bg-white px-3 py-1 text-xs font-black text-[#426d90]">

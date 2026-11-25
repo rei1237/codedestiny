@@ -213,7 +213,7 @@ export default function AnimalCompatibilityPanel({
             placeholder="YYYYMMDD"
             value={formatBirthDateDigits(input.birthDate)}
             onChange={(e) => setInput((prev) => ({ ...prev, birthDate: normalizeBirthDateFromDigits(e.target.value) }))}
-            className="min-h-[44px] w-full rounded-xl border border-[#dcc39b] bg-white px-3 py-2 text-sm outline-none focus:border-[#8a5a2b]"
+            className="min-h-[44px] w-full rounded-xl border border-[#dcc39b] bg-white px-3 py-2 text-sm outline-none placeholder:text-gray-500 focus:border-[#8a5a2b]"
           />
         </label>
 

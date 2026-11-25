@@ -218,6 +218,18 @@ describe('(b) 커버리지: 계약의 모든 서비스가 자기 전달 테스�
     const needles = [...entry.files.map(f => f.replace(/^worker\//, '').replace(/\.(js|ts)$/, '')), ...entry.featureKeys.map(k => k.replace('*', ''))];
     expect(needles.some(needle => text.includes(needle))).toBe(true);
   });
+  test('palm 은 결제 전에 결과를 저장하고 결제 확인 뒤에만 연다 — 자동 환불 구멍(gap)이 아니라 저장 후 결제로 분류한다', async () => {
+    const { checkSaveBeforeCharge, SAVE_BEFORE_CHARGE, KNOWN_REFUND_GAPS } = await import('../../scripts/verify-paid-llm-delivery-contract.mjs');
+    const palm = PAID_LLM_DELIVERY_CONTRACT.find(row => row.service === 'palm');
+    expect(palm.gap).toBeUndefined();
+    expect(KNOWN_REFUND_GAPS).not.toContain('palm');
+    const src = Object.fromEntries(palm.files.map(f => [f, fs.readFileSync(path.join(ROOT, f), 'utf8')]));
+    expect(checkSaveBeforeCharge({ contract: PAID_LLM_DELIVERY_CONTRACT, src })).toEqual([]);
+    // 생성 경로가 결제를 직접 하게 되면(결제 뒤 생성 실패 가능) 다시 환불 경로가 필요하다 — 검사가 문다.
+    const { generation, lib } = SAVE_BEFORE_CHARGE.palm;
+    expect(checkSaveBeforeCharge({ contract: PAID_LLM_DELIVERY_CONTRACT, src: { ...src, [generation]: src[generation] + '\nawait verifyPerUsePayment(env, {});' } })).not.toEqual([]);
+    expect(checkSaveBeforeCharge({ contract: PAID_LLM_DELIVERY_CONTRACT, src: { ...src, [lib]: src[lib].replace(/requireExisting:\s*true/g, 'requireExisting: false') } })).not.toEqual([]);
+  });
   test('정체 확정 서비스는 복구 어댑터이고, 상태 기반 공용 환불 또는 자기 settleStuckDelivery 로 확정한다', () => {
     const recovery = CONSULTATION_RECOVERY_ADAPTERS.map(([route]) => route);
     for (const service of STUCK_SETTLERS) {

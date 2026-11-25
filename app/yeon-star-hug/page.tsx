@@ -14,7 +14,7 @@ export default function YeonStarHugPage() {
             <span className="ml-3 text-xs font-semibold text-[#70445c] transition-transform group-open:rotate-180">▾</span>
           </summary>
           <div className="mt-4">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-400">Yeon Star Hug</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-700">Yeon Star Hug</p>
             {/* 이 페이지의 H1. 인터랙티브 화면은 ssr:false 라 서버 HTML 에 헤딩을 남기지 않아,
                 승격 전에는 색인 대상인데도 H1 이 0개였다. Tailwind 유틸이 크기·굵기를 모두 지정하므로 시각 변화는 없다. */}
             <h1 className="mt-3 text-2xl font-black text-slate-800">연이의 마음 별자리</h1>

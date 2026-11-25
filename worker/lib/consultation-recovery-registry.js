@@ -31,7 +31,8 @@ export const CONSULTATION_RECOVERY_ADAPTERS = Object.freeze([
 // gap 은 자동 환불이 아직 없는 알려진 구멍이다(검증기 KNOWN_REFUND_GAPS 와 짝 — 새로 늘리면 실패).
 const narrative = ['runPaidNarrativeDelivery'];
 // 2026-11-21 C2: 결제 시점 근거(sourceTransactionId·passRefund)를 실행 기록에 남겨 생성 + 7일 또는 고객 요청 때 그 근거로 환불한다(worker/routes/paid-narrative-retry.js).
-const NARRATIVE_CARD_GAP = 'paid-narrative 실행은 저장된 결제 근거(코인 차감 행·이용권 사용 근거·PG 참조가 있는 단건 결제)로만 자동 환불한다 — 근거 없는 옛 기록·원장만 있는 월정석·꿀단지·기능 키가 다른 근거(지오맨시 이용권 openGeomancyOracle)는 보류 + 운영 검토(PAID_NARRATIVE_REFUND_EVIDENCE_MISSING)';
+// 2026-11-25: 월정석 V2 원장 차감도 근거로 인정한다(provePaidNarrativeRefundEvidence → runMonthlyCreditRefund).
+const NARRATIVE_CARD_GAP = 'paid-narrative 실행은 저장된 결제 근거(코인 차감 행·이용권 사용 근거·PG 참조가 있는 단건 결제·월정석 원장 차감)로만 자동 환불한다 — 근거 없는 옛 기록·꿀단지 단건 영수증(공용 환불기 없음)·transactionId 없는 프리미엄 토큰 경로·기능 키가 다른 근거(지오맨시 이용권 openGeomancyOracle)는 보류 + 운영 검토(PAID_NARRATIVE_REFUND_EVIDENCE_MISSING)';
 export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'astrology-ai', files: ['worker/routes/astrology-ai.js'], featureKeys: ['astrology-ai-consultation'], refunds: ['failServiceExecution', 'autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'vedic-ai', files: ['worker/routes/vedic-ai.js'], featureKeys: ['vedic-ai-consultation'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
@@ -70,11 +71,13 @@ export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'guardian-fortune', files: ['worker/lib/guardian-paid-delivery.js', 'worker/lib/guardian-fortune-generate.js', 'worker/routes/fortune-chat.js', 'worker/routes/paid-narrative-retry.js'], featureKeys: ['fortune-chat-consultation'], refunds: narrative, gap: NARRATIVE_CARD_GAP },
   // 토스 인앱결제(TOSS_IAP): 파트너 환불 API 가 없다(worker/toss/order-reconciliation.js — 읽기만).
   // 환불은 토스 쪽에서 일어나고 대사 cron 이 recordTossRefund 로 반영한다.
-  { service: 'toss-native', files: ['worker/toss/routes.js', 'worker/toss/owned-narrative.js', 'worker/toss/native-pet-paid.js', 'worker/toss/native-saju-compat.js', 'worker/toss/native-yoga.js', 'worker/toss/tarot-library-generator.js'],
-    featureKeys: ['pet-saju-ai-consultation', 'compat-saju-compatibility', 'yoga-guru-per-use', 'tarot-celestial-harmony'], refunds: [],
+  { service: 'toss-native', files: ['worker/toss/routes.js', 'worker/toss/owned-narrative.js', 'worker/toss/native-pet-paid.js', 'worker/toss/native-saju-compat.js', 'worker/toss/native-yoga.js', 'worker/toss/tarot-library-generator.js', 'worker/toss/native-palm.js'],
+    featureKeys: ['pet-saju-ai-consultation', 'compat-saju-compatibility', 'yoga-guru-per-use', 'tarot-celestial-harmony', 'palm-reading-general'], refunds: [],
     gap: '토스 인앱결제는 파트너 환불 API 가 없다 — 생성 실패 시 토스 환불 요청·대사(order-reconciliation)로만 정리된다' },
-  { service: 'palm', files: ['worker/routes/palm.js', 'worker/lib/palm-result-delivery.js'], featureKeys: ['palm-reading-general'], refunds: [],
-    gap: '결제 증빙을 결과 저장 전까지 같은 requestId 재시도에 재사용(paymentRetainedForRetry) — 생성이 끝내 실패하면 자동 환불 경로가 없다' },
+  // 저장 후 결제(2026-11-25, 웹 경로만 — 토스 네이티브 손금 native-palm.js 는 결제 뒤 해석이라 위 toss-native gap 에 든다): POST /api/palm/analyze 는 결제하지 않고 해석을 savePalmAnalysis 로 먼저 저장한다(불완전하면 503, 결제 전).
+  // 결제는 저장 뒤 클라이언트 게이트가 하고 본문은 readPaidPalmAnalysis(verifyPerUsePayment requireExisting) 뒤에만 연다 —
+  // 결제 뒤 생성 실패가 없어 환불 경로가 필요 없다. 검증기 SAVE_BEFORE_CHARGE 가 이 순서를 변이로 지킨다.
+  { service: 'palm', files: ['worker/routes/palm.js', 'worker/lib/palm-result-delivery.js'], featureKeys: ['palm-reading-general'], refunds: [] },
 ].map(entry => Object.freeze({ ...entry, files: Object.freeze(entry.files), featureKeys: Object.freeze(entry.featureKeys), refunds: Object.freeze(entry.refunds) })));
 
 // 서비스별 전달·환불 테스트(S5). 계약의 모든 서비스가 한 줄씩 있어야 한다 — 계약 테스트와 검증기가 확인한다.

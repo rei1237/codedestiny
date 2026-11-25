@@ -172,6 +172,26 @@
     });
     window.addEventListener('pagehide', function () { closeLetter(false); });
     render(0);
+    // 첫 열기는 편지 151개 노드의 스타일을 처음 계산하느라 클릭 안에서 4x CPU 약 200ms를 쓴다
+    // (2026-11-25 실측, 두 번째부터 약 60ms). 열기 버튼이 다가오면 유휴 시간에 같은 계산을 미리 해 둔다.
+    // 한 태스크 안에서 숨긴 채 open 속성을 붙였다 떼므로 그려지지 않고 포커스·close 이벤트도 생기지 않는다.
+    function prewarmLetter() {
+      if (letter.open || letter.hasAttribute('open')) return;
+      letter.style.visibility = 'hidden';
+      letter.setAttribute('open', '');
+      letter.getBoundingClientRect();
+      letter.removeAttribute('open');
+      letter.style.visibility = '';
+    }
+    if (window.IntersectionObserver) {
+      var prewarmObserver = new IntersectionObserver(function (entries) {
+        if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+        prewarmObserver.disconnect();
+        if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(prewarmLetter, { timeout: 2000 });
+        else setTimeout(prewarmLetter, 200);
+      }, { rootMargin: '600px 0px' });
+      prewarmObserver.observe(opener);
+    }
   }
   setupSignatureLetter();
 

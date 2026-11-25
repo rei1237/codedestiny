@@ -143,7 +143,7 @@ function PaidLockPanel({ copy, paid, onRetry }: { copy: AnimalDestinyCopy; paid:
       ) : (
         <>
           <h3 className="text-lg font-black text-[#224c70]">{copy.paidLockTitle}</h3>
-          <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-relaxed text-[#557b9a]">
+          <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-relaxed text-[#507491]">
             {paid.status === "login" ? copy.paidLoginDesc : paid.status === "error" ? (paid.message || copy.paidErrorDesc) : copy.paidLockDesc}
           </p>
           {coinPrice !== null ? (
@@ -235,7 +235,7 @@ export default function AnimalResultScreen({
           </span>
         </div>
         <article className="mb-4 rounded-2xl border border-[#d8e0ef] bg-white/86 p-4">
-          <p className="text-xs font-black text-[#5f7b9c]">왜 {animal.animal_ko}인가요?</p>
+          <p className="text-xs font-black text-[#577190]">왜 {animal.animal_ko}인가요?</p>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-[#294b6b]">
             {representativeMeta.label}의 {representativeStage} 기운이 가장 중심에 놓여 {animal.animal_ko}의 성향으로 읽힙니다.
             {representativeMeta.focus} {stageGuide(copy, representativeStage)}
@@ -257,11 +257,11 @@ export default function AnimalResultScreen({
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="text-xs font-black text-[#2f5b7d]">{card.label}</p>
-                  <p className="mt-1 text-[11px] font-semibold text-[#6b7e92]">{card.title}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-[#607183]">{card.title}</p>
                 </div>
                 <span className="rounded-full bg-[#f4f8fc] px-2 py-1 text-[11px] font-black text-[#3d607f]">{copy.countSuffix(card.count)}</span>
               </div>
-              <p className="mt-2 text-[11px] font-semibold text-[#7a8795]">{card.stages}</p>
+              <p className="mt-2 text-[11px] font-semibold text-[#66717d]">{card.stages}</p>
               <p className="mt-2 text-xs font-semibold leading-relaxed text-[#3d607f]">{card.message}</p>
               <p className="mt-2 rounded-xl bg-[#f4f8fc] p-2 text-[11px] font-semibold leading-relaxed text-[#5a7188]">{card.evidence}</p>
             </article>
@@ -273,13 +273,13 @@ export default function AnimalResultScreen({
             const meta = pillarMeta[pillarKey];
             return (
               <article key={pillarKey} className="rounded-2xl border border-[#d8e0ef] bg-white/88 p-3 shadow-[0_6px_16px_rgba(35,62,96,0.08)]">
-                <p className="text-[11px] font-black tracking-[0.14em] text-[#5f7b9c]">{meta.label}</p>
+                <p className="text-[11px] font-black tracking-[0.14em] text-[#577190]">{meta.label}</p>
                 <p className="mt-2 text-lg font-black text-[#203c5d]">{item.stage || copy.stageUnknown}</p>
                 <p className="mt-1 text-[11px] font-semibold text-[#5c6f84]">
                   {item.stem && item.branch ? `${item.stem}${item.branch}` : copy.infoNeeded}
                 </p>
                 <p className="mt-2 text-xs font-black text-[#2f5b7d]">{meta.title}</p>
-                <p className="mt-1 text-[11px] leading-relaxed text-[#667b91]">{meta.meaning}</p>
+                <p className="mt-1 text-[11px] leading-relaxed text-[#5d7084]">{meta.meaning}</p>
                 <p className="mt-2 rounded-xl bg-[#f4f8fc] p-2 text-[11px] font-semibold leading-relaxed text-[#3d607f]">
                   {stageGuide(copy, item.stage)}
                 </p>
@@ -297,7 +297,7 @@ export default function AnimalResultScreen({
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h3 className="text-lg font-black text-[#224c70]">{copy.deepReportTitle}</h3>
-                <p className="mt-1 text-xs font-semibold leading-relaxed text-[#557b9a]">
+                <p className="mt-1 text-xs font-semibold leading-relaxed text-[#507491]">
                   {copy.deepReportDesc}
                 </p>
               </div>
@@ -370,7 +370,7 @@ export default function AnimalResultScreen({
       ) : null}
 
       <div className="text-center">
-        <p className="text-xs font-bold text-[#5f7590]">{copy.disclaimerLine}</p>
+        <p className="text-xs font-bold text-[#4e6076]">{copy.disclaimerLine}</p>
         {timeUnknown ? (
           <p className="mt-1 text-[11px] font-semibold text-[#7388a1]">{copy.timeUnknownDisclaimer}</p>
         ) : null}

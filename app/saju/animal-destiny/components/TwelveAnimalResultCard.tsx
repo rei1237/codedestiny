@@ -89,7 +89,7 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
             <span className="rounded-full border border-[#9fc5e7] bg-white px-3 py-1 text-[11px] font-black tracking-[0.14em] text-[#376790]">
               {copy.representativeCardBadge}
             </span>
-            <span className="rounded-full border border-[#d9d5a2] bg-[#fff8de] px-3 py-1 text-xs font-black text-[#8e7b34]">
+            <span className="rounded-full border border-[#d9d5a2] bg-[#fff8de] px-3 py-1 text-xs font-black text-[#7d6c2e]">
               {copy.stageBadgePrefix} {copy.stageBadgeLabels[representativeStage]}
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
           <div className={quickNotes.length > 1 ? "grid gap-2 md:grid-cols-3" : "grid gap-2"}>
             {quickNotes.map((note) => (
               <div key={note.label} className="rounded-2xl border border-[#d7e6f3] bg-white/82 p-3">
-                <p className="text-[11px] font-black text-[#6b86a0]">{note.label}</p>
+                <p className="text-[11px] font-black text-[#596f85]">{note.label}</p>
                 <p className="mt-1 text-sm font-black text-[#274f73]">{note.title}</p>
                 <p className="mt-1 text-xs font-semibold leading-relaxed text-[#4f6f8c]">{note.body}</p>
               </div>
@@ -128,11 +128,11 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
 
           {result ? (
             <div className="rounded-2xl border border-[#d9d5a2] bg-[#fff8de]/82 p-3">
-              <p className="text-xs font-black text-[#8e7b34]">{copy.weeklyMissionLabel}</p>
+              <p className="text-xs font-black text-[#7d6c2e]">{copy.weeklyMissionLabel}</p>
               <p className="mt-1 text-sm font-semibold leading-relaxed text-[#67562a]">{compactText(result.growthMission, 118)}</p>
             </div>
           ) : (
-            <p className="rounded-2xl border border-dashed border-[#d9d5a2] bg-[#fff8de]/60 p-3 text-xs font-semibold leading-relaxed text-[#8e7b34]">{copy.paidTeaserNote}</p>
+            <p className="rounded-2xl border border-dashed border-[#d9d5a2] bg-[#fff8de]/60 p-3 text-xs font-semibold leading-relaxed text-[#7d6c2e]">{copy.paidTeaserNote}</p>
           )}
         </div>
       </div>
