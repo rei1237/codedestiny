@@ -62,6 +62,8 @@ test('조판 PDF는 글꼴에 없는 한자 풀이 괄호를 걷고 한글 읽�
   const {typesetConsultationBook, stripPdfHanjaGloss} = await load('lib/pdf/export-consultation-book-pdf.ts');
   assert.equal(stripPdfHanjaGloss("'영(榮)'의 자리, 장숙 (張宿)과 상극(相剋)·영친(榮·親)"), "'영'의 자리, 장숙과 상극·영친");
   assert.equal(stripPdfHanjaGloss('(괄호 안 한글)은 그대로'), '(괄호 안 한글)은 그대로');
+  assert.equal(stripPdfHanjaGloss('일지 午(오) — 기신 연결'), '일지 오 — 기신 연결');
+  assert.equal(stripPdfHanjaGloss('壬戌일'), '임술일');
   const {jsPDF} = await import('jspdf');
   const pdf = new jsPDF('p', 'mm', 'a4');
   const drawn = [];

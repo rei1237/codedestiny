@@ -1,14 +1,13 @@
 import type { jsPDF as JsPDFInstance } from 'jspdf';
 import { registerPdfFontsSafely } from './export-result-pdf';
 import { createTypesetWriter, drawFooters, paintPaper, PdfFontError, type PdfFonts } from './typeset-writer';
-import { CONTENT_WIDTH_MM, MARGIN_X_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, lineHeightMm } from './typeset-metrics';
 import { planLinkedContents, drawLinkedContents } from './linked-contents';
 import { bookParagraphs } from './book-paragraphs';
 import { ziweiReportBlocks } from './ziwei-report-plan';
 import { loadReportArt, type ReportArt } from './report-art';
 import { REPORT_COVER_THEMES, type ReportCoverTheme } from './report-cover-theme';
 import { drawRadarChart } from './radar-chart';
-import { consultationEditorialTheme, drawEditorialBars, drawEditorialCover, drawEditorialPageMarks, drawEditorialTable, loadConsultationBranch } from './consultation-book-editorial';
+import { CONSULTATION_COVER_MASTERS, consultationEditorialTheme, drawEditorialBars, drawEditorialCover, drawEditorialPageMarks, drawEditorialTable, editorialWriterInk, loadConsultationBranch } from './consultation-book-editorial';
 
 /** 장 하나. kicker 는 부 이름, speaker 는 그 장을 쓰는 마스터의 표시 이름이다. */
 export type ConsultationBookChapter = { kicker?: string; title: string; body: string; speaker?: string; portraitSrc?: string };
@@ -49,7 +48,14 @@ export type ConsultationBookOptions = {
  * 그래서 한글 뒤에 괄호로 붙인 한자 풀이("영(榮)", "장숙(張宿)")만 걷어 한글 읽기를 남긴다. 화면 본문은 그대로다.
  */
 const HANJA_GLOSS = /[ \t]?[(（][\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff·・,，\s]*[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff][\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff·・,，\s]*[)）]/g;
-export const stripPdfHanjaGloss = (value: unknown) => String(value ?? '').replace(HANJA_GLOSS, '');
+/** "午(오)"처럼 한자 뒤에 한글 읽기를 붙인 표기는 읽기만 남긴다. */
+const HANJA_WITH_READING = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]+[ \t]?[(（]([가-힣\s·]+)[)）]/g;
+/** 글꼴에 빠진 글자가 있는 천간·지지(壬·戌 등)는 한글 읽기로 옮겨 일진 표에 빈칸이 생기지 않게 한다. */
+const GANJI_READING: Record<string, string> = { 甲: '갑', 乙: '을', 丙: '병', 丁: '정', 戊: '무', 己: '기', 庚: '경', 辛: '신', 壬: '임', 癸: '계', 子: '자', 丑: '축', 寅: '인', 卯: '묘', 辰: '진', 巳: '사', 午: '오', 未: '미', 申: '신', 酉: '유', 戌: '술', 亥: '해' };
+export const stripPdfHanjaGloss = (value: unknown) => String(value ?? '')
+  .replace(HANJA_GLOSS, '')
+  .replace(HANJA_WITH_READING, '$1')
+  .replace(/[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/g, (char) => GANJI_READING[char]);
 const clean = (value: unknown) => stripPdfHanjaGloss(value).trim();
 
 /** 그릴 내용이 남는 도표만 고른다. 빈 도표 때문에 빈 쪽이 생기지 않게 한다. */
@@ -128,42 +134,6 @@ export function consultationContentsLabel(chapter: ConsultationBookChapter, inde
   return `${String(index + 1).padStart(2, '0')}  ${chapter.title}${speaker ? ` · ${speaker}` : ''}`;
 }
 
-function drawCover(pdf: JsPDFInstance, fonts: PdfFonts, options: ConsultationBookOptions, art?: ReportArt, portraits?: Map<string, ReportArt>) {
-  const theme = REPORT_COVER_THEMES[options.coverTheme || 'love'];
-  pdf.setFillColor(theme.paper[0], theme.paper[1], theme.paper[2]); pdf.rect(0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, 'F');
-  pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.setLineWidth(0.3); pdf.rect(12, 12, PAGE_WIDTH_MM - 24, PAGE_HEIGHT_MM - 24);
-  let y = 84;
-  const masters = options.coverPortraits || [];
-  const hasPortraits = masters.some(master => portraits?.has(master.src));
-  if (hasPortraits) {
-    const slot = CONTENT_WIDTH_MM / masters.length;
-    masters.forEach((master, index) => {
-      const portrait = portraits?.get(master.src);
-      const center = MARGIN_X_MM + slot * (index + 0.5);
-      if (portrait) {
-        const width = Math.min(slot - 8, 80 / portrait.ratio, 62);
-        try { pdf.addImage(portrait.dataUrl, 'JPEG', center - width / 2, 34 + (80 - width * portrait.ratio) / 2, width, width * portrait.ratio); }
-        catch { /* The name remains available without the picture. */ }
-      }
-      pdf.setFont(fonts.body, 'normal'); pdf.setFontSize(11); pdf.setTextColor(theme.ink[0], theme.ink[1], theme.ink[2]);
-      pdf.text(master.name, center, 123, { align: 'center' });
-    });
-    y = 148;
-  } else if (art) {
-    const height = Math.min(112, CONTENT_WIDTH_MM * art.ratio);
-    try { pdf.addImage(art.dataUrl, 'JPEG', MARGIN_X_MM, 34, CONTENT_WIDTH_MM, height); y = 34 + height + 22; } catch { /* 장식 실패는 본문 저장을 막지 않는다. */ }
-  }
-  pdf.setFont(fonts.title, 'normal'); pdf.setFontSize(24); pdf.setTextColor(theme.ink[0], theme.ink[1], theme.ink[2]);
-  for (const line of (pdf.splitTextToSize(options.title || options.productLabel, CONTENT_WIDTH_MM) as string[]).slice(0, 4)) {
-    pdf.text(line, MARGIN_X_MM, y); y += lineHeightMm(24, 1.45);
-  }
-  pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.line(MARGIN_X_MM, 238, MARGIN_X_MM + 36, 238);
-  pdf.setFont(fonts.body, 'normal'); pdf.setFontSize(10); pdf.setTextColor(theme.muted[0], theme.muted[1], theme.muted[2]);
-  pdf.text(`CODE DESTINY · ${options.productLabel} · ${options.chapters.length}장`, MARGIN_X_MM, 250);
-  if (options.byline && !hasPortraits) pdf.text(options.byline, MARGIN_X_MM, 261);
-  if (options.date) pdf.text(options.date, MARGIN_X_MM, 272);
-}
-
 /**
  * 화면의 펼침 상태와 상관없이 받은 상담 전체를 글자로 조판한다.
  * 표지 → 여러 쪽이 될 수 있는 차례(쪽 링크) → 장마다 새 쪽. 본문 문장은 줄이거나 고치지 않는다.
@@ -173,16 +143,15 @@ export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, opt
   if (!chapters.length) throw new Error('consultation book pdf: no chapters');
   // 표지용 픽셀 글꼴 대신 본문 한글 글꼴을 상담서 전체에 쓴다(자미두수 상담서와 같은 판단).
   fonts = { title: fonts.body, body: fonts.body };
-  const editorial = options.coverPortraits?.length ? consultationEditorialTheme(options.coverTheme) : undefined;
-  if (editorial) drawEditorialCover(pdf, fonts, { ...options, chapters }, art, portraits, branch);
-  else drawCover(pdf, fonts, { ...options, chapters }, art, portraits);
+  const editorial = consultationEditorialTheme(options.coverTheme);
+  drawEditorialCover(pdf, fonts, { ...options, chapters }, art, portraits, branch);
   const figures = consultationSummaryFigures(options.summary);
   const summaryTitle = figures.length ? clean(options.summary?.title) : '';
   const labels = chapters.map(consultationContentsLabel);
   const toc = planLinkedContents(pdf, fonts, summaryTitle ? [summaryTitle, ...labels] : labels);
   const offset = summaryTitle ? 1 : 0;
   for (let page = 0; page < toc.pages; page += 1) { pdf.addPage(); paintPaper(pdf); }
-  const writer = createTypesetWriter(pdf, fonts);
+  const writer = createTypesetWriter(pdf, fonts, editorialWriterInk(editorial));
   if (summaryTitle) {
     writer.chapter(clean(options.summary?.kicker), summaryTitle);
     toc.entries[0].destination = writer.page;
@@ -193,26 +162,28 @@ export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, opt
     toc.entries[index + offset].destination = writer.page;
     for (const block of ziweiReportBlocks(stripPdfHanjaGloss(chapter.body))) {
       if (block.kind === 'heading') writer.heading(block.text);
-      else for (const paragraph of bookParagraphs(block.text)) writer.body(editorial ? paragraph.replace(/\*\*([^*\n]+)\*\*/g, '$1') : paragraph);
+      else for (const paragraph of bookParagraphs(block.text)) writer.body(paragraph.replace(/\*\*([^*\n]+)\*\*/g, '$1'));
     }
   }
   drawLinkedContents(pdf, fonts, toc, editorial);
-  if (editorial) drawEditorialPageMarks(pdf, editorial);
+  drawEditorialPageMarks(pdf, editorial);
   drawFooters(pdf, fonts, `Code Destiny · ${options.productLabel}`, toc.pages + 2);
   pdf.setProperties({ title: options.title || options.productLabel, subject: options.productLabel, author: options.byline || 'Code Destiny' });
   return { pdf, chapters: chapters.length, summaryFigures: figures.length, contentsPages: toc.pages, destinations: toc.entries.map(entry => entry.destination) };
 }
 
 /** 글꼴을 싣지 못하면 PdfFontError — 호출자는 캡처 저장으로 되돌아간다. */
-export async function exportConsultationBookPdf(options: ConsultationBookOptions): Promise<void> {
+export async function exportConsultationBookPdf(input: ConsultationBookOptions): Promise<void> {
+  // 표지 초상을 받지 않았고 따로 지정한 표지 그림도 없으면 그 상담의 담당 마스터를 싣는다.
+  const defaultMasters = input.coverPortraits?.length || input.coverArtSrc ? undefined : CONSULTATION_COVER_MASTERS[input.coverTheme || 'love'];
+  const options = defaultMasters ? { ...input, coverPortraits: defaultMasters } : input;
   const { jsPDF } = await import('jspdf');
   const pdf = new jsPDF('p', 'mm', 'a4');
   const fonts = await registerPdfFontsSafely(pdf);
   if (!fonts) throw new PdfFontError();
   const theme = REPORT_COVER_THEMES[options.coverTheme || 'love'];
   const coverSources = (options.coverPortraits || []).map(master => master.src);
-  const editorial = coverSources.length ? consultationEditorialTheme(options.coverTheme) : undefined;
-  const branchRequest = editorial ? loadConsultationBranch(editorial.motif).catch(() => undefined) : Promise.resolve(undefined);
+  const branchRequest = loadConsultationBranch(consultationEditorialTheme(options.coverTheme).motif).catch(() => undefined);
   const sources = new Set([...coverSources, ...options.chapters.map(chapter => chapter.portraitSrc).filter((src): src is string => Boolean(src))]);
   const portraits = new Map<string, ReportArt>();
   await Promise.all([...sources].map(async src => {
