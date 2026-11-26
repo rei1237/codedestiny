@@ -9,6 +9,8 @@ import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
 import { neoRelationshipStatusFocus, normalizeTopicKey } from "./neo-operation-room-compat.js";
 import { sajuTemperamentPromptLines, SAJU_LUCK_JUDGEMENT_RULE } from './saju-temperament.js';
+import { buildShinsalFactsBlock } from '../../lib/saju/shinsal-facts-block.mjs';
+import { workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 // S15: 운 판정(luckJudgement)이 실린 사주 확정값에만 공통 전달 규칙을 붙인다.
 const sajuLuckRuleLines = (summary) => (summary?.luckJudgement ? [SAJU_LUCK_JUDGEMENT_RULE] : []);
@@ -803,6 +805,38 @@ function guideLines(guide) {
     .filter(Boolean);
 }
 
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, 소비처 id 'neo'). 사주 core 챕터에만 원국 신살을 싣는다.
+// 🔴 R2: 이 상담은 4주 간지를 프롬프트에 나열하지 않는다(neo-operation-room-basis.js 의 core 그룹 주석).
+//    그래서 자리만 적고 괄호 간지는 지운다(hidePositionChars). 운 신살은 싣지 않는다 — 시기 표가 없는 챕터가
+//    대운·세운 간지를 꺼내지 않게 한 hidesTiming 규칙과 어긋나지 않게 한다.
+// 궁합 세션은 싣지 않는다. 본인 명식만 계산한 목록이라 상대 신살로 읽힐 수 있다.
+// 시작 때 llmMeta 에 핀이 있고 플래그가 켜진 세션만 ctx.shinsalFacts === true 다. 실패하면 블록만 빠진다.
+const NEO_SHINSAL_MAX_CHARS = 500;
+// 블록을 붙인 챕터 프롬프트가 Workers AI 폴백 입력 상한의 95%(흑월과 같은 선)를 넘으면 블록만 뺀다. 거부가 아니라 생략이다.
+export const NEO_SHINSAL_PROMPT_BUDGET = Math.floor(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+export function neoShinsalLines(ctx) {
+  try {
+    if (ctx?.shinsalFacts !== true || ctx.selectedMethod !== 'saju' || ctx.methodSummary?.compat) return [];
+    const pillars = ctx.methodSummary?.pillars || {};
+    const timeUnknown = ctx.birthTimeUnknown === true || ctx.methodSummary?.calculationMeta?.timeUnknown === true || !pillars.hour;
+    const block = buildShinsalFactsBlock({
+      pillars: { year: pillars.year, month: pillars.month, day: pillars.day, hour: timeUnknown ? null : pillars.hour },
+      timeUnknown,
+    }, { maxChars: NEO_SHINSAL_MAX_CHARS, hidePositionChars: true });
+    return block ? block.split('\n') : [];
+  } catch {
+    return [];
+  }
+}
+function neoShinsalWithinBudget(build, section, ctx) {
+  const prompt = build(section, ctx);
+  if (ctx?.shinsalFacts !== true) return prompt;
+  try {
+    if (workersAiInputTokenUpperBound([{ role: 'user', content: prompt }]) <= NEO_SHINSAL_PROMPT_BUDGET) return prompt;
+  } catch {}
+  return build(section, { ...ctx, shinsalFacts: false });
+}
+
 // 이 챕터가 볼 계산 확정값만 골라 한글 라벨 표로 싣는다.
 // 🔴 JSON.stringify(methodSummary) 를 여기에 되살리지 말 것 — 그게 내부 키 누출의 원인이었고,
 //    14개 챕터가 같은 덤프를 봐서 같은 표를 각자 다시 푸는 중복의 원인이기도 했다.
@@ -828,6 +862,8 @@ function neoBasisLines(section, ctx) {
       ? [...sajuTemperamentPromptLines(ctx.methodSummary),
         ...(ctx.methodSummary?.compat?.partnerDigest
           ? ['[상대의 성향: 상대 명식의 제공 범위만 사용]',...sajuTemperamentPromptLines(ctx.methodSummary.compat.partnerDigest)] : [])] : []),
+    ...(ctx.selectedMethod === 'saju' && (section.basisGroups === '*' || safeArray(section.basisGroups).includes('core'))
+      ? neoShinsalLines(ctx) : []),
     ...(ctx.selectedMethod === 'saju' && (section.basisGroups === '*' || ['core', 'timing'].some((key) => safeArray(section.basisGroups).includes(key)))
       ? sajuLuckRuleLines(ctx.methodSummary) : []),
     ...(hidesTiming ? ["이 챕터에는 시기 흐름 표가 없다. 대운·세운·유년·다샤·트랜짓의 간지나 십성, 날짜를 새로 꺼내거나 추측하지 않는다. 시기 판단은 '주제 시기 흐름' 챕터가 맡는다."] : []),
@@ -1454,6 +1490,9 @@ function refineDigestLines(initialBriefing) {
 }
 
 export function buildNeoInitialSectionPrompt(section, ctx) {
+  return neoShinsalWithinBudget(neoInitialSectionPrompt, section, ctx);
+}
+function neoInitialSectionPrompt(section, ctx) {
   return [
     ...neoSectionCommonLines(section, ctx),
     "",
@@ -1464,6 +1503,9 @@ export function buildNeoInitialSectionPrompt(section, ctx) {
 }
 
 export function buildNeoRefinedSectionPrompt(section, ctx) {
+  return neoShinsalWithinBudget(neoRefinedSectionPrompt, section, ctx);
+}
+function neoRefinedSectionPrompt(section, ctx) {
   return [
     ...neoSectionCommonLines(section, ctx),
     ...followupSolutionPromptLines({ feature: "네오의 현실 점검 후속 상담", empathy: "tactical", openingOwner: section.id === "neoReview" }),

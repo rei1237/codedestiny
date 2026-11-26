@@ -584,3 +584,71 @@ for(const stage of ['initial','refine']) it.each([
  if(stage==='refine')expect(docs[0].llmMeta.refinementHistory).toHaveLength(1);
  expect(refund).not.toHaveBeenCalled();
 });
+
+// S7 신살 블록(SAJU_SHINSAL_FACTS_V1 'neo'): 사주 새 세션만 llmMeta.shinsalFacts 로 고정하고, 핀과 플래그가 모두 맞을 때만 core 챕터 프롬프트에 붙인다.
+// 블록은 저장하지 않고 프롬프트 때만 만든다 — 이어쓰기·현실 점검·플래그 전환에도 결제·완성 흐름(14+8 호출, 사용 1회, 환불 0)이 같다.
+describe('S7 shinsal facts block', () => {
+ const HEADER='[신살 계산값';
+ const sajuChart={yearPillar:'庚午',monthPillar:'辛巳',dayPillar:'甲子',hourPillar:'丙寅',dayMaster:'甲'};
+ const core=section=>section.basisGroups==='*'||section.basisGroups.includes('core');
+ const sectionOf=prompt=>[...definitions,...refinedDefinitions].find(row=>prompt.includes(`제목: ${row.title}\n`));
+ const prependToProse=(value,text)=>{let done=false;const walk=node=>{if(done||!node||typeof node!=='object')return;for(const key of Object.keys(node)){if(done)return;if(typeof node[key]==='string'&&node[key].length>50){node[key]=`${text} ${node[key]}`;done=true;}else walk(node[key]);}};walk(value);return value;};
+ // quote 'line': 블록을 받은 챕터가 신살 한 줄을 근거로 인용한다(실제 답의 모양). 'all': 목록 전체와 사용 규칙을 매 챕터 그대로 옮긴다(최악).
+ async function run(createFlag,resumeFlag,quote='line'){
+  const env={SAJU_SHINSAL_FACTS_V1:createFlag};
+  chart.mockImplementation(()=>clone(sajuChart));
+  const original=provider.getMockImplementation();
+  provider.mockImplementation(async(...args)=>{
+   const value=await original(...args),at=args[1].indexOf(HEADER);
+   const lines=at<0?[]:args[1].slice(at).split('\n').slice(1).filter(line=>/^(- |사용 규칙)/.test(line)).map(line=>line.replace(/^- /,''));
+   const cited=quote==='all'?lines.join(' '):(lines[0]?`${lines[0]}.`:'');
+   return {...value,text:JSON.stringify(prependToProse(JSON.parse(value.text),`일주 甲子를 근거로 본다. ${cited}`.trim()))};
+  });
+  const call=(path,payload)=>route(new Request(`https://mock.test/api/neo-operation-room/${path}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)}),env);
+  expect((await call('start',body)).status).toBe(202);
+  const created=provider.mock.calls.length;
+  env.SAJU_SHINSAL_FACTS_V1=resumeFlag;
+  let response;
+  for(let i=0;i<8&&docs[0].status!=='completed';i++){response=await call('start',{sessionId:docs[0].id});expect([409,500,503]).not.toContain(response.status);}
+  expect(response.status).toBe(200);
+  expect((await call('refine',{sessionId:docs[0].id,freeform:'작은 선택부터 바꾸겠습니다.'})).status).toBe(202);
+  for(let i=0;i<6&&docs[0].refinementStatus!=='completed';i++){response=await call('refine',{sessionId:docs[0].id});expect([409,500,503]).not.toContain(response.status);}
+  expect(response.status).toBe(200);
+  expect(docs[0].status).toBe('completed');expect(docs[0].refinementStatus).toBe('completed');
+  expect(usage).toHaveBeenCalledTimes(1);expect(refund).not.toHaveBeenCalled();
+  expect(JSON.stringify(docs[0])).not.toContain(HEADER);
+  const seen=provider.mock.calls.map(([,prompt])=>({section:sectionOf(prompt),blocks:prompt.split(HEADER).length-1}));
+  return {pin:docs[0].llmMeta.shinsalFacts,seen,created,calls:provider.mock.calls.length};
+ }
+ it('a pinned saju session adds the block once to every core chapter and nothing else', async()=>{
+  const {pin,seen,calls}=await run('neo','neo');
+  expect(pin).toBe('shinsal-facts-v1');
+  expect(calls).toBe(22);
+  for(const {section,blocks} of seen)expect(blocks).toBe(core(section)?1:0);
+  expect(seen.filter(row=>row.blocks).length).toBe(15);
+ });
+ it('a legacy session stays off after the flag turns on', async()=>{
+  const {pin,seen,calls}=await run('','neo');
+  expect(pin).toBeUndefined();
+  expect(calls).toBe(22);
+  for(const {blocks} of seen)expect(blocks).toBe(0);
+ });
+ it('turning the flag off drops the block from the next wave, the reality check included', async()=>{
+  const {pin,seen,created,calls}=await run('true','');
+  expect(pin).toBe('shinsal-facts-v1');
+  expect(calls).toBe(22);
+  expect(seen.slice(0,created).some(row=>row.blocks===1)).toBe(true);
+  for(const {blocks} of seen.slice(created))expect(blocks).toBe(0);
+ });
+ it('another consumer id does not pin neo', async()=>{
+  const {pin,seen,calls}=await run('new-year','new-year');
+  expect(pin).toBeUndefined();
+  expect(calls).toBe(22);
+  for(const {blocks} of seen)expect(blocks).toBe(0);
+ });
+ // 기존 되풀이 검사가 같은 문장을 반려하고, 기존 2회차 정리(dedupe)가 되살린다 — 호출은 늘어도 전달은 끝난다.
+ it('copying the whole block into every chapter still delivers the paid consultation', async()=>{
+  const {calls}=await run('neo','neo','all');
+  expect(calls).toBeGreaterThan(22);
+ });
+});

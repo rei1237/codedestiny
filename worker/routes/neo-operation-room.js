@@ -39,6 +39,7 @@ import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { buildLuckJudgement, buildNatalJudgementFacts } from "../lib/saju-luck-judgement.js";
 import { approvedSajuLabels, lifeBookPillars, overlayApprovedLifeBookChart, sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
+import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
 import { calculateZiweiConsumerChart } from "../lib/ziwei-consumer-chart.js";
 import { describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
@@ -1846,7 +1847,9 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       await NeoOperationRoomConsultation.create({ id: sessionId, userId: auth.userId, idempotencyKey, inputHash: normalized.inputHash,
         ...(initialZiweiSummary ? { methodSummary: initialZiweiSummary } : {}),
         ...normalized.input, accessType: access.accessType, paymentId: access.paymentId || "", status: "generating",
-        llmMeta: { locale, resumeBody, sections: {}, attempts: {}, answerVoice: selectAnswerVoice(env), ...(auth.tossNative?{tossNative:true}:{}) } });
+        llmMeta: { locale, resumeBody, sections: {}, attempts: {}, answerVoice: selectAnswerVoice(env), ...(auth.tossNative?{tossNative:true}:{}),
+          // 신살 블록 핀(사주 세션만). 생성·재시도·현실 점검 수정은 shinsalFactsPinned 로 읽는다. 키 없는 옛 세션은 계속 꺼진다.
+          ...(normalized.input.selectedMethod === 'saju' && selectShinsalFacts(env, 'neo') ? { shinsalFacts: selectShinsalFacts(env, 'neo') } : {}) } });
       existing = await NeoOperationRoomConsultation.findOne({ id: sessionId, userId: auth.userId }).lean();
       if (!existing) throw resultStorageUnavailable(sessionId);
     } catch (error) {
@@ -1901,7 +1904,8 @@ async function handleStart(request, env, ctx = null, recoveryAuth = null) {
       });
       doc = await saveNeoDelivery(filter, { llmMeta: { ...doc.llmMeta, resumeBody, attempts } }, sessionId);
       await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
-      const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary, answerVoice: pinAnswerVoice(doc.llmMeta, env) };
+      const context = { ...normalized.input, birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true, methodSummary: doc.methodSummary, answerVoice: pinAnswerVoice(doc.llmMeta, env),
+        ...(shinsalFactsPinned(doc.llmMeta, env, 'neo') ? { shinsalFacts: true } : {}) };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const previousDraft = attempts[`${section.id}:lengthRepair`] ? doc.llmMeta.sections?.[section.id] : null;
@@ -2127,7 +2131,9 @@ async function handleRefine(request, env) {
       });
       doc = await saveNeoDelivery(filter, { refinementStatus: "generating", refinementError: null, llmMeta: { ...doc.llmMeta, refinement: { ...state, attempts } } }, sessionId);
       const context = { selectedMethod: doc.selectedMethod, topic: doc.topic, intensity: doc.intensity, question: doc.question, methodSummary: doc.methodSummary,
-        initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing), previousRefinements: neoRefinementHistory(doc), answerVoice: pinAnswerVoice(state, env) };
+        initialBriefing: doc.initialBriefing, realityCheck: state.realityCheck, previousAdviceLog: buildPreviousAdviceLog(doc.initialBriefing), previousRefinements: neoRefinementHistory(doc), answerVoice: pinAnswerVoice(state, env),
+        // 수정 명령서도 상담 시작 때의 핀을 따른다(플래그를 끄면 다음 챕터부터 블록 없이).
+        ...(shinsalFactsPinned(doc.llmMeta, env, 'neo') ? { shinsalFacts: true } : {}) };
       let queue = Promise.resolve();
       const outcomes = await Promise.allSettled(selected.map(async section => {
         const prompt = buildNeoRefinedSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`] ? "\n[분량 보강] 기존 계산 근거를 유지하고 새로운 장면과 행동 조언을 더해 완결된 JSON으로 다시 작성한다. 반복으로 채우지 않는다." : "") + `\n[완료 기준] 제목·공백을 제외한 본문 최소 ${section.minChars}자, 목표 ${Math.ceil(section.minChars / 0.8)}자. 현실 점검 답변과 계산값에 근거하고 앞 영역을 반복하지 않는다.`;

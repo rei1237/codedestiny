@@ -11,7 +11,10 @@ import {
   mergeNeoInitialSections,
   mergeNeoRefinedSections,
   neoRegisterDrift,
+  neoShinsalLines,
+  NEO_SHINSAL_PROMPT_BUDGET,
 } from "../../worker/lib/neo-operation-room-prompt.js";
+import { workersAiInputTokenUpperBound } from "../../lib/workers-ai-input-token-limit.mjs";
 import { buildNeoBasisPayload } from "../../worker/lib/neo-operation-room-basis.js";
 
 const input = {
@@ -318,5 +321,82 @@ describe("S15 사주 운 판정 연결", () => {
     expect(timing).toContain(lj.year.verdict);
     const ziwei = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "topicTiming"), { ...input, methodSummary: { method: "ziwei" } });
     expect(ziwei).not.toContain(SAJU_LUCK_JUDGEMENT_RULE);
+  });
+});
+
+// S7 신살 사실 블록(SAJU_SHINSAL_FACTS_V1 'neo'). 라우트가 핀과 플래그를 맞춰 본 뒤 ctx.shinsalFacts=true 를 줄 때만 붙는다.
+// 4주 간지를 나열하지 않는 R2 규칙에 맞춰 자리 뒤 괄호 글자를 지우고, 원국만 쓴다(운 간지 없음).
+describe("S7 신살 사실 블록", () => {
+  const HEADER = "[신살 계산값";
+  const shinsalSummary = { ...sajuSummary, pillars: { year: "庚午", month: "辛巳", day: "甲子", hour: "丙寅", dayMaster: "甲" } };
+  const base = { ...sajuCtx, methodSummary: shinsalSummary };
+  const refineBase = { ...base, initialBriefing: {}, realityCheck: { freeform: "면접을 마쳤다" } };
+  const isCore = (section) => section.basisGroups === "*" || section.basisGroups.includes("core");
+  const block = neoShinsalLines({ ...base, shinsalFacts: true }).join("\n");
+  const cases = [
+    ...NEO_INITIAL_SECTIONS.map((section) => [section, base, buildNeoInitialSectionPrompt]),
+    ...NEO_REFINED_SECTIONS.map((section) => [section, refineBase, buildNeoRefinedSectionPrompt]),
+  ];
+
+  test("ctx.shinsalFacts 가 true 가 아니면 바이트 동일, true 면 사주 core 챕터에만 블록이 한 번 들어간다", () => {
+    expect(block.startsWith(HEADER)).toBe(true);
+    let withBlock = 0;
+    for (const [section, ctx, build] of cases) {
+      const off = build(section, ctx);
+      for (const value of [false, undefined, "shinsal-facts-v1", 1]) expect(build(section, { ...ctx, shinsalFacts: value })).toBe(off);
+      const on = build(section, { ...ctx, shinsalFacts: true });
+      if (!isCore(section)) { expect(on).toBe(off); continue; }
+      withBlock += 1;
+      expect(on.split(HEADER).length - 1).toBe(1);
+      expect(on.length - off.length).toBe(block.length + 1);
+      expect(on.replace(`${block}\n`, "")).toBe(off);
+    }
+    expect(withBlock).toBe(15);
+  });
+
+  test("블록은 자리만 쓰고 4주 간지·운 간지를 싣지 않는다", () => {
+    expect(block).toMatch(/년지|월지|일지|시지|년간|월간|일주/);
+    expect(block).not.toMatch(/[一-鿿]/);
+    expect(block).not.toMatch(/庚午|辛巳|甲子|丙寅|丙戌|丙午/);
+    expect(block.length).toBeLessThanOrEqual(500);
+  });
+
+  test("사주가 아닌 방식·궁합 상담·간지 없는 요약에는 붙지 않는다", () => {
+    const section = NEO_INITIAL_SECTIONS.find((row) => row.id === "innateCore");
+    for (const ctx of [
+      { ...input, shinsalFacts: true, methodSummary: { ...shinsalSummary, method: "ziwei" } },
+      { ...base, shinsalFacts: true, methodSummary: { ...shinsalSummary, compat: { partnerDigest: {} } } },
+      { ...base, shinsalFacts: true, methodSummary: { ...shinsalSummary, pillars: {} } },
+    ]) {
+      expect(neoShinsalLines(ctx)).toEqual([]);
+      expect(buildNeoInitialSectionPrompt(section, ctx)).not.toContain(HEADER);
+    }
+  });
+
+  test("출생 시간 미상이면 시주를 빼고 미상 줄을 싣는다", () => {
+    const unknown = neoShinsalLines({ ...base, shinsalFacts: true, birthTimeUnknown: true }).join("\n");
+    const noHour = neoShinsalLines({ ...base, shinsalFacts: true, methodSummary: { ...shinsalSummary, pillars: { ...shinsalSummary.pillars, hour: undefined } } }).join("\n");
+    expect(unknown).toContain("출생 시간 미상");
+    expect(unknown).not.toContain("시지");
+    expect(noHour).toBe(unknown);
+  });
+
+  test("입력 상한에 닿으면 블록만 빼고 거부하지 않는다", () => {
+    const section = NEO_INITIAL_SECTIONS.find((row) => row.id === "innateCore");
+    const bytes = (text) => workersAiInputTokenUpperBound([{ role: "user", content: text }]);
+    const withRule = (rule) => ({ ...base, methodSummary: { ...shinsalSummary, approvedRules: [rule] } });
+    const filler = "x".repeat(NEO_SHINSAL_PROMPT_BUDGET - bytes(buildNeoInitialSectionPrompt(section, withRule("x"))));
+    const off = buildNeoInitialSectionPrompt(section, withRule(filler));
+    expect(bytes(off)).toBe(NEO_SHINSAL_PROMPT_BUDGET - 1);
+    expect(buildNeoInitialSectionPrompt(section, { ...withRule(filler), shinsalFacts: true })).toBe(off);
+    const roomy = withRule("x".repeat(filler.length - block.length * 3 - 8));
+    expect(buildNeoInitialSectionPrompt(section, { ...roomy, shinsalFacts: true })).toContain(HEADER);
+  });
+
+  test("블록을 인용한 답도 어조·금지어 검사에 새로 걸리지 않는다", async () => {
+    const { __neoOperationRoomTestUtils } = await import("../../worker/routes/neo-operation-room.js");
+    const quote = block.split("\n").slice(1).map((line) => line.replace(/^- /, "")).join(" ");
+    expect(neoRegisterDrift(`일간 甲은 앞으로 나간다. ${quote} 그래서 이번 주에는 지원서를 두 곳만 낸다.`)).toBe(false);
+    expect(__neoOperationRoomTestUtils.hasForbiddenResultText({ description: quote })).toBe(false);
   });
 });
