@@ -33,7 +33,7 @@ import {
 } from "../../lib/payment/pass-policy.js";
 import { getRequestMeta, json } from "../lib/http.js";
 import { readBoundedText } from "../lib/request-body.js";
-import { peekAccessTokenUserId } from "../lib/auth.js";
+import { peekAccessTokenUserId, resolvePaidRouteAuth } from "../lib/auth.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
 // 🔴 leaf 를 import 한다(../lib/access-state.js 가 아니라). 그쪽은 models.js·content-unlocks.js 를
 //    딸고 오므로 models.js 를 부분 모킹한 스위트가 통째로 죽는다(2026-08-31 실측 11개 스위트 109건).
@@ -133,6 +133,20 @@ import {
   settleRefund,
   toOrderStatus,
 } from "./orders.js";
+
+/* 주문 생성·차감·선물 수령용 신원(PRIV-002). 게스트·무효·탈퇴 토큰은 ""(→ 기존 401 UNAUTHORIZED).
+   인증 인프라 장애(HttpError 503)는 classify() 가 INTERNAL_ERROR(500)로 접지 않도록 결제 계약의
+   DB_UNAVAILABLE(503, 재시도 가능)로 바꾼다. */
+export async function resolveActiveUserId(request, env) {
+  let auth = null;
+  try {
+    auth = await resolvePaidRouteAuth(request, env);
+  } catch (error) {
+    if (error?.status === 503) throw paymentError("DB_UNAVAILABLE", "로그인 상태를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+    throw error;
+  }
+  return auth?.userId ? String(auth.userId) : "";
+}
 
 function requireUser(userId) {
   if (!userId) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -1219,6 +1233,8 @@ async function claimLegacyBirthUnlock(db, { userId, orderId, profileId, partnerP
 /* ── 라우트 표 ───────────────────────────────────────────────────────────
    키는 `METHOD /path` 이고, `:id` 자리는 하나의 세그먼트를 받는다.
    auth: "required" 면 토큰에서 userId 를 뽑아 넘긴다(**Mongo 읽기 0회**),
+         단 activeUser: true(주문 생성·차감 POST)는 탈퇴·비활성 여부까지 확인한다(Mongo 읽기 1회, PRIV-002).
+         confirm·GET 상태 조회는 peek 을 유지한다 — confirm 은 PG 에서 돈이 이미 움직인 뒤라 막으면 이행이 끊긴다.
          "none" 이면 신원을 보지 않는다(webhook·카탈로그). */
 const ROUTES = {
   "POST /analytics-withdrawal": {
@@ -1264,6 +1280,7 @@ const ROUTES = {
   },
   "POST /birth-profile-pending/:id/claim": {
     auth: "required",
+    activeUser: true,
     async handle({ request, env, ctx, userId, params, body, withDb }) {
       ctx.orderId = params.id;
       const profileId = String(body?.profileId || "").trim().slice(0, 80);
@@ -1377,6 +1394,7 @@ const ROUTES = {
 
   "POST /orders": {
     auth: "required",
+    activeUser: true,
     async handle({ request, env, ctx, userId, body, withDb }) {
       const unitProduct = resolveProduct({
         productId: body.productId, featureKey: body.featureKey, reason: body.reason,
@@ -1430,6 +1448,7 @@ const ROUTES = {
    */
   "POST /prepare": {
     auth: "required",
+    activeUser: true,
     async handle({ request, env, ctx, userId, body, withDb, legacyEnvelope, pgDeps, neoPreparation, preparedProduct, preparedPurchaseType='SELF', preparedGiftDraft=null }) {
       // 이용권형 바디는 이용권 경로로 위임 — 구 billing.js handleCheckout 의 isSubscription 분기 승계.
       // 구 코드도 이때 billing-checkout 래퍼 없이 subscription prepare 봉투를 그대로 돌려줬다.
@@ -1680,6 +1699,7 @@ const ROUTES = {
    */
   "POST /coin-gate/moonstone": {
     auth: "required",
+    activeUser: true,
     async handle({ request, env, ctx, userId, body, withDb }) {
       const requestId = String(body.requestId || body.purchaseId || "").trim();
       if (!requestId) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "requestId 가 필요합니다.");
@@ -1822,6 +1842,7 @@ const ROUTES = {
    */
   "POST /coin-gate/pass-check": {
     auth: "required",
+    activeUser: true,
     async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveLegacyProduct(body);
       ctx.productId = product.productId;
@@ -2001,6 +2022,7 @@ const ROUTES = {
    */
   "POST /subscription/prepare": {
     auth: "required",
+    activeUser: true,
     async handle(args) {
       return handlePassPrepare(args);
     },
@@ -2015,6 +2037,7 @@ const ROUTES = {
 
   "POST /moonstone/spend": {
     auth: "required",
+    activeUser: true,
     async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveProduct({ productId: body.productId, featureKey: body.featureKey, reason: body.reason });
       // 직접 차감 입구다. 판매 종료 키는 보유 확인이 먼저(보유자는 차감·지급 없이 "이미 보유"), 미보유자는 월정석 제외 402 보다 판매 종료 409 가 먼저 읽히게 한다.
@@ -2187,9 +2210,12 @@ export async function handlePaymentsContext(request, env, options = {}) {
   let errorReason = "";
   let errorMeta = null;
   try {
-    const userId = matched.route.auth === "required"
-      ? requireUser(await peekAccessTokenUserId(request, env)) // JWT 만 본다 — Mongo 읽기 0회
-      : "";
+    let userId = "";
+    if (matched.route.auth === "required") {
+      userId = requireUser(matched.route.activeUser
+        ? await resolveActiveUserId(request, env) // 주문 생성·차감: 탈퇴·비활성 확인 — Mongo 읽기 1회(PRIV-002)
+        : await peekAccessTokenUserId(request, env)); // JWT 만 본다 — Mongo 읽기 0회
+    }
     ctx.userId = userId;
 
     const maxBodyBytes = 256 * 1024;

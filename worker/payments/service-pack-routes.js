@@ -23,7 +23,7 @@ export function createServicePackRoutes({prepareOrder,confirmOrder,orderStatus,r
       const result=await withDb(env,ctx,db=>quoteServicePack(db,{userId,requestId:String(body.requestId||'')}));
       return json({ok:true,...result},noStore);
     }},
-    'POST /service-packs/prepare':{auth:'required',async handle(args){
+    'POST /service-packs/prepare':{auth:'required',activeUser:true,async handle(args){
       const body=args.body||{},product=resolvePlan(String(body.planId||''));
       const purchaseType=purchaseTypeOf(body.purchaseType);
       if(purchaseType==='GIFT') {
@@ -43,7 +43,7 @@ export function createServicePackRoutes({prepareOrder,confirmOrder,orderStatus,r
         refundConsent:body.refundConsent===true,returnPath:purchaseType==='GIFT'?'/gift/complete':'/points',purchaseType,paymentType:'digital_content'
       }});
     }},
-    'POST /service-packs/consume':{auth:'required',async handle({env,ctx,userId,body,withDb}){
+    'POST /service-packs/consume':{auth:'required',activeUser:true,async handle({env,ctx,userId,body,withDb}){
       const requestId=String(body.requestId||'');
       const result=await withDb(env,ctx,db=>consumeServicePack(db,{userId,requestId,entitlementId:String(body.entitlementId||'')}));
       return json({ok:true,accessMethod:'SERVICE_PACK',requestId,...result},noStore);
