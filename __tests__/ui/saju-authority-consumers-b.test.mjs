@@ -187,6 +187,34 @@ test('프롬프트 허브: ON 은 라벨과 해석 규칙, OFF 는 없음, 시�
   assert.ok(pending.includes(PENDING));
 });
 
+test('프롬프트 허브 신살 블록: 기본(꺼짐)은 그대로, 켜짐은 블록만 덧붙이고 공망은 빼며 시각 미상을 밝힌다', async () => {
+  const { buildSajuPromptFacts } = fromRoot('app/fortune/prompt-hub/saju-prompt-facts.ts');
+  const { buildShinsalFactsBlock } = await import('../../lib/saju/shinsal-facts-block.mjs');
+  // 1990-02-11 은 일주 기준 공망(인·묘)이 월지 인에 걸린다 — 제외가 실제로 일하는 명식.
+  const input = { birthDate: '1990-02-11', birthTime: '08:30', birthTimeUnknown: false, gender: 'female', calendarType: 'solar' };
+  const off = String(buildSajuPromptFacts(input, { shinsalEnabled: false }));
+  const on = String(buildSajuPromptFacts(input, { shinsalEnabled: true }));
+  assert.equal(String(buildSajuPromptFacts(input)), off, '플래그 기본값(꺼짐)은 꺼짐과 바이트 동일');
+  assert.doesNotMatch(off, /신살 계산값/);
+  const start = on.indexOf('\n\n[신살 계산값');
+  const end = on.indexOf('\n\n위 명식은');
+  assert.ok(start > 0 && end > start);
+  const block = on.slice(start, end);
+  assert.equal(on.slice(0, start) + on.slice(end), off, '켜짐은 블록 삽입 외에 바뀌지 않는다');
+  assert.match(block, /사용 규칙: 신살은 성향·경향의 보조 단서다/);
+  assert.ok(block.length <= 1202);
+  assert.doesNotMatch(block, /공망|undefined|NaN/);
+  assert.equal((on.match(/공망\(空亡/g) || []).length, 1, '공망은 명식 줄에서 한 번만');
+  const [, year, month, day, hour] = on.match(/- 사주 원국: 연주 (\S+) \/ 월주 (\S+) \/ 일주 (\S+) \/ 시주 (\S+)/);
+  const wide = { maxChars: 4000, maxNatal: 40 };
+  assert.match(buildShinsalFactsBlock({ pillars: { year, month, day, hour } }, wide), /- 공망:/);
+  assert.doesNotMatch(buildShinsalFactsBlock({ pillars: { year, month, day, hour } }, { ...wide, excludeRuleIds: ['gongmang'] }), /공망/);
+
+  const unknown = String(buildSajuPromptFacts({ ...input, birthTime: '', birthTimeUnknown: true, gender: '' }, { shinsalEnabled: true }));
+  assert.match(unknown, /- 시주: 출생 시간 미상이라 시주 신살은 계산하지 않았다/);
+  assert.doesNotMatch(unknown, /- 대운 \d+세/, '성별 미상이면 대운 신살을 넣지 않는다');
+});
+
 // ── 7 유료 양자 카드 ──
 const quantum = (over, authorityEnabled) => {
   const html = buildSajuSectionHtml({

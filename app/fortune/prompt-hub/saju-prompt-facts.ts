@@ -6,11 +6,12 @@
 //    대운 간지 흐름만 한국 음양력 코어의 daeun() 을 쓴다(엔진은 대운 시작 나이·방향까지만 낸다).
 // 🔴 대운은 엔진과 코어의 방향·시작이 어긋나면 통째로 뺀다 — 둘은 일(日) 환산 관례가 달라
 //    같은 값을 낼 의무가 없고, 어긋난 채로 찍으면 블록 안에서 서로 모순되는 근거가 된다.
-import { BRANCH_HANGUL, branchIndexOf, daeun, formatPillar, STEM_HANJA, stemIndexOf, TERM_NAME_KO } from "@/lib/korean-calendar";
+import { BRANCH_HANGUL, branchIndexOf, daeun, formatPillar, sexagenaryYearIndexes, STEM_HANJA, stemIndexOf, TERM_NAME_KO } from "@/lib/korean-calendar";
 import { CHANG_SHENG, CHANG_SHENG_OFFSET, getXun, getXunKong, NAYIN } from "@/lib/saju/myeongri-tables";
 import { calculateLocalSaju, type LocalSajuResult } from "../../saju/animal-destiny/engine/localSajuCalculator";
 import { projectApprovedGyeokguk } from "@/lib/saju/gyeokguk-authority.mjs";
-import { ENGINE_ROLLOUT_FLAGS } from "@/worker/lib/engine-rollout.js";
+import { buildShinsalFactsBlock } from "@/lib/saju/shinsal-facts-block.mjs";
+import { ENGINE_ROLLOUT_FLAGS, shinsalFactsOn } from "@/worker/lib/engine-rollout.js";
 import { approvedSajuLabels, sajuAuthorityOn } from "@/worker/lib/saju-authority-consumer.js";
 
 export type SajuFactsInput = {
@@ -256,10 +257,39 @@ function buildDaewoonLines(local: LocalSajuResult, birth: ParsedYmd, hm: { hour:
 }
 
 /**
+ * 신살 블록용 운 행. 올해 세운과, 대운 흐름이 엔진 방향과 맞을 때만 현재 대운을 넣는다
+ * (buildDaewoonLines 와 같은 교차검증 — 틀린 대운의 신살보다 없는 편이 낫다).
+ */
+function buildShinsalLuckRows(local: LocalSajuResult, birth: ParsedYmd, hm: { hour: number; minute: number } | null, gender: "male" | "female" | "unknown") {
+  const nowYear = new Date().getFullYear();
+  const year = sexagenaryYearIndexes(nowYear);
+  const rows: Array<Record<string, unknown>> = [
+    { scope: "sewoon", ganji: formatPillar(year.stemIndex, year.branchIndex, "hanja"), year: nowYear },
+  ];
+  if (gender === "unknown" || local.daewoonDirection === "unknown") return rows;
+  const flow = daeun(
+    { year: birth.year, month: birth.month, day: birth.day, hour: hm?.hour ?? 12, minute: hm?.minute ?? 0 },
+    { gender: gender === "male" ? "M" : "F", count: 9 },
+  );
+  if (!flow || flow.forward !== (local.daewoonDirection === "forward")) return rows;
+  const current = flow.cycles.find((cycle) => nowYear >= cycle.startYear && nowYear <= cycle.endYear);
+  if (current && current.stemIndex !== null && current.branchIndex !== null) {
+    rows.unshift({ scope: "daewoon", ganji: formatPillar(current.stemIndex, current.branchIndex, "hanja"), age: current.startAge });
+  }
+  return rows;
+}
+
+/**
  * 사주 명식 산출 데이터 블록. 생년월일을 못 읽거나 엔진이 실패하면 빈 문자열을 돌려주어
  * 호출부가 조용히 골격만 출력하도록 한다(숙요점 산출기와 같은 계약).
  */
-export function buildSajuPromptFacts(input: SajuFactsInput, { authorityEnabled = sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS) } = {}): string {
+export function buildSajuPromptFacts(
+  input: SajuFactsInput,
+  {
+    authorityEnabled = sajuAuthorityOn(ENGINE_ROLLOUT_FLAGS),
+    shinsalEnabled = shinsalFactsOn(ENGINE_ROLLOUT_FLAGS, "prompt-hub"),
+  } = {},
+): string {
   try {
     const birth = parseYmd(input.birthDate);
     if (!birth) return "";
@@ -384,6 +414,20 @@ export function buildSajuPromptFacts(input: SajuFactsInput, { authorityEnabled =
     );
 
     if (labels) lines.push(...labels.promptRules.map((rule: string) => `- 해석 규칙: ${rule}`));
+
+    if (shinsalEnabled) {
+      // 신살은 별도 블록으로 덧붙인다. 여기서 실패해도 명식 블록 전체(바깥 catch → "")를 잃지 않게 따로 감싼다.
+      // 공망은 위 명식 줄에서 이미 출력하므로 블록에서 뺀다.
+      try {
+        const block = buildShinsalFactsBlock(
+          { pillars: local.pillars, timeUnknown: !hasTime, luckRows: buildShinsalLuckRows(local, birth, hm, gender) },
+          { maxChars: 1200, excludeRuleIds: ["gongmang"] },
+        );
+        if (block) lines.push("", ...block.split("\n"));
+      } catch {
+        // 블록만 빠진다.
+      }
+    }
 
     lines.push("");
     lines.push(
