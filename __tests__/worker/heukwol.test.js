@@ -71,6 +71,29 @@ describe('delivery plan v2 (new sessions only)',()=>{
   testEnv={};expect((await drive(fresh.id)).status).toBe('completed');expect(refunds).toBe(0);
   expect(seenOptions).toHaveLength(27);expect(seenOptions.every(o=>o.traitFirst==='v1'&&o.traitSeed==='owner|heukwol')).toBe(true);
  });
+ test('shinsal facts are pinned at start; legacy sessions stay off; turning the flag off stops the block mid-session',async()=>{
+  const run=async(id,env)=>{let data;for(let i=0;i<60;i++){data=await (await advanceHeukwol(env,'owner',id)).json();if(data.status!=='generating')break;}return data;};
+  const meta=id=>rows.get('owner:'+id).metadata;
+  const ON={SAJU_SHINSAL_FACTS_V1:'heukwol'};
+  // 플래그 없이 시작한 옛 세션은 나중에 켜도 끝까지 블록 없이 완료한다.
+  const old=await (await post('start')).json();expect(meta(old.id)).not.toHaveProperty('shinsalFacts');
+  expect((await run(old.id,ON)).status).toBe('completed');expect(seenOptions.some(o=>'shinsalFacts' in o)).toBe(false);
+  // 켠 채 시작한 새 세션은 핀이 남고, 일시 실패 뒤 재시도·재개에도 모든 장이 블록을 받는다.
+  rows.clear();seenOptions=[];testEnv=ON;transientLeft=2;
+  const fresh=await (await post('start',{...input,question:input.question+' 신살'})).json();expect(meta(fresh.id).shinsalFacts).toBe('shinsal-facts-v1');
+  const done=await run(fresh.id,ON);expect(done.status).toBe('completed');expect(done.report.totalChars).toBe(2000*27);
+  expect(seenOptions.length).toBeGreaterThanOrEqual(27);expect(seenOptions.every(o=>o.shinsalFacts===true)).toBe(true);
+  expect(JSON.stringify(rows.get('owner:'+fresh.id))).not.toContain('신살 계산값');
+  // 핀이 있어도 플래그를 끄면 다음 장부터 블록이 빠지고 그대로 완료한다.
+  rows.clear();seenOptions=[];testEnv={SAJU_SHINSAL_FACTS_V1:'true'};
+  const killed=await (await post('start',{...input,question:input.question+' 끄기'})).json();expect(meta(killed.id).shinsalFacts).toBe('shinsal-facts-v1');
+  expect(seenOptions).toHaveLength(1);expect(seenOptions[0].shinsalFacts).toBe(true);
+  expect((await run(killed.id,{})).status).toBe('completed');expect(seenOptions).toHaveLength(27);expect(seenOptions.slice(1).some(o=>'shinsalFacts' in o)).toBe(false);
+  // 다른 소비처 id 만 켜면 흑월은 핀을 남기지 않는다.
+  rows.clear();testEnv={SAJU_SHINSAL_FACTS_V1:'life-book'};
+  const other=await (await post('start',{...input,question:input.question+' 다른'})).json();expect(meta(other.id)).not.toHaveProperty('shinsalFacts');
+  expect(refunds).toBe(0);
+ });
  test('short but valid chapters reach completed without the 40,000-char gate or a refund',async()=>{
   chapterChars=900;const data=await drive((await (await post('start')).json()).id);
   expect(data.status).toBe('completed');expect(data.report.totalChars).toBe(900*27);expect(refunds).toBe(0);

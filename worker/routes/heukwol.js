@@ -11,6 +11,7 @@ import { buildHeukwolAnalysis, heukwolProfileBirth } from '../lib/heukwol-analys
 import { HEUKWOL_FEATURE_KEY, HEUKWOL_CHAPTERS, HEUKWOL_MIN_CHARS, HEUKWOL_DELIVERY_PLAN_VERSION, HEUKWOL_TRANSIENT_ATTEMPTS, heukwolDeliveryV2Enabled, generateHeukwolChapter, isHeukwolTransientError } from "../lib/heukwol-report.js";
 import { json, readJson, handleRouteError } from '../lib/http.js';
 import { selectTraitFirst, TRAIT_FIRST_META } from '../lib/trait-profile/index.js';
+import { selectShinsalFacts, shinsalFactsPinned } from '../lib/engine-rollout.js';
 import { logStuckSettled, retryRefundAt } from '../lib/paid-delivery-stuck.js';
 
 const digest = value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -120,6 +121,8 @@ export async function advanceHeukwol(env,userId,id) {
     if(next) {
       // Trait-First 는 시작 때 저장한 값만 따른다. 키가 없는 옛 세션은 꺼진 채로 끝난다.
       const trait=meta.traitFirst===TRAIT_FIRST_META?{traitFirst:TRAIT_FIRST_META,traitSeed:`${userId}|heukwol`}:{};
+      // 신살 블록도 시작 때 핀만 따른다. 플래그를 끄면(ON→OFF) 진행 중 세션도 다음 장부터 블록 없이 이어 간다.
+      if(shinsalFactsPinned(meta,env,'heukwol'))trait.shinsalFacts=true;
       const chapter=v2
         ?await generateHeukwolChapter(env,meta.analysis,next,meta.input.question,chapters,undefined,{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,
           relaxed:(meta.attempts||0)>=1,finalAttempt:(meta.attempts||0)>=HEUKWOL_V2_ATTEMPTS_PER_ROUND-1,repairIssue:meta.lastIssue||'',...trait})
@@ -348,6 +351,7 @@ export async function handleHeukwolRoutes(request,env) {
         // 새 세션만 2판. 진행 중인 1판 세션은 옛 동작으로 끝난다. 되돌리기: HEUKWOL_DELIVERY_V2_ENABLED=false
         ...(heukwolDeliveryV2Enabled(env)?{deliveryPlanVersion:HEUKWOL_DELIVERY_PLAN_VERSION,chapterRounds:{},lastIssue:''}:{}),
         ...(selectTraitFirst(env)?{traitFirst:TRAIT_FIRST_META}:{}),
+        ...(selectShinsalFacts(env,'heukwol')?{shinsalFacts:selectShinsalFacts(env,'heukwol')}:{}),
         archive:{title:`${input.year} 흑월의 주의 시기`,year:input.year,reportId:id,status:'generating'},
         ...(passEvidence?{passRefund:{cycleKey:passEvidence.metadata?.passCycleKey,cost:passEvidence.metadata?.coinCost||0}}:{})}});
     if(!started.ok)return error(503,'RESULT_STORAGE_UNAVAILABLE','상담 저장을 확인하지 못했어요. 같은 요청으로 다시 시도해 주세요.');

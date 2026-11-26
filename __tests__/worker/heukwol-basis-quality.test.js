@@ -4,7 +4,7 @@ import { buildHeukwolAnalysis, heukwolProfileBirth } from '../../worker/lib/heuk
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
 import { buildNeoBasisPayload } from '../../worker/lib/neo-operation-room-basis.js';
-import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, isHeukwolTransientError, heukwolPrompt, chapterEvidence, generateHeukwolChapter } from '../../worker/lib/heukwol-report.js';
+import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, isHeukwolTransientError, heukwolPrompt, chapterEvidence, generateHeukwolChapter, heukwolShinsalBlock, HEUKWOL_SHINSAL_RULE, HEUKWOL_SHINSAL_PROMPT_BUDGET, validateHeukwolChapter, validateHeukwolChapterV2 } from '../../worker/lib/heukwol-report.js';
 import { assertWorkersAiInputTokenLimit, workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 const now = new Date('2026-11-06T00:00:00Z');
@@ -382,5 +382,120 @@ describe('Trait-First (TRAIT_FIRST_SAJU)', () => {
       expect(prompts[0]).toBe(heukwolPrompt(analysis, temperament, '질문', [], '', traitOn));
       expect([...warn.mock.calls, ...info.mock.calls].some(c => c[0] === '[Heukwol] Trait First Shadow')).toBe(true);
     } finally { warn.mockRestore(); info.mockRestore(); }
+  });
+});
+
+describe('신살 사실 블록 (SAJU_SHINSAL_FACTS_V1)', () => {
+  const natal = HEUKWOL_CHAPTERS.filter(c => c.phase === 'natal');
+  const temperament = natal.find(c => c.key === 'temperament');
+  const traitOn = { traitFirst: 'v1', traitSeed: 'owner|heukwol' };
+  const HEADER = '[신살 계산값 — 서버 계산. 이 목록 밖의 신살은 쓰지 않는다]';
+  const count = (text, part) => text.split(part).length - 1;
+  const bound = content => workersAiInputTokenUpperBound([{ role: 'user', content }]);
+  // 블록에 적힌 신살 이름을 인용하고 근거를 natal-saju 로 적은 답변. 문장마다 번호·주제가 달라 반복 검사에 걸리지 않는다.
+  const citingReply = (block) => {
+    const names = block.split('\n').filter(l => l.startsWith('- ') && !l.startsWith('- 시주:')).map(l => l.slice(2).split(':')[0]);
+    const topics = ['약속을 잡는', '돈을 쓰는', '말을 꺼내는', '쉬는 시간을 정하는', '부탁을 거절하는', '새 일을 맡는', '연락을 미루는', '계획을 바꾸는'];
+    const lines = fn => Array.from({ length: 24 }, (_, i) => fn(names[i % names.length], topics[i % topics.length], i + 1)).join(' ');
+    return {
+      warning: `${lines((n, t, i) => `흑월이 ${i}번째로 짚는 조건은 ${t} 순간에 ${n} 신호가 겹치는 경우예요.`)}\n${block}`,
+      interpretation: lines((n, t, i) => `${i}번째 근거인 ${n}은 ${t} 장면에서 서두르지 않는 편이 좋다는 보조 단서로 읽어요.`),
+      strategy: lines((n, t, i) => `${i}번째 대응은 ${t} 상황에서 ${n}을 떠올리고 한 번 더 확인하는 거야.`),
+      checkpoints: ['하루 일정에 쉬는 칸을 먼저 적었는가', '큰 지출 전에 하루를 기다렸는가', '부탁을 받으면 답을 미루고 조건을 확인했는가'],
+      evidenceIds: ['natal-saju'],
+    };
+  };
+
+  test('off is byte-identical for every chapter; on adds the block once to the six natal chapters only', () => {
+    expect(natal).toHaveLength(6);
+    for (const chapter of HEUKWOL_CHAPTERS) for (const hint of ['', '힌트']) {
+      const base = heukwolPrompt(analysis, chapter, '질문', [], hint);
+      for (const off of [{}, { shinsalFacts: false }, { shinsalFacts: 'true' }, { shinsalFacts: 1 }]) expect(heukwolPrompt(analysis, chapter, '질문', [], hint, off)).toBe(base);
+      const on = heukwolPrompt(analysis, chapter, '질문', [], hint, { shinsalFacts: true });
+      if (chapter.phase !== 'natal') { expect(on).toBe(base); continue; }
+      const block = heukwolShinsalBlock(analysis, chapter);
+      expect(count(on, HEADER)).toBe(1);
+      expect(on.length - base.length).toBe(block.length + 1);
+      const plain = heukwolPrompt(analysis, chapter, '질문', []);
+      expect(on).toBe(hint ? `${plain}\n${block}\n보완 요청: ${hint}` : `${plain}\n${block}`);
+      expect(on.replace(`\n${block}`, '')).toBe(base);
+    }
+  });
+
+  test('the block is natal-only, at most 500 chars, ends with the natal-saju rule and sits between Trait-First and the repair hint', () => {
+    const block = heukwolShinsalBlock(analysis, temperament);
+    expect(block.length).toBeLessThanOrEqual(500);
+    expect(block.startsWith(`${HEADER}\n`)).toBe(true);
+    expect(block.split('\n').at(-1)).toBe(HEUKWOL_SHINSAL_RULE);
+    expect(block).not.toMatch(/- (?:대운|세운|월운) /);
+    expect(block.match(/(?:^|[^-\w])(?:saju|ziwei)-[\w-]+/g) ?? []).toEqual([]);
+    for (const chapter of natal) expect(heukwolShinsalBlock(analysis, chapter)).toBe(block);
+    for (const chapter of HEUKWOL_CHAPTERS.filter(c => c.phase !== 'natal')) expect(heukwolShinsalBlock(analysis, chapter)).toBe('');
+    const both = heukwolPrompt(analysis, temperament, '질문', [], '힌트', { ...traitOn, shinsalFacts: true });
+    const traitAt = both.indexOf('\n[타고난 성향 핵심 근거]'), blockAt = both.indexOf(`\n${HEADER}`), hintAt = both.indexOf('\n보완 요청: 힌트');
+    expect(traitAt).toBeGreaterThan(0);
+    expect(traitAt < blockAt && blockAt < hintAt).toBe(true);
+  });
+
+  test('a missing hour gives the time-unknown line; broken input drops only the block', () => {
+    const noHour = { ...analysis, pillars: analysis.pillars.filter(p => p.label !== '시주') };
+    const block = heukwolShinsalBlock(noHour, temperament);
+    expect(block).toContain('- 시주: 출생 시간 미상이라 시주 신살은 계산하지 않았다');
+    expect(block).not.toMatch(/시지\(|시간\(/);
+    for (const bad of [{ pillars: [{ label: '일주', pillar: 'XX' }] }, { pillars: null }, null, undefined]) expect(heukwolShinsalBlock(bad, temperament)).toBe('');
+    const broken = { ...analysis, pillars: [{ label: '일주', pillar: 'XX' }] };
+    expect(heukwolPrompt(broken, temperament, '질문', [], '', { shinsalFacts: true })).toBe(heukwolPrompt(broken, temperament, '질문', []));
+  });
+
+  test.each([
+    ['New York 2027', analysis],
+    ['Seoul 1984 / 2026', buildHeukwolAnalysis(heukwolProfileBirth({ gender: 'M', birth: { year: 1984, month: 2, day: 3, hour: 4, minute: 10, timeUnknown: false, calType: 'solar' } }), 2026, now)],
+    ['New York 2028', buildHeukwolAnalysis(birth, 2028, now)],
+  ])('the block never pushes a natal prompt past the 95%% budget, and survives the real chapter order (%s)', (_label, target) => {
+    const question = '흑'.repeat(3000);
+    const longestHint = Object.values(HEUKWOL_REPAIR_HINTS).sort((a, b) => b.length - a.length)[0];
+    expect(HEUKWOL_SHINSAL_PROMPT_BUDGET).toBe(Math.floor(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95));
+    let dropped = 0;
+    for (const chapter of natal) for (const trait of [{}, traitOn]) {
+      const everyOther = HEUKWOL_CHAPTERS.filter(c => c.key !== chapter.key).map(c => ({ title: c.title, strategy: '대응'.repeat(400) }));
+      for (const previous of [[], everyOther]) {
+        const off = heukwolPrompt(target, chapter, question, previous, longestHint, trait);
+        const on = heukwolPrompt(target, chapter, question, previous, longestHint, { ...trait, shinsalFacts: true });
+        if (on === off) { dropped++; continue; }
+        expect(count(on, HEADER)).toBe(1);
+        expect([chapter.key, bound(on) <= HEUKWOL_SHINSAL_PROMPT_BUDGET]).toEqual([chapter.key, true]);
+      }
+    }
+    // 최장 질문·26장 이전 목록·최장 보완 요청에 Trait-First 까지 실린 성향 장만 예산을 넘어 블록이 빠진다.
+    expect(dropped).toBeGreaterThan(0);
+    expect(heukwolPrompt(target, temperament, question, [], longestHint, { ...traitOn, shinsalFacts: true })).toContain(HEADER);
+  });
+
+  test('a reply that quotes the block and cites natal-saju passes the v1 and v2 validators unchanged', () => {
+    const charts = [analysis, ...[[1957, 3, 1], [1969, 11, 7], [1978, 6, 13], [1993, 9, 19], [2004, 12, 22]].map(([year, month, hour], i) =>
+      buildHeukwolAnalysis(heukwolProfileBirth({ gender: i % 2 ? 'F' : 'M', birth: { year, month, day: 4 + i * 5, hour, minute: 20, timeUnknown: false, calType: 'solar' } }), 2027, now))];
+    for (const target of charts) for (const chapter of natal) {
+      const block = heukwolShinsalBlock(target, chapter);
+      expect(block).toContain(HEADER);
+      const reply = citingReply(block);
+      expect(validateHeukwolChapter(reply, target, chapter).evidenceIds).toEqual(['natal-saju']);
+      for (const flags of [{}, { relaxed: true }, { finalAttempt: true }]) {
+        const accepted = validateHeukwolChapterV2(reply, target, chapter, flags);
+        expect(accepted.evidenceIds).toEqual(['natal-saju']);
+        expect(accepted.warning).toContain(block);
+      }
+    }
+  });
+
+  test('the generator forwards only a true pin into the prompt', async () => {
+    const prompts = [];
+    const reply = citingReply(heukwolShinsalBlock(analysis, temperament));
+    const capture = async (_env, prompt) => { prompts.push(prompt); return { ok: true, text: JSON.stringify(reply) }; };
+    for (const options of [{ deliveryPlanVersion: 2 }, { deliveryPlanVersion: 2, shinsalFacts: true }, { deliveryPlanVersion: 2, shinsalFacts: 'shinsal-facts-v1' }, {}, { shinsalFacts: true }]) {
+      await generateHeukwolChapter({}, analysis, temperament, '질문', [], capture, options);
+    }
+    const plain = heukwolPrompt(analysis, temperament, '질문', []);
+    const withBlock = heukwolPrompt(analysis, temperament, '질문', [], '', { shinsalFacts: true });
+    expect(prompts).toEqual([plain, withBlock, plain, plain, withBlock]);
   });
 });

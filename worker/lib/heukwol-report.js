@@ -5,6 +5,8 @@ import { sliceNeoBasisPayload } from './neo-operation-room-basis.js';
 import { banmalRegisterDrift, hapnidaDrift } from './expert-character-persona-text.js';
 import { SAJU_LUCK_JUDGEMENT_RULE } from './saju-temperament.js';
 import { sajuTraitFirstLines, traitFirstShadowCheck } from './trait-profile/index.js';
+import { buildShinsalFactsBlock } from '../../lib/saju/shinsal-facts-block.mjs';
+import { workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 export const HEUKWOL_FEATURE_KEY = "heukwol-warning-consultation";
 export const HEUKWOL_TARGET_CHARS = 50000;
@@ -146,6 +148,24 @@ const HEUKWOL_PILLAR_POSITIONS = { 년주:'year', 월주:'month', 일주:'day', 
 export function heukwolTraitChart(analysis) {
   return { pillars: Object.fromEntries((analysis?.pillars || []).filter(p => HEUKWOL_PILLAR_POSITIONS[p?.label]).map(p => [HEUKWOL_PILLAR_POSITIONS[p.label], p.pillar])) };
 }
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, 소비처 id 'heukwol'). 원국 6장(phase 'natal')에만 원국 신살만 붙인다.
+// 12개월·주제 장은 Workers AI 입력 상한 여유를 위해 붙이지 않는다. 블록에는 근거 ID 를 두지 않고,
+// 모델이 신살을 근거로 쓰면 기존 ID natal-saju 로 적게 한다(검증기 허용 목록을 넓히지 않는다).
+export const HEUKWOL_SHINSAL_RULE = '신살 근거는 evidenceIds 에 natal-saju 로 적는다.';
+const HEUKWOL_SHINSAL_MAX_CHARS = 500;
+// 블록을 붙인 최종 프롬프트가 Workers AI 폴백 입력 상한의 95%(장 프롬프트 예산 테스트와 같은 선)를 넘으면 블록만 뺀다.
+// 성향 장은 Trait-First 줄까지 실려 최장 질문·최장 보완 요청에서 이미 이 선 근처다. 거부가 아니라 생략이다.
+export const HEUKWOL_SHINSAL_PROMPT_BUDGET = Math.floor(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+export function heukwolShinsalBlock(analysis, chapter) {
+  try {
+    if (chapter?.phase !== 'natal') return '';
+    const pillars = heukwolTraitChart(analysis).pillars;
+    const timeUnknown = !pillars.hour;
+    const block = buildShinsalFactsBlock({ pillars: { ...pillars, hour: timeUnknown ? null : pillars.hour }, timeUnknown },
+      { maxChars: HEUKWOL_SHINSAL_MAX_CHARS - HEUKWOL_SHINSAL_RULE.length - 1 });
+    return block ? `${block}\n${HEUKWOL_SHINSAL_RULE}` : '';
+  } catch { return ''; }
+}
 export function heukwolPrompt(analysis, chapter, question, previous = [], repairHint = '', traitOptions = {}) {
   const prompt = `${HEUKWOL_PROMPT_PREFIX}
 지정된 장: ${chapter.title}. 맡은 역할: ${chapter.focus}.
@@ -158,7 +178,11 @@ export function heukwolPrompt(analysis, chapter, question, previous = [], repair
     ? sajuTraitFirstLines(heukwolTraitChart(analysis), { traitFirst: traitOptions.traitFirst, seed: traitOptions.traitSeed || '' }) : [];
   const withTrait = traitLines.length ? `${prompt}\n${traitLines.join('\n')}` : prompt;
   // 2판 재시도만 보완 요청 한 줄을 뒤에 붙인다. 힌트가 없으면 1판 프롬프트와 바이트가 같다.
-  return repairHint ? `${withTrait}\n보완 요청: ${repairHint}` : withTrait;
+  const tail = repairHint ? `\n보완 요청: ${repairHint}` : '';
+  // 신살 블록은 시작 때 핀이 있고 플래그가 켜진 세션에서만 붙는다. 꺼지면 프롬프트 바이트가 그대로다.
+  const shinsal = traitOptions?.shinsalFacts === true ? heukwolShinsalBlock(analysis, chapter) : '';
+  const fits = shinsal && workersAiInputTokenUpperBound([{ role: 'user', content: `${withTrait}\n${shinsal}${tail}` }]) <= HEUKWOL_SHINSAL_PROMPT_BUDGET;
+  return `${fits ? `${withTrait}\n${shinsal}` : withTrait}${tail}`;
 }
 export function validateHeukwolChapter(value, analysis, chapter) {
   const evidence=chapterEvidence(analysis,chapter);
@@ -244,7 +268,7 @@ export async function generateHeukwolChapter(env, analysis, chapter, question, p
   const v2=Number(options?.deliveryPlanVersion)===HEUKWOL_DELIVERY_PLAN_VERSION;
   const hint=v2?HEUKWOL_REPAIR_HINTS[options?.repairIssue]||'':'';
   let result;
-  try { result=await generate(env,heukwolPrompt(analysis,chapter,question,previous,hint,{traitFirst:options?.traitFirst||null,traitSeed:options?.traitSeed||''}),{
+  try { result=await generate(env,heukwolPrompt(analysis,chapter,question,previous,hint,{traitFirst:options?.traitFirst||null,traitSeed:options?.traitSeed||'',shinsalFacts:options?.shinsalFacts===true}),{
     attempts:1,baseTokens:16000,capTokens:16000,temperature:0.4,taskType:'fortune',
     // R6b: 연이(존댓말)·네오(반말) 두 화자가 말투를 나눠 쓰므로 공용 ko "존댓말" 최우선 지시를 끈다(한국어 전용 계약은 유지).
     // 켜 두면 네오 대응까지 합니다체가 되어 HEUKWOL_CHAPTER_REGISTER 로 결정적으로 탈락한다(영냥이 7757ef597 선례).
