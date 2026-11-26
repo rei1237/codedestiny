@@ -217,6 +217,14 @@ test.each([
   expect(payments[0].status).toBe('paid');
 });
 
+test('a geomancy run cancels a card payment recorded under its gate key openGeomancyOracle only', async () => {
+  seed('paid');
+  payments[0].featureKey = 'openGeomancyOracle';
+  expect(await runPaymentCancel({}, { merchantUid: MERCHANT_UID }, 'failed', { ...executions[0], featureKey: 'tarot-mindscan' })).toMatchObject({ cancelled: false, reason: 'PAYMENT_FEATURE_MISMATCH' });
+  expect(cancelPortOnePaymentMock).not.toHaveBeenCalled();
+  expect(await runPaymentCancel({}, { merchantUid: MERCHANT_UID }, 'failed', { ...executions[0], featureKey: 'geomancy' })).toMatchObject({ cancelled: true });
+  expect(cancelPortOnePaymentMock).toHaveBeenCalledTimes(1);
+});
 test('lost PG response is reconciled without a second cancellation request',async()=>{
  seed('paid');cancelPortOnePaymentMock.mockRejectedValueOnce(new Error('response lost'));fetchPortOnePaymentMock.mockRejectedValueOnce(new Error('lookup unavailable'));
  expect(await runPaymentCancel({}, {merchantUid:MERCHANT_UID},'failed',executions[0])).toMatchObject({cancelled:false,adminReviewRequired:true});

@@ -3,6 +3,7 @@ import { findProtectedFundingExecution } from "./refund-delivery-protection.js";
 import { connectDb, mongoose, withMongoRetry } from "./db.js";
 import { CONTENT_ENTITLEMENT_STATUSES, MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
 import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
+import { isRefundEvidenceFeature, refundEvidenceFeatureKeys } from "./refund-feature-alias.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
 import { invalidateAccessStateCacheForUser } from "./access-state-cache.js";
@@ -448,13 +449,13 @@ export async function runCoinRefund({ env, userId, featureKey, sourceTransaction
   return (deps.withDb || withPaymentDb)(env || {}, context, db => db.transaction(async tx => {
     const existing = await tx.findOne(PointHistory, { userId: uid, kind: "refund", "metadata.refundForPointHistoryId": String(sourceId) });
     if (existing) {
-      if (!featureKey || String(existing.featureKey || "") !== String(featureKey)) return { refunded: false, skipped: true, reason: "REFUND_FEATURE_MISMATCH" };
+      if (!isRefundEvidenceFeature(featureKey, existing.featureKey)) return { refunded: false, skipped: true, reason: "REFUND_FEATURE_MISMATCH" };
       return { refunded: true, idempotent: true, refundTxId: String(existing._id || "") };
     }
     const filter = { _id: sourceId, userId: uid, kind: "deduct", "metadata.refundedForServiceExecution": { $ne: true } };
     const deducted = await tx.findOne(PointHistory, filter);
     if (!deducted) return { refunded: false, skipped: true, reason: "DEDUCT_HISTORY_NOT_FOUND" };
-    if (!featureKey || String(deducted.featureKey || "") !== String(featureKey)) return { refunded: false, skipped: true, reason: "DEDUCT_FEATURE_MISMATCH" };
+    if (!isRefundEvidenceFeature(featureKey, deducted.featureKey)) return { refunded: false, skipped: true, reason: "DEDUCT_FEATURE_MISMATCH" };
     if (cleanMetadataText(deducted?.metadata?.accessType).toLowerCase() === "membership_credit") return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_DEDUCT" };
     const delta = Number(deducted.delta);
     if (!Number.isSafeInteger(delta) || delta >= 0) return { refunded: false, skipped: true, reason: "DEDUCT_AMOUNT_UNVERIFIED" };
@@ -470,7 +471,8 @@ export async function runCoinRefund({ env, userId, featureKey, sourceTransaction
     const user = updated && "value" in updated && !("_id" in updated) ? updated.value : updated;
     if (!user || !Number.isFinite(Number(user.points))) throw new Error("USER_NOT_FOUND_FOR_REFUND");
     const receipt = await tx.insertOne(PointHistory, { userId: uid, kind: "refund", delta: refundAmount,
-      balanceAfter: Number(user.points), reason, featureKey,
+      // The receipt carries the key the debit was recorded under (identical unless an approved alias matched).
+      balanceAfter: Number(user.points), reason, featureKey: String(deducted.featureKey),
       metadata: { source: receiptSource === "fortune.pig-coin.refund" ? receiptSource : "billing.service-execution", requestId: String(requestId || "").slice(0, 120),
         executionId: String(executionId || ""), refundForPointHistoryId: String(sourceId), sourceTransactionId: String(sourceId) },
       createdAt: now, updatedAt: now });
@@ -492,16 +494,22 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
   let cycleKey = cleanMetadataText(passRefund?.cycleKey, 160);
   const featureKey = cleanMetadataText(execution?.featureKey, 120);
   const requestId = cleanMetadataText(execution?.idempotencyKey, 180);
+  // The key the usage row was deducted under: the execution key, or its approved alias (geomancy → openGeomancyOracle).
+  let evidenceFeatureKey = featureKey;
   if (!userId) return { refunded: false, skipped: true };
   // passRefund 를 싣지 않은 실행(결제 화면 pass-check 가 먼저 차감한 경로)은 같은 (기능, requestId) 의
   // 이용권 사용 증빙에서 금액·사이클을 읽는다. 증빙이 없거나 이미 환불됐으면 되돌릴 차감이 없다.
   if ((cost <= 0 || !cycleKey) && featureKey && requestId && !featureKey.startsWith("yeongnyangi-")) {
     const { passUsageEvidenceId } = await import("../payments/passes.js");
-    const evidenceId = passUsageEvidenceId(userId, featureKey, requestId);
-    const evidence = evidenceId ? await refundModels.PointHistory.findOne({ _id: evidenceId, featureKey,
-      "metadata.refundedForServiceExecution": { $ne: true } }).lean() : null;
+    // The first key with a row decides, refunded or not, so an alias row never re-opens a refunded execution-key row.
+    let evidence = null;
+    for (const key of refundEvidenceFeatureKeys(featureKey)) {
+      const evidenceId = passUsageEvidenceId(userId, key, requestId);
+      evidence = evidenceId ? await refundModels.PointHistory.findOne({ _id: evidenceId, featureKey: key }).lean() : null;
+      if (evidence) { evidenceFeatureKey = key; break; }
+    }
     const meta = evidence?.metadata || {};
-    if (evidence && Number(evidence.delta || 0) === 0 && ["PASS", "FAMILY"].includes(String(meta.accessMethod || "").toUpperCase())
+    if (evidence && meta.refundedForServiceExecution !== true && Number(evidence.delta || 0) === 0 && ["PASS", "FAMILY"].includes(String(meta.accessMethod || "").toUpperCase())
       && meta.passBudgetExempt !== true) {
       cost = Math.max(0, Math.floor(Number(meta.coinCost) || 0));
       cycleKey = cleanMetadataText(meta.passCycleKey, 160);
@@ -517,7 +525,7 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
 
   if (!featureKey || !requestId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
   const { passUsageEvidenceId } = await import("../payments/passes.js");
-  const sourcePointHistoryId = passUsageEvidenceId(userId, featureKey, requestId);
+  const sourcePointHistoryId = passUsageEvidenceId(userId, evidenceFeatureKey, requestId);
   if (!sourcePointHistoryId) return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
   const protectedResult = await findProtectedFundingExecution({
     userId, ids: [sourcePointHistoryId, execution.sourceTransactionId, requestId],
@@ -528,7 +536,7 @@ async function runPassQuotaRefund({ userId, executionId, execution }) {
   let result;
   try {
     result = await refundPassCoverage({ userId, cycleKey, cost, refundId: `${featureKey}:${requestId}`,
-      sourcePointHistoryId, sourceFeatureKey: featureKey, sourceRequestId: requestId });
+      sourcePointHistoryId, sourceFeatureKey: evidenceFeatureKey, sourceRequestId: requestId });
   } catch (error) {
     if (error?.code === "REFUND_PASS_REVIEW") return { refunded: false, skipped: true, reason: "PASS_SOURCE_REVIEW_REQUIRED", adminReviewRequired: true };
     throw error;
@@ -622,6 +630,8 @@ function collectMonthlyCreditFeatureKeys(execution = {}, featureKey = "") {
     metadata.featureKey,
     billing.featureKey,
     billing.serviceKey,
+    // Approved gate-key alias only (refund-feature-alias.js): geomancy runs spend moonstones as openGeomancyOracle.
+    ...refundEvidenceFeatureKeys(execution.featureKey || featureKey).slice(1),
   ];
 }
 
@@ -726,7 +736,7 @@ export async function runPaymentCancel(env, paymentRef = {}, reason, execution =
   if (!execution.userId || String(payment.userId || "") !== String(execution.userId)) {
     return { cancelled: false, skipped: true, reason: "PAYMENT_OWNER_MISMATCH" };
   }
-  if (!execution.featureKey || String(payment.featureKey || "") !== String(execution.featureKey)) {
+  if (!isRefundEvidenceFeature(execution.featureKey, payment.featureKey)) {
     return { cancelled: false, skipped: true, reason: "PAYMENT_FEATURE_MISMATCH" };
   }
   if (cleanMetadataText(payment.paymentType, 80).toLowerCase() === "membership_pass") {

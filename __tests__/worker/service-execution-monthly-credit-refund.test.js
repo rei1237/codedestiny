@@ -42,3 +42,7 @@ test('old unconfirmed receipt is held for review, never paid again',async()=>{
  const f=await setup();f.state.MonthlyCreditLedger.push({userId:uid,type:'MONTHLY_CREDIT_GRANT',serviceKey:'test-feature',metadata:{executionId:execId,source:'billing.service-execution'}});
  expect(await f.run()).toMatchObject({refunded:false,adminReviewRequired:true});expect(f.state.restores).toBe(0);
 });
+test.each([['geomancy',true],['tarot-mindscan',false]])('a %s run and a moonstone spend under openGeomancyOracle: refunded=%s',async(featureKey,refunded)=>{
+ const f=await setup();f.state.MonthlyCreditLedger[0].serviceKey='openGeomancyOracle';
+ expect(await f.run({featureKey,execution:{...f.input.execution,featureKey}})).toMatchObject({refunded});expect(f.state.restores).toBe(refunded?1:0);
+});

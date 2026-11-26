@@ -177,8 +177,29 @@ describe('payment evidence', () => {
   });
   test('a row for another feature does not count', async () => {
     const doc = narrative({ sourceTransactionId: '64b7f2a1c3d4e5f601230001' });
-    const pointHistory = store([{ _id: '64b7f2a1c3d4e5f601230001', userId: UID, featureKey: 'openGeomancyOracle', kind: 'deduct', delta: -3 }]);
+    const pointHistory = store([{ _id: '64b7f2a1c3d4e5f601230001', userId: UID, featureKey: 'tarot-mindscan', kind: 'deduct', delta: -3 }]);
     expect((await prove({}, doc, { pointHistory, payment: store([]), moonstone: none })).ok).toBe(false);
+    const { passUsageEvidenceId } = await import('../../worker/payments/passes.js');
+    const id = String(passUsageEvidenceId(UID, 'tarot-mindscan', 'req-1'));
+    const usage = { _id: id, userId: UID, featureKey: 'tarot-mindscan', kind: 'deduct', delta: 0, metadata: { accessMethod: 'PASS', coinCost: 2, passCycleKey: 'c-1' } };
+    expect((await prove({}, narrative(), { pointHistory: store([usage]), payment: store([]), moonstone: none })).ok).toBe(false);
+  });
+  // 2026-11-26 (a): the geomancy gate deducts under openGeomancyOracle while the run executes as geomancy.
+  test('geomancy accepts its gate key openGeomancyOracle as evidence (pass, coin, card)', async () => {
+    const { passUsageEvidenceId } = await import('../../worker/payments/passes.js');
+    const id = String(passUsageEvidenceId(UID, 'openGeomancyOracle', 'req-1'));
+    const usage = { _id: id, userId: UID, featureKey: 'openGeomancyOracle', kind: 'deduct', delta: 0, metadata: { accessMethod: 'PASS', coinCost: 2, passCycleKey: 'c-1' } };
+    expect(await prove({}, narrative(), { pointHistory: store([usage]), payment: store([]), moonstone: none })).toEqual({ ok: true, kind: 'pass' });
+    const coin = store([{ _id: '64b7f2a1c3d4e5f601230001', userId: UID, featureKey: 'openGeomancyOracle', kind: 'deduct', delta: -3 }]);
+    expect(await prove({}, narrative({ sourceTransactionId: '64b7f2a1c3d4e5f601230001' }), { pointHistory: coin, payment: store([]), moonstone: none })).toEqual({ ok: true, kind: 'coin' });
+    const card = store([{ _id: '64b7f2a1c3d4e5f601230002', userId: UID, featureKey: 'openGeomancyOracle', impUid: 'imp_9', merchantUid: 'm_9' }]);
+    expect(await prove({}, narrative({ sourceTransactionId: '64b7f2a1c3d4e5f601230002' }), { pointHistory: store([]), payment: card, moonstone: none })).toMatchObject({ ok: true, kind: 'card' });
+  });
+  test('the alias is one-way: an openGeomancyOracle run does not accept geomancy rows', async () => {
+    const { passUsageEvidenceId } = await import('../../worker/payments/passes.js');
+    const id = String(passUsageEvidenceId(UID, 'geomancy', 'req-1'));
+    const usage = { _id: id, userId: UID, featureKey: 'geomancy', kind: 'deduct', delta: 0, metadata: { accessMethod: 'PASS', coinCost: 2, passCycleKey: 'c-1' } };
+    expect((await prove({}, narrative({ featureKey: 'openGeomancyOracle' }), { pointHistory: store([usage]), payment: store([]), moonstone: none })).ok).toBe(false);
   });
   test('a card payment with a PG reference proves a card cancel', async () => {
     const doc = narrative({ sourceTransactionId: '64b7f2a1c3d4e5f601230002' });
@@ -194,7 +215,7 @@ describe('payment evidence', () => {
     const calls = [];
     const moonstone = async (_env, input) => { calls.push(input); return input.tokens.includes('req-1') ? { ledgerId: 'l-1', amount: 3 } : null; };
     expect(await prove({}, narrative(), { pointHistory: store([]), payment: store([]), moonstone })).toEqual({ ok: true, kind: 'moonstone' });
-    expect(calls[0]).toMatchObject({ userId: UID, featureKeys: ['geomancy'] });
+    expect(calls[0]).toMatchObject({ userId: UID, featureKeys: ['geomancy', 'openGeomancyOracle'] });
     expect((await prove({}, narrative({ idempotencyKey: 'req-2' }), { pointHistory: store([]), payment: store([]), moonstone })).ok).toBe(false);
   });
   test('billing evidence keeps only the refund fields, never auth', () => {

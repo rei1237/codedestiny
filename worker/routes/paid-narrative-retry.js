@@ -16,6 +16,7 @@ import { isPaidNarrativeExecution } from "../lib/checkpoint-refund-guard.js";
 import { settlePaidNarrativeExecution } from "../lib/service-execution-task.js";
 import { passUsageEvidenceId } from "../payments/passes.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
+import { refundEvidenceFeatureKeys } from "../lib/refund-feature-alias.js";
 
 const RETRY_LEASE_MS = 600000, MAX_REOPENS = 3;
 // Hold codes the C1 guard writes for a run that cannot progress on its own (checkpoint-refund-guard.js).
@@ -74,30 +75,38 @@ export async function reopenPaidNarrativeRetry(env, { userId, resultId, now = Da
     savedParts: Object.keys(state.parts || {}), resumeBody: { resumeResultId: resultId }, refundAt: retryRefundAt(doc, now).toISOString() } };
 }
 
-// Evidence the settle chain can restore. Only rows owned by this user for this featureKey count.
+// Evidence the settle chain can restore. Only rows owned by this user for this featureKey (or its single approved
+// alias in refund-feature-alias.js, e.g. geomancy → openGeomancyOracle) count.
 export async function provePaidNarrativeRefundEvidence(env, doc, { pointHistory = PointHistory, payment = Payment, moonstone = findMoonstoneSpendEvidence } = {}) {
   const userId = doc.userId, featureKey = doc.featureKey, sid = String(doc.sourceTransactionId || "");
+  const featureKeys = refundEvidenceFeatureKeys(featureKey);
+  if (!featureKeys.length) return { ok: false };
   if (sid && mongoose.Types.ObjectId.isValid(sid)) {
     // A coin deduct (delta < 0) is what runCoinRefund restores; a 0-delta pass row is proven below the way runPassQuotaRefund reads it.
-    const row = await withMongoRetry(env, () => pointHistory.findOne({ _id: sid, userId, featureKey, kind: "deduct" }).select("_id delta").lean());
+    const row = await withMongoRetry(env, () => pointHistory.findOne({ _id: sid, userId, featureKey: { $in: featureKeys }, kind: "deduct" }).select("_id delta").lean());
     if (row && Number(row.delta) < 0) return { ok: true, kind: "coin" };
-    const paid = await withMongoRetry(env, () => payment.findOne({ _id: sid, userId, featureKey }).select("impUid merchantUid").lean());
+    const paid = await withMongoRetry(env, () => payment.findOne({ _id: sid, userId, featureKey: { $in: featureKeys } }).select("impUid merchantUid").lean());
     const impUid = String(paid?.impUid || ""), merchantUid = String(paid?.merchantUid || "");
     if (impUid || merchantUid) return { ok: true, kind: "card", paymentRef: { impUid, merchantUid } };
   }
   const pass = doc.metadata?.passRefund;
   if (pass?.cycleKey && Number(pass.cost) > 0) return { ok: true, kind: "pass" };
-  const evidenceId = doc.idempotencyKey ? passUsageEvidenceId(userId, featureKey, doc.idempotencyKey) : null;
-  const usage = evidenceId ? await withMongoRetry(env, () => pointHistory.findOne({ _id: evidenceId, userId, featureKey, kind: "deduct",
-    "metadata.refundedForServiceExecution": { $ne: true } }).select("_id delta metadata").lean()) : null;
+  // The pass row id is derived from the key it was deducted under; the first key with a row decides (same order as runPassQuotaRefund).
+  let usage = null;
+  for (const key of doc.idempotencyKey ? featureKeys : []) {
+    const evidenceId = passUsageEvidenceId(userId, key, doc.idempotencyKey);
+    usage = evidenceId ? await withMongoRetry(env, () => pointHistory.findOne({ _id: evidenceId, userId, featureKey: key, kind: "deduct" })
+      .select("_id delta metadata").lean()) : null;
+    if (usage) break;
+  }
   const meta = usage?.metadata || {};
-  const passUse = usage && Number(usage.delta || 0) === 0 && ["PASS", "FAMILY"].includes(String(meta.accessMethod || "").toUpperCase())
+  const passUse = usage && meta.refundedForServiceExecution !== true && Number(usage.delta || 0) === 0 && ["PASS", "FAMILY"].includes(String(meta.accessMethod || "").toUpperCase())
     && meta.passBudgetExempt !== true && Number(meta.coinCost) > 0 && meta.passCycleKey;
   if (passUse) return { ok: true, kind: "pass" };
   // A V2 moonstone spend leaves no PointHistory row and no transactionId; its ledger row (not yet refunded) is the
   // evidence runMonthlyCreditRefund finds by the same request tokens. Narrower keys/tokens than the refunder's on purpose.
   const tokens = [sid, String(doc.idempotencyKey || "")].filter(Boolean);
-  const spend = tokens.length ? await withMongoRetry(env, () => moonstone(env, { userId, featureKeys: [featureKey], tokens })) : null;
+  const spend = tokens.length ? await withMongoRetry(env, () => moonstone(env, { userId, featureKeys, tokens })) : null;
   return spend ? { ok: true, kind: "moonstone" } : { ok: false };
 }
 
