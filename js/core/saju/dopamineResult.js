@@ -169,7 +169,9 @@
   }
 
   function scoreStimulus(sig) {
-    var score = 26;
+    /* 기본점 38(S4b, 2026-11-27): 도화·역마를 정본 신살로 판정하면서 평균이 약 11점 내려가,
+       기본점만 올려 점수·등급 분포를 예전에 맞췄다. 등급 경계·가중치는 그대로다(분포 테스트 dopamine-distribution). */
+    var score = 38;
 
     /* 표현·새로움 욕구 */
     score += Math.min(27, sig.siksang * 8.2);
