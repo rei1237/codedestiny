@@ -57,7 +57,7 @@ function fixture(accessType = 'pass', env = {}) {
     updateOne: async (filter, update) => { if (!doc || !matches(doc, filter)) return { modifiedCount: 0 }; for (const [key, value] of Object.entries(update.$set || {})) set(doc, key, value); return { modifiedCount: 1 }; },
   };
   const plan = Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: 'chapter', evidenceRefs: [], targetChars: 2600 }));
-  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), ...require('../../worker/lib/trait-profile/index.js'), runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), ...require('../../worker/lib/trait-profile/index.js'), ...require('../../worker/lib/engine-rollout.js'), buildShinsalFactsBlock: require('../../lib/saju/shinsal-facts-block.mjs').buildShinsalFactsBlock, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto,
     fetch: async () => { throw new Error('EXTERNAL_FETCH_BLOCKED'); },
     clean: (v, max = 100000) => String(v || '').trim().slice(0, max), randomToken: () => String(++tick),
     readJson: request => request.json(), json: (body, init) => new Response(JSON.stringify(body), init),
@@ -113,7 +113,7 @@ function fixture(accessType = 'pass', env = {}) {
   });
   load(ctx, 'worker/lib/result-storage.js', ['resultStorageUnavailable', 'resultStorageFailurePayload']);
   load(ctx, 'worker/lib/late-usage-settlement.js', ['lateUsageSettlementFailure', 'usageSettlementSetFields', 'lateAccessDenialSettlement']);
-  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'isLifeBookSoftIssue', 'scrubLifeBookSectionResult', 'lifeBookDeliveryResponse', 'dropPriorHalfRepeats', 'lifeBookRetryMeta', 'lifeBookRetryPayload', 'lifeBookHeldClaimFields', 'lifeBookRepairTargets', 'lifeBookRetryReset', 'handleRetry', 'handleRefundRequest', 'repairLifeBookSectionResult', 'splitLifeBookSentences', 'dropForbiddenSentences', 'lifeBookFallbackList', 'lifeBookFrameFallback', 'toStringList']);
+  load(ctx, 'worker/routes/life-book-ai.js', ['handleStart', 'runWithConcurrency', 'reserveProviderCallOnce', 'releaseSectionLock', 'saveLifeBookState', 'finishLifeBookDelivery', 'lifeBookLengthOptions', 'isLifeBookLengthOnlyIssue', 'lifeBookLengthBoostTarget', 'generationWaveCap', 'buildPriorHalfExcerpt', 'isLifeBookSoftIssue', 'scrubLifeBookSectionResult', 'lifeBookDeliveryResponse', 'dropPriorHalfRepeats', 'lifeBookRetryMeta', 'lifeBookRetryPayload', 'lifeBookHeldClaimFields', 'lifeBookRepairTargets', 'lifeBookRetryReset', 'handleRetry', 'handleRefundRequest', 'repairLifeBookSectionResult', 'splitLifeBookSentences', 'dropForbiddenSentences', 'lifeBookFallbackList', 'lifeBookFrameFallback', 'toStringList', 'lifeBookShinsalBlock']);
   const post = (body = {}) => ctx.handleStart(new Request('https://mock.test/api/life-book-ai/generate', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
   }), env);
@@ -1018,4 +1018,39 @@ test('L2: a held book records its billing claim and releases it once on the firs
   assert.equal((await ask()).status, 200);
   assert.deepEqual(released, [{ userId: 'owner', requestId: 'original-paid-request', evidenceIds: ['evidence-1'] }]);
   assert.equal((await ask()).status, 200); assert.equal(released.length, 1, 'idempotent repeats do not release again');
+});
+
+// 신살 블록(SAJU_SHINSAL_FACTS_V1 'life-book'): 새 기록만 llmMeta.shinsalFacts 로 고정하고, 핀과 플래그가 모두 맞을 때만 대상 장(0·7·8) 프롬프트에 넘긴다.
+// 블록은 저장하지 않고 factSnapshot 으로 프롬프트 때만 만든다 — 이어쓰기·플래그 전환에도 결제·완성 흐름이 같다.
+test('life-book shinsal block pins only new records and follows the kill switch through resume', async () => {
+  const { calculateLifeBookAiSaju } = require('../../worker/lib/life-book-ai-saju.js');
+  const raw = calculateLifeBookAiSaju({ birthDate: '1988-05-15', birthTime: '08:30', gender: 'male', calendarType: 'solar' });
+  const plan = Array.from({ length: 15 }, (_, i) => ({ id: `section${i}`, kind: i < 10 ? 'chapter' : 'expert', index: i % 10, evidenceRefs: [], targetChars: 2600 }));
+  const run = async (createFlag, resumeFlag) => {
+    const env = { SAJU_SHINSAL_FACTS_V1: createFlag }, f = fixture('pass', env), seen = [];
+    f.ctx.calculateLifeBookAiSaju = () => clone(raw);
+    f.ctx.buildSectionPlan = () => plan;
+    f.ctx.buildSectionPrompt = (_input, _slice, section, _digest, options) => { seen.push([section.id, options.shinsalFacts]); return 'mock'; };
+    assert.ok(![409, 500].includes((await f.post()).status));
+    const created = seen.length;
+    env.SAJU_SHINSAL_FACTS_V1 = resumeFlag;
+    for (let i = 0; i < 10 && f.doc.status !== 'completed'; i++) assert.ok(![409, 500].includes((await f.post({ sessionId: f.doc.id })).status));
+    assert.equal(f.doc.status, 'completed'); assert.equal(f.charges, 1); assert.equal(f.calls.length, 15);
+    assert.equal(JSON.stringify(f.doc).includes('[신살 계산값'), false, 'the block is never stored');
+    const expected = id => f.ctx.lifeBookShinsalBlock(raw, plan.find(row => row.id === id));
+    return { pin: f.doc.llmMeta.shinsalFacts, seen, created, expected };
+  };
+  const pinned = await run('life-book', 'life-book');
+  assert.equal(pinned.pin, 'shinsal-facts-v1');
+  assert.deepEqual(pinned.seen.filter(([, block]) => block).map(([id]) => id), ['section0', 'section7', 'section8']);
+  for (const [id, block] of pinned.seen) assert.equal(block, pinned.expected(id));
+  const legacy = await run('', 'life-book');
+  assert.equal(legacy.pin, undefined);
+  for (const [, block] of legacy.seen) assert.equal(block, '');
+  const killed = await run('true', '');
+  assert.equal(killed.pin, 'shinsal-facts-v1');
+  assert.ok(killed.seen.slice(0, killed.created).some(([, block]) => block), 'the first wave used the pinned block');
+  for (const [, block] of killed.seen.slice(killed.created)) assert.equal(block, '');
+  const other = await run('new-year', 'new-year');
+  assert.equal(other.pin, undefined);
 });

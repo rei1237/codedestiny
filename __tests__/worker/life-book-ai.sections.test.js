@@ -794,3 +794,54 @@ describe("Trait-First (TRAIT_FIRST_SAJU)", () => {
     expect(buildSectionPrompt(lifeBookInput, { ...slice, sajuAuthority: { ok: true } }, section, "", ON)).not.toContain(block);
   });
 });
+
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1): 원국(0장)·대운(7장)·세운(8장)만, 전체 sajuResult 로 계산한다. 나머지와 OFF 는 바이트 그대로.
+describe("신살 사실 블록 (SAJU_SHINSAL_FACTS_V1)", () => {
+  const { lifeBookShinsalBlock } = __lifeBookAiTestUtils;
+  const HEADER = "[신살 계산값 — 서버 계산. 이 목록 밖의 신살은 쓰지 않는다]";
+  const all = (input, version) => buildSectionPlan(input, version ? { version } : undefined);
+  const count = (text, part) => text.split(part).length - 1;
+
+  test("대상 장만 블록을 만들고, 장마다 다루는 운만 싣는다", () => {
+    const saju = calculateLifeBookAiSaju(birthInfo);
+    for (const [input, versions] of [[lifeFortuneInput, [1, 2, 3]], [lifeBookInput, [1, 2]]]) for (const version of versions) {
+      for (const section of all(input, version)) {
+        const block = lifeBookShinsalBlock(saju, section);
+        const target = section.kind === "chapter" && [0, 7, 8].includes(section.index);
+        expect({ id: section.id, version, on: Boolean(block) }).toEqual({ id: section.id, version, on: target });
+        if (!block) continue;
+        expect(block.length).toBeLessThanOrEqual(700);
+        expect(count(block, HEADER)).toBe(1);
+        expect(block.includes("- 대운 ")).toBe(section.index === 7);
+        expect(block.includes("- 세운 ")).toBe(section.index === 8);
+      }
+    }
+  });
+
+  test("시간 미상은 시주 신살을 빼고, 계산이 안 되는 명식은 블록만 빠진다", () => {
+    const section = all(lifeBookInput).find((s) => s.kind === "chapter" && s.index === 0);
+    const unknown = lifeBookShinsalBlock(calculateLifeBookAiSaju({ ...birthInfo, birthTime: "", birthTimeUnknown: true }), section);
+    expect(unknown).toContain("출생 시간 미상이라 시주 신살은 계산하지 않았다");
+    expect(unknown).not.toMatch(/시지\(|시간\(|시주\(/);
+    expect(lifeBookShinsalBlock({ yearPillar: "XX" }, section)).toBe("");
+    expect(lifeBookShinsalBlock(null, section)).toBe("");
+  });
+
+  test("OFF 는 모든 판의 프롬프트가 그대로고, ON 은 블록 한 번만 더한다", () => {
+    const saju = calculateLifeBookAiSaju(birthInfo);
+    for (const [input, versions] of [[lifeFortuneInput, [1, 2, 3]], [lifeBookInput, [1, 2]]]) for (const version of versions) {
+      for (const section of all(input, version)) {
+        const slice = pickSajuSlice(saju, section.evidenceRefs);
+        const off = buildSectionPrompt(input, slice, section, "");
+        expect(buildSectionPrompt(input, slice, section, "", { shinsalFacts: "" })).toBe(off);
+        expect(off).not.toContain(HEADER);
+        const block = lifeBookShinsalBlock(saju, section);
+        if (!block) continue;
+        const on = buildSectionPrompt(input, slice, section, "", { shinsalFacts: block });
+        expect(count(on, HEADER)).toBe(1);
+        expect(on.length - off.length).toBe(block.length + 1);
+        expect(on.replace(`${block}\n`, "")).toBe(off);
+      }
+    }
+  });
+});

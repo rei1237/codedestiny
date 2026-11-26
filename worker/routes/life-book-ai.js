@@ -36,6 +36,8 @@ import { connectLifeBookSajuAuthority, readSajuAuthority, lifeBookPillars, SAJU_
 import { sajuTemperamentPromptLines, SAJU_LUCK_JUDGEMENT_RULE } from '../lib/saju-temperament.js';
 import { buildNatalJudgementFacts, buildLuckJudgementRows } from '../lib/saju-luck-judgement.js';
 import { expertSubchapterPromptLines } from '../lib/expert-subchapter-prompt.js';
+import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
 import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import {clampSyncLlmTimeoutMs, PAID_LLM_PARTS_PER_REQUEST } from "../lib/sync-llm-timeout.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
@@ -1480,7 +1482,31 @@ function isLifeBookTraitSection(input, section, sajuSlice) {
   return !isLifeFortuneInput(input) && section?.kind === "chapter" && section.index === 0 && !sajuSlice?.sajuAuthority;
 }
 
-function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf = "", traitFirst = null, traitSeed = "" } = {}) {
+// 신살 사실 블록: 원국(0장)·대운(7장)·세운(8장)에만, V3 반쪽 조각 포함. pickSajuSlice 는 refs 로 걸러 내므로 전체 sajuResult 로 계산한다.
+// factSnapshot·다이제스트·해시에는 넣지 않고 프롬프트 때만 만든다. 실패하면 '' 이라 블록만 빠진다.
+function lifeBookShinsalBlock(sajuResult, section) {
+  try {
+    const scope = section?.kind === "chapter" ? ({ 0: "natal", 7: "daewoon", 8: "sewoon" })[section.index] : "";
+    if (!scope || !sajuResult) return "";
+    const timeUnknown = sajuResult.calculationMeta?.timeUnknown === true;
+    const current = sajuResult.majorLuck?.currentCycle;
+    const cycles = Array.isArray(sajuResult.majorLuck?.cycles) ? sajuResult.majorLuck.cycles : [];
+    const next = current ? cycles.find(row => Number(row?.index) === Number(current.index) + 1) : null;
+    const yearly = Array.isArray(sajuResult.yearlyLuck) ? sajuResult.yearlyLuck : [];
+    const luckRows = scope === "daewoon"
+      ? [current, next].filter(row => row?.pillar).map(row => ({ scope: "daewoon", ganji: row.pillar, age: row.startAge }))
+      : scope === "sewoon" ? yearly.filter(row => row?.pillar).map(row => ({ scope: "sewoon", ganji: row.pillar, year: row.year })) : [];
+    return buildShinsalFactsBlock({
+      pillars: { year: sajuResult.yearPillar, month: sajuResult.monthPillar, day: sajuResult.dayPillar, hour: timeUnknown ? null : sajuResult.hourPillar },
+      timeUnknown,
+      luckRows,
+    }, { maxChars: 700, maxLuck: 12 });
+  } catch {
+    return "";
+  }
+}
+
+function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf = "", traitFirst = null, traitSeed = "", shinsalFacts = "" } = {}) {
   const lifeFortune = isLifeFortuneInput(input);
   const luckJudgement = lifeBookLuckJudgement(sajuSlice, section, lifeFortune);
   const birth = input.birthInfo || {};
@@ -1502,6 +1528,8 @@ function buildSectionPrompt(input, sajuSlice, section, digest = "", { priorHalf 
     ...(sajuSlice?.sajuAuthority ? SAJU_AUTHORITY_PROMPT_RULES : sajuTemperamentPromptLines(sajuSlice)),
     // OFF·옛 세션은 빈 배열이라 프롬프트가 바이트 단위로 같다.
     ...(traitFirst && isLifeBookTraitSection(input, section, sajuSlice) ? sajuTraitFirstLines(sajuSlice, { traitFirst, seed: traitSeed }) : []),
+    // 신살 블록: 핀(llmMeta.shinsalFacts)과 플래그가 모두 맞는 세션의 대상 장만. OFF·옛 세션은 바이트 단위로 같다.
+    ...(shinsalFacts ? [shinsalFacts] : []),
     ...(luckJudgement ? ["[운 판정 — luckJudgement: 최종 용신·조후·십간 짝과 이 조각이 다루는 시기의 판정. 설명 근거로 쓰고 evidenceRefs 경로로는 적지 않는다]",
       JSON.stringify(luckJudgement), SAJU_LUCK_JUDGEMENT_RULE] : []),
     "",
@@ -3350,6 +3378,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
         answerVoice: selectAnswerVoice(env),
         // Trait-First: 새 세션만 생성 시작 때 고정. 키 없는 기존 세션은 끝까지 OFF.
         ...(selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
+        // 신살 사실 블록: 새 세션만 생성 시작 때 고정. 키 없는 기존 세션은 플래그를 켜도 블록이 없다.
+        ...(selectShinsalFacts(env, 'life-book') ? { shinsalFacts: selectShinsalFacts(env, 'life-book') } : {}),
         // 결제창이 사용자에게 보여준 금액. applyUsageOnce 가 현재가 대신 이 값을 쓰므로
         // SKU 가격이 바뀌어도 진행 중 세션이 안내와 다른 금액으로 차감되지 않는다.
         pricingSnapshot: {
@@ -3487,6 +3517,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", r
             const traitFirst = pinTraitFirst(lock.doc?.llmMeta ?? {}, env), traitSeed = `${clean(auth.userId)}|life-book-ai`;
             const prompt = buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), boosted, digest, {
               priorHalf: buildPriorHalfExcerpt(plan, sections, section), traitFirst, traitSeed,
+              shinsalFacts: shinsalFactsPinned(lock.doc?.llmMeta, env, 'life-book') ? lifeBookShinsalBlock(sajuResult, section) : "",
             });
             const result = await runWithAiLocale(storedAiLocale(lock.doc), async () => generateSectionOnce(env, boosted, prompt, {
               consultationType,
@@ -3939,6 +3970,7 @@ export const __lifeBookAiTestUtils = {
   getLifeBookReportQualityIssues,
   buildSectionPlan,
   buildSectionPrompt,
+  lifeBookShinsalBlock,
   pickSajuSlice,
   assembleReport,
   mapIssuesToSections,
