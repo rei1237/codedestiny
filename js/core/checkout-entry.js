@@ -670,13 +670,17 @@
   function resolveStorePlan(costCoins, currentTier) {
     var verdict = passVerdictApi();
     if (!verdict || typeof verdict.passLimitForTier !== "function") return "";
+    // 상점은 새로 사는 이용권을 권하므로 현행 정책 상한으로 잰다(legacy 표는 큰 꿀단지를 200으로 본다).
+    var limitFor = typeof verdict.passLimitForPolicy === "function" && verdict.CURRENT_PASS_POLICY_VERSION
+      ? function (tier) { return verdict.passLimitForPolicy(tier, verdict.CURRENT_PASS_POLICY_VERSION); }
+      : verdict.passLimitForTier;
     var cost = Math.max(0, Math.floor(Number(costCoins || 0)));
     var owned = typeof verdict.normalizeTier === "function" ? verdict.normalizeTier(currentTier) : text(currentTier).toLowerCase();
     var ownedIndex = PASS_STORE_PLAN_ORDER.indexOf(owned);
     for (var i = 0; i < PASS_STORE_PLAN_ORDER.length; i += 1) {
       var tier = PASS_STORE_PLAN_ORDER[i];
       if (i <= ownedIndex) continue;
-      if (cost <= Number(verdict.passLimitForTier(tier) || 0)) return tier;
+      if (cost <= Number(limitFor(tier) || 0)) return tier;
     }
     return PASS_STORE_PLAN_ORDER[PASS_STORE_PLAN_ORDER.length - 1];
   }

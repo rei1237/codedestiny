@@ -24,6 +24,10 @@ export type PassVerdictSnapshot = {
   monthlyCheckedAt?: number | null;
   /** 서버가 준 누적 이용 한도(coin, 재구매 누적 포함). 표시 전용 — 판정에는 쓰지 않는다. */
   monthlyLimitCoin?: number | null;
+  /** 이 이용권을 산 정책 버전. 없으면 "legacy" — 건당 상한·한도 표를 고르는 키다. */
+  passPolicyVersion?: string;
+  /** 서버가 준 건당 상한(coin). 없으면 passLimitForPolicy 표를 쓴다. */
+  passLimitCoin?: number | null;
 };
 
 export type PassVerdictDeniedReason = "" | "subscription_snapshot_none" | "snapshot_pass_limit_exceeded" | "monthly_pass_limit_exceeded";
@@ -67,7 +71,11 @@ declare const passVerdict: {
   REASON_PASS_LIMIT: "snapshot_pass_limit_exceeded";
   REASON_NONE: "subscription_snapshot_none";
   normalizeTier(value: unknown): PassVerdictTier;
+  /** legacy 정책 전용 건당 상한. 현행 이용권은 passLimitForPolicy 를 쓴다. */
   passLimitForTier(tier: unknown): number;
+  /** 정책 버전별 건당 상한(coin). 모르는 비-legacy 버전은 0. */
+  passLimitForPolicy(tier: unknown, policyVersion?: string): number;
+  CURRENT_PASS_POLICY_VERSION: string;
   monthlyLimitForTier(tier: unknown): number;
   /** 정책 버전별 기본 이용 한도(coin). 표시 전용. */
   monthlyLimitForPolicy(tier: unknown, policyVersion?: string): number;

@@ -223,6 +223,9 @@ export type SubscriptionSnapshot = {
   /** 월 이용 한도 잔여(coin). null/undefined 면 "모름" — 판정은 pass-verdict 가 월 검사를 건너뛴다. */
   monthlySpendRemainingCoin?: number | null;
   monthlyCheckedAt?: number | null;
+  /** 이 이용권을 산 정책 버전(없으면 legacy). 건당 상한은 이 버전의 표를 따른다. */
+  passPolicyVersion?: string;
+  passLimitCoin?: number | null;
 };
 
 export type EntitlementPlan = "NONE" | "STANDARD" | "PREMIUM" | "VVIP" | "FAMILY";
@@ -737,8 +740,12 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
 
-function subscriptionSnapshotPassLimit(tier: SubscriptionSnapshotTier): number {
-  return passVerdict.passLimitForTier(tier);
+// 건당 상한은 이용권을 산 정책 버전으로 읽는다 — legacy 표(큰 꿀단지 200)로 읽으면 현행 큰 꿀단지(300)가 좁게 보인다.
+function subscriptionSnapshotPassLimit(snapshot: SubscriptionSnapshot): number {
+  const serverLimit = Math.floor(Number(snapshot.passLimitCoin));
+  return Number.isFinite(serverLimit) && serverLimit > 0
+    ? serverLimit
+    : passVerdict.passLimitForPolicy(snapshot.tier, snapshot.passPolicyVersion);
 }
 
 function resolveSubscriptionSnapshotUserId(userId?: string): string {
@@ -826,7 +833,7 @@ function buildSnapshotPaymentEligibility(input: {
   const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, inputPriceKRW > 0 ? Math.ceil(inputPriceKRW / 100) : 0)));
   const priceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
   const monthlyBalance = phase === "pass" ? 0 : readSubscriptionSnapshotMonthlyBalance();
-  const passLimit = snapshot.state === "active" ? subscriptionSnapshotPassLimit(snapshot.tier) : 0;
+  const passLimit = snapshot.state === "active" ? subscriptionSnapshotPassLimit(snapshot) : 0;
   const passTier = snapshot.state === "active" && snapshot.tier !== "free"
     ? snapshot.tier as PaymentEligibility["pass"]["tier"]
     : null;
@@ -4106,7 +4113,8 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
           snapshotAtDenial
           && snapshotAtDenial.state === "active"
           && snapshotAtDenial.tier !== "family"
-          && deniedCoinCost > passVerdict.passLimitForTier(snapshotAtDenial.tier),
+          && deniedCoinCost > (passVerdict.passLimitForPolicy(snapshotAtDenial.tier, snapshotAtDenial.passPolicyVersion)
+            || passVerdict.passLimitForTier(snapshotAtDenial.tier)),
         );
       if (!deniedByPassLimitOnly) {
         disableOptimisticPassBriefly();
