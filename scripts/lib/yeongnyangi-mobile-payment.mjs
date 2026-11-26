@@ -447,6 +447,8 @@ export async function verifyMobilePayments({base,products,systemNames}){
     });
     await check(browser,`${engine.name()}-home-profile-catalog`,products[0],390,async f=>{
      f.state.profiles=[];
+     // A signed-in browser keeps the sanitized account snapshot that login writes; profile portraits are scoped to that account id.
+     await f.context.addInitScript(snapshot=>{try{localStorage.setItem('fortune_auth_user',snapshot);}catch{}},JSON.stringify({id:user.id,_id:user._id,name:user.name,role:user.role}));
      await f.page.goto(base+'/yeongnyangi/');await f.page.getByRole('heading',{level:1,name:'운세보는 고양이 영냥이',exact:true}).waitFor();
      assert.equal(await f.page.locator('.ynOriginal').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(11, 18, 32)');
      await f.page.getByRole('button',{name:'영냥이 쓰다듬기'}).click();await f.page.getByText('쓰다듬는 건… 딱 한 번만이야.',{exact:true}).waitFor();
@@ -457,7 +459,7 @@ export async function verifyMobilePayments({base,products,systemNames}){
      await f.page.getByRole('button',{name:'프로필 저장하기',exact:true}).click();await waitFixture(()=>f.state.profileCreates===1);
      const avatarProfileId=String(f.state.profiles[0].profileId||f.state.profiles[0].id||'');
      assert.ok(avatarProfileId,'Synthetic saved profile is required before requesting its portrait');
-     const savedProfile=f.page.getByRole('group',{name:'함께 볼 프로필'}).getByRole('button',{name:/QA 고객/});
+     const savedProfile=f.page.getByRole('group',{name:'함께 읽을 프로필'}).getByRole('button',{name:/QA 고객/});
      await savedProfile.click();
      assert.equal(await savedProfile.getAttribute('aria-pressed'),'true');
      const portrait=savedProfile.locator('img[src="/assets/profile-pets/moon-garden-v1/rabbit-body.webp"]');
