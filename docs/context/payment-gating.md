@@ -82,9 +82,9 @@
 - 새 키 `saju-compat-light`(표시명 **사주 라이트 궁합**), 회당 3,000원(cost 30), per_use. 정본은 `worker/lib/paid-feature-registry.js`. 옛 `compat-saju-compatibility`(5,000원, 판매 종료·재열람 유지)와는 별도 SKU다 — 옛 키를 되살리지 않는다.
 - `lib/payment/free-fortune-policy.mjs` 무료 목록에 넣지 않는다(가드 `verify-paid-feature-billing-policy`가 막는다).
 - 화면: 사주 탭 `runCompat`은 결제 없이 미리보기(등급 배지·점수·총평 첫 문장)와 「라이트 궁합에서 볼 수 있는 것」 잠금 카드만 그린다. 전체 정적 풀이는 `_seSajuCompatLightGate` → `_cdCoinGatePerUse`(featureKey `saju-compat-light`, 복귀 서술자 포함) 성공 콜백과 결제 복귀(`_seRunSajuCompatResume`)에서만 `lightPaid`로 연다. 고급 궁합(10,000원) 진입 CTA는 유지한다.
-- 결제 수단: 이용권 → 단건(사용자 선택 뒤). 10,000원 미만이라 월정석은 서버 카탈로그가 뺀다.
+- 결제 수단: 이용권 → 단건(사용자 선택 뒤). 10,000원 미만이라 월정석 차감은 서버가 거절한다(402 `MONTHLY_NOT_ALLOWED`, `worker/routes/billing.js` 월정석 진입 차단). 🔴 다만 셸 결제창 렌더러는 10,000원 미만 상품에도 월정석 카드를 아직 그린다 — 5,000원 점성술·자미두수 궁합과 같은 기존 결함이며, 동결 렌더러 수정은 사용자 결정 대기 후속 과제다.
 - 라이트 운세 목록(`worker/lib/light-fortune-catalog.js`·`js/core/pass-verdict.js` 미러)에 넣었다. 결제 뒤 LLM·이미지 호출이 없는 계산형이라 형제 궁합 키(점성술·자미두수·숙요)와 같은 분류다. 그 결과 이용권 월 한도 차감에서 빠진다 — 정책상 한도에 넣어야 하면 `LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS`로 옮긴다.
-- 보관함(/records/) 저장은 아직 없다(다음 단계). 실결제·실 LLM·운영 DB 쓰기 검증은 하지 않았고 개발 검증은 mock이다. 운영 승격은 별도 승인.
+- 보관함(/records/) 저장: 결제 성공 뒤 라이트 풀이를 저장한다(`js/saju-engine.js` `_seArchiveSajuCompatLight`). 실결제·실 LLM·운영 DB 쓰기 검증은 하지 않았고 개발 검증은 mock이다. 운영 승격은 별도 승인.
 
 ## 2026-11-20 승인: 기본 사주 궁합 무료 전환과 고급 궁합 10,000원
 
