@@ -2,16 +2,16 @@ import type { jsPDF as Pdf } from 'jspdf';
 import type { ConsultationBookOptions } from './export-consultation-book-pdf';
 import type { ReportArt } from './report-art';
 import { REPORT_COVER_THEMES } from './report-cover-theme';
-import { CONTENT_WIDTH_MM, MARGIN_X_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, lineHeightMm } from './typeset-metrics';
+import { CONTENT_BOTTOM_MM, CONTENT_WIDTH_MM, MARGIN_X_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, lineHeightMm } from './typeset-metrics';
 import type { createTypesetWriter, PdfFonts } from './typeset-writer';
 
 type RGB = readonly [number, number, number];
 type Writer = ReturnType<typeof createTypesetWriter>;
-const themes = {
+type EditorialPalette = Record<'ink' | 'accent' | 'muted' | 'rule' | 'wash' | 'motif', RGB>;
+const themes: Record<'love' | 'codex', EditorialPalette> = {
   love: { ink: [68, 42, 55], accent: [121, 66, 91], muted: [115, 83, 98], rule: [224, 204, 211], wash: [249, 239, 239], motif: [169, 123, 62] },
   codex: { ink: [46, 34, 56], accent: [97, 66, 122], muted: [105, 85, 119], rule: [217, 205, 224], wash: [244, 237, 245], motif: [132, 99, 48] },
-} as const;
-type EditorialPalette = typeof themes[keyof typeof themes];
+};
 const text = (pdf: Pdf, font: string, size: number, color: RGB) => {
   pdf.setFont(font, 'normal');
   pdf.setFontSize(size);
@@ -36,17 +36,21 @@ export async function loadConsultationBranch(color: RGB): Promise<string> {
   if (!response.ok) throw new Error('PDF ornament unavailable');
   const svg = (await response.text()).replace('<svg ', '<svg width="960" height="96" ')
     .replace('stroke="#000"', `stroke="rgb(${color.join(',')})"`);
-  const image = await createImageBitmap(new Blob([svg], { type: 'image/svg+xml' }));
+  // createImageBitmap cannot decode an SVG blob in Chrome, so the ornament goes through an image element.
+  const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
   try {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
     const canvas = document.createElement('canvas');
-    canvas.width = image.width;
-    canvas.height = image.height;
+    canvas.width = 960;
+    canvas.height = 96;
     const contents = canvas.getContext('2d');
     if (!contents) throw new Error('PDF ornament unavailable');
-    contents.drawImage(image, 0, 0);
+    contents.drawImage(image, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/png');
   } finally {
-    image.close();
+    URL.revokeObjectURL(url);
   }
 }
 
@@ -91,13 +95,23 @@ export function drawEditorialCover(pdf: Pdf, fonts: PdfFonts, options: Consultat
   const height = 224 - portraitTop;
   if (hasPortrait) {
     const slot = masters.length === 1 ? 100 : 74;
+    // The name sits directly under the tallest portrait; the portrait and name block is centred together.
+    const nameGap = 10;
+    const sizes = masters.map(master => {
+      const portrait = portraits?.get(master.src);
+      if (!portrait) return undefined;
+      const w = Math.min(slot - 11, (height - nameGap) / portrait.ratio);
+      return { portrait, w, h: w * portrait.ratio };
+    });
+    const tallest = Math.max(...sizes.map(size => size?.h || 0));
+    const blockTop = portraitTop + (height - nameGap - tallest) / 2;
+    const nameY = blockTop + tallest + nameGap;
     masters.forEach((master, index) => {
       const mid = center + (index - (masters.length - 1) / 2) * slot;
-      const portrait = portraits?.get(master.src);
-      if (portrait) {
-        const w = Math.min(slot - 11, height / portrait.ratio);
-        const h = w * portrait.ratio;
-        const top = portraitTop + (height - h) / 2;
+      const size = sizes[index];
+      if (size) {
+        const { portrait, w, h } = size;
+        const top = blockTop + tallest - h;
         pdf.setDrawColor(...theme.accent);
         pdf.setLineWidth(0.25);
         pdf.rect(mid - w / 2 - 2, top - 2, w + 4, h + 4);
@@ -105,7 +119,7 @@ export function drawEditorialCover(pdf: Pdf, fonts: PdfFonts, options: Consultat
         catch { /* The credit stays visible if the portrait cannot be embedded. */ }
       }
       text(pdf, fonts.body, 12, theme.ink);
-      pdf.text(master.name, mid, 236, { align: 'center' });
+      pdf.text(master.name, mid, nameY, { align: 'center' });
     });
   } else {
     if (art) {
@@ -152,19 +166,30 @@ export function drawEditorialTable(pdf: Pdf, fonts: PdfFonts, writer: Writer, pa
   rows.forEach(row => {
     text(pdf, fonts.body, size, palette.ink);
     const lines = widths.map((w, i) => pdf.splitTextToSize(row[i] || '', w - 6) as string[]);
-    const height = Math.max(...lines.map(column => column.length), 1) * line + 3;
+    const total = Math.max(...lines.map(column => column.length), 1);
     const before = writer.page;
-    writer.ensureSpace(height);
+    writer.ensureSpace(total * line + 3);
     if (writer.page !== before) header();
-    const y = writer.y;
-    lines.forEach((column, i) => {
-      text(pdf, fonts.body, size, i === 2 ? palette.muted : palette.ink);
-      column.forEach((value, index) => pdf.text(value, columns[i] + 3, y + 1 + index * line));
-    });
-    pdf.setDrawColor(...palette.rule);
-    pdf.setLineWidth(0.18);
-    pdf.line(MARGIN_X_MM, y + height - 4, MARGIN_X_MM + CONTENT_WIDTH_MM, y + height - 4);
-    writer.space(height);
+    // A row taller than one page continues on the next page under the repeated header.
+    for (let start = 0; start < total;) {
+      const count = Math.min(total - start, Math.floor((CONTENT_BOTTOM_MM - writer.y - 3) / line));
+      if (count < 1) {
+        writer.newPage();
+        header();
+        continue;
+      }
+      const height = count * line + 3;
+      const y = writer.y;
+      lines.forEach((column, i) => {
+        text(pdf, fonts.body, size, i === 2 ? palette.muted : palette.ink);
+        column.slice(start, start + count).forEach((value, index) => pdf.text(value, columns[i] + 3, y + 1 + index * line));
+      });
+      pdf.setDrawColor(...palette.rule);
+      pdf.setLineWidth(0.18);
+      pdf.line(MARGIN_X_MM, y + height - 4, MARGIN_X_MM + CONTENT_WIDTH_MM, y + height - 4);
+      writer.space(height);
+      start += count;
+    }
   });
   writer.space(4);
 }
