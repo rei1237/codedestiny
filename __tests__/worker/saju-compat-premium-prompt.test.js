@@ -3,6 +3,9 @@
  * 그룹 파싱·결정적 교정(단정 문장 제거, 긴 문단 분할), 완성 판정, 완성본만 조립을 지킨다.
  */
 import {
+  SAJU_COMPAT_PREMIUM_ACCEPT_RATIO,
+  SAJU_COMPAT_PREMIUM_GROUP_MAX_CHARS,
+  SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS,
   SAJU_COMPAT_PREMIUM_GROUPS,
   SAJU_COMPAT_PREMIUM_PARAGRAPH_MAX_CHARS,
   assembleSajuCompatPremiumResult,
@@ -67,6 +70,53 @@ describe("saju-compat-premium prompt", () => {
     expect(short.ok).toBe(false);
     expect(short.issues).toEqual(expect.arrayContaining(["REQUIRED_SECTIONS_INCOMPLETE", "LENGTH_SHORT"]));
     expect(parseSajuCompatPremiumGroupResponse("응답 없음", group).reason).toBe("PARSE_FAILED");
+  });
+
+  test("목표 분량은 1,900~2,600자이고 프롬프트 분량 줄에 그대로 실린다", () => {
+    expect(SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS).toBe(1900);
+    expect(SAJU_COMPAT_PREMIUM_GROUP_MAX_CHARS).toBe(2600);
+    // 받는 하한은 목표 하한의 80% 이하(규칙 17).
+    expect(SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS * SAJU_COMPAT_PREMIUM_ACCEPT_RATIO).toBeLessThanOrEqual(SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS * 0.8);
+    const prompt = buildSajuCompatPremiumGroupPrompt(FACTS, findSajuCompatPremiumGroup("overview"));
+    expect(prompt).toContain("## 분량: 이 부분 전체 1,900~2,600자(공백 제외)");
+  });
+
+  test("🔴 마지막 시도는 분량 미달 응답을 거부하지 않고 받는다(shortAccepted), 빈 섹션은 그대로 거부한다", () => {
+    const group = findSajuCompatPremiumGroup("overview");
+    const short = JSON.stringify({
+      sections: group.sections.map((item, index) => ({ title: item.title, body: body(index + 1, 4) })),
+      summaryTitle: "물과 쇠의 궁합", oneLine: "서로를 식히는 관계입니다.", keywords: ["보완"],
+    });
+    const normal = parseSajuCompatPremiumGroupResponse(short, group);
+    expect(normal.chars).toBeLessThan(Math.round(SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS * SAJU_COMPAT_PREMIUM_ACCEPT_RATIO));
+    expect(normal.ok).toBe(false);
+    expect(normal.issues).toContain("LENGTH_SHORT");
+    const final = parseSajuCompatPremiumGroupResponse(short, group, { finalAttempt: true });
+    expect(final.ok).toBe(true);
+    expect(final.issues).toEqual([]);
+    expect(final.shortAccepted).toBe(true);
+    expect(final.acceptedIssues).toContain("LENGTH_SHORT");
+    expect(isSajuCompatPremiumGroupUsable(final, group)).toBe(true);
+
+    const oneEmpty = JSON.stringify({ sections: [{ title: group.sections[0].title, body: body(1, 4) }, { title: group.sections[1].title, body: "" }] });
+    const emptyFinal = parseSajuCompatPremiumGroupResponse(oneEmpty, group, { finalAttempt: true });
+    expect(emptyFinal.ok).toBe(false);
+    expect(emptyFinal.issues).toContain("REQUIRED_SECTIONS_INCOMPLETE");
+    expect(emptyFinal.shortAccepted).toBeUndefined();
+    expect(parseSajuCompatPremiumGroupResponse("응답 없음", group, { finalAttempt: true }).reason).toBe("PARSE_FAILED");
+  });
+
+  test("운영 사고 분량(1,427자)은 새 하한(1,140자)에서 첫 시도부터 받는다", () => {
+    const group = findSajuCompatPremiumGroup("overview");
+    let count = 4;
+    let row;
+    do {
+      count += 1;
+      row = parseSajuCompatPremiumGroupResponse(JSON.stringify({ sections: group.sections.map((item, index) => ({ title: item.title, body: body(index + 1, count) })) }), group);
+    } while (row.chars < 1300 && count < 40);
+    expect(row.chars).toBeGreaterThanOrEqual(1140);
+    expect(row.chars).toBeLessThan(1440);
+    expect(row.ok).toBe(true);
   });
 
   test("단정·비난·메타 문장만 덜어 내고 긴 문단은 문장 경계에서 나눈다", () => {

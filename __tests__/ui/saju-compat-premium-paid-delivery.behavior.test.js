@@ -89,15 +89,15 @@ function body(seed, count = 20) {
     return `${seed}번째 장의 ${index + 1}번 문장은 ${topic}처럼 두 사람이 서로의 속도를 맞추는 장면을 차분하게 그려 보입니다.`;
   }).reduce((acc, sentence, index) => acc + (index && index % 4 === 0 ? '\n\n' : index ? ' ' : '') + sentence, '');
 }
-function groupResponse(group, seed) {
-  const payload = { sections: group.sections.map((item, index) => ({ title: item.title, body: body(seed * 10 + index) })) };
+function groupResponse(group, seed, count = 20) {
+  const payload = { sections: group.sections.map((item, index) => ({ title: item.title, body: body(seed * 10 + index, count) })) };
   if (group.emits.includes('header')) Object.assign(payload, { summaryTitle: '물과 쇠의 궁합', oneLine: '서로를 식히고 다듬는 관계입니다.', keywords: ['보완', '대화'] });
   if (group.emits.includes('actions')) payload.actionTips = ['이번 주에는 하루 10분 대화합니다.'];
   if (group.emits.includes('closing')) payload.finalMessage = '천천히 함께 가면 됩니다.';
   return JSON.stringify(payload);
 }
 
-async function setup({ paid = true, failGroups = new Set() } = {}) {
+async function setup({ paid = true, failGroups = new Set(), shortGroups = new Set() } = {}) {
   const route = await import('../../worker/routes/saju-compat-premium.js');
   const prompt = await import('../../worker/lib/saju-compat-premium-prompt.js');
   const clock = { now: Date.UTC(2026, 10, 20, 3), tick: 0 };
@@ -130,7 +130,7 @@ async function setup({ paid = true, failGroups = new Set() } = {}) {
       state.llmCalls.push(group.key);
       if (state.failGroups.has(group.key)) return { ok: false, error: 'provider_down', provider: 'gemini', model: 'gemini-test' };
       const seed = prompt.SAJU_COMPAT_PREMIUM_GROUPS.indexOf(group) + 1;
-      return { ok: true, text: groupResponse(group, seed), provider: 'gemini', model: 'gemini-test', finishReason: 'STOP' };
+      return { ok: true, text: groupResponse(group, seed, shortGroups.has(group.key) ? 4 : 20), provider: 'gemini', model: 'gemini-test', finishReason: 'STOP' };
     },
   });
   const call = async (method, path, payload) => {
@@ -211,6 +211,22 @@ test('🔴 일부 그룹 저장 뒤 실패 → 다시 시도는 저장된 그룹
   assert.equal(JSON.stringify(Model.docs[0].llmMeta.groups.overview), savedOverview, '저장된 그룹은 그대로');
   assert.equal(state.passConsumed, 1, '다시 시도는 추가 결제·차감 없이 전달 때 한 번만');
   assert.equal(state.refunds.length, 0);
+});
+
+test('🔴 분량 미달 응답이 두 번 나와도 마지막 시도에서 받아 completed 로 전달하고 환불하지 않는다', async () => {
+  const { call, generateUntilDone, state, Model, groups } = await setup({ shortGroups: new Set(['overview']) });
+  const done = await generateUntilDone(await call('POST', '/generate', { ...BODY, idempotencyKey: 'scp-key-short-0000001' }));
+  assert.equal(done.status, 200);
+  assert.equal(done.body.status, 'completed');
+  assert.deepEqual(done.body.result.chapters.map((chapter) => chapter.key), groups);
+  assert.deepEqual(state.llmCalls, ['overview', 'overview', 'temperament', 'trust', 'timing'], '첫 시도는 거부, 마지막 시도는 수용');
+  const overview = Model.docs[0].llmMeta.groups.overview;
+  assert.equal(overview.ok, true);
+  assert.equal(overview.shortAccepted, true);
+  assert.ok(overview.acceptedIssues.includes('LENGTH_SHORT'));
+  assert.equal(Model.docs[0].status, 'completed');
+  assert.equal(state.passConsumed, 1);
+  assert.equal(state.refunds.length, 0, '환불 없음');
 });
 
 test('복구 크론 재개도 저장된 그룹을 건너뛰고 완성 여부를 판정한다', async () => {

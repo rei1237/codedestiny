@@ -528,7 +528,7 @@ export async function generateSajuCompatPremiumGroup(env, facts, group, { deadli
     const reason = clean(isMock ? "MOCK_RESULT" : cutOff ? "TRUNCATED" : ai?.error || ai?.message || "LLM_FAILED", 60);
     return { key: group.key, ok: false, reason, issues: [reason], provider, model, at: new Date(deps.now()).toISOString() };
   }
-  const parsed = parseSajuCompatPremiumGroupResponse(ai.text, group);
+  const parsed = parseSajuCompatPremiumGroupResponse(ai.text, group, { finalAttempt: Boolean(finalAttempt) });
   return { ...parsed, key: group.key, provider, model, at: new Date(deps.now()).toISOString() };
 }
 
