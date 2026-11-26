@@ -30,7 +30,7 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  state.monthlyBalance=monthlyBalance;state.monthlyRequests=[];state.monthlySpends=new Map();state.monthlyDeductions=0;
  const authUser=()=>({...user,profileSubscription:{tier:'free',isActive:false,membershipCreditBalance:state.monthlyBalance}});
  state.profiles=[{profileId:'shared-profile',name:'QA 고객',birth:{year:1990,month:6,day:15,hour:14,minute:30},location:{label:'대한민국 부산'}}];state.profileCreates=0;state.creates=0;state.avatarProfileReads=[];
- state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.pageErrorDetails=[];
+ state.resources=[];state.blocked=[];state.http=[];state.apiInFlight=new Map();state.visited=[];state.navigations=[];state.pageErrorDetails=[];
  state.pageIds=new WeakMap();state.requestStartedAt=new WeakMap();state.fulfilledRequests=new WeakSet();state.finishedRequests=new WeakSet();state.httpProof=new WeakMap();let nextPageId=0;
  context.on('request',request=>{const path=new URL(request.url()).pathname;if(path.startsWith('/api/')&&path!=='/api/billing/funnel-event'){state.requestStartedAt.set(request,Date.now());state.apiInFlight.set(request,request.frame().page());}});
  const finishRequest=(request,finished=false)=>{if(finished){state.finishedRequests.add(request);const proof=state.httpProof.get(request);if(proof)proof.finished=true;}state.apiInFlight.delete(request);};
@@ -40,8 +40,8 @@ export async function fixtures(browser,base,product,width=390,{monthlyBalance=0}
  const page=await context.newPage();
  const attachPage=p=>{
   if(state.pageIds.has(p))return;state.pageIds.set(p,++nextPageId);
-  p.on('pageerror',e=>{state.errors.push(e.message);state.pageErrorDetails.push({message:e.message,page:new URL(p.url()).pathname,at:Date.now()});});
-  p.on('framenavigated',frame=>{if(frame!==p.mainFrame())return;state.visited.push(new URL(frame.url()).pathname);});
+  p.on('pageerror',e=>{state.errors.push(e.message);state.pageErrorDetails.push({message:e.message,page:new URL(p.url()).pathname,pageId:state.pageIds.get(p),at:Date.now()});});
+  p.on('framenavigated',frame=>{if(frame!==p.mainFrame())return;const path=new URL(frame.url()).pathname;state.visited.push(path);state.navigations.push({pageId:state.pageIds.get(p),path,at:Date.now()});});
  };
  context.on('page',attachPage);attachPage(page);
  await context.exposeBinding('__fixturePortOne',async(_source,input)=>{
@@ -399,6 +399,21 @@ export async function verifyMobilePayments({base,products,systemNames}){
     // core dictionary read as an access-control error; loadDictionary catches it and falls back to null.
     if(/^\/(?:127\.0\.0\.1|localhost):\d+\/i18n\/[a-z-]+\.json due to access control checks\.$/.test(message)
       &&detail?.page==='/login/'&&name.endsWith('-expired-login'))return false;
+    // A fresh-tab PG return mounts YeongnyangiCheckout, whose benefit read (unlock-status, settled via allSettled)
+    // is still in flight when the confirmed return leaves /checkout/ with location.replace. WebKit reports that
+    // cancelled read as an access-control error. Ignore it only for this product's key on a checkout document the
+    // same tab then left for the paid, complete result, and only if no unlock-status read of that document was served.
+    if(path==='/api/billing/unlock-status'&&detail?.page==='/checkout/'&&detail.pageId!==undefined
+      &&new URLSearchParams(cancelledPath.split('?')[1]||'').get('featureKey')===product.cdFeatureKey
+      &&f.state.approved&&f.row.paid&&f.state.activates>0&&f.row.chapters.length===product.chapterCount){
+     const tab=f.state.navigations.filter(n=>n.pageId===detail.pageId);
+     // Same-document history updates also emit framenavigated; take the first /checkout/ entry of the run that holds the error.
+     const before=tab.filter(n=>n.at<=detail.at);
+     const checkoutDoc=before.at(-1)?.path==='/checkout/'?before[before.findLastIndex(n=>n.path!=='/checkout/')+1]:undefined;
+     const leftForResult=tab.some(n=>n.path==='/yeongnyangi/result/'&&n.at>=detail.at);
+     const served=checkoutDoc&&f.state.http.some(r=>r.path===path&&r.pageId===detail.pageId&&r.startedAt>=checkoutDoc.at);
+     if(checkoutDoc&&leftForResult&&!served)return false;
+    }
     const navigationReads=new Set(['/api/auth/me','/api/me/access-state','/api/profile','/api/billing/balance','/api/payments/birth-profile-pending','/api/payments/service-packs/quote','/api/payments/service-packs/catalog','/api/recommendations','/api/activation-rewards/status','/api/activation-rewards/snu/status','/version.json']);
     return !path||!navigationReads.has(path);
    });

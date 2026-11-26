@@ -3,6 +3,7 @@ import { registerPdfFontsSafely } from './export-result-pdf';
 import { createTypesetWriter, drawContentsPage, drawFooters, paintPaper, PdfFontError, type PdfFonts } from './typeset-writer';
 import { CONTENT_WIDTH_MM, MARGIN_X_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, lineHeightMm } from './typeset-metrics';
 import { ziweiReportBlocks, type ZiweiReportChapter } from './ziwei-report-plan';
+import { consultationEditorialTheme, drawEditorialPageMarks, editorialWriterInk } from './consultation-book-editorial';
 
 // byline·coverArtSrc 는 선택 — 무성 캐릭터를 끄면 기존 천문도 표지 그대로다.
 type ZiweiPdfOptions = { chapters: ZiweiReportChapter[]; title: string; date: string; fileName: string; savePdfData?:(data:string,fileName:string)=>Promise<void>; byline?: string; coverArtSrc?: string };
@@ -30,7 +31,8 @@ export function typesetZiweiReport(pdf: JsPDFInstance, fonts: PdfFonts, options:
   pdf.text(options.date, MARGIN_X_MM, 263);
   if (options.byline) pdf.text(options.byline, MARGIN_X_MM, 274);
   pdf.addPage(); paintPaper(pdf);
-  const writer = createTypesetWriter(pdf, fonts);
+  const editorial = consultationEditorialTheme('ziwei');
+  const writer = createTypesetWriter(pdf, fonts, editorialWriterInk(editorial));
   const entries: { label: string; page: number }[] = [];
   for (const chapter of options.chapters) {
     writer.chapter('', chapter.title);
@@ -41,6 +43,7 @@ export function typesetZiweiReport(pdf: JsPDFInstance, fonts: PdfFonts, options:
     }
   }
   drawContentsPage(pdf, fonts, 2, entries, '차례');
+  drawEditorialPageMarks(pdf, editorial);
   drawFooters(pdf, fonts, 'Code Destiny · 자미두수 상담');
   pdf.setProperties({ title: options.title, subject: '자미두수 심층 상담', author: 'Code Destiny' });
   return pdf;

@@ -59,7 +59,11 @@ export type TypesetBlock = {
   caption?: string;
 };
 
-export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
+export type TypesetInk = Partial<Record<keyof typeof INK, Rgb>>;
+
+/** palette 는 서비스별 표지와 맞춘 제목·강조색이다. 없으면 기본 인쇄 팔레트를 쓴다. */
+export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts, palette?: TypesetInk) {
+  const ink = { ...INK, ...palette };
   let cursorY = MARGIN_TOP_MM;
 
   const setStyle = (font: string, sizePt: number, color: Rgb) => {
@@ -98,13 +102,13 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
   };
 
   const styleOf = (kind: keyof typeof BLOCK_STYLE) => BLOCK_STYLE[kind];
-  const inkOf = (name: string): Rgb => (INK as Record<string, Rgb>)[name] || INK.body;
+  const inkOf = (name: string): Rgb => (ink as Record<string, Rgb>)[name] || ink.body;
   const fontOf = (name: string) => (name === "title" ? fonts.title : fonts.body);
 
   /** 카드 배경. 높이를 미리 알 수 없어 그린 뒤 되짚지 않고, 얇은 좌우 여백만 잡는다. */
   const cardTitle = (title: string) => {
     if (!title) return;
-    setStyle(fonts.body, 8.5, INK.gold);
+    setStyle(fonts.body, 8.5, ink.gold);
     need(lineHeightMm(8.5, 1.5));
     pdf.text(title, MARGIN_X_MM, cursorY);
     cursorY += lineHeightMm(8.5, 1.5);
@@ -140,15 +144,15 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
         } catch { /* Keep the chapter heading readable if the image cannot be embedded. */ }
       }
       if (kicker) {
-        setStyle(fonts.body, 8.5, INK.gold);
+        setStyle(fonts.body, 8.5, ink.gold);
         lines(kicker, 8.5, 1.4, indent);
         space(4);
       }
-      setStyle(fonts.title, 17, INK.title);
+      setStyle(fonts.title, 17, ink.title);
       lines(title, 17, 1.35, indent);
       if (indent) cursorY = Math.max(cursorY, MARGIN_TOP_MM + portraitSize);
       space(2.5);
-      pdf.setDrawColor(INK.rule[0], INK.rule[1], INK.rule[2]);
+      pdf.setDrawColor(ink.rule[0], ink.rule[1], ink.rule[2]);
       pdf.setLineWidth(0.3);
       pdf.line(MARGIN_X_MM, cursorY, MARGIN_X_MM + CONTENT_WIDTH_MM, cursorY);
       space(6);
@@ -173,7 +177,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
       const top = cursorY - lineHeightMm(style.sizePt, style.factor) * 0.7;
       setStyle(fontOf(style.font), style.sizePt, inkOf(style.color));
       lines(text, style.sizePt, style.factor, style.indentMm);
-      pdf.setDrawColor(INK.accent[0], INK.accent[1], INK.accent[2]);
+      pdf.setDrawColor(ink.accent[0], ink.accent[1], ink.accent[2]);
       pdf.setLineWidth(0.8);
       // 같은 페이지 안에서만 규칙선을 긋는다 — 페이지를 넘어간 인용에 걸치면 엉뚱한 곳에 선이 남는다.
       if (cursorY > top) pdf.line(MARGIN_X_MM + 2, top, MARGIN_X_MM + 2, cursorY - 2);
@@ -192,7 +196,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
         // 🔴 항목 하나는 통째로 한 페이지에 넣는다. 추출 전 초융합 동작 그대로이며, 불릿 점만
         //    앞 페이지에 남고 글이 다음 장으로 넘어가는 꼴을 막는다.
         need(height * wrapped.length);
-        pdf.setFillColor(INK.accent[0], INK.accent[1], INK.accent[2]);
+        pdf.setFillColor(ink.accent[0], ink.accent[1], ink.accent[2]);
         pdf.circle(MARGIN_X_MM + 1.4, cursorY - 1.1, 0.7, "F");
         for (const line of wrapped) {
           need(height);
@@ -216,7 +220,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
         if (!text) continue;
         const wrapped = wrap(text, CONTENT_WIDTH_MM - style.indentMm);
         need(height * Math.min(wrapped.length, 2));
-        pdf.setFillColor(INK.accent[0], INK.accent[1], INK.accent[2]);
+        pdf.setFillColor(ink.accent[0], ink.accent[1], ink.accent[2]);
         pdf.rect(MARGIN_X_MM, cursorY - 2.6, 1.4, height * wrapped.length * 0.8, "F");
         for (const line of wrapped) {
           need(height);
@@ -241,7 +245,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
         order += 1;
         const wrapped = wrap(text, CONTENT_WIDTH_MM - style.indentMm);
         need(height * Math.min(wrapped.length, 2));
-        setStyle(fonts.title, style.sizePt, INK.accent);
+        setStyle(fonts.title, style.sizePt, ink.accent);
         pdf.text(label, MARGIN_X_MM + 1, cursorY);
         setStyle(fontOf(style.font), style.sizePt, inkOf(style.color));
         for (const line of wrapped) {
@@ -281,7 +285,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
         }
         if (cursorY === MARGIN_TOP_MM && i > 0) cardTitle(title);
 
-        setStyle(fontOf(style.font), style.sizePt, INK.muted);
+        setStyle(fontOf(style.font), style.sizePt, ink.muted);
         pdf.text(wrap(cleanReportText(kept[i]?.label, 120), labelWidth - 4)[0] || "", MARGIN_X_MM, cursorY);
         setStyle(fontOf(style.font), style.sizePt, inkOf(style.color));
         let lineY = cursorY;
@@ -290,7 +294,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
           lineY += height;
         }
         lineY = Math.max(lineY, cursorY + height);
-        pdf.setDrawColor(INK.rule[0], INK.rule[1], INK.rule[2]);
+        pdf.setDrawColor(ink.rule[0], ink.rule[1], ink.rule[2]);
         pdf.setLineWidth(0.2);
         pdf.line(MARGIN_X_MM, lineY - height + 1.6, MARGIN_X_MM + CONTENT_WIDTH_MM, lineY - height + 1.6);
         cursorY = lineY;
@@ -310,17 +314,17 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
         const label = cleanReportText(item?.label, 80);
         if (!label) continue;
         need(height);
-        setStyle(fontOf(style.font), style.sizePt, INK.muted);
+        setStyle(fontOf(style.font), style.sizePt, ink.muted);
         pdf.text(label, MARGIN_X_MM, cursorY);
 
         const max = Number(item?.max) > 0 ? Number(item.max) : 0;
         const value = Number(item?.value);
         if (max > 0 && Number.isFinite(value)) {
           const ratio = Math.max(0, Math.min(1, value / max));
-          pdf.setFillColor(INK.rule[0], INK.rule[1], INK.rule[2]);
+          pdf.setFillColor(ink.rule[0], ink.rule[1], ink.rule[2]);
           pdf.rect(MARGIN_X_MM + labelWidth, cursorY - 2.4, trackWidth, 1.8, "F");
           if (ratio > 0) {
-            pdf.setFillColor(INK.accent[0], INK.accent[1], INK.accent[2]);
+            pdf.setFillColor(ink.accent[0], ink.accent[1], ink.accent[2]);
             pdf.rect(MARGIN_X_MM + labelWidth, cursorY - 2.4, trackWidth * ratio, 1.8, "F");
           }
         }
@@ -344,7 +348,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
       //    하나뿐이었고, 여기서 2mm 를 더 넣으면 도표 아래 간격이 소리 없이 벌어진다.
       if (caption) {
         space(2);
-        setStyle(fonts.body, 8.5, INK.muted);
+        setStyle(fonts.body, 8.5, ink.muted);
         pdf.text(caption, MARGIN_X_MM + CONTENT_WIDTH_MM / 2, cursorY, { align: "center" });
         cursorY += lineHeightMm(8.5, 1.5);
       }

@@ -1,4 +1,8 @@
 import {createBookWriter} from './book-writer';
+import { consultationEditorialTheme, drawEditorialFrame, drawEditorialPageMarks, editorialWriterInk } from './consultation-book-editorial';
+
+/** 초융합 보고서는 기존 보라·금 인쇄색에 가장 가까운 인연의 서 본문 팔레트를 쓴다. */
+const FUSION_EDITORIAL = consultationEditorialTheme('codex');
 import {bookParagraphs} from './book-paragraphs';
 import {loadFusionArt} from './report-art';
 import {planLinkedContents,drawLinkedContents} from './linked-contents';
@@ -172,6 +176,7 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
   if (!chapters.length) throw new Error("fusion report pdf: nothing to typeset");
 
   paintPaper(pdf);
+  drawEditorialFrame(pdf, FUSION_EDITORIAL.accent, [INK.paper[0], INK.paper[1], INK.paper[2]]);
   drawCover(pdf, fonts, options);
 
   const toc = planLinkedContents(pdf, fonts, chapters.map(chapter => chapter.title));
@@ -180,7 +185,7 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
     paintPaper(pdf);
   }
 
-  const writer = createBookWriter(pdf, fonts);
+  const writer = createBookWriter(pdf, fonts, editorialWriterInk(FUSION_EDITORIAL));
 
   for (const [index, chapter] of chapters.entries()) {
     writer.chapter(chapter.kicker, chapter.title);
@@ -215,7 +220,8 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
     }
   }
 
-  drawLinkedContents(pdf, fonts, toc);
+  drawLinkedContents(pdf, fonts, toc, FUSION_EDITORIAL);
+  drawEditorialPageMarks(pdf, FUSION_EDITORIAL);
   drawFooters(pdf, fonts, watermarkText, toc.pages + 2);
   pdf.save(fileName);
 }

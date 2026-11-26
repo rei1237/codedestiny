@@ -102,7 +102,11 @@ function panelSources(panel) {
 export function renderCraftedDetail(detail, { eager = true } = {}) {
   if (detail.layout === 'editorial') return renderEditorialDetail(detail, { eager });
   const basic = renderBasicFortuneDetail(detail);
-  if (basic) return basic;
+  if (basic) {
+    const notice = isFreeFortuneFeatureKey(detail.featureKey) ? currentFreeCraftedNotice(detail).trim() : '';
+    if (!notice) return basic;
+    return basic + '<details class="craftedDetailTranscript"><summary>이 풀이에서 제공하는 범위</summary><p>' + escape(notice) + '</p></details>';
+  }
   const panels = craftedPanels(detail);
   if (!panels.length) return '';
   const masters = craftedMasters(detail);

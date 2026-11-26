@@ -985,18 +985,18 @@
       "href": "/index.html?action=openRoyalTeaOracle",
       "featureKey": "royal-tea-oracle",
       "accessType": "free",
-      "image": "/feature-details/assets/royal-tea-oracle-960.webp",
+      "image": "/feature-details/assets/royal-tea-oracle-v3-960.webp",
       "aliases": [
         "royal-tea-oracle",
         "openRoyalTeaOracle",
         "/index.html?action=openRoyalTeaOracle",
         "/index.html?action=openRoyalTeaOracle/"
       ],
-      "catalogImage": "/feature-details/assets/royal-tea-oracle-catalog-320.webp",
+      "catalogImage": "/feature-details/assets/royal-tea-oracle-v3-catalog-320.webp",
       "category": "타로·신탁",
-      "description": "앞으로 두어 주 사이에 무엇이 움직이나요?",
+      "description": "테두리와 벽, 바닥의 찻잎은 어떤 이야기를 건넬까요?",
       "verification": "verified",
-      "cardImage": "/feature-details/assets/royal-tea-oracle-320.webp"
+      "cardImage": "/feature-details/assets/royal-tea-oracle-v3-320.webp"
     },
     {
       "slug": "geomancy-oracle",
@@ -6585,7 +6585,7 @@
           "id": "nakshatra-muhurta",
           "featureKey": "nakshatra-muhurta",
           "title": "나크샤트라 택일 · 무후르타",
-          "notice": "저장된 출생정보·목적·조회시작일을 바탕으로 기본60일의 날짜를 비교하는 규칙형 택일입니다. 결혼/개업/계약/이사/시작/치유회복 중 목적을 선택합니다. 숙요관계와 나크샤트라·활동분류·요일의 계산지수를 사용하며 사건/성공확률을 예측하지 않습니다. 추천최대7일·주의최대4일·해석가이드·전체날짜목록을 표시하고 조건에 따라 후보수가 줄거나 주의항목이 없을 수 있습니다. 치유회복도 전통해석이며 치료·수술 일정은 의료진판단을 따릅니다. AI자유질문/예약/알림/PDF/별도결과보관함은 제공하지 않습니다. 새조건의 이용조건은 기존화면에서 확인하고 본문수신실패는 같은결제 다시받기안내를 따릅니다. VVIP/AI심화/궁합은 별도상품입니다. 도식·문장은 설명용 가상예시로 실제추천일/후기가 아닙니다. 이용권·월정석·단건결제 기준은 현재화면을 따릅니다.",
+          "notice": "저장된 출생정보·목적·조회시작일을 바탕으로 기본60일의 날짜를 비교하는 규칙형 택일입니다. 결혼/개업/계약/이사/시작/치유회복 중 목적을 선택합니다. 숙요관계와 나크샤트라·활동분류·요일의 계산지수를 사용하며 사건/성공확률을 예측하지 않습니다. 추천최대7일·주의최대4일·해석가이드·전체날짜목록을 표시하고 조건에 따라 후보수가 줄거나 주의항목이 없을 수 있습니다. 치유회복도 전통해석이며 치료·수술 일정은 의료진판단을 따릅니다. AI자유질문/예약/알림/PDF/별도결과보관함은 제공하지 않습니다. 새 목적이나 시작일을 선택하면 다시 계산할 수 있습니다. 결과가 열리지 않으면 화면의 다시 받기 안내를 이용합니다. VVIP/AI심화/궁합은 별도상품입니다. 도식·문장은 설명용 가상예시로 실제추천일/후기가 아닙니다. 이 서비스의 계산 결과는 결제 없이 무료로 읽을 수 있습니다.",
           "panels": [
             {
               "id": "01-choose-a-day",
@@ -6701,7 +6701,7 @@
               "src": "/feature-details/crafted/nakshatra-muhurta/08-before-searching.webp",
               "width": 1080,
               "height": 1440,
-              "text": "날짜를 고르는,\n하나의 참고표로.\n\n기존 날짜 찾기 버튼에서\n가격과 이용 조건을 확인합니다.\n이용권·월정석·단건 결제는\n현재 화면의 기준을 따릅니다.\n\n택일은 계산과 준비된 해석을 조합합니다.\nVVIP 통합서나 AI 심화 상담,\n두 사람 궁합은 각각 별도 상품입니다.\n\n결제 후 본문을 받지 못했다면\n같은 결제의 다시 받기 안내를 이용해주세요.",
+              "text": "날짜를 고르는,\n하나의 참고표로.\n\n목적과 조회 시작일을 선택하고\n날짜 찾기 버튼을 누르면\n후보 날짜를 무료로 비교합니다.\n\n택일은 계산과 준비된 해석을 조합합니다.\nVVIP 통합서나 AI 심화 상담,\n두 사람 궁합은 각각 별도 상품입니다.\n\n결과가 열리지 않으면\n화면의 다시 받기 안내를 이용해주세요.",
               "variants": [
                 {
                   "src": "/feature-details/crafted/nakshatra-muhurta/08-before-searching-540.webp",
@@ -7960,7 +7960,7 @@
           "id": "animal-destiny",
           "featureKey": "animal-destiny-unlock",
           "title": "십이운성 동물점",
-          "notice": "사주의 십이운성을 동물 캐릭터로 풀어 읽는 콘텐츠입니다. 띠 동물이나 실제 동물의 성격 검사와는 다릅니다. 생년월일과 양력·음력 구분을 입력하며, 출생시간을 모르면 비워둘 수 있습니다. 시간 미상에서는 시주 해석이 제한됩니다. 동반 에너지는 유형 안내이고 상대와의 비교는 상대 정보 입력 후 확인합니다. 예시는 가상 편집이며 카드 이미지 저장은 전체 리포트 PDF 제공을 뜻하지 않습니다. 기존 진입 화면의 이용 조건을 따릅니다.",
+          "notice": "사주의 십이운성을 동물 캐릭터로 읽는 무료 콘텐츠예요. 성별과 생년월일, 양력·음력 구분을 고르고, 이름, 출생시간, 태어난 곳은 선택 항목이에요. 태어난 곳은 확인 화면에만 표시되며 계산에 쓰이지 않아요. 출생시간이 없으면 시주 풀이가 제한돼요. 내 대표 동물과 여러 분야의 풀이를 보고, 상대 정보를 입력하면 동반 에너지도 비교할 수 있어요. 요약 카드는 이미지로 저장하거나 공유할 수 있지만 전체 리포트 PDF는 제공하지 않아요. 예시는 가상이에요.",
           "panels": [
             {
               "id": "01-your-own-pace",
@@ -8083,7 +8083,7 @@
               "src": "/feature-details/crafted/animal-destiny/08-a-card-to-remember.webp",
               "width": 1080,
               "height": 1440,
-              "text": "나를 설명할 한 장을,\n생활 가까이에 남겨요.\n\n생년월일과 달력 종류를 확인해요.\n출생시간을 모르면 비워도 괜찮아요.\n\n결과 요약 카드를 이미지로 저장·공유해요.\n전체 리포트 PDF를 뜻하지는 않아요.\n기존 화면의 이용 조건과 버튼을 따라 시작해요.",
+              "text": "나를 설명할 한 장을,\n생활 가까이에 남겨요.\n\n성별·생년월일·달력 종류를 골라요.\n이름·출생시간·태어난 곳은 선택이에요.\n\n결과 요약 카드를 이미지로 저장·공유해요.\n전체 리포트 PDF를 뜻하지는 않아요.\n결제 없이 무료로 시작해요.",
               "variants": [
                 {
                   "src": "/feature-details/crafted/animal-destiny/08-a-card-to-remember-540.webp",
@@ -9320,7 +9320,7 @@
       "featureKey": "royal-tea-oracle",
       "featureKeyTo": "",
       "accessType": "free",
-      "image": "/feature-details/assets/royal-tea-oracle-960.webp",
+      "image": "/feature-details/assets/royal-tea-oracle-v3-960.webp",
       "aliases": [
         "royal-tea-oracle",
         "openRoyalTeaOracle",
@@ -9328,8 +9328,8 @@
         "/index.html?action=openRoyalTeaOracle/"
       ],
       "category": "타로·신탁",
-      "headline": "찻잔에 남은 모양은 어떤 이야기를 할까요?",
-      "description": "차를 마신 뒤 남은 작은 형상에 시선을 머물러보세요. 테두리와 벽, 바닥에 놓인 상징이 서로 다른 시간의 질문을 건넵니다.",
+      "headline": "찻잎 세 자리에 적힌 오늘의 이야기",
+      "description": "질문 분야를 골라 차를 우리면 찻잔 테두리·벽·바닥에 찻잎 상징이 하나씩 나타나요. 세 자리를 따로 읽고, 지금 할 수 있는 작은 선택을 하나의 이야기로 엮어 드려요.",
       "panels": [],
       "ctaLabel": "오늘의 잔 열기",
       "evidence": [
@@ -9339,69 +9339,67 @@
       ],
       "verification": "verified",
       "benefits": [
-        "오늘의 찻잎 형상",
-        "잔의 세 자리와 시기",
-        "방위와 짙기의 의미",
-        "질문에 맞는 메시지"
+        "다섯 분야 중 지금 궁금한 질문 선택",
+        "테두리·벽·바닥의 찻잎 상징 세 가지",
+        "자리·시계 방향·짙기를 곁들인 풀이",
+        "세 상징을 한데 묶은 오늘의 조언"
       ],
       "contents": [
         {
-          "title": "물음 영역 선택"
+          "title": "연애·일·돈·가족·선택 중 하나 고르기"
         },
         {
-          "title": "잔 우리기"
+          "title": "차를 우려 테두리·벽·바닥의 상징 보기"
         },
         {
-          "title": "세 자리 확인"
+          "title": "방향·짙기와 세 자리의 조언 읽기"
         },
         {
-          "title": "방위·짙기 풀이"
-        },
-        {
-          "title": "공유하기"
+          "title": "전체 이야기와 오늘의 작은 행동 확인"
         }
       ],
-      "imageAlt": "영국 홍차점의 핵심 도구와 이용 장면을 담은 일러스트",
+      "imageAlt": "런던 티룸의 본차이나 찻잔에 남은 찻잎과 은빛 주전자",
       "sample": {
-        "title": "찻잔의 작은 형상",
-        "text": "잔에 남은 모양을 하나의 답으로 고정할 필요는 없습니다. 그 상징을 보며 떠오른 사람이나 장면이 지금 내 마음의 질문을 알려줄 수 있어요.",
-        "action": "가장 먼저 떠오른 장면을 짧게 적어보세요.",
-        "note": "풀이의 문체와 구성을 보여주는 예시입니다. 실제 카드·입력 정보에 따라 내용이 달라집니다."
+        "title": "테두리에 별, 벽에 새, 바닥에 열쇠가 나타난다면",
+        "text": "별은 시선을 끄는 신호, 새는 말을 건네 볼 때, 열쇠는 내가 열 수 있는 문처럼 읽어요. 답을 상대에게만 맡기지 말고, 내가 먼저 확인할 한 가지부터 골라 보세요.",
+        "action": "답을 얻기 위해 오늘 물어볼 질문을 한 문장으로 적어 보세요.",
+        "note": "세 상징을 엮는 형식의 예시이며 실제 결과는 달라질 수 있어요."
       },
       "journey": {
         "questions": [
-          "앞으로 두어 주 사이에 무엇이 움직이나요?",
-          "이 물음의 답은 석 달 안에 올까요?",
-          "오늘의 나에게 필요한 조언은 무엇인가요?"
+          "테두리와 벽, 바닥의 찻잎은 어떤 이야기를 건넬까요?"
         ],
-        "trustNotes": [],
+        "trustNotes": [
+          "결제 없이 이용할 수 있어요.",
+          "같은 날 같은 조건에서는 같은 찻잎이 나와요. 결과는 상징적인 참고용이에요."
+        ],
         "faq": [
           {
-            "q": "볼 때마다 결과가 달라지나요?",
-            "a": "입력이 같으면 같은 날에는 같은 잔이 나오고, 날이 바뀌면 새로 우려집니다."
+            "question": "이용료가 있나요?",
+            "answer": "영국 홍차점은 무료예요."
           },
           {
-            "q": "결과를 다시 볼 수 있나요?",
-            "a": "따로 계정에 저장하지는 않지만, 같은 날 같은 입력이면 같은 잔을 다시 확인할 수 있습니다."
+            "question": "다시 보면 풀이가 달라지나요?",
+            "answer": "같은 날 같은 조건이면 같은 결과가 나와요. 질문 분야가 달라지면 다른 풀이를 볼 수 있어요."
           }
         ]
       },
-      "catalogImage": "/feature-details/assets/royal-tea-oracle-catalog-320.webp",
+      "catalogImage": "/feature-details/assets/royal-tea-oracle-v3-catalog-320.webp",
       "theme": "burgundy",
-      "imageWidth": 1536,
-      "imageHeight": 1024,
+      "imageWidth": 960,
+      "imageHeight": 640,
       "heroVariants": [
         {
-          "src": "/feature-details/assets/royal-tea-oracle-480.webp",
+          "src": "/feature-details/assets/royal-tea-oracle-v3-480.webp",
           "width": 480
         },
         {
-          "src": "/feature-details/assets/royal-tea-oracle-960.webp",
+          "src": "/feature-details/assets/royal-tea-oracle-v3-960.webp",
           "width": 960
         }
       ],
-      "cardImage": "/feature-details/assets/royal-tea-oracle-320.webp",
-      "ogImage": "/feature-details/assets/royal-tea-oracle-og.webp",
+      "cardImage": "/feature-details/assets/royal-tea-oracle-v3-320.webp",
+      "ogImage": "/feature-details/assets/royal-tea-oracle-v3-og.webp",
       "related": []
     },
     "geomancy-oracle": {
@@ -11424,7 +11422,7 @@
           "id": "olympus-oracle",
           "featureKey": "olympus-fc",
           "title": "올림푸스 신탁",
-          "notice": "서양 별자리와 그리스 신화의 상징을 엮은 유머형 해석 콘텐츠입니다. 태양·달·상승궁·수성·금성·화성·목성·토성의 여덟 배치, 원소·양상 균형, 조건부 각도, 성향·관계·일·여행 상징 등의 준비된 문장을 제공합니다. 여덟 행성이라는 뜻이 아닙니다. 직접 입력의 정밀 계산은 서울 좌표·한국 시간 기준이며 계산 실패 시 간이 계산을 사용합니다. 출생시간 미상 등의 상승궁은 근사값으로 표시됩니다. 파트너 궁합은 상대 생년월일 등을 이용한 간이 계산입니다. 오늘의 신탁은 준비된 문장을 날짜 규칙으로 선택하며 매일 새로운 AI 본문을 생성하지 않습니다. 결과 탭의 현재 달 위치 설명은 계산 가능할 때만 표시됩니다. AI 자유상담·PDF를 제공하지 않으며 점수·시기·행운 표현은 사실적 확률이나 성과 보장이 아닙니다. 가격·이용권·월정석·단건 결제는 기존 화면을 따릅니다. 삽화와 예시는 설명용으로 실제 고객 결과·후기가 아닙니다.",
+          "notice": "서양 별자리와 그리스 신화의 상징을 엮은 유머형 해석 콘텐츠입니다. 태양·달·상승궁·수성·금성·화성·목성·토성의 여덟 배치, 원소·양상 균형, 조건부 각도, 성향·관계·일·여행 상징 등의 준비된 문장을 제공합니다. 여덟 행성이라는 뜻이 아닙니다. 직접 입력의 정밀 계산은 서울 좌표·한국 시간 기준이며 계산 실패 시 간이 계산을 사용합니다. 출생시간 미상 등의 상승궁은 근사값으로 표시됩니다. 파트너 궁합은 상대 생년월일 등을 이용한 간이 계산입니다. 오늘의 신탁은 준비된 문장을 날짜 규칙으로 선택하며 매일 새로운 AI 본문을 생성하지 않습니다. 결과 탭의 현재 달 위치 설명은 계산 가능할 때만 표시됩니다. AI 자유상담·PDF를 제공하지 않으며 점수·시기·행운 표현은 사실적 확률이나 성과 보장이 아닙니다. 삽화와 예시는 설명용으로 실제 고객 결과·후기가 아닙니다. 공개 올림푸스 화면에서 직접 입력해 무료로 읽습니다. 메인 화면에서 저장 프로필로 열 때는 로그인이 필요합니다.",
           "panels": [
             {
               "id": "01-your-myth",

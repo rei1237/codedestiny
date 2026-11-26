@@ -1,16 +1,34 @@
 import type { jsPDF as Pdf } from 'jspdf';
 import type { ConsultationBookOptions } from './export-consultation-book-pdf';
 import type { ReportArt } from './report-art';
-import { REPORT_COVER_THEMES } from './report-cover-theme';
+import { REPORT_COVER_THEMES, type ReportCoverTheme } from './report-cover-theme';
 import { CONTENT_BOTTOM_MM, CONTENT_WIDTH_MM, MARGIN_X_MM, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, lineHeightMm } from './typeset-metrics';
-import type { createTypesetWriter, PdfFonts } from './typeset-writer';
+import type { createTypesetWriter, PdfFonts, TypesetInk } from './typeset-writer';
 
 type RGB = readonly [number, number, number];
 type Writer = ReturnType<typeof createTypesetWriter>;
-type EditorialPalette = Record<'ink' | 'accent' | 'muted' | 'rule' | 'wash' | 'motif', RGB>;
-const themes: Record<'love' | 'codex', EditorialPalette> = {
+export type EditorialPalette = Record<'ink' | 'accent' | 'muted' | 'rule' | 'wash' | 'motif', RGB>;
+/** 본문 쪽의 달빛 예화 팔레트. 표지(REPORT_COVER_THEMES)의 서비스 색을 밝은 종이 위 인쇄색으로 옮긴다. */
+const themes: Record<ReportCoverTheme, EditorialPalette> = {
   love: { ink: [68, 42, 55], accent: [121, 66, 91], muted: [115, 83, 98], rule: [224, 204, 211], wash: [249, 239, 239], motif: [169, 123, 62] },
   codex: { ink: [46, 34, 56], accent: [97, 66, 122], muted: [105, 85, 119], rule: [217, 205, 224], wash: [244, 237, 245], motif: [132, 99, 48] },
+  newYear: { ink: [70, 30, 38], accent: [138, 44, 56], muted: [112, 78, 82], rule: [228, 206, 204], wash: [250, 238, 234], motif: [158, 118, 34] },
+  ziwei: { ink: [34, 38, 70], accent: [62, 68, 130], muted: [92, 94, 124], rule: [210, 212, 230], wash: [239, 240, 248], motif: [146, 114, 50] },
+  lifeBook: { ink: [30, 54, 45], accent: [44, 98, 76], muted: [84, 104, 94], rule: [204, 220, 210], wash: [236, 244, 238], motif: [140, 116, 52] },
+  karma: { ink: [54, 36, 66], accent: [106, 68, 132], muted: [108, 88, 120], rule: [221, 208, 230], wash: [245, 238, 248], motif: [150, 110, 82] },
+  sukuyo: { ink: [38, 42, 80], accent: [84, 78, 152], muted: [94, 94, 130], rule: [212, 210, 234], wash: [240, 239, 250], motif: [118, 98, 168] },
+  astrology: { ink: [24, 44, 70], accent: [44, 86, 132], muted: [80, 100, 126], rule: [204, 216, 230], wash: [236, 242, 249], motif: [104, 132, 168] },
+  vedic: { ink: [74, 40, 26], accent: [150, 78, 34], muted: [116, 84, 66], rule: [234, 212, 194], wash: [251, 240, 229], motif: [176, 120, 42] },
+};
+
+/** 표지 초상을 따로 받지 않은 상담서의 기본 마스터. 상세 페이지의 담당 마스터와 같다. */
+const PORTRAITS = '/images/master-profiles/';
+export const CONSULTATION_COVER_MASTERS: Partial<Record<ReportCoverTheme, Array<{ src: string; name: string }>>> = {
+  newYear: [{ src: PORTRAITS + 'neo-new-year-portrait-360.webp', name: '네오' }],
+  lifeBook: [{ src: PORTRAITS + 'yun-life-book-portrait-360.webp', name: '윤달' }],
+  karma: [{ src: PORTRAITS + 'neo-strategy-portrait.webp', name: '네오' }, { src: PORTRAITS + 'hanbi-sukuyo-portrait.webp', name: '서한비' }],
+  sukuyo: [{ src: PORTRAITS + 'hanbi-sukuyo-portrait.webp', name: '서한비' }],
+  ziwei: [{ src: PORTRAITS + 'musung-ziwei-portrait.webp', name: '무성' }],
 };
 const text = (pdf: Pdf, font: string, size: number, color: RGB) => {
   pdf.setFont(font, 'normal');
@@ -19,9 +37,13 @@ const text = (pdf: Pdf, font: string, size: number, color: RGB) => {
 };
 const center = PAGE_WIDTH_MM / 2;
 
-export function consultationEditorialTheme(theme?: ConsultationBookOptions['coverTheme']) {
-  if (theme === 'love' || theme === 'codex') return themes[theme];
-  return undefined;
+export function consultationEditorialTheme(theme?: ConsultationBookOptions['coverTheme']): EditorialPalette {
+  return themes[theme || 'love'] || themes.love;
+}
+
+/** 본문 조판기의 제목·강조·괘선 색. 본문 글자색은 읽기 대비를 위해 기본 먹색을 유지한다. */
+export function editorialWriterInk(palette: EditorialPalette): TypesetInk {
+  return { title: palette.ink, accent: palette.accent, gold: palette.motif, muted: palette.muted, rule: palette.rule, wash: palette.wash };
 }
 
 function moon(pdf: Pdf, x: number, y: number, r: number, gold: RGB, background: RGB) {
@@ -56,7 +78,7 @@ export async function loadConsultationBranch(color: RGB): Promise<string> {
 
 export function drawEditorialCover(pdf: Pdf, fonts: PdfFonts, options: ConsultationBookOptions, art: ReportArt | undefined, portraits: Map<string, ReportArt> | undefined, branch?: string) {
   const theme: { paper: RGB; ink: RGB; muted: RGB; accent: RGB } =
-    REPORT_COVER_THEMES[options.coverTheme === 'codex' ? 'codex' : 'love'];
+    REPORT_COVER_THEMES[options.coverTheme || 'love'];
   const moonIvory: RGB = [253, 246, 240];
   pdf.setFillColor(...theme.paper);
   pdf.rect(0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, 'F');
@@ -74,9 +96,16 @@ export function drawEditorialCover(pdf: Pdf, fonts: PdfFonts, options: Consultat
   text(pdf, fonts.body, 9, theme.muted);
   pdf.text('CODE DESTINY', center, 52, { align: 'center' });
 
-  const title = options.title || options.productLabel;
+  let title = options.title || options.productLabel;
   let size = 32;
   text(pdf, fonts.title, size, theme.ink);
+  // "인연의 서 · 궁합"처럼 가운뎃점으로 이은 제목은 점에서 끊어 꼬리를 부제 줄로 내린다.
+  let subtitle = '';
+  const joint = title.indexOf(' · ');
+  if (joint > 0 && (pdf.splitTextToSize(title, CONTENT_WIDTH_MM - 10) as string[]).length > 1) {
+    subtitle = title.slice(joint + 3).trim();
+    title = title.slice(0, joint).trim();
+  }
   let lines = pdf.splitTextToSize(title, CONTENT_WIDTH_MM - 10) as string[];
   if (lines.length > 2) {
     size = 24;
@@ -89,18 +118,25 @@ export function drawEditorialCover(pdf: Pdf, fonts: PdfFonts, options: Consultat
     pdf.text(line, center, y, { align: 'center' });
     y += lineHeightMm(size, 1.35);
   }
+  if (subtitle) {
+    text(pdf, fonts.title, 16, theme.accent);
+    for (const line of (pdf.splitTextToSize(subtitle, CONTENT_WIDTH_MM - 10) as string[]).slice(0, 2)) {
+      pdf.text(line, center, y - 2, { align: 'center' });
+      y += lineHeightMm(16, 1.35);
+    }
+  }
   const portraitTop = Math.max(97, y + 3);
   const masters = options.coverPortraits || [];
   const hasPortrait = masters.some(master => portraits?.has(master.src));
   const height = 224 - portraitTop;
   if (hasPortrait) {
-    const slot = masters.length === 1 ? 100 : 74;
+    const slot = masters.length === 1 ? 100 : 86;
     // The name sits directly under the tallest portrait; the portrait and name block is centred together.
-    const nameGap = 10;
+    const nameGap = 12;
     const sizes = masters.map(master => {
       const portrait = portraits?.get(master.src);
       if (!portrait) return undefined;
-      const w = Math.min(slot - 11, (height - nameGap) / portrait.ratio);
+      const w = Math.min(slot - 10, (height - nameGap) / portrait.ratio);
       return { portrait, w, h: w * portrait.ratio };
     });
     const tallest = Math.max(...sizes.map(size => size?.h || 0));
@@ -137,6 +173,16 @@ export function drawEditorialCover(pdf: Pdf, fonts: PdfFonts, options: Consultat
   pdf.line(center - 21, 249, center + 21, 249);
   text(pdf, fonts.body, 9.5, theme.muted);
   pdf.text([`${options.chapters.length}장`, options.date].filter(Boolean).join('  ·  '), center, 262, { align: 'center' });
+}
+
+/** 다른 조판 보고서 표지에 상담서와 같은 겹테두리와 위쪽 초승달을 얹는다. */
+export function drawEditorialFrame(pdf: Pdf, accent: RGB, paper: RGB) {
+  pdf.setDrawColor(...accent);
+  pdf.setLineWidth(0.26);
+  pdf.rect(11, 11, PAGE_WIDTH_MM - 22, PAGE_HEIGHT_MM - 22);
+  pdf.setLineWidth(0.12);
+  pdf.rect(14, 14, PAGE_WIDTH_MM - 28, PAGE_HEIGHT_MM - 28);
+  moon(pdf, center - 0.7, 29, 4.1, accent, paper);
 }
 
 export function drawEditorialPageMarks(pdf: Pdf, palette: EditorialPalette) {

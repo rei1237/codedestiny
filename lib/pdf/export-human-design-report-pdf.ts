@@ -3,6 +3,7 @@ import type { jsPDF as JsPDFInstance } from "jspdf";
 import { registerPdfFontsSafely } from "./export-result-pdf";
 import { buildHumanDesignPdfChapters } from "./human-design-report-chapters";
 import { isHumanDesignPdfLocaleSupported } from "./human-design-pdf-locale";
+import { consultationEditorialTheme, drawEditorialFrame, drawEditorialPageMarks, editorialWriterInk } from "./consultation-book-editorial";
 import {
   CONTENT_WIDTH_MM,
   INK,
@@ -70,6 +71,9 @@ export type ExportHumanDesignReportPdfOptions = {
   date?: string;
   watermarkText?: string;
 };
+
+/** 휴먼 디자인 보고서의 본문 색. 기존 보라·금 인쇄색에 가장 가까운 인연의 서 팔레트다. */
+const HUMAN_DESIGN_EDITORIAL = consultationEditorialTheme('codex');
 
 const CONTENTS_LABEL: Record<string, string> = { ko: "차례", en: "Contents" };
 const KICKER: Record<string, string> = { ko: "CODE DESTINY · 휴먼 디자인", en: "CODE DESTINY · HUMAN DESIGN" };
@@ -140,13 +144,14 @@ export async function exportHumanDesignReportPdf(options: ExportHumanDesignRepor
   if (!fonts) throw new PdfFontError("human design report pdf: Korean font embedding failed");
 
   paintPaper(pdf);
+  drawEditorialFrame(pdf, HUMAN_DESIGN_EDITORIAL.accent, [INK.paper[0], INK.paper[1], INK.paper[2]]);
   drawCover(pdf, fonts, options);
 
   pdf.addPage();
   paintPaper(pdf);
   const contentsPage = pdf.getNumberOfPages();
 
-  const writer = createTypesetWriter(pdf, fonts);
+  const writer = createTypesetWriter(pdf, fonts, editorialWriterInk(HUMAN_DESIGN_EDITORIAL));
   const entries: { label: string; page: number }[] = [];
 
   for (const chapter of chapters) {
@@ -187,6 +192,7 @@ export async function exportHumanDesignReportPdf(options: ExportHumanDesignRepor
   }
 
   drawContentsPage(pdf, fonts, contentsPage, entries, CONTENTS_LABEL[lang]);
+  drawEditorialPageMarks(pdf, HUMAN_DESIGN_EDITORIAL);
   drawFooters(pdf, fonts, watermarkText);
   if(options.saveBase64)await options.saveBase64(pdf.output("datauristring").split(",")[1],fileName);
   else pdf.save(fileName);

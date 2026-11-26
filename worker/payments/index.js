@@ -833,7 +833,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
     });
   }
   return json({
-    message: idempotent ? "Membership pass payment already processed." : "30-day membership pass has been activated.",
+    message: idempotent ? "이미 확인된 이용권 결제예요. 이용권이 적용돼 있어요." : "이용권 결제가 확인되어 이용권이 활성화되었습니다.",
     idempotent,
     payment,
     subscription,

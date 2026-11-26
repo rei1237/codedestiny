@@ -1,11 +1,11 @@
 import type {jsPDF as Pdf} from 'jspdf';
-import {createTypesetWriter,type PdfFonts} from './typeset-writer';
+import {createTypesetWriter,type PdfFonts,type TypesetInk} from './typeset-writer';
 import {CONTENT_BOTTOM_MM,CONTENT_WIDTH_MM,MARGIN_X_MM,lineHeightMm} from './typeset-metrics';
 import {bookParagraphs} from './book-paragraphs';
 
 /** Book-specific editorial rhythm, on the existing page and font engine. */
-export function createBookWriter(pdf:Pdf,fonts:PdfFonts){
- const base=createTypesetWriter(pdf,fonts);
+export function createBookWriter(pdf:Pdf,fonts:PdfFonts,palette?:TypesetInk){
+ const base=createTypesetWriter(pdf,fonts,palette);
  const ensure=(height:number)=>{if(base.y+height>CONTENT_BOTTOM_MM)base.newPage();};
  function prose(value:string,lead=false){
   const size=lead?12:11.3,line=lineHeightMm(size,1.85),inset=lead?8:3;

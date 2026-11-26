@@ -2,6 +2,7 @@ import type { jsPDF as JsPDFInstance } from "jspdf";
 import { buildAssetsPublicUrl } from "@/lib/r2-public-url";
 import { REPORT_COVER_THEMES, type ReportCoverTheme } from "./report-cover-theme";
 import { loadReportArt, type ReportArt } from "./report-art";
+import { consultationEditorialTheme, loadConsultationBranch } from "./consultation-book-editorial";
 import { withOpenResultReferences } from './with-open-result-references';
 
 const PAGE_WIDTH_MM = 210;
@@ -108,35 +109,58 @@ export async function registerPdfFontsSafely(pdf: JsPDFInstance, { only }: { onl
   }
 }
 
-function drawCoverPage(pdf: JsPDFInstance, cover: PdfCoverInfo, fonts: { title: string; body: string }, art?: ReportArt) {
-  const theme = cover.theme ? REPORT_COVER_THEMES[cover.theme] : null;
-  const paint = () => {
-    if (!theme) return;
-    pdf.setFillColor(theme.paper[0], theme.paper[1], theme.paper[2]); pdf.rect(0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, "F");
-    pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.setLineWidth(.3); pdf.rect(12, 12, PAGE_WIDTH_MM - 24, PAGE_HEIGHT_MM - 24);
-  };
-  paint();
-  let cursorY = 80;
-  if (art) {
-    const height = Math.min(114, CONTENT_WIDTH_MM * art.ratio);
-    pdf.addImage(art.dataUrl, "JPEG", PAGE_MARGIN_MM, 36, CONTENT_WIDTH_MM, height);
-    cursorY = 36 + height + 22;
+/** 테마가 없는 캡처 보고서(작명·나침반 등)의 달빛 예화 기본 표지 색. */
+const NEUTRAL_COVER = { paper: [251, 247, 240], ink: [52, 40, 58], muted: [112, 98, 110], accent: [128, 92, 118] } as const;
+
+/**
+ * 캡처 보고서 표지. 상담서 표지와 같은 달빛 예화 구성(겹테두리·초승달·꽃가지·가운데 제목·그림)을 쓰고,
+ * 본문 캡처 쪽은 화면 그대로 둔다. 꽃가지·그림을 싣지 못해도 표지 글자는 남는다.
+ */
+function drawCoverPage(pdf: JsPDFInstance, cover: PdfCoverInfo, fonts: { title: string; body: string }, art?: ReportArt, branch?: string) {
+  const theme = cover.theme ? REPORT_COVER_THEMES[cover.theme] : NEUTRAL_COVER;
+  const mid = PAGE_WIDTH_MM / 2;
+  pdf.setFillColor(theme.paper[0], theme.paper[1], theme.paper[2]); pdf.rect(0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, "F");
+  pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]);
+  pdf.setLineWidth(.26); pdf.rect(11, 11, PAGE_WIDTH_MM - 22, PAGE_HEIGHT_MM - 22);
+  pdf.setLineWidth(.12); pdf.rect(14, 14, PAGE_WIDTH_MM - 28, PAGE_HEIGHT_MM - 28);
+  pdf.setFillColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.circle(mid - .7, 29, 4.1, "F");
+  pdf.setFillColor(theme.paper[0], theme.paper[1], theme.paper[2]); pdf.circle(mid - .7 + 4.1 * .42, 29 - 4.1 * .27, 4.1 * .96, "F");
+  if (branch) {
+    try { pdf.addImage(branch, "PNG", mid - 63, 34, 126, 12.6); } catch { /* 초승달과 테두리만으로도 표지가 선다. */ }
   }
   pdf.setFont(fonts.body, "normal");
-  const text = (value: string, size: number, color: readonly [number, number, number], factor: number) => {
-    pdf.setFontSize(size); pdf.setTextColor(...color);
-    const height = size * .352778 * factor;
-    for (const line of pdf.splitTextToSize(value, CONTENT_WIDTH_MM) as string[]) {
-      if (cursorY + height > PAGE_HEIGHT_MM - 62) { pdf.addPage(); paint(); cursorY = 36; }
-      pdf.text(line, PAGE_MARGIN_MM, cursorY); cursorY += height;
+  const write = (value: string, size: number, color: readonly [number, number, number], factor: number, y: number, maxLines: number) => {
+    pdf.setFontSize(size); pdf.setTextColor(color[0], color[1], color[2]);
+    for (const line of (pdf.splitTextToSize(value, CONTENT_WIDTH_MM - 10) as string[]).slice(0, maxLines)) {
+      pdf.text(line, mid, y, { align: "center" }); y += size * .352778 * factor;
     }
+    return y;
   };
-  text(cover.title, 24, theme?.ink || [40,32,24], 1.5);
-  if (cover.subtitle) { cursorY += 8; text(cover.subtitle, 12, theme?.muted || [90,78,64], 1.7); }
-  const muted = theme?.muted || [120,110,98];
-  pdf.setFontSize(10); pdf.setTextColor(muted[0], muted[1], muted[2]);
-  if (cover.name) pdf.text(cover.name, PAGE_MARGIN_MM, PAGE_HEIGHT_MM - 40);
-  if (cover.date) pdf.text(cover.date, PAGE_MARGIN_MM, PAGE_HEIGHT_MM - 32);
+  write("CODE DESTINY", 9, theme.muted, 1.2, 52, 1);
+  // 그림이 없으면 제목 묶음을 테두리 가운데(약 150mm)로 내려 아래쪽이 비지 않게 한다.
+  let titleTop = 72;
+  if (!art) {
+    pdf.setFontSize(26);
+    const titleLines = Math.min(3, (pdf.splitTextToSize(cover.title, CONTENT_WIDTH_MM - 10) as string[]).length);
+    pdf.setFontSize(12);
+    const subLines = cover.subtitle ? Math.min(4, (pdf.splitTextToSize(cover.subtitle, CONTENT_WIDTH_MM - 10) as string[]).length) : 0;
+    const block = titleLines * 26 * .352778 * 1.35 + (subLines ? 3 + subLines * 12 * .352778 * 1.6 : 0);
+    titleTop = Math.max(72, 150 - block / 2);
+  }
+  let y = write(cover.title, 26, theme.ink, 1.35, titleTop, 3);
+  if (cover.subtitle) y = write(cover.subtitle, 12, theme.muted, 1.6, y + 3, 4);
+  if (art) {
+    const top = y + 6;
+    const height = Math.max(0, 236 - top);
+    const width = Math.min(CONTENT_WIDTH_MM - 10, height / art.ratio);
+    if (width > 30) {
+      try { pdf.addImage(art.dataUrl, "JPEG", mid - width / 2, top + (height - width * art.ratio) / 2, width, width * art.ratio); }
+      catch { /* 표지 그림은 장식이다. */ }
+    }
+  }
+  pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.setLineWidth(.25); pdf.line(mid - 21, 249, mid + 21, 249);
+  const footer = [cover.name, cover.date].filter(Boolean).join("  ·  ");
+  if (footer) write(footer, 10, theme.muted, 1.4, 260, 2);
 }
 
 function addCapturedCanvasAsPages(pdf: JsPDFInstance, canvas: HTMLCanvasElement, jpegQuality: number, startNewPage: boolean, element: HTMLElement) {
@@ -246,7 +270,8 @@ async function captureResultPdf(options: ExportResultPdfOptions): Promise<void> 
   if (cover && fonts) {
     const theme = cover.theme ? REPORT_COVER_THEMES[cover.theme] : null;
     const art = theme ? await Promise.allSettled([loadReportArt(`/images/service-introductions/${theme.artwork}-960.webp`, undefined, true)]) : [];
-    drawCoverPage(pdf, cover, fonts, art[0]?.status === "fulfilled" ? art[0].value : undefined);
+    const branch = await loadConsultationBranch(cover.theme ? consultationEditorialTheme(cover.theme).motif : [150, 116, 64]).catch(() => undefined);
+    drawCoverPage(pdf, cover, fonts, art[0]?.status === "fulfilled" ? art[0].value : undefined, branch);
   }
   else if (cover) {
     // jsPDF's default fonts have no Korean glyphs. Rasterize the cover too when

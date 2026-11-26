@@ -10,6 +10,7 @@ import { useUserAccess } from "@/app/_lib/user-session-cache";
 import { useTPick } from "@/lib/i18n/useT";
 import { describePassEligibility, type PassUsageSnapshot } from "@/lib/payment/pass-eligibility";
 import lightFortunes from "@/lib/payment/light-fortunes.generated.json";
+import { isFreeFortuneFeatureKey } from "@/lib/payment/free-fortune-policy.mjs";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
 
@@ -648,7 +649,9 @@ export default function FeatureLandingPage({ service, inlineFlow }: { service?: 
     : action
     ? `/index.html?action=${encodeURIComponent(action)}`
     : SHELL_HOME_PATH;
-  const paidMeta = PAID_SLUG_META[basePath];
+  // Keep landing CTA classification aligned with the canonical runtime policy.
+  const configuredPaidMeta = PAID_SLUG_META[basePath];
+  const paidMeta = configuredPaidMeta && !isFreeFortuneFeatureKey(configuredPaidMeta.featureKey) ? configuredPaidMeta : undefined;
   const isPaidFeature = !!paidMeta;
   // 서버 가격 정본 조회. 유료 기능은 UI fallback 가격을 사용하지 않는다.
   const paidPrice = useServerPrice({
