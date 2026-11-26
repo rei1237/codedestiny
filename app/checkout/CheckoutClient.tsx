@@ -419,7 +419,7 @@ function PreparedCheckoutClient() {
               </details>
               {/* 2026-11-26 사용자 요청: 보유 꿀단지가 이 상담을 덮으면 주 결제 버튼 옆에 같은 크기의 선택지로 둔다. */}
               <div className={styles.payRow} data-pass-choice={passBeside?'':undefined}>
-              {passBeside&&<button type="button" className={`${styles.pay} ${styles.payPass}`} data-pay-method="pass"
+              {passBeside&&<button type="button" className={`${styles.pay} ${styles.payPass}`} data-checkout-method="pass"
                 disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'}
                 onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 꿀단지 적용하기':'Use existing Honey Jar'}</button>}
               <button type="button" onClick={() => void startPayment()}
