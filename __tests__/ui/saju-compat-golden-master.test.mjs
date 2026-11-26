@@ -59,17 +59,17 @@ function measure() {
 // 기준값(현행 엔진 출력). 이 값이 바뀌면 사용자에게 보이는 궁합 결과가 달라진 것이다.
 const EXPECTED = {
   named: {
-    'S0-love': 'f06f82ab171e713a',
-    'S0-business': '71b99971401b5a4c',
-    'S0-friend': '479e2d4ddac2a901',
+    'S0-love': 'cb6061e875d8803b',
+    'S0-business': '59b3dca19d1dd3ff',
+    'S0-friend': 'fea376a552268fff',
     'S0-pastLife': 'c27c308fe5a929c1',
-    'S1-love': 'fc69549b724774e6',
-    'S1-business': '72fb3232cd5867c6',
-    'S1-friend': 'a3fb912823b65ea2',
+    'S1-love': '62b596e7a8dc008a',
+    'S1-business': '5fe3375048707a7d',
+    'S1-friend': 'ef86c5f91a12b58b',
     'S1-pastLife': '0e1c6027f7dce0a4',
-    'A0-love': '0ea47d2dbaec75d6',
-    'A0-business': 'ad97cfb2e0c2b344',
-    'A0-friend': '74dbbc43336f3418',
+    'A0-love': '72a7f0f99d178187',
+    'A0-business': 'bc77a4a8791f7e81',
+    'A0-friend': 'fb563fa0085824ec',
     'A0-pastLife': 'ce8cbc8a52c50e95',
     'A1-love': '02ef329bc0e08023',
     'A1-business': '37933b77d62e7231',
@@ -87,9 +87,9 @@ const EXPECTED = {
     'C0-business': '31099a7684ff9947',
     'C0-friend': 'a3e688abafb52016',
     'C0-pastLife': 'f20f535d6288a0e8',
-    'C1-love': '0343b616869a446c',
-    'C1-business': '69f49e0a347364a9',
-    'C1-friend': '5e317456b9314bdf',
+    'C1-love': '717f90c7ba466bf2',
+    'C1-business': '62bf41df5b81448d',
+    'C1-friend': '508672936b4bbb35',
     'C1-pastLife': 'a14dce29a1eb9a9a',
     'D0-love': '87dc910279438145',
     'D0-business': '2e0254b78b87f3e7',
@@ -103,15 +103,16 @@ const EXPECTED = {
     'F0-business': '8cba84bc4d71e74a',
     'F0-friend': 'e066d6696a43f8d9',
     'F0-pastLife': '535e73a3b7c0a1c1',
-    'F1-love': '9cf9306c59dc0728',
-    'F1-business': '3ac18a6bb52c215f',
-    'F1-friend': '2f73c3dd010618f3',
+    'F1-love': 'cc23b84bc436b757',
+    'F1-business': 'b422a33e453c3708',
+    'F1-friend': 'd432d009a444dc23',
     'F1-pastLife': 'ed860a711239cb47',
   },
   // 2026-10-26 종격 판정을 natal-core로 옮기며 코퍼스 300쌍 중 19쌍이 바뀌었다(고정 쌍 36건은 그대로).
   // 2026-11-26 라이트 궁합 유료 섹션 마크업을 인라인 스타일에서 클래스로 바꿨다(점수·등급·보이는 글은 900쌍 동일, html 바이트만 변경).
   // 2026-11-26 두 사람의 두드러진 십성 묶음이 같으면 소통 스타일 카드를 한 장(두 사람 모두)으로 합쳤다(점수·등급 900쌍 동일, 같은 묶음 213/900의 소통 섹션 html 만 변경).
-  corpus: '69b901f61092ce2dcc109df39f554a01',
+  // 2026-11-26 소통 묶음 동점을 월지 십성 → 천간 투출 수 → 고정 순서(비겁 맨 뒤)로 정하게 바꿨다(점수·등급·라벨 900건 동일, 소통 섹션 312/900·같은 묶음 여부가 바뀐 132/900의 강점·주의 한 줄만 변경, 비겁 183/600 → 119/600).
+  corpus: '5487f40573bc54b667391cddc2e3de1a',
 };
 
 const measured = measure();

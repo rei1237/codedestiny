@@ -24264,6 +24264,8 @@ async function runCompatCore(compatRunBtn, name, bd, type, llm, access){
 var _SE_COMPAT_TEN_KEYWORD={비견:'자립심·주관',겁재:'승부욕·추진력',식신:'여유·표현력',상관:'재치·비판적 시선',편재:'활동성·사교성',정재:'성실함·꼼꼼함',편관:'책임감·결단력',정관:'원칙·신중함',편인:'직관·독창성',정인:'수용·배려'};
 var _SE_COMPAT_TEN_GROUP={비견:'비겁',겁재:'비겁',식신:'식상',상관:'식상',편재:'재성',정재:'재성',편관:'관성',정관:'관성',편인:'인성',정인:'인성'};
 var _SE_COMPAT_GROUP_ORDER=['비겁','식상','재성','관성','인성'];
+// 소통 묶음 동점 정리의 마지막 고정 순서 — 비겁을 맨 뒤에 둔다(앞에 두면 동점이 모두 비겁으로 쏠려 약 30%가 비겁이 됐다).
+var _SE_COMPAT_GROUP_TIE_ORDER=['식상','재성','관성','인성','비겁'];
 var _SE_COMPAT_GROUP_LABEL={비겁:'비겁(자기 주관)',식상:'식상(표현·재능)',재성:'재성(현실·실리)',관성:'관성(원칙·책임)',인성:'인성(생각·수용)'};
 var _SE_COMPAT_EL_THEME={wood:'새로 시작하고 키워 가는 힘',fire:'표현과 열정',earth:'안정과 중재',metal:'결단과 정리',water:'생각의 깊이와 유연함'};
 var _SE_COMPAT_STYLE={
@@ -24299,7 +24301,18 @@ function _seCompatPersonProfile(p, n, pw) {
   });
   var tens = Object.keys(tenCnt).sort(function(a, b) { return tenCnt[b] - tenCnt[a]; });
   var topTens = tens.filter(function(t, i) { return i < 2 && (i === 0 || tenCnt[t] >= 2); });
-  var group = _SE_COMPAT_GROUP_ORDER.reduce(function(best, g) { return groupCnt[g] > groupCnt[best] ? g : best; }, _SE_COMPAT_GROUP_ORDER[0]);
+  // 두드러진 묶음: 개수가 가장 많은 묶음. 동점이면 ① 월지(계절의 중심) 십성의 묶음 ② 천간에 드러난(투출) 개수 ③ 고정 순서로 정한다.
+  var stemGroupCnt = { 비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0 };
+  [p.y.g, p.m.g, p.h.g].forEach(function(c) {
+    var t = getTenGod(dg, c);
+    if (t && t !== '?') stemGroupCnt[_SE_COMPAT_TEN_GROUP[t]]++;
+  });
+  var monthGroup = _SE_COMPAT_TEN_GROUP[getTenGod(dg, p.m.j)] || '';
+  var maxGroupCnt = Math.max.apply(null, _SE_COMPAT_GROUP_ORDER.map(function(g) { return groupCnt[g]; }));
+  var tiedGroups = _SE_COMPAT_GROUP_TIE_ORDER.filter(function(g) { return groupCnt[g] === maxGroupCnt; });
+  var group = tiedGroups.indexOf(monthGroup) >= 0 ? monthGroup : tiedGroups.reduce(function(best, g) {
+    return stemGroupCnt[g] > stemGroupCnt[best] ? g : best;
+  }, tiedGroups[0]);
   var surface = (n && n.surface && n.surface.counts) ? n.surface.counts : ((n && n.counts) || {});
   var counts = {};
   ['wood', 'fire', 'earth', 'metal', 'water'].forEach(function(el) { counts[el] = Number(surface[el] || 0); });
