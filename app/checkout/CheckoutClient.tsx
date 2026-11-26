@@ -4,7 +4,7 @@
  * 영냥이(SoulCat) Family·월정석·단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
  *
  * 흐름: 상담 요청이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
- * 가리킨다 → 여기서 CD 결제창을 **패밀리 꿀단지 이용권·월정석·단건 결제**으로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
+ * 가리킨다 → 여기서 CD 결제창을 **꿀단지 이용권·월정석·단건 결제**로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
  * 결과 화면은 CODE DESTINY 서버에서 동일 요청의 PG 증명을 확인하고 저장된 상담을 이어간다.
  *
  * 이 페이지는 두 진입점을 공유한다 — `isSoulCatMode = !params.requestId`로 분기한다.
@@ -13,8 +13,10 @@
  * - **CD 내부 모드**(`requestId`=64자리 상담 id): CD 자체 영냥이 상품이 결제 전 만들어 둔 상담
  *   레코드의 id로 이 페이지를 연다 — `available`/웹훅 선확인이 그 레코드를 직접 조회한다.
  *
- * 🔴 일반 이용권은 적용되지 않는다. 월정석 허용과 환산은 서버 payment policy 정본을 따른다.
- *    패밀리 꿀단지 이용권은 기존 한도로 적용하고, 실제 결제수단은 공용 게이트에서 선택한다.
+ * 🔴 이용권 적용 범위는 레지스트리 paymentScope 와 서버 evaluatePassCoverage 가 정한다: 생선 상담(direct_or_pass)은
+ *    모든 꿀단지가 건당 상한·남은 한도 안에서 열고(고등어 100코인은 중간 꿀단지부터), 모둠·오마카세(direct_or_family)는
+ *    패밀리 꿀단지만 연다. 이 화면은 서버 적격성(pass.canUse)으로 버튼 위치만 정하고, 차감은 공용 게이트가 한다.
+ *    월정석 허용과 환산도 서버 payment policy 정본을 따른다.
  * 🔴 featureKey 는 `yeongnyangi-` 접두만 받는다 — 이 페이지가 다른 상품의 우회 결제창이 되면 안 된다.
  * 🔴 가격은 레지스트리(resolveServerFeaturePricing)에서만 온다. URL 의 금액을 믿지 않는다.
  * 🔴 화면 문구는 `checkout-copy.ts` 의 동기 표에서 온다. 사전(useT)으로 옮기면 첫 렌더가 비고, 그건
@@ -26,7 +28,7 @@ import {FOLLOWUP_LIMITS} from '@/worker/yeongnyangi/fortune/ask/question-policy'
 import type {FishId} from '@/worker/yeongnyangi/fortune/shared/contracts';
 import { useCallback, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
-import { isIosAppRuntime, isMobileAppRuntime, loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
+import { fetchPaymentEligibility, isIosAppRuntime, isMobileAppRuntime, loadPaidServiceRuntimeGate, runPaidAccessGate } from "@/app/_lib/billing-client";
 import { authFetch } from "@/app/_lib/auth-client";
 import { queryAppProducts } from "@/app/app/_lib/native-billing";
 import { sanitizeAuthReturnPath } from "@/app/_lib/auth-return";
@@ -286,6 +288,20 @@ function PreparedCheckoutClient() {
     return ()=>{active=false;};
   },[isSoulCatMode,signedIn,params,copy,lang]);
 
+  // 보유 꿀단지가 이 상담을 지금 덮는지(상품 범위·건당 상한·남은 한도)는 서버 적격성만 쓴다. 덮을 때만 주 버튼 옆에 둔다.
+  // 표시 전용 조회다 — 차감은 사용자가 고른 뒤 공용 게이트가 서버에서 다시 판정한다. SoulCat 모드는 CD 상담 레코드가 없어 제외한다.
+  const ownerId=String(auth.user?.id||auth.user?._id||'');
+  const [passChoice,setPassChoice]=useState<{key:string;owner:string;label:string}|null>(null);
+  useEffect(()=>{
+    if(!pricing||isSoulCatMode||!signedIn||!checked||!available)return;
+    let active=true;const key=pricing.featureKey,owner=ownerId;
+    void fetchPaymentEligibility({featureKey:key},{revalidate:true}).then(result=>{
+      if(active)setPassChoice(result.ok&&result.data?.pass?.canUse?{key,owner,label:String(result.data.pass.label||'')}:null);
+    }).catch(()=>{/* 판정을 못 읽으면 접힌 영역의 기존 버튼만 남긴다. */});
+    return ()=>{active=false;};
+  },[pricing,isSoulCatMode,signedIn,checked,available,ownerId]);
+  const passBeside=Boolean(passChoice&&pricing&&passChoice.key===pricing.featureKey&&passChoice.owner===ownerId&&!isSoulCatMode);
+
   const startPayment = useCallback(async (paymentMode:'DIRECT_KRW'|'MEMBERSHIP_PASS'|'MOONLIGHT_STONE'='DIRECT_KRW') => {
     if (!pricing || !available || paymentLock.current || packLock.current) return;
     const moonstoneQuantity=paymentMode==='DIRECT_KRW'?Number(moonstoneInput):0;
@@ -387,7 +403,7 @@ function PreparedCheckoutClient() {
                 onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
                 onPaid={()=>{setGate({phase:"paid"});window.location.replace(params.returnTo);}} />}
 
-                <button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 꿀단지 적용하기':'Use existing Honey Jar'}</button>
+                {!passBeside&&<button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 꿀단지 적용하기':'Use existing Honey Jar'}</button>}
                 {!pricing.monthlyExcluded&&<button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}
               {!isSoulCatMode && nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
                 <legend>월정석으로 단건 결제 할인받기</legend>
@@ -401,12 +417,19 @@ function PreparedCheckoutClient() {
                 <p>단건 결제 잔액은 1,000원 이상이어야 해요. 선택한 수량의 사용 가능 여부는 결제 전에 확인해요.</p>
               </fieldset>}
               </details>
+              {/* 2026-11-26 사용자 요청: 보유 꿀단지가 이 상담을 덮으면 주 결제 버튼 옆에 같은 크기의 선택지로 둔다. */}
+              <div className={styles.payRow} data-pass-choice={passBeside?'':undefined}>
+              {passBeside&&<button type="button" className={`${styles.pay} ${styles.payPass}`} data-pay-method="pass"
+                disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'}
+                onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 꿀단지 적용하기':'Use existing Honey Jar'}</button>}
               <button type="button" onClick={() => void startPayment()}
                 disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
                   : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : lang==='ko'&&!isSoulCatMode&&nativePrice===null ? `${formatKrw(validDiscount ? discountedAmount : pricing.amountKRW)} 결제하기` : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || (iosApp ? '' : 'Google Play'))}
               </button>
+              </div>
+              {passBeside&&<p className={styles.passNote}>{lang==='ko'?`${passChoice?.label||'보유 꿀단지'} 한도에서 이용할 수 있어요 · 추가 결제 없음`:'Your Honey Jar covers this consultation · no extra payment'}</p>}
 
               <p className={styles.security}>{copy.methodNote}</p>
               <div aria-live="polite" className={styles.feedback}>
