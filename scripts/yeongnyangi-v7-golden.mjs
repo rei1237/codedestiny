@@ -47,16 +47,22 @@ const asOf='2026-09-29T03:00:00Z',today=asOf.slice(0,10);
 const engine=m.domains.saju;
 const inputFor=date=>engine.validateInput({personA:{birthDate:date,birthTime:'14:30',calendarType:'solar',gender:'female',birthPlace:{latitude:37.5665,longitude:126.978,timezone:'Asia/Seoul'}},readingMode:'personal'});
 // Select an actual engine-calculated absence fixture, never edit a chart to manufacture absence.
-let fixture;
-for(let day=1;day<=730;day++){
- const date=new Date(Date.UTC(1997,0,day)).toISOString().slice(0,10);
+const absenceFixture=async date=>{
  const input=inputFor(date),base=engine.buildContext(await engine.calculate(input,{asOf}));
  const facts=Object.fromEntries(base.facts.map(f=>[f.label,f.value]));
  const wealth=Number(facts.tenGods?.정재||0)+Number(facts.tenGods?.편재||0);
  const benefactors=['천을귀인','문창귀인'].map(key=>facts.shinsal?.byName?.[key]);
  const absent=benefactors.every(v=>!v||!v.present);
- if(wealth===0&&absent){fixture={id:'synthetic-no-wealth-no-benefactor',date,input,base,absence:{wealth,benefactors:benefactors.map(v=>v?.present??false)}};break;}
-}
+ return wealth===0&&absent?{id:'synthetic-no-wealth-no-benefactor',date,input,base,absence:{wealth,benefactors:benefactors.map(v=>v?.present??false)}}:null;
+};
+// The day scan (about 420 full charts) is deterministic for identical code, so its first match is cached under the
+// bundled engine, this script and asOf. The cached date is recomputed and re-checked; a miss falls back to the scan.
+const fixtureCache=path.join(root,'build-cache','yeongnyangi-v7-golden-fixture.json');
+const fixtureKey=createHash('sha256').update(bundle.outputFiles[0].text).update(fs.readFileSync(new URL(import.meta.url))).update(asOf).digest('hex');
+let fixture;
+try{const cached=JSON.parse(fs.readFileSync(fixtureCache,'utf8'));if(cached.key===fixtureKey&&typeof cached.date==='string')fixture=await absenceFixture(cached.date);}catch{}
+for(let day=1;!fixture&&day<=730;day++)fixture=await absenceFixture(new Date(Date.UTC(1997,0,day)).toISOString().slice(0,10));
+if(fixture)try{fs.mkdirSync(path.dirname(fixtureCache),{recursive:true});fs.writeFileSync(fixtureCache,JSON.stringify({key:fixtureKey,date:fixture.date}));}catch{}
 assert.ok(fixture,'No verified absence fixture found');
 // The engine's calculatedAt is wall-clock metadata. Pin it to this fixture's approved asOf so the
 // same calculation has the same resume identity across processes; facts/manifest/mode still bind it.

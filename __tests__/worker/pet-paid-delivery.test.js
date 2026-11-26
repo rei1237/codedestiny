@@ -30,6 +30,10 @@ beforeAll(async()=>{
  jest.unstable_mockModule('../../worker/lib/models.js',()=>({...models,ServiceExecutionTransaction:model,PaidExecutionRecord:{findOne:()=>query(revoked?{}:null)},Payment:{findOne:()=>query(null)},PointHistory:{findOne:()=>query(null)},MonthlyCreditLedger:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/toss/models.js',()=>({TossNativeConsultation:{findOne:filter=>query(tossRow&&matches(tossRow,filter)?tossRow:null)},TossIdentity:{findOne:()=>query(null)}}));
  jest.unstable_mockModule('../../worker/toss/native-tea.js',()=>({nativeIntentId:async()=>tossRow?._id,nativeOwnerFilter:(auth,service)=>({identityId:auth._id,ownerId:auth.ownerId,environment:auth.environment,nativeService:service}),prepareNativeConsultation:async()=>{},verifiedIntent:async()=>{if(tossDeny)throw tossDeny;return tossRow;}}));
+ // Every native read re-validates each frozen pet input with the full deterministic chart (~100-250 ms each) and discards it.
+ // Reuse the real chart per identical input so the lease/refund assertions do not hit jest's 5 s limit under suite load.
+ const petSaju=await import('../../worker/toss/pet-saju.js'),charts=new Map();
+ jest.unstable_mockModule('../../worker/toss/pet-saju.js',()=>({...petSaju,calculateTossPet:(body,options={})=>{if(options.calculate)return petSaju.calculateTossPet(body,options);const key=JSON.stringify([body,options.today]);if(!charts.has(key))charts.set(key,petSaju.calculateTossPet(body,options));return charts.get(key);}}));
  jest.unstable_mockModule('../../worker/lib/structured-consultation.js',()=>({...structured,callGeminiJsonWithRetry:(...args)=>provider(...args)}));
  ({handlePetSajuAiRoutes:route,buildAdminLabPrompt:lab,seedPetNarrative:seedPet}=await import('../../worker/routes/pet-saju-ai.js'));
 });
