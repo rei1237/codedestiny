@@ -695,10 +695,13 @@ export async function verifyMobilePayments({base,products,systemNames}){
       if(scenario==='read-503'){
        assert.equal(f.row.paid,true);f.state.read503=100;
        const failed=f.page.waitForResponse(r=>new URL(r.url()).pathname===`/api/yeongnyangi/requests/${f.row.id}`&&r.status()===503);
+       // If reload throws first, closing the context rejects this waiter; keep that from crashing Node before the real error is reported.
+       failed.catch(()=>{});
        await f.page.reload({waitUntil:'domcontentloaded'});await failed;await f.page.locator('p[role="alert"]').waitFor();
        assert.equal(f.state.sdk.length,1);assert.equal(f.state.orders.size,1);
        await f.page.waitForLoadState('load');
        const restored=f.page.waitForResponse(r=>new URL(r.url()).pathname===`/api/yeongnyangi/requests/${f.row.id}`&&r.status()===200);
+       restored.catch(()=>{});
        f.state.read503=0;await restored;await f.page.getByText('네 이야기를 모두 펼쳐두었어. 천천히 읽어봐.').waitFor();
       }
       if(scenario==='generation-failure'){
