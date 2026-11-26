@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-26
-next: A-3 — check:critical(감사 권고) → fetch·rebase origin/main(충돌 시 미러는 sync:public, 사이트맵은 sitemap:generate 재생성) → check:pre-push → push → CI 1회 → 운영 dispatch → 스모크
+next: B — B-2·B-3(points 자동 재확인, 에이전트 진행 중), B-4·B-5(SoulCat requestId·꿀단지 버튼 주 버튼 옆·낡은 표·매트릭스 테스트, 에이전트 진행 중) → 통합 검사 → push → 운영 배포
 ---
 
 # 11/25 결제 후 결과 미표시(A) + 이용권 결제 조회 멈춤·한도(B) 인수인계
@@ -83,7 +83,7 @@ next: A-3 — check:critical(감사 권고) → fetch·rebase origin/main(충돌
 - [x] A 조사·수정 1·테스트
 - [x] A-1 실화면: 결제 직후 정체/크래시 원인 판정 → 수정본이 원인이면 원인 지점 수정(덧대지 말고), 베이스라인 결함이면 같이 고칠지 판단(실사용 영향 있으면 A 범위 — "모든 유료 기능 결제 후 결과 제공"). buy 412/1280, owned 412/1280 통과 + visual-checker 판정.
 - [x] A-2 check:fast, paid-gate-auditor, payment-freeze (결과는 위 A-2 절)
-- [ ] A-3 커밋 정리 → rebase origin/main → check:pre-push → push → CI 1회 → 운영 dispatch → 스모크
+- [x] A-3 rebase(origin/main dc34422f4c 위, 충돌 0)·sync:public 무변경·check:pre-push 통과 → push e8cc71d3bf. 1차 dispatch 45730041723 은 옆 세션 커밋 626064bb69·453952ccf6 이 끼어 checkout 단계에서 취소(배포 없음) → 사용자 승인("함께 배포") → main CI(PR CI) 성공 확인 → 운영 dispatch 45730298952 success, Pages·Worker 배포 SHA 453952ccf6 검증 통과, 운영 /·/ggulggul/·/points/ 200. 🔴 check:critical 은 별도 실행 안 함(check:fast critical 승격 + CI 로 대신) → B 통합 검사 때 --base=4b2617e036 로 1회.
 - [ ] B-1 운영 DB 읽기 전용: 17:48 premium·20:21 standard 주문 status, 사용자 `lastPassOrderId`/`passGrantOrderIds` 포함 여부, 현재 tier·잔여 한도, 지급 실패 사유(스크립트는 워크트리 `.tmp/`에 커밋 안 되는 파일로; 참고 `.tmp/survey-1125.mjs`, find+projection만, fetch 차단, 해시 출력). 지급 누락이면 수동 쓰기 금지 → 고친 confirm 재실행 경로로 복구되게 하고, 안 되면 멈추고 승인 요청.
 - [ ] B-2 클라이언트: PointsClient GRANT_PENDING·직후 422를 "확인 중"으로, 3→5→10→20s 백오프 약 2분 자동 재확인, 대기 기록 24h, 확정은 성공/명확 실패만.
 - [ ] B-3 서버: 지급 실패 사유 코드 응답·로그. B-1에서 확인된 사유만 문서 규칙대로 수정.
