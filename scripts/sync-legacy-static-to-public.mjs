@@ -466,6 +466,7 @@ const MODULE_IMPORT_CACHE_KEY_FILES = [
   ["js", "recommendations-legacy.mjs"],
   ["js", "recommendations-browser.mjs"],
   ["js", "core", "saju", "basicFortunePresentation.js"],
+  ["js", "core", "saju", "manse-view.js"],
 ];
 
 /** 다른 자산을 `?v=` 로 싣는 루트 로더 파일. 셸은 이 파일들의 내용 해시를 키로 문다. */

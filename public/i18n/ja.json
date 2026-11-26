@@ -22847,5 +22847,395 @@
     },
     "freeBadge": "無料",
     "minutes": "約{n}分"
+  },
+  "manseView": {
+    "tableLabel": "四柱命式表",
+    "basis": {
+      "label": "計算基準",
+      "solar": "陽暦 {date} {time}",
+      "lunar": "旧暦 {date}{leap} {time}",
+      "leap": "（閏月）",
+      "toSolar": "陽暦 {date}",
+      "lmt": "地方平均時 {time}（{place}、{minutes}）",
+      "placeDefault": "既定値ソウル",
+      "minutes": "{n}分",
+      "civil": "経度補正なし（入力時刻のまま）",
+      "meridian": "標準子午線 {meridian}（{utc}）",
+      "dst": "サマータイム{n}分を反映",
+      "term": "{term}の節入り {date} {time}",
+      "nightZi": "23時以降は翌日の日柱",
+      "timeUnknown": "出生時間不明（時柱を除外）",
+      "unavailable": "入力した生年月日時で計算しました"
+    },
+    "tool": {
+      "settings": "設定",
+      "hideHanja": "漢字を隠す",
+      "unseongGroup": "十二運の基準",
+      "unseongShort": "十二運",
+      "bong": "逢法",
+      "geo": "居法",
+      "save": "画像を保存",
+      "saving": "画像を作成しています",
+      "saveFailed": "画像を作成できませんでした。少し待ってからもう一度押してください。",
+      "ready": "画像の準備ができました",
+      "shareTitle": "わたしの命式"
+    },
+    "settings": {
+      "title": "命式の表示設定",
+      "cats": "表示する神殺のグループ",
+      "twelveBasis": "十二神殺の基準",
+      "basis": {
+        "both": "年支・日支の両方",
+        "yearBranch": "年支基準",
+        "dayBranch": "日支基準"
+      },
+      "expert": "専門家向けルールを自分で選ぶ",
+      "expertNote": "流派によって見方が異なるルールです。変えるとすぐ表が再計算されます。",
+      "reset": "初期設定に戻す",
+      "storedNote": "設定はこの端末にだけ保存されます。"
+    },
+    "cat": {
+      "gwiin": "貴人",
+      "gil": "吉神",
+      "hyung": "注意",
+      "relation": "関係",
+      "twelve": "十二神殺"
+    },
+    "rule": {
+      "yanginYinStems": "陰干にも羊刃を見る（乙辰・丁未・己未・辛戌・癸丑）",
+      "hyeonchimIncludeMi": "懸針殺の地支に未を含める",
+      "goegangIncludeMuSul": "魁罡殺に戊戌を含める",
+      "gongmangYearBasis": "空亡を年柱基準でも見る",
+      "cheoneulGengInO": "天乙貴人で庚日干を寅・午と見る",
+      "hakdangMuShin": "学堂貴人で戊日干を申と見る（水土同法）",
+      "gwiinYearStem": "貴人を年干基準でも見る"
+    },
+    "col": {
+      "hour": "時",
+      "day": "日",
+      "month": "月",
+      "year": "年"
+    },
+    "pillar": {
+      "hour": "時柱",
+      "day": "日柱",
+      "month": "月柱",
+      "year": "年柱"
+    },
+    "posShort": {
+      "stem": "干",
+      "branch": "支",
+      "pillar": "柱"
+    },
+    "spot": "{col}{pos}",
+    "luckSpot": "{scope} {pos}",
+    "row": {
+      "head": "区分",
+      "tenGod": "通変星",
+      "stem": "天干",
+      "branch": "地支",
+      "hidden": "蔵干",
+      "unseong": "十二運",
+      "nayin": "納音",
+      "twelve": "十二神殺",
+      "badges": "神殺",
+      "relation": "関係"
+    },
+    "dayMaster": "日干",
+    "dayStarLabel": "日柱：あなた自身を表す柱",
+    "timeUnknown": "時間不明のため表示できません",
+    "moreAria": "{pillar}の神殺をあと{n}件見る",
+    "badgeAria": "{name}の説明を見る",
+    "charAria": {
+      "stem": "{pillar}の天干 {char} の詳細",
+      "branch": "{pillar}の地支 {char} の詳細"
+    },
+    "el": {
+      "wood": "木",
+      "fire": "火",
+      "earth": "土",
+      "metal": "金",
+      "water": "水"
+    },
+    "yy": {
+      "yang": "陽",
+      "yin": "陰"
+    },
+    "yyEl": "{yy}{el}",
+    "rel": {
+      "samhyeong": "三刑",
+      "sanghyeong": "相刑",
+      "jahyeong": "自刑",
+      "samhyeongFull": "三刑（完成）"
+    },
+    "sum": {
+      "yeoniName": "ヨニ",
+      "nyangName": "ヨンニャンイ",
+      "yeoni": "命式に神殺が{n}件あります。バッジを押すと、やさしい説明と根拠が開きます。",
+      "nyang": "良し悪しを決める印じゃないにゃ。どう使うかのほうが大事にゃ。",
+      "empty": "原局に直接現れる神殺はありません。ないことも不足や不運を意味しません。",
+      "basisNote": "十二神殺の基準：{basis}。ほかの神殺はそれぞれ決まった基準（日干・月支など）で探しました。バッジを押すと根拠が見られます。基準は流派によって少しずつ異なります。"
+    },
+    "luck": {
+      "title": "大運・歳運・月運の流れ",
+      "daewoon": "大運",
+      "sewoon": "歳運",
+      "wolwoon": "月運",
+      "hint": "マスを押すと、その時期に入る神殺が見られます。",
+      "daewoonLocked": "大運の流れは大運の解説と一緒に開きます。",
+      "daewoonTimeUnknown": "出生時間が分からないため、大運の開始年齢は確定しません。",
+      "daewoonEmpty": "大運の情報を読み込めませんでした。",
+      "age": "{n}歳",
+      "year": "{n}年",
+      "month": "{term} {date}",
+      "count": "神殺 {n}",
+      "now": "今",
+      "itemAria": "{label} {ganji} の神殺を見る",
+      "note": "歳運は立春、月運は節入り日を基準に切り替わります。"
+    },
+    "sheet": {
+      "close": "閉じる",
+      "back": "一覧へ",
+      "loading": "説明を読み込んでいます…",
+      "loadFailed": "説明を読み込めませんでした。名前と根拠を先に表示します。",
+      "easy": "かんたんに言うと",
+      "good": "上手な使い方",
+      "caution": "注意",
+      "tip": "ヒント",
+      "how": "どうやって見つけた？",
+      "where": "位置",
+      "basis": "基準",
+      "pair": "一緒に結ばれた位置",
+      "element": "集まる気",
+      "kind": "種類",
+      "pos": {
+        "stem": "天干",
+        "branch": "地支",
+        "pillar": "干支"
+      },
+      "foot": "神殺は傾向と流れを読むための参考の印です。一つだけで吉凶を決めません。",
+      "listTitle": "{pillar}の神殺 {n}件",
+      "luckTitle": "{label} {ganji}",
+      "luckEmpty": "この時期に新しく入る神殺はありません。ないことも悪い意味ではありません。",
+      "relWithNatal": "原局との関係",
+      "luckHits": "入ってくる神殺"
+    },
+    "polarity": {
+      "good": "助けになる気",
+      "neutral": "使い方しだい",
+      "caution": "慎重に使う"
+    },
+    "basisKey": {
+      "dayStem": "日干",
+      "yearStem": "年干",
+      "yearBranch": "年支",
+      "dayBranch": "日支",
+      "monthBranch": "月支",
+      "dayPillar": "日柱",
+      "yearPillar": "年柱",
+      "pillar": "干支そのもの",
+      "char": "文字そのもの",
+      "pair": "地支の組",
+      "stemPair": "天干の組",
+      "triad": "三つの地支"
+    },
+    "shinsal": {
+      "cheoneul": {
+        "name": "天乙貴人",
+        "short": "助けの手が届く場所"
+      },
+      "taegeuk": {
+        "name": "太極貴人",
+        "short": "一つの道を深く掘る力"
+      },
+      "munchang": {
+        "name": "文昌貴人",
+        "short": "文章と学びの感覚"
+      },
+      "hakdang": {
+        "name": "学堂貴人",
+        "short": "学びが育つ場"
+      },
+      "cheonju": {
+        "name": "天厨貴人",
+        "short": "食べる福と暮らしの感覚"
+      },
+      "cheondeok": {
+        "name": "天徳貴人",
+        "short": "天の徳が照らす場所"
+      },
+      "woldeok": {
+        "name": "月徳貴人",
+        "short": "寛い心と回復力"
+      },
+      "munkok": {
+        "name": "文曲貴人",
+        "short": "言葉と表現の感覚"
+      },
+      "gwangwi": {
+        "name": "官貴学館",
+        "short": "学びが地位につながる道"
+      },
+      "geonrok": {
+        "name": "建禄",
+        "short": "自分で立つ力"
+      },
+      "amrok": {
+        "name": "暗禄",
+        "short": "見えないところからの助け"
+      },
+      "geumyeo": {
+        "name": "金輿",
+        "short": "品位とやすらぎ"
+      },
+      "hyeoprok": {
+        "name": "夾禄",
+        "short": "両側から支える力"
+      },
+      "cheonui": {
+        "name": "天医星",
+        "short": "いたわり見守る心"
+      },
+      "jisal": {
+        "name": "地殺",
+        "short": "動きながら道を開く力"
+      },
+      "nyeonsal": {
+        "name": "年殺（桃花）",
+        "short": "人を惹きつける魅力"
+      },
+      "wolsal": {
+        "name": "月殺",
+        "short": "乾いた土地を耕す時期"
+      },
+      "mangsinsal": {
+        "name": "亡身殺",
+        "short": "目立つ場所での細やかな振る舞い"
+      },
+      "jangseongsal": {
+        "name": "将星殺",
+        "short": "先頭で率いる力"
+      },
+      "banansal": {
+        "name": "攀鞍殺",
+        "short": "鞍にまたがる安定"
+      },
+      "yeokmasal": {
+        "name": "駅馬殺",
+        "short": "広く動く足"
+      },
+      "yukhaesal": {
+        "name": "六害殺",
+        "short": "ゆっくり積み上げる粘り"
+      },
+      "hwagaesal": {
+        "name": "華蓋殺",
+        "short": "一人で深まる芸術性"
+      },
+      "geopsal": {
+        "name": "劫殺",
+        "short": "立ち向かう緊張と瞬発力"
+      },
+      "jaesal": {
+        "name": "災殺",
+        "short": "制約に耐える力"
+      },
+      "cheonsal": {
+        "name": "天殺",
+        "short": "大きな流れの前の謙虚さ"
+      },
+      "yangin": {
+        "name": "羊刃殺",
+        "short": "鋭く押し進める力"
+      },
+      "goegang": {
+        "name": "魁罡殺",
+        "short": "頭領の強い気質"
+      },
+      "baekho": {
+        "name": "白虎殺",
+        "short": "強烈な推進力と存在感"
+      },
+      "hongyeom": {
+        "name": "紅艶殺",
+        "short": "ほのかな魅力と感性"
+      },
+      "gongmang": {
+        "name": "空亡",
+        "short": "空けておいて満たしていく場所"
+      },
+      "wonjin": {
+        "name": "怨嗔殺",
+        "short": "近いほど生まれる寂しさ"
+      },
+      "gwimun": {
+        "name": "鬼門関殺",
+        "short": "繊細な直感"
+      },
+      "biin": {
+        "name": "飛刃殺",
+        "short": "向かい側に立つ緊張"
+      },
+      "goran": {
+        "name": "孤鸞殺",
+        "short": "ひとりで立つ独立心"
+      },
+      "cheonrajimang": {
+        "name": "天羅地網",
+        "short": "網のように絡む流れ"
+      },
+      "hyeonchim": {
+        "name": "懸針殺",
+        "short": "針のように精密な感覚"
+      },
+      "sangmun": {
+        "name": "喪門殺",
+        "short": "周りのことが気にかかる年"
+      },
+      "jogaek": {
+        "name": "弔客殺",
+        "short": "そばで支えることが増える年"
+      },
+      "stemHap": {
+        "name": "天干合",
+        "short": "天干同士が引き合って結ばれる"
+      },
+      "stemChung": {
+        "name": "天干沖",
+        "short": "天干同士がぶつかり合う"
+      },
+      "yukhap": {
+        "name": "六合",
+        "short": "二つの地支が組になる"
+      },
+      "samhap": {
+        "name": "三合",
+        "short": "三つの地支が一つの流れに集まる"
+      },
+      "banghap": {
+        "name": "方合",
+        "short": "同じ季節の三つの地支が集まる"
+      },
+      "banhap": {
+        "name": "半合",
+        "short": "三合の半分がかみ合う"
+      },
+      "chung": {
+        "name": "沖",
+        "short": "地支が正面からぶつかる"
+      },
+      "hyeong": {
+        "name": "刑",
+        "short": "互いに締めつけ磨き合う関係"
+      },
+      "pa": {
+        "name": "破",
+        "short": "かみ合っていたものがずれる"
+      },
+      "hae": {
+        "name": "害",
+        "short": "それとなくすれ違う関係"
+      }
+    }
   }
 }

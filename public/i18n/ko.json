@@ -13857,5 +13857,395 @@
   },
   "featureMarketingCategory": {
     "sajuZiwei": "사주 × 자미두수"
+  },
+  "manseView": {
+    "tableLabel": "만세력 원국 표",
+    "basis": {
+      "label": "계산 기준",
+      "solar": "양력 {date} {time}",
+      "lunar": "음력 {date}{leap} {time}",
+      "leap": "(윤달)",
+      "toSolar": "양력 {date}",
+      "lmt": "지역 평균시 {time} ({place}, {minutes})",
+      "placeDefault": "서울 기본값",
+      "minutes": "{n}분",
+      "civil": "경도 보정 없음(입력 시각 그대로)",
+      "meridian": "표준 자오선 {meridian}({utc})",
+      "dst": "서머타임 {n}분 반영",
+      "term": "{term} 절입 {date} {time}",
+      "nightZi": "23시 이후 다음 날 일주",
+      "timeUnknown": "출생시간 미상(시주 제외)",
+      "unavailable": "입력한 생년월일시로 계산했어요"
+    },
+    "tool": {
+      "settings": "설정",
+      "hideHanja": "한자 숨기기",
+      "unseongGroup": "12운성 기준",
+      "unseongShort": "12운성",
+      "bong": "봉법",
+      "geo": "거법",
+      "save": "이미지 저장",
+      "saving": "이미지를 만드는 중이에요",
+      "saveFailed": "이미지를 만들지 못했어요. 잠시 뒤 다시 눌러 주세요.",
+      "ready": "이미지를 준비했어요",
+      "shareTitle": "나의 만세력"
+    },
+    "settings": {
+      "title": "만세력 표시 설정",
+      "cats": "보여 줄 신살 묶음",
+      "twelveBasis": "12신살 기준",
+      "basis": {
+        "both": "년지·일지 모두",
+        "yearBranch": "년지 기준",
+        "dayBranch": "일지 기준"
+      },
+      "expert": "전문가 규칙 직접 고르기",
+      "expertNote": "학파마다 다르게 보는 규칙이에요. 바꾸면 표가 바로 다시 계산돼요.",
+      "reset": "기본값으로",
+      "storedNote": "설정은 이 기기에만 저장돼요."
+    },
+    "cat": {
+      "gwiin": "귀인",
+      "gil": "길신",
+      "hyung": "주의",
+      "relation": "관계",
+      "twelve": "12신살"
+    },
+    "rule": {
+      "yanginYinStems": "음간에도 양인 보기(乙辰·丁未·己未·辛戌·癸丑)",
+      "hyeonchimIncludeMi": "현침살 지지에 未 포함",
+      "goegangIncludeMuSul": "괴강살에 戊戌 포함",
+      "gongmangYearBasis": "공망을 년주 기준으로도 보기",
+      "cheoneulGengInO": "천을귀인 庚 일간을 寅·午로 보기",
+      "hakdangMuShin": "학당귀인 戊 일간을 申으로 보기(수토동법)",
+      "gwiinYearStem": "귀인을 년간 기준으로도 보기"
+    },
+    "col": {
+      "hour": "시",
+      "day": "일",
+      "month": "월",
+      "year": "년"
+    },
+    "pillar": {
+      "hour": "시주",
+      "day": "일주",
+      "month": "월주",
+      "year": "년주"
+    },
+    "posShort": {
+      "stem": "간",
+      "branch": "지",
+      "pillar": "주"
+    },
+    "spot": "{col}{pos}",
+    "luckSpot": "{scope} {pos}",
+    "row": {
+      "head": "구분",
+      "tenGod": "십성",
+      "stem": "천간",
+      "branch": "지지",
+      "hidden": "지장간",
+      "unseong": "12운성",
+      "nayin": "납음",
+      "twelve": "12신살",
+      "badges": "신살",
+      "relation": "관계"
+    },
+    "dayMaster": "일간",
+    "dayStarLabel": "일주: 나를 나타내는 기둥",
+    "timeUnknown": "시간 미상으로 표시 불가",
+    "moreAria": "{pillar} 신살 {n}개 더 보기",
+    "badgeAria": "{name} 설명 보기",
+    "charAria": {
+      "stem": "{pillar} 천간 {char} 상세 보기",
+      "branch": "{pillar} 지지 {char} 상세 보기"
+    },
+    "el": {
+      "wood": "목",
+      "fire": "화",
+      "earth": "토",
+      "metal": "금",
+      "water": "수"
+    },
+    "yy": {
+      "yang": "양",
+      "yin": "음"
+    },
+    "yyEl": "{yy}{el}",
+    "rel": {
+      "samhyeong": "삼형",
+      "sanghyeong": "상형",
+      "jahyeong": "자형",
+      "samhyeongFull": "삼형 완성"
+    },
+    "sum": {
+      "yeoniName": "연이",
+      "nyangName": "영냥이",
+      "yeoni": "명식에 신살이 {n}개 머물러 있어요. 배지를 누르면 쉬운 설명과 근거가 열려요.",
+      "nyang": "좋고 나쁨을 정하는 표시가 아니다냥. 어떻게 쓰느냐가 더 중요하다냥.",
+      "empty": "원국에서 직접 확인되는 별신살이 없어요. 없는 것 또한 부족함이나 불운을 뜻하지 않아요.",
+      "basisNote": "12신살 기준: {basis}. 다른 신살은 신살마다 정해진 기준(일간·월지 등)으로 찾았고, 배지를 누르면 근거를 볼 수 있어요. 기준은 학파마다 조금씩 달라요."
+    },
+    "luck": {
+      "title": "대운·세운·월운 흐름",
+      "daewoon": "대운",
+      "sewoon": "세운",
+      "wolwoon": "월운",
+      "hint": "칸을 누르면 그 시기에 들어오는 신살을 볼 수 있어요.",
+      "daewoonLocked": "대운 흐름은 대운 풀이와 함께 열려요.",
+      "daewoonTimeUnknown": "출생시간을 몰라 대운 시작 나이를 확정하지 않아요.",
+      "daewoonEmpty": "대운 정보를 불러오지 못했어요.",
+      "age": "{n}세",
+      "year": "{n}년",
+      "month": "{term} {date}",
+      "count": "신살 {n}",
+      "now": "지금",
+      "itemAria": "{label} {ganji} 신살 보기",
+      "note": "세운은 입춘, 월운은 절입일을 기준으로 바뀌어요."
+    },
+    "sheet": {
+      "close": "닫기",
+      "back": "목록으로",
+      "loading": "설명을 불러오는 중이에요…",
+      "loadFailed": "설명을 불러오지 못했어요. 이름과 근거만 먼저 보여 드려요.",
+      "easy": "쉽게 말하면",
+      "good": "좋게 쓰는 법",
+      "caution": "주의",
+      "tip": "팁",
+      "how": "어떻게 잡혔나요?",
+      "where": "자리",
+      "basis": "기준",
+      "pair": "함께 묶인 자리",
+      "element": "모이는 기운",
+      "kind": "종류",
+      "pos": {
+        "stem": "천간",
+        "branch": "지지",
+        "pillar": "간지"
+      },
+      "foot": "신살은 성향과 흐름을 읽는 참고 표시예요. 하나만으로 길흉을 정하지 않아요.",
+      "listTitle": "{pillar} 신살 {n}개",
+      "luckTitle": "{label} {ganji}",
+      "luckEmpty": "이 시기에 새로 들어오는 신살이 없어요. 없는 것도 나쁜 뜻이 아니에요.",
+      "relWithNatal": "원국과 맺는 관계",
+      "luckHits": "들어오는 신살"
+    },
+    "polarity": {
+      "good": "돕는 기운",
+      "neutral": "쓰기 나름",
+      "caution": "조심해서 쓰기"
+    },
+    "basisKey": {
+      "dayStem": "일간",
+      "yearStem": "년간",
+      "yearBranch": "년지",
+      "dayBranch": "일지",
+      "monthBranch": "월지",
+      "dayPillar": "일주",
+      "yearPillar": "년주",
+      "pillar": "간지 자체",
+      "char": "글자 자체",
+      "pair": "지지 짝",
+      "stemPair": "천간 짝",
+      "triad": "세 지지"
+    },
+    "shinsal": {
+      "cheoneul": {
+        "name": "천을귀인",
+        "short": "도움의 손길이 닿는 자리"
+      },
+      "taegeuk": {
+        "name": "태극귀인",
+        "short": "한 우물을 깊게 파는 힘"
+      },
+      "munchang": {
+        "name": "문창귀인",
+        "short": "글과 배움의 감각"
+      },
+      "hakdang": {
+        "name": "학당귀인",
+        "short": "배움이 자라는 터"
+      },
+      "cheonju": {
+        "name": "천주귀인",
+        "short": "먹을 복과 살림 감각"
+      },
+      "cheondeok": {
+        "name": "천덕귀인",
+        "short": "하늘의 덕이 비치는 자리"
+      },
+      "woldeok": {
+        "name": "월덕귀인",
+        "short": "너그러운 마음과 회복력"
+      },
+      "munkok": {
+        "name": "문곡귀인",
+        "short": "말과 표현의 감각"
+      },
+      "gwangwi": {
+        "name": "관귀학관",
+        "short": "배움이 자리로 이어지는 길"
+      },
+      "geonrok": {
+        "name": "건록",
+        "short": "스스로 서는 힘"
+      },
+      "amrok": {
+        "name": "암록",
+        "short": "보이지 않는 곳의 도움"
+      },
+      "geumyeo": {
+        "name": "금여",
+        "short": "품위와 안락함"
+      },
+      "hyeoprok": {
+        "name": "협록",
+        "short": "양옆에서 받쳐 주는 힘"
+      },
+      "cheonui": {
+        "name": "천의성",
+        "short": "돌보고 살피는 마음"
+      },
+      "jisal": {
+        "name": "지살",
+        "short": "움직이며 길을 여는 힘"
+      },
+      "nyeonsal": {
+        "name": "년살(도화)",
+        "short": "사람을 끄는 매력"
+      },
+      "wolsal": {
+        "name": "월살",
+        "short": "메마른 땅을 일구는 시기"
+      },
+      "mangsinsal": {
+        "name": "망신살",
+        "short": "드러나는 자리, 섬세한 처신"
+      },
+      "jangseongsal": {
+        "name": "장성살",
+        "short": "앞에서 이끄는 힘"
+      },
+      "banansal": {
+        "name": "반안살",
+        "short": "말안장에 오르는 안정"
+      },
+      "yeokmasal": {
+        "name": "역마살",
+        "short": "넓게 움직이는 발"
+      },
+      "yukhaesal": {
+        "name": "육해살",
+        "short": "천천히 쌓는 끈기"
+      },
+      "hwagaesal": {
+        "name": "화개살",
+        "short": "홀로 깊어지는 예술성"
+      },
+      "geopsal": {
+        "name": "겁살",
+        "short": "맞서는 긴장과 순발력"
+      },
+      "jaesal": {
+        "name": "재살",
+        "short": "제약을 견디는 힘"
+      },
+      "cheonsal": {
+        "name": "천살",
+        "short": "큰 흐름 앞의 겸손"
+      },
+      "yangin": {
+        "name": "양인살",
+        "short": "날카롭게 밀어붙이는 힘"
+      },
+      "goegang": {
+        "name": "괴강살",
+        "short": "우두머리의 강한 기질"
+      },
+      "baekho": {
+        "name": "백호살",
+        "short": "강렬한 추진과 존재감"
+      },
+      "hongyeom": {
+        "name": "홍염살",
+        "short": "은은한 매력과 감성"
+      },
+      "gongmang": {
+        "name": "공망",
+        "short": "비워 두고 채워 가는 자리"
+      },
+      "wonjin": {
+        "name": "원진살",
+        "short": "가까울수록 생기는 서운함"
+      },
+      "gwimun": {
+        "name": "귀문관살",
+        "short": "예민한 직관"
+      },
+      "biin": {
+        "name": "비인살",
+        "short": "맞은편에서 서는 긴장"
+      },
+      "goran": {
+        "name": "고란살",
+        "short": "홀로 서는 독립성"
+      },
+      "cheonrajimang": {
+        "name": "천라지망",
+        "short": "그물처럼 얽힌 흐름"
+      },
+      "hyeonchim": {
+        "name": "현침살",
+        "short": "바늘처럼 정밀한 감각"
+      },
+      "sangmun": {
+        "name": "상문살",
+        "short": "주변 일에 마음이 쓰이는 해"
+      },
+      "jogaek": {
+        "name": "조객살",
+        "short": "곁을 지키는 일이 늘어나는 해"
+      },
+      "stemHap": {
+        "name": "천간합",
+        "short": "천간이 서로 끌어 묶임"
+      },
+      "stemChung": {
+        "name": "천간충",
+        "short": "천간이 서로 맞섬"
+      },
+      "yukhap": {
+        "name": "육합",
+        "short": "두 지지가 짝을 이룸"
+      },
+      "samhap": {
+        "name": "삼합",
+        "short": "세 지지가 한 흐름으로 모임"
+      },
+      "banghap": {
+        "name": "방합",
+        "short": "같은 계절의 세 지지가 모임"
+      },
+      "banhap": {
+        "name": "반합",
+        "short": "삼합의 절반이 맞물림"
+      },
+      "chung": {
+        "name": "충",
+        "short": "지지가 정면으로 마주침"
+      },
+      "hyeong": {
+        "name": "형",
+        "short": "서로 조이고 다듬는 관계"
+      },
+      "pa": {
+        "name": "파",
+        "short": "맞물린 것이 어긋남"
+      },
+      "hae": {
+        "name": "해",
+        "short": "은근히 엇갈리는 관계"
+      }
+    }
   }
 }

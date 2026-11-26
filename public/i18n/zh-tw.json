@@ -22847,5 +22847,395 @@
     },
     "freeBadge": "免費",
     "minutes": "約{n}分鐘"
+  },
+  "manseView": {
+    "tableLabel": "四柱命盤表",
+    "basis": {
+      "label": "計算依據",
+      "solar": "國曆 {date} {time}",
+      "lunar": "農曆 {date}{leap} {time}",
+      "leap": "（閏月）",
+      "toSolar": "國曆 {date}",
+      "lmt": "地方平時 {time}（{place}，{minutes}）",
+      "placeDefault": "預設首爾",
+      "minutes": "{n}分鐘",
+      "civil": "未做經度校正（按輸入時間）",
+      "meridian": "標準子午線 {meridian}（{utc}）",
+      "dst": "已計入夏令時{n}分鐘",
+      "term": "{term}交節 {date} {time}",
+      "nightZi": "23點後按次日日柱",
+      "timeUnknown": "出生時間不詳（不含時柱）",
+      "unavailable": "按您輸入的出生日期和時間計算"
+    },
+    "tool": {
+      "settings": "設定",
+      "hideHanja": "隱藏漢字",
+      "unseongGroup": "十二長生基準",
+      "unseongShort": "十二長生",
+      "bong": "逢法",
+      "geo": "居法",
+      "save": "儲存圖片",
+      "saving": "正在產生圖片",
+      "saveFailed": "未能產生圖片，請稍後再試。",
+      "ready": "圖片已準備好",
+      "shareTitle": "我的四柱命盤"
+    },
+    "settings": {
+      "title": "命盤顯示設定",
+      "cats": "要顯示的神煞類別",
+      "twelveBasis": "十二神煞基準",
+      "basis": {
+        "both": "年支和日支",
+        "yearBranch": "以年支為準",
+        "dayBranch": "以日支為準"
+      },
+      "expert": "自行選擇專家規則",
+      "expertNote": "這些規則因流派而異，修改後表格會立即重新計算。",
+      "reset": "恢復預設",
+      "storedNote": "設定只儲存在本裝置上。"
+    },
+    "cat": {
+      "gwiin": "貴人",
+      "gil": "吉神",
+      "hyung": "注意",
+      "relation": "關係",
+      "twelve": "十二神煞"
+    },
+    "rule": {
+      "yanginYinStems": "陰干也看羊刃（乙辰·丁未·己未·辛戌·癸丑）",
+      "hyeonchimIncludeMi": "懸針煞地支包含未",
+      "goegangIncludeMuSul": "魁罡煞包含戊戌",
+      "gongmangYearBasis": "空亡也按年柱看",
+      "cheoneulGengInO": "天乙貴人庚日干取寅·午",
+      "hakdangMuShin": "學堂貴人戊日干取申（水土同法）",
+      "gwiinYearStem": "貴人也按年干看"
+    },
+    "col": {
+      "hour": "時",
+      "day": "日",
+      "month": "月",
+      "year": "年"
+    },
+    "pillar": {
+      "hour": "時柱",
+      "day": "日柱",
+      "month": "月柱",
+      "year": "年柱"
+    },
+    "posShort": {
+      "stem": "干",
+      "branch": "支",
+      "pillar": "柱"
+    },
+    "spot": "{col}{pos}",
+    "luckSpot": "{scope} {pos}",
+    "row": {
+      "head": "項目",
+      "tenGod": "十神",
+      "stem": "天干",
+      "branch": "地支",
+      "hidden": "藏干",
+      "unseong": "十二長生",
+      "nayin": "納音",
+      "twelve": "十二神煞",
+      "badges": "神煞",
+      "relation": "關係"
+    },
+    "dayMaster": "日主",
+    "dayStarLabel": "日柱：代表你自己的柱",
+    "timeUnknown": "出生時間不詳，無法顯示",
+    "moreAria": "查看{pillar}其餘{n}個神煞",
+    "badgeAria": "查看{name}說明",
+    "charAria": {
+      "stem": "{pillar}天干{char}詳情",
+      "branch": "{pillar}地支{char}詳情"
+    },
+    "el": {
+      "wood": "木",
+      "fire": "火",
+      "earth": "土",
+      "metal": "金",
+      "water": "水"
+    },
+    "yy": {
+      "yang": "陽",
+      "yin": "陰"
+    },
+    "yyEl": "{yy}{el}",
+    "rel": {
+      "samhyeong": "三刑",
+      "sanghyeong": "相刑",
+      "jahyeong": "自刑",
+      "samhyeongFull": "三刑（齊全）"
+    },
+    "sum": {
+      "yeoniName": "妍伊",
+      "nyangName": "Yeongnyangi",
+      "yeoni": "命盤中有{n}個神煞。點按徽章即可查看淺顯說明和依據。",
+      "nyang": "這不是定好壞的標記喵。怎麼用更重要喵。",
+      "empty": "原局中沒有直接出現的神煞。沒有也不代表欠缺或不幸。",
+      "basisNote": "十二神煞基準：{basis}。其他神煞按各自固定的依據（日干、月支等）查找，點按徽章可查看依據。各流派的依據略有不同。"
+    },
+    "luck": {
+      "title": "大運·流年·流月走勢",
+      "daewoon": "大運",
+      "sewoon": "流年",
+      "wolwoon": "流月",
+      "hint": "點按格子可查看該時期進入的神煞。",
+      "daewoonLocked": "大運走勢會隨大運解讀一同開放。",
+      "daewoonTimeUnknown": "因出生時間不詳，不確定大運起運年齡。",
+      "daewoonEmpty": "未能載入大運資訊。",
+      "age": "{n}歲",
+      "year": "{n}年",
+      "month": "{term} {date}",
+      "count": "神煞 {n}",
+      "now": "現在",
+      "itemAria": "查看{label} {ganji}的神煞",
+      "note": "流年以立春為界，流月以交節日為界。"
+    },
+    "sheet": {
+      "close": "關閉",
+      "back": "返回列表",
+      "loading": "正在載入說明…",
+      "loadFailed": "未能載入說明，先顯示名稱和依據。",
+      "easy": "簡單來說",
+      "good": "善用方法",
+      "caution": "注意",
+      "tip": "提示",
+      "how": "是怎麼得出的？",
+      "where": "位置",
+      "basis": "依據",
+      "pair": "相連的位置",
+      "element": "匯聚的五行",
+      "kind": "類型",
+      "pos": {
+        "stem": "天干",
+        "branch": "地支",
+        "pillar": "干支"
+      },
+      "foot": "神煞是解讀傾向和走勢的參考標記，不以單一神煞論吉凶。",
+      "listTitle": "{pillar}的神煞 {n}個",
+      "luckTitle": "{label} {ganji}",
+      "luckEmpty": "這一時期沒有新進入的神煞。沒有也不是壞事。",
+      "relWithNatal": "與原局的關係",
+      "luckHits": "進入的神煞"
+    },
+    "polarity": {
+      "good": "助力",
+      "neutral": "看如何運用",
+      "caution": "謹慎運用"
+    },
+    "basisKey": {
+      "dayStem": "日干",
+      "yearStem": "年干",
+      "yearBranch": "年支",
+      "dayBranch": "日支",
+      "monthBranch": "月支",
+      "dayPillar": "日柱",
+      "yearPillar": "年柱",
+      "pillar": "干支本身",
+      "char": "字本身",
+      "pair": "地支組合",
+      "stemPair": "天干組合",
+      "triad": "三個地支"
+    },
+    "shinsal": {
+      "cheoneul": {
+        "name": "天乙貴人",
+        "short": "援手所及之處"
+      },
+      "taegeuk": {
+        "name": "太極貴人",
+        "short": "專注深耕的力量"
+      },
+      "munchang": {
+        "name": "文昌貴人",
+        "short": "文字與學習的感覺"
+      },
+      "hakdang": {
+        "name": "學堂貴人",
+        "short": "學問成長之地"
+      },
+      "cheonju": {
+        "name": "天廚貴人",
+        "short": "口福與持家之道"
+      },
+      "cheondeok": {
+        "name": "天德貴人",
+        "short": "天德照耀之處"
+      },
+      "woldeok": {
+        "name": "月德貴人",
+        "short": "寬厚之心與恢復力"
+      },
+      "munkok": {
+        "name": "文曲貴人",
+        "short": "言語與表達的感覺"
+      },
+      "gwangwi": {
+        "name": "官貴學館",
+        "short": "學問通往職位之路"
+      },
+      "geonrok": {
+        "name": "建祿",
+        "short": "自立的力量"
+      },
+      "amrok": {
+        "name": "暗祿",
+        "short": "來自暗處的幫助"
+      },
+      "geumyeo": {
+        "name": "金輿",
+        "short": "品位與安適"
+      },
+      "hyeoprok": {
+        "name": "夾祿",
+        "short": "兩側扶持的力量"
+      },
+      "cheonui": {
+        "name": "天醫星",
+        "short": "照顧與關懷之心"
+      },
+      "jisal": {
+        "name": "地煞",
+        "short": "邊走邊開路的力量"
+      },
+      "nyeonsal": {
+        "name": "年煞（桃花）",
+        "short": "吸引人的魅力"
+      },
+      "wolsal": {
+        "name": "月煞",
+        "short": "開墾乾涸土地的時期"
+      },
+      "mangsinsal": {
+        "name": "亡身煞",
+        "short": "身處顯眼之處，行事要細膩"
+      },
+      "jangseongsal": {
+        "name": "將星煞",
+        "short": "在前帶領的力量"
+      },
+      "banansal": {
+        "name": "攀鞍煞",
+        "short": "跨上馬鞍的安穩"
+      },
+      "yeokmasal": {
+        "name": "驛馬煞",
+        "short": "四處奔走的腳步"
+      },
+      "yukhaesal": {
+        "name": "六害煞",
+        "short": "慢慢積累的韌性"
+      },
+      "hwagaesal": {
+        "name": "華蓋煞",
+        "short": "獨自深化的藝術性"
+      },
+      "geopsal": {
+        "name": "劫煞",
+        "short": "對峙的緊張與爆發力"
+      },
+      "jaesal": {
+        "name": "災煞",
+        "short": "承受約束的力量"
+      },
+      "cheonsal": {
+        "name": "天煞",
+        "short": "面對大勢的謙遜"
+      },
+      "yangin": {
+        "name": "羊刃煞",
+        "short": "銳利推進的力量"
+      },
+      "goegang": {
+        "name": "魁罡煞",
+        "short": "領頭人的強勢氣質"
+      },
+      "baekho": {
+        "name": "白虎煞",
+        "short": "強烈的衝勁與存在感"
+      },
+      "hongyeom": {
+        "name": "紅艷煞",
+        "short": "含蓄的魅力與感性"
+      },
+      "gongmang": {
+        "name": "空亡",
+        "short": "留白再慢慢填滿的位置"
+      },
+      "wonjin": {
+        "name": "怨嗔煞",
+        "short": "越親近越容易生出的委屈"
+      },
+      "gwimun": {
+        "name": "鬼門關煞",
+        "short": "敏銳的直覺"
+      },
+      "biin": {
+        "name": "飛刃煞",
+        "short": "對面而立的緊張"
+      },
+      "goran": {
+        "name": "孤鸞煞",
+        "short": "獨立自主的個性"
+      },
+      "cheonrajimang": {
+        "name": "天羅地網",
+        "short": "如網交織的走勢"
+      },
+      "hyeonchim": {
+        "name": "懸針煞",
+        "short": "如針般精密的感覺"
+      },
+      "sangmun": {
+        "name": "喪門煞",
+        "short": "為身邊事掛心的一年"
+      },
+      "jogaek": {
+        "name": "弔客煞",
+        "short": "陪伴照顧增多的一年"
+      },
+      "stemHap": {
+        "name": "天干合",
+        "short": "天干相互吸引而合"
+      },
+      "stemChung": {
+        "name": "天干沖",
+        "short": "天干相互對立"
+      },
+      "yukhap": {
+        "name": "六合",
+        "short": "兩個地支結成一對"
+      },
+      "samhap": {
+        "name": "三合",
+        "short": "三個地支匯成一股勢"
+      },
+      "banghap": {
+        "name": "方合",
+        "short": "同一季節的三個地支相聚"
+      },
+      "banhap": {
+        "name": "半合",
+        "short": "三合的一半相扣"
+      },
+      "chung": {
+        "name": "沖",
+        "short": "地支正面相沖"
+      },
+      "hyeong": {
+        "name": "刑",
+        "short": "相互制約、相互打磨的關係"
+      },
+      "pa": {
+        "name": "破",
+        "short": "原本相扣的東西錯開"
+      },
+      "hae": {
+        "name": "害",
+        "short": "暗中錯位的關係"
+      }
+    }
   }
 }

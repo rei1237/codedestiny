@@ -9942,6 +9942,7 @@ function render24Terms(ctx, p){
 }
 
 function renderManse(p){
+  if (window.CdManseView && window.CdManseView.render(p) !== false) return;
   var cols=[{l:'시주',han:'時柱',g:p.h.g,j:p.h.j},{l:'일주',han:'日柱',g:p.d.g,j:p.d.j},{l:'월주',han:'月柱',g:p.m.g,j:p.m.j},{l:'년주',han:'年柱',g:p.y.g,j:p.y.j}];
   var shinsalData=window.CdManseShinsal&&typeof window.CdManseShinsal.build==='function'?window.CdManseShinsal.build(p):{twelve:[],extras:[],basis:''};
   var twelveByKey={};

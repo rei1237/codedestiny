@@ -17507,6 +17507,596 @@ body.neo-mode #resultPage #sajuCard .manse-shinsal-chip {
   background: rgba(255,255,255,.05);
   box-shadow: none;
 }
+/* ═══ 만세력 표 화면(manse-view.js, mxv-) ═══
+   원국 표·신살 배지·관계선·운 흐름·설명 시트. 색은 아래 토큰만 쓴다.
+   작은 금색 글씨는 --mxv-gold-ink(#7a5a1f, 한지 바탕 6.2:1)로 4.5:1 을 넘긴다. 글자는 12px 아래로 내리지 않는다.
+   --mx-label 은 서브셋 글꼴(scripts/build-manse-fonts.mjs)이라 서브셋에 든 기둥 이름·십성에만 쓰고 나머지는 본문 글꼴로 둔다. */
+#resultPage #sajuCard,
+.mxv-sheet {
+  --mxv-gold-ink: #7a5a1f;
+  --mxv-gwiin-ink: #7a5a1f; --mxv-gwiin-bg: #fbf3e2; --mxv-gwiin-line: rgba(122,90,31,.30);
+  --mxv-gil-ink: #2e6a3b; --mxv-gil-bg: #eef7ea; --mxv-gil-line: rgba(46,106,59,.28);
+  --mxv-hyung-ink: #a8432c; --mxv-hyung-bg: #fff1ec; --mxv-hyung-line: rgba(168,67,44,.30);
+  --mxv-relation-ink: #2a5590; --mxv-relation-bg: #eef3fb; --mxv-relation-line: rgba(42,85,144,.28);
+  --mxv-twelve-ink: #5b3f8c; --mxv-twelve-bg: #f3effa; --mxv-twelve-line: rgba(91,63,140,.28);
+  --mxv-dayband: rgba(234,208,137,.16);
+  --mxv-dayband-line: rgba(195,154,90,.55);
+  --mxv-pill-bg: rgba(255,255,255,.72);
+  --mxv-pill-line: rgba(176,48,92,.16);
+  --mxv-day-pill-bg: #fff3da;
+  --mxv-btn-bg: rgba(255,255,255,.82);
+  --mxv-btn-on-bg: #fde6ee;
+  --mxv-track: rgba(122,90,31,.12);
+  --mxv-capture-bg: #fffcf7;
+  --mxv-luck-bg: linear-gradient(180deg, #fffcf6, #fff6f4);
+  --mxv-now-ring: rgba(176,48,92,.18);
+  --mxv-sheet-bg: #fffcf7;
+  --mxv-sheet-tint: #fbf3ec;
+  --mxv-sheet-shadow: rgba(40,10,30,.28);
+  --mxv-backdrop: rgba(30,12,24,.46);
+  --mxv-close-bg: rgba(58,26,44,.06);
+}
+.mxv-sheet {
+  --mx-ink: #3a1a2c;
+  --mx-muted: #7b5a6a;
+  --mx-rose: #b0305c;
+  --mx-gold-line: rgba(195,154,90,.38);
+  --mx-paper: #fffcf7;
+  --mx-han: "CodeDestinyManseHan", "CodeDestinySerifKR", "Noto Serif KR", "Nanum Myeongjo", "AppleMyungjo", serif;
+}
+body.neo-mode #resultPage #sajuCard,
+body.neo-mode .mxv-sheet {
+  --mxv-gold-ink: #e3c98f;
+  --mxv-gwiin-ink: #f0d99c; --mxv-gwiin-bg: rgba(240,217,156,.10); --mxv-gwiin-line: rgba(240,217,156,.32);
+  --mxv-gil-ink: #a8e6b4; --mxv-gil-bg: rgba(168,230,180,.09); --mxv-gil-line: rgba(168,230,180,.30);
+  --mxv-hyung-ink: #ffb4a0; --mxv-hyung-bg: rgba(255,180,160,.10); --mxv-hyung-line: rgba(255,180,160,.32);
+  --mxv-relation-ink: #a9c8ff; --mxv-relation-bg: rgba(169,200,255,.10); --mxv-relation-line: rgba(169,200,255,.32);
+  --mxv-twelve-ink: #d6c4ff; --mxv-twelve-bg: rgba(214,196,255,.10); --mxv-twelve-line: rgba(214,196,255,.32);
+  --mxv-dayband: rgba(227,201,143,.07);
+  --mxv-dayband-line: rgba(227,201,143,.40);
+  --mxv-pill-bg: rgba(255,255,255,.05);
+  --mxv-pill-line: rgba(222,212,245,.18);
+  --mxv-day-pill-bg: rgba(246,182,207,.14);
+  --mxv-btn-bg: rgba(255,255,255,.06);
+  --mxv-btn-on-bg: rgba(246,182,207,.18);
+  --mxv-track: rgba(255,255,255,.10);
+  --mxv-capture-bg: #13102a;
+  --mxv-luck-bg: rgba(255,255,255,.03);
+  --mxv-now-ring: rgba(246,182,207,.24);
+  --mxv-sheet-bg: #1a1633;
+  --mxv-sheet-tint: rgba(255,255,255,.05);
+  --mxv-sheet-shadow: rgba(0,0,0,.6);
+  --mxv-backdrop: rgba(4,2,12,.62);
+  --mxv-close-bg: rgba(255,255,255,.08);
+}
+body.neo-mode .mxv-sheet {
+  --mx-ink: #f4eeff;
+  --mx-muted: rgba(222,212,245,.74);
+  --mx-rose: #f6b6cf;
+  --mx-gold-line: rgba(227,201,143,.30);
+  --mx-paper: rgba(255,255,255,.045);
+}
+#resultPage #sajuCard .mxv-badge--gwiin, #resultPage #sajuCard .mxv-chip--gwiin, #resultPage #sajuCard .mxv-legend__item--gwiin, .mxv-sheet .mxv-chip--gwiin { --mxv-c-ink: var(--mxv-gwiin-ink); --mxv-c-bg: var(--mxv-gwiin-bg); --mxv-c-line: var(--mxv-gwiin-line); }
+#resultPage #sajuCard .mxv-badge--gil, #resultPage #sajuCard .mxv-chip--gil, #resultPage #sajuCard .mxv-legend__item--gil, .mxv-sheet .mxv-chip--gil, .mxv-sheet .mxv-pol--good { --mxv-c-ink: var(--mxv-gil-ink); --mxv-c-bg: var(--mxv-gil-bg); --mxv-c-line: var(--mxv-gil-line); }
+#resultPage #sajuCard .mxv-badge--hyung, #resultPage #sajuCard .mxv-chip--hyung, #resultPage #sajuCard .mxv-legend__item--hyung, #resultPage #sajuCard .mxv-rel--chung, .mxv-sheet .mxv-chip--hyung, .mxv-sheet .mxv-pol--caution { --mxv-c-ink: var(--mxv-hyung-ink); --mxv-c-bg: var(--mxv-hyung-bg); --mxv-c-line: var(--mxv-hyung-line); }
+#resultPage #sajuCard .mxv-chip--relation, #resultPage #sajuCard .mxv-legend__item--relation, #resultPage #sajuCard .mxv-rel--hap, .mxv-sheet .mxv-chip--relation { --mxv-c-ink: var(--mxv-relation-ink); --mxv-c-bg: var(--mxv-relation-bg); --mxv-c-line: var(--mxv-relation-line); }
+#resultPage #sajuCard .mxv-badge--twelve, #resultPage #sajuCard .mxv-chip--twelve, #resultPage #sajuCard .mxv-legend__item--twelve, #resultPage #sajuCard .mxv-rel--soft, .mxv-sheet .mxv-chip--twelve, .mxv-sheet .mxv-pol--neutral { --mxv-c-ink: var(--mxv-twelve-ink); --mxv-c-bg: var(--mxv-twelve-bg); --mxv-c-line: var(--mxv-twelve-line); }
+
+#resultPage #sajuCard .manse-grid.mxv-host { display: block; max-width: 760px; margin-inline: auto; }
+#resultPage #sajuCard .manse-shinsal__list.mxv-sumhost { display: block; }
+#resultPage #sajuCard .manse-shinsal__basis,
+#resultPage #sajuCard .manse-shinsal__empty { font-size: 12px; word-break: keep-all; }
+#resultPage #sajuCard .manse-shinsal__heading p { font-size: max(12px, .82rem); }
+#resultPage #sajuCard .mxv-vh,
+.mxv-sheet .mxv-vh {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+#resultPage #sajuCard .mxv-basis {
+  margin: 0 0 10px;
+  color: var(--mx-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+#resultPage #sajuCard .mxv-basis__label { margin-right: 4px; color: var(--mx-ink); font-weight: 700; }
+
+/* 도구 막대·설정 */
+#resultPage #sajuCard .mxv-toolbar { margin: 0 0 12px; }
+#resultPage #sajuCard .mxv-toolbar__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+#resultPage #sajuCard .mxv-tbtn,
+#resultPage #sajuCard .mxv-seg__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 999px;
+  background: var(--mxv-btn-bg);
+  color: var(--mx-ink);
+  font-family: var(--font-body, sans-serif);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.2;
+  cursor: pointer;
+}
+#resultPage #sajuCard .mxv-tbtn[aria-pressed="true"],
+#resultPage #sajuCard .mxv-tbtn[aria-expanded="true"],
+#resultPage #sajuCard .mxv-seg__btn[aria-pressed="true"] {
+  border-color: var(--mx-rose);
+  background: var(--mxv-btn-on-bg);
+  color: var(--mx-rose);
+  font-weight: 700;
+}
+#resultPage #sajuCard .mxv-tbtn:focus-visible,
+#resultPage #sajuCard .mxv-seg__btn:focus-visible,
+#resultPage #sajuCard .mxv-badge:focus-visible,
+#resultPage #sajuCard .mxv-more:focus-visible,
+#resultPage #sajuCard .mxv-relchip:focus-visible,
+#resultPage #sajuCard .mxv-chip:focus-visible,
+#resultPage #sajuCard .mxv-luckitem:focus-visible,
+#resultPage #sajuCard .mxv-select:focus-visible,
+.mxv-sheet button:focus-visible {
+  outline: 3px solid var(--cd-focus-ring, #b31955);
+  outline-offset: 2px;
+}
+#resultPage #sajuCard .mxv-seg { display: inline-flex; align-items: center; gap: 2px; padding: 2px 2px 2px 12px; border: 1px solid var(--mx-gold-line); border-radius: 999px; }
+/* 봉법·거법은 한 묶음 안의 선택지로 보이게 바깥 테두리만 두고, 저장 같은 동작 버튼과 구분한다. */
+#resultPage #sajuCard .mxv-seg__label { margin-right: 2px; color: var(--mx-muted); font-family: var(--font-body, sans-serif); font-size: 13px; }
+#resultPage #sajuCard .mxv-seg__btn { padding: 0 12px; border-color: transparent; }
+#resultPage #sajuCard .mxv-status { margin: 6px 0 0; color: var(--mx-muted); font-size: 13px; line-height: 1.5; }
+#resultPage #sajuCard .mxv-status:empty { margin: 0; }
+#resultPage #sajuCard .mxv-settings {
+  margin: 10px 0 0;
+  padding: 14px;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 16px;
+  background: var(--mx-paper);
+  color: var(--mx-ink);
+}
+#resultPage #sajuCard .mxv-settings__title { margin: 0 0 6px; font-family: var(--font-body, sans-serif); font-size: 15px; font-weight: 700; }
+#resultPage #sajuCard .mxv-fs { min-width: 0; margin: 8px 0; padding: 0; border: 0; }
+#resultPage #sajuCard .mxv-fs__legend { padding: 0; color: var(--mx-ink); font-size: 14px; font-weight: 700; }
+#resultPage #sajuCard .mxv-fs__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 0 12px; }
+#resultPage #sajuCard .mxv-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--mx-ink);
+  font-size: 14px;
+  line-height: 1.45;
+  cursor: pointer;
+  word-break: keep-all;
+}
+#resultPage #sajuCard .mxv-check input { flex: 0 0 auto; width: 20px; height: 20px; margin: 0; accent-color: var(--mx-rose); }
+/* 다크(neo): 체크 안 된 기본 체크박스가 흰 상자로 튀지 않게 어두운 기본 컨트롤을 쓴다. */
+body.neo-mode #resultPage #sajuCard .mxv-check input { color-scheme: dark; }
+#resultPage #sajuCard .mxv-field { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0; color: var(--mx-ink); font-size: 14px; }
+#resultPage #sajuCard .mxv-select {
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 10px;
+  background: var(--mxv-btn-bg);
+  color: var(--mx-ink);
+  font-size: 14px;
+}
+#resultPage #sajuCard .mxv-rules { display: grid; gap: 0; margin: 4px 0 0; padding-left: 4px; }
+#resultPage #sajuCard .mxv-note { margin: 4px 0; color: var(--mx-muted); font-size: 13px; line-height: 1.6; word-break: keep-all; }
+#resultPage #sajuCard .mxv-settings__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+
+/* 원국 표: 칸마다 grid-area 를 직접 준다(행은 display: contents). */
+#resultPage #sajuCard .mxv-table {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(40px, 3.2em) repeat(4, minmax(0, 1fr));
+  column-gap: clamp(4px, 1.4vw, 10px);
+  row-gap: 6px;
+  align-items: stretch;
+  color: var(--mx-ink);
+  font-size: 13px;
+}
+#resultPage #sajuCard .mxv-row { display: contents; }
+/* 관계 행은 호와 관계 칩 두 겹이라 가운데 정렬이면 이름이 둘 사이에 떠 보인다. 위에 붙인다. */
+#resultPage #sajuCard .mxv-row--relation .mxv-rowlabel { align-items: flex-start; padding-top: 4px; }
+#resultPage #sajuCard .mxv-dayband {
+  z-index: 0;
+  border: 1px solid var(--mxv-dayband-line);
+  border-radius: 18px;
+  background: var(--mxv-dayband);
+}
+#resultPage #sajuCard .mxv-rowlabel,
+#resultPage #sajuCard .mxv-corner {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  color: var(--mx-muted);
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  line-height: 1.3;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+#resultPage #sajuCard .mxv-col {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 0 2px;
+  color: var(--mx-ink);
+  font-family: var(--mx-label);
+  font-size: 15px;
+  line-height: 1.25;
+}
+#resultPage #sajuCard .mxv-col__han { color: var(--mxv-gold-ink); font-family: var(--mx-han); font-size: 12px; font-weight: 600; letter-spacing: .04em; }
+#resultPage #sajuCard .mxv-daystar { color: var(--mxv-gold-ink); font-size: 14px; line-height: 1; }
+#resultPage #sajuCard .mxv-cell {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 2px;
+  color: var(--mx-ink);
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: center;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+#resultPage #sajuCard .mxv-host .char-box {
+  flex-direction: column;
+  gap: 2px;
+  max-width: 112px;
+  min-height: 68px;
+  padding: 8px 2px 7px;
+  aspect-ratio: auto;
+  font-size: clamp(1.45rem, 5.6vw, 2.1rem);
+}
+#resultPage #sajuCard .mxv-glyph { line-height: 1.05; }
+#resultPage #sajuCard .mxv-kor,
+#resultPage #sajuCard .mxv-yy {
+  color: var(--mx-g);
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+#resultPage #sajuCard .mxv-host.mxv-nohan .char-box .mxv-kor { font-size: clamp(1.3rem, 5vw, 1.8rem); font-weight: 700; line-height: 1.1; }
+#resultPage #sajuCard .mxv-god {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 7px;
+  border: 1px solid var(--mxv-pill-line);
+  border-radius: 999px;
+  background: var(--mxv-pill-bg);
+  color: var(--mx-ink);
+  font-family: var(--mx-label);
+  font-size: 12px;
+  line-height: 1.4;
+}
+#resultPage #sajuCard .mxv-god--day { border-color: var(--mxv-dayband-line); background: var(--mxv-day-pill-bg); color: var(--mx-rose); font-weight: 700; }
+#resultPage #sajuCard .mxv-cell--hidden { flex-direction: row; flex-wrap: wrap; align-content: center; gap: 4px 6px; padding-block: 4px; }
+#resultPage #sajuCard .mxv-hs { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.2; }
+#resultPage #sajuCard .mxv-hs__ch { color: var(--mx-ink); font-family: var(--mx-han); font-size: 16px; font-weight: 600; }
+#resultPage #sajuCard .mxv-alt { display: none; font-family: var(--font-body, sans-serif); font-size: 14px; font-weight: 400; }
+#resultPage #sajuCard .mxv-nohan .mxv-alt { display: inline; }
+#resultPage #sajuCard .mxv-hs__god { color: var(--mx-muted); font-size: 12px; }
+#resultPage #sajuCard .mxv-host.mxv-nohan .mxv-han,
+#resultPage #sajuCard .mxv-luck.mxv-nohan .mxv-han,
+.mxv-sheet.mxv-nohan .mxv-han { display: none; }
+#resultPage #sajuCard .mxv-dash { color: var(--mx-muted); font-size: 13px; }
+#resultPage #sajuCard .mxv-cell--unknown {
+  justify-content: flex-start;
+  padding: 14px 4px;
+  border: 1px dashed var(--mx-gold-line);
+  border-radius: 14px;
+  color: var(--mx-muted);
+  line-height: 1.55;
+}
+#resultPage #sajuCard .mxv-cell--badges { justify-content: flex-start; gap: 4px; padding-block: 2px; }
+#resultPage #sajuCard .mxv-badge,
+#resultPage #sajuCard .mxv-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 124px;
+  min-height: 44px;
+  margin: 0;
+  padding: 4px 3px;
+  border: 1px solid var(--mxv-c-line, var(--mx-gold-line));
+  border-radius: 12px;
+  background: var(--mxv-c-bg, transparent);
+  color: var(--mxv-c-ink, var(--mx-ink));
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.25;
+  cursor: pointer;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+#resultPage #sajuCard .mxv-badge__name { font-weight: 700; }
+#resultPage #sajuCard .mxv-badge__tag { color: var(--mx-muted); font-size: 12px; }
+#resultPage #sajuCard .mxv-emo { font-size: 12px; line-height: 1; }
+#resultPage #sajuCard .mxv-more { border-style: dashed; font-size: 13px; font-weight: 700; }
+#resultPage #sajuCard .mxv-cell--relation { display: block; padding: 0; text-align: left; }
+#resultPage #sajuCard .mxv-arcs { display: block; width: 100%; overflow: visible; }
+#resultPage #sajuCard .mxv-arc { fill: none; stroke: var(--mxv-c-ink); stroke-width: 1.6px; vector-effect: non-scaling-stroke; }
+#resultPage #sajuCard .mxv-arc--hap { stroke: var(--mxv-relation-ink); }
+#resultPage #sajuCard .mxv-arc--chung { stroke: var(--mxv-hyung-ink); }
+#resultPage #sajuCard .mxv-arc--soft { stroke: var(--mxv-twelve-ink); stroke-dasharray: 4 3; }
+#resultPage #sajuCard .mxv-arc-dot { fill: none; stroke: var(--mxv-gold-ink); stroke-width: 7px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+#resultPage #sajuCard .mxv-relchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+#resultPage #sajuCard .mxv-relchip,
+#resultPage #sajuCard .mxv-chip,
+.mxv-sheet .mxv-chip {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 5px 12px;
+  border: 1px solid var(--mxv-c-line);
+  border-radius: 14px;
+  background: var(--mxv-c-bg);
+  color: var(--mxv-c-ink);
+  font-family: var(--font-body, sans-serif);
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  word-break: keep-all;
+}
+#resultPage #sajuCard .mxv-relchip strong,
+#resultPage #sajuCard .mxv-chip strong,
+.mxv-sheet .mxv-chip strong { font-size: 14px; font-weight: 700; }
+#resultPage #sajuCard .mxv-relchip small,
+#resultPage #sajuCard .mxv-chip small,
+.mxv-sheet .mxv-chip small { font-size: 12px; }
+#resultPage #sajuCard .mxv-capturing { background: var(--mxv-capture-bg); }
+/* 저장 이미지: html2canvas 는 안쪽 그림자를 좁은 띠로 그리므로 캡처 중에는 바깥 금빛 테두리만 남긴다.
+   둘레 여백은 레이아웃을 건드리지 않고 manse-view.js 가 캔버스에 다시 그려 붙인다(모바일 max-width:100% !important 때문에 CSS 로는 넓힐 수 없다). */
+#resultPage #sajuCard .mxv-host.mxv-capturing .char-box { box-shadow: none; transition: none; }
+#resultPage #sajuCard .mxv-host.mxv-capturing .char-box[data-is-day-stem="1"] { box-shadow: 0 0 0 3px var(--mx-gold-glow); }
+/* html2canvas 는 body 에 숨긴 div(visibility: hidden) 안의 1px 이미지로 글자 기준선을 잰다.
+   셸의 img{display:block} 이 그 이미지를 줄 아래로 내려 저장 이미지의 글자가 처지므로, 만세력 저장 중에만 인라인으로 되돌린다. */
+html.mxv-capture-run body > div[style^="visibility: hidden"] > img[width="1"][height="1"] { display: inline; }
+/* 카드 장식(::before)이 오른쪽으로 넘쳐, overflow:hidden 인 카드가 focus·scrollIntoView 때 옆으로 밀린다.
+   clip 은 스크롤 상자를 만들지 않는다(지원하지 않는 브라우저는 위의 hidden 으로 남는다). */
+#resultPage #sajuCard { overflow: clip; }
+/* 뿌리의 scrollbar-gutter: stable both-edges 가 고정 시트를 좌우로 들여 딤이 비므로, 시트가 열린 동안만 푼다. */
+html:has(.mxv-sheet:not([hidden])) { scrollbar-gutter: auto; }
+/* 좁은 칸의 영어 단어는 글자 중간이 아니라 음절에서 끊는다. */
+#resultPage #sajuCard :is(.mxv-cell, .mxv-rowlabel, .mxv-corner, .mxv-badge, .mxv-more) { -webkit-hyphens: auto; hyphens: auto; }
+/* 영문 행 이름(Relations 등)은 36~42px 칸에 들어가지 않으므로, 한중일이 아닌 언어에서만 행 이름 칸을 가장 긴 단어 폭까지 넓힌다.
+   특이도를 높여 좁은 화면(max-width: 480px) 규칙보다 이기게 한다. */
+html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-table { grid-template-columns: minmax(min-content, 3.2em) repeat(4, minmax(0, 1fr)); }
+html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-rowlabel { overflow-wrap: normal; }
+/* 일본어: 본문 스택 맨 앞 CodeDestinyHan(한국어 OS 글꼴)이 한자만 가져가 가나와 굵기가 섞이므로, 만세력 화면 안에서만 일본어 글꼴을 앞에 둔다.
+   :where 로 특이도를 낮춰 한자 기둥(--mx-han)처럼 글꼴을 직접 정한 규칙은 그대로 이긴다. */
+:where(html:lang(ja) #resultPage #sajuCard, html:lang(ja) .mxv-sheet) [class*="mxv-"],
+:where(html:lang(ja)) .mxv-sheet {
+  --font-body: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Yu Gothic", Meiryo, "Noto Sans CJK JP", "Noto Sans JP", "CodeDestinyHan", "CodeDestinyBody", sans-serif;
+  --mx-label: var(--font-body);
+  font-family: var(--font-body);
+}
+
+/* 오행 막대(근거 영역 숫자 아래) */
+#resultPage #sajuCard .mxv-bars { display: grid; gap: 6px; margin: -12px 0 20px; }
+#resultPage #sajuCard .mxv-bar { display: grid; grid-template-columns: 2.2em minmax(0, 1fr) 2em; align-items: center; gap: 8px; color: var(--mx-ink); font-size: 13px; }
+#resultPage #sajuCard .mxv-bar__track { height: 8px; overflow: hidden; border-radius: 999px; background: var(--mxv-track); }
+#resultPage #sajuCard .mxv-bar__fill { display: block; height: 100%; border-radius: inherit; background: var(--mx-metal-ink); }
+#resultPage #sajuCard .mxv-bar--wood .mxv-bar__fill { background: var(--mx-wood-ink); }
+#resultPage #sajuCard .mxv-bar--fire .mxv-bar__fill { background: var(--mx-fire-ink); }
+#resultPage #sajuCard .mxv-bar--earth .mxv-bar__fill { background: var(--mx-earth-ink); }
+#resultPage #sajuCard .mxv-bar--water .mxv-bar__fill { background: var(--mx-water-ink); }
+#resultPage #sajuCard .mxv-bar__n { font-variant-numeric: tabular-nums; text-align: right; }
+
+/* 신살 요약 */
+#resultPage #sajuCard .mxv-say {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 16px;
+  background: var(--mx-paper);
+  color: var(--mx-ink);
+  font-size: 14px;
+  line-height: 1.65;
+  word-break: keep-all;
+}
+#resultPage #sajuCard .mxv-say__who { margin-right: 4px; color: var(--mx-rose); font-weight: 700; }
+#resultPage #sajuCard .mxv-say--nyang { margin: 14px 0 0; border-style: dashed; background: transparent; }
+#resultPage #sajuCard .mxv-say--nyang .mxv-say__who { color: var(--mxv-twelve-ink); }
+#resultPage #sajuCard .mxv-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 4px; padding: 0; list-style: none; }
+#resultPage #sajuCard .mxv-legend__item {
+  padding: 3px 10px;
+  border: 1px solid var(--mxv-c-line);
+  border-radius: 999px;
+  background: var(--mxv-c-bg);
+  color: var(--mxv-c-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+#resultPage #sajuCard .mxv-group { margin-top: 12px; }
+#resultPage #sajuCard .mxv-group__title { margin: 0 0 6px; color: var(--mx-ink); font-family: var(--font-body, sans-serif); font-size: 14px; font-weight: 700; }
+#resultPage #sajuCard .mxv-chips,
+.mxv-sheet .mxv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* 대운·세운·월운 */
+#resultPage #sajuCard .mxv-luck {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 22px;
+  background: var(--mxv-luck-bg);
+  color: var(--mx-ink);
+}
+#resultPage #sajuCard .mxv-luck__title { margin: 0; font-family: var(--font-body, sans-serif); font-size: 1.04rem; font-weight: 400; line-height: 1.45; }
+#resultPage #sajuCard .mxv-luck__hint,
+#resultPage #sajuCard .mxv-luck__note { margin: 6px 0 0; color: var(--mx-muted); font-size: 13px; line-height: 1.6; word-break: keep-all; }
+#resultPage #sajuCard .mxv-luck__note { margin-top: 12px; }
+#resultPage #sajuCard .mxv-luck__group { margin-top: 14px; }
+#resultPage #sajuCard .mxv-luck__sub { margin: 0; font-family: var(--font-body, sans-serif); font-size: 14px; font-weight: 700; }
+#resultPage #sajuCard .mxv-luck__empty { margin: 6px 0 0; color: var(--mx-muted); font-size: 13px; line-height: 1.6; }
+#resultPage #sajuCard .mxv-strip {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  margin: 6px 0 0;
+  padding: 4px 2px 10px;
+  overflow-x: auto;
+  list-style: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+#resultPage #sajuCard .mxv-strip__li { flex: 0 0 auto; scroll-snap-align: center; }
+#resultPage #sajuCard .mxv-luckitem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 76px;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 14px;
+  background: var(--mx-paper);
+  color: var(--mx-ink);
+  font-family: var(--font-body, sans-serif);
+  font-size: 12px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+#resultPage #sajuCard .mxv-luckitem.mxv-now { border-color: var(--mx-rose); box-shadow: 0 0 0 3px var(--mxv-now-ring); }
+#resultPage #sajuCard .mxv-luckitem__gz { display: flex; flex-direction: column; align-items: center; }
+#resultPage #sajuCard .mxv-luckitem__gz .mxv-han { font-family: var(--mx-han); font-size: 18px; font-weight: 600; line-height: 1.2; }
+#resultPage #sajuCard .mxv-read { font-size: 13px; font-weight: 700; }
+#resultPage #sajuCard .mxv-luckitem__count { color: var(--mx-muted); font-size: 12px; }
+#resultPage #sajuCard .mxv-luckitem__now { color: var(--mx-rose); font-size: 12px; font-weight: 700; }
+
+/* 설명 시트: 휴대폰·터치는 바닥 시트, 넓은 화면은 가운데 창 */
+.mxv-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.mxv-sheet[hidden] { display: none; }
+.mxv-sheet .mxv-sheet__backdrop { position: absolute; inset: 0; background: var(--mxv-backdrop); }
+.mxv-sheet .mxv-sheet__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 640px;
+  max-height: 85vh;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  border-radius: 20px 20px 0 0;
+  background: var(--mxv-sheet-bg);
+  color: var(--mx-ink);
+  box-shadow: 0 -12px 40px var(--mxv-sheet-shadow);
+  font-family: var(--font-body, sans-serif);
+  outline: none;
+}
+.mxv-sheet .mxv-sheet__head { display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 16px; border-bottom: 1px solid var(--mx-gold-line); }
+.mxv-sheet .mxv-sheet__title { flex: 1 1 auto; min-width: 0; margin: 0; color: var(--mx-ink); font-family: var(--font-body, sans-serif); font-size: 1.12rem; font-weight: 700; line-height: 1.4; word-break: keep-all; }
+.mxv-sheet .mxv-sheet__back,
+.mxv-sheet .mxv-sheet__close {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--mxv-close-bg);
+  color: var(--mx-ink);
+  font-size: 15px;
+  cursor: pointer;
+}
+.mxv-sheet .mxv-sheet__back { color: var(--mx-rose); font-weight: 700; }
+.mxv-sheet .mxv-sheet__close { font-size: 18px; }
+.mxv-sheet .mxv-sheet__back[hidden] { display: none; }
+.mxv-sheet .mxv-sheet__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px 16px 20px;
+  color: var(--mx-ink);
+  font-size: 15px;
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.mxv-sheet .mxv-sheet__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.mxv-sheet .mxv-pol {
+  padding: 3px 10px;
+  border: 1px solid var(--mxv-c-line);
+  border-radius: 999px;
+  background: var(--mxv-c-bg);
+  color: var(--mxv-c-ink);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.mxv-sheet .mxv-sheet__han { color: var(--mxv-gold-ink); font-family: var(--mx-han); font-size: 16px; font-weight: 600; }
+.mxv-sheet .mxv-sheet__cat { color: var(--mx-muted); font-size: 13px; }
+.mxv-sheet .mxv-sheet__short { margin: 12px 0 8px; color: var(--mx-ink); font-size: 16px; font-weight: 700; line-height: 1.6; }
+.mxv-sheet .mxv-copy { margin: 8px 0; padding: 10px 12px; border-radius: 12px; background: var(--mxv-sheet-tint); }
+.mxv-sheet .mxv-copy__title { margin: 0 0 4px; color: var(--mx-rose); font-size: 14px; font-weight: 700; }
+.mxv-sheet .mxv-copy--caution .mxv-copy__title { color: var(--mxv-hyung-ink); }
+.mxv-sheet .mxv-copy p { margin: 0; font-size: 15px; }
+.mxv-sheet .mxv-how { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--mx-gold-line); }
+.mxv-sheet .mxv-how__title { margin: 0 0 6px; font-size: 14px; font-weight: 700; }
+.mxv-sheet .mxv-how__list { margin: 0; }
+.mxv-sheet .mxv-how__row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; padding: 6px 0; border-bottom: 1px solid var(--mx-gold-line); font-size: 14px; }
+.mxv-sheet .mxv-how__row dt { color: var(--mx-muted); }
+.mxv-sheet .mxv-how__row dd { margin: 0; }
+.mxv-sheet .mxv-sheet__sub { margin: 14px 0 6px; font-size: 14px; font-weight: 700; }
+.mxv-sheet .mxv-sheet__note { margin: 8px 0; color: var(--mx-muted); font-size: 14px; }
+.mxv-sheet .mxv-sheet__foot { margin: 16px 0 0; color: var(--mx-muted); font-size: 13px; line-height: 1.6; }
+.mxv-sheet .mxv-chips--sheet { margin-top: 4px; }
+@media (min-width: 641px) and (hover: hover) and (pointer: fine) {
+  .mxv-sheet { align-items: center; }
+  .mxv-sheet .mxv-sheet__panel { width: min(480px, calc(100% - 32px)); max-height: 80vh; border-radius: 20px; box-shadow: 0 18px 48px var(--mxv-sheet-shadow); }
+}
+@media (max-width: 480px) {
+  #resultPage #sajuCard .mxv-table { grid-template-columns: minmax(36px, 3em) repeat(4, minmax(0, 1fr)); column-gap: 4px; }
+  #resultPage #sajuCard .mxv-host .char-box { min-height: 64px; padding-inline: 1px; }
+  #resultPage #sajuCard .mxv-emo { display: none; }
+  #resultPage #sajuCard .mxv-luck { padding: 15px 13px; border-radius: 18px; }
+  #resultPage #sajuCard .mxv-tbtn { padding: 0 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #resultPage #sajuCard .mxv-strip { scroll-behavior: auto; }
+}
+#resultPage #sajuCard .mxv-host [hidden],
+#resultPage #sajuCard .mxv-luck [hidden] { display: none; }
+.mxv-sheet [hidden] { display: none; }
+
 /* ═══ 궁합 장문 리포트 ═══ */
 #resultPage #compatResult .compat-wrap,
 .cd-compat-archive .compat-wrap {

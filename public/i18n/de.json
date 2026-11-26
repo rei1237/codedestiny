@@ -22847,5 +22847,395 @@
     },
     "freeBadge": "Free",
     "minutes": "About {n} min"
+  },
+  "manseView": {
+    "tableLabel": "Four Pillars chart",
+    "basis": {
+      "label": "Calculation basis",
+      "solar": "Solar {date} {time}",
+      "lunar": "Lunar {date}{leap} {time}",
+      "leap": " (leap month)",
+      "toSolar": "Solar {date}",
+      "lmt": "Local mean time {time} ({place}, {minutes})",
+      "placeDefault": "Seoul by default",
+      "minutes": "{n} min",
+      "civil": "No longitude correction (time as entered)",
+      "meridian": "Standard meridian {meridian} ({utc})",
+      "dst": "Daylight saving {n} min applied",
+      "term": "{term} begins {date} {time}",
+      "nightZi": "After 23:00 uses the next day pillar",
+      "timeUnknown": "Birth time unknown (hour pillar omitted)",
+      "unavailable": "Calculated from the birth date and time you entered"
+    },
+    "tool": {
+      "settings": "Settings",
+      "hideHanja": "Hide Chinese characters",
+      "unseongGroup": "12 life stages basis",
+      "unseongShort": "12 stages",
+      "bong": "Day stem",
+      "geo": "Own stem",
+      "save": "Save image",
+      "saving": "Creating the image…",
+      "saveFailed": "Couldn't create the image. Please try again in a moment.",
+      "ready": "Image ready",
+      "shareTitle": "My Four Pillars chart"
+    },
+    "settings": {
+      "title": "Chart display settings",
+      "cats": "Symbol groups to show",
+      "twelveBasis": "12 spirits basis",
+      "basis": {
+        "both": "Year and day branch",
+        "yearBranch": "Year branch",
+        "dayBranch": "Day branch"
+      },
+      "expert": "Choose expert rules myself",
+      "expertNote": "Schools read these rules differently. Changing one recalculates the chart right away.",
+      "reset": "Restore defaults",
+      "storedNote": "Settings are saved on this device only."
+    },
+    "cat": {
+      "gwiin": "Noble helpers",
+      "gil": "Blessings",
+      "hyung": "Watch-outs",
+      "relation": "Relations",
+      "twelve": "12 spirits"
+    },
+    "rule": {
+      "yanginYinStems": "Count Goat Blade for yin stems too (乙辰·丁未·己未·辛戌·癸丑)",
+      "hyeonchimIncludeMi": "Include 未 in Hanging Needle branches",
+      "goegangIncludeMuSul": "Include 戊戌 in Commanding Star",
+      "gongmangYearBasis": "Also read Void from the year pillar",
+      "cheoneulGengInO": "Read Heavenly Noble for a 庚 day stem as 寅·午",
+      "hakdangMuShin": "Read Academy Noble for a 戊 day stem as 申 (water-earth rule)",
+      "gwiinYearStem": "Also read noble helpers from the year stem"
+    },
+    "col": {
+      "hour": "Hour",
+      "day": "Day",
+      "month": "Month",
+      "year": "Year"
+    },
+    "pillar": {
+      "hour": "Hour pillar",
+      "day": "Day pillar",
+      "month": "Month pillar",
+      "year": "Year pillar"
+    },
+    "posShort": {
+      "stem": "stem",
+      "branch": "branch",
+      "pillar": "pillar"
+    },
+    "spot": "{col} {pos}",
+    "luckSpot": "{scope} {pos}",
+    "row": {
+      "head": "Item",
+      "tenGod": "Ten gods",
+      "stem": "Stem",
+      "branch": "Branch",
+      "hidden": "Hidden stems",
+      "unseong": "12 stages",
+      "nayin": "Nayin",
+      "twelve": "12 spirits",
+      "badges": "Symbols",
+      "relation": "Relations"
+    },
+    "dayMaster": "Day master",
+    "dayStarLabel": "Day pillar: the pillar that represents you",
+    "timeUnknown": "Not shown: birth time unknown",
+    "moreAria": "Show {n} more symbols in the {pillar}",
+    "badgeAria": "Explain {name}",
+    "charAria": {
+      "stem": "{pillar} stem {char} details",
+      "branch": "{pillar} branch {char} details"
+    },
+    "el": {
+      "wood": "Wood",
+      "fire": "Fire",
+      "earth": "Earth",
+      "metal": "Metal",
+      "water": "Water"
+    },
+    "yy": {
+      "yang": "Yang",
+      "yin": "Yin"
+    },
+    "yyEl": "{yy} {el}",
+    "rel": {
+      "samhyeong": "Triple punishment",
+      "sanghyeong": "Mutual punishment",
+      "jahyeong": "Self punishment",
+      "samhyeongFull": "Complete triple punishment"
+    },
+    "sum": {
+      "yeoniName": "Yeoni",
+      "nyangName": "Yeongnyangi",
+      "yeoni": "Your chart holds {n} symbols. Tap a badge for a simple explanation and how it was found.",
+      "nyang": "These marks don't decide good or bad, meow. How you use them matters more, meow.",
+      "empty": "No extra symbols appear directly in your natal chart. Having none doesn't mean lack or bad luck.",
+      "basisNote": "12 spirits basis: {basis}. Other symbols use their own set basis (day stem, month branch and so on); tap a badge to see it. Bases differ a little between schools."
+    },
+    "luck": {
+      "title": "Major, yearly and monthly luck",
+      "daewoon": "Major luck",
+      "sewoon": "Yearly",
+      "wolwoon": "Monthly",
+      "hint": "Tap a cell to see the symbols that arrive in that period.",
+      "daewoonLocked": "The major luck flow opens with the major luck reading.",
+      "daewoonTimeUnknown": "Without a birth time, the major luck starting age isn't fixed.",
+      "daewoonEmpty": "Couldn't load major luck information.",
+      "age": "Age {n}",
+      "year": "{n}",
+      "month": "{term} {date}",
+      "count": "{n} symbols",
+      "now": "Now",
+      "itemAria": "{label} {ganji}: view symbols",
+      "note": "Yearly luck turns at Ipchun (Start of Spring), monthly luck on each solar-term start date."
+    },
+    "sheet": {
+      "close": "Close",
+      "back": "Back to list",
+      "loading": "Loading the explanation…",
+      "loadFailed": "Couldn't load the explanation. Showing the name and basis first.",
+      "easy": "In simple terms",
+      "good": "Using it well",
+      "caution": "Caution",
+      "tip": "Tip",
+      "how": "How was it found?",
+      "where": "Position",
+      "basis": "Basis",
+      "pair": "Linked positions",
+      "element": "Gathered element",
+      "kind": "Type",
+      "pos": {
+        "stem": "Stem",
+        "branch": "Branch",
+        "pillar": "Stem-branch pair"
+      },
+      "foot": "Symbols are reference marks for reading tendencies and flow. No single one decides good or bad fortune.",
+      "listTitle": "{n} symbols in the {pillar}",
+      "luckTitle": "{label} {ganji}",
+      "luckEmpty": "No new symbols arrive in this period. Having none isn't a bad sign.",
+      "relWithNatal": "Relations with your natal chart",
+      "luckHits": "Arriving symbols"
+    },
+    "polarity": {
+      "good": "Supportive",
+      "neutral": "Depends on use",
+      "caution": "Use with care"
+    },
+    "basisKey": {
+      "dayStem": "Day stem",
+      "yearStem": "Year stem",
+      "yearBranch": "Year branch",
+      "dayBranch": "Day branch",
+      "monthBranch": "Month branch",
+      "dayPillar": "Day pillar",
+      "yearPillar": "Year pillar",
+      "pillar": "The pillar itself",
+      "char": "The character itself",
+      "pair": "Branch pair",
+      "stemPair": "Stem pair",
+      "triad": "Three branches"
+    },
+    "shinsal": {
+      "cheoneul": {
+        "name": "Heavenly Noble",
+        "short": "Where helping hands reach you"
+      },
+      "taegeuk": {
+        "name": "Taiji Noble",
+        "short": "Power to dig one well deep"
+      },
+      "munchang": {
+        "name": "Literary Star",
+        "short": "A feel for writing and learning"
+      },
+      "hakdang": {
+        "name": "Academy Noble",
+        "short": "Ground where learning grows"
+      },
+      "cheonju": {
+        "name": "Heavenly Kitchen",
+        "short": "Food luck and a sense for home life"
+      },
+      "cheondeok": {
+        "name": "Heavenly Virtue",
+        "short": "Where heaven's virtue shines"
+      },
+      "woldeok": {
+        "name": "Monthly Virtue",
+        "short": "A generous heart and resilience"
+      },
+      "munkok": {
+        "name": "Literary Melody",
+        "short": "A feel for words and expression"
+      },
+      "gwangwi": {
+        "name": "Official Academy",
+        "short": "Learning that leads to a post"
+      },
+      "geonrok": {
+        "name": "Established Prosperity",
+        "short": "Strength to stand on your own"
+      },
+      "amrok": {
+        "name": "Hidden Prosperity",
+        "short": "Help from unseen places"
+      },
+      "geumyeo": {
+        "name": "Golden Carriage",
+        "short": "Grace and comfort"
+      },
+      "hyeoprok": {
+        "name": "Flanking Prosperity",
+        "short": "Support from both sides"
+      },
+      "cheonui": {
+        "name": "Heavenly Doctor",
+        "short": "A caring, watchful heart"
+      },
+      "jisal": {
+        "name": "Earth Spirit",
+        "short": "Opening paths by moving"
+      },
+      "nyeonsal": {
+        "name": "Year Spirit (Peach Blossom)",
+        "short": "Charm that draws people"
+      },
+      "wolsal": {
+        "name": "Month Spirit",
+        "short": "A time to till dry ground"
+      },
+      "mangsinsal": {
+        "name": "Exposure Spirit",
+        "short": "In the spotlight, act with care"
+      },
+      "jangseongsal": {
+        "name": "General Star",
+        "short": "Strength to lead from the front"
+      },
+      "banansal": {
+        "name": "Saddle Spirit",
+        "short": "The steadiness of a firm saddle"
+      },
+      "yeokmasal": {
+        "name": "Traveling Horse",
+        "short": "Feet that travel far"
+      },
+      "yukhaesal": {
+        "name": "Six Harms Spirit",
+        "short": "Patience that builds slowly"
+      },
+      "hwagaesal": {
+        "name": "Canopy Star",
+        "short": "Artistry that deepens alone"
+      },
+      "geopsal": {
+        "name": "Robbery Spirit",
+        "short": "Tension and quick reflexes"
+      },
+      "jaesal": {
+        "name": "Calamity Spirit",
+        "short": "Strength to endure limits"
+      },
+      "cheonsal": {
+        "name": "Heaven Spirit",
+        "short": "Humility before larger currents"
+      },
+      "yangin": {
+        "name": "Goat Blade",
+        "short": "A sharp, driving force"
+      },
+      "goegang": {
+        "name": "Commanding Star",
+        "short": "A leader's strong temperament"
+      },
+      "baekho": {
+        "name": "White Tiger",
+        "short": "Intense drive and presence"
+      },
+      "hongyeom": {
+        "name": "Red Allure",
+        "short": "Subtle charm and sensitivity"
+      },
+      "gongmang": {
+        "name": "Void",
+        "short": "A space left open to fill over time"
+      },
+      "wonjin": {
+        "name": "Resentment Spirit",
+        "short": "Hurt feelings that grow with closeness"
+      },
+      "gwimun": {
+        "name": "Ghost Gate",
+        "short": "Sensitive intuition"
+      },
+      "biin": {
+        "name": "Flying Blade",
+        "short": "Tension from the opposite side"
+      },
+      "goran": {
+        "name": "Lone Phoenix",
+        "short": "The independence of standing alone"
+      },
+      "cheonrajimang": {
+        "name": "Heaven's Net",
+        "short": "Currents tangled like a net"
+      },
+      "hyeonchim": {
+        "name": "Hanging Needle",
+        "short": "Needle-sharp precision"
+      },
+      "sangmun": {
+        "name": "Mourning Gate",
+        "short": "A year when others' affairs weigh on you"
+      },
+      "jogaek": {
+        "name": "Condolence Guest",
+        "short": "A year of standing by others more"
+      },
+      "stemHap": {
+        "name": "Stem combination",
+        "short": "Stems draw together"
+      },
+      "stemChung": {
+        "name": "Stem clash",
+        "short": "Stems face off"
+      },
+      "yukhap": {
+        "name": "Six combination",
+        "short": "Two branches pair up"
+      },
+      "samhap": {
+        "name": "Triple combination",
+        "short": "Three branches gather into one current"
+      },
+      "banghap": {
+        "name": "Seasonal combination",
+        "short": "Three branches of one season gather"
+      },
+      "banhap": {
+        "name": "Half combination",
+        "short": "Half of a triple combination interlocks"
+      },
+      "chung": {
+        "name": "Clash",
+        "short": "Branches meet head-on"
+      },
+      "hyeong": {
+        "name": "Punishment",
+        "short": "A bond that presses and refines"
+      },
+      "pa": {
+        "name": "Break",
+        "short": "What was linked slips apart"
+      },
+      "hae": {
+        "name": "Harm",
+        "short": "A subtly crossed relationship"
+      }
+    }
   }
 }
