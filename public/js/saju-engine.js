@@ -12271,13 +12271,19 @@ function renderAstroInsightLegacyNeon() {
         /* ── [시나스트리 결과판] ── */
         +'<div id="astroSyResult" style="display:none;"></div>'
         /* 재미 콘텐츠 → 실제 사주 궁합 상품 안내(2026-11-26). 금액은 paid-feature-registry 의 saju-compat-light·premium 과 같아야 한다. */
-        +'<div class="astro-paid-note" data-cd-fun-compat-cta data-cd-cross-sell="astro-celeb-synastry" style="margin-top:14px;flex-direction:column;align-items:flex-start;gap:10px;">'
-        +'<strong>실제 상대와의 궁합은 라이트 궁합(3,000원) · 고급 궁합(10,000원)</strong>'
-        +'<span>유명인 궁합은 공개된 정보로 가볍게 즐기는 재미 콘텐츠예요.</span>'
-        +'<span style="display:flex;flex-wrap:wrap;gap:8px;">'
+        /* 어두운 실험실 위 크림 쪽지 — 모양은 styles/fortune-ui.css .cd-fun-compat-note(대비 보정). */
+        +'<div class="cd-fun-compat-note" data-cd-fun-compat-cta data-cd-cross-sell="astro-celeb-synastry">'
+        +'<span class="cd-yehwa-sprig cd-yehwa-sprig--tl" aria-hidden="true"></span>'
+        +'<div class="cd-fun-compat-note__body">'
+        +'<span class="cd-fun-compat-note__label">재미로 보는 케미 다음은</span>'
+        +'<strong class="cd-fun-compat-note__title">실제 상대와의 궁합은 라이트 궁합(3,000원) · 고급 궁합(10,000원)</strong>'
+        +'<span class="cd-fun-compat-note__desc">유명인 궁합은 공개된 정보로 가볍게 즐기는 재미 콘텐츠예요.</span>'
+        +'<span class="cd-fun-compat-note__actions">'
         +'<a class="cd-yehwa-button cd-yehwa-button--primary" href="/ggulggul/?action=cdOneStepFreeSajuEntry&amp;section=compatCard">라이트 궁합 보기</a>'
         +'<a class="cd-yehwa-button cd-yehwa-button--secondary" href="/saju/compatibility/premium/">고급 궁합 보기</a>'
         +'</span>'
+        +'</div>'
+        +'<img class="cd-fun-compat-note__pig" src="/images/fortune-tea-house/renewal/pig-advice.webp" width="384" height="512" alt="" loading="lazy" decoding="async">'
         +'</div>'
 
         +'</div>'
@@ -23674,7 +23680,7 @@ function _seArchiveSajuCompatLight(context, compat, resultArea, name, type) {
 }
 
 /* 결제 전 화면: 등급 배지·점수·총평 첫 문장 + 「라이트 궁합에서 볼 수 있는 것」 잠금 카드. 상세 섹션 html 은 넣지 않는다.
-   모양은 다음 단계에서 cd-compat-light-* 클래스로 입힌다. */
+   모양은 styles/fortune-ui.css 의 cd-compat-light-*(달빛 예화 꽃빛 정원 + 꽃돼지). 꽃돼지 그림은 장식이라 alt="" 다. */
 function _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type) {
   var escMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
   var esc = function(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, function(c) { return escMap[c]; }); };
@@ -23693,19 +23699,26 @@ function _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type) {
     '🔮 전생 인연 풀이'
   ].filter(Boolean);
   resultArea.innerHTML = '<div class="compat-wrap cd-compat-light-preview">'
-    + '<div class="compat-grade-area">'
-    + '<div class="compat-grade-icon">' + esc(compat.emoji) + '</div>'
-    + '<div>'
+    + '<div class="compat-grade-area cd-compat-light-hero">'
+    + '<span class="cd-yehwa-sprig cd-yehwa-sprig--tl" aria-hidden="true"></span>'
+    + '<div class="cd-compat-light-hero__body">'
+    + '<span class="cd-compat-light-hero__eyebrow"><span aria-hidden="true">' + esc(compat.emoji) + '</span> 두 사람의 궁합 미리보기</span>'
     + '<div class="compat-grade-badge ' + esc(compat.gradeCls) + '">' + esc(compat.grade) + '</div>'
     + '<div class="compat-grade-label">' + esc(typeof USER_NAME === 'string' ? USER_NAME : '나') + ' × ' + esc(name) + '<br><span class="cd-compat-light-preview__label">' + esc(compat.label) + '</span></div>'
     + '<div class="compat-grade-desc">' + esc(firstSentence) + '</div>'
     + '<div class="cd-compat-light-preview__score">명리 전용 궁합 점수: ' + esc(compat.integratedScore) + '/100</div>'
-    + '</div></div>'
+    + '</div>'
+    + '<img class="cd-compat-light-hero__pig" src="/images/fortune-tea-house/renewal/pig-thinking.webp" width="384" height="512" alt="" loading="lazy" decoding="async">'
+    + '</div>'
     + '<section class="cd-compat-light-lock" aria-labelledby="cdCompatLightLockTitle">'
+    + '<span class="cd-yehwa-sprig cd-yehwa-sprig--tl" aria-hidden="true"></span>'
+    + '<span class="cd-yehwa-sprig cd-yehwa-sprig--tr" aria-hidden="true"></span>'
+    + '<div class="cd-compat-light-lock__art"><img src="/images/fortune-tea-house/flower-pig-honey-hug.webp" width="361" height="411" alt="" loading="lazy" decoding="async"></div>'
+    + '<span class="cd-compat-light-lock__eyebrow">꽃돼지가 꼭 안고 있는 나머지 풀이</span>'
     + '<h4 id="cdCompatLightLockTitle" class="cd-compat-light-lock__title">라이트 궁합에서 볼 수 있는 것</h4>'
     + '<ul class="cd-compat-light-lock__list">' + items.map(function(item) { return '<li>' + esc(item) + '</li>'; }).join('') + '</ul>'
     + '<button type="button" class="cd-compat-light-lock__btn" data-cd-compat-light-unlock>라이트 궁합 3,000원 보기</button>'
-    + '<p class="cd-compat-light-lock__fine">이용권으로도 열 수 있어요. 명식 계산으로 바로 보여 드리는 정적 풀이예요.</p>'
+    + '<p class="cd-compat-light-lock__fine cd-compat-light-memo"><span class="cd-yehwa-seal" aria-hidden="true"></span><b>달빛 메모</b>이용권으로도 열 수 있어요. 명식 계산으로 바로 보여 드리는 정적 풀이예요.</p>'
     + '</section>'
     + '</div>';
   var unlockBtn = resultArea.querySelector('[data-cd-compat-light-unlock]');
@@ -24314,13 +24327,13 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
   var els = ['wood', 'fire', 'earth', 'metal', 'water'];
   var elName = function(el) { return (EL_E[el] || '') + (EL_K[el] || el); };
   var card = function(inner) {
-    return '<div class="cd-compat-light-card" style="background:rgba(255,255,255,0.72);border:1px solid rgba(216,27,96,0.12);border-radius:14px;padding:14px;">' + inner + '</div>';
+    return '<div class="cd-compat-light-card">' + inner + '</div>';
   };
-  var cardHead = function(t) { return '<div style="font-size:.84rem;font-weight:900;color:#c2185b;margin-bottom:6px;">' + t + '</div>'; };
+  var cardHead = function(t) { return '<div class="cd-compat-light-card__head">' + t + '</div>'; };
   var line = function(label, body) {
-    return '<div style="font-size:.8rem;color:#4e5358;line-height:1.72;margin-top:4px;"><b>' + label + '</b> ' + body + '</div>';
+    return '<div class="cd-compat-light-card__line"><b>' + label + '</b> ' + body + '</div>';
   };
-  var grid = function(inner) { return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">' + inner + '</div>'; };
+  var grid = function(inner) { return '<div class="cd-compat-light-grid">' + inner + '</div>'; };
 
   // 1) 타고난 성향·성격
   var natureCards = people.map(function(x) {
@@ -24342,7 +24355,7 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
       + (traitWords.length ? line('성격 키워드', esc(traitWords.join(' · '))) : ''));
   }).join('');
   var timeNote = opts && opts.partnerTimeUnknown
-    ? '<p class="cd-compat-light-note" style="font-size:.74rem;color:#7a6f74;margin:8px 0 0;">' + esc(B) + '의 태어난 시간을 몰라 정오(12시) 기준으로 계산했어요. 시주에 걸린 십성·오행은 가볍게 참고해 주세요.</p>'
+    ? '<p class="cd-compat-light-note">' + esc(B) + '의 태어난 시간을 몰라 정오(12시) 기준으로 계산했어요. 시주에 걸린 십성·오행은 가볍게 참고해 주세요.</p>'
     : '';
   var natureHtml = '<div class="compat-section cd-compat-light-nature">'
     + '<div class="compat-section-title">🌸 두 사람의 타고난 성향·성격</div>'
@@ -24352,7 +24365,7 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
   var barRow = function(pr) {
     return els.map(function(el) {
       var c = pr.counts[el];
-      return '<span style="display:inline-block;margin:2px 8px 2px 0;font-size:.78rem;color:#4e5358;">' + elName(el) + ' <b>' + c + '</b></span>';
+      return '<span class="cd-compat-light-chip">' + elName(el) + ' <b>' + c + '</b></span>';
     }).join('');
   };
   var fills = [];
@@ -24383,8 +24396,8 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
   var elementHtml = '<div class="compat-section cd-compat-light-elements">'
     + '<div class="compat-section-title">⚖️ 오행 밸런스 비교</div>'
     + grid(people.map(function(x) { return card(cardHead(esc(x.name)) + barRow(x.pr)); }).join(''))
-    + '<div style="font-size:.8rem;color:#4e5358;line-height:1.72;margin-top:10px;">' + elementLines.map(function(t) { return '<p style="margin:0 0 6px;">' + t + '</p>'; }).join('') + '</div>'
-    + '<p style="font-size:.72rem;color:#7a6f74;margin:4px 0 0;">천간·지지 여덟 글자에 겉으로 보이는 오행 수를 센 값이에요(지장간·계절 가중은 넣지 않았어요).</p>'
+    + '<div class="cd-compat-light-text">' + elementLines.map(function(t) { return '<p>' + t + '</p>'; }).join('') + '</div>'
+    + '<p class="cd-compat-light-note">천간·지지 여덟 글자에 겉으로 보이는 오행 수를 센 값이에요(지장간·계절 가중은 넣지 않았어요).</p>'
     + '</div>';
 
   // 3) 연애·소통 스타일 비교 (관계 유형별 문구)
@@ -24402,7 +24415,7 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
   var styleHtml = '<div class="compat-section cd-compat-light-style">'
     + '<div class="compat-section-title">' + styleTitle + '</div>'
     + grid(styleCards)
-    + '<p style="font-size:.8rem;color:#4e5358;line-height:1.72;margin:10px 0 0;">' + pairLine + '</p>'
+    + '<p class="cd-compat-light-text">' + pairLine + '</p>'
     + '</div>';
 
   // 4) 잘 맞는 포인트 / 함께할 때 조심할 점
@@ -24430,16 +24443,16 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
   var list = function(items, icon) {
     return items.slice(0, 4).map(function(t) {
       // cd-compat-light-point: 엔진 판정 이유(compat-check-reason)와 구분한다 — facts 계약은 이유 항목만 센다.
-      return '<div class="compat-check-item cd-compat-light-point"><span class="compat-check-icon">' + icon + '</span><span style="font-size:.8rem;line-height:1.72;color:#4e5358;">' + t + '</span></div>';
+      return '<div class="compat-check-item cd-compat-light-point"><span class="compat-check-icon">' + icon + '</span><span>' + t + '</span></div>';
     }).join('');
   };
   var pointsHtml = '<div class="compat-section cd-compat-light-points">'
     + '<div class="compat-section-title">🤝 잘 맞는 포인트 · 함께할 때 조심할 점</div>'
     + grid(card(cardHead('잘 맞는 포인트') + list(good, '💛')) + card(cardHead('함께할 때 조심할 점') + list(care, '⚠️')))
-    + '<p style="font-size:.72rem;color:#7a6f74;margin:8px 0 0;">명식 계산으로 정리한 경향이에요. 실제 관계는 두 사람의 경험과 대화로 확인해 주세요.</p>'
+    + '<p class="cd-compat-light-note">명식 계산으로 정리한 경향이에요. 실제 관계는 두 사람의 경험과 대화로 확인해 주세요.</p>'
     + '</div>';
 
-  return natureHtml + elementHtml + styleHtml + pointsHtml;
+  return '<div class="cd-compat-light-sections">' + natureHtml + elementHtml + styleHtml + pointsHtml + '</div>';
 }
 
 function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,opts){

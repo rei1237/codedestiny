@@ -4602,6 +4602,76 @@ body.neo-mode .cd-compat-snap .compat-energy-label{color:var(--cd-accent,#d8b4fe
 .cd-scp-cta__btn:focus-visible{outline:3px solid #ad75aa;outline-offset:3px}
 .cd-scp-cta__fine{margin:10px 0 0;color:var(--scp-muted);font-size:.78rem;line-height:1.6;opacity:.9}
 @media (forced-colors:active){.cd-scp-cta,.cd-scp-cta__btn{border-color:ButtonText}.cd-scp-cta>.cd-scp-cta__sprig,.cd-scp-cta>.cd-scp-cta__sparkle{display:none}}
+/* ═══ 사주 라이트 궁합(saju-compat-light, 2026-11-26) — 달빛 예화 꽃빛 정원 + 꽃돼지 ═══
+   미리보기·잠금 카드·유료 섹션(js/saju-engine.js _seSajuCompatRenderLightPreview·_seCompatLightSectionsHtml).
+   크림·로즈·샴페인 골드, 가는 이중 테두리(::before), 모서리 꽃가지(.cd-yehwa-sprig), 연꽃 인장(.cd-yehwa-seal).
+   🔴 --cd-yehwa-* 선 색은 장식 전용 — 글자는 플럼 잉크(--lt-ink·--lt-muted)만 쓴다(크림 위 대비 9.9:1·6.1:1).
+   🔴 꽃돼지는 투명 webp 라 전역 img 회색 폴백(img{background-color})을 끈다. */
+.cd-compat-light-preview,.cd-compat-light-sections{--lt-ink:#3c1830;--lt-muted:#6b4a5c;--lt-rose:#b0306a;--lt-paper:var(--cd-yehwa-pearl,#fffdf8);--lt-blush:var(--cd-yehwa-pearl-muted,#f6e6ee);--lt-line:rgba(201,164,106,.55);--lt-line-soft:rgba(201,164,106,.28)}
+.cd-compat-light-preview img,.cd-compat-light-sections img{background:none}
+.cd-compat-light-preview .cd-compat-light-hero{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:6px;margin-bottom:14px;padding:20px 14px 0 20px;border:1px solid var(--lt-line);border-radius:28px;background:radial-gradient(120% 90% at 100% 100%,rgba(244,190,209,.42),transparent 62%),linear-gradient(160deg,var(--lt-paper),var(--lt-blush));box-shadow:0 14px 30px -22px rgba(120,40,80,.45)}
+.cd-compat-light-hero::before,.cd-compat-light-lock::before{content:"";position:absolute;inset:5px;z-index:-1;border:1px solid var(--lt-line-soft);border-radius:inherit;pointer-events:none}
+.cd-compat-light-hero>.cd-yehwa-sprig{top:-18px;left:-18px;width:150px;height:115px;opacity:.38}
+.cd-compat-light-hero__body{padding-bottom:18px;min-width:0}
+.cd-compat-light-hero__eyebrow{display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;padding:3px 12px;border:1px solid var(--lt-line);border-radius:999px;background:rgba(255,255,255,.7);color:var(--lt-rose);font-size:.78rem;font-weight:700;line-height:1.5}
+.cd-compat-light-hero .compat-grade-badge{border-radius:999px}
+.cd-compat-light-hero .compat-grade-label{color:var(--lt-ink)}
+.cd-compat-light-hero .compat-grade-desc{color:var(--lt-muted)}
+.cd-compat-light-preview__label{color:var(--lt-rose)}
+.cd-compat-light-preview__score{display:inline-flex;margin-top:10px;padding:5px 14px;border-radius:999px;background:rgba(255,255,255,.78);border:1px solid var(--lt-line-soft);color:var(--lt-ink);font-size:.86rem;font-weight:700;line-height:1.5}
+.cd-compat-light-hero__pig{display:block;align-self:end;width:96px;height:auto;aspect-ratio:384/512;margin-right:-4px;filter:drop-shadow(0 6px 10px rgba(120,40,80,.18))}
+.cd-compat-light-lock{position:relative;isolation:isolate;overflow:hidden;margin:0 0 8px;padding:22px 20px 20px;border:1px solid var(--lt-line);border-radius:30px;background:radial-gradient(110% 70% at 50% 0%,rgba(244,214,159,.36),transparent 70%),linear-gradient(180deg,var(--lt-paper),var(--lt-blush));box-shadow:0 18px 36px -26px rgba(120,40,80,.5);color:var(--lt-ink);text-align:center}
+.cd-compat-light-lock>.cd-yehwa-sprig{top:-16px;width:140px;height:108px;opacity:.42}
+.cd-compat-light-lock>.cd-yehwa-sprig--tl{left:-16px}
+.cd-compat-light-lock>.cd-yehwa-sprig--tr{right:-16px}
+.cd-compat-light-lock__art{position:relative;width:132px;height:132px;margin:0 auto 10px;border-radius:50%;background:radial-gradient(circle at 50% 42%,#fff 0%,#fdeef4 62%,#f8dbe7 100%);box-shadow:inset 0 0 0 1px var(--lt-line-soft),0 0 0 6px rgba(255,255,255,.65),0 10px 22px -14px rgba(176,48,106,.5)}
+.cd-compat-light-lock__art img{position:absolute;left:50%;bottom:6px;width:104px;height:auto;aspect-ratio:361/411;transform:translateX(-50%)}
+.cd-compat-light-lock__eyebrow{display:block;margin:0 0 4px;color:var(--lt-rose);font-size:.8rem;font-weight:700;line-height:1.5}
+.cd-compat-light-lock__title{margin:0 0 12px;color:var(--lt-ink);font-family:var(--font-display,var(--font-body,Pretendard)),sans-serif;font-size:clamp(1.18rem,4.4vw,1.4rem);font-weight:400;line-height:1.45}
+.cd-compat-light-lock__list{display:grid;gap:6px;margin:0 0 16px;padding:12px 14px;border-radius:20px;background:rgba(255,255,255,.72);border:1px solid var(--lt-line-soft);list-style:none;text-align:left;font-size:.9rem;line-height:1.6;color:var(--lt-ink)}
+.cd-compat-light-lock__list li{padding:4px 2px;border-bottom:1px dashed rgba(201,164,106,.3);word-break:keep-all;overflow-wrap:anywhere}
+.cd-compat-light-lock__list li:last-child{border-bottom:0}
+.cd-compat-light-lock__btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:340px;min-height:52px;margin:0 auto;padding:12px 22px;border:1px solid #f1dfbb;border-radius:999px;background:linear-gradient(135deg,#c2477f,#9c2a5f);box-shadow:0 10px 20px -12px rgba(156,42,95,.75),inset 0 1px 0 rgba(255,255,255,.28);color:#fff;font:700 1rem/1.4 var(--font-body,Pretendard),sans-serif;cursor:pointer;touch-action:manipulation;transition:transform .12s ease,box-shadow .12s ease}
+.cd-compat-light-lock__btn::before{content:"🔓";font-size:1rem}
+.cd-compat-light-lock__btn:active{transform:scale(.97)}
+.cd-compat-light-lock__btn:focus-visible{outline:3px solid #ad75aa;outline-offset:3px}
+.cd-compat-light-lock__btn:disabled{cursor:default;box-shadow:none}
+.cd-compat-light-memo{position:relative;isolation:isolate;overflow:hidden;margin:14px 0 0;padding:12px 16px 12px 54px;border:1px solid var(--lt-line-soft);border-radius:18px;background:rgba(255,253,248,.86);box-shadow:inset 0 0 0 3px rgba(255,255,255,.7),inset 0 0 0 4px var(--lt-line-soft);color:var(--lt-muted);font-size:.84rem;line-height:1.65;text-align:left}
+.cd-compat-light-memo>.cd-yehwa-seal{left:12px;top:50%;width:32px;height:32px;margin-top:-16px;z-index:0;opacity:1;background:linear-gradient(160deg,#8a5524,var(--lt-rose))}
+.cd-compat-light-memo b{display:block;color:var(--lt-ink);font-size:.82rem}
+/* 결제 뒤 섹션 — 같은 종이 결, 둥근 카드 */
+.cd-compat-light-sections{display:block}
+.cd-compat-light-sections .compat-section{position:relative;border:1px solid var(--lt-line-soft);border-radius:24px;background:linear-gradient(180deg,var(--lt-paper),#fff);box-shadow:0 10px 24px -22px rgba(120,40,80,.45)}
+.cd-compat-light-sections .compat-section-title{color:var(--lt-ink)}
+.cd-compat-light-card{padding:14px 16px;border:1px solid rgba(244,190,209,.7);border-radius:20px;background:linear-gradient(160deg,#fff,var(--lt-blush))}
+.cd-compat-light-card__head{margin:0 0 6px;color:var(--lt-rose);font-size:.92rem;font-weight:800;line-height:1.5}
+.cd-compat-light-card__line{margin-top:4px;color:var(--lt-ink);font-size:.9rem;line-height:1.75}
+.cd-compat-light-card__line b{color:var(--lt-ink)}
+.cd-compat-light-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.cd-compat-light-chip{display:inline-flex;align-items:center;gap:3px;margin:3px 6px 3px 0;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.85);border:1px solid var(--lt-line-soft);color:var(--lt-ink);font-size:.84rem;line-height:1.5}
+.cd-compat-light-text{margin:10px 0 0;color:var(--lt-ink);font-size:.9rem;line-height:1.75}
+.cd-compat-light-text p{margin:0 0 6px}
+.cd-compat-light-note{margin:8px 0 0;color:var(--lt-muted);font-size:.8rem;line-height:1.6}
+.cd-compat-light-point>span:last-child{color:var(--lt-ink);font-size:.9rem;line-height:1.75}
+@media (max-width:420px){.cd-compat-light-preview .cd-compat-light-hero{padding:18px 8px 0 16px}.cd-compat-light-hero__pig{width:82px}.cd-compat-light-lock{padding:20px 16px 18px}}
+@media (prefers-reduced-motion:reduce){.cd-compat-light-lock__btn{transition:none}.cd-compat-light-lock__btn:active{transform:none}}
+@media (forced-colors:active){.cd-compat-light-hero,.cd-compat-light-lock,.cd-compat-light-lock__btn,.cd-compat-light-card{border-color:ButtonText}.cd-compat-light-hero>.cd-yehwa-sprig,.cd-compat-light-lock>.cd-yehwa-sprig,.cd-compat-light-memo>.cd-yehwa-seal{display:none}}
+body.neo-mode .cd-compat-light-preview,body.neo-mode .cd-compat-light-sections{--lt-ink:var(--cd-text,#f4eeff);--lt-muted:var(--cd-text-muted,#cfc6e6);--lt-rose:#e8d5a3;--lt-paper:rgba(36,33,57,.96);--lt-blush:rgba(27,24,48,.96);--lt-line:rgba(232,213,163,.42);--lt-line-soft:rgba(232,213,163,.22)}
+body.neo-mode .cd-compat-light-lock__list,body.neo-mode .cd-compat-light-preview__score,body.neo-mode .cd-compat-light-hero__eyebrow,body.neo-mode .cd-compat-light-memo,body.neo-mode .cd-compat-light-chip{background:rgba(19,16,42,.7)}
+body.neo-mode .cd-compat-light-sections .compat-section,body.neo-mode .cd-compat-light-card{background:linear-gradient(160deg,var(--lt-paper),var(--lt-blush))}
+/* 셀럽 시나스트리 실험실 하단 「실제 궁합」 안내(js/saju-engine.js astroSynastrySection) — 어두운 실험실 위 크림 쪽지.
+   🔴 예전 .astro-paid-note(어두운 호박색) 위에 .cd-yehwa-button 을 얹어 대비가 무너졌다. 밝은 종이 위에 두면 공용 버튼 토큰이 그대로 읽힌다. */
+.cd-fun-compat-note{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:end;margin:14px 0 0;padding:18px 14px 0 18px;border:1px solid rgba(201,164,106,.55);border-radius:26px;background:radial-gradient(120% 90% at 100% 100%,rgba(244,190,209,.45),transparent 62%),linear-gradient(160deg,#fffdf8,#f6e6ee);box-shadow:0 14px 30px -20px rgba(0,0,0,.55);color:#3c1830;text-align:left}
+.cd-fun-compat-note::before{content:"";position:absolute;inset:5px;z-index:-1;border:1px solid rgba(201,164,106,.28);border-radius:21px;pointer-events:none}
+.cd-fun-compat-note>.cd-yehwa-sprig{top:-14px;left:-14px;width:120px;height:92px;opacity:.38}
+.cd-fun-compat-note__body{min-width:0;padding-bottom:16px}
+.cd-fun-compat-note__label{display:inline-flex;padding:3px 12px;border:1px solid rgba(201,164,106,.55);border-radius:999px;background:rgba(255,255,255,.75);color:#b0306a;font-size:.78rem;font-weight:700;line-height:1.5}
+.cd-fun-compat-note__title{display:block;margin:8px 0 4px;color:#3c1830;font-size:.98rem;font-weight:800;line-height:1.55;word-break:keep-all}
+.cd-fun-compat-note__desc{display:block;color:#6b4a5c;font-size:.86rem;line-height:1.6;word-break:keep-all}
+.cd-fun-compat-note__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.cd-fun-compat-note__actions .cd-yehwa-button{border-radius:999px}
+.cd-fun-compat-note__pig{display:block;margin:0 12px 0 0;width:84px;height:auto;aspect-ratio:384/512;background:none;filter:drop-shadow(0 6px 10px rgba(120,40,80,.2))}
+@media (max-width:420px){.cd-fun-compat-note__pig{width:68px}}
 body.neo-mode .cd-compat-flow,body.neo-mode .cd-compat-flow-notice,body.neo-mode .cd-compat-flow-saved{background:var(--cd-surface,rgba(19,16,42,.96));border-color:var(--cd-border,rgba(196,181,253,.32));color:var(--cd-text,#f4eeff)}
 /* 보관함 "사주 궁합 기록" 시트(js/saju-compat-archive.js) — 목록·상세. 시트 색은 home-funnel.css 의 --cd-sheet-* 를 따른다. */
 @media (min-width:760px){.cd-sheet.cd-compat-archive{width:min(760px,calc(100vw - 48px))}}
