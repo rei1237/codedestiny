@@ -648,6 +648,9 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     expect(response.status).toBe(200);
     expect(payload.code).toBe("GRANT_PENDING");
     expect(payload.activationPending).toBe(true);
+    // 지급 대기 사유 분류(개인정보·내부 오류 원문 없음) — 운영에서 '조회 멈춤' 신고를 원인별로 가른다.
+    expect(payload.grantPendingReason).toBe("GRANT_ERROR");
+    expect(JSON.stringify(payload)).not.toContain("connection timed out");
     expect(payload.pollUrl).toContain(order.merchantUid);
     expect(payload.payment.status).toBe("paid");
     // 주문은 paid + 미지급으로 남아야 크론 regrantUnfulfilledOrders 가 집어간다.

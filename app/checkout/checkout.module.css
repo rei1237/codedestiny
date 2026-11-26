@@ -45,3 +45,7 @@
 .benefits>button:hover:not(:disabled){color:var(--yn-gold)}
 .benefits button:disabled{opacity:.5;cursor:wait}
 .page :is(summary,input,button):focus-visible{outline:3px solid var(--yn-gold);outline-offset:3px}
+.payRow{display:grid;gap:10px}.payRow[data-pass-choice]{grid-template-columns:repeat(2,minmax(0,1fr))}
+.payRow[data-pass-choice] .pay{padding:12px 10px;font-size:15px;word-break:keep-all}
+.payPass{background:transparent;color:var(--yn-gold)}.payPass:hover:not(:disabled){background:var(--yn-raised)}
+.passNote{font-size:13px;line-height:1.6;color:var(--yn-muted);margin:8px 0 0;text-align:center;word-break:keep-all}

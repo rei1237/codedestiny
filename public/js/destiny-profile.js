@@ -3288,9 +3288,11 @@
     }
   }
 
-  function _dpMembershipPassLimitForTier(tier) {
+  // 건당 상한은 이용권을 산 정책 버전의 표로 읽는다(셸 _cdRecordMembershipPassInBackground 와 같은 규칙).
+  function _dpMembershipPassLimitForTier(tier, policyVersion) {
     var api = _dpPassVerdict();
-    return api ? api.passLimitForTier(tier) : 0;
+    if (!api) return 0;
+    return (typeof api.passLimitForPolicy === 'function' && api.passLimitForPolicy(tier, policyVersion)) || api.passLimitForTier(tier);
   }
 
   // 셸의 __cdResolveAuthScopeId 와 동일한 규칙(_dpResolveIdScope)이라 키가 정확히 일치한다.
@@ -5587,7 +5589,7 @@
             if (deniedSnapshot
               && deniedSnapshot.state === 'active'
               && deniedSnapshot.tier !== 'family'
-              && Math.max(0, Math.floor(Number(coinPrice || 0))) > _dpMembershipPassLimitForTier(deniedSnapshot.tier)) return;
+              && Math.max(0, Math.floor(Number(coinPrice || 0))) > _dpMembershipPassLimitForTier(deniedSnapshot.tier, deniedSnapshot.passPolicyVersion)) return;
             _dpDisableOptimisticPassBriefly();
             try { _dpRefreshAuthSessionSilently({}); } catch (_) {}
             return;

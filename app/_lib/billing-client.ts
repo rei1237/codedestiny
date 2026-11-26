@@ -223,6 +223,9 @@ export type SubscriptionSnapshot = {
   /** 월 이용 한도 잔여(coin). null/undefined 면 "모름" — 판정은 pass-verdict 가 월 검사를 건너뛴다. */
   monthlySpendRemainingCoin?: number | null;
   monthlyCheckedAt?: number | null;
+  /** 이 이용권을 산 정책 버전(없으면 legacy). 건당 상한은 이 버전의 표를 따른다. */
+  passPolicyVersion?: string;
+  passLimitCoin?: number | null;
 };
 
 export type EntitlementPlan = "NONE" | "STANDARD" | "PREMIUM" | "VVIP" | "FAMILY";
@@ -466,7 +469,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-85dcdf4186a1";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-c5d4c7549819";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -737,8 +740,12 @@ function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
 
-function subscriptionSnapshotPassLimit(tier: SubscriptionSnapshotTier): number {
-  return passVerdict.passLimitForTier(tier);
+// 건당 상한은 이용권을 산 정책 버전으로 읽는다 — legacy 표(큰 꿀단지 200)로 읽으면 현행 큰 꿀단지(300)가 좁게 보인다.
+function subscriptionSnapshotPassLimit(snapshot: SubscriptionSnapshot): number {
+  const serverLimit = Math.floor(Number(snapshot.passLimitCoin));
+  return Number.isFinite(serverLimit) && serverLimit > 0
+    ? serverLimit
+    : passVerdict.passLimitForPolicy(snapshot.tier, snapshot.passPolicyVersion);
 }
 
 function resolveSubscriptionSnapshotUserId(userId?: string): string {
@@ -826,7 +833,7 @@ function buildSnapshotPaymentEligibility(input: {
   const coinCost = Math.max(0, Math.floor(toNumber(input.coinCost ?? input.coinPrice, inputPriceKRW > 0 ? Math.ceil(inputPriceKRW / 100) : 0)));
   const priceKRW = Math.max(0, Math.floor(toNumber(input.priceKRW ?? input.amountKRW ?? coinCost * 100, 0)));
   const monthlyBalance = phase === "pass" ? 0 : readSubscriptionSnapshotMonthlyBalance();
-  const passLimit = snapshot.state === "active" ? subscriptionSnapshotPassLimit(snapshot.tier) : 0;
+  const passLimit = snapshot.state === "active" ? subscriptionSnapshotPassLimit(snapshot) : 0;
   const passTier = snapshot.state === "active" && snapshot.tier !== "free"
     ? snapshot.tier as PaymentEligibility["pass"]["tier"]
     : null;
@@ -4106,7 +4113,8 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
           snapshotAtDenial
           && snapshotAtDenial.state === "active"
           && snapshotAtDenial.tier !== "family"
-          && deniedCoinCost > passVerdict.passLimitForTier(snapshotAtDenial.tier),
+          && deniedCoinCost > (passVerdict.passLimitForPolicy(snapshotAtDenial.tier, snapshotAtDenial.passPolicyVersion)
+            || passVerdict.passLimitForTier(snapshotAtDenial.tier)),
         );
       if (!deniedByPassLimitOnly) {
         disableOptimisticPassBriefly();

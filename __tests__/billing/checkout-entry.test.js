@@ -76,14 +76,15 @@ describe("paid resume language", () => {
 
 describe("resolveStorePlan", () => {
   it("금액을 덮는 가장 낮은 등급을 고른다", () => {
-    // 2026-08-24 적용 가격 범위: standard 50 · premium 100 · vvip 200 코인(family 상한 없음).
+    // 현행 정책(flower-20261104) 건당 상한: standard 50 · premium 100 · vvip 300 코인(family 상한 없음).
     // 경계 금액과 그 바로 위를 함께 재서 "가장 낮은 등급"의 의미를 고정한다.
     expect(checkoutEntry.resolveStorePlan(50)).toBe("standard");
     expect(checkoutEntry.resolveStorePlan(51)).toBe("premium");
     expect(checkoutEntry.resolveStorePlan(100)).toBe("premium");
     expect(checkoutEntry.resolveStorePlan(101)).toBe("vvip");
-    expect(checkoutEntry.resolveStorePlan(200)).toBe("vvip");
-    expect(checkoutEntry.resolveStorePlan(201)).toBe("family");
+    expect(checkoutEntry.resolveStorePlan(201)).toBe("vvip");
+    expect(checkoutEntry.resolveStorePlan(300)).toBe("vvip");
+    expect(checkoutEntry.resolveStorePlan(301)).toBe("family");
     expect(checkoutEntry.resolveStorePlan(500)).toBe("family");
   });
 

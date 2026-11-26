@@ -174,6 +174,7 @@ type MonthlyCreditLedgerItem = {
 
 type ConfirmSubscriptionResponse = {
   code?: string;
+  retryable?: boolean;
   activationPending?: boolean;
   pollUrl?: string;
   purchaseType?: "SELF" | "GIFT";
@@ -216,6 +217,8 @@ type SubscriptionConfirmPayload = {
 type PendingSubscriptionConfirm = {
   payload: SubscriptionConfirmPayload;
   fromRedirect: boolean;
+  /** 결제가 끝난(또는 부팅 재확인이면 결제창을 연) 시각. 결제 직후 PG 미반영(PG_PAYMENT_NOT_PAID) 유예의 기준이다. */
+  startedAt?: number;
 };
 
 type PaymentHistoryItem = {
@@ -390,8 +393,36 @@ function getPaymentErrorStatus(error: unknown): number | null {
   return Number.isFinite(status) ? status : null;
 }
 
-function isUncertainSubscriptionConfirmError(error: unknown): boolean {
-  return isUncertainPaymentConfirmError(error);
+/** 결제 직후 PG 가 아직 paid 를 못 본 구간. 이 안의 PG_PAYMENT_NOT_PAID 는 실패가 아니라 '확인 중'이다. */
+const PENDING_SUBSCRIPTION_NOT_PAID_GRACE_MS = 10 * 60 * 1000;
+/** 지급 대기·결제 직후 미확정의 자동 재확인 간격(약 3→5→10→20초, 이후 20초)과 주문당 총 예산(약 2분). */
+const SUBSCRIPTION_AUTO_RECHECK_DELAYS_MS = [3000, 5000, 10000, 20000];
+const SUBSCRIPTION_AUTO_RECHECK_BUDGET_MS = 2 * 60 * 1000;
+
+function isPgNotPaidConfirmError(error: unknown): boolean {
+  return !!error && typeof error === "object" && "code" in error
+    && (error as { code?: unknown }).code === "PG_PAYMENT_NOT_PAID";
+}
+
+/**
+ * 이용권 확정을 '확인 중'으로 두고 대기 기록을 지킬 오류인가.
+ * 🔴 결제 직후의 PG_PAYMENT_NOT_PAID(서버 409 retryable, 구 계약 422)는 PG 반영 지연이다 — 예전에는
+ *    이것을 실패로 보고 대기 기록을 버린 뒤 오류 토스트를 띄워, 곧 승인되는 결제가 '조회 멈춤'으로 보였다.
+ *    유예(startedAt 기준 10분)를 넘기면 종전처럼 실패로 확정한다(결제창을 닫고 떠난 주문).
+ */
+function isUncertainSubscriptionConfirmError(error: unknown, startedAt?: number, now: number = Date.now()): boolean {
+  if (isUncertainPaymentConfirmError(error)) return true;
+  if (!isPgNotPaidConfirmError(error)) return false;
+  const started = Number(startedAt);
+  return Number.isFinite(started) && started > 0 && now - started < PENDING_SUBSCRIPTION_NOT_PAID_GRACE_MS;
+}
+
+/** 다음 자동 재확인까지의 대기(ms). 예산(약 2분)을 넘기면 null — 그때부터는 수동 '다시 확인' 버튼이다. */
+function nextSubscriptionAutoRecheckDelay(attempt: number, elapsedMs: number): number | null {
+  const delays = SUBSCRIPTION_AUTO_RECHECK_DELAYS_MS;
+  const delay = delays[Math.min(Math.max(0, attempt), delays.length - 1)];
+  if (!Number.isFinite(elapsedMs) || elapsedMs < 0 || elapsedMs + delay > SUBSCRIPTION_AUTO_RECHECK_BUDGET_MS) return null;
+  return delay;
 }
 
 function assertSubscriptionGrantReady(data: ConfirmSubscriptionResponse): void {
@@ -1878,20 +1909,26 @@ function savePendingSubscriptionPass(tier: PendingSubscriptionPass["tier"], merc
 // 낙관 이용권은 "PG 결제창에 다녀오는 동안"만 유효하다. 결제창에서 탭을 닫는 등으로 정리 코드가
 // 돌지 못하면 키가 그대로 남는데, TTL 이 없으면 며칠 뒤 재방문에도 이용권 보유로 보인다.
 const PENDING_SUBSCRIPTION_PASS_TTL_MS = 15 * 60 * 1000;
+// 대기 기록 자체는 결과 확정(지급 성공·서버의 명확한 실패)까지 24시간 보존한다 — 재진입 부팅 재확인이
+// 그동안 이어 간다. 위 15분은 낙관 이용권 '표시'에만 쓰는 창이라 둘을 나눈다(기록을 15분에 지우면
+// 지급이 늦게 끝난 주문을 다시 찾지 못해 사용자가 '조회 멈춤'을 본다).
+const PENDING_SUBSCRIPTION_PASS_RETENTION_MS = 24 * 60 * 60 * 1000;
 /** 부팅 재확인이 결제창 직후(아직 PG 창이 열려 있을 수 있는 구간)의 주문을 건드리지 않게 하는 최소 경과 시간. */
 const PENDING_SUBSCRIPTION_BOOT_RETRY_MIN_AGE_MS = 60 * 1000;
 
-function readPendingSubscriptionPass() {
+function readPendingSubscriptionPass(maxAgeMs: number = PENDING_SUBSCRIPTION_PASS_TTL_MS) {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem("fortune_pending_subscription_pass");
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PendingSubscriptionPass;
     const startedAt = Number(parsed?.startedAt || 0);
-    if (!Number.isFinite(startedAt) || Date.now() - startedAt > PENDING_SUBSCRIPTION_PASS_TTL_MS) {
+    const age = Date.now() - startedAt;
+    if (!Number.isFinite(startedAt) || age > PENDING_SUBSCRIPTION_PASS_RETENTION_MS) {
       localStorage.removeItem("fortune_pending_subscription_pass");
       return null;
     }
+    if (age > maxAgeMs) return null;
     return parsed;
   } catch {
     return null;
@@ -2735,6 +2772,13 @@ export default function PointsPage() {
   const pendingSubscriptionConfirmRef = useRef<PendingSubscriptionConfirm | null>(null);
   const subscriptionStatusCheckInFlightRef = useRef(false);
   const subscriptionStatusCheckHandlerRef = useRef<(() => Promise<void>) | null>(null);
+  // 지급 대기·결제 직후 미확정 주문의 자동 재확인(주문당 약 2분 예산). 재시도는 수동 버튼과 같은 핸들러를 탄다.
+  const subscriptionAutoRecheckRef = useRef<{ merchantUid: string; firstAt: number; attempt: number; timer: number | null } | null>(null);
+  useEffect(() => () => {
+    const auto = subscriptionAutoRecheckRef.current;
+    if (auto?.timer != null) window.clearTimeout(auto.timer);
+    subscriptionAutoRecheckRef.current = null;
+  }, []);
   const pendingSinglePaymentConfirmRef = useRef<PendingSinglePaymentConfirm | null>(null);
   const singlePaymentStatusCheckInFlightRef = useRef(false);
   const singlePaymentStatusCheckHandlerRef = useRef<(() => Promise<void>) | null>(null);
@@ -3555,9 +3599,12 @@ export default function PointsPage() {
 
         const data = await safeParseJson<ConfirmSubscriptionResponse>(response);
         if (!response.ok) {
-          const error = new Error(data.message || "Subscription payment confirm failed.");
-          (error as Error & { status?: number }).status = response.status;
-          throw error;
+          // 상태코드만으로는 PG 반영 지연(PG_PAYMENT_NOT_PAID)과 명확한 실패를 가르지 못해 서버 code 를 함께 싣는다.
+          throw Object.assign(new Error(data.message || "Subscription payment confirm failed."), {
+            status: response.status,
+            code: typeof data.code === "string" ? data.code : undefined,
+            retryable: data.retryable === true,
+          });
         }
         // HTTP 성공과 이용권 지급 완료는 다르다. 원 주문과 복귀 티켓은 지급 확인까지 보존한다.
         trackConfirmedPurchase(data);
@@ -3593,10 +3640,42 @@ export default function PointsPage() {
     const pendingPayload = pendingSubscriptionConfirmRef.current?.payload;
     const merchantUid = pendingPayload?.merchantUid || "";
     const orderHint = merchantUid ? `\n주문번호 끝자리 ${merchantUid.slice(-4)}` : "";
+    const lead = grantPending ? "결제는 확인되었으며 이용권 지급을 확인하고 있어요." : "결제 결과를 확인하는 데 시간이 걸리고 있어요.";
+    // 🔴 예전에는 여기서 수동 버튼만 남겨, 사용자가 누르지 않으면 지급이 끝나도 화면이 '확인 중'에 멈췄다.
+    //    주문마다 약 2분(3→5→10→20초 간격) 같은 확인 핸들러로 자동 재확인하고, 예산이 끝나면 버튼과 문의 안내를 둔다.
+    let auto = subscriptionAutoRecheckRef.current;
+    if (auto?.timer != null && typeof window !== "undefined") window.clearTimeout(auto.timer);
+    if (!auto || auto.merchantUid !== merchantUid) {
+      auto = { merchantUid, firstAt: Date.now(), attempt: 0, timer: null };
+      subscriptionAutoRecheckRef.current = auto;
+    }
+    auto.timer = null;
+    const delay = merchantUid && typeof window !== "undefined"
+      ? nextSubscriptionAutoRecheckDelay(auto.attempt, Date.now() - auto.firstAt)
+      : null;
+    if (delay !== null) {
+      const scheduled = auto;
+      scheduled.attempt += 1;
+      scheduled.timer = window.setTimeout(() => {
+        scheduled.timer = null;
+        if (subscriptionAutoRecheckRef.current !== scheduled) return;
+        if (pendingSubscriptionConfirmRef.current?.payload.merchantUid !== scheduled.merchantUid) return;
+        void subscriptionStatusCheckHandlerRef.current?.();
+      }, delay);
+      setProcessingStage(
+        withSubscriptionMethod(
+          pendingPayload?.paymentMethod,
+          `${lead}\n잠시 뒤 자동으로 다시 확인할게요. 중복 결제를 시도하지 말아 주세요.${orderHint}`,
+        ),
+        "subscription",
+      );
+      setProcessingAction(null);
+      return;
+    }
     setProcessingStage(
       withSubscriptionMethod(
         pendingPayload?.paymentMethod,
-        `${grantPending ? "결제는 확인되었으며 이용권 지급을 확인하고 있어요." : "결제 결과를 확인하는 데 시간이 걸리고 있어요."}\n중복 결제를 시도하지 말아 주세요.${orderHint}`,
+        `${lead}\n중복 결제를 시도하지 말아 주세요.\n계속 반영되지 않으면 고객센터(/contact/)로 주문번호 끝자리와 함께 문의해 주세요.${orderHint}`,
       ),
       "subscription",
     );
@@ -3645,6 +3724,7 @@ export default function PointsPage() {
         persistSubscriptionCache(newSub);
       }
       pendingSubscriptionConfirmRef.current = null;
+      subscriptionAutoRecheckRef.current = null;
       clearPendingSubscriptionOrder();
       optimisticPassBackupRef.current = null;
       await syncSubscriptionAppliedStage(data.subscription?.tier || pending.payload.tier);
@@ -3656,10 +3736,18 @@ export default function PointsPage() {
       }
       setIsProcessing(false);
     } catch (error: unknown) {
-      if (isUncertainSubscriptionConfirmError(error)) {
+      const uncertain = isUncertainSubscriptionConfirmError(error, pending.startedAt);
+      if (uncertain && options?.silentFailure && isPgNotPaidConfirmError(error)) {
+        // 부팅 재확인에서 PG 가 아직 '미결제'라고 답한 유예 구간 — 결제창을 닫고 나온 사용자일 수 있으니
+        // 막는 오버레이를 띄우지 않고, 대기 기록은 남겨 다음 재진입에서 다시 확인한다.
+        pendingSubscriptionConfirmRef.current = null;
+        subscriptionAutoRecheckRef.current = null;
+        setIsProcessing(false);
+      } else if (uncertain) {
         markSubscriptionPaymentUnknown(error);
       } else {
         pendingSubscriptionConfirmRef.current = null;
+        subscriptionAutoRecheckRef.current = null;
         discardPendingSubscriptionPass();
         setIsProcessing(false);
         // 부팅 재확인(결제창을 닫고 나온 사용자)에는 오류를 띄우지 않는다 — 사용자가 시작한 확인만 알린다.
@@ -4011,9 +4099,11 @@ export default function PointsPage() {
       };
       // 위 효과가 확정을 **실제로 시작했는지** 아래 부팅 폴백이 본다(마커 존재만으로 물러나지 않게).
       redirectConfirmStartedRef.current = true;
+      const redirectStartedAt = Date.now();
       pendingSubscriptionConfirmRef.current = {
         payload: confirmPayload,
         fromRedirect: true,
+        startedAt: redirectStartedAt,
       };
 
       confirmSubscriptionWithServer(confirmPayload)
@@ -4053,11 +4143,12 @@ export default function PointsPage() {
           }
         })
         .catch((error) => {
-          if (isUncertainSubscriptionConfirmError(error)) {
+          if (isUncertainSubscriptionConfirmError(error, redirectStartedAt)) {
             markSubscriptionPaymentUnknown(error);
             return;
           }
           pendingSubscriptionConfirmRef.current = null;
+          subscriptionAutoRecheckRef.current = null;
           discardPendingSubscriptionPass(merchantUid);
           reportPaymentFailureToServer({
             merchantUid,
@@ -4140,7 +4231,7 @@ export default function PointsPage() {
 
   /* ── 부팅 시 미확정 이용권 주문 재확인 ─────────────────────────────
      결제창 승인 뒤 confirm 이 22초 타임아웃·탭 이탈로 끊기면 대기 payload 는 메모리에만 있어 사라졌다.
-     localStorage 의 대기 주문이 살아 있으면(15분 TTL) 리다이렉트 복귀가 아니어도 한 번 다시 확정한다.
+     localStorage 의 대기 주문이 살아 있으면(24시간 보존, PENDING_SUBSCRIPTION_PASS_RETENTION_MS) 리다이렉트 복귀가 아니어도 한 번 다시 확정한다.
      🔴 락은 리다이렉트 복귀와 같은 키 체계를 쓴다(새 락 금지) — 같은 주문을 두 경로가 동시에 확정하지 않는다.
      확정 실패는 조용히 버린다(결제창을 닫고 나온 사용자에게 오류를 띄우지 않는다). */
   useEffect(() => {
@@ -4160,9 +4251,10 @@ export default function PointsPage() {
 
     const pendingSub = readPendingSubscriptionOrder();
     if (!pendingSub?.merchantUid) return;
-    const pendingPass = readPendingSubscriptionPass();
+    // 🔴 표시용 15분 창이 아니라 24시간 보존 창으로 읽는다 — 지급이 늦게 끝난 주문도 재진입에서 다시 확정한다.
+    const pendingPass = readPendingSubscriptionPass(PENDING_SUBSCRIPTION_PASS_RETENTION_MS);
     if (!pendingPass || pendingPass.merchantUid !== pendingSub.merchantUid) {
-      // 15분 TTL 이 지났거나 짝이 안 맞는다 — 그 뒤는 서버(웹훅·재조정 크론)가 정산 주체다.
+      // 24시간 보존이 지났거나 짝이 안 맞는다 — 그 뒤는 서버(웹훅·재조정 크론)가 정산 주체다.
       clearPendingSubscriptionOrder();
       return;
     }
@@ -4185,6 +4277,7 @@ export default function PointsPage() {
         durationDays: 30,
       },
       fromRedirect: false,
+      startedAt: pendingPass.startedAt,
     };
     void checkPendingSubscriptionPayment({ silentFailure: true }).finally(() => {
       releasePaymentRedirectLock(retryKey);
@@ -4408,6 +4501,7 @@ export default function PointsPage() {
         return;
       }
 
+      const confirmStartedAt = Date.now();
       try {
         setProcessingStage(
           withSubscriptionMethod(orderMethod, "결제 승인 내역을 안전하게 확인하고 있어요.\n중복 결제를 시도하지 말아 주세요."),
@@ -4430,6 +4524,7 @@ export default function PointsPage() {
         pendingSubscriptionConfirmRef.current = {
           payload: confirmPayload,
           fromRedirect: false,
+          startedAt: confirmStartedAt,
         };
         if (isGift) {
           pendingSubscriptionConfirmRef.current = null;
@@ -4469,11 +4564,12 @@ export default function PointsPage() {
         setShowStarBurst(true);
         setTimeout(() => setShowStarBurst(false), 1200);
       } catch (error: unknown) {
-        if (isUncertainSubscriptionConfirmError(error)) {
+        if (isUncertainSubscriptionConfirmError(error, confirmStartedAt)) {
           markSubscriptionPaymentUnknown(error);
           return;
         }
         pendingSubscriptionConfirmRef.current = null;
+        subscriptionAutoRecheckRef.current = null;
         if (!isGift) discardPendingSubscriptionPass();
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,

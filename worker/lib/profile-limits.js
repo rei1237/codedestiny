@@ -94,7 +94,9 @@ export function resolvePremiumQuota(profileSubscription, entitlement, coinCost) 
 
 // ── 건당 적용 가격 범위 (코인, 1코인=100원) ────────────────────────
 // 2026-08-24 개정: 50 / 100 / 200 = 5,000원 / 10,000원 / 20,000원 (이전 30/50/100).
-// 이 값이 정본이고 PASS_LIMITS_KRW·HONEY_PASS_POLICY.maxCoveredCoin 은 전부 파생이다.
+// 🔴 legacy(무버전) 이용권 전용 표다. 현행 판매 정책(flower-20261104 등)의 상한·한도 정본은 lib/payment/pass-policy.js
+// 이고 resolvePassPolicy 가 버전으로 고른다 — 기존 legacy 보유자를 소급해 바꾸지 않으려고 이 숫자는 그대로 둔다.
+// legacy 안에서는 이 값이 정본이고 PASS_LIMITS_KRW·HONEY_PASS_POLICY.maxCoveredCoin 은 전부 파생이다.
 // 같은 숫자의 하드코딩 사본이 3곳 더 있다 — 바꿀 때 함께 바꿔야 한다:
 //   worker/lib/app-store-pricing.js  PASS_TIER_TABLE[].coinLimit  (verify:app-store-pricing 이 대조)
 //   js/core/pass-verdict.js          PASS_LIMIT_BY_TIER           (클라 스냅샷 판정)
@@ -142,6 +144,7 @@ export const PASS_LIMITS_KRW = Object.freeze({
 // 건당 상한(PASS_LIMITS)과는 별개의 AND 게이트. 한 이용권(사이클) 동안 이용권으로
 // 커버된 거래의 코인가 합계가 이 값을 넘으면, 건당 상한을 통과하는 건이라도
 // 그 사이클 안에서는 이용권으로 커버되지 않는다. coin 단위(1코인=100원).
+// 🔴 PASS_LIMITS 처럼 legacy 이용권 전용이다. 현행 정책의 이용 한도는 lib/payment/pass-policy.js 가 정본이다.
 export const MONTHLY_PASS_LIMITS = Object.freeze({
   [PASS_TIERS.STANDARD]: 300,   // 30,000원
   [PASS_TIERS.PREMIUM]: 1000,   // 100,000원
