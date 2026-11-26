@@ -16,15 +16,17 @@ var SajuNatalCore = (() => {
     }
     return to;
   };
-  var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+  var __toCommonJS = (mod3) => __copyProps(__defProp({}, "__esModule", { value: true }), mod3);
 
   // lib/saju/natal-core/index.mjs
   var index_exports = {};
   __export(index_exports, {
+    DEFAULT_SHINSAL_OPTIONS: () => DEFAULT_SHINSAL_OPTIONS,
     FAMILY_KO: () => FAMILY_KO,
     NATAL_CORE_VERSION: () => NATAL_CORE_VERSION,
     NATAL_RULE_PROFILE: () => NATAL_RULE_PROFILE,
     SAJU_TOMB_VERSION: () => SAJU_TOMB_VERSION,
+    SHINSAL_VERSION: () => SHINSAL_VERSION,
     TOMB_BRANCH: () => TOMB_BRANCH,
     TOMB_READING_RULE: () => TOMB_READING_RULE,
     TOMB_STATUS_KO: () => TOMB_STATUS_KO,
@@ -33,10 +35,13 @@ var SajuNatalCore = (() => {
     analyzeClimate: () => analyzeClimate,
     analyzeNatalCore: () => analyzeNatalCore,
     analyzeSajuTombs: () => analyzeSajuTombs,
+    computeShinsal: () => computeShinsal,
     gyeokgukView: () => gyeokgukView,
     legacyJongShape: () => legacyJongShape,
     natalAnalysisId: () => natalAnalysisId,
     natalAnalysisKeyMaterial: () => natalAnalysisKeyMaterial,
+    normalizeShinsalChart: () => normalizeShinsalChart,
+    serializeShinsalForPrompt: () => serializeShinsalForPrompt,
     stableHash: () => stableHash,
     surfaceElementCounts: () => surfaceElementCounts,
     tombPromptFacts: () => tombPromptFacts,
@@ -127,9 +132,9 @@ var SajuNatalCore = (() => {
   function normalizeChart(p = {}) {
     const chart = {};
     for (const pos of POSITIONS) {
-      const g = String(p?.[pos]?.g || "").trim();
+      const g2 = String(p?.[pos]?.g || "").trim();
       const j = String(p?.[pos]?.j || "").trim();
-      chart[pos] = { g: STEM_SET.has(g) ? g : "", j: BRANCH_SET.has(j) ? j : "" };
+      chart[pos] = { g: STEM_SET.has(g2) ? g2 : "", j: BRANCH_SET.has(j) ? j : "" };
     }
     chart.hourKnown = Boolean(chart.h.g && chart.h.j);
     if (!chart.hourKnown) chart.h = { g: "", j: "" };
@@ -149,7 +154,7 @@ var SajuNatalCore = (() => {
   function knownBranches(chart) {
     return POSITIONS.filter((pos) => chart[pos].j).map((pos) => ({ pos, char: chart[pos].j, el: BRANCH_EL[chart[pos].j] }));
   }
-  var adjacent = (a, b) => Math.abs(POSITIONS.indexOf(a) - POSITIONS.indexOf(b)) === 1;
+  var adjacent = (a, b2) => Math.abs(POSITIONS.indexOf(a) - POSITIONS.indexOf(b2)) === 1;
   function branchChungPairs(chart) {
     const rows = knownBranches(chart), out = [];
     for (let i = 0; i < rows.length; i++) for (let k = i + 1; k < rows.length; k++) {
@@ -188,20 +193,20 @@ var SajuNatalCore = (() => {
     const stems = knownStems(chart), out = [];
     const monthMainEl = chart.m.j ? STEM_EL[mainHidden(chart.m.j)] : "";
     for (let i = 0; i < stems.length; i++) for (let k = i + 1; k < stems.length; k++) {
-      const a = stems[i], b = stems[k];
-      if (!STEM_HAP[a.char] || STEM_HAP[a.char][0] !== b.char) continue;
+      const a = stems[i], b2 = stems[k];
+      if (!STEM_HAP[a.char] || STEM_HAP[a.char][0] !== b2.char) continue;
       const el = STEM_HAP[a.char][1];
-      const others = stems.filter((s) => s !== a && s !== b);
-      const competing = others.some((s) => s.char === a.char || s.char === b.char);
-      const clashed = others.some((s) => STEM_CHUNG[a.char] === s.char || STEM_CHUNG[b.char] === s.char);
+      const others = stems.filter((s2) => s2 !== a && s2 !== b2);
+      const competing = others.some((s2) => s2.char === a.char || s2.char === b2.char);
+      const clashed = others.some((s2) => STEM_CHUNG[a.char] === s2.char || STEM_CHUNG[b2.char] === s2.char);
       const seasonal = monthMainEl === el;
-      const rootedA = rootsOf(hidden, a.el).length > 0, rootedB = rootsOf(hidden, b.el).length > 0;
+      const rootedA = rootsOf(hidden, a.el).length > 0, rootedB = rootsOf(hidden, b2.el).length > 0;
       const row = {
-        pair: a.char + b.char,
-        positions: [a.pos, b.pos],
+        pair: a.char + b2.char,
+        positions: [a.pos, b2.pos],
         el,
-        adjacent: adjacent(a.pos, b.pos),
-        involvesDay: a.pos === "d" || b.pos === "d",
+        adjacent: adjacent(a.pos, b2.pos),
+        involvesDay: a.pos === "d" || b2.pos === "d",
         checks: { seasonal, competing, clashed, rootedA, rootedB },
         removed: null
       };
@@ -210,7 +215,7 @@ var SajuNatalCore = (() => {
       else if (seasonal && !competing && !clashed && !rootedA && !rootedB) row.state = "합화";
       else if (rootedA !== rootedB) {
         row.state = "합거";
-        row.removed = rootedA ? b.pos : a.pos;
+        row.removed = rootedA ? b2.pos : a.pos;
       } else row.state = "합반";
       out.push(row);
     }
@@ -222,27 +227,27 @@ var SajuNatalCore = (() => {
     for (let i = 0; i < rows.length; i++) for (let k = i + 1; k < rows.length; k++) {
       if (BRANCH_LIUHE[rows[i].char]?.[0] === rows[k].char) liuhe.push({ pair: rows[i].char + rows[k].char, positions: [rows[i].pos, rows[k].pos], el: BRANCH_LIUHE[rows[i].char][1], adjacent: adjacent(rows[i].pos, rows[k].pos), state: "합(기록)" });
     }
-    const samhap = SAMHAP.map((g) => {
-      const present = g.members.filter((c) => chars.includes(c));
-      const state = present.length === 3 ? "full" : present.length === 2 && present.includes(g.members[1]) ? "half" : present.length ? "partial" : "none";
-      return { members: g.members.join(""), el: g.el, present: present.join(""), state };
+    const samhap = SAMHAP.map((g2) => {
+      const present = g2.members.filter((c) => chars.includes(c));
+      const state = present.length === 3 ? "full" : present.length === 2 && present.includes(g2.members[1]) ? "half" : present.length ? "partial" : "none";
+      return { members: g2.members.join(""), el: g2.el, present: present.join(""), state };
     }).filter((r) => r.state !== "none");
-    const banghap = BANGHAP.map((g) => {
-      const present = g.members.filter((c) => chars.includes(c));
-      return { members: g.members.join(""), el: g.el, present: present.join(""), state: present.length === 3 ? "full" : present.length ? "partial" : "none" };
+    const banghap = BANGHAP.map((g2) => {
+      const present = g2.members.filter((c) => chars.includes(c));
+      return { members: g2.members.join(""), el: g2.el, present: present.join(""), state: present.length === 3 ? "full" : present.length ? "partial" : "none" };
     }).filter((r) => r.state !== "none");
     return { liuhe, samhap, banghap, chung: branchChungPairs(chart) };
   }
   function visibleCounts(chart) {
     const byEl = Object.fromEntries(ELEMENTS.map((e) => [e, 0]));
     let total = 0;
-    for (const s of knownStems(chart)) {
-      byEl[s.el]++;
+    for (const s2 of knownStems(chart)) {
+      byEl[s2.el]++;
       total++;
     }
-    for (const b of knownBranches(chart)) {
-      const w = b.pos === "m" ? 2 : 1;
-      byEl[b.el] += w;
+    for (const b2 of knownBranches(chart)) {
+      const w = b2.pos === "m" ? 2 : 1;
+      byEl[b2.el] += w;
       total += w;
     }
     const dayEl = STEM_EL[chart.d.g];
@@ -264,8 +269,8 @@ var SajuNatalCore = (() => {
   }
   function visibleByRelation(chart, rel) {
     const dayEl = STEM_EL[chart.d.g];
-    const stems = knownStems(chart).filter((s) => s.pos !== "d" && relationOf(dayEl, s.el) === rel);
-    const branches = knownBranches(chart).filter((b) => relationOf(dayEl, b.el) === rel);
+    const stems = knownStems(chart).filter((s2) => s2.pos !== "d" && relationOf(dayEl, s2.el) === rel);
+    const branches = knownBranches(chart).filter((b2) => relationOf(dayEl, b2.el) === rel);
     return { stems, branches, count: stems.length + branches.length };
   }
 
@@ -291,38 +296,38 @@ var SajuNatalCore = (() => {
       el: (rel) => ELEMENT_OF_RELATION(dayEl, rel)
     };
   }
-  var fullGroup = (ctx, el) => ctx.branches.samhap.some((g) => g.el === el && g.state === "full") || ctx.branches.banghap.some((g) => g.el === el && g.state === "full");
+  var fullGroup = (ctx, el) => ctx.branches.samhap.some((g2) => g2.el === el && g2.state === "full") || ctx.branches.banghap.some((g2) => g2.el === el && g2.state === "full");
   var share = (ctx, rels) => rels.reduce((n, r) => n + ctx.counts.byRel[r], 0) / (ctx.counts.total || 1);
   var FOLLOW = {
     wealth: { support: "output", other: "officer", trueName: "종재격(從財格)", falseName: "가종재격(假從財格)" },
     officer: { support: "wealth", other: "wealth", trueName: "종살격(從殺格)", falseName: "가종살격(假從殺格)" }
   };
   function followChecks(ctx, target, profile) {
-    const f = FOLLOW[target], { byRel } = ctx.counts;
+    const f2 = FOLLOW[target], { byRel } = ctx.counts;
     const dominance = target === "wealth" ? byRel.wealth > 0 && byRel.wealth >= byRel.officer : byRel.officer > 0 && byRel.officer > byRel.wealth;
     const monthOk = !ctx.chart.m.j ? null : ctx.monthRel === target || fullGroup(ctx, ctx.el(target));
-    const s = share(ctx, [target, f.support]);
+    const s2 = share(ctx, [target, f2.support]);
     return [
       ck("J0-DOMINANT", dominance, `${target === "wealth" ? "재성" : "관살"}이 따를 세력의 중심인지(재 ${byRel.wealth} / 관 ${byRel.officer})`),
       ck("J1-MONTH", monthOk, monthOk === null ? "월지 미상" : `월령 본기 관계: ${ctx.monthRel || "없음"}`),
-      ck("J2-SHARE", s >= profile.followShare, `따를 세력 비중 ${pct(s)} (개발 정책 기준 ${pct(profile.followShare)})`)
+      ck("J2-SHARE", s2 >= profile.followShare, `따를 세력 비중 ${pct(s2)} (개발 정책 기준 ${pct(profile.followShare)})`)
     ];
   }
   function evaluateFollow(ctx, target, profile) {
-    const f = FOLLOW[target];
+    const f2 = FOLLOW[target];
     const base = followChecks(ctx, target, profile);
     const dayRoots = rootSummary(ctx.hidden, ctx.dayEl);
     const parentEl = parentOf(ctx.dayEl);
-    const helperStems = knownStems(ctx.chart).filter((s) => s.pos !== "d" && (s.el === ctx.dayEl || s.el === parentEl));
+    const helperStems = knownStems(ctx.chart).filter((s2) => s2.pos !== "d" && (s2.el === ctx.dayEl || s2.el === parentEl));
     const parentRoots = rootsOf(ctx.hidden, parentEl);
     const trueChecks = [
       ...base,
       ck("J3-NO-DAY-ROOT", dayRoots.any === 0, `일간 오행의 지장간 뿌리 ${dayRoots.any}개`),
-      ck("J4-NO-HELPER-STEM", helperStems.length === 0, helperStems.length ? `인비 천간 ${helperStems.map((s) => s.char).join("")}` : "인비 천간 없음"),
+      ck("J4-NO-HELPER-STEM", helperStems.length === 0, helperStems.length ? `인비 천간 ${helperStems.map((s2) => s2.char).join("")}` : "인비 천간 없음"),
       ck("J5-NO-PARENT-ROOT", parentRoots.length === 0, `인성 오행의 지장간 ${parentRoots.length}개`)
     ];
     const trueStatus = statusOf(trueChecks);
-    const ineffectiveStem = (s) => rootsOf(ctx.hidden, s.el).length === 0 || ctx.combos.some((c) => c.state === "합거" && c.removed === s.pos);
+    const ineffectiveStem = (s2) => rootsOf(ctx.hidden, s2.el).length === 0 || ctx.combos.some((c) => c.state === "합거" && c.removed === s2.pos);
     const helperMains = ["y", "m", "d", "h"].filter((pos) => {
       const j = ctx.chart[pos].j;
       return j && (BRANCH_EL[j] === ctx.dayEl || BRANCH_EL[j] === parentEl);
@@ -332,13 +337,13 @@ var SajuNatalCore = (() => {
     const falseChecks = [
       ...base,
       ck("F3-NO-EFFECTIVE-DAY-ROOT", dayRoots.effective === 0, `일간 실효 뿌리(충 없는 정기·중기) ${dayRoots.effective}개, 약한 뿌리 ${dayRoots.weak}개`),
-      ck("F4-HELPER-STEMS-INEFFECTIVE", helperStems.every(ineffectiveStem), helperStems.length ? `인비 천간 ${helperStems.map((s) => s.char + (ineffectiveStem(s) ? "(무근·합거)" : "(유근)")).join(" ")}` : "인비 천간 없음"),
+      ck("F4-HELPER-STEMS-INEFFECTIVE", helperStems.every(ineffectiveStem), helperStems.length ? `인비 천간 ${helperStems.map((s2) => s2.char + (ineffectiveStem(s2) ? "(무근·합거)" : "(유근)")).join(" ")}` : "인비 천간 없음"),
       ck("F5-HELPER-BRANCHES-WEAKENED", liveHelperMain.length === 0 && effectiveParent.length === 0, liveHelperMain.length || effectiveParent.length ? "충을 받지 않은 인비 본기·인성 실효 뿌리가 남음" : "인비 지지 본기는 없거나 충으로 약화됨"),
       ck("F6-RESIDUAL-HELP", trueStatus !== "pass", trueStatus === "pass" ? "남은 도움이 없어 진종으로 판정" : "약한 도움이 남아 있음")
     ];
     return [
-      { id: `JONG-TRUE-${target}`, ruleId: "JONG-TRUE", family: "follow", name: f.trueName, dominant: ctx.el(target), second: ctx.el(f.support), isGa: false, status: trueStatus, checks: trueChecks },
-      { id: `JONG-FALSE-${target}`, ruleId: "JONG-FALSE", family: "follow", name: f.falseName, dominant: ctx.el(target), second: ctx.el(f.support), isGa: true, status: statusOf(falseChecks), checks: falseChecks }
+      { id: `JONG-TRUE-${target}`, ruleId: "JONG-TRUE", family: "follow", name: f2.trueName, dominant: ctx.el(target), second: ctx.el(f2.support), isGa: false, status: trueStatus, checks: trueChecks },
+      { id: `JONG-FALSE-${target}`, ruleId: "JONG-FALSE", family: "follow", name: f2.falseName, dominant: ctx.el(target), second: ctx.el(f2.support), isGa: true, status: statusOf(falseChecks), checks: falseChecks }
     ];
   }
   function evaluateOutput(ctx, profile) {
@@ -361,7 +366,7 @@ var SajuNatalCore = (() => {
     metal: { ruleId: "ZW-CONGGE", name: "종혁격(從革格)", samhap: "巳酉丑" },
     water: { ruleId: "ZW-RUNXIA", name: "윤하격(潤下格)", samhap: "申子辰" }
   };
-  var outsideJu = (row, ju) => ({ ...row, branches: row.branches.filter((b) => !(ju || "").includes(b.char)), get count() {
+  var outsideJu = (row, ju) => ({ ...row, branches: row.branches.filter((b2) => !(ju || "").includes(b2.char)), get count() {
     return this.stems.length + this.branches.length;
   } });
   function officerLimit(ctx, ju) {
@@ -373,8 +378,8 @@ var SajuNatalCore = (() => {
   }
   function evaluateVigorous(ctx, profile) {
     const z = ZW[ctx.dayEl];
-    const s = share(ctx, ["self", "parent"]);
-    const checks = [ck("ZW-SHARE", s >= profile.followShare, `비겁·인성 비중 ${pct(s)} (개발 정책 기준 ${pct(profile.followShare)})`)];
+    const s2 = share(ctx, ["self", "parent"]);
+    const checks = [ck("ZW-SHARE", s2 >= profile.followShare, `비겁·인성 비중 ${pct(s2)} (개발 정책 기준 ${pct(profile.followShare)})`)];
     const mj = ctx.chart.m.j;
     if (ctx.dayEl === "earth") {
       checks.unshift(ck(
@@ -385,7 +390,7 @@ var SajuNatalCore = (() => {
       const wood = visibleByRelation(ctx.chart, "officer");
       checks.push(ck("ZW-JIASE-WOOD", wood.count <= 1, wood.count <= 1 ? `목 ${wood.count}위(一木 허용)` : `목 ${wood.count}위: 木多則土虛`));
     } else {
-      const full = ctx.branches.samhap.some((g) => g.members === z.samhap && g.state === "full");
+      const full = ctx.branches.samhap.some((g2) => g2.members === z.samhap && g2.state === "full");
       checks.unshift(ck(`${z.ruleId}-JU`, full, `${z.samhap} 국이 온전한지`));
       if (ctx.dayEl === "metal") {
         const fire = visibleByRelation(ctx.chart, "officer");
@@ -398,30 +403,30 @@ var SajuNatalCore = (() => {
     return { id: z.ruleId, ruleId: z.ruleId, family: "vigorous", name: z.name, dominant: ctx.dayEl, second: ctx.el("parent"), isGa: false, status: statusOf(checks), checks };
   }
   function evaluateWang(ctx, profile, zw) {
-    const s = share(ctx, ["self", "parent"]);
+    const s2 = share(ctx, ["self", "parent"]);
     const wealth = visibleByRelation(ctx.chart, "wealth"), officer = visibleByRelation(ctx.chart, "officer");
     const selfMore = ctx.counts.byRel.self >= ctx.counts.byRel.parent;
     const checks = [
       ck("W1-MONTH", !ctx.chart.m.j ? null : ctx.monthRel === "self" || ctx.monthRel === "parent", `월령 본기 관계: ${ctx.monthRel || "미상"}`),
       ck("W2-NO-WEALTH-OFFICER", wealth.count === 0 && officer.count === 0, `재성 ${wealth.count}위 / 관살 ${officer.count}위`),
-      ck("W3-SHARE", s >= profile.followShare, `비겁·인성 비중 ${pct(s)}`)
+      ck("W3-SHARE", s2 >= profile.followShare, `비겁·인성 비중 ${pct(s2)}`)
     ];
     if (selfMore && zw.status === "unknown") checks.push(ck("W4-ZW-UNRESOLVED", null, `${zw.name} 이설 보류와 같은 근거`));
     return { id: "JONG-WANG", ruleId: "JONG-QIANG-WANG", family: "vigorous", name: selfMore ? "종왕격(從旺格)" : "종강격(從强格)", dominant: selfMore ? ctx.dayEl : ctx.el("parent"), second: selfMore ? ctx.el("parent") : ctx.dayEl, isGa: false, status: statusOf(checks), checks };
   }
   function evaluateHua(ctx) {
     const d = ctx.chart.d.g, [partner, el] = STEM_HAP[d] || [];
-    const others = knownStems(ctx.chart).filter((s) => s.pos !== "d");
-    const partners = others.filter((s) => s.char === partner);
+    const others = knownStems(ctx.chart).filter((s2) => s2.pos !== "d");
+    const partners = others.filter((s2) => s2.char === partner);
     const adjacentPartner = partners.length === 1 && (partners[0].pos === "m" || partners[0].pos === "h");
-    const rest = others.filter((s) => s !== partners[0]);
-    const blockers = rest.filter((s) => s.el !== el && ["parent", "self", "officer"].includes(relationOf(ctx.dayEl, s.el)));
-    const clashed = rest.some((s) => STEM_CHUNG[d] === s.char || STEM_CHUNG[partner] === s.char);
+    const rest = others.filter((s2) => s2 !== partners[0]);
+    const blockers = rest.filter((s2) => s2.el !== el && ["parent", "self", "officer"].includes(relationOf(ctx.dayEl, s2.el)));
+    const clashed = rest.some((s2) => STEM_CHUNG[d] === s2.char || STEM_CHUNG[partner] === s2.char);
     const dayRoots = rootSummary(ctx.hidden, ctx.dayEl);
     const checks = [
       ck("HUA-ADJACENT-SINGLE", adjacentPartner, partners.length === 0 ? `${partner} 없음` : partners.length > 1 ? `${partner} ${partners.length}위` : `${partner}이 ${partners[0].pos === "y" ? "년간(인접 아님)" : "인접 천간"}`),
       ck("HUA-MONTH", !ctx.chart.m.j ? null : BRANCH_EL[ctx.chart.m.j] === el, `화신 ${EL_KO[el]}이 월령에 통하는지`),
-      ck("HUA-NO-BLOCKER", blockers.length === 0, blockers.length ? `인·비겁·관 천간 ${blockers.map((s) => s.char).join("")}` : "방해 천간 없음"),
+      ck("HUA-NO-BLOCKER", blockers.length === 0, blockers.length ? `인·비겁·관 천간 ${blockers.map((s2) => s2.char).join("")}` : "방해 천간 없음"),
       ck("HUA-NO-CLASH", !clashed, clashed ? "합하는 천간이 충을 받음" : "천간충 없음"),
       ck("HUA-DAY-ROOTLESS", dayRoots.any === 0, `일간 오행 뿌리 ${dayRoots.any}개 (개발 정책: 뿌리가 없어야 함)`)
     ];
@@ -440,7 +445,7 @@ var SajuNatalCore = (() => {
       ...evaluateFollow(ctx, "wealth", profile),
       ...evaluateFollow(ctx, "officer", profile),
       evaluateOutput(ctx, profile)
-    ].sort((a, b) => priorityOf(a) - priorityOf(b));
+    ].sort((a, b2) => priorityOf(a) - priorityOf(b2));
   }
   function mergeHourVariants(variants) {
     const [first] = variants;
@@ -486,8 +491,8 @@ var SajuNatalCore = (() => {
   function monthStructure(chart) {
     const d = chart.d.g, mb = chart.m.j;
     if (!d || !mb) return { status: "unknown", name: "", kind: "", reason: "월지 또는 일간 미상" };
-    const exposedRows = knownStems(chart).filter((s) => s.pos !== "d");
-    const exposed = new Set(exposedRows.map((s) => s.char));
+    const exposedRows = knownStems(chart).filter((s2) => s2.pos !== "d");
+    const exposed = new Set(exposedRows.map((s2) => s2.char));
     const base = { status: "pass", monthBranch: mb, hidden: hiddenLayers(mb).map((h) => ({ ...h, tenGod: tenGod(d, h.stem), exposed: exposed.has(h.stem) })) };
     let row;
     if (ROK[d] === mb) row = { ...base, name: "건록격", kind: "rok", ruleId: "GK-ROK", reason: `월지 ${mb}가 일간 ${d}의 녹(ROK-01)` };
@@ -503,16 +508,16 @@ var SajuNatalCore = (() => {
   }
   function rokSubUses(chart) {
     const d = chart.d.g, out = [];
-    for (const s of knownStems(chart)) {
-      if (s.pos === "d") continue;
-      const god = tenGod(d, s.char);
-      if (SUB_USE[god]) out.push({ use: SUB_USE[god], tenGod: god, char: s.char, pos: s.pos, source: "천간 투출" });
+    for (const s2 of knownStems(chart)) {
+      if (s2.pos === "d") continue;
+      const god = tenGod(d, s2.char);
+      if (SUB_USE[god]) out.push({ use: SUB_USE[god], tenGod: god, char: s2.char, pos: s2.pos, source: "천간 투출" });
     }
-    for (const b of knownBranches(chart)) {
-      if (b.pos === "m") continue;
-      const main = hiddenLayers(b.char).slice(-1)[0];
+    for (const b2 of knownBranches(chart)) {
+      if (b2.pos === "m") continue;
+      const main = hiddenLayers(b2.char).slice(-1)[0];
       const god = tenGod(d, main.stem);
-      if (SUB_USE[god]) out.push({ use: SUB_USE[god], tenGod: god, char: b.char, pos: b.pos, source: "지지 본기" });
+      if (SUB_USE[god]) out.push({ use: SUB_USE[god], tenGod: god, char: b2.char, pos: b2.pos, source: "지지 본기" });
     }
     return out;
   }
@@ -558,16 +563,16 @@ var SajuNatalCore = (() => {
         reasonNeo: "월지 정보가 부족해서 격을 세우지 않고, 억부·조후 흐름으로 보완해 읽어."
       };
     }
-    const g = core.gyeokguk, m = core.monthStructure, d = core.dayMaster.stem;
+    const g2 = core.gyeokguk, m = core.monthStructure, d = core.dayMaster.stem;
     const mbKo = BRANCH_KO[m.monthBranch] || m.monthBranch, dKo = STEM_KO[d] || d;
     const uses = [...new Set((m.subUses || []).map((u) => SUB_USE_KO[u.use]).filter(Boolean))];
     const useText = uses.length ? `다른 자리의 재·관·식상 쓰임인 ${josa(uses.join("·"), "을", "를")} 함께 봅니다.` : "다른 자리에 재·관·식상이 드러나지 않아 억부·조후로 쓰임을 정합니다.";
     const useTextNeo = uses.length ? `다른 자리의 재·관·식상 쓰임인 ${josa(uses.join("·"), "을", "를")} 같이 봐.` : "다른 자리에 재·관·식상이 드러나지 않아서 억부·조후로 쓰임을 정해.";
     let reason = "", reasonNeo = "", confident = true;
-    if (g.type === "특수격") {
+    if (g2.type === "특수격") {
       const adopted = core.special.candidates.find((c) => c.id === core.special.adopted) || {};
-      reason = `원국이 ${g.name}의 필수 조건을 모두 충족해 ${josa(g.familyKo, "으로", "로")} 봅니다.`;
-      reasonNeo = `원국이 ${g.name}의 필수 조건을 모두 채워서 ${josa(g.familyKo, "으로", "로")} 봐.`;
+      reason = `원국이 ${g2.name}의 필수 조건을 모두 충족해 ${josa(g2.familyKo, "으로", "로")} 봅니다.`;
+      reasonNeo = `원국이 ${g2.name}의 필수 조건을 모두 채워서 ${josa(g2.familyKo, "으로", "로")} 봐.`;
       if (adopted.isGa) {
         reason += " 일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못하는 가종(假從)의 조건입니다.";
         reasonNeo += " 일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못하는 가종(假從)의 조건이야.";
@@ -593,24 +598,24 @@ var SajuNatalCore = (() => {
         confident = false;
       }
     }
-    if (m.hourSensitive && g.type !== "특수격") {
+    if (m.hourSensitive && g2.type !== "특수격") {
       reason += ` 시주에 따라 월령 구조가 ${josa(m.alternatives.join("·"), "으로", "로")} 갈려 확정하지 않습니다.`;
       reasonNeo += ` 시주에 따라 월령 구조가 ${josa(m.alternatives.join("·"), "으로", "로")} 갈려서 확정하지 않아.`;
       confident = false;
     }
-    const pending = g.pendingSpecial || [];
+    const pending = g2.pendingSpecial || [];
     if (pending.length) {
       reason += ` 특수격 후보(${pending.join("·")})는 시주나 문헌 이설 때문에 판정을 보류하고 일반격 기준으로 읽습니다.`;
       reasonNeo += ` 특수격 후보(${pending.join("·")})는 시주나 문헌 이설 때문에 판정을 보류하고 일반격 기준으로 읽어.`;
     }
     return {
-      name: g.name,
-      type: g.type,
-      family: g.family,
-      familyKo: g.familyKo,
-      ruleId: g.ruleId,
-      isGa: g.isGa === true,
-      monthStructure: g.monthStructure,
+      name: g2.name,
+      type: g2.type,
+      family: g2.family,
+      familyKo: g2.familyKo,
+      ruleId: g2.ruleId,
+      isGa: g2.isGa === true,
+      monthStructure: g2.monthStructure,
       subUses: m.subUses || [],
       pendingSpecial: pending,
       confident,
@@ -661,7 +666,7 @@ var SajuNatalCore = (() => {
     }
     return { temp, moist, dry, diff: moist - dry, counts };
   }
-  var tempType = (s) => s >= 5 ? "hot" : s >= 2 ? "warm" : s >= -2 ? "neutral" : s >= -5 ? "cool" : "cold";
+  var tempType = (s2) => s2 >= 5 ? "hot" : s2 >= 2 ? "warm" : s2 >= -2 ? "neutral" : s2 >= -5 ? "cool" : "cold";
   var moistType = (d) => d >= 3 ? "wet" : d <= -3 ? "dry" : "balanced";
   var NEED = { hot: "high", cold: "high", warm: "some", cool: "some", neutral: "low" };
   var moistNeed = (d) => Math.abs(d) >= 5 ? "high" : Math.abs(d) >= 3 ? "some" : "low";
@@ -743,12 +748,12 @@ var SajuNatalCore = (() => {
     const season = SEASON_TERMS[branch];
     const moist = rows.reduce((sum, [stem, days]) => sum + STEM_VECTORS[stem].moist * days, 0) / total + season.moist;
     const temp = rows.reduce((sum, [stem, days]) => sum + STEM_VECTORS[stem].temp * days, 0) / total + season.temp;
-    return { moist: r2(moist), temp: r2(temp), note: `지장간 ${rows.map(([s, d]) => s + d).join("·")}일 가중 평균 + 계절(${season.note})` };
+    return { moist: r2(moist), temp: r2(temp), note: `지장간 ${rows.map(([s2, d]) => s2 + d).join("·")}일 가중 평균 + 계절(${season.note})` };
   }
   var FIRE_CHARS = ["丙", "丁", "巳", "午"];
-  var BRANCH_VECTORS = Object.fromEntries(Object.keys(HIDDEN_DAYS).map((b) => [b, branchVector(b)]));
+  var BRANCH_VECTORS = Object.fromEntries(Object.keys(HIDDEN_DAYS).map((b2) => [b2, branchVector(b2)]));
   function expected(axis) {
-    const mean = (rows) => rows.reduce((s, v) => s + v[axis], 0) / rows.length;
+    const mean = (rows) => rows.reduce((s2, v) => s2 + v[axis], 0) / rows.length;
     const stemW = 1 + 1.5 + 1 + 1.5, branchW = 1 + 2 + 1.5 + 1;
     return r2((mean(Object.values(STEM_VECTORS)) * stemW + mean(Object.values(BRANCH_VECTORS)) * branchW) / (stemW + branchW));
   }
@@ -797,8 +802,8 @@ var SajuNatalCore = (() => {
       const moist2 = (dampened ? v.moist * CLIMATE_VECTORS.fireDampening.factor : v.moist) * i.weight;
       return { ...i, moist: r2(moist2), temp: r2(v.temp * i.weight), dampened };
     });
-    const weight = items.reduce((s, i) => s + i.weight, 0);
-    const totals = { moist: r2(contributions.reduce((s, c) => s + c.moist, 0)), temp: r2(contributions.reduce((s, c) => s + c.temp, 0)), weight };
+    const weight = items.reduce((s2, i) => s2 + i.weight, 0);
+    const totals = { moist: r2(contributions.reduce((s2, c) => s2 + c.moist, 0)), temp: r2(contributions.reduce((s2, c) => s2 + c.temp, 0)), weight };
     const average = { moist: r2(totals.moist / (weight || 1)), temp: r2(totals.temp / (weight || 1)) };
     const deviation = { moist: r2(average.moist - CLIMATE_VECTORS.baseline.moist), temp: r2(average.temp - CLIMATE_VECTORS.baseline.temp) };
     const temp = { dir: deviation.temp < 0 ? "cold" : "hot", level: levelOf(deviation.temp) };
@@ -818,7 +823,7 @@ var SajuNatalCore = (() => {
     const axes = [
       { ...temp, r: rank(temp.level) },
       { ...moist, r: rank(moist.level) }
-    ].filter((a) => a.level !== "balanced").sort((a, b) => b.r - a.r);
+    ].filter((a) => a.level !== "balanced").sort((a, b2) => b2.r - a.r);
     const wetToo = moist.level !== "balanced" && moist.dir === "wet";
     const hotToo = temp.level !== "balanced" && temp.dir === "hot";
     for (const a of axes) {
@@ -850,7 +855,7 @@ var SajuNatalCore = (() => {
     const dominant = c.moist.level !== "balanced" && rank(c.moist.level) >= rank(c.temp.level) ? "moist" : c.temp.level !== "balanced" ? "temp" : "";
     if (dominant) {
       const sign = dominant === "moist" ? c.moist.dir === "wet" ? 1 : -1 : c.temp.dir === "hot" ? 1 : -1;
-      const top = [...new Set(raw.contributions.filter((r) => !(r.pos === "m" && r.kind === "j") && r[dominant] * sign > 0).sort((a, b) => b[dominant] * sign - a[dominant] * sign).map((r) => r.char))].slice(0, 2);
+      const top = [...new Set(raw.contributions.filter((r) => !(r.pos === "m" && r.kind === "j") && r[dominant] * sign > 0).sort((a, b2) => b2[dominant] * sign - a[dominant] * sign).map((r) => r.char))].slice(0, 2);
       const word = dominant === "moist" ? sign > 0 ? "습기를 더해요" : "메마르게 해요" : sign > 0 ? "열기를 더해요" : "차가움을 더해요";
       if (top.length) out.push(`${top.map(ko).join("·")} 같은 글자가 ${word}.`);
     }
@@ -1118,6 +1123,1204 @@ var SajuNatalCore = (() => {
     return result;
   }
 
+  // lib/saju/sinsal-rules.mjs
+  var mod = (value, size) => (value % size + size) % size;
+  var shiftBranch = (branch, steps) => BRANCH_ORDER[mod(BRANCH_ORDER.indexOf(branch) + steps, 12)];
+  var SAMHAP_GROUPS = Object.freeze([
+    Object.freeze({ key: "water", label: "신자진(申子辰)", branches: Object.freeze(["申", "子", "辰"]), dohwa: "酉", yeokma: "寅", hwagae: "辰", twelveStart: "巳" }),
+    Object.freeze({ key: "fire", label: "인오술(寅午戌)", branches: Object.freeze(["寅", "午", "戌"]), dohwa: "卯", yeokma: "申", hwagae: "戌", twelveStart: "亥" }),
+    Object.freeze({ key: "metal", label: "사유축(巳酉丑)", branches: Object.freeze(["巳", "酉", "丑"]), dohwa: "午", yeokma: "亥", hwagae: "丑", twelveStart: "寅" }),
+    Object.freeze({ key: "wood", label: "해묘미(亥卯未)", branches: Object.freeze(["亥", "卯", "未"]), dohwa: "子", yeokma: "巳", hwagae: "未", twelveStart: "申" })
+  ]);
+  var TWELVE_SINSAL_NAMES = Object.freeze(["겁살", "재살", "천살", "지살", "년살", "월살", "망신살", "장성살", "반안살", "역마살", "육해살", "화개살"]);
+  var samhapGroup = (branch) => SAMHAP_GROUPS.find((group) => group.branches.includes(branch)) || null;
+  function twelveSinsalRow(yearBranch) {
+    const group = samhapGroup(yearBranch);
+    return group ? TWELVE_SINSAL_NAMES.map((_, index) => shiftBranch(group.twelveStart, index)) : [];
+  }
+  function twelveSinsalName(yearBranch, targetBranch) {
+    const index = twelveSinsalRow(yearBranch).indexOf(targetBranch);
+    return index >= 0 ? TWELVE_SINSAL_NAMES[index] : "";
+  }
+  var YANGIN_BY_STEM = Object.freeze({ 甲: "卯", 丙: "午", 戊: "午", 庚: "酉", 壬: "子" });
+  var HONGYEOM_BY_STEM = Object.freeze({ 甲: "午", 乙: "午", 丙: "寅", 丁: "未", 戊: "辰", 己: "辰", 庚: "戌", 辛: "酉", 壬: "子", 癸: "申" });
+  var CHEONEUL_BY_STEM = Object.freeze({ 甲: ["丑", "未"], 乙: ["子", "申"], 丙: ["亥", "酉"], 丁: ["亥", "酉"], 戊: ["丑", "未"], 己: ["子", "申"], 庚: ["丑", "未"], 辛: ["寅", "午"], 壬: ["卯", "巳"], 癸: ["卯", "巳"] });
+  var GOEGANG_GANJI = Object.freeze(["庚辰", "庚戌", "壬辰", "戊戌"]);
+  var BAEKHO_GANJI = Object.freeze(["甲辰", "乙未", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"]);
+  var GONGMANG_BY_SUN = Object.freeze([
+    Object.freeze({ sun: "甲子", branches: Object.freeze(["戌", "亥"]) }),
+    Object.freeze({ sun: "甲戌", branches: Object.freeze(["申", "酉"]) }),
+    Object.freeze({ sun: "甲申", branches: Object.freeze(["午", "未"]) }),
+    Object.freeze({ sun: "甲午", branches: Object.freeze(["辰", "巳"]) }),
+    Object.freeze({ sun: "甲辰", branches: Object.freeze(["寅", "卯"]) }),
+    Object.freeze({ sun: "甲寅", branches: Object.freeze(["子", "丑"]) })
+  ]);
+  function sexagenaryIndex(stem, branch) {
+    const s2 = STEM_ORDER.indexOf(stem);
+    const b2 = BRANCH_ORDER.indexOf(branch);
+    if (s2 < 0 || b2 < 0) return -1;
+    for (let i = 0; i < 60; i += 1) if (i % 10 === s2 && i % 12 === b2) return i;
+    return -1;
+  }
+  function gongmangBranches(dayStem, dayBranch) {
+    const index = sexagenaryIndex(dayStem, dayBranch);
+    return index < 0 ? [] : [...GONGMANG_BY_SUN[Math.floor(index / 10)].branches];
+  }
+  var GWIMUN_PAIRS = Object.freeze(["子酉", "丑午", "寅未", "卯申", "辰亥", "巳戌"]);
+  var WONJIN_PAIRS = Object.freeze(["子未", "丑午", "寅酉", "卯申", "辰亥", "巳戌"]);
+  var CHUNG_PAIRS = Object.freeze(["子午", "丑未", "寅申", "卯酉", "辰戌", "巳亥"]);
+  var sangmunBranch = (yearBranch) => BRANCH_ORDER.includes(yearBranch) ? shiftBranch(yearBranch, 2) : "";
+  var jogaekBranch = (yearBranch) => BRANCH_ORDER.includes(yearBranch) ? shiftBranch(yearBranch, -2) : "";
+  var b = (branch) => branch ? `${BRANCH_KO[branch]}(${branch})` : "-";
+  var s = (stem) => `${STEM_KO[stem]}(${stem})`;
+  var g = (ganji) => `${STEM_KO[ganji[0]]}${BRANCH_KO[ganji[1]]}(${ganji})`;
+  var pair = (value) => `${BRANCH_KO[value[0]]}${BRANCH_KO[value[1]]}(${value})`;
+  var groupTable = (field) => ({
+    head: ["기준 지지(일지·년지)", "해당 지지"],
+    rows: SAMHAP_GROUPS.map((group) => [group.label, b(group[field])])
+  });
+  var SINSAL_RULES = Object.freeze({
+    도화살: { ...groupTable("dohwa"), basis: "이 사이트의 사주·만세력은 일지와 년지 두 기준으로 도화살을 찾습니다." },
+    역마살: { ...groupTable("yeokma"), basis: "사주 풀이는 일지·년지 두 기준, 만세력 표는 년지 기준 12신살 행의 역마살 자리로 보여 줍니다." },
+    화개살: { ...groupTable("hwagae"), basis: "사주 풀이는 일지·년지 두 기준, 만세력 표는 년지 기준 12신살 행의 화개살 자리로 보여 줍니다." },
+    "12신살": {
+      head: ["년지", ...TWELVE_SINSAL_NAMES],
+      rows: SAMHAP_GROUPS.map((group) => [group.label, ...twelveSinsalRow(group.branches[0]).map(b)]),
+      basis: "만세력의 12신살은 년지(태어난 해의 지지) 기준입니다."
+    },
+    양인살: {
+      head: ["일간", "양인 지지"],
+      rows: Object.entries(YANGIN_BY_STEM).map(([stem, branch]) => [s(stem), b(branch)]),
+      basis: "일간이 양간(갑·병·무·경·임)일 때만 봅니다. 음간에는 이 사이트가 양인살을 붙이지 않습니다."
+    },
+    홍염살: {
+      head: ["일간", "홍염 지지"],
+      rows: Object.entries(HONGYEOM_BY_STEM).map(([stem, branch]) => [s(stem), b(branch)]),
+      basis: "일간 한 글자로 홍염 지지를 정하고, 원국 네 지지 가운데 그 글자가 놓인 기둥을 표시합니다."
+    },
+    천을귀인: {
+      head: ["일간", "천을귀인 지지"],
+      rows: Object.entries(CHEONEUL_BY_STEM).map(([stem, branches]) => [s(stem), branches.map(b).join(" · ")]),
+      basis: "일간마다 귀인 지지가 둘씩 있으며, 원국 네 지지 가운데 하나라도 맞으면 표시합니다."
+    },
+    괴강살: {
+      head: ["간지", "구성"],
+      rows: GOEGANG_GANJI.map((ganji) => [g(ganji), `${s(ganji[0])} + ${b(ganji[1])}`]),
+      basis: "천간과 지지를 한 쌍으로 대조해 네 기둥 어디에든 이 네 간지가 있으면 표시합니다. 사주 풀이는 대운·세운 간지도 함께 봅니다."
+    },
+    백호살: {
+      head: ["간지", "구성"],
+      rows: BAEKHO_GANJI.map((ganji) => [g(ganji), `${s(ganji[0])} + ${b(ganji[1])}`]),
+      basis: "년·월·일·시 기둥 하나가 일곱 간지 중 하나와 그대로 같으면 백호살로 봅니다. 운에서 들어오는 간지는 사주 풀이가 따로 대조합니다."
+    },
+    공망: {
+      head: ["일주가 속한 순", "공망 지지"],
+      rows: GONGMANG_BY_SUN.map((row) => [`${g(row.sun)}순`, row.branches.map(b).join(" · ")]),
+      basis: "일주가 속한 순(旬)을 기준으로 원국의 다른 지지에서 찾습니다."
+    },
+    귀문관살: {
+      head: ["지지 쌍"],
+      rows: GWIMUN_PAIRS.map((value) => [pair(value)]),
+      basis: "원국 네 지지 중 아무 두 자리가 이 쌍을 이루면 함께 표시하며, 이웃한 기둥인지는 따지지 않습니다."
+    },
+    원진살: {
+      head: ["지지 쌍"],
+      rows: WONJIN_PAIRS.map((value) => [pair(value)]),
+      basis: "만세력은 원국 지지 두 개가 이 짝을 이룰 때 두 기둥을 표시하고, 띠궁합은 두 사람의 년지끼리 같은 표를 씁니다."
+    },
+    상충: {
+      head: ["지지 쌍(육충)"],
+      rows: CHUNG_PAIRS.map((value) => [pair(value)]),
+      basis: "서로 일곱 번째 자리에 있는 지지끼리 부딪는 관계입니다."
+    },
+    상문살: {
+      head: ["년지", "상문(두 칸 앞)", "조객(두 칸 뒤)"],
+      rows: BRANCH_ORDER.map((branch) => [b(branch), b(sangmunBranch(branch)), b(jogaekBranch(branch))]),
+      basis: "민속 통설의 계산법입니다. 이 사이트의 만세력과 사주 엔진은 상문살을 계산하지 않습니다."
+    }
+  });
+
+  // lib/saju/myeongri-tables.js
+  var NAYIN = Object.freeze({
+    甲子: "海中金",
+    甲午: "沙中金",
+    丙寅: "炉中火",
+    丙申: "山下火",
+    戊辰: "大林木",
+    戊戌: "平地木",
+    庚午: "路旁土",
+    庚子: "壁上土",
+    壬申: "剑锋金",
+    壬寅: "金箔金",
+    甲戌: "山头火",
+    甲辰: "覆灯火",
+    丙子: "涧下水",
+    丙午: "天河水",
+    戊寅: "城头土",
+    戊申: "大驿土",
+    庚辰: "白蜡金",
+    庚戌: "钗钏金",
+    壬午: "杨柳木",
+    壬子: "桑柘木",
+    甲申: "泉中水",
+    甲寅: "大溪水",
+    丙戌: "屋上土",
+    丙辰: "沙中土",
+    戊子: "霹雳火",
+    戊午: "天上火",
+    庚寅: "松柏木",
+    庚申: "石榴木",
+    壬辰: "长流水",
+    壬戌: "大海水",
+    乙丑: "海中金",
+    乙未: "沙中金",
+    丁卯: "炉中火",
+    丁酉: "山下火",
+    己巳: "大林木",
+    己亥: "平地木",
+    辛未: "路旁土",
+    辛丑: "壁上土",
+    癸酉: "剑锋金",
+    癸卯: "金箔金",
+    乙亥: "山头火",
+    乙巳: "覆灯火",
+    丁丑: "涧下水",
+    丁未: "天河水",
+    己卯: "城头土",
+    己酉: "大驿土",
+    辛巳: "白蜡金",
+    辛亥: "钗钏金",
+    癸未: "杨柳木",
+    癸丑: "桑柘木",
+    乙酉: "泉中水",
+    乙卯: "大溪水",
+    丁亥: "屋上土",
+    丁巳: "沙中土",
+    己丑: "霹雳火",
+    己未: "天上火",
+    辛卯: "松柏木",
+    辛酉: "石榴木",
+    癸巳: "长流水",
+    癸亥: "大海水"
+  });
+  var SHI_SHEN = Object.freeze({
+    甲甲: "比肩",
+    甲乙: "劫财",
+    甲丙: "食神",
+    甲丁: "伤官",
+    甲戊: "偏财",
+    甲己: "正财",
+    甲庚: "七杀",
+    甲辛: "正官",
+    甲壬: "偏印",
+    甲癸: "正印",
+    乙乙: "比肩",
+    乙甲: "劫财",
+    乙丁: "食神",
+    乙丙: "伤官",
+    乙己: "偏财",
+    乙戊: "正财",
+    乙辛: "七杀",
+    乙庚: "正官",
+    乙癸: "偏印",
+    乙壬: "正印",
+    丙丙: "比肩",
+    丙丁: "劫财",
+    丙戊: "食神",
+    丙己: "伤官",
+    丙庚: "偏财",
+    丙辛: "正财",
+    丙壬: "七杀",
+    丙癸: "正官",
+    丙甲: "偏印",
+    丙乙: "正印",
+    丁丁: "比肩",
+    丁丙: "劫财",
+    丁己: "食神",
+    丁戊: "伤官",
+    丁辛: "偏财",
+    丁庚: "正财",
+    丁癸: "七杀",
+    丁壬: "正官",
+    丁乙: "偏印",
+    丁甲: "正印",
+    戊戊: "比肩",
+    戊己: "劫财",
+    戊庚: "食神",
+    戊辛: "伤官",
+    戊壬: "偏财",
+    戊癸: "正财",
+    戊甲: "七杀",
+    戊乙: "正官",
+    戊丙: "偏印",
+    戊丁: "正印",
+    己己: "比肩",
+    己戊: "劫财",
+    己辛: "食神",
+    己庚: "伤官",
+    己癸: "偏财",
+    己壬: "正财",
+    己乙: "七杀",
+    己甲: "正官",
+    己丁: "偏印",
+    己丙: "正印",
+    庚庚: "比肩",
+    庚辛: "劫财",
+    庚壬: "食神",
+    庚癸: "伤官",
+    庚甲: "偏财",
+    庚乙: "正财",
+    庚丙: "七杀",
+    庚丁: "正官",
+    庚戊: "偏印",
+    庚己: "正印",
+    辛辛: "比肩",
+    辛庚: "劫财",
+    辛癸: "食神",
+    辛壬: "伤官",
+    辛乙: "偏财",
+    辛甲: "正财",
+    辛丁: "七杀",
+    辛丙: "正官",
+    辛己: "偏印",
+    辛戊: "正印",
+    壬壬: "比肩",
+    壬癸: "劫财",
+    壬甲: "食神",
+    壬乙: "伤官",
+    壬丙: "偏财",
+    壬丁: "正财",
+    壬戊: "七杀",
+    壬己: "正官",
+    壬庚: "偏印",
+    壬辛: "正印",
+    癸癸: "比肩",
+    癸壬: "劫财",
+    癸乙: "食神",
+    癸甲: "伤官",
+    癸丁: "偏财",
+    癸丙: "正财",
+    癸己: "七杀",
+    癸戊: "正官",
+    癸辛: "偏印",
+    癸庚: "正印"
+  });
+  var ZHI_HIDE_GAN = Object.freeze({
+    子: Object.freeze(["癸"]),
+    丑: Object.freeze(["己", "癸", "辛"]),
+    寅: Object.freeze(["甲", "丙", "戊"]),
+    卯: Object.freeze(["乙"]),
+    辰: Object.freeze(["戊", "乙", "癸"]),
+    巳: Object.freeze(["丙", "庚", "戊"]),
+    午: Object.freeze(["丁", "己"]),
+    未: Object.freeze(["己", "丁", "乙"]),
+    申: Object.freeze(["庚", "壬", "戊"]),
+    酉: Object.freeze(["辛"]),
+    戌: Object.freeze(["戊", "辛", "丁"]),
+    亥: Object.freeze(["壬", "甲"])
+  });
+  var WU_XING_GAN = Object.freeze({
+    甲: "木",
+    乙: "木",
+    丙: "火",
+    丁: "火",
+    戊: "土",
+    己: "土",
+    庚: "金",
+    辛: "金",
+    壬: "水",
+    癸: "水"
+  });
+  var WU_XING_ZHI = Object.freeze({
+    寅: "木",
+    卯: "木",
+    巳: "火",
+    午: "火",
+    辰: "土",
+    丑: "土",
+    戌: "土",
+    未: "土",
+    申: "金",
+    酉: "金",
+    亥: "水",
+    子: "水"
+  });
+  var CHANG_SHENG = Object.freeze([
+    "长生",
+    "沐浴",
+    "冠带",
+    "临官",
+    "帝旺",
+    "衰",
+    "病",
+    "死",
+    "墓",
+    "绝",
+    "胎",
+    "养"
+  ]);
+  var CHANG_SHENG_OFFSET = Object.freeze({
+    甲: 1,
+    丙: 10,
+    戊: 10,
+    庚: 7,
+    壬: 4,
+    乙: 6,
+    丁: 9,
+    己: 9,
+    辛: 0,
+    癸: 3
+  });
+  var XUN = Object.freeze(["甲子", "甲戌", "甲申", "甲午", "甲辰", "甲寅"]);
+  var XUN_KONG = Object.freeze(["戌亥", "申酉", "午未", "辰巳", "寅卯", "子丑"]);
+
+  // lib/saju/natal-core/shinsal/tables.mjs
+  var mod2 = (value, size) => (value % size + size) % size;
+  var shiftBranch2 = (branch, steps) => BRANCH_ORDER.includes(branch) ? BRANCH_ORDER[mod2(BRANCH_ORDER.indexOf(branch) + steps, 12)] : "";
+  var f = (value) => Object.freeze(value);
+  var TWELVE_IDS = f(["geopsal", "jaesal", "cheonsal", "jisal", "nyeonsal", "wolsal", "mangsinsal", "jangseongsal", "banansal", "yeokmasal", "yukhaesal", "hwagaesal"]);
+  var TWELVE_DISPLAY_NAMES = f(TWELVE_SINSAL_NAMES.map((name) => name === "년살" ? "년살(도화)" : name));
+  var TWELVE_DISPLAY_ORDER = f(["jisal", "nyeonsal", "wolsal", "mangsinsal", "jangseongsal", "banansal", "yeokmasal", "yukhaesal", "hwagaesal", "geopsal", "jaesal", "cheonsal"]);
+  var CHEONEUL_GENG_IN_O = f(["寅", "午"]);
+  var TAEGEUK_BY_STEM = f({ 甲: f(["子", "午"]), 乙: f(["子", "午"]), 丙: f(["卯", "酉"]), 丁: f(["卯", "酉"]), 戊: f(["辰", "戌", "丑", "未"]), 己: f(["辰", "戌", "丑", "未"]), 庚: f(["寅", "亥"]), 辛: f(["寅", "亥"]), 壬: f(["巳", "申"]), 癸: f(["巳", "申"]) });
+  var MUNCHANG_BY_STEM = f({ 甲: "巳", 乙: "午", 丙: "申", 丁: "酉", 戊: "申", 己: "酉", 庚: "亥", 辛: "子", 壬: "寅", 癸: "卯" });
+  var HAKDANG_BY_STEM = f({ 甲: "亥", 乙: "午", 丙: "寅", 丁: "酉", 戊: "寅", 己: "酉", 庚: "巳", 辛: "子", 壬: "申", 癸: "卯" });
+  var HAKDANG_MU_SHIN = "申";
+  var CHEONJU_BY_STEM = f({ 甲: "巳", 乙: "午", 丙: "巳", 丁: "午", 戊: "申", 己: "酉", 庚: "亥", 辛: "子", 壬: "寅", 癸: "卯" });
+  var GEONROK_BY_STEM = ROK;
+  var AMROK_BY_STEM = f({ 甲: "亥", 乙: "戌", 丙: "申", 丁: "未", 戊: "申", 己: "未", 庚: "巳", 辛: "辰", 壬: "寅", 癸: "丑" });
+  var GEUMYEO_BY_STEM = f({ 甲: "辰", 乙: "巳", 丙: "未", 丁: "申", 戊: "未", 己: "申", 庚: "戌", 辛: "亥", 壬: "丑", 癸: "寅" });
+  var CHEONDEOK_BY_MONTH = f({ 寅: "丁", 卯: "申", 辰: "壬", 巳: "辛", 午: "亥", 未: "甲", 申: "癸", 酉: "寅", 戌: "丙", 亥: "乙", 子: "巳", 丑: "庚" });
+  var WOLDEOK_BY_SAMHAP = f({ water: "壬", wood: "甲", fire: "丙", metal: "庚" });
+  var cheonuiBranch = (monthBranch) => shiftBranch2(monthBranch, -1);
+  var YANGIN_YIN_BY_STEM = f({ 乙: "辰", 丁: "未", 己: "未", 辛: "戌", 癸: "丑" });
+  var biinBranch = (yanginBranch) => BRANCH_CHUNG[yanginBranch] || "";
+  var HYEONCHIM_STEMS = f(["甲", "辛"]);
+  var HYEONCHIM_BRANCHES = f(["卯", "午", "申"]);
+  var HYEONCHIM_MI = "未";
+  var GOEGANG_BASE_GANJI = f(["庚辰", "庚戌", "壬辰", "壬戌"]);
+  var GOEGANG_MU_SUL = "戊戌";
+  var GORAN_DAY_GANJI = f(["甲寅", "乙巳", "丁巳", "辛亥", "戊申"]);
+  var CHEONRA_JIMANG_PAIRS = f({ 戌亥: "천라", 辰巳: "지망" });
+  var HYEONG_TRIADS = f([f(["寅", "巳", "申"]), f(["丑", "戌", "未"])]);
+  var SANGHYEONG_PAIR = "子卯";
+  var JAHYEONG_BRANCHES = f(["辰", "午", "酉", "亥"]);
+  var PA_PAIRS = f(["子酉", "丑辰", "寅亥", "卯午", "巳申", "未戌"]);
+  var HAE_PAIRS = f(["子未", "丑午", "寅巳", "卯辰", "申亥", "酉戌"]);
+  var UNSEONG_KO = f({ 长生: "장생", 沐浴: "목욕", 冠带: "관대", 临官: "임관", 帝旺: "제왕", 衰: "쇠", 病: "병", 死: "사", 墓: "묘", 绝: "절", 胎: "태", 养: "양" });
+  var NAYIN_KO = f({
+    海中金: "해중금",
+    沙中金: "사중금",
+    炉中火: "노중화",
+    山下火: "산하화",
+    大林木: "대림목",
+    平地木: "평지목",
+    路旁土: "노방토",
+    壁上土: "벽상토",
+    剑锋金: "검봉금",
+    金箔金: "금박금",
+    山头火: "산두화",
+    覆灯火: "복등화",
+    涧下水: "간하수",
+    天河水: "천하수",
+    城头土: "성두토",
+    大驿土: "대역토",
+    白蜡金: "백랍금",
+    钗钏金: "차천금",
+    杨柳木: "양류목",
+    桑柘木: "상자목",
+    泉中水: "천중수",
+    大溪水: "대계수",
+    屋上土: "옥상토",
+    沙中土: "사중토",
+    霹雳火: "벽력화",
+    天上火: "천상화",
+    松柏木: "송백목",
+    石榴木: "석류목",
+    长流水: "장류수",
+    大海水: "대해수"
+  });
+  function unseongOf(stem, branch) {
+    const offset = CHANG_SHENG_OFFSET[stem];
+    const bi = BRANCH_ORDER.indexOf(branch);
+    if (!Number.isFinite(offset) || bi < 0) return "";
+    const yang = STEM_ORDER.indexOf(stem) % 2 === 0;
+    const stage = CHANG_SHENG[mod2(offset + (yang ? bi : -bi), 12)];
+    return UNSEONG_KO[stage] || "";
+  }
+  var hiddenStemsOf2 = (branch) => ZHI_HIDE_GAN[branch] ? [...ZHI_HIDE_GAN[branch]] : [];
+  var nayinOf = (ganji) => NAYIN_KO[NAYIN[ganji]] || "";
+
+  // lib/saju/natal-core/shinsal/catalog.mjs
+  var TWELVE_POLARITY = Object.freeze({
+    jangseongsal: "good",
+    banansal: "good",
+    jisal: "neutral",
+    nyeonsal: "neutral",
+    wolsal: "neutral",
+    yeokmasal: "neutral",
+    hwagaesal: "neutral",
+    geopsal: "caution",
+    jaesal: "caution",
+    cheonsal: "caution",
+    mangsinsal: "caution",
+    yukhaesal: "caution"
+  });
+  var TWELVE_TIER0 = /* @__PURE__ */ new Set(["nyeonsal", "yeokmasal", "hwagaesal"]);
+  var twelveEntries = TWELVE_DISPLAY_ORDER.map((id) => ({
+    id,
+    name: TWELVE_DISPLAY_NAMES[TWELVE_IDS.indexOf(id)],
+    category: "twelve",
+    polarity: TWELVE_POLARITY[id],
+    tier: TWELVE_TIER0.has(id) ? 0 : 3
+  }));
+  var RAW = [
+    // 귀인
+    { id: "cheoneul", name: "천을귀인", category: "gwiin", polarity: "good", tier: 0 },
+    { id: "taegeuk", name: "태극귀인", category: "gwiin", polarity: "good", tier: 0 },
+    { id: "munchang", name: "문창귀인", category: "gwiin", polarity: "good", tier: 0 },
+    { id: "hakdang", name: "학당귀인", category: "gwiin", polarity: "good", tier: 0 },
+    { id: "cheonju", name: "천주귀인", category: "gwiin", polarity: "good", tier: 0 },
+    { id: "cheondeok", name: "천덕귀인", category: "gwiin", polarity: "good", tier: 0 },
+    { id: "woldeok", name: "월덕귀인", category: "gwiin", polarity: "good", tier: 0 },
+    // TODO(자문확정): 문곡귀인·관귀학관은 학파별 표가 갈려 표가 비어 있고 화면·직렬화에 나오지 않는다.
+    { id: "munkok", name: "문곡귀인", category: "gwiin", polarity: "good", tier: 0, hidden: true },
+    { id: "gwangwi", name: "관귀학관", category: "gwiin", polarity: "good", tier: 0, hidden: true },
+    // 길신
+    { id: "geonrok", name: "건록", category: "gil", polarity: "good", tier: 1 },
+    { id: "amrok", name: "암록", category: "gil", polarity: "good", tier: 1 },
+    { id: "geumyeo", name: "금여", category: "gil", polarity: "good", tier: 1 },
+    { id: "hyeoprok", name: "협록", category: "gil", polarity: "good", tier: 1 },
+    { id: "cheonui", name: "천의성", category: "gil", polarity: "good", tier: 1 },
+    // 12신살
+    ...twelveEntries,
+    // 흉살·특수살
+    { id: "yangin", name: "양인살", category: "hyung", polarity: "caution", tier: 1 },
+    { id: "goegang", name: "괴강살", category: "hyung", polarity: "caution", tier: 1 },
+    { id: "baekho", name: "백호살", category: "hyung", polarity: "caution", tier: 1 },
+    { id: "hongyeom", name: "홍염살", category: "hyung", polarity: "neutral", tier: 1 },
+    { id: "gongmang", name: "공망", category: "hyung", polarity: "neutral", tier: 1 },
+    { id: "wonjin", name: "원진살", category: "hyung", polarity: "caution", tier: 1 },
+    { id: "gwimun", name: "귀문관살", category: "hyung", polarity: "caution", tier: 1 },
+    { id: "biin", name: "비인살", category: "hyung", polarity: "caution", tier: 2 },
+    { id: "goran", name: "고란살", category: "hyung", polarity: "caution", tier: 2 },
+    { id: "cheonrajimang", name: "천라지망", category: "hyung", polarity: "caution", tier: 2 },
+    { id: "hyeonchim", name: "현침살", category: "hyung", polarity: "neutral", tier: 2 },
+    { id: "sangmun", name: "상문살", category: "hyung", polarity: "caution", tier: 2 },
+    { id: "jogaek", name: "조객살", category: "hyung", polarity: "caution", tier: 2 },
+    // 관계(직렬화 대상 아님, 화면용)
+    { id: "stemHap", name: "천간합", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "stemChung", name: "천간충", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "yukhap", name: "육합", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "samhap", name: "삼합", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "banghap", name: "방합", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "banhap", name: "반합", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "chung", name: "충", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "hyeong", name: "형", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "pa", name: "파", category: "relation", polarity: "neutral", tier: 9 },
+    { id: "hae", name: "해", category: "relation", polarity: "neutral", tier: 9 }
+  ];
+  var SHINSAL_CATALOG = Object.freeze(RAW.map((entry, catalogIndex) => Object.freeze({ ...entry, hidden: entry.hidden === true, catalogIndex })));
+  var CATALOG_BY_ID = Object.freeze(Object.fromEntries(SHINSAL_CATALOG.map((entry) => [entry.id, entry])));
+  var SHINSAL_IDS = Object.freeze(SHINSAL_CATALOG.map((entry) => entry.id));
+  var PILLAR_ORDER = Object.freeze(["year", "month", "day", "hour", "daewoon", "sewoon", "wolwoon"]);
+  var NATAL_PILLARS = Object.freeze(["year", "month", "day", "hour"]);
+  var LUCK_PILLARS = Object.freeze(["daewoon", "sewoon", "wolwoon"]);
+  var POSITION_ORDER = Object.freeze(["pillar", "stem", "branch"]);
+  var BASIS_KO = Object.freeze({
+    dayStem: "일간",
+    yearStem: "년간",
+    yearBranch: "년지",
+    dayBranch: "일지",
+    monthBranch: "월지",
+    dayPillar: "일주",
+    yearPillar: "년주",
+    pillar: "간지 자체",
+    char: "글자 자체",
+    pair: "지지 짝",
+    stemPair: "천간 짝",
+    triad: "세 지지"
+  });
+
+  // lib/saju/natal-core/shinsal/chart.mjs
+  var STEM_BY_KO = Object.fromEntries(Object.entries(STEM_KO).map(([han, ko2]) => [ko2, han]));
+  var BRANCH_BY_KO = Object.fromEntries(Object.entries(BRANCH_KO).map(([han, ko2]) => [ko2, han]));
+  var SCOPE_ALIASES = Object.freeze({
+    daewoon: "daewoon",
+    대운: "daewoon",
+    decade: "daewoon",
+    major: "daewoon",
+    sewoon: "sewoon",
+    세운: "sewoon",
+    year: "sewoon",
+    annual: "sewoon",
+    연운: "sewoon",
+    wolwoon: "wolwoon",
+    월운: "wolwoon",
+    month: "wolwoon",
+    monthly: "wolwoon"
+  });
+  var toStem = (value) => {
+    const text = String(value ?? "").trim();
+    if (STEM_ORDER.includes(text)) return text;
+    return STEM_BY_KO[text] || "";
+  };
+  var toBranch = (value) => {
+    const text = String(value ?? "").trim();
+    if (BRANCH_ORDER.includes(text)) return text;
+    return BRANCH_BY_KO[text] || "";
+  };
+  function readPillar(value) {
+    if (value == null) return null;
+    if (typeof value === "string") {
+      const chars = [...value.trim()];
+      if (chars.length !== 2) return null;
+      const stem2 = toStem(chars[0]);
+      const branch2 = toBranch(chars[1]);
+      return stem2 && branch2 ? { stem: stem2, branch: branch2, ganji: stem2 + branch2 } : null;
+    }
+    if (typeof value !== "object") return null;
+    if (typeof value.ganji === "string") {
+      const fromGanji = readPillar(value.ganji);
+      if (fromGanji) return fromGanji;
+    }
+    const stem = toStem(value.stem ?? value.g ?? value.gan ?? value.heavenlyStem);
+    const branch = toBranch(value.branch ?? value.j ?? value.zhi ?? value.earthlyBranch);
+    return stem && branch ? { stem, branch, ganji: stem + branch } : null;
+  }
+  var finiteInt = (value) => Number.isFinite(Number(value)) && value !== "" && value !== null ? Math.trunc(Number(value)) : null;
+  function readLuckRow(row, scope, index) {
+    const pillar = readPillar(row);
+    if (!pillar) return null;
+    const out = { pillar: scope, index, ...pillar };
+    const year = finiteInt(row?.year);
+    const month = finiteInt(row?.month);
+    const age = finiteInt(row?.age ?? row?.startAge);
+    if (year !== null && year >= 1e3 && year <= 9999) out.year = year;
+    if (month !== null && month >= 1 && month <= 12) out.month = month;
+    if (age !== null && age >= 0 && age <= 150) out.age = age;
+    return out;
+  }
+  function collectLuck(input) {
+    const rows = [];
+    const counters = { daewoon: 0, sewoon: 0, wolwoon: 0 };
+    const push = (row, scopeRaw) => {
+      const scope = SCOPE_ALIASES[String(scopeRaw ?? "").trim()] || "";
+      if (!scope) return;
+      const parsed = readLuckRow(row, scope, counters[scope]);
+      if (!parsed) return;
+      counters[scope] += 1;
+      rows.push(parsed);
+    };
+    const luck = input?.luck;
+    if (luck && typeof luck === "object" && !Array.isArray(luck)) {
+      for (const scope of LUCK_PILLARS) {
+        const value = luck[scope];
+        if (Array.isArray(value)) value.forEach((row) => push(row, scope));
+        else if (value) push(value, scope);
+      }
+    }
+    const list = Array.isArray(input?.luckRows) ? input.luckRows : Array.isArray(luck) ? luck : [];
+    for (const row of list) push(row, row?.scope ?? row?.pillar ?? row?.kind);
+    return rows;
+  }
+  function normalizeShinsalChart(input) {
+    const source = input && typeof input === "object" ? input : {};
+    const pillars = source.pillars && typeof source.pillars === "object" ? source.pillars : source;
+    const pick = (long, short) => readPillar(pillars[long] ?? pillars[short]);
+    const natal = { year: pick("year", "y"), month: pick("month", "m"), day: pick("day", "d"), hour: pick("hour", "h") };
+    const flagged = source.timeUnknown === true || source.hourUnknown === true || source.unknownTime === true || pillars.timeUnknown === true;
+    const timeUnknown = flagged || !natal.hour;
+    if (timeUnknown) natal.hour = null;
+    const valid = Boolean(natal.year && natal.month && natal.day);
+    return { valid, timeUnknown, natal, luck: valid ? collectLuck(source) : [] };
+  }
+  var natalTargets = (chart) => NATAL_PILLARS.filter((pillar) => chart.natal[pillar]).map((pillar) => ({ pillar, ...chart.natal[pillar] }));
+
+  // lib/saju/natal-core/shinsal/rules/common.mjs
+  function makeHit(ruleId, { pillar, position, char, basisKey, basisChar = "", luckIndex, pair: pair2, detail, emphasis }) {
+    const entry = CATALOG_BY_ID[ruleId];
+    if (!entry) throw new Error(`unknown shinsal rule ${ruleId}`);
+    const hit = {
+      ruleId,
+      name: entry.name,
+      category: entry.category,
+      pillar,
+      position,
+      char,
+      basis: `${BASIS_KO[basisKey] || basisKey}${basisChar ? ` ${basisChar}` : ""}`,
+      basisKey,
+      basisChar,
+      polarity: entry.polarity
+    };
+    if (Number.isInteger(luckIndex)) hit.luckIndex = luckIndex;
+    if (pair2) hit.pair = pair2;
+    if (detail) hit.detail = detail;
+    if (emphasis) hit.emphasis = true;
+    return hit;
+  }
+  var luckIndexOf = (target) => Number.isInteger(target.index) ? target.index : void 0;
+  function targetsOf(chart, { luck = true } = {}) {
+    const natal = natalTargets(chart).map((target) => ({ ...target, luckIndex: void 0 }));
+    if (!luck) return natal;
+    return [...natal, ...chart.luck.map((row) => ({ pillar: row.pillar, stem: row.stem, branch: row.branch, ganji: row.ganji, luckIndex: luckIndexOf(row) }))];
+  }
+  function pairsOf(chart, { luck = true } = {}) {
+    const natal = targetsOf(chart, { luck: false });
+    const pairs = [];
+    for (let i = 0; i < natal.length; i += 1) {
+      for (let j = i + 1; j < natal.length; j += 1) pairs.push([natal[i], natal[j]]);
+    }
+    if (luck) {
+      for (const row of targetsOf(chart).filter((target) => target.luckIndex !== void 0)) {
+        for (const target of natal) pairs.push([row, target]);
+      }
+    }
+    return pairs;
+  }
+  var pairNode = (target, char) => target.luckIndex === void 0 ? { pillar: target.pillar, char } : { pillar: target.pillar, char, luckIndex: target.luckIndex };
+  var inPairs = (pairs, a, b2) => pairs.includes(a + b2) || pairs.includes(b2 + a);
+
+  // lib/saju/natal-core/shinsal/rules/twelve.mjs
+  var BASES = Object.freeze({ yearBranch: ["year"], dayBranch: ["day"], both: ["year", "day"] });
+  function evaluateTwelve(chart, opts) {
+    const basisPillars = BASES[opts.twelveBasis] || BASES.both;
+    const hits = [];
+    for (const basisPillar of basisPillars) {
+      const basisChar = chart.natal[basisPillar]?.branch;
+      if (!basisChar) continue;
+      const basisKey = basisPillar === "year" ? "yearBranch" : "dayBranch";
+      for (const target of targetsOf(chart)) {
+        const name = twelveSinsalName(basisChar, target.branch);
+        const index = TWELVE_SINSAL_NAMES.indexOf(name);
+        if (index < 0) continue;
+        hits.push(makeHit(TWELVE_IDS[index], {
+          pillar: target.pillar,
+          position: "branch",
+          char: target.branch,
+          basisKey,
+          basisChar,
+          luckIndex: target.luckIndex
+        }));
+      }
+    }
+    return hits;
+  }
+
+  // lib/saju/natal-core/shinsal/rules/gwiin.mjs
+  var MUNKOK_BY_STEM = Object.freeze({});
+  var GWANGWI_BY_STEM = Object.freeze({});
+  function stemTables(stem, opts) {
+    const cheoneul = stem === "庚" && opts.cheoneulGengInO ? CHEONEUL_GENG_IN_O : CHEONEUL_BY_STEM[stem] || [];
+    const hakdang = stem === "戊" && opts.hakdangMuShin ? HAKDANG_MU_SHIN : HAKDANG_BY_STEM[stem];
+    return [
+      ["cheoneul", cheoneul],
+      ["taegeuk", TAEGEUK_BY_STEM[stem] || []],
+      ["munchang", [MUNCHANG_BY_STEM[stem]].filter(Boolean)],
+      ["hakdang", [hakdang].filter(Boolean)],
+      ["cheonju", [CHEONJU_BY_STEM[stem]].filter(Boolean)],
+      ["munkok", [MUNKOK_BY_STEM[stem]].filter(Boolean)],
+      ["gwangwi", [GWANGWI_BY_STEM[stem]].filter(Boolean)]
+    ];
+  }
+  function evaluateGwiin(chart, opts) {
+    const hits = [];
+    const targets = targetsOf(chart);
+    const bases = [["dayStem", chart.natal.day?.stem]];
+    if (opts.gwiinYearStem) bases.push(["yearStem", chart.natal.year?.stem]);
+    for (const [basisKey, basisChar] of bases) {
+      if (!basisChar) continue;
+      for (const [ruleId, branches] of stemTables(basisChar, opts)) {
+        for (const target of targets) {
+          if (!branches.includes(target.branch)) continue;
+          hits.push(makeHit(ruleId, { pillar: target.pillar, position: "branch", char: target.branch, basisKey, basisChar, luckIndex: target.luckIndex }));
+        }
+      }
+    }
+    const month = chart.natal.month?.branch;
+    if (month) {
+      const deok = CHEONDEOK_BY_MONTH[month];
+      const deokIsStem = STEM_ORDER.includes(deok);
+      for (const target of targets) {
+        const char = deokIsStem ? target.stem : target.branch;
+        if (char !== deok) continue;
+        hits.push(makeHit("cheondeok", { pillar: target.pillar, position: deokIsStem ? "stem" : "branch", char, basisKey: "monthBranch", basisChar: month, luckIndex: target.luckIndex }));
+      }
+      const woldeok = WOLDEOK_BY_SAMHAP[samhapGroup(month)?.key];
+      for (const target of targets) {
+        if (!woldeok || target.stem !== woldeok) continue;
+        hits.push(makeHit("woldeok", { pillar: target.pillar, position: "stem", char: target.stem, basisKey: "monthBranch", basisChar: month, luckIndex: target.luckIndex }));
+      }
+    }
+    return hits;
+  }
+
+  // lib/saju/natal-core/shinsal/rules/gil.mjs
+  function evaluateGil(chart) {
+    const hits = [];
+    const targets = targetsOf(chart);
+    const dayStem = chart.natal.day?.stem;
+    if (dayStem) {
+      for (const [ruleId, table] of [["geonrok", GEONROK_BY_STEM], ["amrok", AMROK_BY_STEM], ["geumyeo", GEUMYEO_BY_STEM]]) {
+        const branch = table[dayStem];
+        for (const target of targets) {
+          if (target.branch !== branch) continue;
+          hits.push(makeHit(ruleId, { pillar: target.pillar, position: "branch", char: branch, basisKey: "dayStem", basisChar: dayStem, luckIndex: target.luckIndex }));
+        }
+      }
+      const rok = GEONROK_BY_STEM[dayStem];
+      const before = shiftBranch2(rok, -1);
+      const after = shiftBranch2(rok, 1);
+      const natal = targetsOf(chart, { luck: false });
+      const left = natal.find((target) => target.branch === before);
+      const right = natal.find((target) => target.branch === after);
+      if (left && right) {
+        hits.push(makeHit("hyeoprok", {
+          pillar: left.pillar,
+          position: "branch",
+          char: before,
+          basisKey: "dayStem",
+          basisChar: dayStem,
+          pair: [pairNode(left, before), pairNode(right, after)]
+        }));
+      }
+    }
+    const month = chart.natal.month?.branch;
+    if (month) {
+      const branch = cheonuiBranch(month);
+      for (const target of targets) {
+        if (target.branch !== branch) continue;
+        hits.push(makeHit("cheonui", { pillar: target.pillar, position: "branch", char: branch, basisKey: "monthBranch", basisChar: month, luckIndex: target.luckIndex }));
+      }
+    }
+    return hits;
+  }
+
+  // lib/saju/natal-core/shinsal/rules/hyung.mjs
+  function yanginOf(stem, opts) {
+    if (YANGIN_BY_STEM[stem]) return YANGIN_BY_STEM[stem];
+    return opts.yanginYinStems ? YANGIN_YIN_BY_STEM[stem] || "" : "";
+  }
+  function pairHits(chart, ruleId, matcher) {
+    const hits = [];
+    for (const [a, b2] of pairsOf(chart)) {
+      const detail = matcher(a.branch, b2.branch);
+      if (!detail) continue;
+      hits.push(makeHit(ruleId, {
+        pillar: a.pillar,
+        position: "branch",
+        char: a.branch,
+        basisKey: "pair",
+        luckIndex: a.luckIndex,
+        pair: [pairNode(a, a.branch), pairNode(b2, b2.branch)],
+        detail: detail === true ? void 0 : detail
+      }));
+    }
+    return hits;
+  }
+  function evaluateHyung(chart, opts) {
+    const hits = [];
+    const all = targetsOf(chart);
+    const natal = targetsOf(chart, { luck: false });
+    const dayStem = chart.natal.day?.stem;
+    if (dayStem) {
+      const yangin = yanginOf(dayStem, opts);
+      const biin = yangin ? biinBranch(yangin) : "";
+      const hongyeom = HONGYEOM_BY_STEM[dayStem];
+      for (const [ruleId, branch] of [["yangin", yangin], ["biin", biin], ["hongyeom", hongyeom]]) {
+        if (!branch) continue;
+        for (const target of all) {
+          if (target.branch !== branch) continue;
+          hits.push(makeHit(ruleId, { pillar: target.pillar, position: "branch", char: branch, basisKey: "dayStem", basisChar: dayStem, luckIndex: target.luckIndex }));
+        }
+      }
+    }
+    const hyeonchimBranches = opts.hyeonchimIncludeMi ? [...HYEONCHIM_BRANCHES, HYEONCHIM_MI] : HYEONCHIM_BRANCHES;
+    for (const target of natal) {
+      if (HYEONCHIM_STEMS.includes(target.stem)) hits.push(makeHit("hyeonchim", { pillar: target.pillar, position: "stem", char: target.stem, basisKey: "char" }));
+      if (hyeonchimBranches.includes(target.branch)) hits.push(makeHit("hyeonchim", { pillar: target.pillar, position: "branch", char: target.branch, basisKey: "char" }));
+    }
+    for (const target of all) {
+      if (BAEKHO_GANJI.includes(target.ganji)) hits.push(makeHit("baekho", { pillar: target.pillar, position: "pillar", char: target.ganji, basisKey: "pillar", luckIndex: target.luckIndex }));
+    }
+    const goegang = opts.goegangIncludeMuSul ? [...GOEGANG_BASE_GANJI, GOEGANG_MU_SUL] : GOEGANG_BASE_GANJI;
+    for (const target of natal) {
+      if (!goegang.includes(target.ganji)) continue;
+      hits.push(makeHit("goegang", { pillar: target.pillar, position: "pillar", char: target.ganji, basisKey: "pillar", emphasis: target.pillar === "day" }));
+    }
+    const day = chart.natal.day;
+    if (day && GORAN_DAY_GANJI.includes(day.ganji)) {
+      hits.push(makeHit("goran", { pillar: "day", position: "pillar", char: day.ganji, basisKey: "dayPillar" }));
+    }
+    hits.push(...pairHits(chart, "wonjin", (a, b2) => inPairs(WONJIN_PAIRS, a, b2)));
+    hits.push(...pairHits(chart, "gwimun", (a, b2) => inPairs(GWIMUN_PAIRS, a, b2)));
+    hits.push(...pairHits(chart, "cheonrajimang", (a, b2) => CHEONRA_JIMANG_PAIRS[a + b2] || CHEONRA_JIMANG_PAIRS[b2 + a] || ""));
+    const yearBranch = chart.natal.year?.branch;
+    if (yearBranch) {
+      const sangmun = sangmunBranch(yearBranch);
+      const jogaek = jogaekBranch(yearBranch);
+      for (const row of all.filter((target) => target.pillar === "sewoon")) {
+        if (row.branch === sangmun) hits.push(makeHit("sangmun", { pillar: "sewoon", position: "branch", char: row.branch, basisKey: "yearBranch", basisChar: yearBranch, luckIndex: row.luckIndex }));
+        if (row.branch === jogaek) hits.push(makeHit("jogaek", { pillar: "sewoon", position: "branch", char: row.branch, basisKey: "yearBranch", basisChar: yearBranch, luckIndex: row.luckIndex }));
+      }
+    }
+    const gongmangBases = [["dayPillar", "day"]];
+    if (opts.gongmangYearBasis) gongmangBases.push(["yearPillar", "year"]);
+    for (const [basisKey, basisPillar] of gongmangBases) {
+      const base = chart.natal[basisPillar];
+      if (!base) continue;
+      const empty = gongmangBranches(base.stem, base.branch);
+      for (const target of all) {
+        if (target.pillar === basisPillar || !empty.includes(target.branch)) continue;
+        hits.push(makeHit("gongmang", { pillar: target.pillar, position: "branch", char: target.branch, basisKey, basisChar: base.ganji, luckIndex: target.luckIndex }));
+      }
+    }
+    return hits;
+  }
+
+  // lib/saju/natal-core/shinsal/rules/relation.mjs
+  function stemRelations(a, b2) {
+    const out = [];
+    if (STEM_HAP[a.stem]?.[0] === b2.stem) out.push(["stemHap", STEM_HAP[a.stem][1]]);
+    if (STEM_CHUNG[a.stem] === b2.stem) out.push(["stemChung", ""]);
+    return out;
+  }
+  function branchRelations2(x, y) {
+    const out = [];
+    if (BRANCH_LIUHE[x]?.[0] === y) out.push(["yukhap", BRANCH_LIUHE[x][1]]);
+    const group = SAMHAP.find((entry) => entry.members.includes(x) && entry.members.includes(y));
+    if (group && x !== y && (group.members[1] === x || group.members[1] === y)) out.push(["banhap", group.el]);
+    if (BRANCH_CHUNG[x] === y) out.push(["chung", ""]);
+    if (x !== y && HYEONG_TRIADS.some((triad) => triad.includes(x) && triad.includes(y))) out.push(["hyeong", "삼형"]);
+    if (inPairs([SANGHYEONG_PAIR], x, y)) out.push(["hyeong", "상형"]);
+    if (x === y && JAHYEONG_BRANCHES.includes(x)) out.push(["hyeong", "자형"]);
+    if (inPairs(PA_PAIRS, x, y)) out.push(["pa", ""]);
+    if (inPairs(HAE_PAIRS, x, y)) out.push(["hae", ""]);
+    return out;
+  }
+  function evaluateRelations(chart) {
+    const hits = [];
+    for (const [a, b2] of pairsOf(chart)) {
+      for (const [ruleId, detail] of stemRelations(a, b2)) {
+        hits.push(makeHit(ruleId, {
+          pillar: a.pillar,
+          position: "stem",
+          char: a.stem,
+          basisKey: "stemPair",
+          luckIndex: a.luckIndex,
+          pair: [pairNode(a, a.stem), pairNode(b2, b2.stem)],
+          detail
+        }));
+      }
+      for (const [ruleId, detail] of branchRelations2(a.branch, b2.branch)) {
+        hits.push(makeHit(ruleId, {
+          pillar: a.pillar,
+          position: "branch",
+          char: a.branch,
+          basisKey: "pair",
+          luckIndex: a.luckIndex,
+          pair: [pairNode(a, a.branch), pairNode(b2, b2.branch)],
+          detail
+        }));
+      }
+    }
+    const natal = targetsOf(chart, { luck: false });
+    const triads = [
+      ...SAMHAP.map((entry) => ["samhap", entry.members, entry.el]),
+      ...BANGHAP.map((entry) => ["banghap", entry.members, entry.el]),
+      ...HYEONG_TRIADS.map((members) => ["hyeong", members, "삼형 완성"])
+    ];
+    for (const [ruleId, members, detail] of triads) {
+      const nodes = members.map((branch) => natal.find((target) => target.branch === branch));
+      if (nodes.some((node) => !node)) continue;
+      hits.push(makeHit(ruleId, {
+        pillar: nodes[0].pillar,
+        position: "branch",
+        char: members.join(""),
+        basisKey: "triad",
+        pair: nodes.map((node) => pairNode(node, node.branch)),
+        detail
+      }));
+    }
+    return hits;
+  }
+
+  // lib/saju/natal-core/shinsal/serialize.mjs
+  var SHINSAL_PROMPT_HEADER = "[신살 계산값 — 서버 계산. 이 목록 밖의 신살은 쓰지 않는다]";
+  var SHINSAL_PROMPT_FOOTER = "사용 규칙: 신살은 성향·경향의 보조 단서다. 사건·질병·길흉을 단정하지 않는다.";
+  var SHINSAL_TIME_UNKNOWN_LINE = "- 시주: 출생 시간 미상이라 시주 신살은 계산하지 않았다";
+  var DEFAULT_SERIALIZE_OPTIONS = Object.freeze({ maxChars: 900, maxNatal: 6, maxLuck: 3, maxLineChars: 80 });
+  var NATAL_RANK = Object.freeze({ day: 0, month: 1, year: 2, hour: 3 });
+  var SCOPE_RANK = Object.freeze({ sewoon: 0, daewoon: 1, wolwoon: 2 });
+  var PILLAR_KO = Object.freeze({ year: "년", month: "월", day: "일", hour: "시" });
+  var SCOPE_KO = Object.freeze({ daewoon: "대운", sewoon: "세운", wolwoon: "월운" });
+  var BASIS_ORDER = Object.freeze(["dayStem", "yearStem", "monthBranch", "yearBranch", "dayBranch", "dayPillar", "yearPillar", "pillar", "char", "pair"]);
+  var BASIS_WITH_GIJUN = /* @__PURE__ */ new Set(["dayStem", "yearStem", "monthBranch", "yearBranch", "dayBranch", "dayPillar", "yearPillar"]);
+  var POSITION_SUFFIX = Object.freeze({ stem: "간", branch: "지", pillar: "주" });
+  var LUCK_POSITION_KO = Object.freeze({ stem: "천간", branch: "지지", pillar: "간지" });
+  var isLuck = (pillar) => Object.prototype.hasOwnProperty.call(SCOPE_RANK, pillar);
+  var basisRank = (key) => BASIS_ORDER.includes(key) ? BASIS_ORDER.indexOf(key) : BASIS_ORDER.length;
+  var basisText = (hit) => BASIS_WITH_GIJUN.has(hit.basisKey) ? `${BASIS_KO[hit.basisKey]} 기준` : BASIS_KO[hit.basisKey] || "";
+  var displayName = (hit) => hit.detail ? `${hit.name}(${hit.detail})` : hit.name;
+  var positionKind = (node, fallback) => node.char.length === 2 ? "pillar" : fallback;
+  function natalPosition(pillar, position, char) {
+    return `${PILLAR_KO[pillar]}${POSITION_SUFFIX[position]}(${char})`;
+  }
+  function nodeText(node, position) {
+    const kind2 = positionKind(node, position);
+    return isLuck(node.pillar) ? `${LUCK_POSITION_KO[kind2]}(${node.char})` : natalPosition(node.pillar, kind2, node.char);
+  }
+  function scopeLabel(row) {
+    const parts = [SCOPE_KO[row.pillar]];
+    if (row.pillar === "daewoon" && Number.isInteger(row.age)) parts.push(`${row.age}세`);
+    if (row.pillar !== "daewoon" && Number.isInteger(row.year)) parts.push(`${row.year}년`);
+    if (row.pillar === "wolwoon" && Number.isInteger(row.month)) parts.push(`${row.month}월`);
+    parts.push(row.ganji);
+    return parts.join(" ");
+  }
+  var ruleTier = (ruleId) => CATALOG_BY_ID[ruleId]?.tier ?? 9;
+  var ruleIndex = (ruleId) => CATALOG_BY_ID[ruleId]?.catalogIndex ?? 999;
+  var compare = (a, b2) => {
+    for (let i = 0; i < a.length; i += 1) {
+      if (a[i] < b2[i]) return -1;
+      if (a[i] > b2[i]) return 1;
+    }
+    return 0;
+  };
+  function natalGroups(hits) {
+    const groups = /* @__PURE__ */ new Map();
+    for (const hit of hits) {
+      if (isLuck(hit.pillar)) continue;
+      const key = `${hit.ruleId}|${hit.basisKey}|${hit.detail || ""}`;
+      if (!groups.has(key)) groups.set(key, { sample: hit, items: /* @__PURE__ */ new Map() });
+      const nodes = hit.pair || [{ pillar: hit.pillar, char: hit.char }];
+      const rank2 = Math.min(...nodes.map((node) => NATAL_RANK[node.pillar] ?? 9));
+      const text = hit.pair ? nodes.map((node) => nodeText(node, hit.position)).join("·") : natalPosition(hit.pillar, hit.position, hit.char);
+      const order = [rank2, POSITION_ORDER.indexOf(hit.position), text];
+      groups.get(key).items.set(text, order);
+    }
+    return [...groups.values()].map(({ sample, items }) => {
+      const ordered = [...items.entries()].sort((x, y) => compare(x[1], y[1]));
+      const separator = sample.pair ? ", " : "·";
+      const bestRank = ordered[0][1][0];
+      return {
+        line: `- ${displayName(sample)}: ${basisText(sample)}, ${ordered.map(([text]) => text).join(separator)}`,
+        pick: [ruleTier(sample.ruleId), bestRank, ruleIndex(sample.ruleId), basisRank(sample.basisKey), sample.detail || ""],
+        place: [bestRank, ruleTier(sample.ruleId), ruleIndex(sample.ruleId), basisRank(sample.basisKey), sample.detail || ""]
+      };
+    });
+  }
+  function luckGroups(hits, luckRows) {
+    const rowOf = new Map(luckRows.map((row) => [`${row.pillar}|${row.index}`, row]));
+    const groups = /* @__PURE__ */ new Map();
+    for (const hit of hits) {
+      if (!isLuck(hit.pillar)) continue;
+      const row = rowOf.get(`${hit.pillar}|${hit.luckIndex}`);
+      if (!row) continue;
+      const key = `${hit.pillar}|${hit.luckIndex}|${hit.ruleId}|${hit.basisKey}|${hit.detail || ""}`;
+      if (!groups.has(key)) groups.set(key, { sample: hit, row, items: /* @__PURE__ */ new Set() });
+      if (hit.position === "pillar" && !hit.pair) continue;
+      const text = hit.pair ? hit.pair.map((node) => nodeText(node, hit.position)).join("·") : nodeText({ pillar: hit.pillar, char: hit.char }, hit.position);
+      groups.get(key).items.add(text);
+    }
+    return [...groups.values()].map(({ sample, row, items }) => {
+      const positions = [...items].sort();
+      const head = `- ${scopeLabel(row)} · ${displayName(sample)}: ${basisText(sample)}`;
+      return {
+        line: positions.length ? `${head}, ${positions.join(", ")}` : head,
+        pick: [SCOPE_RANK[row.pillar], row.index, ruleTier(sample.ruleId), ruleIndex(sample.ruleId), basisRank(sample.basisKey), sample.detail || ""]
+      };
+    });
+  }
+  var readLimit = (value, fallback) => Number.isFinite(Number(value)) && Number(value) >= 0 ? Math.floor(Number(value)) : fallback;
+  function serializeShinsalResult(result, options = {}) {
+    if (!result || result.valid !== true || !Array.isArray(result.hits)) return "";
+    const maxChars = readLimit(options.maxChars, DEFAULT_SERIALIZE_OPTIONS.maxChars);
+    const maxNatal = readLimit(options.maxNatal, DEFAULT_SERIALIZE_OPTIONS.maxNatal);
+    const maxLuck = readLimit(options.maxLuck, DEFAULT_SERIALIZE_OPTIONS.maxLuck);
+    const maxLineChars = readLimit(options.maxLineChars, DEFAULT_SERIALIZE_OPTIONS.maxLineChars);
+    const fits = (line) => line.length <= maxLineChars;
+    const natal = natalGroups(result.hits).filter((group) => fits(group.line)).sort((a, b2) => compare(a.pick, b2.pick)).slice(0, maxNatal);
+    const luckRows = Array.isArray(result.perPillar?.luck) ? result.perPillar.luck : [];
+    const luck = luckGroups(result.hits, luckRows).filter((group) => fits(group.line)).sort((a, b2) => compare(a.pick, b2.pick)).slice(0, maxLuck);
+    const keep = [
+      ...result.timeUnknown ? [{ line: SHINSAL_TIME_UNKNOWN_LINE, slot: 1, place: [0] }] : [],
+      ...natal.map((group) => ({ line: group.line, slot: 0, place: group.place })),
+      ...luck.map((group, index) => ({ line: group.line, slot: 2, place: [index] }))
+    ];
+    const render = (items2) => {
+      const body = [...items2].sort((a, b2) => a.slot - b2.slot || compare(a.place, b2.place)).map((item) => item.line);
+      return [SHINSAL_PROMPT_HEADER, ...body, SHINSAL_PROMPT_FOOTER].join("\n");
+    };
+    let items = keep;
+    let text = render(items);
+    while (items.length && text.length > maxChars) {
+      items = items.slice(0, -1);
+      text = render(items);
+    }
+    if (!items.length) return "";
+    return text;
+  }
+
+  // lib/saju/natal-core/shinsal/index.mjs
+  var SHINSAL_VERSION = "shinsal-v1";
+  var DEFAULT_SHINSAL_OPTIONS = Object.freeze({
+    twelveBasis: "both",
+    // 'yearBranch' | 'dayBranch' | 'both'
+    yanginYinStems: false,
+    // 음간 양인(乙辰·丁未·己未·辛戌·癸丑) 포함
+    hyeonchimIncludeMi: false,
+    // 현침 지지에 未 포함
+    goegangIncludeMuSul: true,
+    // 괴강에 戊戌 포함
+    gongmangYearBasis: false,
+    // 년주 공망 병행
+    cheoneulGengInO: false,
+    // 천을귀인 庚 = 寅午 학파
+    hakdangMuShin: false,
+    // 학당귀인 戊 = 申(수토동법)
+    gwiinYearStem: false,
+    // 귀인을 년간 기준으로도 병행
+    unseongMode: "bong",
+    // 12운성 'bong'(일간 기준 봉법) | 'geo'(각 기둥 천간 거법)
+    showHanja: true,
+    // 화면 표시용(계산에는 영향 없음)
+    expertMode: false
+    // 화면 표시용(계산에는 영향 없음)
+  });
+  var TWELVE_BASES = /* @__PURE__ */ new Set(["yearBranch", "dayBranch", "both"]);
+  var UNSEONG_MODES = /* @__PURE__ */ new Set(["bong", "geo"]);
+  function resolveShinsalOptions(options) {
+    const source = options && typeof options === "object" ? options : {};
+    const out = {};
+    for (const [key, fallback] of Object.entries(DEFAULT_SHINSAL_OPTIONS)) {
+      const value = source[key];
+      if (key === "twelveBasis") out[key] = TWELVE_BASES.has(value) ? value : fallback;
+      else if (key === "unseongMode") out[key] = UNSEONG_MODES.has(value) ? value : fallback;
+      else out[key] = typeof value === "boolean" ? value : fallback;
+    }
+    return Object.freeze(out);
+  }
+  var SHINSAL_TIME_UNKNOWN = Object.freeze({ pillar: "hour", reason: "birth-time-unknown", label: "시간 미상으로 표시 불가" });
+  var BASIS_SORT = ["dayStem", "yearStem", "monthBranch", "yearBranch", "dayBranch", "dayPillar", "yearPillar", "pillar", "char", "pair", "stemPair", "triad"];
+  var pairText = (hit) => hit.pair ? hit.pair.map((node) => `${node.pillar}:${node.luckIndex ?? ""}:${node.char}`).join("/") : "";
+  var sortKey = (hit) => [
+    CATALOG_BY_ID[hit.ruleId].catalogIndex,
+    BASIS_SORT.indexOf(hit.basisKey),
+    PILLAR_ORDER.indexOf(hit.pillar),
+    hit.luckIndex ?? -1,
+    POSITION_ORDER.indexOf(hit.position),
+    hit.char,
+    hit.detail || "",
+    pairText(hit)
+  ];
+  function compareHits(a, b2) {
+    const x = sortKey(a);
+    const y = sortKey(b2);
+    for (let i = 0; i < x.length; i += 1) {
+      if (x[i] < y[i]) return -1;
+      if (x[i] > y[i]) return 1;
+    }
+    return 0;
+  }
+  function tidy(hits) {
+    const seen = /* @__PURE__ */ new Set();
+    const out = [];
+    for (const hit of hits) {
+      if (CATALOG_BY_ID[hit.ruleId]?.hidden) continue;
+      const key = sortKey(hit).join("|");
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(hit);
+    }
+    return out.sort(compareHits);
+  }
+  function deepFreeze(value) {
+    if (value && typeof value === "object" && !Object.isFrozen(value)) {
+      Object.freeze(value);
+      for (const child of Object.values(value)) deepFreeze(child);
+    }
+    return value;
+  }
+  function pillarInfo(pillar, dayStem, mode) {
+    if (!pillar) return null;
+    const bong = unseongOf(dayStem, pillar.branch);
+    const geo = unseongOf(pillar.stem, pillar.branch);
+    return {
+      stem: pillar.stem,
+      branch: pillar.branch,
+      ganji: pillar.ganji,
+      hiddenStems: hiddenStemsOf2(pillar.branch),
+      unseong: { bong, geo, selected: mode === "geo" ? geo : bong },
+      nayin: nayinOf(pillar.ganji)
+    };
+  }
+  function touches(hit, pillar) {
+    if (hit.pair) return hit.pair.some((node) => node.pillar === pillar && node.luckIndex === void 0);
+    return hit.pillar === pillar && hit.luckIndex === void 0;
+  }
+  function emptyResult(opts, timeUnknown) {
+    return deepFreeze({
+      version: SHINSAL_VERSION,
+      valid: false,
+      timeUnknown: timeUnknown ? { ...SHINSAL_TIME_UNKNOWN } : false,
+      options: opts,
+      hits: [],
+      relations: [],
+      perPillar: { year: [], month: [], day: [], hour: timeUnknown ? null : [], luck: [] },
+      pillars: { year: null, month: null, day: null, hour: null }
+    });
+  }
+  function computeShinsal(input, options) {
+    const opts = resolveShinsalOptions(options);
+    let chart;
+    try {
+      chart = normalizeShinsalChart(input);
+    } catch {
+      return emptyResult(opts, false);
+    }
+    if (!chart.valid) return emptyResult(opts, chart.timeUnknown);
+    try {
+      const hits = tidy([
+        ...evaluateGwiin(chart, opts),
+        ...evaluateGil(chart, opts),
+        ...evaluateTwelve(chart, opts),
+        ...evaluateHyung(chart, opts)
+      ]);
+      const relations = tidy(evaluateRelations(chart, opts));
+      const dayStem = chart.natal.day.stem;
+      const perPillar = {};
+      for (const pillar of NATAL_PILLARS) {
+        perPillar[pillar] = chart.natal[pillar] ? hits.filter((hit) => touches(hit, pillar)) : null;
+      }
+      perPillar.luck = chart.luck.map((row) => ({
+        ...row,
+        hits: hits.filter((hit) => hit.pillar === row.pillar && hit.luckIndex === row.index)
+      }));
+      const pillars = Object.fromEntries(NATAL_PILLARS.map((pillar) => [pillar, pillarInfo(chart.natal[pillar], dayStem, opts.unseongMode)]));
+      return deepFreeze({
+        version: SHINSAL_VERSION,
+        valid: true,
+        timeUnknown: chart.timeUnknown ? { ...SHINSAL_TIME_UNKNOWN } : false,
+        options: opts,
+        hits,
+        relations,
+        perPillar,
+        pillars
+      });
+    } catch {
+      return emptyResult(opts, chart.timeUnknown);
+    }
+  }
+  function serializeShinsalForPrompt(source, options = {}) {
+    try {
+      const result = source && source.version === SHINSAL_VERSION && Array.isArray(source.hits) ? source : computeShinsal(source, options);
+      return serializeShinsalResult(result, options || {});
+    } catch {
+      return "";
+    }
+  }
+
   // lib/saju/natal-core/index.mjs
   var NATAL_RULE_PROFILE = Object.freeze({
     id: "rok-yangin-strictjong-v1",
@@ -1126,10 +2329,10 @@ var SajuNatalCore = (() => {
     outputMin: 3,
     chungRootFactor: 0.5
   });
-  function deepFreeze(value) {
+  function deepFreeze2(value) {
     if (value && typeof value === "object" && !Object.isFrozen(value)) {
       Object.freeze(value);
-      for (const v of Object.values(value)) deepFreeze(v);
+      for (const v of Object.values(value)) deepFreeze2(v);
     }
     return value;
   }
@@ -1149,19 +2352,19 @@ var SajuNatalCore = (() => {
   }
   var natalAnalysisId = (opts) => `nc1-${stableHash(natalAnalysisKeyMaterial(opts))}`;
   function tonggwan(counts) {
-    const top = [...ELEMENTS].sort((a2, b2) => counts.byEl[b2] - counts.byEl[a2]).slice(0, 2);
-    const [a, b] = top;
-    if (counts.byEl[a] < 3 || counts.byEl[b] < 3) return { status: "none", note: "맞서는 두 세력이 뚜렷하지 않음" };
-    const controller = CONTROLS[a] === b ? a : CONTROLS[b] === a ? b : "";
+    const top = [...ELEMENTS].sort((a2, b3) => counts.byEl[b3] - counts.byEl[a2]).slice(0, 2);
+    const [a, b2] = top;
+    if (counts.byEl[a] < 3 || counts.byEl[b2] < 3) return { status: "none", note: "맞서는 두 세력이 뚜렷하지 않음" };
+    const controller = CONTROLS[a] === b2 ? a : CONTROLS[b2] === a ? b2 : "";
     if (!controller) return { status: "none", note: "상위 두 오행이 극 관계가 아님" };
-    const controlled = controller === a ? b : a;
+    const controlled = controller === a ? b2 : a;
     return { status: "candidate", elements: [GENERATES[controller]], note: `${EL_KO[controller]}·${EL_KO[controlled]}이 맞서 ${EL_KO[GENERATES[controller]]}이 잇는다` };
   }
   var YONGSIN_METHODS_VERSION = "yongsin-methods-v1";
   var elList = (els) => els.map((el) => `${EL_KO[el]}(${{ wood: "木", fire: "火", earth: "土", metal: "金", water: "水" }[el]})`).join("·");
   var uniq = (list) => [...new Set(list.filter(Boolean))];
   function byeongyak(counts, avoid) {
-    const sick = avoid.filter((el) => counts.byEl[el] >= 4).sort((a, b) => counts.byEl[b] - counts.byEl[a])[0];
+    const sick = avoid.filter((el) => counts.byEl[el] >= 4).sort((a, b2) => counts.byEl[b2] - counts.byEl[a])[0];
     if (!sick) return { status: "none", useful: [], reason: "한쪽으로 지나치게 몰린 꺼리는 기운이 없어요." };
     const medicine = [controllerOf(sick), GENERATES[sick]].find((el) => el && !avoid.includes(el));
     if (!medicine) return { status: "none", disease: sick, useful: [], reason: `${elList([sick])} 기운이 많지만 눌러 줄 기운도 꺼리는 쪽이라 병약으로 고르지 않아요.` };
@@ -1178,7 +2381,7 @@ var SajuNatalCore = (() => {
     };
     let why;
     if (!strength.isStrong) {
-      const heaviest = ["officer", "output", "wealth"].sort((a, b) => (byRel[b] || 0) - (byRel[a] || 0))[0];
+      const heaviest = ["officer", "output", "wealth"].sort((a, b2) => (byRel[b2] || 0) - (byRel[a] || 0))[0];
       if (heaviest === "wealth") {
         pickFirst("self");
         why = "재성(재물·현실 부담)에 눌려 약하니, 같은 편이 되어 주는";
@@ -1294,7 +2497,7 @@ var SajuNatalCore = (() => {
       input: { pillars: Object.fromEntries(POSITIONS.map((pos) => [pos, pillarText(chart, pos)])), hourKnown: chart.hourKnown, monthKnown: chart.monthKnown },
       analysisId: natalAnalysisId({ pillars: chart, ruleProfileId: profile.id })
     };
-    if (!chart.dayKnown) return deepFreeze({ ...head, status: "invalid", limitations: ["일주 미상"] });
+    if (!chart.dayKnown) return deepFreeze2({ ...head, status: "invalid", limitations: ["일주 미상"] });
     const hidden = hiddenStemsOf(chart);
     const counts = visibleCounts(chart);
     const variants = chart.hourKnown ? [chart] : possibleHourPillars(chart.d.g).map((h) => ({ ...chart, h, hourKnown: true }));
@@ -1314,7 +2517,7 @@ var SajuNatalCore = (() => {
     if (!chart.hourKnown) limitations.push("시주 미상: 시주에 따라 갈리는 판정은 보류합니다.");
     if (!chart.monthKnown) limitations.push("월주 미상: 월령 판정을 하지 않습니다.");
     if (special.decision === "pending") limitations.push(`특수격 판정 보류: ${special.pending.join(", ")}`);
-    return deepFreeze({
+    return deepFreeze2({
       ...head,
       status: "ok",
       dayMaster: { stem: chart.d.g, el: dayEl, yang: STEM_YANG[chart.d.g] },
@@ -1390,7 +2593,7 @@ var SajuNatalCore = (() => {
       return frame;
     });
     const events = analyses.flatMap((frame) => frame.events);
-    return deepFreeze({
+    return deepFreeze2({
       version: SAJU_TOMB_VERSION,
       natalAnalysisId: core.analysisId,
       analysisId: `${core.analysisId}:${SAJU_TOMB_VERSION}:${stableHash(JSON.stringify(periods))}`,

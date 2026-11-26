@@ -319,6 +319,8 @@ let compareHiddenStemTable = null;
     ["lib/saju/myeongri-tables.js::ZHI_HIDE_GAN", { order: "main-first" }],
     // Browser bundle generated from the canonical import; compare every branch and its order below.
     ["js/core/saju/reading-depth.generated.js::ZHI_HIDE_GAN", { order: "main-first" }],
+    // 정본 신살 모듈(lib/saju/natal-core/shinsal/tables.mjs)이 정본 표를 import 해 natal-core 번들에도 실린다.
+    ["js/core/saju/natal-core.generated.js::ZHI_HIDE_GAN", { order: "main-first" }],
     ["worker/lib/saju-ai-prompt.js::HIDDEN_STEMS_BY_BRANCH", { order: "main-first" }],
     ["worker/routes/new-year-ai.js::HIDDEN_STEMS", { order: "main-first" }],
     ["worker/lib/destiny-bias-engine.js::BRANCH_META", { order: "main-first" }],
