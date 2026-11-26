@@ -152,6 +152,8 @@ const questionPriceLabel = price => {
 for (const question of QUESTION_CATEGORIES.flatMap(category => category.questions)) {
   if (!QUESTION_MASTER[question.master]) throw new Error('Unknown question master: ' + question.id);
   if (question.price === 'free') { if (question.key) throw new Error('Free home question must not carry a paid feature key: ' + question.id); continue; }
+  // Free access overrides historical registry amounts kept for purchase reconciliation.
+  if (isFreeFortuneFeatureKey(question.key)) { question.price = 'free'; continue; }
   const amount = Number(FEATURE_KEY_PRICE_TABLE[question.key]?.amountKRW);
   if (amount !== Number(question.price.replace(/\D/g, ''))) throw new Error(`Home question ${question.id} says ${question.price}; registry amount for ${question.key} is ${amount}`);
 }

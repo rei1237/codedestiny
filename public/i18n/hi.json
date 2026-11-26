@@ -11693,9 +11693,9 @@
     "openDestinyBias": {
       "badge": "Photocard reading",
       "headline": "Lay out, one card at a time, the mood and emotional code rising between you and your bias.",
-      "tagline": "After checking one-time payment or an eligible pass, it generates five scores—overall, emotional, fandom, long-term and support—along with a card image.",
+      "tagline": "Sign in and enter both birth profiles to get five scores and a photocard.",
       "feats": {
-        "0": "Calculate results after payment is confirmed",
+        "0": "See your result after signing in, with no payment.",
         "1": "Produce five scores—overall, emotional, fandom, long-term and support—and a destiny grade",
         "2": "Create a photocard image using an aura type, texture, mood keywords and matching tags",
         "3": "Present five tabs: chemistry in one line, Five Elements compatibility, Day Master relationships, earthly-branch chemistry and booster tips",
@@ -11746,7 +11746,7 @@
       "faq": {
         "0": {
           "q": "How much does it cost?",
-          "a": "It costs KRW 5,000 per use. Eligible passes and payment methods are shown on the payment screen."
+          "a": "Free after signing in. No payment or pass is needed."
         },
         "1": {
           "q": "Will the result change if I enter the same information again?",
@@ -11883,8 +11883,8 @@
       },
       "receives": {
         "0": {
-          "title": "Choose a one-card or three-card reading",
-          "detail": "Pick a one-card reading that goes deep on a single animal, or a three-card reading of past, present, and integration."
+          "title": "Choose a one-, three-, or five-card reading",
+          "detail": "One card reveals one animal’s message, three explore past, present and integration, and five offer a deeper reading."
         },
         "1": {
           "title": "Draw your guardian animal",
@@ -11906,7 +11906,7 @@
       "outline": {
         "0": {
           "title": "Choose a mode",
-          "detail": "Choose either the one-card (3,000 KRW) or three-card (3,000 KRW) reading."
+          "detail": "Choose one, three, or five cards and check the price before paying."
         },
         "1": {
           "title": "Write your question",
