@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-26
-next: 단계 8 — PRIV-005 상대방 고지 문구·PRIV-004 위탁/국외이전 표 초안을 docs/security/privacy-drafts-2026-11-26.md 에 작성(반영 안 함)
+next: 단계 11 — 워크트리를 main 에 머지(ff/merge)·sync 불필요 확인·check:pre-push·push·main CI 1회 확인 → 워크트리 배수, 사용자에게 drafts 문서의 결정 목록 보고
 ---
 
 # 개인정보 보안 개선 (PRIV) 인수인계
@@ -52,7 +52,7 @@ next: 단계 8 — PRIV-005 상대방 고지 문구·PRIV-004 위탁/국외이�
 - [x] 5 PRIV-009 (77944d42f7)
 - [x] 6 PRIV-016 (49380c9c32, 사이트맵 재생성 d44d9abb39)
 - [x] 7 PRIV-013 (코드 변경 없음 — 이미 가드됨, 결과 기록 근거)
-- [ ] 8~10 drafts 문서
+- [x] 8~10 drafts 문서 (8932d0c5eb, docs/security/privacy-drafts-2026-11-26.md)
 - [ ] 11 전달
 
 ## 결과 기록
@@ -99,6 +99,11 @@ next: 단계 8 — PRIV-005 상대방 고지 문구·PRIV-004 위탁/국외이�
 - 2차: whitespace·doc-freshness·paid-gate suite·lint·sitemap-drift·typecheck 통과. test:node `tests 5850 pass 5848 fail 2` — 실패 2건(`__tests__/ui/yeongnyangi-reading-v7-golden.test.mjs`, `yeongnyangi-v7-checkpoint-import.test.mjs`)은 둘 다 spawnSync 60초 타임아웃(status null). 대상 스크립트 `scripts/yeongnyangi-v7-golden.mjs` 단독 실행은 exit 0·48초로, 다른 세션 node 프로세스 46개가 도는 부하에서 60초 한도를 넘긴 시간 초과다(단계 2 에서는 같은 테스트 통과, 이번 변경과 무관한 영냥이 v7 경로). CI 에서 재확인 필요.
 - test:node 이후 단계(verify 23종·build:worker·verify:entry-encoding --strict-core·test:jest)는 check-changed 와 같은 env(LLM_DRY_RUN·mock-network-guard)로 개별 실행: 전부 통과, jest `Tests: 1 skipped, 8648 passed, 8649 total`.
 
+### 단계 8~10 drafts (8932d0c5eb)
+- `docs/security/privacy-drafts-2026-11-26.md` 1개만 추가. 서비스 코드·UI·처리방침·결제 파일·스키마 무변경, 감사 보고서 미커밋.
+- 내용: PRIV-005 상대방 고지 문구·키(`privacyNotice.partner.*`)·적용 UI 8곳, PRIV-004 위탁/국외이전 표(Gemini·Workers AI·Resend·Nominatim·Discord/Slack·Google Play·Apple·소셜 로그인·Turnstile·토스), PRIV-001 컬렉션별 삭제/익명화/유지 표·R2 첨부(Feedback.attachments 키로 삭제, 고아는 주기 스캔)·위험·검증·롤백, PRIV-002 결제/선물 diff(503→`paymentError("DB_UNAVAILABLE")`, 주문·차감 POST 만 활성 확인, confirm 계열 peek 유지), PRIV-018 diff(상수 시간 비교·RTDN 패키지 검증·voidedpurchases 재확인·OIDC 전환), PRIV-007/010/011/012/015/021 설계, PRIV-022 보류, 사용자 결정 8항목.
+- check:fast `--base=c0032c8670`: tier fast, whitespace·verify:doc-freshness 통과(EXIT 0). 커밋 후라 base 없이는 "변경 없음"으로 끝난다.
+
 ## 후속
 (범위 밖 발견)
 - [PRIV-003 연장, 결정 필요] 서비스별 단기 토큰(예: `worker/routes/love-secret-ai.js:402` `createAccessToken` typ="love-secret-ai-access", astrology·karma·life-book 동형)이 로그인 access 와 같은 시크릿·issuer·audience 로 서명되고 `userId` 를 실어, `extractTokenUserId` 가 이를 로그인 토큰으로도 받아들인다(TTL 45m 등). refresh 만 막은 현재 수정 범위 밖. 더 엄격한 안: typ 허용 목록(없음·"access"만). 발급처 전수 확인 후 별도 RED 로 다룰지 사용자 판단 필요. (social grant/oauth state 는 aud 없음 → audience 검증에서 이미 거부됨, 확인함.)
@@ -106,4 +111,5 @@ next: 단계 8 — PRIV-005 상대방 고지 문구·PRIV-004 위탁/국외이�
 - [PRIV-016 연장] `fortune_api_base_url` 을 직접 읽는 스크립트가 더 있다(index.html 인라인 ≈23511/23780/23802, js/destiny-profile.js, saju-engine.js, dream-ledger.js, saju-compat-archive.js, index-inline-runtime.js:1653). api-base-init 이 defer 라 그보다 먼저 도는 인라인 읽기는 정리 전 값을 볼 수 있다. 허용 목록을 공용 헬퍼로 모으는 별도 작업 필요.
 - [PRIV-016 확인] Capacitor 앱(https://localhost)에서 api-base-init 의 `isLocalDevHost` 분기가 location.origin 을 API base 로 쓴다(기존 동작, 이번에 바꾸지 않음).
 - [PRIV-009 범위·결정] `FORTUNE_APP_USER_PROFILE`(단수)·`FORTUNE_APP_VEDIC_PAYLOAD`·`OLYMPUS_ORACLE_PROFILE` 브리지 키는 로그아웃에서 지우지 않았다(레거시 셸이 스코프 전환 때 정리). `::guest` 스코프 키 유지도 사용자 확인 필요.
+- [신규 관측] `signAuthToken` 액세스 JWT 페이로드에 이메일·이름·생년월일·출생시간·성별 등이 실려 앱 localStorage 노출 시 영향이 크다 → drafts PRIV-007 에 포함.
 - [PRIV-006] 관리자 피드백 화면은 id 딥링크를 받지 않아 웹훅 링크는 목록 화면까지만 간다.
