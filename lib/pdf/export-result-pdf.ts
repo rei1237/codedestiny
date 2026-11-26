@@ -137,7 +137,17 @@ function drawCoverPage(pdf: JsPDFInstance, cover: PdfCoverInfo, fonts: { title: 
     return y;
   };
   write("CODE DESTINY", 9, theme.muted, 1.2, 52, 1);
-  let y = write(cover.title, 26, theme.ink, 1.35, 72, 3);
+  // 그림이 없으면 제목 묶음을 테두리 가운데(약 150mm)로 내려 아래쪽이 비지 않게 한다.
+  let titleTop = 72;
+  if (!art) {
+    pdf.setFontSize(26);
+    const titleLines = Math.min(3, (pdf.splitTextToSize(cover.title, CONTENT_WIDTH_MM - 10) as string[]).length);
+    pdf.setFontSize(12);
+    const subLines = cover.subtitle ? Math.min(4, (pdf.splitTextToSize(cover.subtitle, CONTENT_WIDTH_MM - 10) as string[]).length) : 0;
+    const block = titleLines * 26 * .352778 * 1.35 + (subLines ? 3 + subLines * 12 * .352778 * 1.6 : 0);
+    titleTop = Math.max(72, 150 - block / 2);
+  }
+  let y = write(cover.title, 26, theme.ink, 1.35, titleTop, 3);
   if (cover.subtitle) y = write(cover.subtitle, 12, theme.muted, 1.6, y + 3, 4);
   if (art) {
     const top = y + 6;
