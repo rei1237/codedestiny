@@ -13103,7 +13103,7 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
     window._astroPickCeleb = function(name, birth, hour) {
-        /* 5,000원 퍼유즈 게이트 */
+        /* 퍼유즈 게이트 진입점 — compat-astro-synastry 는 무료 허용 목록(lib/payment/free-fortune-policy.mjs)이라 _cdCoinGatePerUse 가 결제 없이 바로 통과시킨다 */
         if (typeof window._cdCoinGatePerUse === 'function') {
           // 결제마다 새 requestId — 같은 값으로 결제를 확인해 보관함에 남긴다(상대가 매번 바뀐다).
           var celebArchiveRequestId = _seNewCompatArchiveRequestId('compat-astro-synastry');
@@ -13160,7 +13160,7 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── 💑 직접 입력 시나스트리 계산 함수 ── */
     window._astroDirectSynastry = function() {
-        /* 5,000원 퍼유즈 게이트 */
+        /* 퍼유즈 게이트 진입점 — compat-astro-direct-synastry 는 무료 허용 목록(lib/payment/free-fortune-policy.mjs)이라 _cdCoinGatePerUse 가 결제 없이 바로 통과시킨다 */
         if (typeof window._cdCoinGatePerUse === 'function') {
           var directArchiveRequestId = _seNewCompatArchiveRequestId('compat-astro-direct-synastry');
           var directArchiveProfileId = _sajuPromptResolveProfileId();
@@ -23462,8 +23462,9 @@ function cdEnsureCompatLlmHost() {
    2026-09-07 이설(PR-J): 셸 다이어리 모달 js/luck-sync-diary.js 의 「관계 흐름 메모」
    (#lsdCompatResult 렌더, 옛 1815~1949줄)와 자미·점성 Lite 두 줄을 결과 화면으로 옮긴 것이다.
    🔴 셸 모달의 원본은 지우지 않았다 — 진입점만 /diary 로 돌렸고 파일은 그대로 남는다.
-   🔴 이 블록은 결제 게이트 **밖**이다. 아래 runCompat()(2026-11-20부터 무료) 앞단에
-      아무 이용권·코인 판정도 넣지 않는다(CLAUDE.md 결제 게이팅 3).
+   🔴 이 블록은 결제 게이트 **밖**이다. 아래 runCompat() 앞단에
+      아무 이용권·코인 판정도 넣지 않는다(CLAUDE.md 결제 게이팅 3). runCompat 은 2026-11-26부터 무료 미리보기 + 잠금 카드를 그리고,
+      전체 풀이는 잠금 카드의 라이트 궁합(saju-compat-light, 3,000원) 결제 뒤에만 연다.
    옮기지 않은 것 둘:
      - 7일 추천일 탐색 → PR-I-3 의 다이어리 「함께 보기」가 같은 일을 이미 한다. 두 번째 구현을
        만들지 않고 마지막 줄 링크로 보낸다.
@@ -23725,7 +23726,7 @@ function _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type) {
   if (unlockBtn) unlockBtn.addEventListener('click', function() { _seSajuCompatLightGate(unlockBtn, name, bd, type); });
 }
 
-/* 예전 유료 흐름에서 결제는 끝났지만 생성이 안 끝난 같은 입력이 있으면 그 상태를 돌려준다. 없거나 모듈을 못 올리면 null(무료 결과). */
+/* 예전 유료 흐름에서 결제는 끝났지만 생성이 안 끝난 같은 입력이 있으면 그 상태를 돌려준다. 없거나 모듈을 못 올리면 null(무료 미리보기 + 라이트 궁합 잠금 카드). */
 async function _seSajuCompatLegacyPending(name, bd, type) {
   var owner = _seSajuCompatOwnerId();
   if (!owner) return null;
@@ -23742,7 +23743,7 @@ async function _seSajuCompatLegacyPending(name, bd, type) {
 }
 
 /* ─── 기본 사주 궁합 LLM 서비스: 선결제 → 서버 생성 → 보관함 스냅샷 ─────────────────────────────
-   2026-11-20부터 runCompat 은 새 결제로 여기 들어오지 않는다(기본 궁합 무료). 남은 진입은 예전 구매의 진행 중 생성 잇기
+   2026-11-20부터 runCompat 은 새 결제로 여기 들어오지 않는다(2026-11-26부터 무료 미리보기 + 라이트 궁합 saju-compat-light 3,000원 잠금 카드). 남은 진입은 예전 구매의 진행 중 생성 잇기
    (_seSajuCompatLegacyPending)와 결제 복귀(_seRunSajuCompatResume)뿐이다. 결제는 공유 게이트(_cdCoinGatePerUse)가
    먼저 끝내고, 생성·재개·보관은 서버(worker/routes/saju-compat-basic.js)가 한다. 이 파일은 연결만 하고,
    요청 본문·대기 기록·생성 실행은 js/saju-compat-flow.mjs, 화면 그리기는 js/saju-compat-render.mjs 가 맡는다.
@@ -24012,7 +24013,7 @@ function _seSajuCompatMountRetry(resultId, inputKey, store) {
   }).catch(function() {});
 }
 
-/* ─── 무료 결과 아래 사주 고급 궁합 진입(달빛 예화) ─────────────────────────────
+/* ─── 무료 미리보기·라이트 궁합 결과 아래 사주 고급 궁합 진입(달빛 예화) ─────────────────────────────
    두 사람 입력은 URL 이 아니라 sessionStorage 한 번짜리 값으로 넘긴다(개인정보를 주소·로그에 남기지 않는다).
    읽는 쪽: app/saju/compatibility/premium/_lib/premium-delivery.ts readPremiumPrefill(읽자마자 지운다). 키·모양을 함께 바꾼다. */
 var _SE_SAJU_COMPAT_PREMIUM_HREF = '/saju/compatibility/premium/';
