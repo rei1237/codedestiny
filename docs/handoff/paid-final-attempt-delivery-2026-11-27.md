@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-27
-next: 단계 1 — 고급 궁합 마지막 시도 수용 + 목표 분량 하향
+next: 단계 3 — 점성술·베딕 마지막 시도 dedupe·scrub 후 유지
 ---
 
 # 유료 LLM 결제 후 미제공 제거 + 이용권 혜택 정확 적용
@@ -63,12 +63,12 @@ next: 단계 1 — 고급 궁합 마지막 시도 수용 + 목표 분량 하향
 - `worker/payments/*`는 payment-freeze 대상이 아니다. 그래도 RED이므로 mock 테스트를 반드시 붙인다.
 
 ## 단계
-- [ ] 1. **고급 궁합** (웹+토스 공용)
+- [x] 1. **고급 궁합** (웹+토스 공용)
   - 파서 `parseSajuCompatPremiumGroupResponse(text, group, { finalAttempt })`는 worker/lib/saju-compat-premium-prompt.js:209에 있다. final이면 LENGTH_SHORT와 섹션 하한을 빼고, 반복은 dedupe한다. 빈 섹션은 그대로 거부한다.
   - worker/routes/saju-compat-premium.js:500의 `generateSajuCompatPremiumGroup`이 finalAttempt를 전달한다.
   - 목표 분량을 내린다. GROUP_MIN 2400→1900, GROUP_MAX 3200→2600으로 하고, 프롬프트 분량 줄과 테스트도 고친다.
   - 테스트: 1,427자 응답은 기본에서 거부되고 final에서 수용된다. 짧은 응답이 2회 나온 뒤에도 completed이고 환불이 없다.
-- [ ] 2. **연애 비책**
+- [x] 2. **연애 비책**
   - worker/lib/love-secret-ai-prompt.js:228·232의 GROUP_MIN을 5000→4000, V2는 6000→4800으로 내리고, MAX도 비례해 내린다.
   - 하드캡 마지막 시도(라우트 worker/routes/love-secret-ai.js:1003-1020, 1143)에서 salvage는 kept>0이면 수용하고, 반복은 dedupe한다. `INVALID_SECTION_BODY`는 빈 섹션일 때만 거부한다.
 - [ ] 3. **점성술·베딕**
@@ -102,3 +102,17 @@ next: 단계 1 — 고급 궁합 마지막 시도 수용 + 목표 분량 하향
 
 ## 결과 기록
 (단계마다 커밋 SHA·테스트 결과를 여기에 적는다)
+
+### 단계 1 — 3f31047e31
+- GROUP 1900~2600(종전 2400~3200). ACCEPT_RATIO 0.6 유지, 받는 하한 1140(목표 하한의 60%). MAX_OUTPUT_TOKENS 8192 유지.
+- `parseSajuCompatPremiumGroupResponse(..., { finalAttempt })`: final이면 LENGTH_SHORT·섹션 하한·REPEATED_PASSAGE를 `shortAccepted`/`acceptedIssues`로 받는다. 0자 섹션(REQUIRED_SECTIONS_INCOMPLETE)과 PARSE_FAILED는 그대로 거부.
+- 가정: 운영 사고의 1,427자는 새 하한 1140 위라 첫 시도부터 받는다. 기본-거부/final-수용 대조는 1140 미만 응답으로 테스트했다.
+- 테스트: jest saju-compat-premium-prompt `Tests: 8 passed`; node --test saju-compat-premium-paid-delivery `pass 7 fail 0`(overview 짧은 응답 2회 → completed·shortAccepted·passConsumed 1·환불 0); verify-saju-compat-premium-flow ok; verify-paid-llm-delivery-contract ok.
+- check:fast: paid-gate-suite 통과 78 / 실패 0, lint 통과. 이어서 `verify:sitemap-drift`에서 BLOCKED. 원인은 날짜 경과(config/sitemap-lastmod.json 월간 운세 lastmod 11-26→11-27)로 이 변경과 무관하며, 재생성 파일은 되돌렸다. 그 뒤 단계는 실행되지 않았다.
+
+### 단계 2 — b9ae2db0bc
+- 그룹 목표 V1 4000~5500, V2 4800~6300(종전 5000~6500 / 6000~7500). 상한은 verify-llm-generation-resilience의 분량 여유 1,500자 요구 때문에 5200/6000이 아니라 5500/6300으로 했다. 합계 TARGET 28000~36400, MIN 16000(MAX 52000 유지). 받는 하한 GROUP_MIN×0.7 = 2800(V2 목표 하한의 약 58%). salvage 하한 ×0.6=2400, ×0.3=1200. 토큰·시도 횟수 변경 없음.
+- 하드 한도 마지막 시도(attempts+1 ≥ HARD_CAP 12)에만 `lastChance`를 넘긴다: 잘린 응답도 파싱, 문자열이 아닌 섹션 본문은 그 섹션만 버리고, 되풀이는 덜어 낸 뒤 필수 섹션이 모두 남으면 분량과 관계없이 받는다(`shortAccepted`). 필수 섹션이 비거나 금지·위험 표현이 남으면 그대로 거부.
+- V1 프롬프트 해시 2개 갱신(분량 줄만 바뀐 것을 HEAD 모듈과 줄 단위 비교로 확인).
+- 테스트: jest love-secret-ai-prompt.gate·love-secret-ai-rejection-repair·paid-report-length-recovery·love-secret-native-contract `Tests: 73 passed, 73 total`; node --test __tests__/ui/love-secret-*.behavior.test.js `pass 87 fail 0`; verify-love-secret-ai-flow PASS; verify-llm-generation-resilience ok (1357 checks); verify-paid-llm-delivery-contract exit 0.
+- check:fast: paid-gate-suite 통과 78 / 실패 0, 이후 단계 1과 같은 sitemap 날짜 드리프트로 BLOCKED(무관).
