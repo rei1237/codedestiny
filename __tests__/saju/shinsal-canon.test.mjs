@@ -573,6 +573,38 @@ test('직렬화 스윕: 60일주 × 12년지 × 운 유무, 결정성·한도·�
   assert.equal(checked, 720);
 });
 
+test('buildShinsalFactsBlock: 옵션 없는 기존 소비처는 직렬화기와 바이트 동일, hidePositionChars 는 괄호 글자만 지운다', async () => {
+  const { buildShinsalFactsBlock } = await import('../../lib/saju/shinsal-facts-block.mjs');
+  const rand = lcg(11270007);
+  const hanja = /[甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]/;
+  let hidden = 0;
+  for (let i = 0; i < 400; i += 1) {
+    const timeUnknown = i % 7 === 0;
+    const pillars = { year: pickFrom(rand, SIXTY), month: pickFrom(rand, SIXTY), day: pickFrom(rand, SIXTY), hour: timeUnknown ? null : pickFrom(rand, SIXTY) };
+    const luck = i % 2 ? { sewoon: { ganji: pickFrom(rand, SIXTY), year: 2027 } } : undefined;
+    const chart = { pillars, timeUnknown, ...(luck ? { luck } : {}) };
+    // 지금 소비처가 넘기는 옵션 모양(prompt-hub·신년·인생의 책·흑월) 그대로.
+    for (const options of [{}, { maxChars: 1200, excludeRuleIds: ['gongmang'] }, { maxChars: 700 }, { maxChars: 500, maxLuck: 0 }]) {
+      const { excludeRuleIds = [], ...limits } = options;
+      const result = computeShinsal(chart);
+      const source = excludeRuleIds.length ? { ...result, hits: result.hits.filter((hit) => !excludeRuleIds.includes(hit.ruleId)) } : result;
+      const expected = serializeShinsalForPrompt(source, limits);
+      assert.equal(buildShinsalFactsBlock(chart, options), expected, JSON.stringify(chart));
+      assert.equal(buildShinsalFactsBlock(chart, { ...options, hidePositionChars: false }), expected);
+      const masked = buildShinsalFactsBlock(chart, { ...options, hidePositionChars: true });
+      // 자리 글자만 빠지고 줄 수·머리·꼬리는 그대로다. 운 줄의 범위 라벨(세운 2027년 丁未)은 natal-only 소비처가 쓰지 않는다.
+      assert.equal(masked, expected.replace(/\([甲乙丙丁戊己庚辛壬癸子丑寅卯辰巳午未申酉戌亥]{1,2}\)/g, ''));
+      assert.equal(masked.split('\n').length, expected.split('\n').length);
+      assert.ok(masked.length <= expected.length);
+      if (!luck && expected) {
+        assert.ok(!hanja.test(masked), masked);
+        hidden += 1;
+      }
+    }
+  }
+  assert.ok(hidden > 100);
+});
+
 // ── 문구·카탈로그·골든 템플릿·견고성 ─────────────────────────────────────────
 test('copy.ko: 카탈로그와 id 가 같고, 필드가 차 있고, 검수 전(reviewed:false)이며 금지어·검증 패턴을 통과한다', () => {
   assert.deepEqual(Object.keys(SHINSAL_COPY_KO).sort(), SHINSAL_CATALOG.map((entry) => entry.id).sort());
