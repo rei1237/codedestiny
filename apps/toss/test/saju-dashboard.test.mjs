@@ -95,7 +95,7 @@ for(const known of [true,false])test('public web dashboard renders personal resu
     const {extractSajuCompatClosure}=await import('../../../scripts/lib/saju-compat-closure.mjs');
     const {order,decl}=extractSajuCompatClosure(engine,['GAN','JI','getTenGod','cdTwelveStage','_sajuVillainExtractMajorSinsal','_sajuVillainBuildBranchRelations']);
     const helpers=order.map(name=>decl.get(name)).sort((a,b)=>a.node.pos-b.node.pos).map(row=>row.text).join('\n');
-    const expected={cdGetCurrentLanguage:()=>'ko'};
+    const expected={cdGetCurrentLanguage:()=>'ko',SajuNatalCore};
     vm.runInNewContext(helpers+'\nObject.assign(window,{GAN,JI,getTenGod,cdTwelveStage,_sajuVillainExtractMajorSinsal,_sajuVillainBuildBranchRelations});',{window:expected});
     vm.runInNewContext(basisCode,{window:expected});
     const focus=expected.buildDopamineResult(reading.data);

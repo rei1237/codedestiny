@@ -61,8 +61,6 @@
     ['h', 'g', 1.0], ['h', 'j', 0.9]
   ];
 
-  var PEACH_BRANCHES = ['子', '午', '卯', '酉'];
-  var TRAVEL_BRANCHES = ['寅', '申', '巳', '亥'];
   var ACTIVE_STAGES = { '장생': 1.0, '목욕': 1.2, '관대': 1.0, '건록': 1.1, '제왕': 1.3 };
   var QUIET_STAGES = { '묘': 1.0, '절': 1.0, '태': 0.8, '양': 0.6 };
 
@@ -83,27 +81,37 @@
       });
     }
 
-    /* 도화·역마: 히트 수와 함께 월지·일지(도화) / 년지·월지(역마) 가중을 본다 */
-    function hitInfo(set, keyIndexes) {
+    /* 도화(년살)·역마·홍염은 정본 신살 모듈(SajuNatalCore.computeShinsal, 12신살은 년지·일지 기준)에서 읽는다.
+       히트 수와 함께 월지·일지(도화) / 년지·월지(역마) 가중을 본다. 정본을 못 읽으면 0 으로 두어 점수만 낮아지고 결과는 그대로 뜬다. */
+    var shinsalHits = [];
+    var core = typeof SajuNatalCore !== 'undefined' ? SajuNatalCore : w.SajuNatalCore; /* saju-engine _sajuNatalCore 와 같은 조회(토스 번들은 import 이름) */
+    if (core && typeof core.computeShinsal === 'function') {
+      try {
+        var hourKnown = !!(p && p.h && p.h.g && p.h.j);
+        var shinsal = core.computeShinsal({
+          pillars: { year: p && p.y, month: p && p.m, day: p && p.d, hour: hourKnown ? p.h : null },
+          timeUnknown: !hourKnown
+        });
+        if (shinsal && shinsal.valid !== false && Array.isArray(shinsal.hits)) shinsalHits = shinsal.hits;
+      } catch (shinsalErr) { shinsalHits = []; }
+    }
+    var PILLAR_INDEX = { year: 0, month: 1, day: 2, hour: 3 };
+    function hitInfo(ruleId, keyIndexes) {
+      var seen = {};
       var hits = 0;
       var keyHits = 0;
-      branches.forEach(function (branch, idx) {
-        if (!branch || set.indexOf(branch) < 0) return;
+      shinsalHits.forEach(function (hit) {
+        var idx = hit && hit.ruleId === ruleId ? PILLAR_INDEX[hit.pillar] : undefined;
+        if (idx === undefined || seen[idx]) return;
+        seen[idx] = true;
         hits += 1;
         if (keyIndexes.indexOf(idx) >= 0) keyHits += 1;
       });
       return { hits: hits, keyHits: keyHits };
     }
-    var peach = hitInfo(PEACH_BRANCHES, [1, 2]);
-    var travel = hitInfo(TRAVEL_BRANCHES, [0, 1]);
-
-    /* 홍염 일주 판정은 기존 신살 추출기를 그대로 쓴다(일주 표 중복 정의 방지) */
-    var hongyeom = false;
-    if (typeof w._sajuVillainExtractMajorSinsal === 'function') {
-      try {
-        hongyeom = w._sajuVillainExtractMajorSinsal(p).some(function (row) { return row && row.id === 'hongyeom'; });
-      } catch (sinsalErr) { hongyeom = false; }
-    }
+    var peach = hitInfo('nyeonsal', [1, 2]);
+    var travel = hitInfo('yeokmasal', [0, 1]);
+    var hongyeom = shinsalHits.some(function (hit) { return !!hit && hit.ruleId === 'hongyeom' && PILLAR_INDEX[hit.pillar] !== undefined; });
 
     /* 지지 충 = 변동성 */
     var chong = 0;

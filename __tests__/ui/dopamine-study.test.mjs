@@ -61,3 +61,47 @@ test('일간·월지에 따라 근거가 달라지고 결과는 HTML을 이스�
   assert.match(w.document.querySelector('[data-dp-capture]').textContent, /의학적 진단이 아닙니다/);
   dom.window.close();
 });
+// S4(2026-11-26): 도화(년살)·역마·홍염은 정본 신살 모듈(SajuNatalCore.computeShinsal)에서 읽는다.
+// 옛 규칙(子午卯酉·寅申巳亥가 있기만 하면 도화·역마)은 점수에 들어가지 않는다. 정본이 없거나 던져도 결과는 뜬다.
+const natalCore = readFileSync('js/core/saju/natal-core.generated.js', 'utf8');
+function withCore(core) {
+  const f = fixture();
+  if (core === 'real') f.w.eval(natalCore + '\nwindow.SajuNatalCore = SajuNatalCore;');
+  else if (core) f.w.SajuNatalCore = core;
+  return f;
+}
+const chart = (y, m, d, h) => ({ y: { g: y[0], j: y[1] }, m: { g: m[0], j: m[1] }, d: { g: d[0], j: d[1] }, h: { g: h[0], j: h[1] } });
+const flat = (ratios) => ({ ratios: ratios || Object.fromEntries(keys.map(k => [k, 20])) });
+const love = r => r.radar.find(a => a.label === '연애').value;
+test('도화·역마·홍염은 정본 신살 모듈에서 읽고, 子午卯酉·寅申巳亥가 있다는 것만으로는 오르지 않는다', () => {
+  const real = withCore('real'), none = withCore(null);
+  const run = (f, p) => f.w.buildDopamineResult({ p, natal: flat() });
+  // 子·午·申이 있지만 년지·일지 기준 년살(酉)·역마(寅)와 홍염(庚→戌)이 없다 → 정본이 없을 때와 같다
+  const plain = chart('甲子', '丙午', '庚申', '壬子');
+  assert.equal(run(real, plain).score, run(none, plain).score);
+  // 창(JSDOM)이 달라 배열 프로토타입이 다르므로 값으로 비교한다
+  assert.equal(JSON.stringify(run(real, plain).radar), JSON.stringify(run(none, plain).radar));
+  // 월지 酉 = 년살(도화), 시지 戌 = 홍염 → 점수와 연애 축이 오른다
+  const peach = chart('甲子', '丁酉', '庚申', '丙戌');
+  assert.ok(run(real, peach).score > run(none, peach).score);
+  assert.ok(love(run(real, peach)) > love(run(none, peach)));
+  // 월지 寅 = 역마 → 점수가 오른다
+  const travel = chart('甲子', '丙寅', '庚申', '壬子');
+  assert.ok(run(real, travel).score > run(none, travel).score);
+  real.dom.window.close(); none.dom.window.close();
+});
+test('정본 신살 모듈이 없거나 던지거나 무효를 돌려도 도파민 결과는 그대로 뜬다', () => {
+  const p = chart('甲子', '丁酉', '庚申', '丙戌');
+  const base = withCore(null);
+  const expected = base.w.buildDopamineResult({ p, natal: flat() });
+  for (const core of [{ computeShinsal() { throw new Error('boom'); } }, { computeShinsal: () => ({ valid: false, hits: [{ ruleId: 'nyeonsal', pillar: 'month' }] }) }, { computeShinsal: () => null }]) {
+    const f = withCore(core);
+    const r = f.w.buildDopamineResult({ p, natal: flat() });
+    assert.equal(r.score, expected.score); assert.equal(r.grade, expected.grade);
+    f.dom.window.close();
+  }
+  const noHour = withCore('real'); delete p.h;
+  const r = noHour.w.buildDopamineResult({ p, natal: flat() });
+  assert.ok(r.score >= 0 && r.score <= 100 && r.radar.length === 8, '시주 없이도 계산된다');
+  noHour.dom.window.close(); base.dom.window.close();
+});
