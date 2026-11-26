@@ -1123,12 +1123,12 @@
     "keys": "원석 크리스탈 소울 보석 타로"
   },
   {
-    "image": "/images/service-introductions/royal-tea-oracle-320.webp",
-    "imageAlt": "영국 홍차점의 핵심 도구와 이용 장면을 담은 일러스트",
+    "image": "/images/service-introductions/royal-tea-oracle-v3-320.webp",
+    "imageAlt": "런던 티룸의 본차이나 찻잔에 남은 찻잎과 은빛 주전자",
     "id": "royal-tea-oracle",
     "name": "영국 홍차점",
-    "question": "앞으로 석 달, 무엇이 움직일까?",
-    "desc": "잔에 남은 찻잎으로 읽는 가까운 석 달의 결",
+    "question": "찻잎 세 모양은 어떤 이야기를 할까?",
+    "desc": "질문을 골라 테두리·벽·바닥의 찻잎 세 가지 읽기",
     "action": "openRoyalTeaOracle",
     "featureKey": "royal-tea-oracle",
     "price": "무료",

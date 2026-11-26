@@ -319,11 +319,14 @@ export async function writeVisualDetails(html, book) {
   for (const [slug, item] of Object.entries(data.items)) {
     const destination = path.join(directory, `${slug}.json`);
     if (item.verification === 'verified') {
+      const revision = introductionArt[slug]?.assetRevision;
+      if (revision && !/^v[1-9]\d*$/.test(revision)) throw new Error('Invalid image revision for ' + slug);
+      const assetSlug = revision ? slug + '-' + revision : slug;
       if (item.catalogImage?.startsWith('/') && !item.catalogImage.startsWith('//')) {
         const catalogSource = path.resolve(root, 'public', decodeURIComponent(item.catalogImage.slice(1)));
         const publicRoot = path.resolve(root, 'public') + path.sep;
         if (!catalogSource.startsWith(publicRoot)) throw new Error('Catalog image outside public');
-        const catalogName = `${slug}-catalog-320.webp`;
+        const catalogName = `${assetSlug}-catalog-320.webp`;
         await writeImageAtomic(sharp(catalogSource).resize(320, 180, { fit: 'cover' }).webp({ quality: 76 }), path.join(directory, 'assets', catalogName));
         writtenAssets.add(catalogName);
         item.catalogImage = `/feature-details/assets/${catalogName}`;
@@ -340,7 +343,7 @@ export async function writeVisualDetails(html, book) {
         const resizeOptions = ['book', 'letter'].includes(item.material)
           ? { fit: 'contain', background: item.material === 'book' ? '#152721' : '#f6f2ed' }
           : { fit: 'cover' };
-        const stem = heroUsers.get(imagePath) > 1 ? sharedAssetStem(imagePath) : slug;
+        const stem = heroUsers.get(imagePath) > 1 ? sharedAssetStem(imagePath) : assetSlug;
         item.heroVariants = [];
         for (const width of [...new Set([Math.min(480, meta.width), Math.min(960, meta.width)])]) {
           const name = `${stem}-${width}.webp`;
@@ -404,6 +407,8 @@ export async function writeVisualDetails(html, book) {
     // Existing route metadata and saved links may still reference the previous OG/cover.
     if (data.items[stem]?.crafted?.some(item => item.layout === 'editorial')) continue;
     const catalogStem = stem?.endsWith('-catalog') ? stem.slice(0, -'-catalog'.length) : '';
+    // Previous unversioned URLs remain valid for already-cached page HTML.
+    if (introductionArt[stem]?.assetRevision || introductionArt[catalogStem]?.assetRevision) continue;
     if (!stem || !(knownSlugs.has(stem) || knownSlugs.has(catalogStem) || stem.startsWith(SHARED_ASSET_PREFIX))) continue;
     fs.unlinkSync(path.join(directory, 'assets', name));
   }

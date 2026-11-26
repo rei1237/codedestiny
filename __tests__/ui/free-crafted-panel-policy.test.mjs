@@ -10,11 +10,24 @@ test('generated ESM is the unchanged canonical exact-key policy',()=>{
  assert.equal(fs.readFileSync('js/core/free-fortune-policy.mjs','utf8').split('\n').slice(1).join('\n'),fs.readFileSync('lib/payment/free-fortune-policy.mjs','utf8'));
  assert.equal(isFreeFortuneFeatureKey('human-design-report'),false);
 });
-test('free condition panels retain prose and disclaimers but not retired artwork',()=>{
- const detail=manifest('sukuyo-yearly'); const p=detail.panels.find(p=>p.id==='02-the-year-you-choose'); const next=currentFreeCraftedPanel(detail,p);
- assert.equal(next.currentFreeAccess,true);assert.ok(next.text.includes('한 해의 큰 주제를 읽은 뒤'));assert.ok(!next.text.includes('구매 전'));
- const html=renderCraftedDetail(detail);assert.ok(html.includes('data-current-free-access'));assert.ok(!html.includes(`src="${p.src}"`));assert.ok(html.includes('무료 계산형 콘텐츠입니다. AI 생성 상담은 별도 유료입니다.'));
- assert.ok(html.includes(detail.panels.find(p=>p.id==='05-four-domains-of-daily-life').src));assert.ok(html.includes('질병을 진단하는 내용은 아니에요.'));
+test('legacy free conditions keep prose but suppress stale artwork; current art renders',()=>{
+ const detail=manifest('sukuyo-yearly');
+ const p=detail.panels.find(p=>p.id==='02-the-year-you-choose');
+ assert.strictEqual(currentFreeCraftedPanel(detail,p),p);
+ assert.ok(renderCraftedDetail(detail).includes(`src="${p.src}"`));
+ const legacyPanel={...p,text:p.text.replace('분석 전 화면에 표시된\n프로필과 대상 연도를 확인해 주세요.','구매 전 화면에 표시된\n프로필·연도의 해금 범위를 확인해 주세요.')};
+ assert.notEqual(legacyPanel.text,p.text);
+ const legacyDetail={...detail,notice:detail.notice+' 현재 화면에 표시되는 해금 조건과 이용권 적용 여부를 확인해 주세요.',panels:detail.panels.map(panel=>panel===p?legacyPanel:panel)};
+ const next=currentFreeCraftedPanel(legacyDetail,legacyPanel);
+ assert.equal(next.currentFreeAccess,true);
+ assert.ok(next.text.includes('한 해의 큰 주제를 읽은 뒤'));
+ assert.ok(!next.text.includes('구매 전'));
+ const html=renderCraftedDetail(legacyDetail);
+ assert.ok(html.includes('data-current-free-access'));
+ assert.ok(!html.includes(`src="${p.src}"`));
+ assert.ok(html.includes('무료 계산형 콘텐츠입니다. AI 생성 상담은 별도 유료입니다.'));
+ assert.ok(html.includes(detail.panels.find(p=>p.id==='05-four-domains-of-daily-life').src));
+ assert.ok(html.includes('사건 발생일을 예측하는 서비스가 아닙니다.'));
 });
 test('no-purchase, fictional-review, and external-AI disclaimers preserve their illustrations',()=>{
  for(const [id,panelId] of [['life-skill-tree','04-skills-you-use-and-develop'],['nakshatra-compat','09-read-together'],['ziwei-compatibility','09-a-story-and-a-tool']]){const d=manifest(id),p=d.panels.find(p=>p.id===panelId);assert.strictEqual(currentFreeCraftedPanel(d,p),p);}
@@ -23,10 +36,22 @@ test('paid light/daewun, AI and unknown keys do not use the free replacement',()
  const p={title:'안내',src:'/test.webp',text:'아래에서 현재 해금 조건을 확인하세요.'};
  for(const featureKey of ['section_summary','section_daewun','nakshatra-ai-consultation','unknown'])assert.strictEqual(currentFreeCraftedPanel({featureKey},p),p);
 });
-test('all manifest changes are exact free keys and preserve unchanged panels',()=>{
- let changed=0;
- for(const id of fs.readdirSync(root)){let d;try{d=manifest(id)}catch{continue}for(const p of d.panels||[]){const n=currentFreeCraftedPanel(d,p);if(n!==p){changed++;assert.ok(isFreeFortuneFeatureKey(d.featureKey));assert.equal(n.src,p.src);assert.equal(n.title,p.title);}else assert.strictEqual(n,p);}}
- assert.ok(changed>40&&changed<60, String(changed));
+test('all shipped panels are current without relying on the free text fallback',()=>{
+ const stale=[];
+ for(const id of fs.readdirSync(root)){
+  if(!fs.existsSync(`${root}/${id}/manifest.json`))continue;
+  const detail=manifest(id);
+  for(const panel of detail.panels||[]){
+   const normalized=currentFreeCraftedPanel(detail,panel);
+   if(normalized!==panel){
+    assert.ok(isFreeFortuneFeatureKey(detail.featureKey));
+    assert.equal(normalized.src,panel.src);
+    assert.equal(normalized.title,panel.title);
+    stale.push(`${id}/${panel.id}`);
+   }
+  }
+ }
+ assert.deepEqual(stale,[]);
 });
 
 test('price options use exact option keys and keep mixed AI prices intact',async()=>{
@@ -47,7 +72,10 @@ test('notice keeps disclaimers and personal-result limitations verbatim',async()
  for(const clause of (d.notice||'').split(/(?<=[.!?。])\s+/).filter(s=>/진단|보장|확률|후기|시간.*모르|시각.*미입력|포함하지 않|포함되지 않/.test(s)&&!/가격|조건|해금/.test(s)))assert.ok(n.includes(clause),id+': '+clause);
  assert.ok(!/기존 가격|결제 조건|해금 조건|현재해금조건|결제창/.test(n),id);
  }
- const d=manifest('astro-direct-synastry');assert.ok(currentFreeCraftedNotice(d).includes('외부 AI의 답변이나 별도 질문 상담 구매를 포함하지 않습니다.'));
+ const d=manifest('astro-direct-synastry');
+ assert.ok(currentFreeCraftedNotice(d).includes('외부 AI 답변이나 별도 질문 상담은 포함되지 않습니다.'));
+ const oldDisclaimer='외부 AI의 답변이나 별도 질문 상담 구매를 포함하지 않습니다.';
+ assert.ok(currentFreeCraftedNotice({...d,notice:oldDisclaimer}).includes(oldDisclaimer));
  const html=renderCraftedDetail(manifest('sukuyo-yearly'));assert.ok(!html.includes('구매 전 선택한 프로필·연도와 현재 결제 조건'));
 });
 test('basic renderer free CTA does not alter paid light or daewun bundle',async()=>{
@@ -62,5 +90,23 @@ test('crafted gallery summary prices follow exact free keys and preserve paid ed
   const item={featureKey,title:'안내',priceKRW:5000,panels:[{src:'/test.webp',text:'실질 설명',title:'안내'}]};
   const html=renderFeatureDetailPanels({verification:'verified',crafted:[item]});
   assert.ok(html.includes('그림 안내 1장 · '+price),featureKey);
+ }
+});
+
+test('basic mastered free details reveal exact distinct scope without changing paid templates', async()=>{
+ const {renderBasicFortuneDetail}=await import('../../js/basic-fortune-detail.mjs');
+ for(const [id,excerpt] of [['sukuyo-nature','6개 탭'],['sukuyo-encyclopedia','27개 항목']]){
+  const detail=manifest(id);
+  const basic=renderBasicFortuneDetail(detail);
+  const html=renderCraftedDetail(detail);
+  assert.ok(html.startsWith(basic));
+  const transcript=html.slice(basic.length);
+  assert.match(transcript, /<details[^>]*><summary>이 풀이에서 제공하는 범위<\/summary><p>/);
+  assert.ok(transcript.includes(excerpt));
+  assert.doesNotMatch(transcript, /<img|<a[ >]|<script/i);
+ }
+ for(const id of ['saju-summary','saju-daewun']){
+  const detail=manifest(id);
+  assert.equal(renderCraftedDetail(detail),renderBasicFortuneDetail(detail));
  }
 });

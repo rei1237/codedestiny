@@ -2,145 +2,110 @@ import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
-const SERVICE = {
-  h1: "타세오그래피 찻잎 점",
-  description:
-    "런던 로열 컵 문양을 기반으로 상징을 해석하는 영국 홍차 찻잎 점 오라클 리딩 서비스. 찻잎이 남긴 패턴으로 현재의 흐름과 미래 메시지를 읽어보세요.",
-  ogImage: "/fuctionassets/london.webp",
-  landingPoints: ["런던 로열 컵 문양 리딩", "영국 홍차 전통 점술", "상징 기반 오라클 메시지"],
-  seoText:
-    "타세오그래피는 타 컵 내에 남은 찻잎 패턴으로 미래를 읽는 유럽 전통 점술입니다. 런던 로열 컵 버전으로 즐겨보세요.",
-  localized: {
-    en: {
-      title: "Tasseography Tea Leaf Oracle - London Royal Cup Symbol Reading",
-      h1: "Tasseography Tea Leaf Oracle",
-      description:
-        "A British tea leaf oracle that reads symbols from London Royal Cup patterns. Let the shapes left by the leaves reveal the present flow and the message ahead.",
-      landingPoints: ["London Royal Cup pattern reading", "Traditional British tea divination", "Symbol-based oracle messages"],
-      seoText:
-        "Tasseography is a European divination tradition that reads the future through tea leaf patterns left in the cup. Experience it in the London Royal Cup style.",
-    },
-    ja: {
-      title: "タセオグラフィー紅茶占い - ロンドンロイヤルカップ象徴リーディング",
-      h1: "タセオグラフィー紅茶占い",
-      description:
-        "ロンドンロイヤルカップの模様をもとに象徴を読み解く、英国式の紅茶占いオラクルリーディングです。茶葉が残した形から、今の流れと未来のメッセージを受け取ってみましょう。",
-      landingPoints: ["ロンドンロイヤルカップ模様のリーディング", "英国紅茶に伝わる伝統占い", "象徴から受け取るオラクルメッセージ"],
-      seoText:
-        "タセオグラフィーは、カップに残った茶葉の模様から未来を読むヨーロッパの伝統占術です。ロンドンロイヤルカップ版でお楽しみください。",
-    },
-    "zh-CN": {
-      title: "茶叶占卜 - 伦敦皇家杯纹样解读",
-      h1: "茶叶占卜",
-      description:
-        "以伦敦皇家杯纹样为基础解读象征的英式红茶茶叶神谕。通过茶叶留下的图案，读取当下的流向与未来讯息。",
-      landingPoints: ["伦敦皇家杯纹样解读", "英国红茶传统占卜", "基于象征的神谕讯息"],
-      seoText:
-        "茶叶占卜是通过杯中残留茶叶图案读取未来的欧洲传统占术。请体验伦敦皇家杯版本。",
-    },
-    "zh-TW": {
-      title: "茶葉占卜 - 倫敦皇家杯紋樣解讀",
-      h1: "茶葉占卜",
-      description:
-        "以倫敦皇家杯紋樣為基礎解讀象徵的英式紅茶茶葉神諭。透過茶葉留下的圖案，讀取當下的流向與未來訊息。",
-      landingPoints: ["倫敦皇家杯紋樣解讀", "英國紅茶傳統占卜", "基於象徵的神諭訊息"],
-      seoText:
-        "茶葉占卜是透過杯中殘留茶葉圖案讀取未來的歐洲傳統占術。請體驗倫敦皇家杯版本。",
-    },
-    vi: {
-      title: "Bói lá trà Tasseography - Luận biểu tượng tách London Royal",
-      h1: "Bói lá trà Tasseography",
-      description:
-        "Một oracle lá trà kiểu Anh đọc các biểu tượng từ họa tiết tách London Royal. Hãy để hình dạng lá trà còn lại hé mở dòng chảy hiện tại và thông điệp phía trước.",
-      landingPoints: ["Luận họa tiết tách London Royal", "Bói trà truyền thống Anh", "Thông điệp oracle dựa trên biểu tượng"],
-      seoText:
-        "Tasseography là truyền thống bói châu Âu đọc tương lai qua họa tiết lá trà còn lại trong tách. Hãy trải nghiệm phiên bản London Royal Cup.",
-    },
-    hi: {
-      title: "टैसियोग्राफी चाय पत्ती ओरेकल - लंदन रॉयल कप प्रतीक रीडिंग",
-      h1: "टैसियोग्राफी चाय पत्ती ओरेकल",
-      description:
-        "लंदन रॉयल कप के पैटर्न से प्रतीकों को पढ़ने वाली ब्रिटिश चाय पत्ती ओरेकल रीडिंग. पत्तियों द्वारा छोड़े गए आकार वर्तमान प्रवाह और आगे के संदेश को खोलते हैं.",
-      landingPoints: ["लंदन रॉयल कप पैटर्न रीडिंग", "ब्रिटिश चाय की पारंपरिक दिव्यविद्या", "प्रतीक-आधारित ओरेकल संदेश"],
-      seoText:
-        "टैसियोग्राफी कप में बची चाय पत्तियों के पैटर्न से भविष्य पढ़ने की यूरोपीय परंपरा है. इसे लंदन रॉयल कप शैली में अनुभव करें.",
-    },
-    es: {
-      title: "Oráculo de hojas de té - Lectura de símbolos London Royal Cup",
-      h1: "Oráculo de hojas de té",
-      description:
-        "Una lectura oracular británica que interpreta símbolos desde los patrones de la London Royal Cup. Las formas dejadas por las hojas revelan el flujo actual y el mensaje que viene.",
-      landingPoints: ["Lectura de patrones London Royal Cup", "Adivinación tradicional británica con té", "Mensajes oraculares basados en símbolos"],
-      seoText:
-        "La tasseografía es una tradición europea que lee el futuro en los patrones de hojas de té dentro de la taza. Disfrútala en versión London Royal Cup.",
-    },
-    fr: {
-      title: "Oracle des feuilles de thé - Lecture des symboles London Royal Cup",
-      h1: "Oracle des feuilles de thé",
-      description:
-        "Une lecture oracle britannique qui interprète les symboles des motifs London Royal Cup. Les formes laissées par les feuilles éclairent le courant présent et le message à venir.",
-      landingPoints: ["Lecture des motifs London Royal Cup", "Divination britannique traditionnelle par le thé", "Messages oracle fondés sur les symboles"],
-      seoText:
-        "La tasséographie est une tradition européenne qui lit l'avenir dans les motifs de feuilles de thé laissés dans la tasse. Découvrez la version London Royal Cup.",
-    },
-    de: {
-      title: "Tasseografie-Teeorakel - Symboldeutung der London Royal Cup",
-      h1: "Tasseografie-Teeorakel",
-      description:
-        "Ein britisches Teeorakel, das Symbole aus London-Royal-Cup-Mustern deutet. Die Formen der Teeblätter zeigen den gegenwärtigen Fluss und die kommende Botschaft.",
-      landingPoints: ["London Royal Cup Musterdeutung", "Traditionelle britische Teedivination", "Symbolbasierte Orakelbotschaften"],
-      seoText:
-        "Tasseografie ist eine europäische Wahrsagetradition, die die Zukunft aus Teeblattmustern in der Tasse liest. Erlebe sie im London-Royal-Cup-Stil.",
-    },
-    nl: {
-      title: "Tasseografie theeblad-orakel - London Royal Cup symboollezing",
-      h1: "Tasseografie theeblad-orakel",
-      description:
-        "Een Britse theeblad-orakellezing die symbolen leest uit London Royal Cup patronen. De vormen die de bladeren achterlaten tonen de huidige stroom en de boodschap vooruit.",
-      landingPoints: ["London Royal Cup patroonlezing", "Traditionele Britse theedivinatie", "Orakelboodschappen via symbolen"],
-      seoText:
-        "Tasseografie is een Europese divinatietraditie die de toekomst leest in theebladpatronen die in de kop achterblijven. Ervaar de London Royal Cup-versie.",
-    },
-    ms: {
-      title: "Oracle daun teh Tasseography - Bacaan simbol London Royal Cup",
-      h1: "Oracle daun teh Tasseography",
-      description:
-        "Bacaan oracle daun teh British yang membaca simbol daripada corak London Royal Cup. Bentuk yang ditinggalkan daun teh membuka aliran semasa dan mesej yang bakal datang.",
-      landingPoints: ["Bacaan corak London Royal Cup", "Ramalan teh tradisional British", "Mesej oracle berasaskan simbol"],
-      seoText:
-        "Tasseography ialah tradisi ramalan Eropah yang membaca masa depan melalui corak daun teh dalam cawan. Nikmati versi London Royal Cup.",
-    },
-  },
+const ART = "/images/feature-details/royal-tea-oracle-hero-v3.webp";
+const KO = {
+  title: "무료 영국 홍차점 | 여덟 장으로 읽는 찻잎 감정서",
+  h1: "영국 홍차점",
+  description: "연애·일·돈·가족·선택 중 하나를 고르세요. 찻잔의 테두리, 잔벽, 바닥에 놓인 세 형상을 따라 여덟 장의 상징 감정서를 무료로 읽어요.",
+  landingPoints: ["다섯 가지 고민 중 하나 선택", "찻잔의 세 자리와 여덟 장의 해석", "사진·생년 입력 없이 무료로 읽기"],
+  seoText: "영국의 찻잎 읽기에서 영감을 얻은 디지털 운세예요. 실제 찻잎 사진을 분석하거나 AI가 새 답변을 쓰지 않아요. 같은 계정 또는 같은 브라우저에서 한국 날짜와 주제가 같으면 같은 잔이 나와요. 화면에 있는 이전 잔 목록은 새로고침하면 사라지고, 공유에는 요약이나 링크만 담겨요. 계정 보관함과 PDF는 제공하지 않아요. 잔 속 시기와 선명도는 사건 날짜나 적중 확률이 아니라 상징을 읽는 단서예요.",
 };
 
-const ROYAL_TEA_METADATA_COPY = {
-  ko: {
-    title: "타세오그래피 찻잎 점 - 런던 로열 컵 문양 리딩",
-    description:
-      "런던 로열 컵 문양을 기반으로 찻잎 패턴의 상징을 해석하는 영국 전통 홍차 점 오라클.",
-  },
+const LOCALIZED = {
   en: {
-    title: "Tasseography Tea Leaf Oracle - London Royal Cup Symbol Reading",
-    description:
-      "A traditional British tea oracle that interprets the symbols in tea leaf patterns from the London Royal Cup.",
+    title: "Free British Tea Leaf Reading | Tasseography",
+    h1: "British Tea Leaf Reading",
+    description: "Choose love, work, money, family, or a decision. Read three symbols at the rim, wall, and base of your cup in a free eight-part reading.",
+    landingPoints: ["Five topics to choose from", "Three symbols in eight sections", "Free, with no photo needed"],
+    seoText: "This digital reading reworks written interpretations inspired by British tea-leaf reading. It does not analyze photos or generate a new AI answer. Read the symbols as prompts for reflection, not as predictions.",
   },
   ja: {
-    title: "タセオグラフィー紅茶占い - ロンドンロイヤルカップ象徴リーディング",
-    description:
-      "ロンドンロイヤルカップの模様をもとに茶葉の象徴を読み解く、英国伝統の紅茶占いオラクルです。",
+    title: "無料の英国式紅茶占い｜茶葉のシンボル",
+    h1: "英国式紅茶占い",
+    description: "恋愛・仕事・お金・家族・選択から一つ選び、カップの縁、内側、底に現れる三つの形を八つの項目で無料で読み解きます。",
+    landingPoints: ["五つのテーマ", "三つの形を八つの項目で解説", "無料・写真不要"],
+    seoText: "英国の茶葉占いに着想を得たデジタル体験です。写真の解析やAIによる新しい回答の生成はありません。未来の予測ではなく、考えを整理するきっかけとしてお楽しみください。",
   },
-  zh: {
-    title: "茶叶占卜 - 伦敦皇家杯纹样解读",
-    description:
-      "以伦敦皇家杯纹样为基础，解读茶叶图案象征的英式传统红茶神谕。",
+  "zh-CN": {
+    title: "免费英式红茶占卜｜茶叶象征解读",
+    h1: "英式红茶占卜",
+    description: "从爱情、工作、金钱、家庭和选择中挑一个主题，免费阅读杯沿、杯壁和杯底三个图形的八段解读。",
+    landingPoints: ["五种主题", "三个图形，八段解读", "免费，无需上传照片"],
+    seoText: "这项数字体验的灵感来自英国茶叶占卜。它不分析照片，也不会用 AI 生成新答案。图形只供反思，不用于预测未来。",
+  },
+  "zh-TW": {
+    title: "免費英式紅茶占卜｜茶葉象徵解讀",
+    h1: "英式紅茶占卜",
+    description: "從愛情、工作、金錢、家庭和選擇中挑一個主題，免費閱讀杯緣、杯壁和杯底三個圖形的八段解讀。",
+    landingPoints: ["五種主題", "三個圖形，八段解讀", "免費，不需上傳照片"],
+    seoText: "這項數位體驗的靈感來自英國茶葉占卜。它不分析照片，也不會用 AI 生成新答案。圖形僅供反思，不用來預測未來。",
+  },
+  vi: {
+    title: "Đọc biểu tượng lá trà kiểu Anh miễn phí",
+    h1: "Đọc lá trà kiểu Anh",
+    description: "Chọn tình yêu, công việc, tiền bạc, gia đình hoặc một quyết định. Đọc ba biểu tượng ở miệng, thành và đáy tách qua tám phần miễn phí.",
+    landingPoints: ["Năm chủ đề", "Ba biểu tượng, tám phần", "Miễn phí, không cần ảnh"],
+    seoText: "Trải nghiệm số lấy cảm hứng từ cách đọc lá trà của Anh. Không phân tích ảnh hay dùng AI để tạo câu trả lời mới. Các biểu tượng gợi suy ngẫm, không dự đoán tương lai.",
+  },
+  hi: {
+    title: "मुफ़्त ब्रिटिश चाय-पत्ती पाठ",
+    h1: "ब्रिटिश चाय-पत्ती पाठ",
+    description: "प्रेम, काम, धन, परिवार या किसी फ़ैसले को चुनें। कप के किनारे, अंदरूनी दीवार और तली के तीन प्रतीकों को आठ भागों में मुफ़्त पढ़ें।",
+    landingPoints: ["पाँच विषय", "तीन प्रतीक, आठ भाग", "मुफ़्त, फ़ोटो की ज़रूरत नहीं"],
+    seoText: "यह डिजिटल अनुभव ब्रिटिश चाय-पत्ती पढ़ने की शैली से प्रेरित है। इसमें फ़ोटो का विश्लेषण या AI से नया जवाब तैयार नहीं होता। प्रतीक सोचने के संकेत हैं, भविष्यवाणी नहीं।",
+  },
+  es: {
+    title: "Lectura británica de hojas de té gratis",
+    h1: "Lectura británica de hojas de té",
+    description: "Elige amor, trabajo, dinero, familia o una decisión. Lee gratis, en ocho partes, tres símbolos del borde, la pared y el fondo de la taza.",
+    landingPoints: ["Cinco temas", "Tres símbolos en ocho partes", "Gratis, sin fotos"],
+    seoText: "Una experiencia digital inspirada en la lectura británica de hojas de té. No analiza fotos ni genera respuestas nuevas con IA. Los símbolos invitan a reflexionar; no predicen el futuro.",
+  },
+  fr: {
+    title: "Lecture britannique gratuite des feuilles de thé",
+    h1: "Lecture britannique des feuilles de thé",
+    description: "Choisissez l’amour, le travail, l’argent, la famille ou une décision. Découvrez gratuitement en huit parties trois symboles, du bord au fond de la tasse.",
+    landingPoints: ["Cinq thèmes", "Trois symboles en huit parties", "Gratuit, sans photo"],
+    seoText: "Une expérience numérique inspirée de la lecture britannique des feuilles de thé. Elle n’analyse pas de photo et ne génère pas de réponse avec l’IA. Les symboles invitent à réfléchir, sans prédire l’avenir.",
+  },
+  de: {
+    title: "Kostenloses britisches Teeblattlesen",
+    h1: "Britisches Teeblattlesen",
+    description: "Wähle Liebe, Arbeit, Geld, Familie oder eine Entscheidung. Lies drei Symbole am Rand, an der Innenwand und am Boden der Tasse in acht kostenlosen Abschnitten.",
+    landingPoints: ["Fünf Themen", "Drei Symbole in acht Abschnitten", "Kostenlos, ohne Foto"],
+    seoText: "Ein digitales Erlebnis, inspiriert vom britischen Teeblattlesen. Es analysiert keine Fotos und erzeugt keine neuen KI-Antworten. Die Symbole regen zum Nachdenken an und sagen die Zukunft nicht voraus.",
+  },
+  nl: {
+    title: "Gratis Britse theebladlezing",
+    h1: "Britse theebladlezing",
+    description: "Kies liefde, werk, geld, familie of een beslissing. Lees gratis in acht delen drie symbolen aan de rand, binnenwand en bodem van je kop.",
+    landingPoints: ["Vijf onderwerpen", "Drie symbolen in acht delen", "Gratis, zonder foto"],
+    seoText: "Een digitale ervaring geïnspireerd op het Britse theebladlezen. Er wordt geen foto geanalyseerd en AI schrijft geen nieuw antwoord. De symbolen nodigen uit tot nadenken en voorspellen de toekomst niet.",
+  },
+  ms: {
+    title: "Bacaan daun teh gaya Britain percuma",
+    h1: "Bacaan daun teh gaya Britain",
+    description: "Pilih cinta, kerja, wang, keluarga atau keputusan. Baca tiga simbol di bibir, dinding dalam dan dasar cawan dalam lapan bahagian percuma.",
+    landingPoints: ["Lima topik", "Tiga simbol dalam lapan bahagian", "Percuma, tanpa foto"],
+    seoText: "Pengalaman digital yang diilhamkan oleh bacaan daun teh gaya Britain. Ia tidak menganalisis foto atau menjana jawapan baharu dengan AI. Simbol mengajak anda merenung, bukan meramal masa depan.",
   },
 };
 
-const royalTeaMetadataCopy = ROYAL_TEA_METADATA_COPY.ko;
+const SERVICE = { ...KO, ogImage: ART, localized: LOCALIZED };
+function metadataCopy({ title, description }: { title: string; description: string }) {
+  return { title, description };
+}
+const ROYAL_TEA_METADATA_COPY = {
+  ko: metadataCopy(KO),
+  en: metadataCopy(LOCALIZED.en),
+  ja: metadataCopy(LOCALIZED.ja),
+  zh: metadataCopy(LOCALIZED["zh-CN"]),
+};
 
 export const metadata = withUniqueRouteMetadata("/oracle/royal-tea", {
-  title: royalTeaMetadataCopy.title,
-  description: royalTeaMetadataCopy.description,
+  title: KO.title,
+  description: KO.description,
+  openGraph: { images: [ART] },
 });
 
 export default function RoyalTeaLandingPage() {
