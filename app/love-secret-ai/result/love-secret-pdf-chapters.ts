@@ -1,6 +1,7 @@
 import { loveChapterKicker, resolveLoveSpeaker, splitLoveSecretAnswerByTitles, type LoveSectionInput, type LoveSpeaker } from "./love-secret-sections";
+import { loveReportMasters } from "./love-report-overview";
 
-export type LoveSecretPdfChapter = { kicker: string; title: string; body: string; speaker: string };
+export type LoveSecretPdfChapter = { kicker: string; title: string; body: string; speaker: string; portraitSrc?: string };
 export type LoveSecretPdfSource = {
   pdfSections?: LoveSectionInput[] | null;
   sections?: LoveSectionInput[] | null;
@@ -27,10 +28,14 @@ export function buildLoveSecretPdfChapters(source: LoveSecretPdfSource, speakerN
     sections = splitLoveSecretAnswerByTitles(answer);
     if (!sections.length && answer) sections = [{ title: LOVE_SECRET_PDF_FALLBACK_TITLE, body: answer }];
   }
-  return sections.map((section) => ({
-    kicker: loveChapterKicker(section.title),
-    title: section.title.trim(),
-    body: section.body,
-    speaker: speakerNames[resolveLoveSpeaker(section.title)] || "",
-  }));
+  return sections.map((section) => {
+    const speaker = resolveLoveSpeaker(section.title);
+    return {
+      kicker: loveChapterKicker(section.title),
+      title: section.title.trim(),
+      body: section.body,
+      speaker: speakerNames[speaker],
+      portraitSrc: loveReportMasters[speaker].avatar,
+    };
+  });
 }

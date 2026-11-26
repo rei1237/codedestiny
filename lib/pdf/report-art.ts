@@ -1,9 +1,9 @@
 /** Local, text-free editorial artwork. It is never presented as a calculated chart. */
 export type ReportArt={dataUrl:string;ratio:number};
 /** width/quality default to the historical 1200px · JPEG 0.92; a report may ask for a lighter print encode. */
-export type ReportArtEncode={width?:number;quality?:number};
-export async function loadReportArt(path:string,tile?:number,preserveRatio=false,{width=1200,quality=0.92}:ReportArtEncode={}):Promise<ReportArt>{
- const response=await fetch(path,{signal:AbortSignal.timeout(15000)});
+export type ReportArtEncode={width?:number;quality?:number;timeoutMs?:number};
+export async function loadReportArt(path:string,tile?:number,preserveRatio=false,{width=1200,quality=0.92,timeoutMs=15000}:ReportArtEncode={}):Promise<ReportArt>{
+ const response=await fetch(path,{signal:AbortSignal.timeout(timeoutMs)});
  if(!response.ok)throw new Error('PDF 이미지를 준비하지 못했어요. 잠시 후 다시 저장해 주세요.');
  const bitmap=await createImageBitmap(await response.blob());
  try{

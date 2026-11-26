@@ -11,6 +11,13 @@ const load = async (entry) => {
 };
 const {buildMasterLoveCodexPdfChapters, buildMasterLoveCodexPdfSummary, codexChapterKicker, MASTER_LOVE_CODEX_PDF_BYLINE} = await load('src/features/master-love-codex/_lib/codex-pdf-chapters.ts');
 
+test('연애 DNA는 실제 0을 보존하고 누락되거나 범위를 벗어난 점수는 그리지 않는다', () => {
+  const summary = buildMasterLoveCodexPdfSummary({loveDna: {metrics: [
+    {label: '돌봄', score: 0}, {label: '거리', score: null}, {label: '속도', score: 130}, {label: '표현', score: '72'},
+  ]}});
+  assert.deepEqual(summary.figures.find(figure => figure.kind === 'bars').rows.map(row => row.value), [0, 72]);
+});
+
 const chapters = [
   {id: 'temperament', order: 2, title: '제2장 · 사랑을 시작하는 태도', body: '## 첫 태도\n당신은 **천천히** 다가갑니다.',
     content: {narration: '연애 고수가 말합니다.', keySentence: '천천히 데워지는 사람', actions: ['먼저 안부를 묻는다'], evidence: [{label: '일간 병화', explanation: '따뜻한 불'}]}},

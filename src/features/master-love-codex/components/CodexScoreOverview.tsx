@@ -1,9 +1,10 @@
 "use client";
 
 import CodexReveal from "./CodexReveal";
-import type { CodexLoveDna } from "./CodexLoveDna";
+import { CODEX_LOVE_DNA_ID, type CodexLoveDna } from "./CodexLoveDna";
 import type { CodexActMode } from "../data/acts";
 import { useMasterLoveCodexCopy } from "../_lib/copy";
+import { loveDnaMetrics } from "../_lib/love-dna-metrics";
 import styles from "../styles/codex.module.css";
 
 interface CodexScoreOverviewProps {
@@ -18,7 +19,8 @@ interface CodexScoreOverviewProps {
  */
 export default function CodexScoreOverview({ loveDna, forceVisible = false }: CodexScoreOverviewProps) {
   const copy = useMasterLoveCodexCopy();
-  if (!loveDna.typeName && !loveDna.typeSummary) return null;
+  const hasMetrics = loveDnaMetrics(loveDna).length > 0;
+  if (!loveDna.typeName && !loveDna.typeSummary && !hasMetrics) return null;
   return (
     <section data-codex-pdf-page data-codex-summary className={styles.section} aria-label={copy.readerSummaryTitle}>
       <div className={styles.measure}>
@@ -26,7 +28,7 @@ export default function CodexScoreOverview({ loveDna, forceVisible = false }: Co
           <h2 className={styles.chapterTitle}>{copy.readerSummaryTitle}</h2>
           {loveDna.typeName ? <p className={styles.keySentence}>{loveDna.typeName}</p> : null}
           {loveDna.typeSummary ? <p className={styles.insight}>{loveDna.typeSummary}</p> : null}
-          <p className={styles.bridge}>{copy.readerMetricsNote}</p>
+          {hasMetrics && <a className={styles.quiet} href={`#${CODEX_LOVE_DNA_ID}`}>{copy.loveDnaAriaLabel}</a>}
         </CodexReveal>
       </div>
     </section>

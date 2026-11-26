@@ -265,6 +265,7 @@ export interface MasterLoveCodexCopy {
   actNavAriaLabel: string;
   readerContentsTitle: string;
   readerBeginButton: string;
+  readerLargeText: string;
   readerSummaryTitle: string;
   readerMetricsNote: string;
 }
@@ -505,6 +506,7 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
   actNavAriaLabel: "Jump to act",
   readerContentsTitle: "Contents",
   readerBeginButton: "Start reading",
+  readerLargeText: "Larger text",
   readerSummaryTitle: "Your reading at a glance",
   readerMetricsNote: "The indicators describe different tendencies. They are not a compatibility grade, a prediction of success, or a psychological test.",
 };
@@ -748,6 +750,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     actNavAriaLabel: "막 이동",
     readerContentsTitle: "목차",
     readerBeginButton: "상담 읽기",
+    readerLargeText: "글자 크게 보기",
     readerSummaryTitle: "한눈에 보는 상담",
     readerMetricsNote: "각 지표는 서로 다른 성향을 설명합니다. 궁합의 우열이나 성공 확률, 심리검사 결과를 뜻하지 않습니다.",
   },
@@ -987,6 +990,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     actNavAriaLabel: "幕へ移動",
     readerContentsTitle: "目次",
     readerBeginButton: "相談を読む",
+    readerLargeText: "文字を大きくする",
     readerSummaryTitle: "相談の要点",
     readerMetricsNote: "各指標は異なる傾向を表します。相性の優劣、成功確率、心理検査の結果ではありません。",
   },
@@ -1226,6 +1230,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     actNavAriaLabel: "跳转到幕",
     readerContentsTitle: "目录",
     readerBeginButton: "开始阅读",
+    readerLargeText: "放大文字",
     readerSummaryTitle: "咨询要点",
     readerMetricsNote: "各项指标描述不同倾向，并非缘分优劣、成功概率或心理测试结果。",
   },
@@ -1465,6 +1470,7 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
     actNavAriaLabel: "跳轉到幕",
     readerContentsTitle: "目錄",
     readerBeginButton: "開始閱讀",
+    readerLargeText: "放大文字",
     readerSummaryTitle: "諮詢重點",
     readerMetricsNote: "各項指標描述不同傾向，並非緣分優劣、成功機率或心理測驗結果。",
   },

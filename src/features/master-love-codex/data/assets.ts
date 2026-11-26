@@ -19,6 +19,7 @@ const novelAsset = (fileName: string) =>
 const novelBackground = (fileName: string) => novelAsset(`background/${fileName}`);
 
 export const masterLoveCodexAssets = {
+  reportPortrait: "/images/master-profiles/master-love-portrait.webp",
   /** 입장·프롤로그에 쓰는 책 이미지. 배포되는 public 실물과 같은 출처에서 읽는다. */
   cover: "/feature-details/assets/master-love-codex-960.webp",
   /** 인연의 서 마스터가 사주와 열두 궁을 함께 살피는 기능 소개 장면. */

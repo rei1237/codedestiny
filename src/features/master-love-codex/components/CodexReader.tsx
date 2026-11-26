@@ -36,7 +36,7 @@ import CodexReportOutro from "./CodexReportOutro";
 import CodexReportStamp from "./CodexReportStamp";
 import CodexSeal from "./CodexSeal";
 import CodexReveal from "./CodexReveal";
-import { getNarratorAsset } from "../data/assets";
+import { masterLoveCodexAssets } from "../data/assets";
 import {
   CODEX_CHAPTER_ANCHOR_PREFIX,
   groupByAct,
@@ -152,6 +152,7 @@ export default function CodexReader({
   const [decryptStep, setDecryptStep] = useState(0);
   const [activeAct, setActiveAct] = useState(1);
   const [isExporting, setIsExporting] = useState(false);
+  const [largeText, setLargeText] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState("");
   const [resumeTop, setResumeTop] = useState(0);
@@ -282,11 +283,12 @@ export default function CodexReader({
           await exportConsultationBookPdf({
             title: copy.possessiveBookTitle(safeFilePart(name, copy.pdfNameFallback), bookTitle),
             productLabel: bookTitle,
-            byline: MASTER_LOVE_CODEX_PDF_BYLINE,
+            byline: copy.narratorName || MASTER_LOVE_CODEX_PDF_BYLINE,
             coverTheme: "codex",
+            coverPortraits: [{ src: masterLoveCodexAssets.reportPortrait, name: copy.narratorName }],
             date: today,
             fileName,
-            chapters: buildMasterLoveCodexPdfChapters({ chapters: ordered, mode, consultation }),
+            chapters: buildMasterLoveCodexPdfChapters({ chapters: ordered, mode, consultation, speaker: copy.narratorName }),
             summary: buildMasterLoveCodexPdfSummary({ loveDna, totalCharCount, chapterCount: ordered.length }),
           });
           setPdfLoading(false);
@@ -370,6 +372,7 @@ export default function CodexReader({
         id="master-love-codex-document"
         className={styles.document}
         data-codex-exporting={isExporting ? "true" : undefined}
+        data-codex-large-text={largeText && !isExporting ? "true" : undefined}
       >
         {/* 표지 */}
         <header data-codex-pdf-page className={styles.readerCover}>
@@ -377,25 +380,33 @@ export default function CodexReader({
             <CodexReveal forceVisible={isExporting}>
               {/* 표식은 표지 헤더 '안'에 둔다 — 밖으로 빼면 캡처 대상에서 빠진다 */}
               {reportStamp ?? <CodexReportStamp mode={mode} accessType={accessType} className="mb-6" />}
-              <Image
-                src={narratorImage?.src ?? getNarratorAsset("calm")}
-                alt={narratorImage?.alt ?? copy.narratorClosingAlt}
-                width={300}
-                height={410}
-                unoptimized
-                priority
-                className={styles.readerPortrait}
-                style={{ filter: "drop-shadow(0 24px 48px rgba(0,0,0,.66))" }}
-              />
               <p className={styles.readerBrand}>Master Love Codex</p>
               <h2 className={styles.readerTitle}>
                 {copy.possessiveBookTitle(name, bookTitle)}
               </h2>
+              <Image
+                src={narratorImage?.src ?? masterLoveCodexAssets.reportPortrait}
+                alt={narratorImage?.alt ?? ""}
+                width={180}
+                height={180}
+                unoptimized
+                priority
+                className={styles.readerPortrait}
+                onError={event => { event.currentTarget.hidden = true; }}
+              />
+              <p className={styles.insight}>{copy.narratorName}</p>
               <hr className={`${styles.rule} ${styles.ruleShort} mt-6`} />
               <p className="mt-5 text-[0.9375rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>
                 {birthLine}
               </p>
               {ordered[0] ? <a className={`${styles.cta} mt-6`} href={`#${CODEX_CHAPTER_ANCHOR_PREFIX}${ordered[0].order}`}>{copy.readerBeginButton}</a> : null}
+              {ordered[0] && !isExporting && (
+                <div>
+                  <button type="button" className={`${styles.quiet} ${styles.readerTextSize}`} aria-pressed={largeText} onClick={() => setLargeText(current => !current)}>
+                    {copy.readerLargeText}
+                  </button>
+                </div>
+              )}
               <p className={`${styles.numeral} mt-2 text-[0.8125rem]`} style={{ color: "var(--codex-ink-text-muted)" }}>
                 {/* 부분 결과를 완성 분량처럼 적지 않는다 — 다 쓰이기 전에는 "N장 중 K장" */}
                 {sealed

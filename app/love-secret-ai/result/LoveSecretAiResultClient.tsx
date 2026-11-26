@@ -41,6 +41,8 @@ import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
 import PremiumResultShare from "@/components/fortune/PremiumResultShare";
 import { groupLoveSections, loveChapterKicker, resolveLoveSpeaker, splitLoveSecretAnswerByTitles, LOVE_SECRET_SECTION_TITLES_V1, type LoveCardVariant, type LoveSectionGroup, type LoveSpeaker } from "./love-secret-sections";
 import LoveSecretResultSection, { LoveSpeakerChip } from "./LoveReadingChapter";
+import { LoveReportMasters, LoveReportTiming } from "./LoveReportOverview";
+import { buildLoveReportSummary, loveCoverPortraits, loveReportSpeakerNames } from "./love-report-overview";
 import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 import { getLoveSecretRetryCopy, loveSecretRetryClosed, loveSecretRetryOffer } from "../love-secret-retry";
@@ -1113,20 +1115,24 @@ export default function LoveSecretAiResultClient({ paymentSurface }: { paymentSu
     const fileName = `love-secret-reading-${safeFilePart(consultation.sessionId || consultation.attemptId || "result")}.pdf`;
     try {
       // 받은 상담 전체를 글자로 조판한다. 글꼴을 못 실을 때만 화면 캡처로 되돌아간다.
-      const [{ exportConsultationBookPdf }, { PdfFontError }, { buildLoveSecretPdfChapters, LOVE_SECRET_PDF_BYLINE }] = await Promise.all([
+      const [{ exportConsultationBookPdf }, { PdfFontError }, { buildLoveSecretPdfChapters }] = await Promise.all([
         import("@/lib/pdf/export-consultation-book-pdf"),
         import("@/lib/pdf/typeset-writer"),
         import("./love-secret-pdf-chapters"),
       ]);
       try {
+        const locale = getCurrentLoadingLocale();
+        const names = copy.speakerNames || loveReportSpeakerNames(locale);
         await exportConsultationBookPdf({
           title: summaryTitle,
           productLabel: "연애 비책",
-          byline: copy.speakerNames ? `${copy.speakerNames.yeoni} · ${copy.speakerNames.hanbi}` : LOVE_SECRET_PDF_BYLINE,
+          byline: `${names.yeoni} · ${names.hanbi}`,
           coverTheme: "love",
+          coverPortraits: loveCoverPortraits(names),
           date: new Date().toISOString().slice(0, 10),
           fileName,
-          chapters: buildLoveSecretPdfChapters(consultation, copy.speakerNames),
+          chapters: buildLoveSecretPdfChapters(consultation, names),
+          summary: buildLoveReportSummary(consultation, locale),
         });
         return;
       } catch (error) {
@@ -1359,6 +1365,8 @@ function LoveSecretResultPageContent({
     const numbers = new Map(chapterEntries.map((entry) => [entry.section, entry.number]));
     return (section: ResultSection) => numbers.get(section);
   }, [chapterEntries]);
+  const locale = getCurrentLoadingLocale();
+  const names = copy.speakerNames || loveReportSpeakerNames(locale);
 
   function jumpToChapter(entry: { number: number; deckPage: number }) {
     if (entry.deckPage >= 0) setActivePage(entry.deckPage);
@@ -1379,13 +1387,13 @@ function LoveSecretResultPageContent({
         pages.push({
           id: `love-secret-${group.spec.id}-${index}`,
           label: toDisplayText(section.title).slice(0, 12) || copy.chapterFallback(pages.length + 1),
-          content: <LoveSecretResultSection index={pages.length} number={chapterNumberOf(section)} kicker={copy.speakerNames ? loveChapterKicker(section.title) : ""} section={section} speakerNames={copy.speakerNames} />,
+          content: <LoveSecretResultSection index={pages.length} number={chapterNumberOf(section)} kicker={copy.speakerNames ? loveChapterKicker(section.title) : ""} section={section} speakerNames={names} />,
           groupId: group.spec.id,
         });
       });
     });
     return pages;
-  }, [deckGroups, copy, chapterNumberOf]);
+  }, [deckGroups, copy, chapterNumberOf, names]);
 
   const deckJumpTargets = useMemo(() => deckGroups.map((group) => ({
     id: group.spec.id,
@@ -1393,7 +1401,7 @@ function LoveSecretResultPageContent({
     page: deckPages.findIndex((page) => page.groupId === group.spec.id),
   })).filter((item) => item.page >= 0), [deckGroups, deckPages]);
 
-  const calendar = consultation.sajuSummary?.calendar;
+  const timing = <LoveReportTiming source={consultation} locale={locale} />;
   const reading = consultation.reading;
   const secrets = (reading?.actionSecrets || []).map(parseActionSecret).filter((item) => item.action);
 
@@ -1408,6 +1416,7 @@ function LoveSecretResultPageContent({
           <h1 className={styles.reportTitle}>
             {summaryTitle}
           </h1>
+          <LoveReportMasters names={names} locale={locale} />
           <p className="mt-3 text-sm font-bold text-[var(--ls-accent)]">
             {copy.todayStrategySubtitle}
           </p>
@@ -1480,7 +1489,7 @@ function LoveSecretResultPageContent({
                       <button type="button" onClick={() => jumpToChapter(entry)} className={`${theme.focusRing} ${styles.chapterTocItem}`}>
                         <span className={styles.chapterNumber}>{String(entry.number).padStart(2, "0")}</span>
                         <span className={styles.chapterTocTitle}>{entry.section.title}</span>
-                        {copy.speakerNames && <span className={styles.chapterTocSpeaker} data-speaker={speaker}>{copy.speakerNames[speaker]}</span>}
+                        <span className={styles.chapterTocSpeaker} data-speaker={speaker}>{names[speaker]}</span>
                       </button>
                     </li>
                   );
@@ -1501,11 +1510,10 @@ function LoveSecretResultPageContent({
                 forceExpanded={expandForExport}
               />
             ) : null}
-            {group.spec.id === "timing" && calendar?.best?.length ? (
-              <LoveSecretLuckyDates calendar={calendar} />
-            ) : null}
+            {group.spec.id === "timing" ? timing : null}
           </LoveSecretGroupCard>
         ))}
+        {!flowGroups.some(group => group.spec.id === "timing") ? timing : null}
 
         {deckPages.length > 0 && (
           <section id="love-secret-deck" className={`${styles.deckSection} mt-8`}>
@@ -1611,6 +1619,7 @@ function LoveSecretGroupCard({
   children?: ReactNode;
 }) {
   const copy = useLoveSecretResultCopy();
+  const names = copy.speakerNames || loveReportSpeakerNames(getCurrentLoadingLocale());
   const [open, setOpen] = useState(true);
   const isOpen = expandForExport || open;
   const Icon = GROUP_ICON[group.spec.iconKey];
@@ -1651,7 +1660,7 @@ function LoveSecretGroupCard({
                 <div className={styles.sectionHead}>
                   {number ? <span className={styles.chapterNumber}>{String(number).padStart(2, "0")}</span> : null}
                   <h3 className="text-base font-black text-[var(--ls-text)]">{section.title}</h3>
-                  <LoveSpeakerChip title={section.title} names={copy.speakerNames} />
+                  <LoveSpeakerChip title={section.title} names={names} />
                 </div>
                 <ConsultationReading kind="love" value={section.body} index={index} speaker={resolveLoveSpeaker(section.title)} className={`${styles.chapterProse} mt-2 text-[var(--ls-text-muted)]`} />
               </article>
@@ -1662,40 +1671,6 @@ function LoveSecretGroupCard({
         </div>
       </div>
     </section>
-  );
-}
-
-/** 좋은 날짜 — LLM 문장이 아니라 계산된 일진을 그대로 렌더한다. */
-function LoveSecretLuckyDates({ calendar }: { calendar: NonNullable<SajuSummary["calendar"]> }) {
-  return (
-    <div className="mt-5">
-      <p className="text-sm font-black text-[var(--ls-accent)]">
-        계산된 일진 · {calendar.rangeStart} ~ {calendar.rangeEnd}
-      </p>
-      <div className={`${styles.dateGrid} mt-3`}>
-        {calendar.best.map((day) => (
-          <div key={day.date} className={styles.dateChip}>
-            <p className="text-sm font-black text-[var(--ls-text)]">
-              {day.date.slice(5).replace("-", "월 ")}일
-            </p>
-            <p className="mt-0.5 text-xs font-bold text-[var(--ls-accent)]">
-              {day.weekday}요일 · {day.ganjiKo || day.ganji}
-            </p>
-            <p className="mt-1 text-[11px] leading-5 text-[var(--ls-text-muted)]">{day.grade}</p>
-          </div>
-        ))}
-      </div>
-      {calendar.caution?.length ? (
-        <p className="mt-3 text-xs leading-6 text-[var(--ls-text-muted)]">
-          조심할 날 · {calendar.caution.map((day) => day.date.slice(5)).join(", ")}
-        </p>
-      ) : null}
-      {calendar.monthlyFlow?.length ? (
-        <p className="mt-1.5 text-xs leading-6 text-[var(--ls-text-muted)]">
-          월별 흐름 · {calendar.monthlyFlow.map((month) => `${month.monthLabel} ${month.grade}`).join(" · ")}
-        </p>
-      ) : null}
-    </div>
   );
 }
 

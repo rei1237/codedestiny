@@ -127,15 +127,25 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
     space,
 
     /** 새 장을 연다. 🔴 장 제목이 페이지 맨 아래에 홀로 남지 않도록 **항상** 새 페이지에서 시작한다. */
-    chapter(kicker: string, title: string) {
+    chapter(kicker: string, title: string, portrait?: { dataUrl: string; ratio: number }) {
       newPage();
+      const portraitSize = 11;
+      let indent = 0;
+      if (portrait) {
+        try {
+          const width = Math.min(portraitSize, portraitSize / portrait.ratio);
+          pdf.addImage(portrait.dataUrl, "JPEG", MARGIN_X_MM, cursorY - 2, width, width * portrait.ratio);
+          indent = portraitSize + 4;
+        } catch { /* Keep the chapter heading readable if the image cannot be embedded. */ }
+      }
       if (kicker) {
         setStyle(fonts.body, 8.5, INK.gold);
-        lines(kicker, 8.5, 1.4);
+        lines(kicker, 8.5, 1.4, indent);
         space(4);
       }
       setStyle(fonts.title, 17, INK.title);
-      lines(title, 17, 1.35);
+      lines(title, 17, 1.35, indent);
+      if (indent) cursorY = Math.max(cursorY, MARGIN_TOP_MM + portraitSize);
       space(2.5);
       pdf.setDrawColor(INK.rule[0], INK.rule[1], INK.rule[2]);
       pdf.setLineWidth(0.3);
@@ -257,25 +267,28 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
 
       const kept = rows.filter((row) => cleanReportText(row?.label, 120) || cleanReportText(row?.value, 400));
       for (let i = 0; i < kept.length; i += 1) {
+        setStyle(fontOf(style.font), style.sizePt, inkOf(style.color));
+        const valueLines = wrap(cleanReportText(kept[i]?.value, 400), CONTENT_WIDTH_MM - labelWidth);
+        const rowHeight = height * Math.max(1, valueLines.length);
         const remaining = kept.length - i;
         // 지금 줄과 마지막 줄이 갈라져 다음 페이지에 1행만 남게 되면 미리 넘긴다.
-        if (cursorY + height * 2 > CONTENT_BOTTOM_MM && remaining === 2) {
+        if (cursorY + rowHeight + height > CONTENT_BOTTOM_MM && remaining === 2) {
           newPage();
           cardTitle(title);
         } else {
-          need(height);
+          need(rowHeight);
         }
         if (cursorY === MARGIN_TOP_MM && i > 0) cardTitle(title);
 
         setStyle(fontOf(style.font), style.sizePt, INK.muted);
         pdf.text(wrap(cleanReportText(kept[i]?.label, 120), labelWidth - 4)[0] || "", MARGIN_X_MM, cursorY);
         setStyle(fontOf(style.font), style.sizePt, inkOf(style.color));
-        const valueLines = wrap(cleanReportText(kept[i]?.value, 400), CONTENT_WIDTH_MM - labelWidth);
         let lineY = cursorY;
         for (const line of valueLines) {
           pdf.text(line, MARGIN_X_MM + labelWidth, lineY);
           lineY += height;
         }
+        lineY = Math.max(lineY, cursorY + height);
         pdf.setDrawColor(INK.rule[0], INK.rule[1], INK.rule[2]);
         pdf.setLineWidth(0.2);
         pdf.line(MARGIN_X_MM, lineY - height + 1.6, MARGIN_X_MM + CONTENT_WIDTH_MM, lineY - height + 1.6);

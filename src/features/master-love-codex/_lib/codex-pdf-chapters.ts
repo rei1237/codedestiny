@@ -3,6 +3,7 @@ import type { CodexLoveDna } from "../components/CodexLoveDna";
 import { actForChapter, type CodexActMode } from "../data/acts";
 import type { CodexConsultation } from "./consultation";
 import type { CodexChapterData } from "../components/CodexChapter";
+import { loveDnaMetrics } from "./love-dna-metrics";
 
 /** 조판 PDF 한 장(lib/pdf/export-consultation-book-pdf 의 ConsultationBookChapter 와 같은 모양). */
 export type CodexPdfChapter = { kicker: string; title: string; body: string; speaker: string };
@@ -69,10 +70,11 @@ function chapterBody(chapter: CodexChapterData, consultation?: CodexConsultation
  * 받은 마스터 인연의 서 전체를 조판 PDF 장 목록으로 바꾼다. 결과 화면과 보관함이 같은 리더(CodexReader)를
  * 쓰므로 이 빌더 하나로 두 곳이 같은 책을 받는다. 장 순서대로 싣고 빈 장은 넣지 않는다.
  */
-export function buildMasterLoveCodexPdfChapters({ chapters, mode = "solo", consultation = null }: {
+export function buildMasterLoveCodexPdfChapters({ chapters, mode = "solo", consultation = null, speaker = MASTER_LOVE_CODEX_SPEAKER }: {
   chapters: CodexChapterData[] | null | undefined;
   mode?: CodexActMode;
   consultation?: CodexConsultation | null;
+  speaker?: string;
 }): CodexPdfChapter[] {
   return (Array.isArray(chapters) ? chapters : [])
     .filter((chapter) => chapter && text(chapter.body))
@@ -82,7 +84,7 @@ export function buildMasterLoveCodexPdfChapters({ chapters, mode = "solo", consu
       kicker: codexChapterKicker(chapter.order, mode),
       title: chapterTitle(chapter.title),
       body: chapterBody(chapter, consultation),
-      speaker: MASTER_LOVE_CODEX_SPEAKER,
+      speaker,
     }))
     .filter((chapter) => chapter.title && chapter.body.trim());
 }
@@ -105,7 +107,7 @@ export function buildMasterLoveCodexPdfSummary({ loveDna, totalCharCount = 0, ch
   chapterCount?: number;
 }): ConsultationBookSummary | null {
   if (!loveDna) return null;
-  const metrics = Array.isArray(loveDna.metrics) ? loveDna.metrics : [];
+  const metrics = loveDnaMetrics(loveDna);
   const total = Number(totalCharCount) || 0;
   const typeName = text(loveDna.typeName);
   const typeSummary = text(loveDna.typeSummary);
@@ -116,7 +118,7 @@ export function buildMasterLoveCodexPdfSummary({ loveDna, totalCharCount = 0, ch
     },
     {
       kind: "bars", title: SUMMARY_COPY.dna, note: SUMMARY_COPY.metricsNote,
-      rows: metrics.map((metric) => ({ label: text(metric.label), value: Number(metric.score), note: text(metric.basis) })),
+      rows: metrics.map((metric) => ({ label: metric.label, value: metric.score, note: text(metric.basis) })),
     },
   ];
   return { kicker: SUMMARY_COPY.kicker, title: SUMMARY_COPY.title, figures };

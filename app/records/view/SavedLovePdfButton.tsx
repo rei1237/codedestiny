@@ -3,12 +3,7 @@ import { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { recordReaderCopy } from '@/lib/records/reader-copy';
 import { asRecord as object, storedText as text } from '@/lib/records/reading-content';
-
-const SPEAKERS: Record<string, { yeoni: string; hanbi: string }> = {
-  ko: { yeoni: '연이', hanbi: '서한비' },
-  en: { yeoni: 'Yeoni', hanbi: 'Seo Hanbi' },
-  ja: { yeoni: 'ヨニ', hanbi: 'ソ・ハンビ' },
-};
+import { buildLoveReportSummary, loveCoverPortraits, loveReportSpeakerNames } from '@/app/love-secret-ai/result/love-report-overview';
 
 /** 보관함의 연애 비책을 결과 화면과 같은 조판 PDF로 저장한다. 저장된 글만 쓰고 다시 생성하지 않는다. */
 export default function SavedLovePdfButton({ row, locale }: { row: Record<string, unknown>; locale: string }) {
@@ -23,7 +18,7 @@ export default function SavedLovePdfButton({ row, locale }: { row: Record<string
         import('@/lib/pdf/export-consultation-book-pdf'),
         import('@/app/love-secret-ai/result/love-secret-pdf-chapters'),
       ]);
-      const names = SPEAKERS[locale.toLowerCase().split(/[-_]/)[0]] || SPEAKERS.en;
+      const names = loveReportSpeakerNames(locale);
       const chapters = buildLoveSecretPdfChapters(row as Parameters<typeof buildLoveSecretPdfChapters>[0], names);
       if (!chapters.length) throw new Error('no chapters');
       const id = text(row.sessionId || row.id).replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 40) || 'record';
@@ -32,9 +27,11 @@ export default function SavedLovePdfButton({ row, locale }: { row: Record<string
         productLabel: '연애 비책',
         byline: `${names.yeoni} · ${names.hanbi}`,
         coverTheme: 'love',
+        coverPortraits: loveCoverPortraits(names),
         date: text(row.createdAt).slice(0, 10) || new Date().toISOString().slice(0, 10),
         fileName: `love-secret-reading-${id}.pdf`,
         chapters,
+        summary: buildLoveReportSummary(row, locale),
       });
     } catch {
       setError(copy.pdfError);

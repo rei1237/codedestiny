@@ -1,0 +1,65 @@
+.masters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem 1.25rem;
+  padding-block: 1rem;
+  margin-block: 1rem;
+  border-block: 1px solid var(--ls-line);
+  list-style: none;
+}
+
+.master {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  flex: 1 1 12rem;
+  min-width: 0;
+  color: var(--ls-text);
+}
+
+.master img {
+  flex: none;
+  width: 4rem;
+  height: 4rem;
+  border-radius: .65rem;
+  object-fit: cover;
+  object-position: center 28%;
+}
+
+.master span,
+.timing td span {
+  display: block;
+  color: var(--ls-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.timing {
+  width: 100%;
+  margin-block: 1.25rem;
+  border-collapse: collapse;
+  text-align: start;
+  color: var(--ls-text);
+  font-size: .9375rem;
+  line-height: 1.55;
+}
+
+.timing caption {
+  text-align: start;
+  font-size: 1.125rem;
+  font-weight: 700;
+  padding-bottom: .5rem;
+}
+
+.timing th,
+.timing td {
+  padding: .55rem .5rem;
+  border-bottom: 1px solid var(--ls-line);
+  text-align: start;
+  vertical-align: top;
+}
+
+.timing th:first-child {
+  width: 33%;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
