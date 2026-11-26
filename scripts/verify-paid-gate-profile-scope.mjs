@@ -249,7 +249,8 @@ async function runTarget(dir) {
       title: "심층 사주 리포트",
       featureKey: "saju-deep",
       coinPrice: 50,
-      amountKrw: 5000,
+      // 정가 10,000원 미만은 서버 정책상 월정석 제외라 카드가 숨는다(2026-11-26) — 3옵션은 하한 정가로 본다.
+      amountKrw: 10000,
       membershipCreditCost: 500,
     });
     check("이용권/단건/월정석 3옵션이 모두 보인다", () => {

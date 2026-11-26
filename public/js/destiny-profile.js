@@ -12585,6 +12585,22 @@
     var providedMonthlyBalance = Number(opts.monthlyBalance !== undefined ? opts.monthlyBalance : opts.membershipCreditBalance);
     var monthlyBalanceFresh = isFinite(providedMonthlyBalance) && providedMonthlyBalance >= 0;
     var monthlyInsufficient = monthlyBalanceFresh && Math.floor(providedMonthlyBalance) < monthlyStones;
+    // 🔴 서버 정책상 월정석 제외(정가 10,000원 미만·hiddenMethods·allowedPaymentMethods 누락·정가 모름)는
+    // 카드를 아예 숨긴다. 판정은 셸·React 와 공유하는 코어 하나(checkout-entry isMonthlyChoiceExcluded)이고,
+    // 정가는 할인 전 금액이다. 코어가 없으면 fail-closed(숨김) — 이용권·단건은 그대로 남는다.
+    var monthlyPolicyExcluded = opts.monthlyExcludedReason === 'not_allowed';
+    if (!monthlyPolicyExcluded) {
+      var __dpMonthlyPolicyApi = _dpCheckoutEntry();
+      try {
+        monthlyPolicyExcluded = !(__dpMonthlyPolicyApi && typeof __dpMonthlyPolicyApi.isMonthlyChoiceExcluded === 'function')
+          || __dpMonthlyPolicyApi.isMonthlyChoiceExcluded({
+            featureKey: opts.featureKey,
+            amountKRW: Math.max(0, Math.floor(Number(opts.amountKrw || (cost * 100)))),
+            paymentOptions: opts.paymentOptions
+          }) === true;
+      } catch (_dpMonthlyPolicyError) { monthlyPolicyExcluded = true; }
+    }
+    var allowMonthlyChoice = !monthlyPolicyExcluded;
     var title = String(opts.title || opts.reason || _dpCheckoutText('payment.directModal.defaultTitle', '유료 서비스')).trim();
     var coverage = opts.membershipCoverage && typeof opts.membershipCoverage === 'object' ? opts.membershipCoverage : null;
     var tierName = String((coverage && (coverage.tier || coverage.passTier)) || '').trim();
@@ -12597,7 +12613,7 @@
       amountKRW: cost * 100,
       allowPass: true,
       allowDirect: true,
-      allowMonthly: true,
+      allowMonthly: allowMonthlyChoice,
       hasActivePassTier: hasActivePassTier,
       monthlyBalanceFresh: false,
       monthlyBalance: 0,
@@ -12675,8 +12691,10 @@
     // 결제창은 열릴 때 잔량을 조회하지 않는다 — 사용자가 눌러야만 조회하고, 실패해도 월정석 카드의
     // disabled 는 건드리지 않는다. data-mode 를 주지 않는다(아래 델리게이션이 "고르면 닫는" 동작이라
     // 붙이면 창이 닫힌다). <button> 중첩도 금지라 카드 아래 형제로 놓는다(그리드가 1열).
-    var monthlyBalanceCheckHtml = '<button type="button" class="cd-direct-payment-balance-check" data-monthly-balance-check>' + esc(_dpCheckoutText('payment.directModal.monthlyBalance.checkButton', '보유 월정석 확인')) + '</button>' +
-      '<span class="cd-direct-payment-balance-value" data-monthly-balance-text role="status" aria-live="polite" hidden></span>';
+    var monthlyBalanceCheckHtml = allowMonthlyChoice
+      ? '<button type="button" class="cd-direct-payment-balance-check" data-monthly-balance-check>' + esc(_dpCheckoutText('payment.directModal.monthlyBalance.checkButton', '보유 월정석 확인')) + '</button>' +
+        '<span class="cd-direct-payment-balance-value" data-monthly-balance-text role="status" aria-live="polite" hidden></span>'
+      : '';
     // 카드 뼈대(배지·추천 리본·go 스트립·variant 클래스) 조립은 세 렌더러 공유 함수 하나가 맡는다
     // (js/core/checkout-entry.js buildPaymentChoiceCardsHtml). 추천 카드 하나만 크게, 나머지 둘은
     // 컴팩트 행. 🔴 숨기거나 접지 않는다 — 세 옵션은 항상 함께 보인다.
@@ -12707,7 +12725,7 @@
               descHtml: esc(directHint),
             },
             monthly: {
-              allow: true,
+              allow: allowMonthlyChoice,
               dataMode: 'monthly',
               extraDataAttrs: ' data-monthly-option' + (monthlyInsufficient ? ' disabled aria-disabled="true"' : ''),
               extraClass: monthlyInsufficient ? ' is-disabled' : '',

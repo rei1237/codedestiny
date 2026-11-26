@@ -686,6 +686,36 @@
   }
 
   /**
+   * 월정석 카드를 **서버 정책상** 아예 빼야 하는지. 🔴 세 렌더러 공유 순수 함수(서버 호출 없음).
+   * 서버 정본은 worker/lib/paid-feature-registry.js getPaidFeaturePaymentPolicy().monthlyExcluded 이고
+   * 거기서 제외된 상품에 월정석을 보내면 402 MONTHLY_NOT_ALLOWED 가 난다 — 그 카드를 띄우지 않는 것이 목적이다.
+   * 판정 순서: ① paymentOptions.hiddenMethods 에 MOONLIGHT_STONE ② allowedPaymentMethods 가 있는데 빠짐
+   * ③ 정가(할인 전 amountKRW) < MOONSTONE_MIN_PRODUCT_KRW ④ 정가 모름 → 제외(fail-closed; 이용권·단건은 그대로).
+   * 잔량 부족은 여기서 다루지 않는다(그건 회색 비활성으로 남긴다).
+   */
+  var MOONSTONE_MIN_PRODUCT_KRW = 10000;
+  function normalizeMonthlyMethodList(value) {
+    var list = Array.isArray(value) ? value : (value == null ? [] : String(value).split(","));
+    return list.map(function (method) {
+      var normalized = String(method || "").trim().toUpperCase().replace(/[\s-]+/g, "_");
+      if (normalized === "MONTHLY_CREDIT" || normalized === "MEMBERSHIP_CREDIT" || normalized === "MOONLIGHTSTONE") return "MOONLIGHT_STONE";
+      return normalized;
+    }).filter(Boolean);
+  }
+  function isMonthlyChoiceExcluded(input) {
+    var opts = input || {};
+    var paymentOptions = opts.paymentOptions && typeof opts.paymentOptions === "object" ? opts.paymentOptions : {};
+    if (normalizeMonthlyMethodList(paymentOptions.hiddenMethods).indexOf("MOONLIGHT_STONE") >= 0) return true;
+    if (paymentOptions.allowedPaymentMethods != null) {
+      var allowed = normalizeMonthlyMethodList(paymentOptions.allowedPaymentMethods);
+      if (allowed.indexOf("MOONLIGHT_STONE") < 0) return true;
+    }
+    var amount = Number(opts.amountKRW);
+    if (!Number.isFinite(amount) || amount <= 0) return true;
+    return amount < MOONSTONE_MIN_PRODUCT_KRW;
+  }
+
+  /**
    * 결제창에서 어느 선택지를 '추천'으로 올릴지. 🔴 세 렌더러가 같은 답을 내야 하므로 여기 하나만 둔다
    * (분기를 3벌 복제하면 어느 한쪽만 고쳐질 때 같은 사용자가 기기마다 다른 추천을 본다).
    *
@@ -2320,6 +2350,8 @@
     refundConsentAgreed: refundConsentAgreed,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
+    MOONSTONE_MIN_PRODUCT_KRW: MOONSTONE_MIN_PRODUCT_KRW,
+    isMonthlyChoiceExcluded: isMonthlyChoiceExcluded,
     buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,
     DIRECT_PAY_METHOD_ORDER: DIRECT_PAY_METHOD_ORDER,
     DEFAULT_DIRECT_PAY_METHOD: DEFAULT_DIRECT_PAY_METHOD,

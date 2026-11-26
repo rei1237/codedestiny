@@ -3210,7 +3210,8 @@
         "passSaveUnverified": "We konden het resultaat van het toepassen van je pas niet opslaan. Controleer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passCheckFailed": "We konden je pas niet controleren. Probeer het opnieuw met de paskaart hieronder of kies een andere betaalmethode.",
         "passMiss": "Je pas opent deze inhoud niet gratis; hier zijn de betaalopties.",
-        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options."
+        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
       },
       "passBadge": "Honingpot-pas",
       "passStoreTitle": "Honingpot-pas-winkel",

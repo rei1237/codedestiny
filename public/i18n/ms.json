@@ -3210,7 +3210,8 @@
         "passSaveUnverified": "Kami tidak dapat menyimpan hasil penggunaan Pas anda. Semak semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
-        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options."
+        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
       },
       "passBadge": "Pas Balang Madu",
       "passStoreTitle": "Kedai Pas Balang Madu",

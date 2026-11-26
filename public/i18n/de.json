@@ -3210,7 +3210,8 @@
         "passSaveUnverified": "Das Ergebnis der Pass-Anwendung konnte nicht gespeichert werden. Prüfe es unten mit der Pass-Karte erneut oder wähle eine andere Zahlungsart.",
         "passCheckFailed": "Wir konnten deinen Pass nicht prüfen. Versuche es unten mit der Pass-Karte erneut oder wähle eine andere Zahlungsart.",
         "passMiss": "Dein Pass öffnet diesen Inhalt nicht kostenlos – hier sind die Zahlungsoptionen.",
-        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options."
+        "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
       },
       "passBadge": "Honigglas-Pass",
       "passStoreTitle": "Honey Jar Pass Shop",
