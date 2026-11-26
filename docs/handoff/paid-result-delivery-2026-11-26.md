@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-26
-next: B — B-2·B-3(points 자동 재확인, 에이전트 진행 중), B-4·B-5(SoulCat requestId·꿀단지 버튼 주 버튼 옆·낡은 표·매트릭스 테스트, 에이전트 진행 중) → 통합 검사 → push → 운영 배포
+next: 없음 — A·B 운영 배포 완료(A 45730298952/453952ccf6, B 45746567566/010fbc596c). 남은 항목은 보고만(아래 B 결과)
 ---
 
 # 11/25 결제 후 결과 미표시(A) + 이용권 결제 조회 멈춤·한도(B) 인수인계
@@ -84,12 +84,19 @@ next: B — B-2·B-3(points 자동 재확인, 에이전트 진행 중), B-4·B-5
 - [x] A-1 실화면: 결제 직후 정체/크래시 원인 판정 → 수정본이 원인이면 원인 지점 수정(덧대지 말고), 베이스라인 결함이면 같이 고칠지 판단(실사용 영향 있으면 A 범위 — "모든 유료 기능 결제 후 결과 제공"). buy 412/1280, owned 412/1280 통과 + visual-checker 판정.
 - [x] A-2 check:fast, paid-gate-auditor, payment-freeze (결과는 위 A-2 절)
 - [x] A-3 rebase(origin/main dc34422f4c 위, 충돌 0)·sync:public 무변경·check:pre-push 통과 → push e8cc71d3bf. 1차 dispatch 45730041723 은 옆 세션 커밋 626064bb69·453952ccf6 이 끼어 checkout 단계에서 취소(배포 없음) → 사용자 승인("함께 배포") → main CI(PR CI) 성공 확인 → 운영 dispatch 45730298952 success, Pages·Worker 배포 SHA 453952ccf6 검증 통과, 운영 /·/ggulggul/·/points/ 200. 🔴 check:critical 은 별도 실행 안 함(check:fast critical 승격 + CI 로 대신) → B 통합 검사 때 --base=4b2617e036 로 1회.
-- [ ] B-1 운영 DB 읽기 전용: 17:48 premium·20:21 standard 주문 status, 사용자 `lastPassOrderId`/`passGrantOrderIds` 포함 여부, 현재 tier·잔여 한도, 지급 실패 사유(스크립트는 워크트리 `.tmp/`에 커밋 안 되는 파일로; 참고 `.tmp/survey-1125.mjs`, find+projection만, fetch 차단, 해시 출력). 지급 누락이면 수동 쓰기 금지 → 고친 confirm 재실행 경로로 복구되게 하고, 안 되면 멈추고 승인 요청.
-- [ ] B-2 클라이언트: PointsClient GRANT_PENDING·직후 422를 "확인 중"으로, 3→5→10→20s 백오프 약 2분 자동 재확인, 대기 기록 24h, 확정은 성공/명확 실패만.
-- [ ] B-3 서버: 지급 실패 사유 코드 응답·로그. B-1에서 확인된 사유만 문서 규칙대로 수정.
-- [ ] B-4 SoulCat requestId 정합(CheckoutClient 쪽에서 64hex 생성이 최소 — 서버 형식 완화보다 우선), 낡은 표 4곳 정본 파생, CheckoutClient 헤더 주석 정정.
-- [ ] B-5 매트릭스 테스트(전 유료 featureKey × 4 tier, 클라 pass-verdict == 서버 evaluatePassCoverage, 한도 소진·잔여 부족 포함) + grant-pending 테스트 보강 + 기존 pass 테스트·verify 실행.
-- [ ] B-6 check:fast, auditor, freeze, mock `/points` 실화면 412·1280.
-- [ ] B-7 커밋(클라/서버/표·테스트 분리) → push → CI → 운영 dispatch → 스모크.
-- [ ] 정리: dev 서버 PID 종료, 다른 체크아웃(루트 말고 별도 경로에서도 되면 그곳)에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\paid-result-delivery-20261126-044518'`, `.tmp/survey-1125.mjs`·`.tmp/dev-mock.log`·`.tmp/light-saju*`·`.tmp/mine/`·`.tmp/run-noopen.txt` 삭제, 스크래치패드 `D:\Development\Temp\claude\40e1d9fc07e84b89\af219051-889d-4fa9-a7c1-1c79d8182da2\scratchpad\` 의 survey-1125.mjs·orphans.json·health.json·survey.json·fixtest.js 삭제, 이 문서 `status: done`, 상태 파일 닫기.
+- [x] B-1 운영 DB 읽기 전용: 17:48 premium·20:21 standard 주문 status, 사용자 `lastPassOrderId`/`passGrantOrderIds` 포함 여부, 현재 tier·잔여 한도, 지급 실패 사유(스크립트는 워크트리 `.tmp/`에 커밋 안 되는 파일로; 참고 `.tmp/survey-1125.mjs`, find+projection만, fetch 차단, 해시 출력). 지급 누락이면 수동 쓰기 금지 → 고친 confirm 재실행 경로로 복구되게 하고, 안 되면 멈추고 승인 요청.
+- [x] B-2 클라이언트: PointsClient GRANT_PENDING·직후 422를 "확인 중"으로, 3→5→10→20s 백오프 약 2분 자동 재확인, 대기 기록 24h, 확정은 성공/명확 실패만.
+- [x] B-3 서버: 지급 실패 사유 코드 응답·로그. B-1에서 확인된 사유만 문서 규칙대로 수정.
+- [x] B-4 SoulCat requestId 정합(CheckoutClient 쪽에서 64hex 생성이 최소 — 서버 형식 완화보다 우선), 낡은 표 4곳 정본 파생, CheckoutClient 헤더 주석 정정.
+- [x] B-5 매트릭스 테스트(전 유료 featureKey × 4 tier, 클라 pass-verdict == 서버 evaluatePassCoverage, 한도 소진·잔여 부족 포함) + grant-pending 테스트 보강 + 기존 pass 테스트·verify 실행.
+- [x] B-6 check:fast, auditor, freeze, mock `/points` 실화면 412·1280.
+- [x] B-7 커밋(클라/서버/표·테스트 분리) → push → CI → 운영 dispatch → 스모크.
+- [x] 정리: dev 서버 PID 종료, 다른 체크아웃(루트 말고 별도 경로에서도 되면 그곳)에서 `npm run worktree:remove -- 'D:\Development\codedestiny-worktrees\paid-result-delivery-20261126-044518'`, `.tmp/survey-1125.mjs`·`.tmp/dev-mock.log`·`.tmp/light-saju*`·`.tmp/mine/`·`.tmp/run-noopen.txt` 삭제, 스크래치패드 `D:\Development\Temp\claude\40e1d9fc07e84b89\af219051-889d-4fa9-a7c1-1c79d8182da2\scratchpad\` 의 survey-1125.mjs·orphans.json·health.json·survey.json·fixtest.js 삭제, 이 문서 `status: done`, 상태 파일 닫기.
 - 최종 보고(한국어): 조사표, A 원인·수정, 수정 2 불필요 근거, cda861 재진입 안전, B 결과, 10,000원 이하 이용권 적용 표, 남은 위험(`/records/`에 라이트 사주 미노출, 영냥이 이용권 버튼 노출은 사용자 결정).
+
+## B 결과 (2026-11-26, 완료)
+- B-1: 두 이용권 주문 서버 정상 지급 → 수동 지급 없음. B-2 자동 재확인(3→5→10→20s, ~118s)·NOT_PAID 10분 유예·대기 24h. B-3 GRANT_PENDING 사유 코드. B-4 정책 버전별 클라 한도, 주 버튼 옆 꿀단지 버튼(PreparedCheckoutClient). B-5 매트릭스 10/10.
+- 검증: check:fast --base=d956827923 exit 0(paid-gate 78/0, jest 8695/1 skip), pre-push 0, main PR CI success, 운영 run 45746567566 success·SHA 010fbc596c 확인, /·/ggulggul/·/points/·/checkout/ 200.
+- 실화면(mock, 412·1280): 옆 버튼·대비 10.46:1·details 중복 숨김·MEMBERSHIP_PASS 경로·미커버 시 미노출·/points 자동 재확인 전부 PASS. 미검증: SoulCat 모드 화면, 118s 소진 뒤 수동 버튼.
+- 함정: 검증기 verify-per-use-never-unlocks 는 grantOrderEntitlement 시그니처 문자열을 그대로 찾는다 → 시그니처 바꾸면 검증기도 갱신(c663d8b0eb).
+- 보고만(미수정): 한국어 웹 기본 결제창(YeongnyangiCheckout, CheckoutClient.tsx:153-157 분기)엔 옆 버튼 없음 — 꿀단지 라디오 기본 선택으로 대체. service-packs.module.css:10 .passOn nowrap 넘침(412, 기존). SoulCat requestId 설계, 이용권 성공 토스트 영어(worker/payments/index.js:822), 달빛 잔존 문구, 연장하기 대비 3.3:1, Yeongnyangi Browser Shadow 11-25부터 상시 실패(기존).
