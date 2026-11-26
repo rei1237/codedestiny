@@ -23606,8 +23606,8 @@ async function runCompat(){
 }
 
 /* ─── 사주 라이트 궁합 결제 게이트(2026-11-26 사용자 지시, 3,000원) ─────────────────────────────
-   공통 셸 게이트(_cdCoinGatePerUse)가 이용권 스냅샷 → 결제창(이용권·단건)을 처리한다. 월정석은 서버 카탈로그가
-   10,000원 미만 상품이라 자동으로 뺀다. 결제 복귀는 _seRunSajuCompatResume 이 같은 입력으로 전체 풀이를 다시 그린다.
+   공통 셸 게이트(_cdCoinGatePerUse)가 이용권 스냅샷 → 결제창(이용권·단건)을 처리한다. 월정석 차감은 10,000원 미만
+   상품이라 서버가 402 MONTHLY_NOT_ALLOWED 로 거절한다(셸 결제창은 월정석 카드를 아직 그린다 — 동결 렌더러 후속 과제). 결제 복귀는 _seRunSajuCompatResume 이 같은 입력으로 전체 풀이를 다시 그린다.
    🔴 전체 풀이(runCompatCore 의 lightPaid)는 이 함수의 성공 콜백과 결제 복귀에서만 연다. */
 var _SE_SAJU_COMPAT_LIGHT_FEATURE_KEY = 'saju-compat-light';
 var _SE_SAJU_COMPAT_LIGHT_COST = 30;
@@ -24403,12 +24403,16 @@ function _seCompatLightSectionsHtml(p1, n1, pw1, p2, n2, pw2, type, selfName, pa
   // 3) 연애·소통 스타일 비교 (관계 유형별 문구)
   var styleTitle = kind === 'business' ? '💬 협업·소통 스타일 비교' : kind === 'friend' ? '💬 우정·소통 스타일 비교' : '💬 연애·소통 스타일 비교';
   var expressLabel = kind === 'business' ? '일하는 방식' : '마음을 표현하는 방식';
-  var styleCards = people.map(function(x) {
-    var st = _SE_COMPAT_STYLE[x.pr.group] || _SE_COMPAT_STYLE.비겁;
-    return card(cardHead(esc(x.name) + ' · ' + esc(_SE_COMPAT_GROUP_LABEL[x.pr.group] || x.pr.group))
+  var styleCard = function(head, group) {
+    var st = _SE_COMPAT_STYLE[group] || _SE_COMPAT_STYLE.비겁;
+    return card(cardHead(head + ' · ' + esc(_SE_COMPAT_GROUP_LABEL[group] || group))
       + line(expressLabel, st.express[kind])
       + line('갈등이 생기면', st.conflict));
-  }).join('');
+  };
+  // 두 사람의 두드러진 십성 묶음이 같으면 같은 본문 카드가 두 번 나오지 않게 한 장으로 합친다.
+  var styleCards = me.group === you.group
+    ? styleCard('두 사람 모두', me.group)
+    : people.map(function(x) { return styleCard(esc(x.name), x.pr.group); }).join('');
   var pairLine = me.group === you.group
     ? '두 사람 모두 ' + esc(_SE_COMPAT_GROUP_LABEL[me.group]) + ' 성향이 두드러져 말이 잘 통하는 편이에요. 다만 같은 지점에서 함께 고집하거나 함께 놓칠 수 있으니, 서로 다른 역할을 하나쯤 정해 두면 좋아요.'
     : '표현하는 방식이 서로 달라, ' + (kind === 'business' ? '같은 의도라도' : '같은 마음이라도') + ' 상대에게는 다르게 전달될 수 있어요. 상대가 ' + (kind === 'business' ? '신뢰' : '애정') + '를 보여 주는 방식을 한 가지씩 알아 두면 오해가 줄어요.';

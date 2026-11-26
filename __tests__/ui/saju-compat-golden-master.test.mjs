@@ -59,9 +59,9 @@ function measure() {
 // 기준값(현행 엔진 출력). 이 값이 바뀌면 사용자에게 보이는 궁합 결과가 달라진 것이다.
 const EXPECTED = {
   named: {
-    'S0-love': '7891efa7430b59e5',
-    'S0-business': '578be4853b91f9d2',
-    'S0-friend': '44ced8d481d423c0',
+    'S0-love': 'f06f82ab171e713a',
+    'S0-business': '71b99971401b5a4c',
+    'S0-friend': '479e2d4ddac2a901',
     'S0-pastLife': 'c27c308fe5a929c1',
     'S1-love': 'fc69549b724774e6',
     'S1-business': '72fb3232cd5867c6',
@@ -83,9 +83,9 @@ const EXPECTED = {
     'B1-business': 'd6fceb6ed994b8a0',
     'B1-friend': '4d27fe958d5b194a',
     'B1-pastLife': 'aa68029f6078b5ea',
-    'C0-love': '9040daa8df31f724',
-    'C0-business': '96dcff1bb4289382',
-    'C0-friend': 'a8c8f183e066b18c',
+    'C0-love': '5473ee1285d05ed3',
+    'C0-business': '31099a7684ff9947',
+    'C0-friend': 'a3e688abafb52016',
     'C0-pastLife': 'f20f535d6288a0e8',
     'C1-love': '0343b616869a446c',
     'C1-business': '69f49e0a347364a9',
@@ -103,14 +103,15 @@ const EXPECTED = {
     'F0-business': '8cba84bc4d71e74a',
     'F0-friend': 'e066d6696a43f8d9',
     'F0-pastLife': '535e73a3b7c0a1c1',
-    'F1-love': 'af37a9881ec1ea80',
-    'F1-business': '1a59ce3628e89138',
-    'F1-friend': '026ebcdd5c762ae5',
+    'F1-love': '9cf9306c59dc0728',
+    'F1-business': '3ac18a6bb52c215f',
+    'F1-friend': '2f73c3dd010618f3',
     'F1-pastLife': 'ed860a711239cb47',
   },
   // 2026-10-26 종격 판정을 natal-core로 옮기며 코퍼스 300쌍 중 19쌍이 바뀌었다(고정 쌍 36건은 그대로).
   // 2026-11-26 라이트 궁합 유료 섹션 마크업을 인라인 스타일에서 클래스로 바꿨다(점수·등급·보이는 글은 900쌍 동일, html 바이트만 변경).
-  corpus: '25dd4fd9002b782202f652773c939ddf',
+  // 2026-11-26 두 사람의 두드러진 십성 묶음이 같으면 소통 스타일 카드를 한 장(두 사람 모두)으로 합쳤다(점수·등급 900쌍 동일, 같은 묶음 213/900의 소통 섹션 html 만 변경).
+  corpus: '69b901f61092ce2dcc109df39f554a01',
 };
 
 const measured = measure();
