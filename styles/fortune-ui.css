@@ -4641,7 +4641,8 @@ body.neo-mode .cd-compat-snap .compat-energy-label{color:var(--cd-accent,#d8b4fe
 .cd-compat-light-memo b{display:block;color:var(--lt-ink);font-size:.82rem}
 /* 결제 뒤 섹션 — 같은 종이 결, 둥근 카드 */
 .cd-compat-light-sections{display:block}
-.cd-compat-light-sections .compat-section{position:relative;border:1px solid var(--lt-line-soft);border-radius:24px;background:linear-gradient(180deg,var(--lt-paper),#fff);box-shadow:0 10px 24px -22px rgba(120,40,80,.45)}
+.cd-compat-light-sections .compat-section,#resultPage #compatResult .cd-compat-light-sections .compat-section,.cd-compat-archive .cd-compat-light-sections .compat-section{position:relative;isolation:isolate;border:1px solid var(--lt-line);border-radius:24px;background:radial-gradient(90% 60% at 100% 0%,rgba(244,214,159,.22),transparent 70%),linear-gradient(180deg,var(--lt-paper),var(--lt-blush));box-shadow:0 10px 24px -22px rgba(120,40,80,.45)}
+.cd-compat-light-sections .compat-section::before{content:"";position:absolute;inset:4px;z-index:-1;border:1px solid var(--lt-line-soft);border-radius:20px;pointer-events:none}
 .cd-compat-light-sections .compat-section-title{color:var(--lt-ink)}
 .cd-compat-light-card{padding:14px 16px;border:1px solid rgba(244,190,209,.7);border-radius:20px;background:linear-gradient(160deg,#fff,var(--lt-blush))}
 .cd-compat-light-card__head{margin:0 0 6px;color:var(--lt-rose);font-size:.92rem;font-weight:800;line-height:1.5}
@@ -4652,13 +4653,14 @@ body.neo-mode .cd-compat-snap .compat-energy-label{color:var(--cd-accent,#d8b4fe
 .cd-compat-light-text{margin:10px 0 0;color:var(--lt-ink);font-size:.9rem;line-height:1.75}
 .cd-compat-light-text p{margin:0 0 6px}
 .cd-compat-light-note{margin:8px 0 0;color:var(--lt-muted);font-size:.8rem;line-height:1.6}
+.cd-compat-light-sections .compat-check-item.cd-compat-light-point,#resultPage #compatResult .cd-compat-light-sections .compat-check-item.cd-compat-light-point,.cd-compat-archive .cd-compat-light-sections .compat-check-item.cd-compat-light-point{padding:6px 0;border-bottom-color:var(--lt-line-soft)}
 .cd-compat-light-point>span:last-child{color:var(--lt-ink);font-size:.9rem;line-height:1.75}
 @media (max-width:420px){.cd-compat-light-preview .cd-compat-light-hero{padding:18px 8px 0 16px}.cd-compat-light-hero__pig{width:82px}.cd-compat-light-lock{padding:20px 16px 18px}}
 @media (prefers-reduced-motion:reduce){.cd-compat-light-lock__btn{transition:none}.cd-compat-light-lock__btn:active{transform:none}}
 @media (forced-colors:active){.cd-compat-light-hero,.cd-compat-light-lock,.cd-compat-light-lock__btn,.cd-compat-light-card{border-color:ButtonText}.cd-compat-light-hero>.cd-yehwa-sprig,.cd-compat-light-lock>.cd-yehwa-sprig,.cd-compat-light-memo>.cd-yehwa-seal{display:none}}
 body.neo-mode .cd-compat-light-preview,body.neo-mode .cd-compat-light-sections{--lt-ink:var(--cd-text,#f4eeff);--lt-muted:var(--cd-text-muted,#cfc6e6);--lt-rose:#e8d5a3;--lt-paper:rgba(36,33,57,.96);--lt-blush:rgba(27,24,48,.96);--lt-line:rgba(232,213,163,.42);--lt-line-soft:rgba(232,213,163,.22)}
 body.neo-mode .cd-compat-light-lock__list,body.neo-mode .cd-compat-light-preview__score,body.neo-mode .cd-compat-light-hero__eyebrow,body.neo-mode .cd-compat-light-memo,body.neo-mode .cd-compat-light-chip{background:rgba(19,16,42,.7)}
-body.neo-mode .cd-compat-light-sections .compat-section,body.neo-mode .cd-compat-light-card{background:linear-gradient(160deg,var(--lt-paper),var(--lt-blush))}
+body.neo-mode .cd-compat-light-sections .compat-section,body.neo-mode #resultPage #compatResult .cd-compat-light-sections .compat-section,body.neo-mode .cd-compat-archive .cd-compat-light-sections .compat-section,body.neo-mode .cd-compat-light-card{background:linear-gradient(160deg,var(--lt-paper),var(--lt-blush))}
 /* 셀럽 시나스트리 실험실 하단 「실제 궁합」 안내(js/saju-engine.js astroSynastrySection) — 어두운 실험실 위 크림 쪽지.
    🔴 예전 .astro-paid-note(어두운 호박색) 위에 .cd-yehwa-button 을 얹어 대비가 무너졌다. 밝은 종이 위에 두면 공용 버튼 토큰이 그대로 읽힌다. */
 .cd-fun-compat-note{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:end;margin:14px 0 0;padding:18px 14px 0 18px;border:1px solid rgba(201,164,106,.55);border-radius:26px;background:radial-gradient(120% 90% at 100% 100%,rgba(244,190,209,.45),transparent 62%),linear-gradient(160deg,#fffdf8,#f6e6ee);box-shadow:0 14px 30px -20px rgba(0,0,0,.55);color:#3c1830;text-align:left}
