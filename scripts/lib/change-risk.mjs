@@ -146,6 +146,8 @@ const deepVerificationRules = [
   //    deploy:critical 전체 회귀가 돌지 않았다. 서비스별 전달 파일은 계약 테스트가 따로 지키므로 여기 넣지 않는다.
   [/^worker\/lib\/(payment-refund|consultation-delivery-refund|consultation-refund-state|checkpoint-refund-guard|coin-refund-eligibility|refund-delivery-protection)\.js$/i, "결제 후 전달 실패 환불·환불 가드"],
   [/^worker\/lib\/pass-consumption\.js$/i, "이용권·월정석 차감·환불"],
+  // 환불 근거 기능 키 별칭 정본(2026-11-26, geomancy → openGeomancyOracle). 이 표만 고친 커밋도 환불기 4종의 판정을 바꾼다.
+  [/^worker\/lib\/refund-feature-alias\.js$/i, "환불 근거 기능 키 별칭"],
   [/^worker\/lib\/(paid-delivery-stuck|consultation-recovery-task)\.js$/i, "정체 자동 확정·복구 크론"],
   [/^worker\/lib\/paid-narrative-delivery\.js$/i, "서술형 공용 전달 엔진(실행 기록·환불 근거)"],
 
@@ -338,6 +340,7 @@ export function selfTest() {
     ["worker/lib/coin-refund-eligibility.js", true],
     ["worker/lib/refund-delivery-protection.js", true],
     ["worker/lib/pass-consumption.js", true],
+    ["worker/lib/refund-feature-alias.js", true],
     ["worker/lib/paid-delivery-stuck.js", true],
     ["worker/lib/consultation-recovery-task.js", true],
     ["worker/lib/paid-narrative-delivery.js", true],
