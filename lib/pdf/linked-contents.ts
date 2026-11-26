@@ -13,12 +13,21 @@ export function planLinkedContents(pdf:Pdf,fonts:PdfFonts,titles:string[]){
  });
  return {entries,pages:page-1,line};
 }
-export function drawLinkedContents(pdf:Pdf,fonts:PdfFonts,plan:ReturnType<typeof planLinkedContents>){
+type ContentsPalette = { ink: readonly [number, number, number]; rule: readonly [number, number, number]; accent: readonly [number, number, number] };
+export function drawLinkedContents(pdf:Pdf,fonts:PdfFonts,plan:ReturnType<typeof planLinkedContents>,palette?:ContentsPalette){
  for(let page=2;page<=plan.pages+1;page++){
   pdf.setPage(page);pdf.setFont(fonts.body,'normal');pdf.setFontSize(17);pdf.setTextColor(55,37,55);
   pdf.text(page===2?'차례':'차례 · 계속',MARGIN_X_MM,MARGIN_TOP_MM+6);pdf.setFontSize(10.5);
   for(const entry of plan.entries.filter(entry=>entry.tocPage===page)){
+   if(palette){
+    pdf.setTextColor(...palette.ink);
+    pdf.setDrawColor(...palette.rule);
+    pdf.setLineWidth(0.16);
+    const divider = entry.y + (entry.lines.length - 1) * plan.line + 2.4;
+    pdf.line(MARGIN_X_MM, divider, MARGIN_X_MM + CONTENT_WIDTH_MM, divider);
+   }
    pdf.text(entry.lines,MARGIN_X_MM,entry.y,{lineHeightFactor:1.7});
+   if(palette) pdf.setTextColor(...palette.accent);
    pdf.text(String(entry.destination),MARGIN_X_MM+CONTENT_WIDTH_MM,entry.y,{align:'right'});
    pdf.link(MARGIN_X_MM,entry.y-plan.line,CONTENT_WIDTH_MM,entry.lines.length*plan.line+4,{pageNumber:entry.destination});
   }

@@ -78,8 +78,8 @@ export function buildLoveReportSummary(source: unknown, locale = "ko"): Consulta
     title: copy.overview,
     figures: [
       { kind: "lead", title: copy.diagnosis, text: diagnosis },
-      { kind: "timeline", title: copy.months, items: months },
-      { kind: "timeline", title: copy.dates, items: dates },
+      { kind: "timeline", title: copy.months, columns: { label: copy.date, detail: copy.flow }, items: months },
+      { kind: "timeline", title: copy.dates, columns: { label: copy.date, detail: copy.flow, source: copy.basis }, items: dates },
     ],
   };
 }

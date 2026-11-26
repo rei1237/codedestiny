@@ -125,6 +125,7 @@ export function createTypesetWriter(pdf: JsPDFInstance, fonts: PdfFonts) {
     get y() { return cursorY; },
     newPage,
     space,
+    ensureSpace: need,
 
     /** 새 장을 연다. 🔴 장 제목이 페이지 맨 아래에 홀로 남지 않도록 **항상** 새 페이지에서 시작한다. */
     chapter(kicker: string, title: string, portrait?: { dataUrl: string; ratio: number }) {
