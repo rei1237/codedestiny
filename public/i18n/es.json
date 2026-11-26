@@ -3211,7 +3211,8 @@
         "passCheckFailed": "No hemos podido comprobar tu pase. Vuelve a intentarlo con la tarjeta de pase de abajo o elige otro método de pago.",
         "passMiss": "Tu pase no abre este contenido gratis, así que aquí tienes las opciones de pago.",
         "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
-        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option.",
+        "withPassNoMonthly": "Elige entre pase o tarjeta."
       },
       "passBadge": "Pase a la luz de la luna",
       "passStoreTitle": "Tienda de pases a la luz de la luna",

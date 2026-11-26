@@ -3211,7 +3211,8 @@
         "passCheckFailed": "Chúng tôi không kiểm tra được Pass của bạn. Hãy thử lại bằng thẻ Pass bên dưới hoặc chọn phương thức thanh toán khác.",
         "passMiss": "Vé của bạn không mở nội dung này miễn phí, đây là các tuỳ chọn thanh toán.",
         "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
-        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option.",
+        "withPassNoMonthly": "Chọn giữa vé hoặc thẻ."
       },
       "passBadge": "Thẻ ánh trăng",
       "passStoreTitle": "Cửa hàng vé ánh trăng",

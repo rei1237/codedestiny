@@ -3211,7 +3211,8 @@
         "passCheckFailed": "Kami tidak dapat menyemak Pas anda. Cuba semula dengan kad Pas di bawah, atau pilih kaedah pembayaran lain.",
         "passMiss": "Pas anda tidak membuka kandungan ini secara percuma, jadi ini pilihan pembayaran.",
         "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
-        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option.",
+        "withPassNoMonthly": "Pilih antara pas atau kad."
       },
       "passBadge": "Pas Balang Madu",
       "passStoreTitle": "Kedai Pas Balang Madu",

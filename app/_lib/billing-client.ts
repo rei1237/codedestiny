@@ -469,7 +469,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-da020e96cd85";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-7214d33f3fb6";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1349,7 +1349,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     ? checkoutEntry.buildRefundConsentCheckboxHtml({ escape: escapePaymentText })
     : "";
   const noteBasisText = checkoutEntry.text("payment.directModal.note.basis", "결제 금액 {amount}", { amount: formatPaymentWon(directAmount) });
-  const noteWithPassText = checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.");
+  // 월정석 카드가 없으면(정가 10,000원 미만 등 서버 monthlyExcluded) 안내 문구도 월정석을 말하지 않는다.
+  const noteWithPassText = canShowMonthly
+    ? checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.")
+    : checkoutEntry.text("payment.directModal.note.withPassNoMonthly", "이용권 · 카드 중에서 고를 수 있어요.");
   const noteWithPassHtml = canShowPassStore ? `<span>${escapePaymentText(noteWithPassText)}</span>` : "";
   // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
   // 계약·클래스는 셸 index.html 의 passOutcomeNote 와 같고, CSS 는 공유 코어가 이미 갖고 있다.

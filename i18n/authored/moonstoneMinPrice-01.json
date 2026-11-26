@@ -12,5 +12,19 @@
     "de": "This item can't be opened with moonstones. Please choose another payment option.",
     "nl": "This item can't be opened with moonstones. Please choose another payment option.",
     "ms": "This item can't be opened with moonstones. Please choose another payment option."
+  },
+  "payment.directModal.note.withPassNoMonthly": {
+    "ko": "이용권 · 카드 중에서 고를 수 있어요.",
+    "en": "Choose from a pass or card.",
+    "ja": "利用券 · カードから選べます。",
+    "zh-CN": "可以在通行证和银行卡中选择。",
+    "zh-TW": "可以在通行證和信用卡中選擇。",
+    "vi": "Chọn giữa vé hoặc thẻ.",
+    "hi": "पास या कार्ड में से चुनें।",
+    "es": "Elige entre pase o tarjeta.",
+    "fr": "Choisissez entre pass ou carte.",
+    "de": "Wähle zwischen Pass oder Karte.",
+    "nl": "Kies uit een pas of kaart.",
+    "ms": "Pilih antara pas atau kad."
   }
 }

@@ -3211,7 +3211,8 @@
         "passCheckFailed": "आपका पास जाँचा नहीं जा सका। नीचे दिए पास कार्ड से दोबारा जाँचें या कोई दूसरा भुगतान तरीका चुनें।",
         "passMiss": "आपका पास इस सामग्री को मुफ़्त नहीं खोलता, इसलिए भुगतान विकल्प दिए गए हैं।",
         "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
-        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option.",
+        "withPassNoMonthly": "पास या कार्ड में से चुनें।"
       },
       "passBadge": "शहद जार पास",
       "passStoreTitle": "शहद जार पास की दुकान",

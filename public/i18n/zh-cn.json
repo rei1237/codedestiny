@@ -3211,7 +3211,8 @@
         "passCheckFailed": "通行券确认失败。可用下方的通行券卡片重新确认，或选择其他支付方式。",
         "passMiss": "你的通行证无法免费开启此内容，请选择支付方式。",
         "passMonthlyExhausted": "通行证剩余额度不足以打开这次咨询。通行证仍然有效，轻量运势可继续使用。为你介绍支付方式。",
-        "monthlyNotAllowed": "该商品无法使用月精石解锁。请选择其他支付方式。"
+        "monthlyNotAllowed": "该商品无法使用月精石解锁。请选择其他支付方式。",
+        "withPassNoMonthly": "可以在通行证和银行卡中选择。"
       },
       "passBadge": "蜜罐通行证",
       "passStoreTitle": "蜜罐通行证商店",

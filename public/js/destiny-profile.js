@@ -12814,7 +12814,7 @@
           passOutcomeNoteHtml +
           '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: _dpCheckoutFormatKrw(amountKrw) })) + '</span>' +
-            '<span>' + esc(_dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' +
+            '<span>' + esc(allowMonthlyChoice ? _dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.') : _dpCheckoutText('payment.directModal.note.withPassNoMonthly', '이용권 · 카드 중에서 고를 수 있어요.')) + '</span>' +
           '</div>' +
           refundConsentHtml +
           '<div class="cd-direct-payment-choice-grid" data-choice-step="options">' +

@@ -3211,7 +3211,8 @@
         "passCheckFailed": "Nous n'avons pas pu vérifier votre pass. Réessayez avec la carte pass ci-dessous ou choisissez un autre moyen de paiement.",
         "passMiss": "Votre pass n'ouvre pas ce contenu gratuitement, voici les options de paiement.",
         "passMonthlyExhausted": "Your remaining pass allowance can't open this reading. Your pass stays active and light fortunes stay open. Here are the payment options.",
-        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option."
+        "monthlyNotAllowed": "This item can't be opened with moonstones. Please choose another payment option.",
+        "withPassNoMonthly": "Choisissez entre pass ou carte."
       },
       "passBadge": "Pass Pot de Miel",
       "passStoreTitle": "Boutique du Pass Moonlight",

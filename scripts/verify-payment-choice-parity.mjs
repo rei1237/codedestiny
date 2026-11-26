@@ -473,6 +473,20 @@ function assertMonthlyExclusionWiring(label, body, apply, isShell) {
 for (const { rel, label, marker, apply } of MONTHLY_EXCLUSION_RENDERERS) {
   assertMonthlyExclusionWiring(`${label} ${rel}`, sliceFunction(read(rel), marker, `${rel}/monthly-exclusion`), apply, label === "정적 셸");
 }
+// 월정석 카드를 숨겼는데 하단 안내가 "이용권 · 월정석 · 카드"라고 말하면 없는 선택지를 안내하는 셈이다(2026-11-26).
+// 세 렌더러 모두 월정석 노출 플래그(셸·독립 allowMonthlyChoice / React canShowMonthly)로 안내 문구를 고른다.
+const MONTHLY_NOTE_RENDERERS = [
+  ...SHELL_MIRRORS.map((rel) => ({ rel, label: "정적 셸", marker: "  async function _cdChooseServicePaymentMode(options) {", guard: /allowMonthlyChoice \? _cdPaymentI18n\('payment\.directModal\.note\.withPass',[^)]*\) : _cdPaymentI18n\('payment\.directModal\.note\.withPassNoMonthly',/ })),
+  ...STANDALONE_FALLBACKS.map((rel) => ({ rel, label: "독립 폴백", marker: "  function _dpRenderStandalonePaymentChoice(options) {", guard: /allowMonthlyChoice \? _dpCheckoutText\('payment\.directModal\.note\.withPass',[^)]*\) : _dpCheckoutText\('payment\.directModal\.note\.withPassNoMonthly',/ })),
+  { rel: REACT_CLIENT, label: "React", marker: null, guard: /const noteWithPassText = canShowMonthly\s*\?\s*checkoutEntry\.text\("payment\.directModal\.note\.withPass",[^)]*\)\s*:\s*checkoutEntry\.text\("payment\.directModal\.note\.withPassNoMonthly",/ },
+];
+function assertMonthlyNoteWiring(label, body, guard) {
+  assert.ok(guard.test(body), `${label}: 하단 안내가 월정석 노출 여부를 따르지 않습니다 — 월정석 카드가 빠진 결제창에서도 월정석을 안내합니다(note.withPass ↔ note.withPassNoMonthly).`);
+}
+for (const { rel, label, marker, guard } of MONTHLY_NOTE_RENDERERS) {
+  const source = read(rel);
+  assertMonthlyNoteWiring(`${label} ${rel}`, marker ? sliceFunction(source, marker, `${rel}/monthly-note`) : source, guard);
+}
 // 실제 공유 함수로 렌더해 본다: 렌더러가 넘기는 것과 같이 allow = !isMonthlyChoiceExcluded(...).
 function renderMonthlyPresence(api, amountKRW, paymentOptions) {
   const excluded = api.isMonthlyChoiceExcluded({ amountKRW, paymentOptions });
@@ -600,6 +614,8 @@ const REQUIRED_ALL = [
   // 하단 안내.
   "payment.directModal.note.basis",
   "payment.directModal.note.withPass",
+  // 월정석 카드가 빠진 결제창(정가 10,000원 미만 등)의 하단 안내 — 월정석을 말하지 않는다(2026-11-26).
+  "payment.directModal.note.withPassNoMonthly",
 ];
 
 // 렌더러마다 다른 분기를 갖고 있어 그쪽에만 등장하는 키.
@@ -950,10 +966,23 @@ if (process.argv.includes("--self-test")) {
     const moved = apply + " " + body.split(apply).join("");
     assertMonthlyExclusionWiring("fixture", moved, apply, true);
   });
+  // 하단 안내가 월정석 노출과 무관하게 note.withPass 하나로 돌아가면 실패해야 한다(셸·독립·React 각각).
+  shouldThrow("월정석 없는 결제창 안내 무력화(셸)", () => {
+    const body = sliceFunction(read("index.html"), "  async function _cdChooseServicePaymentMode(options) {", "fixture");
+    assertMonthlyNoteWiring("fixture", body.split("allowMonthlyChoice ? _cdPaymentI18n('payment.directModal.note.withPass'").join("true ? _cdPaymentI18n('payment.directModal.note.withPass'"), MONTHLY_NOTE_RENDERERS[0].guard);
+  });
+  shouldThrow("월정석 없는 결제창 안내 무력화(독립)", () => {
+    const body = sliceFunction(read("js/destiny-profile.js"), "  function _dpRenderStandalonePaymentChoice(options) {", "fixture");
+    assertMonthlyNoteWiring("fixture", body.split("note.withPassNoMonthly").join("note.withPass"), MONTHLY_NOTE_RENDERERS.find((r) => r.label === "독립 폴백").guard);
+  });
+  shouldThrow("월정석 없는 결제창 안내 무력화(React)", () => {
+    const source = read(REACT_CLIENT).split("const noteWithPassText = canShowMonthly").join("const noteWithPassText = true");
+    assertMonthlyNoteWiring("fixture", source, MONTHLY_NOTE_RENDERERS[MONTHLY_NOTE_RENDERERS.length - 1].guard);
+  });
   // 정상 입력은 통과해야 한다(가드가 무조건 던지면 그것도 가드가 아니다).
   assertMarkersPresent("fixture", renderedSkeleton, BUILDER_MARKERS, "h");
   assertNoBannedMarkers("fixture", "<div>clean</div>");
-  console.log(`[verify-payment-choice-parity] self-test OK — ${5 + BANNED_BALANCE_MARKERS.length}개 음성 케이스 + 정상 2건`);
+  console.log(`[verify-payment-choice-parity] self-test OK — ${8 + BANNED_BALANCE_MARKERS.length}개 음성 케이스 + 정상 2건`);
 }
 
 // 🔴 마커 개수를 요약에 찍는다. 검사가 죽었는지 알아채는 신호는 이 줄뿐이다 — 옛
