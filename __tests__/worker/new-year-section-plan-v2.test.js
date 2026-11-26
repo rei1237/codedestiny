@@ -159,3 +159,49 @@ describe('Trait-First (TRAIT_FIRST_SAJU)', () => {
     }
   });
 });
+
+// 신살 블록(SAJU_SHINSAL_FACTS_V1 'new-year'): handleStart 는 핀(llmMeta.shinsalFacts)과 플래그가 모두 맞을 때만 블록 문자열을 넘긴다.
+// 모든 장의 같은 자리(계산 데이터 바로 뒤)에 들어가 공통 앞부분 캐시가 유지된다.
+describe('shinsal facts block (SAJU_SHINSAL_FACTS_V1)', () => {
+  const header = '[신살 계산값 — 서버 계산. 이 목록 밖의 신살은 쓰지 않는다]';
+  const sections = () => [...utils.NEW_YEAR_AI_SECTIONS_V1, ...utils.NEW_YEAR_AI_SECTIONS_V2];
+  const setup = (birthInfo = body.birthInfo) => {
+    const input = utils.normalizeConsultationInput({ ...body, birthInfo }).input;
+    const fortuneData = utils.calculateNewYearFortuneData(input);
+    return { input, fortuneData, block: utils.newYearShinsalBlock(fortuneData) };
+  };
+
+  it('OFF (missing or empty) keeps every V1 and V2 prompt byte-identical', () => {
+    const { input, fortuneData } = setup();
+    for (const section of sections()) {
+      const base = utils.buildSectionPrompt(input, fortuneData, section, [], '', []);
+      expect(base).not.toContain(header);
+      for (const off of [{}, { shinsalFacts: '' }, { shinsalFacts: undefined }]) expect(utils.buildSectionPrompt(input, fortuneData, section, [], '', [], off)).toBe(base);
+    }
+  });
+
+  it('ON puts the same block once in every section; removing it gives the OFF prompt', () => {
+    const { input, fortuneData, block } = setup();
+    expect(block.startsWith(`${header}\n`)).toBe(true);
+    expect(block.length).toBeGreaterThan(header.length);
+    expect(block.length).toBeLessThanOrEqual(700);
+    const prefixes = new Set();
+    for (const section of sections()) {
+      const off = utils.buildSectionPrompt(input, fortuneData, section, [], '', []);
+      const on = utils.buildSectionPrompt(input, fortuneData, section, [], '', [], { shinsalFacts: block });
+      expect(on.split(header).length - 1).toBe(1);
+      expect(on.length - off.length).toBe(block.length + 2);
+      expect(on.replace(`${block}\n\n`, '')).toBe(off);
+      prefixes.add(on.slice(0, on.indexOf(header) + block.length));
+    }
+    expect(prefixes.size).toBe(1);
+  });
+
+  it('an unknown birth time keeps the hour out and a broken chart drops only the block', () => {
+    const { block } = setup({ ...body.birthInfo, birthTime: '', birthTimeUnknown: true });
+    expect(block).toContain('출생 시간 미상');
+    expect(block).not.toContain('시지(');
+    expect(utils.newYearShinsalBlock(null)).toBe('');
+    expect(utils.newYearShinsalBlock({ saju: { yearPillar: '??' } })).toBe('');
+  });
+});

@@ -59,7 +59,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
-  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), ...require('../../worker/lib/trait-profile/index.js'), nativeTossContext: () => null, nativeNewYearStoredState: async () => clone(doc), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {}, warn() {} }, normalizeConsultAccessType: value => value,
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), ...require('../../worker/lib/trait-profile/index.js'), ...require('../../worker/lib/engine-rollout.js'), buildShinsalFactsBlock: require('../../lib/saju/shinsal-facts-block.mjs').buildShinsalFactsBlock, nativeTossContext: () => null, nativeNewYearStoredState: async () => clone(doc), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {}, warn() {} }, normalizeConsultAccessType: value => value,
     PASS_SETTLEMENT_DENIAL_CODES: new Set(['MONTHLY_PASS_LIMIT_EXCEEDED', 'PAYMENT_REQUIRED', 'PRICE_EXCEEDS_PASS_LIMIT']),
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
@@ -109,7 +109,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars', 'newYearRetryMeta', 'newYearHeldBillingFields', 'releaseNewYearHeldBilling', 'newYearRetryPayload', 'newYearRetryReset', 'handleRetry', 'handleRefundRequest']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars', 'newYearRetryMeta', 'newYearHeldBillingFields', 'releaseNewYearHeldBilling', 'newYearRetryPayload', 'newYearRetryReset', 'handleRetry', 'handleRefundRequest', 'newYearShinsalBlock']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}, env = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -658,6 +658,32 @@ test('new-year resume survives Mongo null storage for v2 pins and recomputed leg
   for(let i=0;i<20&&f.doc.status!=='completed';i++)await f.post({resumeSessionId:f.doc.id});
   assert.equal(f.doc.status,'completed','legacy='+legacy);assert.equal(f.charges,1);
  }
+});
+
+// 신살 블록(SAJU_SHINSAL_FACTS_V1 'new-year'): 새 기록만 llmMeta.shinsalFacts 로 고정하고, 핀과 플래그가 모두 맞을 때만 생성에 넘긴다.
+// 블록은 fortuneData 밖에서 계산하므로 이어쓰기·플래그 전환에도 사실 고정(REPRESENTATIVE_FACTS_MISMATCH)이 어긋나지 않는다.
+test('new-year shinsal block pins only new records and keeps the fact pin through resume', async () => {
+ const helper=await import('../../worker/lib/representative-consumer-facts.js');const {calculateLifeBookAiSaju}=await import('../../worker/lib/life-book-ai-saju.js');
+ const birth={birthDate:'2000-05-15',birthTime:'08:30',calendarType:'solar',gender:'male'};const actual=calculateLifeBookAiSaju(birth,{year:2026});
+ const ON={SAJU_CONSUMER_FACTS_V1:'true',SAJU_SHINSAL_FACTS_V1:'new-year'},OFF={SAJU_CONSUMER_FACTS_V1:'true'};
+ const run=async(createEnv,resumeEnv)=>{
+  const f=fixture('paid');Object.assign(f.ctx,helper);const seen=[];const generate=f.ctx.generateConsultationSection;
+  f.ctx.generateConsultationSection=async(env,options)=>{seen.push(options.shinsalFacts);return generate(env,options);};
+  f.ctx.normalizeConsultationInput=()=>({ok:true,inputHash:'same-input',input:{birthInfo:birth,year:2026,topic:'신년'}});
+  f.ctx.calculateNewYearFortuneData=()=>({targetYear:{year:2026,pillar:'병오'},saju:actual,calculationMeta:actual.calculationMeta,advancedSajuSummary:{daewoonSewoon:{}}});
+  await f.post({},createEnv);const created=seen.length;const saved=clone(f.doc.llmMeta.fortuneData);
+  for(let i=0;i<20&&f.doc.status!=='completed';i++)assert.notEqual((await f.post({resumeSessionId:f.doc.id},resumeEnv)).status,500);
+  assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.llmMeta.fortuneData,saved);assert.equal(f.charges,1);
+  return {pin:f.doc.llmMeta.shinsalFacts,seen,created,block:f.ctx.newYearShinsalBlock(saved)};
+ };
+ const pinned=await run(ON,ON);
+ assert.equal(pinned.pin,'shinsal-facts-v1');assert.match(pinned.block,/^\[신살 계산값 — 서버 계산/);assert.ok(pinned.seen.length>pinned.created);
+ for(const value of pinned.seen)assert.equal(value,pinned.block);
+ const legacy=await run(OFF,ON);
+ assert.equal(legacy.pin,undefined);for(const value of legacy.seen)assert.equal(value,'');
+ const killed=await run(ON,OFF);
+ assert.equal(killed.pin,'shinsal-facts-v1');assert.deepEqual(killed.seen.slice(0,killed.created).map(Boolean),Array(killed.created).fill(true));
+ for(const value of killed.seen.slice(killed.created))assert.equal(value,'');
 });
 
 // ── 결제 뒤 신년 생성 화면: 일시 장애·숨은 탭·긴 생성에서 멈추지 않고, 종결 실패면 환불 안내 ──

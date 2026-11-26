@@ -52,3 +52,16 @@ export function shinsalFactsOn(env, id) {
   if (!want) return false;
   return raw.split(',').map((part) => part.trim()).filter(Boolean).includes(want);
 }
+
+// 신살 블록 핀. 새 기록·세션을 만들 때 selectShinsalFacts 값을 meta.shinsalFacts 에 넣고,
+// 생성·재시도·재개는 shinsalFactsPinned 로 읽는다. 키 없는 기존 기록은 플래그를 켜도 영구 off,
+// 핀이 있어도 플래그를 끄면 off(킬 스위치). 블록 자체는 프롬프트 때 계산하고 meta 에 저장하지 않는다.
+export const SHINSAL_FACTS_META = 'shinsal-facts-v1';
+
+export function selectShinsalFacts(env, id) {
+  return shinsalFactsOn(env, id) ? SHINSAL_FACTS_META : null;
+}
+
+export function shinsalFactsPinned(meta, env, id) {
+  return meta?.shinsalFacts === SHINSAL_FACTS_META && shinsalFactsOn(env, id);
+}

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
-import { ENGINE_ROLLOUT_FLAGS, engineRolloutEnv, withEngineRollout, shinsalFactsOn } from '../../worker/lib/engine-rollout.js';
+import { ENGINE_ROLLOUT_FLAGS, engineRolloutEnv, withEngineRollout, shinsalFactsOn, selectShinsalFacts, shinsalFactsPinned, SHINSAL_FACTS_META } from '../../worker/lib/engine-rollout.js';
 
 test('approved flags reach every entry point, an explicit var wins and env identity stays stable', async () => {
   const env = { APP_ENV: 'staging', ZIWEI_CONSUMER_FACTS_V1: 'false' };
@@ -34,4 +34,17 @@ test('shinsal facts stay off by default and open per consumer id or all at once'
   assert.equal(shinsalFactsOn(some, ''), false);
   const all = engineRolloutEnv({ SAJU_SHINSAL_FACTS_V1: 'true' });
   assert.equal(shinsalFactsOn(all, 'anything'), true);
+});
+
+test('the shinsal pin goes on new records only, legacy records stay off and the flag is a kill switch', () => {
+  const on = engineRolloutEnv({ SAJU_SHINSAL_FACTS_V1: 'saju-ai,new-year' });
+  assert.equal(SHINSAL_FACTS_META, 'shinsal-facts-v1');
+  assert.equal(selectShinsalFacts(on, 'new-year'), SHINSAL_FACTS_META);
+  assert.equal(selectShinsalFacts(on, 'life-book'), null);
+  assert.equal(selectShinsalFacts(engineRolloutEnv({}), 'new-year'), null);
+  const pinned = { shinsalFacts: SHINSAL_FACTS_META };
+  assert.equal(shinsalFactsPinned(pinned, on, 'new-year'), true);
+  for (const legacy of [undefined, null, {}, { shinsalFacts: null }, { shinsalFacts: 'shinsal-facts-v2' }]) assert.equal(shinsalFactsPinned(legacy, on, 'new-year'), false);
+  assert.equal(shinsalFactsPinned(pinned, engineRolloutEnv({}), 'new-year'), false);
+  assert.equal(shinsalFactsPinned(pinned, on, 'life-book'), false);
 });

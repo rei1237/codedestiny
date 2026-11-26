@@ -36,6 +36,8 @@ import { markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, 
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
+import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1789,6 +1791,30 @@ function newYearFactLines(fortuneData) {
 // 성향 장(nature, 구성 V2)의 사주 차트 — 기존 기질 근거(buildCanonicalNewYearFacts)와 같은 입력.
 const newYearTraitChart = fortuneData => ({...fortuneData.saju,natalAnalysis:fortuneData.natalAnalysis,calculationMeta:fortuneData.calculationMeta});
 
+// 정본 신살 사실 블록(SAJU_SHINSAL_FACTS_V1 'new-year'). 원국 4주 + 목표 연도 세운 + 현재 대운 + 12개월 월운.
+// fortuneData·다이제스트에는 넣지 않고 프롬프트 때만 계산한다 — 저장된 사실과 어긋날 일이 없다.
+// 실패하면 '' 이라 블록만 빠진다. maxLuck 5: 세운 줄이 넷이어도 대운 한 줄이 남게.
+function newYearShinsalBlock(fortuneData) {
+  try {
+    const saju = fortuneData?.saju || {};
+    const timeUnknown = fortuneData?.calculationMeta?.timeUnknown === true || fortuneData?.birthCalendar?.timeUnknown === true;
+    const target = fortuneData?.targetYear;
+    const current = fortuneData?.majorLuck?.currentCycle;
+    const monthly = Array.isArray(fortuneData?.monthlyFlow) ? fortuneData.monthlyFlow : [];
+    return buildShinsalFactsBlock({
+      pillars: { year: saju.yearPillar, month: saju.monthPillar, day: saju.dayPillar, hour: timeUnknown ? null : saju.hourPillar },
+      timeUnknown,
+      luckRows: [
+        ...(target?.pillar ? [{ scope: "sewoon", ganji: target.pillar, year: target.year }] : []),
+        ...(current?.pillar ? [{ scope: "daewoon", ganji: current.pillar, age: current.startAge }] : []),
+        ...monthly.filter(row => row?.pillar).map(row => ({ scope: "wolwoon", ganji: row.pillar, year: target?.year, month: row.month })),
+      ],
+    }, { maxChars: 700, maxLuck: 5 });
+  } catch {
+    return "";
+  }
+}
+
 function buildFirstPrompt(input, fortuneData, section = null, traitOptions = {}) {
   const outline = buildConsultationOutline(input);
   const questionLines = [
@@ -1813,6 +1839,8 @@ function buildFirstPrompt(input, fortuneData, section = null, traitOptions = {})
     ...newYearHeadLines(input),
     ...(section ? [] : questionLines),
     ...newYearFactLines(fortuneData),
+    // 신살 블록: 핀(llmMeta.shinsalFacts)과 플래그가 모두 맞는 세션만. 섹션마다 같은 자리라 공통 앞부분 캐시가 유지되고, OFF 는 바이트 단위로 같다.
+    ...(traitOptions.shinsalFacts ? [traitOptions.shinsalFacts, ""] : []),
     ...(section ? questionLines : []),
     // Trait-First: 생성 시작 때 고정한 llmMeta.traitFirst 가 있는 세션의 성향 장에만. OFF·옛 세션은 빈 배열이라 바이트 단위로 같다.
     ...(traitOptions.traitFirst && section?.key === "nature" ? sajuTraitFirstLines(newYearTraitChart(fortuneData), traitOptions) : []),
@@ -2162,7 +2190,7 @@ async function generateConsultationSection(env, options) {
   // 예산이 바닥났으면 호출 자체를 건너뛴다(직전 텍스트가 있으면 그대로 살린다).
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
-    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections, { traitFirst: options.traitFirst ?? null, seed: options.traitSeed || "" }), {
+    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections, { traitFirst: options.traitFirst ?? null, seed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "" }), {
       systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(null, { planVersion: section.planVersion }), { answerVoice: options.answerVoice ?? null }),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
@@ -2264,7 +2292,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     input,
     fortuneData,
     answerVoice: options.answerVoice ?? null,
-    traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "",
+    traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "",
     section,
     cache: newYearLlmCache,
     timeoutMs: wave1TimeoutMs,
@@ -2282,7 +2310,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
         input,
         fortuneData,
         answerVoice: options.answerVoice ?? null,
-        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "",
+        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "",
         section: row.section,
         cache: newYearLlmCache,
         timeoutMs: wave2TimeoutMs,
@@ -2738,7 +2766,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
         answerVoice: options.answerVoice ?? null,
-        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "",
+        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "",
         supportRecovery: recovery,
         priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
@@ -2977,6 +3005,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
           savedSections: [], attempts: {}, lockedAt: null, lockToken: '', answerVoice: selectAnswerVoice(env),
           // Trait-First: 새 세션만 생성 시작 때 고정. 키 없는 기존 세션은 끝까지 OFF.
           ...(selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
+          // 신살 블록도 새 기록만 고정한다. 키 없는 기존 기록은 플래그를 켜도 끝까지 OFF(engine-rollout.js).
+          ...(selectShinsalFacts(env, 'new-year') ? { shinsalFacts: selectShinsalFacts(env, 'new-year') } : {}),
           sectionPlanVersion: NEW_YEAR_AI_SECTION_PLAN_VERSION } });
     } catch (error) {
       if (error?.code !== 11000) throw resultStorageUnavailable(sessionId);
@@ -3017,6 +3047,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       // 섹션마다 문체가 섞이지 않게 생성 시작 시점 값을 쓴다(consultation-answer-contract.js).
       answerVoice: pinAnswerVoice(claimed.llmMeta, env),
       traitFirst: pinTraitFirst(claimed.llmMeta ?? {}, env), traitSeed: `${clean(auth.userId)}|new-year-ai`,
+      shinsalFacts: shinsalFactsPinned(claimed.llmMeta, env, 'new-year') ? newYearShinsalBlock(fortuneData) : "",
       supportRecovery: claimed.llmMeta?.supportRecovery,
       onReserve: async (key, lengthRepair) => {
         await reserveSupportRecoveryAttempt({ Model: NewYearAiConsultation, id: sessionId, userId: auth.userId, lockToken });
@@ -3296,6 +3327,7 @@ export const __newYearAiTestUtils = {
   normalizeConsultationInput,
   calculateNewYearFortuneData,
   buildFirstPrompt,
+  newYearShinsalBlock,
   buildSystemPrompt,
   buildCanonicalNewYearFacts,
   cleanForbiddenResult,
