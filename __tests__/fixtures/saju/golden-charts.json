@@ -1,0 +1,916 @@
+{
+  "$comment": "정본 신살 골든 명식 템플릿(S0, 2026-11-26). 입력만 채우고 기대값은 비운다. 기대값은 만세력 검수(KASI 대조) 뒤 채우고 verifiedBy·verifiedAt 를 적는다. __tests__/saju/shinsal-canon.test.mjs 가 모양과 경계 조건 덮음을 검사한다.",
+  "version": 1,
+  "status": "template",
+  "cases": [
+    {
+      "id": "dst-1948-summer",
+      "tags": [
+        "dst-1948-51"
+      ],
+      "note": "1948 서머타임 기간(UTC+10). 표준시로 1시간 되돌려 시주를 잡는지 본다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1948-07-15",
+        "time": "10:30",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "dst-1949-summer",
+      "tags": [
+        "dst-1948-51"
+      ],
+      "note": "1949 서머타임 기간.",
+      "input": {
+        "calendar": "solar",
+        "date": "1949-06-10",
+        "time": "14:20",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "dst-1950-summer",
+      "tags": [
+        "dst-1948-51"
+      ],
+      "note": "1950 서머타임 기간. 07시대가 06시대로 내려가며 시지가 바뀌는 경계 근처.",
+      "input": {
+        "calendar": "solar",
+        "date": "1950-08-01",
+        "time": "07:45",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "dst-1951-late-night",
+      "tags": [
+        "dst-1948-51",
+        "late-zi"
+      ],
+      "note": "1951 서머타임 기간의 23:30. 표준시로는 22:30이라 자시가 아닐 수 있다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1951-07-20",
+        "time": "23:30",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "dst-1955-summer",
+      "tags": [
+        "dst-1955-60"
+      ],
+      "note": "UTC+8:30 기준 위의 서머타임(UTC+9:30).",
+      "input": {
+        "calendar": "solar",
+        "date": "1955-07-01",
+        "time": "09:00",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "dst-1957-summer",
+      "tags": [
+        "dst-1955-60"
+      ],
+      "note": "1957 서머타임 기간.",
+      "input": {
+        "calendar": "solar",
+        "date": "1957-08-15",
+        "time": "12:00",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "dst-1960-after-midnight",
+      "tags": [
+        "dst-1955-60"
+      ],
+      "note": "1960 서머타임 기간의 00:20. 표준시로 되돌리면 전날 23시대가 되어 일주가 바뀔 수 있다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1960-06-05",
+        "time": "00:20",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "utc830-start-before",
+      "tags": [
+        "utc830-boundary",
+        "late-zi"
+      ],
+      "note": "UTC+8:30 전환(1954-03-21 00:00) 직전.",
+      "input": {
+        "calendar": "solar",
+        "date": "1954-03-20",
+        "time": "23:50",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "utc830-start-after",
+      "tags": [
+        "utc830-boundary"
+      ],
+      "note": "UTC+8:30 전환 직후.",
+      "input": {
+        "calendar": "solar",
+        "date": "1954-03-21",
+        "time": "00:30",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "utc830-end-before",
+      "tags": [
+        "utc830-boundary",
+        "late-zi"
+      ],
+      "note": "UTC+9 복귀(1961-08-10 00:00) 직전.",
+      "input": {
+        "calendar": "solar",
+        "date": "1961-08-09",
+        "time": "23:50",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "utc830-end-after",
+      "tags": [
+        "utc830-boundary"
+      ],
+      "note": "UTC+9 복귀 직후.",
+      "input": {
+        "calendar": "solar",
+        "date": "1961-08-10",
+        "time": "00:30",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "late-zi-2300",
+      "tags": [
+        "late-zi"
+      ],
+      "note": "23:00 정각. 야자시·조자시 정책에 따라 일주가 갈린다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1990-05-12",
+        "time": "23:00",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "late-zi-2359",
+      "tags": [
+        "late-zi"
+      ],
+      "note": "23:59. 월말이라 일주와 함께 월 경계도 본다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1985-11-30",
+        "time": "23:59",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "early-zi-0010",
+      "tags": [
+        "early-zi"
+      ],
+      "note": "00:10 조자시.",
+      "input": {
+        "calendar": "solar",
+        "date": "1993-02-14",
+        "time": "00:10",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "ipchun-2024-before",
+      "tags": [
+        "jeolip-minute"
+      ],
+      "note": "2024 입춘(추정 17:27 KST) 1분 전. 년주·월주가 전년 계해년·을축월로 남아야 한다. 절입 시각은 추정치다. 기대값을 채울 때 KASI 절기표로 분 단위를 확정한다.",
+      "input": {
+        "calendar": "solar",
+        "date": "2024-02-04",
+        "time": "17:26",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "ipchun-2024-after",
+      "tags": [
+        "jeolip-minute"
+      ],
+      "note": "2024 입춘 1분 뒤. 갑진년·병인월로 넘어가야 한다. 절입 시각은 추정치다. 기대값을 채울 때 KASI 절기표로 분 단위를 확정한다.",
+      "input": {
+        "calendar": "solar",
+        "date": "2024-02-04",
+        "time": "17:28",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "ipchun-2025-before-late-zi",
+      "tags": [
+        "jeolip-minute",
+        "late-zi"
+      ],
+      "note": "2025 입춘(추정 23:10 KST) 직전이면서 23시대. 절입 시각은 추정치다. 기대값을 채울 때 KASI 절기표로 분 단위를 확정한다.",
+      "input": {
+        "calendar": "solar",
+        "date": "2025-02-03",
+        "time": "23:05",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "ipchun-2025-after-late-zi",
+      "tags": [
+        "jeolip-minute",
+        "late-zi"
+      ],
+      "note": "2025 입춘 직후이면서 23시대. 절입 시각은 추정치다. 기대값을 채울 때 KASI 절기표로 분 단위를 확정한다.",
+      "input": {
+        "calendar": "solar",
+        "date": "2025-02-03",
+        "time": "23:15",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "time-unknown-plain",
+      "tags": [
+        "time-unknown"
+      ],
+      "note": "출생 시간 미상. 시주 신살은 빠지고 사유가 붙어야 한다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1996-09-15",
+        "time": null,
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "time-unknown-jeolip-day",
+      "tags": [
+        "time-unknown",
+        "jeolip-day"
+      ],
+      "note": "입춘 당일 시간 미상. 시각에 따라 년주·월주가 갈리는 날이다.",
+      "input": {
+        "calendar": "solar",
+        "date": "2025-02-03",
+        "time": null,
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "lunar-leap-2023-m2",
+      "tags": [
+        "lunar-leap-month"
+      ],
+      "note": "음력 2023년 윤2월 15일.",
+      "input": {
+        "calendar": "lunar",
+        "date": "2023-02-15",
+        "time": "08:30",
+        "leapMonth": true,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "lunar-leap-2020-m4",
+      "tags": [
+        "lunar-leap-month"
+      ],
+      "note": "음력 2020년 윤4월 10일.",
+      "input": {
+        "calendar": "lunar",
+        "date": "2020-04-10",
+        "time": "19:40",
+        "leapMonth": true,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "overseas-los-angeles",
+      "tags": [
+        "overseas-longitude"
+      ],
+      "note": "해외 출생(서경). 현지 표준시와 경도 보정을 함께 본다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1995-03-10",
+        "time": "06:15",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "Los Angeles",
+          "longitude": -118.24,
+          "timezone": "America/Los_Angeles"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "overseas-new-york",
+      "tags": [
+        "overseas-longitude"
+      ],
+      "note": "해외 출생(서경).",
+      "input": {
+        "calendar": "solar",
+        "date": "2001-12-24",
+        "time": "21:05",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "New York",
+          "longitude": -74.01,
+          "timezone": "America/New_York"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "overseas-sydney-late-zi",
+      "tags": [
+        "overseas-longitude",
+        "late-zi"
+      ],
+      "note": "남반구 출생, 현지 23:40.",
+      "input": {
+        "calendar": "solar",
+        "date": "2010-06-30",
+        "time": "23:40",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "Sydney",
+          "longitude": 151.21,
+          "timezone": "Australia/Sydney"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "dst-1988-summer",
+      "tags": [
+        "dst-1987-88"
+      ],
+      "note": "1987-88 서머타임 기간.",
+      "input": {
+        "calendar": "solar",
+        "date": "1988-07-10",
+        "time": "13:30",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "utc830-1911",
+      "tags": [
+        "utc830-1908-11"
+      ],
+      "note": "1908-1911 UTC+8:30 시기.",
+      "input": {
+        "calendar": "solar",
+        "date": "1911-06-15",
+        "time": "08:00",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "leap-day-2000",
+      "tags": [
+        "leap-day"
+      ],
+      "note": "양력 윤일.",
+      "input": {
+        "calendar": "solar",
+        "date": "2000-02-29",
+        "time": "12:00",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "year-end-late-zi",
+      "tags": [
+        "year-end",
+        "late-zi"
+      ],
+      "note": "양력 연말 23:30. 년주는 입춘 기준이라 바뀌지 않아야 한다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1999-12-31",
+        "time": "23:30",
+        "leapMonth": false,
+        "gender": "male",
+        "place": {
+          "label": "서울",
+          "longitude": 126.98,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    },
+    {
+      "id": "baseline-busan",
+      "tags": [
+        "baseline",
+        "local-longitude"
+      ],
+      "note": "부산(동경 129.08). 서울과 경도 보정 차이를 본다.",
+      "input": {
+        "calendar": "solar",
+        "date": "1990-01-15",
+        "time": "05:30",
+        "leapMonth": false,
+        "gender": "female",
+        "place": {
+          "label": "부산",
+          "longitude": 129.08,
+          "timezone": "Asia/Seoul"
+        }
+      },
+      "expected": {
+        "pillars": {
+          "year": "",
+          "month": "",
+          "day": "",
+          "hour": ""
+        },
+        "shinsal": null,
+        "verifiedBy": "",
+        "verifiedAt": ""
+      }
+    }
+  ]
+}
