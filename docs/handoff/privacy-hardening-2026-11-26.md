@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-26
-next: 단계 11 — 워크트리를 main 에 머지(ff/merge)·sync 불필요 확인·check:pre-push·push·main CI 1회 확인 → 워크트리 배수, 사용자에게 drafts 문서의 결정 목록 보고
+next: 없음 — 결정 대기 항목은 docs/security/privacy-drafts-2026-11-26.md (사용자 결정 후 별도 작업)
 ---
 
 # 개인정보 보안 개선 (PRIV) 인수인계
@@ -53,7 +53,7 @@ next: 단계 11 — 워크트리를 main 에 머지(ff/merge)·sync 불필요 �
 - [x] 6 PRIV-016 (49380c9c32, 사이트맵 재생성 d44d9abb39)
 - [x] 7 PRIV-013 (코드 변경 없음 — 이미 가드됨, 결과 기록 근거)
 - [x] 8~10 drafts 문서 (8932d0c5eb, docs/security/privacy-drafts-2026-11-26.md)
-- [ ] 11 전달
+- [x] 11 전달 — origin/main 4ca8015f15 위로 rebase(사이트맵 커밋 drop 후 재생성 9bd437f985), check:pre-push 통과, push 4ca8015f15..9bd437f985; main CI(PR CI) 9bd437f985 success, 영냥이 v7 test:node 2건 CI 통과. Yeongnyangi Browser Shadow 실패는 11-24부터 지속되던 기존 실패(locator.click 30s 타임아웃), 이번 변경 무관
 
 ## 결과 기록
 (단계별 커밋 SHA·테스트 명령·출력 요약)
