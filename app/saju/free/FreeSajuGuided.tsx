@@ -3,7 +3,7 @@
 // /saju/free/ 무료 명식 계산 — 공통 스텝 플로우 판(3c-A2, 2026-11-20 승인 "a2 진행"). 롤백은 lib/guided-flow/flags.mjs.
 // 랜딩 → 생년월일 → 달력 → 출생시각(선택) → 계산(엔진 대기) → 결과.
 // 🔴 원본(FreeSajuForm.tsx)과 같은 것: 엔진 입력(computeFreeSaju 인자 4개), 측정(free_saju_chart_started/completed,
-// surface·time_known 만, 생년월일은 싣지 않는다), 결과 문구(기둥 한 줄 + elementBalanceLine), 실패 문구. 저장 기록은 원본처럼 없다.
+// surface·time_known 만, 생년월일은 싣지 않는다), 결과 문구(기둥 한 줄 + elementBalanceLine, 신살 필드가 있을 때만 shinsalSummaryLine), 실패 문구. 저장 기록은 원본처럼 없다.
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GuidedChoiceList, GuidedFlowShell, GuidedLanding } from "@/app/components/guided-flow/GuidedFlowShell";
 import { type GuidedStep, useGuidedFlow } from "@/app/components/guided-flow/useGuidedFlow";
@@ -14,7 +14,7 @@ import { computeFreeSaju, preloadFreeSajuEngine } from "@/lib/free-saju/engine";
 import type { FreeSajuReading } from "@/lib/free-saju/compute";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { normalizeBirthDateInput } from "@/lib/birthDateInput";
-import { elementBalanceLine } from "@/lib/free-saju/copy";
+import { elementBalanceLine, shinsalSummaryLine } from "@/lib/free-saju/copy";
 import { trackEvent } from "@/lib/analytics";
 import YeoniSay from "@/components/fortune/YeoniSay";
 import { GUIDED_BIRTH_FREE_SAJU_ENABLED, GUIDED_BIRTH_INPUT_V2_ENABLED } from "@/lib/guided-flow/flags.mjs";
@@ -180,6 +180,7 @@ export default function FreeSajuGuided() {
         <p className={gf.reading}><b>년주 {reading.pillars.year} · 월주 {reading.pillars.month} · 일주 {reading.pillars.day} · 시주 {reading.pillars.hour || "미상"}</b></p>
         <YeoniSay domain="saju" sectionKey="elements" />
         <p className={gf.reading}>{elementBalanceLine(reading.elements)}</p>
+        {reading.shinsal ? <p className={gf.reading}>{shinsalSummaryLine(reading.shinsal)}</p> : null}
         <YeoniSay domain="saju" sectionKey="close" />
       </> : null}
       <button type="button" className="cd-btn cd-btn--secondary" onClick={restart}>{t("freeSaju.restart")}</button>

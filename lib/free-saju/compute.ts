@@ -76,7 +76,12 @@ export type FreeSajuReading = {
   wealthElement: ElementKey;
   wealthCount: number;
   timeUnknown: boolean;
+  /** 원국 신살 요약(귀인·길신·주의). SAJU_SHINSAL_FACTS_V1 의 'free-saju' 가 켜졌을 때만 engine.ts 가 붙인다. */
+  shinsal?: FreeSajuShinsalItem[];
 };
+
+/** 신살 한 가지와 원국에서 잡힌 자리(예: "일지", "월지·일지", "일주"). 이름은 정본 신살 목록 그대로다. */
+export type FreeSajuShinsalItem = { id: string; name: string; category: string; places: string[] };
 
 export function buildFreeSajuReading(pillars: NatalPillars, currentYearPillar: string): FreeSajuReading {
   const [dayStem, dayBranch] = splitPillar(pillars.day);

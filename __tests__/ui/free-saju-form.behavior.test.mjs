@@ -295,3 +295,80 @@ const RESULT_LINE = '년주 庚午 · 월주 辛巳 · 일주 甲子 · 시주 �
     await o.close();
   });
 }
+
+// ── 신살 요약(선택 필드, SAJU_SHINSAL_FACTS_V1 의 'free-saju'): 꺼지면 필드가 없고 결과 화면은 옛 그대로 ──
+async function loadModule(entry, rollout) {
+  const ROLLOUT_PATH = require('node:path').resolve('worker/lib/engine-rollout.js').replace(/\\/g, '/');
+  const output = await build({
+    entryPoints: [entry], bundle: true, write: false, format: 'cjs', platform: 'node',
+    alias: { '@': process.cwd() }, logLevel: 'silent', loader: { '.json': 'json' },
+    plugins: rollout === undefined ? [] : [{ name: 'rollout', setup(b) {
+      b.onResolve({ filter: /engine-rollout\.js$/ }, (args) => (args.namespace === 'mock' ? undefined : { path: 'rollout', namespace: 'mock' }));
+      b.onLoad({ filter: /.*/, namespace: 'mock' }, () => ({
+        contents: `export * from '${ROLLOUT_PATH}';\nexport const ENGINE_ROLLOUT_FLAGS = ${JSON.stringify({ SAJU_SHINSAL_FACTS_V1: rollout })};`,
+        loader: 'js', resolveDir: process.cwd(),
+      }));
+    } }],
+  });
+  const mod = { exports: {} };
+  new Function('require', 'module', 'exports', output.outputFiles[0].text)(require, mod, mod.exports);
+  return mod.exports;
+}
+{
+  const { summarizeFreeSajuShinsal } = await loadModule('lib/free-saju/shinsal.ts');
+  const { shinsalSummaryLine, FREE_SAJU_SHINSAL_MAX } = await loadModule('lib/free-saju/copy.ts');
+
+  test('신살 요약: 귀인·길신·주의만, 원국 자리만, 정본 이름 그대로 — 실패하면 빈 배열', () => {
+    const items = summarizeFreeSajuShinsal({ year: '甲子', month: '丁卯', day: '甲午', hour: '丙寅' });
+    assert.ok(items.length > 0);
+    assert.ok(items.every((it) => ['gwiin', 'gil', 'hyung'].includes(it.category)), '12신살·관계는 만세력 표가 맡는다');
+    assert.ok(items.every((it) => it.places.length > 0 && it.places.every((pl) => /^(년|월|일|시)(간|지|주)(·(년|월|일|시)지)*$/.test(pl))));
+    const noHour = summarizeFreeSajuShinsal({ year: '甲子', month: '丁卯', day: '甲午', hour: null });
+    assert.ok(noHour.every((it) => it.places.every((pl) => !pl.includes('시'))), '시간 미상이면 시주 자리는 없다');
+    assert.deepEqual(summarizeFreeSajuShinsal({ year: '??', month: '', day: '甲午', hour: null }), []);
+    assert.deepEqual(summarizeFreeSajuShinsal(null), []);
+  });
+
+  test('신살 한 줄: 없으면 없다고만, 많으면 앞 몇 개와 남은 수', () => {
+    assert.match(shinsalSummaryLine([]), /없어요/);
+    const many = Array.from({ length: FREE_SAJU_SHINSAL_MAX + 2 }, (_, i) => ({ id: `r${i}`, name: `신살${i}`, category: 'gwiin', places: ['일지', '시지'] }));
+    const line = shinsalSummaryLine(many);
+    assert.ok(line.includes(`신살 ${many.length}가지`) && line.includes('신살0(일지·시지)') && line.includes('외 2가지'));
+    assert.ok(!line.includes(`신살${FREE_SAJU_SHINSAL_MAX}(`), '상한 밖 이름은 적지 않는다');
+    assert.ok(!/[\u{1F300}-\u{1FAFF}]/u.test(line), '이모지 없음');
+  });
+
+  test('엔진: 플래그가 꺼지면 shinsal 필드가 없고, free-saju 가 켜지면 원국 신살 요약이 붙는다', async () => {
+    const input = { birthDate: '1990-05-15', birthTime: '14:30', calendarType: 'solar', leapMonth: false };
+    const off = await (await loadModule('lib/free-saju/engine.ts', '')).computeFreeSaju(input);
+    assert.equal('shinsal' in off, false);
+    const other = await (await loadModule('lib/free-saju/engine.ts', 'prompt-hub')).computeFreeSaju(input);
+    assert.equal('shinsal' in other, false, '다른 소비처 id 로는 켜지지 않는다');
+    const on = await (await loadModule('lib/free-saju/engine.ts', 'free-saju')).computeFreeSaju(input);
+    assert.deepEqual({ ...on, shinsal: undefined }, { ...off, shinsal: undefined }, '명식 결과는 그대로다');
+    assert.ok(Array.isArray(on.shinsal));
+    assert.deepEqual(on.shinsal, summarizeFreeSajuShinsal(on.pillars));
+  });
+}
+{
+  const FreeSajuForm = await load('app/saju/free/FreeSajuForm.tsx');
+  const FreeSajuGuided = await load('app/saju/free/FreeSajuGuided.tsx', { GUIDED_BIRTH_FREE_SAJU_ENABLED: false });
+  const SHINSAL = [{ id: 'cheoneul', name: '천을귀인', category: 'gwiin', places: ['일지'] }];
+
+  test('신살 한 줄: 원본 폼과 공통 플로우판 모두 필드가 있을 때만 보인다', async () => {
+    for (const [Component, run] of [
+      [FreeSajuForm, async (v) => { await v.setValue(v.q('input[name="date"]'), '1990-05-15'); await v.click(v.byText('명식 보기')); await flush(); }],
+      [FreeSajuGuided, async (v) => {
+        await v.click(v.byText('명식 보기 시작')); await v.setValue(v.q('input[name="date"]'), '19900515'); await v.click(v.byText('다음'));
+        await v.click(v.byText('양력')); await v.click(v.byText('다음')); await v.click(v.byText('다음')); await flush();
+      }],
+    ]) {
+      const off = await mount(Component); await run(off);
+      assert.ok(off.text().includes(RESULT_LINE) && !/신살 \d+가지를 찾았어요|신살은 없어요/.test(off.text()), '필드가 없으면 옛 결과 그대로');
+      await off.close();
+      const on = await mount(Component); globalThis.__reading = { ...READING, shinsal: SHINSAL }; await run(on);
+      assert.ok(on.text().includes('원국에서 신살 1가지를 찾았어요') && on.text().includes('천을귀인(일지)'));
+      await on.close();
+    }
+  });
+}

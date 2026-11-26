@@ -5,7 +5,7 @@
  * 이모지는 🌸·🦁만, 유아어 금지. 겁주기·확정적 금전 예언·결제 압박 금지.
  * 표(일간 10 · 십신 10 · 12운성 12 · 재물 시크릿 10)가 하나라도 비면 테스트가 막는다.
  */
-import type { ElementKey, HeavenlyStem, TenGod, TwelveLifeStage } from "./compute";
+import type { ElementKey, FreeSajuShinsalItem, HeavenlyStem, TenGod, TwelveLifeStage } from "./compute";
 
 export type CopyLine = { title: string; line: string };
 
@@ -93,4 +93,15 @@ export function elementBalanceLine(counts: Record<ElementKey, number>): string {
   if (missing.length === 0) return `${lead} 다섯 기운이 다 들어 있어서 어느 판에 가도 적응이 빨라요.`;
   const last = missing[missing.length - 1];
   return `${lead} ${missing.map((el) => el.name).join("·")}${last.topic} 비어 있어서, 그 기운을 가진 사람과 있을 때 유독 편해요.`;
+}
+
+/** 신살 한 줄에 이름을 적는 상한. 넘치면 "외 n가지"로 줄인다(전체는 만세력 표에서 본다). */
+export const FREE_SAJU_SHINSAL_MAX = 6;
+
+/** 원국 신살 한 줄 — 이름과 자리만 알려 주고 길흉은 판정하지 않는다(명식 상세 페이지 FAQ 와 같은 태도). */
+export function shinsalSummaryLine(items: FreeSajuShinsalItem[]): string {
+  if (!items.length) return "원국에서 바로 보이는 귀인·길신·주의 신살은 없어요. 없다고 해서 부족하거나 운이 나쁜 건 아니에요.";
+  const shown = items.slice(0, FREE_SAJU_SHINSAL_MAX).map((item) => `${item.name}(${item.places.join("·")})`).join(", ");
+  const rest = items.length - FREE_SAJU_SHINSAL_MAX;
+  return `원국에서 신살 ${items.length}가지를 찾았어요. ${shown}${rest > 0 ? ` 외 ${rest}가지` : ""}. 신살은 이름과 자리만 보여 주는 참고 표시라, 하나만 보고 좋고 나쁨을 정하지 않아요.`;
 }

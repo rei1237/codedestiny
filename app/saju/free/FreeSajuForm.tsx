@@ -3,7 +3,7 @@ import {useState,type FormEvent} from "react";
 import {computeFreeSaju,preloadFreeSajuEngine} from "@/lib/free-saju/engine";
 import type {FreeSajuReading} from "@/lib/free-saju/compute";
 import {birthDateTextInputProps} from "@/lib/birthDateInputProps";
-import {elementBalanceLine} from "@/lib/free-saju/copy";
+import {elementBalanceLine,shinsalSummaryLine} from "@/lib/free-saju/copy";
 import {trackEvent} from "@/lib/analytics";
 
 export default function FreeSajuForm() {
@@ -35,6 +35,7 @@ export default function FreeSajuForm() {
     <div aria-live="polite">{error && <p>{error}</p>}{reading && <div className="mt-4">
       <p><b>년주 {reading.pillars.year} · 월주 {reading.pillars.month} · 일주 {reading.pillars.day} · 시주 {reading.pillars.hour||"미상"}</b></p>
       <p>{elementBalanceLine(reading.elements)}</p>
+      {reading.shinsal ? <p>{shinsalSummaryLine(reading.shinsal)}</p> : null}
     </div>}</div>
   </section>;
 }

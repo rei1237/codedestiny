@@ -2,8 +2,10 @@
  * `/saju/free` 엔진 로더. 입력란 포커스 때 preloadFreeSajuEngine() 으로 미리 받아 두면
  * 제출 뒤 계산은 1ms 안팎이다(2026-11-08 node 측정: 따뜻한 상태 평균 0.29ms).
  * 출생지는 받지 않으므로 calculateLocalSaju 의 한국 기본값과 같은 서울 기본 출생지로 계산된다.
+ * 신살 요약(reading.shinsal)은 SAJU_SHINSAL_FACTS_V1 의 'free-saju' 가 켜졌을 때만 ./shinsal 을 동적으로 받아 붙인다.
  */
 import { buildFreeSajuReading, type FreeSajuReading } from "./compute";
+import { ENGINE_ROLLOUT_FLAGS, shinsalFactsOn } from "@/worker/lib/engine-rollout.js";
 
 type KoreanCalendar = typeof import("@/lib/korean-calendar");
 let enginePromise: Promise<KoreanCalendar> | null = null;
@@ -40,5 +42,12 @@ export async function computeFreeSaju(input: FreeSajuInput, now = new Date()): P
     isLeapMonth: calendarType === "lunar_leap",
   });
   const today = calculateNatalSaju({ birthDate: seoulToday(now), birthTime: "12:00", calendarType: "solar" });
-  return buildFreeSajuReading(natal.pillars, today.pillars.year);
+  const reading = buildFreeSajuReading(natal.pillars, today.pillars.year);
+  if (!shinsalFactsOn(ENGINE_ROLLOUT_FLAGS, "free-saju")) return reading;
+  try {
+    const { summarizeFreeSajuShinsal } = await import("./shinsal");
+    return { ...reading, shinsal: summarizeFreeSajuShinsal(natal.pillars) };
+  } catch {
+    return reading; // 신살 묶음을 못 받아도 명식 결과는 그대로 보여 준다
+  }
 }
