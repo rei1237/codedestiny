@@ -847,6 +847,21 @@ describe("saju_lifetime_bundle natal reading", () => {
     expect(parts(false).strength).not.toContain("판정 보류");
   });
 
+  test("신살 플래그를 켜면 일주 칸에만 신살 절이 붙고 공망은 겹치지 않으며, 끄면 옛 본문 그대로다", () => {
+    const c = PARITY.cases.find((entry) => entry.id === "unknown-f-1978");
+    const parts = (extra) => buildSajuSectionHtml({
+      featureKey: BUNDLE, birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, now: new Date(PARITY.now), ...extra,
+    }).parts;
+    const base = parts({}), on = parts({ shinsalEnabled: true });
+    expect(parts({ shinsalEnabled: false })).toEqual(base);
+    expect(base.ilju).not.toContain("신살(神煞)");
+    expect(on.ilju).toContain("네 기둥에 깃든 신살(神煞)");
+    expect(on.ilju).toContain("시주 신살은 계산하지 않았어요");
+    expect((on.ilju.match(/공망\(空亡\)/g) || []).length).toBe((base.ilju.match(/공망\(空亡\)/g) || []).length);
+    for (const key of PART_KEYS.filter((k) => k !== "ilju")) expect(on[key]).toBe(base[key]);
+  });
+
   test("미구매는 402이고 응답에 본문이 없다", async () => {
     const result = await request(BUNDLE_INPUT);
     const { pricing } = getBillingFeaturePricing({ featureKey: BUNDLE });

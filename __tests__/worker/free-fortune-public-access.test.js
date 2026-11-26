@@ -49,6 +49,11 @@ test.each(['saju_natal_reading','rpt_quantumCard','compat-sukuyo-compatibility',
  expect(response.status).toBe(200); expect((await response.json()).unlocked).toBe(true);
  expect(auth).not.toHaveBeenCalled(); expect(readProfile).not.toHaveBeenCalled(); expect(prove).not.toHaveBeenCalled(); expect(claim).not.toHaveBeenCalled();
 });
+test('public natal reading takes the shinsal flag from env only, never from the body', async () => {
+ const body = { featureKey: 'saju_natal_reading', shinsalEnabled: true, birth: { date: '1990-05-15', hour: 14, minute: 30 } };
+ await handleSajuSection(request(body)); expect(build.mock.calls.at(-1)[0].shinsalEnabled).toBe(false);
+ await handleSajuSection(request(body), { SAJU_SHINSAL_FACTS_V1: 'natal-static' }); expect(build.mock.calls.at(-1)[0].shinsalEnabled).toBe(true);
+});
 test.each(['section_summary','section_daewun','saju_lifetime_bundle'])('protected %s remains login gated', async featureKey => {
  const response = await handleSajuSection(request({ featureKey })); expect(response.status).toBe(401); expect(build).not.toHaveBeenCalled();
 });

@@ -453,6 +453,7 @@ export function buildSajuSectionHtml(input) {
     // 풀이 이름은 이스케이프 전 값을 넘긴다(본문 조립이 칸마다 이스케이프한다).
     const parts = rt.buildNatalReadingParts({
       p, natal, johu, power: shown?.power || power, gyeokguk: shown?.gyeokguk || null, jong, name: String(input.name || "").trim().slice(0, 40) || "사용자", unknown: timeUnknown, mode: neo ? "neo" : "pig", lang: input.lang || "ko",
+      shinsalEnabled: input.shinsalEnabled === true,
       solar: { year: meta.civil.year, month: meta.civil.month, day: meta.civil.day, hour, minute },
     });
     return featureKey==='saju_natal_reading'?{parts,imagePrompts:rt.imagePrompts(p,natal)}:{parts};

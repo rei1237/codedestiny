@@ -382,6 +382,56 @@
     if (b < 0) return withB + '(' + without + ')';
     return b === 0 || (b === 8 && without === '로') ? without : withB;
   }
+  /* ── 신살(SAJU_SHINSAL_FACTS_V1 의 natal-static 이 켜졌을 때만). 계산·이름·설명은 정본 모듈(root.SajuShinsal)에서 읽는다 ── */
+  var SHINSAL_PILLAR_KO = {year:'년', month:'월', day:'일', hour:'시'};
+  var SHINSAL_POS_KO = {stem:'간', branch:'지', pillar:'주'};
+  var SHINSAL_MAX = 10;
+  var SHINSAL_ENDINGS = [[/읽는다\.$/, '읽어요.', '읽어.'], [/본다\.$/, '봐요.', '봐.'], [/자리다\.$/, '자리예요.', '자리야.'], [/특징이다\.$/, '특징이에요.', '특징이야.'], [/짝이다(\([^)]*\))?\.$/, '짝이에요$1.', '짝이야$1.']];
+  function shinsalVoice(text, k) {
+    var s = String(text || '');
+    for (var i = 0; i < SHINSAL_ENDINGS.length; i++) if (SHINSAL_ENDINGS[i][0].test(s)) return s.replace(SHINSAL_ENDINGS[i][0], SHINSAL_ENDINGS[i][1 + k]);
+    return '';
+  }
+  function shinsalPlace(L, pillar, position, ch) {
+    var head = SHINSAL_PILLAR_KO[pillar], c = String(ch || '');
+    if (!head || !c) return '';
+    var suffix = position ? SHINSAL_POS_KO[position] : (c.length === 2 ? '주' : (L.GAN[c] ? '간' : '지'));
+    return suffix ? head + suffix + '(' + c + ')' : '';
+  }
+  function shinsalSection(facts, L, neo, k) {
+    try {
+      var S = root.SajuShinsal, p = facts.p;
+      if (facts.shinsalEnabled !== true || !S || typeof S.computeShinsal !== 'function' || typeof S.getShinsalCopy !== 'function' || !S.SHINSAL_CATALOG_BY_ID) return '';
+      var res = S.computeShinsal({ pillars: { year: p.y, month: p.m, day: p.d, hour: facts.unknown ? null : p.h }, timeUnknown: facts.unknown === true });
+      if (!res || res.valid !== true || !res.hits) return '';
+      var groups = {}, order = [];
+      res.hits.forEach(function (hit) {
+        var cat = S.SHINSAL_CATALOG_BY_ID[hit.ruleId];
+        if (!cat || cat.hidden || hit.ruleId === 'gongmang' || !SHINSAL_PILLAR_KO[hit.pillar]) return; // 공망은 위 절이 따로 다룬다
+        var copy = S.getShinsalCopy(hit.ruleId);
+        if (!copy || copy.hidden || !copy.name) return;
+        var place = hit.pair && hit.pair.length ? hit.pair.map(function (m) { return shinsalPlace(L, m.pillar, '', m.char); }).filter(Boolean).join('·') : shinsalPlace(L, hit.pillar, hit.position, hit.char);
+        var g = groups[hit.ruleId];
+        if (!g) { g = groups[hit.ruleId] = {cat: cat, copy: copy, places: []}; order.push(g); }
+        if (place && g.places.indexOf(place) < 0) g.places.push(place);
+      });
+      if (!order.length) return '';
+      order.sort(function (a, b) { return (a.cat.tier - b.cat.tier) || (a.cat.catalogIndex - b.cat.catalogIndex); });
+      var cut = order.length > SHINSAL_MAX, items = order.slice(0, SHINSAL_MAX).map(function (g) {
+        var name = g.copy.name + (g.copy.hanja && g.copy.name.indexOf('(') < 0 ? '(' + g.copy.hanja + ')' : '');
+        return {tag: name + (g.places.length ? ' · ' + g.places.join(', ') : ''), text: '', note: shinsalVoice(g.copy.easy, k) || g.copy.short || ''};
+      });
+      var note = neo ?
+        '신살 기준은 학파마다 조금씩 달라. 널리 쓰는 기준(12신살은 년지·일지 둘 다)을 따랐으니까 참고로만 봐.' + (facts.unknown ? ' 출생 시간을 몰라서 시주 신살은 뺐어.' : '') + (cut ? ' 비중 큰 순서로 열 개까지만 담았어.' : '') :
+        '신살은 학파마다 찾는 기준이 조금씩 달라요. 여기서는 널리 쓰는 기준(12신살은 년지·일지 기준을 함께)을 따랐으니 참고 지표로만 읽어 주세요.' + (facts.unknown ? ' 출생 시간을 몰라 시주 신살은 계산하지 않았어요.' : '') + (cut ? ' 비중이 큰 순서로 열 가지까지 담았어요.' : '');
+      return section(neo ? '신살(神煞) 정리' : '네 기둥에 깃든 신살(神煞)', para(neo ?
+        '신살은 글자 짝에 붙는 이름표야. 성향을 보태는 보조 단서로만 쓰고, 일이 어떻게 될지 정하는 근거로는 안 써.' :
+        '신살은 네 기둥의 글자가 특정한 짝을 이룰 때 붙이는 이름이에요. 성향의 결을 보태는 보조 단서로만 읽고, 일이 어떻게 될지를 정하는 근거로 삼지는 않아요.') +
+        chips(items) + '<p class="saju-rich__note">' + esc(note) + '</p>');
+    } catch (e) {
+      return '';
+    }
+  }
   function ilju(facts, mode) {
     var p = facts && facts.p, L = lib(facts);
     if (!p || !p.d || !p.d.g || !p.d.j || !L.GAN[p.d.g] || !L.getTenGod) return '';
@@ -427,6 +477,7 @@
         '공망은 일주가 속한 순(旬)에서 짝을 얻지 못한 두 지지로, 그 자리의 기운이 비어 있는 듯 허전하게 느껴질 수 있다고 봐요. 당신의 공망은 ' + gm.join('·') + ' 두 지지예요. ' + (hit.length ? '원국에서는 ' + hit.join(', ') + ' 자리가 공망에 걸려 있어요. 그 영역은 기대만큼 채워지지 않는 느낌이 들 수 있지만, 정신적인 쪽이나 배움으로 쓰면 오히려 깊어진다고 읽어요.' : '원국의 다른 글자 가운데 공망에 걸린 자리는 없어요.')) +
         '<p class="saju-rich__note">' + esc(neo ? '공망 해석은 학파마다 비중이 달라. 참고 지표로만 봐.' : '공망은 학파마다 무게를 다르게 두는 지표라 참고로만 읽어 주세요.') + '</p>');
     }
+    html += shinsalSection(facts, L, neo, k);
     html += section(neo ? '영냥이의 한 줄 정리' : '연이의 한마디', para((ILJU_WORD[dg] || ['', ''])[k]));
     return wrap(mode, html, facts);
   }
@@ -891,7 +942,7 @@ function buildNatalReadingParts(ctx) {
   var model = P.build(facts, mode, lang);
   var parts = { ilju: '', ten: '', climate: '', strength: '', terms: buildNatalTermsPart(ctx) };
   if (!model) return parts;
-  var richFacts = Object.assign({}, facts, { warning: P.pick(P.langCopy(lang), 'unknown', mode === 'neo') });
+  var richFacts = Object.assign({}, facts, { warning: P.pick(P.langCopy(lang), 'unknown', mode === 'neo'), shinsalEnabled: ctx.shinsalEnabled === true });
   var rich = lang === 'ko' ? { climate: climate, strength: strength } : natalIntl.forLang(lang);
   parts.ilju = buildNatalIljuPart(ctx, model, richFacts, mode, lang);
   parts.ten = buildNatalTenPart(model, richFacts, mode, lang);
