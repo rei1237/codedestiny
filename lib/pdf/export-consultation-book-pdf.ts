@@ -8,9 +8,10 @@ import { ziweiReportBlocks } from './ziwei-report-plan';
 import { loadReportArt, type ReportArt } from './report-art';
 import { REPORT_COVER_THEMES, type ReportCoverTheme } from './report-cover-theme';
 import { drawRadarChart } from './radar-chart';
+import { consultationEditorialTheme, drawEditorialBars, drawEditorialCover, drawEditorialPageMarks, drawEditorialTable, loadConsultationBranch } from './consultation-book-editorial';
 
 /** 장 하나. kicker 는 부 이름, speaker 는 그 장을 쓰는 마스터의 표시 이름이다. */
-export type ConsultationBookChapter = { kicker?: string; title: string; body: string; speaker?: string };
+export type ConsultationBookChapter = { kicker?: string; title: string; body: string; speaker?: string; portraitSrc?: string };
 
 /**
  * 장 앞에 싣는 요약·도표 한 덩어리. 결과 화면이 그리는 저장 값(점수·기여도·요약 문장)만 담는다.
@@ -21,7 +22,7 @@ export type ConsultationBookFigure =
   | { kind: 'bars'; title: string; rows: Array<{ label: string; value: number; note?: string }>; note?: string }
   | { kind: 'radar'; title: string; axes: Array<{ label: string; score: number }>; caption?: string }
   | { kind: 'list'; title: string; items: string[] }
-  | { kind: 'timeline'; title: string; items: Array<{ label: string; detail: string; source?: string }> };
+  | { kind: 'timeline'; title: string; columns?: { label: string; detail: string; source?: string }; items: Array<{ label: string; detail: string; source?: string }> };
 
 /** 요약 쪽. 차례 첫 줄(번호 없음)과 장 앞의 새 쪽으로 들어간다. 그릴 것이 없으면 싣지 않는다. */
 export type ConsultationBookSummary = { kicker?: string; title: string; figures: ConsultationBookFigure[] };
@@ -34,6 +35,7 @@ export type ConsultationBookOptions = {
   byline?: string;
   /** 표지 그림. 없으면 표지 테마의 서비스 소개 그림을 쓴다. */
   coverArtSrc?: string;
+  coverPortraits?: Array<{ src: string; name: string }>;
   coverTheme?: ReportCoverTheme;
   date?: string;
   fileName: string;
@@ -66,7 +68,7 @@ export function consultationSummaryFigures(summary?: ConsultationBookSummary | n
 /** 도표 제목이 쪽 바닥에 홀로 남지 않도록 뒤따를 첫 줄 몫을 함께 잡는다. */
 const FIGURE_KEEP_MM = 24;
 
-function drawSummaryFigure(pdf: JsPDFInstance, fonts: PdfFonts, writer: ReturnType<typeof createTypesetWriter>, figure: ConsultationBookFigure) {
+function drawSummaryFigure(pdf: JsPDFInstance, fonts: PdfFonts, writer: ReturnType<typeof createTypesetWriter>, figure: ConsultationBookFigure, editorial?: ReturnType<typeof consultationEditorialTheme>) {
   if (figure.kind === 'lead') {
     writer.heading(figure.title, FIGURE_KEEP_MM);
     writer.quote(clean(figure.text));
@@ -77,11 +79,14 @@ function drawSummaryFigure(pdf: JsPDFInstance, fonts: PdfFonts, writer: ReturnTy
   }
   if (figure.kind === 'bars') {
     const rows = figure.rows.filter((row) => clean(row.label) && Number.isFinite(Number(row.value)));
+    const values = rows.map(row => ({ label: clean(row.label), value: Math.max(0, Math.min(100, Math.round(Number(row.value)))), note: clean(row.note) }));
+    if (editorial) {
+      drawEditorialBars(pdf, fonts, writer, editorial, figure.title, values);
+      if (clean(figure.note)) writer.caption(clean(figure.note));
+      return;
+    }
     writer.heading(figure.title, FIGURE_KEEP_MM);
-    writer.meterBar(rows.map((row) => {
-      const value = Math.max(0, Math.min(100, Math.round(Number(row.value))));
-      return { label: clean(row.label), value, max: 100, display: String(value) };
-    }));
+    writer.meterBar(values.map(({ label, value }) => ({ label, value, max: 100, display: String(value) })));
     const notes = rows.filter((row) => clean(row.note)).map((row) => `${clean(row.label)} — ${clean(row.note)}`);
     if (notes.length) writer.bullets(notes);
     if (clean(figure.note)) writer.caption(clean(figure.note));
@@ -101,9 +106,15 @@ function drawSummaryFigure(pdf: JsPDFInstance, fonts: PdfFonts, writer: ReturnTy
     writer.bullets(figure.items.map(clean).filter(Boolean));
     return;
   }
-  writer.heading(figure.title, FIGURE_KEEP_MM);
-  writer.keyValueTable(figure.items.filter((item) => clean(item.label) && clean(item.detail))
-    .map((item) => ({ label: clean(item.label), value: clean(item.source) ? `${clean(item.detail)} (${clean(item.source)})` : clean(item.detail) })));
+  const items = figure.items.filter((item) => clean(item.label) && clean(item.detail));
+  if (editorial && figure.columns) {
+    const { label, detail, source } = figure.columns;
+    drawEditorialTable(pdf, fonts, writer, editorial, figure.title, source ? [label, detail, source] : [label, detail],
+      items.map(item => source ? [clean(item.label), clean(item.detail), clean(item.source)] : [clean(item.label), clean(item.detail)]));
+    return;
+  }
+  writer.keyValueTable(items
+    .map((item) => ({ label: clean(item.label), value: clean(item.source) ? `${clean(item.detail)} (${clean(item.source)})` : clean(item.detail) })), figure.title);
 }
 
 /** 장 머리의 작은 줄: "부 이름 · 화자". 둘 다 없으면 빈 줄. */
@@ -117,12 +128,28 @@ export function consultationContentsLabel(chapter: ConsultationBookChapter, inde
   return `${String(index + 1).padStart(2, '0')}  ${chapter.title}${speaker ? ` · ${speaker}` : ''}`;
 }
 
-function drawCover(pdf: JsPDFInstance, fonts: PdfFonts, options: ConsultationBookOptions, art?: ReportArt) {
+function drawCover(pdf: JsPDFInstance, fonts: PdfFonts, options: ConsultationBookOptions, art?: ReportArt, portraits?: Map<string, ReportArt>) {
   const theme = REPORT_COVER_THEMES[options.coverTheme || 'love'];
   pdf.setFillColor(theme.paper[0], theme.paper[1], theme.paper[2]); pdf.rect(0, 0, PAGE_WIDTH_MM, PAGE_HEIGHT_MM, 'F');
   pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.setLineWidth(0.3); pdf.rect(12, 12, PAGE_WIDTH_MM - 24, PAGE_HEIGHT_MM - 24);
   let y = 84;
-  if (art) {
+  const masters = options.coverPortraits || [];
+  const hasPortraits = masters.some(master => portraits?.has(master.src));
+  if (hasPortraits) {
+    const slot = CONTENT_WIDTH_MM / masters.length;
+    masters.forEach((master, index) => {
+      const portrait = portraits?.get(master.src);
+      const center = MARGIN_X_MM + slot * (index + 0.5);
+      if (portrait) {
+        const width = Math.min(slot - 8, 80 / portrait.ratio, 62);
+        try { pdf.addImage(portrait.dataUrl, 'JPEG', center - width / 2, 34 + (80 - width * portrait.ratio) / 2, width, width * portrait.ratio); }
+        catch { /* The name remains available without the picture. */ }
+      }
+      pdf.setFont(fonts.body, 'normal'); pdf.setFontSize(11); pdf.setTextColor(theme.ink[0], theme.ink[1], theme.ink[2]);
+      pdf.text(master.name, center, 123, { align: 'center' });
+    });
+    y = 148;
+  } else if (art) {
     const height = Math.min(112, CONTENT_WIDTH_MM * art.ratio);
     try { pdf.addImage(art.dataUrl, 'JPEG', MARGIN_X_MM, 34, CONTENT_WIDTH_MM, height); y = 34 + height + 22; } catch { /* 장식 실패는 본문 저장을 막지 않는다. */ }
   }
@@ -133,7 +160,7 @@ function drawCover(pdf: JsPDFInstance, fonts: PdfFonts, options: ConsultationBoo
   pdf.setDrawColor(theme.accent[0], theme.accent[1], theme.accent[2]); pdf.line(MARGIN_X_MM, 238, MARGIN_X_MM + 36, 238);
   pdf.setFont(fonts.body, 'normal'); pdf.setFontSize(10); pdf.setTextColor(theme.muted[0], theme.muted[1], theme.muted[2]);
   pdf.text(`CODE DESTINY · ${options.productLabel} · ${options.chapters.length}장`, MARGIN_X_MM, 250);
-  if (options.byline) pdf.text(options.byline, MARGIN_X_MM, 261);
+  if (options.byline && !hasPortraits) pdf.text(options.byline, MARGIN_X_MM, 261);
   if (options.date) pdf.text(options.date, MARGIN_X_MM, 272);
 }
 
@@ -141,12 +168,14 @@ function drawCover(pdf: JsPDFInstance, fonts: PdfFonts, options: ConsultationBoo
  * 화면의 펼침 상태와 상관없이 받은 상담 전체를 글자로 조판한다.
  * 표지 → 여러 쪽이 될 수 있는 차례(쪽 링크) → 장마다 새 쪽. 본문 문장은 줄이거나 고치지 않는다.
  */
-export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, options: ConsultationBookOptions, art?: ReportArt) {
+export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, options: ConsultationBookOptions, art?: ReportArt, portraits?: Map<string, ReportArt>, branch?: string) {
   const chapters = options.chapters.filter(chapter => String(chapter.title || '').trim() && String(chapter.body || '').trim());
   if (!chapters.length) throw new Error('consultation book pdf: no chapters');
   // 표지용 픽셀 글꼴 대신 본문 한글 글꼴을 상담서 전체에 쓴다(자미두수 상담서와 같은 판단).
   fonts = { title: fonts.body, body: fonts.body };
-  drawCover(pdf, fonts, { ...options, chapters }, art);
+  const editorial = options.coverPortraits?.length ? consultationEditorialTheme(options.coverTheme) : undefined;
+  if (editorial) drawEditorialCover(pdf, fonts, { ...options, chapters }, art, portraits, branch);
+  else drawCover(pdf, fonts, { ...options, chapters }, art, portraits);
   const figures = consultationSummaryFigures(options.summary);
   const summaryTitle = figures.length ? clean(options.summary?.title) : '';
   const labels = chapters.map(consultationContentsLabel);
@@ -157,17 +186,18 @@ export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, opt
   if (summaryTitle) {
     writer.chapter(clean(options.summary?.kicker), summaryTitle);
     toc.entries[0].destination = writer.page;
-    for (const figure of figures) drawSummaryFigure(pdf, fonts, writer, figure);
+    for (const figure of figures) drawSummaryFigure(pdf, fonts, writer, figure, editorial);
   }
   for (const [index, chapter] of chapters.entries()) {
-    writer.chapter(consultationChapterKicker(chapter), `${String(index + 1).padStart(2, '0')}  ${chapter.title}`);
+    writer.chapter(consultationChapterKicker(chapter), `${String(index + 1).padStart(2, '0')}  ${chapter.title}`, chapter.portraitSrc ? portraits?.get(chapter.portraitSrc) : undefined);
     toc.entries[index + offset].destination = writer.page;
     for (const block of ziweiReportBlocks(stripPdfHanjaGloss(chapter.body))) {
       if (block.kind === 'heading') writer.heading(block.text);
-      else for (const paragraph of bookParagraphs(block.text)) writer.body(paragraph);
+      else for (const paragraph of bookParagraphs(block.text)) writer.body(editorial ? paragraph.replace(/\*\*([^*\n]+)\*\*/g, '$1') : paragraph);
     }
   }
-  drawLinkedContents(pdf, fonts, toc);
+  drawLinkedContents(pdf, fonts, toc, editorial);
+  if (editorial) drawEditorialPageMarks(pdf, editorial);
   drawFooters(pdf, fonts, `Code Destiny · ${options.productLabel}`, toc.pages + 2);
   pdf.setProperties({ title: options.title || options.productLabel, subject: options.productLabel, author: options.byline || 'Code Destiny' });
   return { pdf, chapters: chapters.length, summaryFigures: figures.length, contentsPages: toc.pages, destinations: toc.entries.map(entry => entry.destination) };
@@ -180,10 +210,22 @@ export async function exportConsultationBookPdf(options: ConsultationBookOptions
   const fonts = await registerPdfFontsSafely(pdf);
   if (!fonts) throw new PdfFontError();
   const theme = REPORT_COVER_THEMES[options.coverTheme || 'love'];
+  const coverSources = (options.coverPortraits || []).map(master => master.src);
+  const editorial = coverSources.length ? consultationEditorialTheme(options.coverTheme) : undefined;
+  const branchRequest = editorial ? loadConsultationBranch(editorial.motif).catch(() => undefined) : Promise.resolve(undefined);
+  const sources = new Set([...coverSources, ...options.chapters.map(chapter => chapter.portraitSrc).filter((src): src is string => Boolean(src))]);
+  const portraits = new Map<string, ReportArt>();
+  await Promise.all([...sources].map(async src => {
+    try {
+      portraits.set(src, await loadReportArt(src, undefined, true, { width: coverSources.includes(src) ? 360 : 120, quality: 0.85, timeoutMs: 2500 }));
+    } catch { /* A portrait is optional for the complete report. */ }
+  }));
   let art: ReportArt | undefined;
-  try {
-    art = await loadReportArt(options.coverArtSrc || `/images/service-introductions/${theme.artwork}-960.webp`, undefined, true);
-  } catch { /* 글자와 글꼴은 장식 요청과 독립적이다. */ }
-  typesetConsultationBook(pdf, fonts, options, art);
+  if (!coverSources.some(src => portraits.has(src))) {
+    try {
+      art = await loadReportArt(options.coverArtSrc || `/images/service-introductions/${theme.artwork}-960.webp`, undefined, true);
+    } catch { /* 글자와 글꼴은 장식 요청과 독립적이다. */ }
+  }
+  typesetConsultationBook(pdf, fonts, options, art, portraits, await branchRequest);
   pdf.save(options.fileName);
 }

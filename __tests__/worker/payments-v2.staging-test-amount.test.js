@@ -2,6 +2,20 @@ import { jest } from "@jest/globals";
 // Historical order lifecycle fixtures predate the sales cutoff; isolate only new-sale admission.
 // pass-policy-v2.test.js tests closed sales and legacy recovery with the real gate.
 jest.unstable_mockModule("../../worker/lib/pass-sale-policy.js", () => ({ assertPassSaleAllowed: jest.fn(), listCurrentPassOffers: () => [] }));
+// 주문 생성 라우트는 탈퇴 확인(resolvePaidRouteAuth, Mongo 읽기)을 하는데(PRIV-002), 이 파일의 env 는
+// NODE_ENV=production 이라 로컬 개발 폴백이 없다. 금액 축만 보므로 신원은 고정 사용자로 둔다.
+// 탈퇴·인프라 장애 판정은 payments-withdrawn-auth.test.js 가 맡는다.
+jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
+  getOptionalUserFromRequest: jest.fn(async () => ({ userId: "64b000000000000000000001", role: "user" })),
+  getAccessTokenSecret: jest.fn(() => "test-secret"),
+  getJwtAudience: jest.fn(() => "test-audience"),
+  getJwtIssuer: jest.fn(() => "test-issuer"),
+  isAuthDbInfraError: jest.fn(() => false),
+  peekAccessTokenUserId: jest.fn(async () => "64b000000000000000000001"),
+  requireAuth: jest.fn(async () => ({ userId: "64b000000000000000000001", role: "user" })),
+  resolvePaidRouteAuth: jest.fn(async () => ({ userId: "64b000000000000000000001", role: "user" })),
+  signAuthToken: jest.fn(async () => "test-access-token"),
+}));
 /**
  * @jest-environment node
  *

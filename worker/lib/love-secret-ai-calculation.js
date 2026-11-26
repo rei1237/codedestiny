@@ -14,6 +14,7 @@ import {
   getHourStemByDayStem,
 } from "./destiny-bias-engine.js";
 import { buildSajuAdvancedFactors } from "./saju-ai-prompt.js";
+import { redactForLog } from "./log-redact.js";
 import { buildLoveSecretReference } from "./love-secret-reference.js";
 import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
 import { approvedCompatSupportFacts, approvedSajuLabels, lifeBookPillars, overlayApprovedLifeBookChart, withoutSingleYongshinText } from "./saju-authority-consumer.js";
@@ -732,12 +733,12 @@ export function calculateLoveSecretAiSaju(normalized, options = {}) {
   try {
     ({ saju: mySaju, hourCorrection: myHourCorrection } = calculateChartWithHourCorrection(myInfo));
   } catch (error) {
-    console.warn("[love-secret-ai] my chart calculation failed", {
+    console.warn("[love-secret-ai] my chart calculation failed", redactForLog({
       birthDate: myInfo.birthDate,
       calendarType: myInfo.calendarType,
       birthTimeUnknown: myInfo.birthTimeUnknown,
       error: clean(error?.message || error, 300),
-    });
+    }));
     throw Object.assign(new Error("my chart calculation failed"), { code: "CALCULATION_FAILED" });
   }
 
@@ -746,12 +747,12 @@ export function calculateLoveSecretAiSaju(normalized, options = {}) {
     try {
       ({ saju: partnerSaju, hourCorrection: partnerHourCorrection } = calculateChartWithHourCorrection(partnerInfo));
     } catch (error) {
-      console.warn("[love-secret-ai] partner chart calculation failed", {
+      console.warn("[love-secret-ai] partner chart calculation failed", redactForLog({
         birthDate: partnerInfo.birthDate,
         calendarType: partnerInfo.calendarType,
         birthTimeUnknown: partnerInfo.birthTimeUnknown,
         error: clean(error?.message || error, 300),
-      });
+      }));
       throw Object.assign(new Error("partner chart calculation failed"), { code: "CALCULATION_FAILED" });
     }
   }

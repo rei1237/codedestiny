@@ -442,6 +442,8 @@ on:
       - "worker/lib/checkpoint-refund-guard.js"
       - "worker/lib/coin-refund-eligibility.js"
       - "worker/lib/refund-delivery-protection.js"
+      # 환불 근거 기능 키 별칭 정본(2026-11-26 추가, 환불기 4종·증빙 검사가 읽는다)
+      - "worker/lib/refund-feature-alias.js"
       # 정체 자동 확정과 복구 크론
       - "worker/lib/paid-delivery-stuck.js"
       - "worker/lib/consultation-recovery-registry.js"

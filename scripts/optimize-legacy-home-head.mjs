@@ -210,7 +210,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   if (existsSync(entry)) {
     const html = readFileSync(entry, 'utf8');
     const head = optimizeLegacyHomeHead(html, dist);
-    const packed = process.env.CD_RECORD_HOME_STYLES === '1' ? head : optimizeLegacyHomePaint(head, dist);
+    const packed = process.env.CD_RECORD_HOME_STYLES === '1' ? head : optimizeLegacyHomePaint(head, dist, undefined, console.log);
     if (packed !== html) writeFileSync(entry, packed);
     console.log('[legacy-home-head] Render-blocking assets packaged for /ggulggul/.');
   }

@@ -4,7 +4,7 @@ import { runCoinRefund } from '../../worker/lib/service-execution-task.js';
 const userId = '64b7f2a1c3d4e5f601234567';
 const sourceId = '64b7f2a1c3d4e5f600000009';
 
-function fixture({ delta = -12, failure = '', featureKey = 'test-feature', cost = 90 } = {}) {
+function fixture({ delta = -12, failure = '', featureKey = 'test-feature', cost = 90, executionFeatureKey = 'test-feature' } = {}) {
   let state = { marked: false, balance: 7, receipt: null };
   let calls = 0;
   let queue = Promise.resolve();
@@ -35,7 +35,7 @@ function fixture({ delta = -12, failure = '', featureKey = 'test-feature', cost 
     return result;
     } finally { release(); }
   } });
-  return { run: () => runCoinRefund({ userId, featureKey: 'test-feature', cost, sourceTransactionId: sourceId }, { withDb }), state: () => state };
+  return { run: () => runCoinRefund({ userId, featureKey: executionFeatureKey, cost, sourceTransactionId: sourceId }, { withDb }), state: () => state };
 }
 
 test('restores the actual debit once even when the requested price differs', async () => {
@@ -83,4 +83,18 @@ test('concurrent requests settle on one receipt and one balance change', async (
   expect(results.filter(row => row.idempotent === false)).toHaveLength(1);
   expect(results.filter(row => row.idempotent === true)).toHaveLength(1);
   expect(f.state()).toMatchObject({ marked: true, balance: 19, receipt: { delta: 12 } });
+});
+
+// 2026-11-26 (a): the geomancy gate deducts under openGeomancyOracle; only that exact alias is accepted.
+test('a geomancy run refunds a deduct recorded under its gate key openGeomancyOracle, once', async () => {
+  const f = fixture({ featureKey: 'openGeomancyOracle', executionFeatureKey: 'geomancy' });
+  expect(await f.run()).toMatchObject({ refunded: true, amount: 12 });
+  expect(f.state().receipt).toMatchObject({ delta: 12, featureKey: 'openGeomancyOracle' });
+  expect(await f.run()).toMatchObject({ refunded: true, idempotent: true });
+  expect(f.state().balance).toBe(19);
+});
+test.each([['geomancy', 'tarot-mindscan'], ['openGeomancyOracle', 'geomancy']])('a %s run does not refund a %s deduct', async (executionFeatureKey, featureKey) => {
+  const f = fixture({ featureKey, executionFeatureKey });
+  expect(await f.run()).toMatchObject({ refunded: false, reason: 'DEDUCT_FEATURE_MISMATCH' });
+  expect(f.state()).toMatchObject({ marked: false, balance: 7, receipt: null });
 });

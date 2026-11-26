@@ -19,6 +19,10 @@ import { RelationshipReportHero, RelationshipReportChapters } from '@/app/relati
 import { CompassSavedChapters } from '@/app/destiny-compass/_components/SavedCompassReport';
 import { normalizeReport, type KarmaResult } from '@/app/karma-destiny-ai/result/_lib/report-model';
 import type { ActionSecret } from '@/app/love-secret-ai/result/LoveSecretChecklist';
+import { LoveSpeakerChip } from '@/app/love-secret-ai/result/LoveReadingChapter';
+import { LoveReportMasters, LoveReportTiming } from '@/app/love-secret-ai/result/LoveReportOverview';
+import { loveReportCopy, loveReportOverview, loveReportSpeakerNames } from '@/app/love-secret-ai/result/love-report-overview';
+import { loveChapterKicker } from '@/app/love-secret-ai/result/love-secret-sections';
 import type { Grade } from '@/app/relationship-boundary-test/scenes';
 import bookStyles from '@/app/life-book-ai/result/LifeBookAiResultClient.module.css';
 import loveTheme from '@/app/love-secret-ai/love-secret-theme.module.css';
@@ -88,7 +92,26 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  if(family==='book') return <div className={bookStyles.readingRoom+' '+styles.book} style={{minHeight:0}}><SavedLifeBookPdfButton row={row} locale={locale}/><div className={bookStyles.paperPage}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<SavedChapters value={model} fields={view.fields} omit={['sajuResult','saju','sajuFacts']} chapterClass={bookStyles.chapterProse}/>)}</div></div>;
  if(family==='love') {
   const secrets=list(model.actionSecrets).filter(v=>typeof object(v).action==='string') as ActionSecret[];
-  return <div className={loveTheme.reportTheme+' '+styles.letter}><SavedLovePdfButton row={row} locale={locale}/><div className={loveStyles.resultDocument}>{answerFirst(saju?<SavedSaju value={saju}/>:null,<><SavedChapters value={model} omit={[...(secrets.length?['actionSecrets','sevenDayGuide']:[])]} fields={view.fields}/>{!!secrets.length&&<LoveSecretChecklist secrets={secrets} sevenDayGuide={list(model.sevenDayGuide).filter((v):v is string=>typeof v==='string')} consultationKey={text(row.id)} forceExpanded/>}</>)}</div></div>;
+  const names=loveReportSpeakerNames(locale), {diagnosis}=loveReportOverview(row,locale);
+  const chapterTitles=new Set(list(row.sections).map(section=>text(object(section).title)));
+  return (
+   <div className={loveTheme.reportTheme+' '+styles.letter}>
+    <SavedLovePdfButton row={row} locale={locale}/>
+    <div className={loveStyles.resultDocument}>
+     <LoveReportMasters names={names} locale={locale}/>
+     {diagnosis&&<section className={loveStyles.cardSummary}>
+      <h2>{loveReportCopy(locale).diagnosis}</h2>
+      <figure className={loveStyles.accentQuote}><blockquote>{diagnosis}</blockquote></figure>
+     </section>}
+     {answerFirst(saju?<SavedSaju value={saju}/>:null,<>
+      <SavedChapters value={model} omit={[...(secrets.length?['actionSecrets','sevenDayGuide']:[]), ...(diagnosis?['oneLineDiagnosis']:[])]} fields={view.fields}
+       chapterClass={loveStyles.chapterProse} chapterCredit={title=>(chapterTitles.has(title)||loveChapterKicker(title))?<LoveSpeakerChip title={title} names={names}/>:null}/>
+      <LoveReportTiming source={row} locale={locale}/>
+      {!!secrets.length&&<LoveSecretChecklist secrets={secrets} sevenDayGuide={list(model.sevenDayGuide).filter((v):v is string=>typeof v==='string')} consultationKey={text(row.id)} forceExpanded/>}
+     </>)}
+    </div>
+   </div>
+  );
  }
  if(family==='vedic'||family==='prashna') {
   const chart=object(model.vedicChart||object(model.prashnaResult).chart||model.chart), reading=object(model.reading||parsed);

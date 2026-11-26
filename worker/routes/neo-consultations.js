@@ -54,6 +54,14 @@ export async function handleNeoConsultations(request, { service, userId, admin, 
   }
 }
 
+// 고객 신원: JWT 서명만 보는 peekAccessTokenUserId 가 아니라 탈퇴·비활성 여부까지 DB 로 확인한다(PRIV-002).
+// 게스트·무효 토큰·탈퇴 사용자는 ''(→ 401). 로그인 사용자의 일시적 DB 장애는 503 HttpError 를 던진다.
+export async function resolveNeoCustomerUserId(request, env) {
+  const { resolvePaidRouteAuth } = await import('../lib/auth.js');
+  const auth = await resolvePaidRouteAuth(request, env);
+  return auth?.userId ? String(auth.userId) : '';
+}
+
 export async function handleNeoRuntimeRequest(request, env, admin) {
   if (!NEO_EMAIL_SALE_ENABLED) return handleNeoConsultations(request);
   const [{getEnv},{getPortOnePublicConfig},{assertPgConfigured}] = await Promise.all([import('../lib/env.js'),import('../lib/portone.js'),import('../payments/pg.js')]);
@@ -70,10 +78,15 @@ export async function handleNeoRuntimeRequest(request, env, admin) {
     if ((origin && !allowed.has(origin)) || !String(request.headers.get('content-type')).startsWith('application/json'))
       return json({code:'INVALID_ORIGIN',message:'상담 화면에서 다시 요청해 주세요.'},403);
   }
-  const [{createNeoRuntime},{peekAccessTokenUserId}] = await Promise.all([
-    import('../neo-consultation/runtime.js'),import('../lib/auth.js'),
-  ]);
-  const userId = admin ? '' : await peekAccessTokenUserId(request,env);
+  const {createNeoRuntime} = await import('../neo-consultation/runtime.js');
+  let userId = '';
+  if (!admin) {
+    try { userId = await resolveNeoCustomerUserId(request,env); }
+    catch (error) {
+      if (error?.status === 503) return json({code:error.payload?.code || 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE',message:error.message,retryable:true},503);
+      throw error;
+    }
+  }
   const {service,repository,paymentCall} = createNeoRuntime(env,request);
   return handleNeoConsultations(request,{service,userId,admin,
     checkout:async (owner,id) => {

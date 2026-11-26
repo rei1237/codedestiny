@@ -552,6 +552,7 @@ function selfTest() {
       "app/components/ExpertRetryPanel.tsx",
       "worker/lib/service-execution-task.js",
       "worker/lib/pass-consumption.js",
+      "worker/lib/refund-feature-alias.js",
       "worker/lib/consultation-delivery-refund.js",
       "worker/lib/checkpoint-refund-guard.js",
       "worker/lib/paid-delivery-stuck.js",

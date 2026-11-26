@@ -291,3 +291,50 @@ describe("passRefund 를 싣지 않은 실행 — 결제 화면 pass-check 가 �
     });
   });
 });
+
+// 2026-11-26 (a): geomancy runs execute as "geomancy" but the pass-check deducts under the gate key openGeomancyOracle.
+describe("지오맨시 — 게이트 키 openGeomancyOracle 로 남은 이용권 사용 증빙", () => {
+  const geoInput = { executionKey: `geomancy:${REQUEST_ID}`, reasonCode: "generation_failed", forceRefundOnClose: true };
+  const usageRow = featureKey => ({ _id: passUsageEvidenceId(USER_ID, featureKey, REQUEST_ID), userId: new mongoose.Types.ObjectId(USER_ID),
+    kind: "deduct", featureKey, delta: 0, metadata: { accessMethod: "PASS", requestId: REQUEST_ID, passCycleKey: CYCLE_KEY, coinCost: 30 } });
+  async function withRows(rows, run) {
+    const { PointHistory } = await import("../../worker/lib/models.js");
+    refundDb.rows.splice(1, refundDb.rows.length - 1, ...rows);
+    const lookup = jest.spyOn(PointHistory, "findOne").mockImplementation(filter => thenableWithLean(
+      rows.find(row => String(row._id) === String(filter._id) && row.featureKey === filter.featureKey) || null));
+    try { return await run(); } finally { lookup.mockRestore(); }
+  }
+  beforeEach(() => {
+    Object.assign(executions[0], { executionKey: geoInput.executionKey, featureKey: "geomancy", serviceId: "geomancy", metadata: { featureKey: "geomancy" } });
+    users[0].recentConsumeRequestIds = [`tier-pass:openGeomancyOracle:${REQUEST_ID}`, "tier-pass:other:keep"];
+  });
+
+  test("게이트 키 증빙으로 한도를 되돌리고 그 키의 재생 마커를 지운다", async () => {
+    const row = usageRow("openGeomancyOracle");
+    await withRows([row], async () => {
+      const result = await failServiceExecution({}, USER_ID, geoInput);
+      expect(result.settlement.status).toBe("refunded");
+    });
+    expect(users[0].profileSubscription.monthlySpendCoin).toBe(0);
+    expect(users[0].recentConsumeRequestIds).toEqual(["tier-pass:other:keep"]);
+    expect(row.metadata.refundedForServiceExecution).toBe(true);
+  });
+
+  test("두 키에 증빙이 모두 있어도, 완료 표식이 유실돼도 한 번만 되돌린다", async () => {
+    const rows = [usageRow("geomancy"), usageRow("openGeomancyOracle")];
+    await withRows(rows, async () => {
+      await failServiceExecution({}, USER_ID, geoInput);
+      expect(users[0].profileSubscription.monthlySpendCoin).toBe(0);
+      users[0].profileSubscription.monthlySpendCoin = 30;
+      executions[0].status = "pending"; delete executions[0].metadata.passRefund;
+      await failServiceExecution({}, USER_ID, geoInput);
+    });
+    expect(users[0].profileSubscription.monthlySpendCoin).toBe(30);
+    expect(rows.filter(row => row.metadata.refundedForServiceExecution).length).toBe(1);
+  });
+
+  test("별칭이 아닌 다른 기능 키의 증빙은 쓰지 않는다", async () => {
+    await withRows([usageRow("tarot-mindscan")], async () => { await failServiceExecution({}, USER_ID, geoInput); });
+    expect(users[0].profileSubscription.monthlySpendCoin).toBe(30);
+  });
+});

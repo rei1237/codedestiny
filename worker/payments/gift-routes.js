@@ -6,7 +6,7 @@ import { Gift, GiftClaimContext } from "../lib/gift-models.js";
 import { toObjectId } from "./db.js";
 import { classify, paymentError } from "./errors.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
-import { invalidateBalanceSnapshot } from "./index.js";
+import { invalidateBalanceSnapshot, resolveActiveUserId } from "./index.js";
 import {
   assertRawGiftToken, hashGiftToken, newGiftToken, claimGift, issueGiftLink,
   listGifts, presentGift, assertGiftIndexes,
@@ -50,7 +50,10 @@ export async function handleGiftRoute({ request, env, ctx, path, withDb }) {
   try {
     const method = request.method;
     const publicRoute = path === "/preview" || path === "/context";
-    const userId = await peekAccessTokenUserId(request, env) || "";
+    // 선물 수령(지급)은 탈퇴·비활성 여부까지 확인한다(PRIV-002). 조회·공개 경로는 JWT 만 본다(Mongo 읽기 0회).
+    const userId = method === "POST" && path === "/claim"
+      ? await resolveActiveUserId(request, env)
+      : await peekAccessTokenUserId(request, env) || "";
     if (!publicRoute && !userId) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
     if (!["GET", "POST"].includes(method)) return json({ code: "METHOD_NOT_ALLOWED" }, { status: 405, headers });
     let body = {};

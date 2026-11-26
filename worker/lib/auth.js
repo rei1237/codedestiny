@@ -520,7 +520,10 @@ function isRotatedWithinReuseGrace(session, env) {
   return Date.now() - rotatedAt <= getRefreshReuseGraceMs(env);
 }
 
+// access 토큰 검증 전용. refresh 토큰(typ=refresh)은 비밀값이 공유되는 환경에서 access 서명 검증을
+// 통과할 수 있으므로 여기서 거부한다(PRIV-003). access 발급은 typ 가 없으므로 typ 없음·"access" 는 허용.
 function extractTokenUserId(payload) {
+  if (String(payload?.typ || "") === "refresh") return "";
   const userId = String(payload?.userId || payload?.id || "").trim();
   if (!/^[a-f0-9]{24}$/i.test(userId)) return "";
   return userId;

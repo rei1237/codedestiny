@@ -318,6 +318,13 @@
 :global(body.cd-mnav-mounted) .cta {
   bottom: var(--cd-mnav-offset);
 }
+/* 769px 이상 도크는 접기 손잡이(--cd-mnav-handle-h)가 바 위로 솟아 있다. offset 은 바 높이만 세므로
+   CTA 안내문 가운데가 손잡이에 가렸다(960 실측). 접힘 상태는 offset 이 이미 손잡이 높이라 제외한다. */
+@media (min-width: 769px) {
+  :global(body.cd-mnav-mounted:not(.cd-mnav-collapsed)) .cta {
+    bottom: calc(var(--cd-mnav-offset) + var(--cd-mnav-handle-h));
+  }
+}
 /* 쿠키 안내 배너가 떠 있는 동안은 CTA 를 고정하지 않는다. 360 에서 배너(약 300px)와 고정 CTA 가 함께 뜨면
    입력칸이 덮인다. 본문 흐름에 두고, AnalyticsConsent 가 단 body 아래 여백으로 배너 위까지 스크롤된다. */
 :global(html.cd-consent-open) .cta {
@@ -341,6 +348,19 @@
 .flow .primary::after {
   background: currentColor;
   opacity: 0.55;
+}
+/* 비활성 '다음': 전역 .cd-yehwa-button:disabled 의 opacity .5 는 글자 대비를 3.9:1 로 떨어뜨렸다.
+   불투명도 대신 금 채움을 빼고 점선 테두리 + 흐린 글자(--gf-muted, 표면 위 4.5:1 이상)로 구분한다. */
+.flow .primary:disabled {
+  opacity: 1;
+  background: transparent;
+  border: 1px dashed var(--gf-line);
+  color: var(--gf-muted);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.flow .primary:disabled::after {
+  opacity: 0.4;
 }
 .flow .primary:focus-visible {
   outline-color: var(--gf-ink);

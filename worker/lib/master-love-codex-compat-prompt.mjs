@@ -1,4 +1,5 @@
 import { buildCodexEditorialContract, codexBodyTarget, codexV2PromptLines } from "./master-love-codex-quality.js";
+import { codexConsultationSchemaLines } from "./master-love-codex-consultation.js";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -11,7 +12,7 @@ import { buildCodexEditorialContract, codexBodyTarget, codexV2PromptLines } from
  *    개인판과 같은 5막×4장 구조라 리더/PDF/봉인 UI를 그대로 재사용한다.
  *  - 명식·명반은 로컬 결정론 계산, 궁합 판정은 master-love-codex-compat.js,
  *    LLM 은 해석 텍스트만 생성한다. 주어진 자료 밖의 성요·간지를 지어내면 안 된다.
- *  - 화자는 개인판과 동일한 "연애 고수" 1인이다. 별도 캐릭터/페르소나를 등장시키지 않는다.
+ *  - 화자는 개인판과 같은 연애 고수 서한비다.
  *
  *  ▶ 접근 키워드: `MASTER_LOVE_CODEX_COMPAT`, `master-love-codex-compat`
  * ═══════════════════════════════════════════════════════════════════════════
@@ -93,7 +94,7 @@ export const MASTER_LOVE_CODEX_COMPAT_CHAPTERS = Object.freeze([
     scope:
       "두 일간의 상생·상극·비화, 천간합과 천간충을 정면으로 다룬다. 누가 누구를 살리고 누가 "
       + "설기되는지 방향까지 밝히고, 그 방향이 일상에서 어떤 역할 분담으로 나타나는지 연결한다. "
-      + "상극이라도 나쁘다고 단정하지 말고 어떤 조건에서 그 긴장이 동력이 되는지 함께 쓴다.",
+      + "상극이라도 나쁘다고 단정하지 말고 어떤 조건에서 그 긴장이 동력이 되는지 함께 쓴다. 두 사람의 명궁도 읽어 일간에서 짚은 역할이 실제로 어떻게 나타날지 보태라.",
     minChars: 2600, sajuFocus: ["일간 상생상극", "천간합", "천간충", "음양"], ziweiPalaces: ["양쪽 명궁"],
     compatFocus: ["dayStemRelation"],
     avoid: ["십성 역할 구도 — 6장 담당", "용신 보완 — 7장", "지지 합충형파해 — 8장", "끌림의 서사 — 4장"],
@@ -495,7 +496,7 @@ function formatPersonLine(info, fallbackLabel) {
  * 규칙 1~12 는 개인판과 공유한다 — `buildMasterLoveCodexSystemGuide`를 호출해 받고
  * 책 제목·근거 목록만 바꾼다. 여기 복사해 두면 한쪽만 고쳐져 두 상품의 톤이 갈라진다.
  * 13~17 은 두 사람을 다룰 때만 필요한 궁합 전용 규칙이다.
- * 화자는 개인판과 동일한 "연애 고수" 1인이며 별도 페르소나를 등장시키지 않는다.
+ * 화자는 개인판과 같은 연애 고수 서한비다.
  */
 export function buildMasterLoveCodexCompatSystemGuide() {
   return buildMasterLoveCodexSystemGuide({
@@ -508,7 +509,7 @@ export function buildMasterLoveCodexCompatSystemGuide() {
       "    문제가 되고 어떤 대응으로 덜 수 있는지를 함께 써라. 겁주는 문장으로 장을 닫지 마라.",
       "15. 사주와 자미두수가 다르게 읽히는 지점은 한쪽으로 덮지 마라. 두 읽기를 나란히 보여 준 뒤",
       "    무엇을 먼저 볼지와 그 이유를 알려 주어라.",
-      "16. 점수 자체를 본문에 숫자로 나열하지 마라. 수치는 강약의 근거로만 쓰고 서술로 풀어라.",
+      "16. 독자용 본문·질문 답변·시기 해석에서는 점수와 ‘끌림 지표’, ‘공명 축’, ‘궁합 엔진이 합이나 충을 기록했다’ 같은 판정 표현을 쓰지 마라. 수치는 metrics의 구조화 필드에 두고, 독자에게는 약속·돈·가족을 두고 어떤 행동을 볼지 말하라. 예: 첫인상만으로 두 사람을 판단하긴 일러요. 바쁠 때도 서로 시간을 내는지 보세요.",
       "17. 근거를 쓸 때 그것이 상담자의 것인지 상대의 것인지 항상 밝혀라. 두 명식을 섞어 한 사람의 것처럼",
       "    쓰지 마라. 결론의 행동 주체는 늘 상담자다.",
     ],
@@ -545,7 +546,7 @@ const COMPAT_FOCUS_LABELS = Object.freeze({
  */
 export function buildMasterLoveCodexCompatChapterPrompt({
   selfSaju, selfZiwei, partnerSaju, partnerZiwei, compatibility,
-  birthInfo, partnerInfo, chapter, memory = [], evidenceProvided = false,
+  birthInfo, partnerInfo, chapter, memory = [], evidenceProvided = false, consultation,
 }) {
   const min = chapter.minChars || 2500;
   const subjects = chapter.evidenceSubjects || ["self", "partner"];
@@ -599,6 +600,7 @@ export function buildMasterLoveCodexCompatChapterPrompt({
       "[작성 지시 — JSON]",
       "아래 JSON 스키마로만 답하라. 코드블록·설명문 없이 JSON 객체 하나만 출력한다.",
       "{",
+      ...codexConsultationSchemaLines(consultation),
       ...(chapter.jsonMode ? [
         '  "typeName": "이 관계의 유형 이름(10자 이내, 예: 늦게 뜨거워지는 짝)",',
         '  "typeSummary": "관계 유형 한 줄 요약(60자 내외)",',

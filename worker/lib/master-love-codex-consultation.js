@@ -9,6 +9,7 @@ const plain = value => typeof value === "string" ? value.trim() : "";
 const pad = n => String(n).padStart(2, "0");
 const dateString = d => d.toISOString().slice(0, 10);
 const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && Number.isFinite(Date.parse(s)) && dateString(new Date(s)) === s;
+const isFamilyPlanningQuestion = text => /임신|출산|자녀|양육|가족\s*계획|pregnan|childbirth|children|parenting|family planning|妊娠|出産|分娩|生育|育児|育儿|子ども|子供|子女/i.test(text);
 
 export function normalizeCodexConsultation(input) {
   if (input == null) return null;
@@ -29,6 +30,7 @@ export function normalizeCodexConsultation(input) {
 }
 
 function questionOrder(text, relationship, mode) {
+  if (mode === "compat" && isFamilyPlanningQuestion(text)) return 16;
   if (/결혼|혼인|배우자|marry|marriage|結婚|婚姻/i.test(text)) return 16;
   if (/재회|이별|헤어|다시 만나|reunion|break.?up|復縁|复合/i.test(text)) return 15;
   if (/썸|고백|연락|호감|crush|contact|告白|曖昧|暧昧/i.test(text)) return mode === "compat" ? 15 : 9;
@@ -99,9 +101,18 @@ export function buildCodexConsultation(input, mode, charts, birthInfo, partnerIn
 
 export function consultationForChapter(consultation, chapter) {
   if (!consultation) return null;
-  return { ...consultation, questions: consultation.questions.filter(q => q.chapterOrder === chapter.order),
-    focusQuestions: chapter.order === 19 ? consultation.questions.map(q => q.text) : undefined,
-    records: undefined, forecast: chapter.order === 19 };
+  const forecast = chapter.order === 19;
+  const questions = consultation.questions.filter(q => q.chapterOrder === chapter.order);
+  const focusQuestions = forecast ? consultation.questions.map(q => q.text) : undefined;
+  const familyPlanning = (focusQuestions || questions.map(q => q.text)).some(isFamilyPlanningQuestion);
+  return { ...consultation, questions, focusQuestions, records: undefined, forecast, ...(familyPlanning ? { familyPlanning } : {}) };
+}
+
+export function codexConsultationSchemaLines(consultation) {
+  return [
+    ...(consultation?.questions?.length ? ['  "questionAnswers": [{"questionId":"배정된 질문 id","answer":"직접 답변","reasoning":"근거와 해석","outlook":"조건부 전망","actions":["행동 1","행동 2"],"reassess":"판단을 바꿀 신호","evidenceIds":["실제 근거 id"]}],'] : []),
+    ...(consultation?.forecast ? ['  "periodReadings": [{"periodId":"배정된 기간 id","interpretation":"기간별 해석","action":"할 일","reassess":"다시 판단할 신호","evidenceIds":["실제 근거 id"]}],'] : []),
+  ];
 }
 
 export function codexConsultationPrompt(contract) {
@@ -113,10 +124,13 @@ export function codexConsultationPrompt(contract) {
     "배정된 questions만 questionAnswers에 각 1회 답한다. 다른 장에서는 같은 답을 반복하지 않는다. 기존 body와 20장 구조는 유지한다.",
     'questionAnswers: [{questionId, answer, reasoning, outlook, actions:[문장,문장], reassess, evidenceIds:[실제 근거 ID]}].',
     "answer는 질문에 먼저 직접 답하고, reasoning은 사주/자미두수 근거의 뜻과 해석 연결을 설명한다. outlook은 유리/주의 시기와 예상 전개의 성립 조건이다. actions는 지금 할 일과 연락 문장/대화 주제/관찰할 행동이다. reassess는 중단하거나 판단을 바꿀 현실 신호다.",
+    "각 답변의 evidenceIds에는 이 장의 근거 목록에 있는 id만 넣는다. 두 체계의 기록이 있으면 답변마다 사주와 자미두수 id를 각각 최소 하나 넣는다. 외도나 도박을 점술로 판정하지 않는다.",
+    ...(c.familyPlanning ? ["자녀궁과 시기 자료는 가족계획 대화, 임신 전 상담, 돌봄과 비용 분담을 언제 준비할지에만 쓴다. 자녀궁의 원국과 연운을 구분한다. 가임기, 임신 가능성·시점·결과, 출산 예정일, 자녀 수나 성별은 추정하지 않는다. 임신 준비와 출산 일정은 건강 상태와 의료 상담을 기준으로 안내한다."] : []),
     "재회는 연락 재개와 관계 회복을, 썸은 호감과 관계 확정을, 결혼은 인연과 생활 적합성을 구분한다. 사주·자미두수는 점술적 해석이며 성공 확률, 상대의 속마음, 사건 날짜를 확정하지 않는다.",
     "상대 근거가 없으면 본인의 패턴과 행동만 해석한다. provisional은 생시 미상 등 가정임을 밝힌다. 두 체계의 일치 여부는 제공된 crossChecks만 따른다.",
     "월별은 사주 절기 월운 + 자미두수 원국/유년의 결합이다. 자미두수 유월로 부르지 않는다. 양력 월/1일과 절입 시각은 다르다. 유년 annualTransformations와 원국 transformations/자화는 구분한다.",
-    c.forecast ? 'periodReadings에 periods 12개와 years 3개를 모두 순서대로 넣는다: [{periodId: month-1..month-12 또는 year-YYYY, interpretation, action, reassess, evidenceIds}]. focusQuestions와 현재 관계에 맞춰 각 시기의 전망을 쓴다. 기간에 해당하는 실제 월운/연운을 인용하고 조건부 전망과 행동을 구체화한다. 매년 사주와 자미두수 연운을 모두, 매월 해당 기간의 사주 월운과 자미두수 원국 또는 유년을 인용한다. 원국만으로 월별 길흉을 만들지 않는다. 19장 body는 이 표를 반복하지 않는다.' : "periodReadings는 빈 배열이다. 시기별 전체 목록은 19장에서만 제공한다.",
+    "자미두수 유년의 palaceName은 그해의 기준 궁이다. 연도별 별과 사화가 있는 궁은 annualTransformations 각 항목의 palaceName을 따른다. 해당 별의 궁이 기록과 다르면 인용하지 않는다.",
+    c.forecast ? 'periodReadings는 긴 body보다 먼저 작성한다. periods 12개와 years 3개를 모두 순서대로 넣는다: [{periodId: month-1..month-12 또는 year-YYYY, interpretation, action, reassess, evidenceIds}]. 각 문장 항목은 focusQuestions에 맞춘 짧고 구체적인 한 문장으로 작성한다. 매년 사주와 자미두수 연운을 모두, 매월 해당 기간의 사주 월운과 자미두수 원국 또는 유년을 인용한다. 원국만으로 월별 길흉을 만들지 않는다. 19장 body는 이 표를 반복하지 않는다.' : "시기별 전체 목록은 19장에서만 제공한다.",
     "독자에게 보여주는 문장은 요청된 출력 언어로 작성한다. evidenceIds 외 필드에 내부 ID를 쓰지 않는다. questionAnswers와 periodReadings 이외의 공유용 keySentence/insight/actions에는 질문·상황 원문과 개인 사건을 넣지 않는다.",
   ].join("\n");
 }

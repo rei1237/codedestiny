@@ -51,23 +51,6 @@ export function initialStyles(css, classes, codepoints, lateCodepoints = []) {
 }
 
 // Serialized into an async resource so React can hydrate the original head.
-// Runs inline ahead of the critical stylesheet: a parser-blocking sheet would otherwise hold the
-// layout hint until the fonts share the line, and the 17KB floral then finishes last (11-25).
-function preloadHomeFloral() {
-  if (location.pathname !== '/' || !matchMedia('(max-width: 640px)').matches) return;
-  let theme = 'light';
-  try {
-    if (localStorage.getItem('fortuneThemeModeStateV1') === 'neo') theme = 'dark';
-  } catch { /* Storage is optional. */ }
-  const hint = document.createElement('link');
-  hint.rel = 'preload';
-  hint.as = 'image';
-  hint.fetchPriority = 'high';
-  hint.href = '/images/home/illustrated/moon-floral-' + theme + '-480.webp';
-  hint.setAttribute('data-home-floral', '');
-  document.head.append(hint);
-}
-
 function prepareHomeStyles() {
   if (location.pathname === '/' && matchMedia('(max-width: 640px)').matches && !document.querySelector('link[data-home-floral]')) {
     let theme = 'light';
@@ -177,7 +160,12 @@ export function optimizeNextHomeStyles(directory) {
     let output = html;
     let imageHint = '';
     if (route === 'index.html') {
-      imageHint = '<script>(' + preloadHomeFloral.toString() + ')();</script>';
+      // The floral LCP background otherwise waits for app/layout.js's inline hint, which runs
+      // behind the blocking sheet and then shares the line with the entry fonts (11-25).
+      // A static hint must stay a hoistable <link>: an inline <script> here breaks hydration
+      // (React #418). Neo-theme phones also fetch this 17KB light file; layout.js still adds
+      // the dark hint because this tag carries no data-home-floral marker.
+      imageHint = '<link rel="preload" as="image" media="(max-width: 640px)" href="/images/home/illustrated/moon-floral-light-480.webp" fetchpriority="high"/>';
     } else {
       imageHint = '<link rel="preload" as="image" type="image/avif" media="(max-width: 699px)" href="/assets/yeongnyangi/night/consultation-room-mobile.avif" fetchpriority="high"/>';
     }

@@ -93,7 +93,7 @@
 .readerContents a:hover, .actButton:hover:not(:disabled) { background: var(--codex-ink-2); }
 .readerNav :is(button, summary, a):focus-visible, .evidenceChip summary:focus-visible, .detailProse summary:focus-visible { outline: 2px solid var(--codex-gold); outline-offset: 2px; border-radius: 4px; }
 .readerCover { display: flex; align-items: center; justify-content: center; padding-block: 36px 56px; text-align: center; }
-.readerPortrait { height: 140px; width: auto; margin: 0 auto; object-fit: contain; }
+.readerPortrait { height: 140px; width: 140px; margin: 1rem auto .5rem; border-radius: 12px; object-fit: cover; object-position: center 28%; }
 .readerBrand { margin-top: 22px; font-family: var(--font-serif); font-size: 1rem; line-height: 1.6; color: var(--codex-gold); }
 .readerTitle { margin: 12px auto 0; max-width: 18ch; font-family: var(--font-serif); font-size: clamp(1.875rem, 5vw, 2.625rem); line-height: 1.4; text-wrap: balance; word-break: keep-all; overflow-wrap: anywhere; }
 .document ::selection { color: var(--codex-ink); background: var(--codex-gold); }
@@ -102,7 +102,7 @@
 .bgmInline em { display: none; }
 @media (min-width: 768px) {
   .readerCover { padding-block: 48px 72px; }
-  .readerPortrait { height: 180px; }
+  .readerPortrait { height: 180px; width: 180px; }
   .actButtonLabel { font-size: .8125rem; }
 }
 
@@ -172,6 +172,10 @@
   .prose {
     --cd-prose-font-size: 1.125rem;  /* 18px */
   }
+}
+
+.document[data-codex-large-text="true"] .prose {
+  --cd-prose-font-size: 1.1875rem;
 }
 
 .prose :global(h3) {
@@ -354,6 +358,21 @@
 .quiet:hover {
   color: var(--codex-gold);
   text-decoration: underline;
+}
+
+.readerTextSize {
+  min-height: 44px;
+  padding-inline: .75rem;
+}
+
+.readerTextSize[aria-pressed="true"] {
+  color: var(--codex-gold);
+  text-decoration: underline;
+}
+
+.readerTextSize:focus-visible {
+  outline: 2px solid var(--codex-gold);
+  outline-offset: 2px;
 }
 
 /* 체크박스 줄 — 네이티브 16x16 은 탭 타깃 44px 미달이다(실측 2026-09-02 360x800:

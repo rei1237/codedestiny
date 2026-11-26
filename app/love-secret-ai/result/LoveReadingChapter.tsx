@@ -1,18 +1,15 @@
 import ConsultationReading from "@/components/fortune/ConsultationReading";
+import { LoveMasterImage } from "./LoveReportOverview";
+import { loveReportMasters } from "./love-report-overview";
 import { resolveLoveSpeaker, type LoveSpeaker } from "./love-secret-sections";
 import styles from "./LoveSecretAiResultClient.module.css";
-
-const avatars: Record<LoveSpeaker, string> = {
-  yeoni: "/images/master-profiles/avatars/yeoni-love.webp",
-  hanbi: "/images/master-profiles/avatars/hanbi-love.webp",
-};
 
 /** Existing section attribution, shared by the card, chapter reader and PDF. */
 export function LoveSpeakerChip({ title, names }: { title: string; names?: Record<LoveSpeaker, string> }) {
   if (!names) return null;
   const speaker = resolveLoveSpeaker(title);
   return <p className={styles.speakerChip} data-speaker={speaker}>
-    <img src={avatars[speaker]} alt="" width={24} height={24} decoding="async" />
+    <LoveMasterImage src={loveReportMasters[speaker].avatar} size={24} />
     {names[speaker]}
   </p>;
 }

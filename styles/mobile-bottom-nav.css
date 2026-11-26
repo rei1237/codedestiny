@@ -258,6 +258,13 @@ body.cd-mnav-collapsed .cd-mnav__chevron {
     --cd-mnav-bar-h: 78px;
   }
 
+  /* 도크의 접기 손잡이는 바 위로 --cd-mnav-handle-h 만큼 솟는다. 본문 끝 여백이 바만 세면
+     맨 끝 저작권 줄이 손잡이에 영구히 가렸다(/saju/free/ 960, 2026-11-26 실측).
+     접힘 상태는 아래 더 구체적인 collapsed 규칙이 이긴다. */
+  body.cd-mnav-mounted {
+    padding-bottom: calc(var(--cd-mnav-bar-h) + var(--cd-mnav-handle-h) + 12px + env(safe-area-inset-bottom, 0px));
+  }
+
   /* 🔴 데스크탑에서 전폭 도색을 하지 않는다 — 내용은 max-width 560px 인데 바는 left:0/right:0 라
      1920px 에서 약 1,360px 이 빈 크롬이었다(2026-08-20 9f7648605 가 폭 게이팅을 지운 결과).
      컨테이너는 투명한 위치잡기 레이어로 두고 도색은 안쪽 리스트가 맡는다.

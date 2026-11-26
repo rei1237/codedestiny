@@ -32,7 +32,7 @@ export const CONSULTATION_RECOVERY_ADAPTERS = Object.freeze([
 const narrative = ['runPaidNarrativeDelivery'];
 // 2026-11-21 C2: 결제 시점 근거(sourceTransactionId·passRefund)를 실행 기록에 남겨 생성 + 7일 또는 고객 요청 때 그 근거로 환불한다(worker/routes/paid-narrative-retry.js).
 // 2026-11-25: 월정석 V2 원장 차감도 근거로 인정한다(provePaidNarrativeRefundEvidence → runMonthlyCreditRefund).
-const NARRATIVE_CARD_GAP = 'paid-narrative 실행은 저장된 결제 근거(코인 차감 행·이용권 사용 근거·PG 참조가 있는 단건 결제·월정석 원장 차감)로만 자동 환불한다 — 근거 없는 옛 기록·꿀단지 단건 영수증(공용 환불기 없음)·transactionId 없는 프리미엄 토큰 경로·기능 키가 다른 근거(지오맨시 이용권 openGeomancyOracle)는 보류 + 운영 검토(PAID_NARRATIVE_REFUND_EVIDENCE_MISSING)';
+const NARRATIVE_CARD_GAP = 'paid-narrative 실행은 저장된 결제 근거(코인 차감 행·이용권 사용 근거·PG 참조가 있는 단건 결제·월정석 원장 차감)로만 자동 환불한다 — 근거 없는 옛 기록·꿀단지 단건 영수증(공용 환불기 없음)·transactionId 없는 프리미엄 토큰 경로는 보류 + 운영 검토(PAID_NARRATIVE_REFUND_EVIDENCE_MISSING). 지오맨시 게이트 키(openGeomancyOracle) 근거는 2026-11-26 부터 refund-feature-alias.js 의 단일 별칭으로 인정한다';
 export const PAID_LLM_DELIVERY_CONTRACT = Object.freeze([
   { service: 'astrology-ai', files: ['worker/routes/astrology-ai.js'], featureKeys: ['astrology-ai-consultation'], refunds: ['failServiceExecution', 'autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
   { service: 'vedic-ai', files: ['worker/routes/vedic-ai.js'], featureKeys: ['vedic-ai-consultation'], refunds: ['autoRefundSinglePaymentDeliveryFailure', 'refundPassUseEvidence'] },
