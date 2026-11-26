@@ -146,7 +146,14 @@ User 익명화($set), payments `$unset userId`+`userEmailHash`, pointhistories·
 
 ---
 
-## 단계 10-A. PRIV-002 결제·선물 라우트 탈퇴 계정 차단 — diff 초안(미적용)
+## 단계 10-A. PRIV-002 결제·선물 라우트 탈퇴 계정 차단 — 적용됨(2026-11-26, f450461ce0)
+
+> **적용 결과(2026-11-26, 사용자 승인 "권장대로 PRIV-002 결제·선물 라우트 진행해")** — 커밋 `f450461ce0`. 아래 초안과 달리 변환 로직은 `worker/payments/index.js` 의 `resolveActiveUserId(request, env)` 하나로 모았고(게스트·무효·탈퇴 → `""` → 기존 401 `UNAUTHORIZED`, 인증 인프라 503 → `paymentError("DB_UNAVAILABLE")`), 라우트 표에는 `activeUser: true` 플래그를 단다. 선물 라우트는 같은 함수를 import 한다.
+> - 적용(`resolvePaidRouteAuth`): `POST /orders`, `POST /prepare`, `POST /coin-gate/moonstone`, `POST /coin-gate/pass-check`, `POST /subscription/prepare`, `POST /moonstone/spend`, `POST /birth-profile-pending/:id/claim`, `POST /service-packs/prepare`, `POST /service-packs/consume`(service-pack 라우트는 같은 ROUTES 표·디스패처를 탄다), 선물 `POST /gifts/claim`.
+> - 유지(peek, Mongo 읽기 0회): `POST /orders/:id/confirm`, `POST /confirm`, `POST /subscription/confirm`, `POST /service-packs/orders/:id/confirm`, `POST /webhook`(auth none), 모든 GET(`/recoveries`, `/birth-profile-pending`, `/orders/:id`·`/status`·`/resume`, `/service-packs/wallet`·`/orders/:id/status`, 선물 GET), `POST /service-packs/quote`(조회 전용 — 쓰기·차감 없음), 선물 공개 `/preview`·`/context`, 선물 소유자 `/:id/link`·`/:id/refund-request`.
+> - 검증: `__tests__/worker/payments-withdrawn-auth.test.js` 24건(수정 전 14 실패 → 수정 후 전부 통과). `payments-v2.staging-test-amount.test.js` 는 env 가 NODE_ENV=production 이라 로컬 폴백이 없어 auth.js mock 을 추가(단언 변경 없음). paid-gate-auditor PASS. `npm run check:fast`(critical) 통과: test:node 5860/5860, jest 498 스위트 8685 통과·1 skip.
+> - 남은 위험: 활성 확인은 refresh 쿠키 폴백까지 인정하므로, access 만료 + refresh 쿠키 상태에서 prepare 는 통과하고 confirm(peek)은 401 이 될 수 있다(클라이언트의 401 갱신 재시도에 기댐, 미실측). 탈퇴 계정의 confirm 은 별도 설계(이행 후 환불 알림) 과제로 남는다.
+
 
 neo 라우트 수정(c87f7fe4ac)과 같은 방식: JWT 만 보는 `peekAccessTokenUserId` 대신 활성 사용자 확인이 포함된 `resolvePaidRouteAuth` 를 쓴다. 차이점: 결제 디스패처의 `classify()` 는 PaymentError 가 아닌 오류를 `INTERNAL_ERROR`(500)로 바꾸므로, 인증 인프라 503(`AUTH_STATUS_TEMPORARILY_UNAVAILABLE`)을 `paymentError("DB_UNAVAILABLE")`(503, retryable, retryAfterSec 2, `errors.js:137`, `ALLOWED_503_CODES` 에 포함)로 변환해야 한다.
 
