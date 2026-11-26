@@ -778,6 +778,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   // 클라이언트·webhook·크론 세 주체 모두에 같은 활성화를 보장한다(주체별 분기 없음 원칙).
   let user = null;
   let activationPending = false;
+  let grantPendingReason = "";
   const result = await confirmOrder(env, ctx, { orderId, actorUserId: userId }, {
     withDb,
     begun,
@@ -786,7 +787,9 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
       if (!settled.granted) {
         // 결제는 됐는데 활성화가 미완(그랜트 실패 또는 webhook 선확정 후 활성화 대기).
         // 활성화는 lastPassOrderId 가드로 멱등이므로 여기서 한 번 마무리를 시도한다.
-        activationPending = !(await grantOrderEntitlement(db, settled.order));
+        const grantFailure = { reason: "" };
+        activationPending = !(await grantOrderEntitlement(db, settled.order, { failure: grantFailure }));
+        grantPendingReason = activationPending ? (grantFailure.reason || "GRANT_INCOMPLETE") : "";
       }
       user = await db.findOne(User, { _id: toObjectId(userId) });
     },
@@ -794,9 +797,13 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
   const idempotent = result.replayed;
   ctx.paymentStatus = "PAID";
 
+  if (activationPending) {
+    // 사유 분류만 남긴다(개인정보 없음). 마무리는 webhook 재생·재조정 크론이 같은 지급 함수로 한다.
+    console.error("[payments] pass confirm grant pending", { orderId, grantPendingReason, gift: !!giftPurchase });
+  }
   if (giftPurchase) return json({
     ok: true, purchaseType: "GIFT", giftId: `gift_${orderId}`, orderId,
-    activationPending, idempotent, payment: { merchantUid: orderId, status: "paid", paymentAmount: Number(result.order?.paymentAmount || 0), analyticsChannel: analyticsPaymentChannel(result.order) },
+    activationPending, idempotent, ...(activationPending ? { grantPendingReason } : {}), payment: { merchantUid: orderId, status: "paid", paymentAmount: Number(result.order?.paymentAmount || 0), analyticsChannel: analyticsPaymentChannel(result.order) },
     message: activationPending ? "결제가 확인됐어요. 선물을 준비 중이니 다시 결제하지 마세요." : "선물이 준비되었습니다.",
   });
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
@@ -818,6 +825,7 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
       idempotent,
       code: "GRANT_PENDING",
       activationPending: true,
+      grantPendingReason,
       pollUrl: `/api/payments/orders/${encodeURIComponent(orderId)}`,
       payment,
       subscription,
@@ -1005,11 +1013,13 @@ function isPerUseFeatureKey(featureKey) {
  * 막으므로 결제 후 그 사이 상위 이용권이 생긴 극단 케이스뿐이고, 상위 이용권을 하위로 덮어쓰는
  * 쪽이 더 큰 사고다. 주문은 paid+미지급으로 남아 reconcile 로그에 계속 드러난다(사람이 환불 판단).
  */
-async function grantPassOrderEntitlement(db, order) {
+async function grantPassOrderEntitlement(db, order, failure = null) {
   const plan = resolvePassPlan(order.subscriptionTier, Number(order?.metadata?.durationMonths || 1), order?.metadata?.passPolicyVersion || "legacy");
   const orderId = String(order.merchantUid || "");
   // 🔴 false 반환은 던지지 않으므로 여기서 로그하지 않으면 '돈은 받았는데 지급 안 됨'이 로그 0줄로 남는다.
+  // failure 는 호출자가 넘긴 사유 기록칸이다(GRANT_PENDING 응답·로그의 grantPendingReason). 반환 계약은 그대로 boolean.
   if (!plan) {
+    if (failure) failure.reason = "PLAN_NOT_FOUND";
     console.error("[payments] pass grant skipped", { orderId, code: "PLAN_NOT_FOUND", tier: String(order.subscriptionTier || "") });
     return false;
   }
@@ -1024,6 +1034,7 @@ async function grantPassOrderEntitlement(db, order) {
     const replay = String(userDoc?.profileSubscription?.lastPassOrderId || "") === orderId || userDoc?.passGrantOrderIds?.includes(orderId);
     const transition = evaluatePassTierTransition(userDoc?.profileSubscription, plan.tier);
     if (transition.code === "DOWNGRADE_BLOCKED" && !replay) {
+      if (failure) failure.reason = "DOWNGRADE_BLOCKED";
       console.error("[payments] pass grant skipped", { orderId, code: "DOWNGRADE_BLOCKED", userId });
       return false;
     }
@@ -1040,7 +1051,11 @@ async function grantPassOrderEntitlement(db, order) {
       casGuard: true,
     });
     if (!activation?.conflict) break;
-    if (attempt === 2) return false;
+    if (attempt === 2) {
+      if (failure) failure.reason = "CAS_CONFLICT";
+      console.error("[payments] pass grant skipped", { orderId, code: "CAS_CONFLICT" });
+      return false;
+    }
     userDoc = await db.findOne(User, { _id: toObjectId(userId) });
   }
   await markEntitlementGranted(db, { orderId });
@@ -1049,7 +1064,7 @@ async function grantPassOrderEntitlement(db, order) {
 
 /** 지급. 실패해도 던지지 않는다 — 돈은 이미 받았고, 실패를 오류로 올리면 사용자가 다시 결제한다.
  *  `rethrow` 는 크론·프로필 선택 지급 전용이다 — 원래 오류 코드(MISSING_PROFILE_ID 등)로 종결 여부를 가른다. */
-async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
+async function grantOrderEntitlement(db, order, { rethrow = false, failure = null } = {}) {
   try {
     if (businessProduct(order.productId)) {
       // The paid order itself is the grant. A full refund removes it from the period calculation.
@@ -1064,7 +1079,7 @@ async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
     }
     if (order.purchaseType != null && order.purchaseType !== "SELF") throw paymentError("INVALID_REQUEST", "Unknown purchase type");
     if (String(order?.paymentType || "") === "membership_pass") {
-      const granted = await grantPassOrderEntitlement(db, order);
+      const granted = await grantPassOrderEntitlement(db, order, failure);
       // 구독 활성화는 잔액 스냅샷의 subscription/membership 블록을 바꾼다 — 45s TTL 이라 필수.
       if (granted) invalidateBalanceSnapshot(order?.userId);
       // 🔴 /api/auth/me 엣지 캐시(purgeCredentialCache)는 여기서 지우지 않는다 — 지울 수 없다. 키가 구매자
@@ -1129,6 +1144,8 @@ async function grantOrderEntitlement(db, order, { rethrow = false } = {}) {
       code: error?.code || "",
       message: error?.message || String(error),
     });
+    // 응답에는 내부 오류 코드·메시지를 싣지 않는다 — 위 로그가 원인을 들고, 응답은 분류만 알린다.
+    if (failure) failure.reason = "GRANT_ERROR";
     if (rethrow) throw error;
     return false;
   }
