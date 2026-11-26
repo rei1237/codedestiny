@@ -804,6 +804,8 @@ async function generateLoveSecretGroup(env, {
   // S16: 둘째 시도부터의 구제 하한 비율(중간 0.6, 마지막 0.3). finalAttempt 가 boolean 이면 Workers AI 폴백을 그 값대로 정한다.
   salvageFloorRatio = 0.3,
   finalAttempt = null,
+  // 하드 한도(LOVE_SECRET_AI_GROUP_HARD_CAP)의 마지막 시도: 비지 않은 본문이면 분량·되풀이로 거부하지 않는다(2026-11-27).
+  lastChance = false,
 }) {
   const startedAt = Date.now();
   // 앞 시도가 토큰 상한에서 끊겼으면 이번 시도만 예산 2배(최대 32768)로 산다. 기본 예산은 비용 추정·검증 스크립트가 쓴다.
@@ -867,11 +869,11 @@ async function generateLoveSecretGroup(env, {
     // 끊긴 응답은 문장 중간이라 받지 않는다. 대신 truncated 표시로 다음 시도의 예산을 늘린다.
     // 단, 마지막 시도(scrubUnsafe)는 다음이 없으므로 끝난 문장까지 살려 받는다(2026-11-18 S3-F).
     const cutOff = Boolean(ai?.ok) && (ai.truncated === true || /^(MAX_TOKENS|length)$/i.test(clean(ai.finishReason)));
-    if (!ai?.ok || (cutOff && !scrubUnsafe) || isMock || !clean(ai.text)) {
+    if (!ai?.ok || (cutOff && !scrubUnsafe && !lastChance) || isMock || !clean(ai.text)) {
       return { ...fail(clean(ai?.error || ai?.message || "LLM_FAILED", 60)), provider, model, ...(cutOff && { truncated: true }) };
     }
 
-    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe, salvage: scrubUnsafe, salvageFloorRatio });
+    const parsed = parseLoveSecretGroupResponse(ai.text, group, { lengthRepair: true, scrubUnsafe, salvage: scrubUnsafe || lastChance, salvageFloorRatio, lastChance: Boolean(lastChance) });
     if (!parsed.ok) {
       // 🔴 사유를 버리지 않는다 — 섹션은 읽혔지만 이슈로 반려된 경우 parsed.reason 은 빈 문자열이다.
       const reason = clean(parsed.reason || parsed.issues?.[0] || "PARSE_FAILED", 60);
@@ -1019,6 +1021,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
         scrubUnsafe: position >= 2,
         salvageFloorRatio: finalInRound ? 0.3 : 0.6,
         finalAttempt: finalInRound,
+        // 다음 시도가 없는 하드 한도 마지막 시도 — 결제 후 미제공을 막기 위해 비지 않은 본문은 받는다.
+        lastChance: used + 1 >= LOVE_SECRET_AI_GROUP_HARD_CAP,
       };
       if (lengthRepairKey) {
         attempts[`length:${key}`] = 1;
@@ -1048,6 +1052,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       scrubUnsafe: selectedRepair.scrubUnsafe,
       salvageFloorRatio: selectedRepair.salvageFloorRatio,
       finalAttempt: selectedRepair.finalAttempt,
+      lastChance: selectedRepair.lastChance,
     }),
     });
     const row = choose(previous, generated);

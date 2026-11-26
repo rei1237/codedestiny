@@ -20,10 +20,10 @@ async function harness({ savedGroups, attempts = {}, generate, perspective = '',
   const ctx = vm.createContext({ Date, Promise, Map, Set, Number, Object, Array, String,
     LOVE_SECRET_AI_GROUPS: groups, LOVE_SECRET_AI_GROUP_TIMEOUT_MS: 54000, LOVE_SECRET_AI_REPAIR_TIMEOUT_MS: 24000,
     LOVE_SECRET_AI_LLM_DEADLINE_MS: 86000, LOVE_SECRET_AI_REPAIR_MIN_REMAINING_MS: 22000,
-    LOVE_SECRET_AI_MIN_USABLE_GROUPS: 6, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 20000,
+    LOVE_SECRET_AI_MIN_USABLE_GROUPS: 6, LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS: 16000,
     LOVE_SECRET_AI_GROUP_ATTEMPTS: 4, LOVE_SECRET_AI_GROUP_HARD_CAP: 12, LOVE_SECRET_AI_QUALITY_REPAIR_ATTEMPTS: 2,
     isLoveSecretComplete: rows => rows.every(row => row.ok),
-    LOVE_SECRET_AI_GROUP_MIN_CHARS: 5000, LOVE_SECRET_AI_GROUP_MAX_CHARS: 6500, loveSecretGroupCharRange: prompt.loveSecretGroupCharRange,
+    LOVE_SECRET_AI_GROUP_MIN_CHARS: 4000, LOVE_SECRET_AI_GROUP_MAX_CHARS: 5500, loveSecretGroupCharRange: prompt.loveSecretGroupCharRange,
     buildLoveSecretRejectionRepairLines: prompt.buildLoveSecretRejectionRepairLines,
     createLlmCacheStore: () => null, cmsPromptText: async () => '', LOVE_SECRET_AI_SYSTEM_PROMPT: '',
     buildLoveSecretGroundingTerms: () => [], logLoveSecretAi(marker, details) { logs.push({ marker, details }); },
@@ -76,24 +76,24 @@ test('다음 시도는 직전 반려 표현을 짚는 수리 지시와 마지막
 });
 
 test('모든 그룹이 통과했는데 합계가 MIN 아래면 가장 짧은 그룹 하나만 분량 수리한다', async () => {
-  const savedGroups = ['a', 'b', 'c', 'd', 'e', 'f'].map((key, index) => okRow(key, index === 2 ? 1800 : 3000));
+  const savedGroups = ['a', 'b', 'c', 'd', 'e', 'f'].map((key, index) => okRow(key, index === 2 ? 1800 : 2500));
   const h = await harness({ savedGroups, generate: options => okRow(options.group.key, 5600) });
   assert.deepEqual(h.reserved, ['c']);
   assert.equal(h.attempts['length:c'], 1);
   const call = h.calls[0];
   assert.ok(call.repairLines.some(line => line.includes('너무 짧습니다')));
   assert.equal(call.previousResult.key, 'c');
-  // 1,800 → 5,600: 15,000 + 5,600 = 20,600 ≥ 20,000 → 완료.
+  // 1,800 → 5,600: 12,500 + 5,600 = 18,100 ≥ 16,000 → 완료.
   assert.equal(h.result.complete, true);
 });
 
-// 2026-11-08 분량 넉넉: V2 그룹의 분량 수리는 V2 목표(6,000~7,500자)로, V1 그룹은 예전 숫자로 다시 쓰게 한다.
-test('분량 수리 지시는 V2 그룹이면 6,000~7,500자, V1 그룹이면 5,000~6,500자를 요구한다', async () => {
-  const savedGroups = ['a', 'b', 'c', 'd', 'e', 'f'].map((key, index) => okRow(key, index === 2 ? 1800 : 3000));
+// 2026-11-27 하향: V2 그룹의 분량 수리는 V2 목표(4,800~6,300자)로, V1 그룹은 V1 목표(4,000~5,500자)로 다시 쓰게 한다.
+test('분량 수리 지시는 V2 그룹이면 4,800~6,300자, V1 그룹이면 4,000~5,500자를 요구한다', async () => {
+  const savedGroups = ['a', 'b', 'c', 'd', 'e', 'f'].map((key, index) => okRow(key, index === 2 ? 1800 : 2500));
   const v2 = await harness({ savedGroups, perspective: '관점', generate: options => okRow(options.group.key, 5600) });
-  assert.ok(v2.calls[0].repairLines.some(line => line.includes('6,000~7,500자로 다시 쓰세요')));
+  assert.ok(v2.calls[0].repairLines.some(line => line.includes('4,800~6,300자로 다시 쓰세요')));
   const v1 = await harness({ savedGroups, generate: options => okRow(options.group.key, 5600) });
-  assert.ok(v1.calls[0].repairLines.some(line => line.includes('5,000~6,500자로 다시 쓰세요')));
+  assert.ok(v1.calls[0].repairLines.some(line => line.includes('4,000~5,500자로 다시 쓰세요')));
 });
 
 test('분량 수리 한도(2회)를 쓰고도 MIN 아래면 분량은 전달을 막지 않는다', async () => {
@@ -174,7 +174,7 @@ test('수리 한도를 다 썼는데 금지·위험 표현이 남아 있으면 �
 test('마지막 시도는 토큰 상한에서 끊긴 응답도 버리지 않고 살릴 수 있는 만큼 파싱한다', async () => {
   const parses = [];
   const ctx = vm.createContext({ Date, Promise, Math, Number, String, Array, setTimeout,
-    LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS: 12000, LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS: 10000, LOVE_SECRET_AI_GROUP_MIN_CHARS: 5000,
+    LOVE_SECRET_AI_V2_GROUP_MAX_OUTPUT_TOKENS: 12000, LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS: 10000, LOVE_SECRET_AI_GROUP_MIN_CHARS: 4000,
     LOVE_SPEAKER_BY_GROUP: {}, resolveExpertPersona: async () => null, appendAnswerVoice: value => value,
     buildLoveSecretGroupPrompt: () => 'prompt', buildLoveSecretGroupSystemPrompt: () => 'system', buildLoveSecretGroupResponseSchema: () => ({}),
     clampSyncLlmTimeoutMs: value => value, isStagingLlmMockEnabled: () => false, logLoveSecretAi() {},
@@ -193,4 +193,13 @@ test('마지막 시도는 토큰 상한에서 끊긴 응답도 버리지 않고 
   assert.equal(last.ok, true);
   assert.equal(last.truncated, true);
   assert.equal(parses[0].salvage, true);
+});
+
+// 2026-11-27: 하드 한도(12회)의 마지막 시도만 lastChance 로 생성기에 넘긴다(비지 않은 본문이면 분량·되풀이로 거부하지 않는다).
+test('하드 한도 마지막(12회차) 시도만 lastChance 를 넘기고, 바퀴의 마지막(4회차)은 넘기지 않는다', async () => {
+  const last = await harness({ savedGroups: [...fiveOk(), emptyRow('b')], attempts: { b: 11 }, generate: options => okRow(options.group.key, 1200) });
+  assert.equal(last.calls[0].lastChance, true);
+  assert.equal(last.calls[0].finalAttempt, true);
+  const roundEnd = await harness({ savedGroups: [...fiveOk(), emptyRow('b')], attempts: { b: 3 }, generate: options => emptyRow(options.group.key) });
+  assert.equal(roundEnd.calls[0].lastChance, false);
 });

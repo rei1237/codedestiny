@@ -735,14 +735,14 @@ const SINGLE_CALL_FLOOR_CEILING = 6000;
 
   checks += 1;
   assertBudget(feature, {
-    minChars: 5000,
-    maxChars: 6500,
+    minChars: 4000,
+    maxChars: 5500,
     maxOutputTokens: 12500,
     tokenConstantName: "LOVE_SECRET_AI_GROUP_MAX_OUTPUT_TOKENS",
     sourcePath: "worker/routes/love-secret-ai.js",
   });
 
-  // V2 그룹(2026-11-08 분량 넉넉): 6,000~7,500자를 요구하므로 V2 토큰 상한이 그 상한을 여유까지 담고, 54초 안에 끝나야 한다.
+  // V2 그룹(2026-11-27 하향): 4,800~6,300자를 요구하므로 V2 토큰 상한이 그 상한을 여유까지 담고, 54초 안에 끝나야 한다.
   {
     const promptModule = await import("../worker/lib/love-secret-ai-prompt.js");
     const v2Min = promptModule.LOVE_SECRET_AI_V2_GROUP_MIN_CHARS, v2Max = promptModule.LOVE_SECRET_AI_V2_GROUP_MAX_CHARS;

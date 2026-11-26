@@ -238,10 +238,11 @@ describe("그룹 계획 V1/V2", () => {
     expect(loveSecretGroupsForPlan(2)).toBe(LOVE_SECRET_AI_GROUPS);
   });
 
-  test("V1 그룹 프롬프트는 2026-11-08 이전과 바이트 단위로 같다", () => {
+  // 2026-11-27 목표 분량 하향(5000~6500→4000~5500)으로 분량 줄만 의도적으로 바뀌었다.
+  test("V1 그룹 프롬프트는 분량 줄 외에는 고정이다(2026-11-27 기준 해시)", () => {
     const joined = LOVE_SECRET_AI_GROUPS_V1.map((group) => buildLoveSecretGroupPrompt(input, saju, group)
       + "\n#SYS\n" + buildLoveSecretGroupSystemPrompt("BASE", group, "P")).join("\n=====\n");
-    expect(createHash("sha256").update(joined).digest("hex")).toBe("f87e118c79bdb8bfff9c20798ff84c30c7740fbb3e98e4bed9dc000c91e95461");
+    expect(createHash("sha256").update(joined).digest("hex")).toBe("b71ec9733a633e01c9f998bef29560c1fff454aba7827a0210260c7f23a6e170");
   });
 
   test("V2 프롬프트: 관점·되풀이 금지가 붙고, 질문 인용은 core 첫 문장에서만 한다", () => {
@@ -257,13 +258,13 @@ describe("그룹 계획 V1/V2", () => {
     expect(prompts.core).not.toContain("타고난 성향 총론을 먼저 짚는다");
   });
 
-  test("분량: V2 그룹은 6000~7500자·섹션 최소 분량을, V1 그룹은 5000~6500자를 요구한다", () => {
+  test("분량: V2 그룹은 4800~6300자·섹션 최소 분량을, V1 그룹은 4000~5500자를 요구한다(2026-11-27 하향)", () => {
     LOVE_SECRET_AI_GROUPS.forEach((group) => {
       const prompt = buildLoveSecretGroupPrompt(input, saju, group);
-      expect(prompt).toContain("합계는 6000~7500자");
+      expect(prompt).toContain("합계는 4800~6300자");
       expect(prompt).toContain("짧게 요약하고 끝내지 말고");
     });
-    LOVE_SECRET_AI_GROUPS_V1.forEach((group) => expect(buildLoveSecretGroupPrompt(input, saju, group)).toContain("합계는 5000~6500자"));
+    LOVE_SECRET_AI_GROUPS_V1.forEach((group) => expect(buildLoveSecretGroupPrompt(input, saju, group)).toContain("합계는 4000~5500자"));
   });
 });
 

@@ -128,12 +128,12 @@ export function buildLoveSecretRejectionRepairLines(rejection) {
 // 분량 문턱은 2단이다.
 //  - TARGET_*  : 목표치. 미달/초과하면 "책임 그룹만" 다시 쓰는 수리(wave 2) 트리거.
 //  - MIN/MAX_* : 전달 가능 하한/상한. 벗어나면 throw(=결제 실패 경로).
-// 🔴 MIN 은 degrade 바닥(4개 그룹 × 5,000자)보다 낮아야 한다. 그렇지 않으면 정당한
+// 🔴 MIN 은 degrade 바닥(4개 그룹 × 4,000자)보다 낮아야 한다. 그렇지 않으면 정당한
 //    부분 성공 결과가 결제 후 하드 실패로 뒤집힌다.
-// 목표는 V2(7개 그룹) 기준 7 × 5,000~6,500자. V1(6개 그룹) 저장 세션은 부족분을 수리로 메우지 않아도 MIN 위라 전달된다.
-export const LOVE_SECRET_AI_TARGET_MIN_TOTAL_BODY_CHARS = 35000;
-export const LOVE_SECRET_AI_TARGET_MAX_TOTAL_BODY_CHARS = 45500;
-export const LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS = 20000;
+// 목표는 V2(7개 그룹) 기준 7 × 4,000~5,200자(2026-11-27 하향, 종전 × 0.8). V1(6개 그룹) 저장 세션은 부족분을 수리로 메우지 않아도 MIN 위라 전달된다.
+export const LOVE_SECRET_AI_TARGET_MIN_TOTAL_BODY_CHARS = 28000;
+export const LOVE_SECRET_AI_TARGET_MAX_TOTAL_BODY_CHARS = 36400;
+export const LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS = 16000;
 export const LOVE_SECRET_AI_MAX_TOTAL_BODY_CHARS = 52000;
 const LOVE_SECRET_AI_PARSE_TEXT_MAX_CHARS = 52000;
 
@@ -225,12 +225,13 @@ export function buildAdminLabPrompt() {
   };
 }
 
-export const LOVE_SECRET_AI_GROUP_MIN_CHARS = 5000;
-export const LOVE_SECRET_AI_GROUP_MAX_CHARS = 6500;
+// 2026-11-27 목표 분량 하향(하한은 종전 5,000 / V2 6,000 의 × 0.8, 상한은 분량 여유 1,500자를 남긴다). 받는 하한은 이 MIN × 0.7(V2 목표 하한의 약 58%).
+export const LOVE_SECRET_AI_GROUP_MIN_CHARS = 4000;
+export const LOVE_SECRET_AI_GROUP_MAX_CHARS = 5500;
 // V2 그룹(perspective 가 있는 그룹)이 프롬프트에서 요구하는 분량(2026-11-08 분량 넉넉). 전달 하한·수리 문턱은 위 V1 값 그대로라
-// 짧게 와도 실패하지 않는다. V1 그룹 프롬프트는 위 값을 그대로 써 바이트 단위로 같다.
-export const LOVE_SECRET_AI_V2_GROUP_MIN_CHARS = 6000;
-export const LOVE_SECRET_AI_V2_GROUP_MAX_CHARS = 7500;
+// 짧게 와도 실패하지 않는다. V1 그룹 프롬프트는 위 값을 그대로 쓴다(2026-11-27 하향으로 분량 줄만 바뀌었다).
+export const LOVE_SECRET_AI_V2_GROUP_MIN_CHARS = 4800;
+export const LOVE_SECRET_AI_V2_GROUP_MAX_CHARS = 6300;
 export function loveSecretGroupCharRange(group) {
   return group?.perspective
     ? [LOVE_SECRET_AI_V2_GROUP_MIN_CHARS, LOVE_SECRET_AI_V2_GROUP_MAX_CHARS]
@@ -816,7 +817,17 @@ export function isLoveSecretComplete(groupResults = [], planGroups = LOVE_SECRET
   });
 }
 
-export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false, scrubUnsafe = false, salvage = false, salvageFloorRatio = 0.3 } = {}) {
+// 하드 한도 마지막 시도(lastChance, 2026-11-27): 다음 시도가 없으므로 비지 않은 본문은 거부하지 않는다.
+// 문자열이 아닌 섹션 본문은 그 섹션만 버리고, 되풀이는 덜어 낸 뒤 필수 섹션이 모두 남으면 분량과 관계없이 받는다.
+// 금지·위험 표현이 남거나 필수 섹션이 비면 그대로 거부한다.
+function lastChanceSectionBody(section) {
+  const body = section?.body ?? section?.content ?? section?.text;
+  if (typeof body === "string") return body;
+  if (Array.isArray(body) && body.every((item) => typeof item === "string")) return body.join("\n\n");
+  return "";
+}
+
+export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false, scrubUnsafe = false, salvage = false, salvageFloorRatio = 0.3, lastChance = false } = {}) {
   const base = { key: group?.key || "", ok: false, sections: [], extras: {}, chars: 0, issues: [], reason: "" };
   const raw = clean(text);
   if (!raw) return { ...base, reason: "EMPTY_RESPONSE", issues: ["EMPTY_LLM_RESPONSE"] };
@@ -835,6 +846,18 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
 
   const titles = (group?.sections || []).map((section) => section.title);
   let sections = [];
+  if (parsed && typeof parsed === "object" && lastChance) {
+    // 형식이 틀린 섹션만 버린다(그룹 전체를 INVALID_SECTION_BODY 로 거부하지 않는다).
+    if (Array.isArray(parsed.sections)) {
+      parsed = { ...parsed, sections: parsed.sections.map((section) => ({ title: section?.title, body: lastChanceSectionBody(section) })) };
+    }
+    const fieldValues = {};
+    (group?.sections || []).forEach((section) => {
+      const value = parsed[section.field];
+      if (value != null && typeof value !== "string" && !(Array.isArray(value) && value.every(item => typeof item === "string"))) fieldValues[section.field] = "";
+    });
+    if (Object.keys(fieldValues).length) parsed = { ...parsed, ...fieldValues };
+  }
   if (parsed && typeof parsed === "object") {
     if (Array.isArray(parsed.sections) && parsed.sections.some(section => {
       const body = section?.body ?? section?.content ?? section?.text;
@@ -913,7 +936,7 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
   }
 
   const ok = requiredSectionsPresent && issues.length === 0;
-  if (!ok && salvage) {
+  if (!ok && (salvage || lastChance)) {
     // 둘째 시도부터(2026-11-18 S3-F, S16 2026-11-19): 그룹을 통째로 비우면 세션이 멈추거나 환불로 끝난다. 금지·위험 문장과
     // 되풀이 문장은 덜어 내고, 같은 제목은 합친 뒤 필수 섹션이 모두 남고 본문이 그룹 하한 × salvageFloorRatio
     // (중간 시도 0.6, 마지막 시도 0.3 — Workers AI 폴백 하한과 같다) 이상이면 받는다. 금지 표현이 남으면 받지 않는다.
@@ -930,8 +953,12 @@ export function parseLoveSecretGroupResponse(text, group, { lengthRepair = false
     const keptChars = countSectionBodyChars(kept);
     const floorRatio = Number(salvageFloorRatio) > 0 ? Number(salvageFloorRatio) : 0.3;
     const allTitles = titles.every((title) => kept.some((section) => section.title === title));
-    if (allTitles && keptChars >= Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * floorRatio) && !hasRepeatedReportPassage(keptText) && !scanConsultationTextIssues(keptText).length) {
+    // lastChance: 되풀이는 위에서 덜어 냈으므로 남은 반복 판정·분량 하한으로 거부하지 않는다(본문 > 0 이면 받는다).
+    const longEnough = lastChance ? keptChars > 0 : keptChars >= Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * floorRatio);
+    const repeated = !lastChance && hasRepeatedReportPassage(keptText);
+    if (allTitles && longEnough && !repeated && !scanConsultationTextIssues(keptText).length) {
       const salvaged = { ...base, ok: true, salvaged: true, salvageIssues: issues.slice(0, 6), sections: kept, extras, chars: keptChars, issues: [], lengthShort: true };
+      if (lastChance) salvaged.shortAccepted = true;
       if (flagged.length) salvaged.flagged = flagged;
       if (scrubbed) salvaged.scrubbed = scrubbed;
       return salvaged;
