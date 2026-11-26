@@ -108,12 +108,12 @@ function consultBody(overrides = {}) {
   };
 }
 
-async function postConsult(body) {
+async function postConsult(body, env = {}) {
   const response = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
     method: "POST",
     headers: { "content-type": "application/json", 'cf-connecting-ip': body.attemptId },
     body: JSON.stringify(body),
-  }), { NODE_ENV: "test", GEMINIF_API_KEY: "test-key" });
+  }), { NODE_ENV: "test", GEMINIF_API_KEY: "test-key", ...env });
   return { status: response.status, payload: await response.json() };
 }
 
@@ -277,6 +277,119 @@ describe("운명 찻집 사주 — 섹션 부분 병합", () => {
   });
 });
 
+describe("운명 찻집 사주 — 신살 사실 블록(SAJU_SHINSAL_FACTS_V1)", () => {
+  const HEADER = "[신살 계산값";
+  const QUOTE_SECTION = 2;
+  const WEAK_SECTION = 5;
+  const headerCount = (raw) => raw.split(HEADER).length - 1;
+  const withoutBlock = (raw) => JSON.stringify({ ...JSON.parse(raw), shinsalFacts: undefined }, null, 2);
+  const long = (label) => Array.from({ length: 17 }, (_, index) => `${label} 사례 ${index}에서는 일간과 오행, 십성의 계산 근거를 확인합니다. ${label} 검토 ${index}의 재성, 비겁, 소비, 금전, 투자, 30일 계획은 대운과 세운의 주어진 구간을 기준으로 현실의 수입과 지출을 비교하며 해석하는 예시입니다.`).join('\n');
+
+  // 블록이 실린 프롬프트에는 한 섹션이 그 줄을 그대로 인용하고, 한 섹션은 첫 시도만 실패한다(재생성 경로).
+  function installMock() {
+    const run = { prompts: [], quote: "" };
+    let failServed = false;
+    callGeminiTextMock.mockImplementation(async (_env, raw) => {
+      run.prompts.push(raw);
+      const prompt = JSON.parse(raw);
+      if (!failServed && prompt.groupRule?.exactSectionTitle === SECTION_TITLES[WEAK_SECTION]) {
+        failServed = true;
+        return { ok: false, error: "provider_busy" };
+      }
+      const output = JSON.parse(JSON.stringify(teaFixtures.buildLlmPayload('three')).replace(/펜타클 10|황제|컵 5/g, '입력 명식').replace(/카드/g, '명식'));
+      const deepSections = SECTION_TITLES.map((title, index) => ({ id: 'llm-' + index, title, body: long(title) }));
+      const line = String(prompt.shinsalFacts || "").split("\n").find(row => row.startsWith("- "));
+      if (line) {
+        run.quote = `${SECTION_TITLES[QUOTE_SECTION]} 대목에서 서버가 계산한 신살은 ${line.slice(2)} 입니다.`;
+        deepSections[QUOTE_SECTION].body = `${run.quote}\n${deepSections[QUOTE_SECTION].body}`;
+      }
+      output.saju = { title: '명식과 금전의 흐름', summary: long('요약'), oneLineAdvice: '지출 기록으로 작은 기준을 확인하세요.', deepSections };
+      return { ok: true, provider: 'gemini', text: JSON.stringify(output) };
+    });
+    return run;
+  }
+
+  async function runWaves(attemptId, envForWave, body = consultBody({ attemptId })) {
+    const statuses = [];
+    const callsAfterWave = [];
+    let response;
+    for (let wave = 0; wave < 12; wave += 1) {
+      response = await postConsult(body, envForWave(wave));
+      statuses.push(response.status);
+      callsAfterWave.push(callGeminiTextMock.mock.calls.length);
+      if (response.status !== 202 || response.payload.retryable === false) break;
+    }
+    const saved = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    return { response, statuses, callsAfterWave, checkpoint: saved.generationCheckpoint };
+  }
+
+  test("켠 뒤 만든 상담은 신살을 고정하고, 재개·재생성 요청 모두 블록을 한 번 싣고 OFF 와 호출 수가 같다", async () => {
+    const offRun = installMock();
+    const off = await runWaves("saju-shinsal-pin", () => ({}));
+    expect(off.response.status).toBe(200);
+    expect(off.checkpoint.shinsalFacts).toBeUndefined();
+    expect(offRun.prompts.every(raw => headerCount(raw) === 0)).toBe(true);
+
+    fakeCollections.clear();
+    callGeminiTextMock.mockReset();
+    const onRun = installMock();
+    const env = { SAJU_SHINSAL_FACTS_V1: "tea-house" };
+    const on = await runWaves("saju-shinsal-pin", () => env);
+    expect(on.statuses.every(status => status === 202 || status === 200)).toBe(true);
+    expect({ status: on.response.status, quality: on.checkpoint.qualityError }).toEqual({ status: 200, quality: undefined });
+    expect(on.checkpoint.shinsalFacts).toBe("shinsal-facts-v1");
+    expect(onRun.prompts).toHaveLength(offRun.prompts.length);
+    expect(on.statuses).toEqual(off.statuses);
+    expect(onRun.prompts.every(raw => headerCount(raw) === 1)).toBe(true);
+    const weakPrompts = onRun.prompts.filter(raw => JSON.parse(raw).groupRule?.exactSectionTitle === SECTION_TITLES[WEAK_SECTION]);
+    expect(weakPrompts.length).toBeGreaterThanOrEqual(2);
+    // 블록 키만 빼면 OFF 프롬프트와 바이트가 같고, 늘어난 길이는 키 한 줄뿐이다.
+    const block = JSON.parse(onRun.prompts[0]).shinsalFacts;
+    const keyLine = `  "shinsalFacts": ${JSON.stringify(block)},\n`;
+    onRun.prompts.forEach((raw, index) => {
+      expect(withoutBlock(raw)).toBe(offRun.prompts[index]);
+      expect(raw.length - offRun.prompts[index].length).toBe(keyLine.length);
+    });
+    // 블록을 인용한 본문이 출력 검사를 지나 그대로 전달된다.
+    expect(onRun.quote).not.toBe("");
+    expect(on.response.payload.result.saju.deepSections[QUOTE_SECTION].body).toContain(onRun.quote);
+    expect(off.response.payload.result.saju.deepSections[QUOTE_SECTION].body).not.toContain(HEADER);
+    // 완료 뒤 같은 시도의 재요청은 저장본을 돌려준다(409·재생성 없음).
+    const replay = await postConsult(consultBody({ attemptId: "saju-shinsal-pin" }), env);
+    expect(replay.status).toBe(200);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(onRun.prompts.length);
+  });
+
+  test("플래그를 켜기 전에 시작한 상담은 이어지는 요청에서 켜져도 블록을 싣지 않는다", async () => {
+    const run = installMock();
+    const legacy = await runWaves("saju-shinsal-legacy", wave => (wave === 0 ? {} : { SAJU_SHINSAL_FACTS_V1: "tea-house" }));
+    expect(legacy.response.status).toBe(200);
+    expect(legacy.checkpoint.shinsalFacts).toBeUndefined();
+    expect(run.prompts.length).toBeGreaterThan(legacy.callsAfterWave[0]);
+    expect(run.prompts.every(raw => headerCount(raw) === 0)).toBe(true);
+  });
+
+  test("고정된 상담도 플래그를 끄면 다음 요청부터 블록을 빼고 끝까지 전달한다", async () => {
+    const run = installMock();
+    const killed = await runWaves("saju-shinsal-kill", wave => (wave === 0 ? { SAJU_SHINSAL_FACTS_V1: "true" } : { SAJU_SHINSAL_FACTS_V1: "" }));
+    expect(killed.response.status).toBe(200);
+    expect(killed.checkpoint.shinsalFacts).toBe("shinsal-facts-v1");
+    const firstWave = killed.callsAfterWave[0];
+    expect(firstWave).toBeGreaterThan(0);
+    expect(run.prompts.slice(0, firstWave).every(raw => headerCount(raw) === 1)).toBe(true);
+    expect(run.prompts.length).toBeGreaterThan(firstWave);
+    expect(run.prompts.slice(firstWave).every(raw => headerCount(raw) === 0)).toBe(true);
+  });
+
+  test("다른 소비처 id 만 켜져 있으면 찻집은 고정하지 않는다", async () => {
+    const run = installMock();
+    const other = await runWaves("saju-shinsal-other", () => ({ SAJU_SHINSAL_FACTS_V1: "neo,new-year" }));
+    expect(other.response.status).toBe(200);
+    expect(other.checkpoint.shinsalFacts).toBeUndefined();
+    expect(run.prompts.every(raw => headerCount(raw) === 0)).toBe(true);
+  });
+});
+
 describe("운명 찻집 사주 — 명식 계산 근거", () => {
   // 음력 작은달 30일처럼 양력 검사만 통과한 날짜는 명식 계산이 닫힌 채(available:false) 올라온다.
   // 그 초안으로 상담문이 완성되면 일간·오행·대운 없는 리포트에 100코인이 청구된다.
@@ -351,6 +464,17 @@ describe("운명 찻집 사주 궁합 — 두 사람 명식 계산 근거", () =
 
     expect(status).not.toBe(422);
     expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
+  });
+
+  test("궁합 상담은 신살 플래그를 전부 켜도 고정하지 않고 블록도 싣지 않는다", async () => {
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: "{}" }));
+
+    await postConsult(compatConsultBody("saju-compat-shinsal", compatDraft({})), { SAJU_SHINSAL_FACTS_V1: "true" });
+
+    const saved = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    expect(saved.generationCheckpoint.shinsalFacts).toBeUndefined();
+    expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
+    expect(callGeminiTextMock.mock.calls.every(call => !call[1].includes("[신살 계산값"))).toBe(true);
   });
 });
 

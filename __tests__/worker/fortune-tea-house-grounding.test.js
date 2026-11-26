@@ -205,3 +205,80 @@ describe("분량 목표", () => {
     expect(groupRule.lengthRule).toContain("목표는 5032자 안팎");
   });
 });
+
+describe("신살 사실 블록(SAJU_SHINSAL_FACTS_V1, tea-house)", () => {
+  const base = { selectedTeaCupId: "cup", selectedTeaCupName: "찻잔", selectedTeaCupTopic: "연애", question: "그 사람에게 지금 연락해도 될까요?", consultationVersion: "tea-v2" };
+  const HEADER = "[신살 계산값";
+  const keyLine = (block) => `  "shinsalFacts": ${JSON.stringify(block)},\n`;
+  const withoutBlock = (prompt) => JSON.stringify({ ...JSON.parse(prompt), shinsalFacts: undefined }, null, 2);
+  let utils, canonicalTeaSaju, buildShinsalFactsBlock;
+  beforeAll(async () => {
+    ({ __fortuneTeaHouseTestUtils: utils } = await import("../../worker/routes/fortune-tea-house.js"));
+    ({ canonicalTeaSaju } = await import("../../worker/lib/tea-saju-facts.js"));
+    ({ buildShinsalFactsBlock } = await import("../../lib/saju/shinsal-facts-block.mjs"));
+  });
+
+  test("사주 단독 상담은 블록을 한 번 싣고, 그 키를 비우면 OFF 프롬프트와 바이트가 같다", () => {
+    const request = { ...base, ...birth, gender: "female", consultationMode: "saju" };
+    const fallback = utils.normalizeDraftResult({ saju: canonicalTeaSaju(request) }, request);
+    const block = buildShinsalFactsBlock({ pillars: { year: "庚午", month: "庚辰", day: "庚午", hour: "辛巳" } }, { maxChars: 500 });
+    expect(block.length).toBeGreaterThan(0);
+    expect(block.length).toBeLessThanOrEqual(500);
+    const groups = utils.buildTeaCheckpointGroups(request, fallback);
+    for (const [group, attempt, hint] of [[null, 0, ""], [groups[0], 0, ""], [groups[1], 0, ""], [groups[1], 1, "length"]]) {
+      const off = utils.buildUserPrompt(request, fallback, attempt, hint, group);
+      expect(utils.buildUserPrompt(request, fallback, attempt, hint, group, { shinsalFacts: false })).toBe(off);
+      expect(off).not.toContain(HEADER);
+      const on = utils.buildUserPrompt(request, fallback, attempt, hint, group, { shinsalFacts: true });
+      expect(on.split(HEADER)).toHaveLength(2);
+      expect(JSON.parse(on).shinsalFacts).toBe(block);
+      expect(on.length - off.length).toBe(keyLine(block).length);
+      expect(withoutBlock(on)).toBe(off);
+    }
+  });
+
+  test("출생시간을 모르면 시주 신살을 빼고 미상 줄을 싣는다", () => {
+    const request = { ...base, ...birth, birthTime: "", birthTimeUnknown: true, gender: "female", consultationMode: "saju" };
+    const fallback = utils.normalizeDraftResult({ saju: canonicalTeaSaju(request) }, request);
+    const block = JSON.parse(utils.buildUserPrompt(request, fallback, 0, "", null, { shinsalFacts: true })).shinsalFacts;
+    expect(block).toContain("출생 시간 미상");
+    expect(block).not.toMatch(/시지|시간\(/);
+  });
+
+  test("궁합·타로·숙요는 옵션을 켜도 프롬프트 바이트가 같다", async () => {
+    const { teaDrawCards, teaSpread } = await import("../../lib/fortune-tea-house/tarot-contract.mjs");
+    const { TAROT_CARDS } = await import("../../lib/tarot/tarot-cards.mjs");
+    const { buildSajuResultSection } = await import("../../lib/fortune-tea-house/saju-result-adapter.mjs");
+    const tarot = utils.normalizeRequest({ ...base, consultationMode: "tarot", tarotSpread: "five" });
+    const deck = { order: TAROT_CARDS.map(card => card.code), reversed: TAROT_CARDS.map((_, i) => i % 2 === 1) };
+    const cards = teaDrawCards(teaSpread("yn_contact_first"), deck, [6, 1, 2, 3, 4]);
+    const sukuyo = utils.normalizeRequest({ ...base, consultationMode: "sukuyo", sukuyo: { user: { birthDate: "1990-05-05" }, partner: { birthDate: "1992-08-20" } } });
+    const compat = { consultationVersion: "tea-v2", consultationMode: "sajuCompatibility", question: "우리 관계는 어떻게 흘러갈까요?" };
+    const pair = Object.fromEntries(Object.entries({
+      user: { name: "나", gender: "female", ...birth, birthTimeUnknown: false },
+      partner: { name: "상대", gender: "male", birthDate: "1992-08-20", birthTime: "", birthTimeUnknown: true, calendarType: "solar", timezone: "Asia/Seoul" },
+    }).map(([key, person]) => {
+      const personRequest = { ...compat, ...person, nickname: person.name };
+      return [key, { ...person, saju: canonicalTeaSaju(personRequest, buildSajuResultSection(buildFortuneTeaSajuSnapshotFromParts(person), personRequest)) }];
+    }));
+    const cases = [
+      [tarot, utils.normalizeDraftResult({ tarot: cards[0], tarotSpreadCards: cards, tarotSpread: "five" }, tarot)],
+      [sukuyo, utils.normalizeDraftResult({}, sukuyo)],
+      [compat, { ...utils.normalizeDraftResult({ saju: pair.user.saju }, compat), sajuCompatibility: pair }],
+    ];
+    for (const [request, fallback] of cases) {
+      const off = utils.buildUserPrompt(request, fallback);
+      expect(utils.buildUserPrompt(request, fallback, 0, "", null, { shinsalFacts: true })).toBe(off);
+      expect(off).not.toContain(HEADER);
+    }
+  });
+
+  test("Workers AI 입력 상한 95%를 넘으면 블록만 빼고 프롬프트는 그대로 만든다", async () => {
+    const { workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } = await import("../../lib/workers-ai-input-token-limit.mjs");
+    const request = { ...base, ...birth, gender: "female", consultationMode: "saju", question: "ㄱ".repeat(16000) };
+    const fallback = utils.normalizeDraftResult({ saju: canonicalTeaSaju(request) }, request);
+    const off = utils.buildUserPrompt(request, fallback);
+    expect(workersAiInputTokenUpperBound([{ role: "user", content: off }])).toBeGreaterThan(Math.floor(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95) - 400);
+    expect(utils.buildUserPrompt(request, fallback, 0, "", null, { shinsalFacts: true })).toBe(off);
+  });
+});

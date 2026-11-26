@@ -79,6 +79,9 @@ import { scopeConnection } from "../lib/db-scope-connection.js";
 import { buildSajuGuests, kstDate } from "../../lib/fortune-tea-house/saju-guests.js";
 import { CATEGORY_FOCUS, resolveQuestionCategory } from "../../lib/fortune-tea-house/saju-category.js";
 import { buildGuestPrompt } from "../../lib/fortune-tea-house/saju-guest-prompt.js";
+import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
+import { workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/workers-ai-input-token-limit.mjs";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -4067,8 +4070,27 @@ function countFortuneTeaGroupChars(value) {
   return 0;
 }
 
-function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", group = null) {
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, 소비처 id 'tea-house'). 사주 단독 상담(consultationMode saju)에만 원국 신살을 붙인다.
+// 궁합·타로·숙요 프롬프트는 바이트가 그대로다. 블록은 프롬프트에만 싣고 checkpoint·요청 해시·캐시 리비전에는 넣지 않는다.
+const FORTUNE_TEA_SHINSAL_MAX_CHARS = 500;
+// 블록을 붙인 프롬프트가 Workers AI 폴백 입력 상한의 95%를 넘으면 블록만 뺀다(거부하지 않는다). 네오·흑월과 같은 선이다.
+const FORTUNE_TEA_SHINSAL_PROMPT_BUDGET = Math.floor(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+function fortuneTeaShinsalBlock(request, saju) {
+  try {
+    const hourRow = Array.isArray(saju?.pillars) ? saju.pillars.find((item) => item?.key === "hour") : null;
+    const timeUnknown = request?.birthTimeUnknown === true || saju?.birthSummary?.birthTimeUnknown === true || hourRow?.available === false;
+    const pillars = fortuneTeaSajuPillarMap(saju, timeUnknown);
+    return buildShinsalFactsBlock({ pillars: { ...pillars, hour: timeUnknown ? null : pillars.hour || null }, timeUnknown },
+      { maxChars: FORTUNE_TEA_SHINSAL_MAX_CHARS });
+  } catch {
+    return "";
+  }
+}
+
+function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", group = null, options = {}) {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
+  // 신살 블록은 checkpoint 를 만들 때 핀이 있고 플래그가 켜진 상담에서만 붙는다. 꺼지면 프롬프트 바이트가 그대로다.
+  const shinsalFacts = consultationMode === "saju" && options?.shinsalFacts === true ? fortuneTeaShinsalBlock(request, fallback?.saju) : "";
   const sajuRule = resolveSajuCategoryRule(request);
   const tarotRule = resolveTarotCategoryRule(request);
   const requiredSajuSections = getSajuRequiredSectionTitles(request);
@@ -4093,7 +4115,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
       : consultationMode === "sukuyo"
         ? "synthesis.sajuTarotBridge는 이름과 달라도 숙요점 궁합-only 요약으로 쓴다. 타로, 카드, 사주, 오행, 십성을 상담 근거처럼 쓰지 않는다."
       : "synthesis.sajuTarotBridge는 이름과 달라도 타로-only 요약으로 쓴다. 사주, 오행, 십성을 상담 근거처럼 쓰지 않는다.";
-  return JSON.stringify(
+  const promptText = JSON.stringify(
     applyFortuneTeaGroupScope({
       task: "운명의 찻집 상담 결과를 연이의 목소리로 자연스럽고 깊게 다듬는다.",
       consultationMode,
@@ -4104,6 +4126,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
         : undefined,
       sajuFactInput,
       guestReading: consultationMode === "saju" ? buildGuestPrompt(request, fallback.saju.guests || [], sajuFactInput.timingFacts.todayKst) : undefined,
+      shinsalFacts: shinsalFacts || undefined,
       tarotFactInput,
       sukuyoFactInput,
       sajuQualityRule: isSajuFamilyMode(consultationMode)
@@ -4408,19 +4431,22 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
     null,
     2,
   );
+  if (!shinsalFacts || workersAiInputTokenUpperBound([{ role: "user", content: promptText }]) <= FORTUNE_TEA_SHINSAL_PROMPT_BUDGET) return promptText;
+  // 상한 근처면 같은 자리의 키만 비워 블록 없는 프롬프트(OFF 와 같은 바이트)로 되돌린다.
+  return JSON.stringify({ ...JSON.parse(promptText), shinsalFacts: undefined }, null, 2);
 }
 
 /**
  * 그룹 하나를 생성한다. **절대 throw 하지 않는다** — 한 그룹의 실패가 나머지를 죽이면
  * 결제한 상담이 통째로 사라진다(love-secret-ai.js 와 같은 계약).
  */
-async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, finalAttempt = false, answerVoice = null, cacheAllowed = true }) {
+async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, finalAttempt = false, answerVoice = null, cacheAllowed = true, shinsalFacts = false }) {
   const fail = (reason, provider = "", model = "") => ({ key: group.key, ok: false, parsed: null, chars: 0, reason, provider, model });
   // 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아간다 — 그 앞에서 막아야 한다.
   if (!(timeoutMs > 0)) return fail("BUDGET_EXHAUSTED");
 
   try {
-    const call = callGeminiText(env, buildUserPrompt(request, fallback, attempt, qualityHint, group), {
+    const call = callGeminiText(env, buildUserPrompt(request, fallback, attempt, qualityHint, group, { shinsalFacts: shinsalFacts === true }), {
       systemPrompt: appendAnswerVoice(buildSystemPrompt(consultationMode), answerVoice, { master: "yeoni" }),
       taskType: "fortune",
       temperature: attempt > 0 ? 0.54 : 0.62,
@@ -4648,6 +4674,8 @@ function scrubTeaRepeatedSentences(part, prior) {
 }
 async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, lockToken, checkpoint, body }) {
     const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko', answerVoice: selectAnswerVoice(env),
+        // 신살 블록 핀: 사주 단독 상담의 새 checkpoint 에만 남긴다. 옛 checkpoint 는 키가 없어 꺼진 채 끝난다.
+        ...(normalizeConsultationMode(request.consultationMode) === 'saju' && selectShinsalFacts(env, 'tea-house') ? { shinsalFacts: selectShinsalFacts(env, 'tea-house') } : {}),
         requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
     state.repairs ||= [];
     const pickEligible = () => state.groups.filter(group => teaGroupNeedsWork(state, group) && teaGroupHasAttempts(state, group)).slice(0, PAID_LLM_PARTS_PER_REQUEST);
@@ -4680,7 +4708,7 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
         return [...new Set(errors)];
     };
     const outcomes = await Promise.allSettled(eligible.map(async (group) => {
-        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, finalAttempt: teaIsFinalAttempt(state.attempts[group.key]), qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env), cacheAllowed: auth?.tossNative !== true }));
+        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, finalAttempt: teaIsFinalAttempt(state.attempts[group.key]), qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env), cacheAllowed: auth?.tossNative !== true, shinsalFacts: shinsalFactsPinned(state, env, 'tea-house') }));
         if (!output.ok)
             return;
         // Required provider fields must exist before the deterministic fallback is merged.
