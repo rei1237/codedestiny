@@ -15,7 +15,7 @@ function side(raw){
 export function compatibilityHtml(first,second,type,name){
  const safeName=String(name).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const a=side(first),b=side(second);
- return analyzeCompat(...a,...b,type,safeName).html+analyzePastLifeCompat(a[0],b[0],safeName);
+ return analyzeCompat(...a,...b,type,safeName,{omitLightSections:true}).html+analyzePastLifeCompat(a[0],b[0],safeName);
 }
 export function compatibilityFacts(first,second,type,name){
  const a=side(first),b=side(second),out={};

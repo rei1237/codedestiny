@@ -24830,7 +24830,8 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,opts){
     '<div class="compat-section-title">🧩 세부 해석</div>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">'+detailCardsHtml+'</div>'+
     '</div>'+
-    _seCompatLightSectionsHtml(p1,n1,pw1,p2,n2,pw2,type,USER_NAME,name,{commonY:commonY||[],partnerTimeUnknown:!!(opts&&opts.partnerTimeUnknown)})+
+    /* 🔴 라이트 궁합(3,000원) 유료 섹션. 토스 무료 화면(apps/toss/service/compat-basis-loader.mjs)은 판매 SKU가 없어 omitLightSections 로 뺀다. */
+    (opts&&opts.omitLightSections?'':_seCompatLightSectionsHtml(p1,n1,pw1,p2,n2,pw2,type,USER_NAME,name,{commonY:commonY||[],partnerTimeUnknown:!!(opts&&opts.partnerTimeUnknown)}))+
     '<div class="compat-section">'+
     '<div class="compat-section-title">📋 궁합 포인트 체크 <span style="font-size:.7rem;font-weight:400;color:#aaa">총점 '+score.toFixed(1)+'점</span></div>'+
     reasons.map(function(r){

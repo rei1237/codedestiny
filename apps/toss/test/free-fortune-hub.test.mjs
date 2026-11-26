@@ -25,4 +25,5 @@ test('guest compatibility returns the original static and past-life sections wit
  assert.match(article.querySelector('.compat-grade-label').textContent,/달빛 & 친구/);
  assert.ok(article.querySelector('.pastlife-cross-title'));
  assert.equal(article.querySelectorAll('form,a[href*="checkout"]').length,0);
+ assert.equal(article.querySelectorAll('[class*="cd-compat-light"]').length,0,'web paid light-compat sections must not render free in Toss');
 });
