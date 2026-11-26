@@ -43,7 +43,10 @@ var SajuReadingDepth = (() => {
     CONSULTATION_ANSWER_VOICE_V1: "true",
     // Trait-First 1차 6종 성향 장 근거 주입(worker/lib/trait-profile/). 새 세션만 시작 때 고정, 진행 중·옛 세션은 OFF 로 끝난다.
     // 골든셋: docs/handoff/trait-first-phase5-verification.md (2026-11-22 게이트 C 승인).
-    TRAIT_FIRST_SAJU: "true"
+    TRAIT_FIRST_SAJU: "true",
+    // 정본 신살 사실 블록(lib/saju/natal-core/shinsal/) 주입. 값은 소비처 id CSV, 'true' 는 전부 켠다. 빈 값이면 전부 끈다.
+    // 소비처는 shinsalFactsOn(env, id) 로만 읽는다. 블록은 프롬프트 때 계산되고 해시·다이제스트에 넣지 않는다.
+    SAJU_SHINSAL_FACTS_V1: ""
   });
 
   // lib/sha256-text.mjs
