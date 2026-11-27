@@ -1,8 +1,18 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-27
-next: 1 — PointsClient "달빛 주문 기록 확인 중" 문구 정리(GREEN)
+next: 없음 — 8~10 결정과 운영 승격은 사용자 답을 받은 새 작업으로 진행
 ---
+
+## 결과 (2026-11-27, 세션 04de552a, 워크트리 payment-leftovers-20261127-145349 → main)
+- 1·2 03be7c60f5: 달빛 문구 2곳 교체. "연장하기 →" 3.3:1 은 비활성(ctaDisabled) 상태였다. disabled:opacity-50→75 로 주 버튼 3.31→4.84, ghost 3.88→7.09(sharp, 412·1280, 버튼·카드 CSS 단독 렌더. /points 전체 화면은 인증·구독 mock 이 필요해 열지 않았다). 활성 6.29/11.85 그대로.
+- 3 16cb9a60d5: flowerFamilyApply 12개 로케일이 실제 버튼("보유 꿀단지 적용하기"/"Use existing Honey Jar")을 가리킨다.
+- 4: 이미 b846b0ac49(11-26)가 `linear-gradient(transparent,transparent)` 마스크 fallback 으로 해소. 변경 없음.
+- 5 09c1a32f9c: pass-verdict 에 SALE_CLOSED_FEATURE_KEYS(서버 18개)·ALIASES(tetogen 3개) 미러, resolveVerdict 가 최종 낙관 커버 직전에 "모름"을 돌려 서버가 ALREADY_UNLOCKED/409 를 가른다. verify:pass-tier-policy 미러 대조(변이 확인), matrix 테스트 4등급 추가(19/19). paid-gate-auditor: 호출부 5곳 모두 결제창·서버 확인으로 가고 무료 개방·막다른 길 없음, 동결 영향 없음. 공용 핀(checkout-entry+pass-verdict) 21파일 재각인. 5ae9c896d2 사이트맵 서명.
+- 6 조사만: 웹훅 취소(index.js applyNonPaidPgEventState → markOrderCancelled/settleRefund/recordPgCancellationMarkers)는 status·orderState·마커만 바꾸고 rawPortOne 은 결제 확정 요약 그대로 둔다. 읽는 곳은 routes/payments.js formatPaymentResponse(영수증·승인번호·v1 cancel_amount/cancelled_at), compat.js receiptUrl, analytics-channel.js channelType 뿐이고 `rawPortOne.status` 를 판정에 쓰는 코드는 0건(git grep worker app js lib scripts). 취소 판정(ga4-refunds, audit-marketing-orders)은 PG 재조회 rawV2 를 쓴다. → 오판 경로 없음. 고친다면 취소 시 rawPortOne.status 를 갱신하는 서버 변경(RED, 미승인). DB 수선 안 함.
+- 7: 최근 실행 45918715519·45799756724 성공 → 옆 세션이 해소, 닫음.
+- 후속(범위 밖, 보고만): `__tests__/worker/card-single-payment-auto-refund.test.js` 10건이 로컬에서 실패 — 63행 ziwei-ai-chart.js mock 에 FOUR_TRANSFORMATIONS 가 없는데 master-love-codex-consultation.js(8197d17081, 11-26)가 import 한다. 셸 `_cdCoverageFromSubscriptionSnapshot` 3곳(index.html ~26453·26473·31941)은 featureKey 를 안 넘겨 판매 종료 가드 밖(최종 판정은 서버, 실영향 미확인). 판매 종료 키 보유자가 새 기기에서 결제창을 보면 passMiss 문구가 맞지 않는다. 셸 "달빛 이용권 상점" 문구(~23243) 잔존.
+- 8~10: 사용자에게 추천과 함께 질문(답 대기).
 
 # 결제·이용권 후속 잔여 결함 인수인계
 
