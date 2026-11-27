@@ -147,6 +147,16 @@
     'sum.nyang': '좋고 나쁨을 정하는 표시가 아니다냥. 어떻게 쓰느냐가 더 중요하다냥.',
     'sum.empty': '원국에서 직접 확인되는 별신살이 없어요. 없는 것 또한 부족함이나 불운을 뜻하지 않아요.',
     'sum.basisNote': '12신살 기준: {basis}. 다른 신살은 신살마다 정해진 기준(일간·월지 등)으로 찾았고, 배지를 누르면 근거를 볼 수 있어요. 기준은 학파마다 조금씩 달라요.',
+    'sum.expand': '한 줄 설명으로 펼쳐 보기',
+    'sum.collapse': '한 줄 설명 접기',
+    'sum.linesLabel': '신살 한 줄 설명',
+    'sum.linesLoading': '한 줄 설명을 불러오는 중이에요…',
+    'sum.linesFailed': '설명을 불러오지 못했어요. 이름과 자리만 먼저 보여 드려요.',
+    /* 기둥 자리의 뜻. 단정하지 않고 "비추는" 정도로만 쓴다. 운(대운·세운·월운) 자리에는 쓰지 않는다. */
+    'posMean.year': '뿌리·집안·어린 시절을 비추는 자리',
+    'posMean.month': '일·사회생활을 비추는 자리',
+    'posMean.day': '나 자신과 배우자·가까운 관계를 비추는 자리',
+    'posMean.hour': '앞으로의 계획·자녀·말년을 비추는 자리',
     'luck.title': '대운·세운·월운 흐름',
     'luck.daewoon': '대운',
     'luck.sewoon': '세운',
@@ -207,6 +217,9 @@
     settingsOpen: false,
     lastP: null,
     groups: [],
+    lines: [],
+    expanded: false,
+    linesFailed: false,
     allowed: null,
     memo: []
   };
@@ -754,25 +767,103 @@
       h += '<li class="mxv-legend__item mxv-legend__item--' + c + '"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + ' <strong>' + n + '</strong></li>';
     });
     h += '</ul>';
+    var body = '';
     CATS.forEach(function (c) {
       if (!catOn(s, c)) return;
       var chips = '';
       if (c === 'relation') {
         rels.forEach(function (rel, i) {
           var gi = addGroup({ type: 'rel', rel: rel });
+          state.lines.push(gi);
           chips += '<button type="button" class="mxv-chip mxv-chip--relation" data-mxv-g="' + gi + '" data-mxv-key="r:' + i + '"><strong>' + esc(hitName(rel.ruleId, rel.name)) + '</strong><small>' + esc(relColsText(rel)) + '</small></button>';
         });
       } else {
         (byCat[c] || []).forEach(function (g) {
           var gi = addGroup(g);
+          state.lines.push(gi);
           chips += '<button type="button" class="mxv-chip mxv-chip--' + c + '" data-mxv-g="' + gi + '" data-mxv-key="s:' + esc(g.id) + '"><strong>' + esc(hitName(g.id, g.name)) + '</strong><small>' + esc(spotsText(g)) + '</small></button>';
         });
       }
       if (!chips) return;
-      h += '<div class="mxv-group mxv-group--' + c + '"><h5 class="mxv-group__title"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + '</h5><div class="mxv-chips">' + chips + '</div></div>';
+      body += '<div class="mxv-group mxv-group--' + c + '"><h5 class="mxv-group__title"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + '</h5><div class="mxv-chips">' + chips + '</div></div>';
     });
+    if (state.lines.length) h += linesBlockHtml();
+    h += body;
     h += sayHtml('nyang', sayText(mt('sum.nyang')));
     return h;
+  }
+
+  /* ── 한 줄 설명 펼쳐 보기 ─────────────────────────────── */
+  /* 공유 이미지(#sajuCard 캡처)에는 넣지 않는다: 펼침 상태에 따라 이미지 길이가 달라지지 않게 한다. */
+  function linesBlockHtml() {
+    var open = !!state.expanded;
+    var h = '<button type="button" class="mxv-tbtn mxv-expand" data-mxv-ctl="expand" aria-expanded="' + (open ? 'true' : 'false') + '" aria-controls="mxvShinsalLines" data-html2canvas-ignore="true">';
+    h += '<span class="mxv-expand__label">' + esc(mt(open ? 'sum.collapse' : 'sum.expand')) + '</span><span class="mxv-expand__icon" aria-hidden="true"></span></button>';
+    return h + '<div id="mxvShinsalLines" class="mxv-lines" aria-live="off" data-html2canvas-ignore="true"' + (open ? '' : ' hidden') + '>' + (open ? linesInner() : '') + '</div>';
+  }
+  /* 신살 한 개가 잡힌 자리들. 원국 기둥이면 자리의 뜻을 붙이고, 운 자리·관계는 뜻 없이 둔다. */
+  function placesOf(items, position, withMeaning, withChar) {
+    var seen = {};
+    var out = [];
+    items.forEach(function (it) {
+      var nodes = it.pair && it.pair.length ? it.pair : [it];
+      nodes.forEach(function (n) {
+        var spot = spotOf(n, position || it.position) + (withChar && n.char ? ' ' + n.char : '');
+        if (seen[spot]) return;
+        seen[spot] = 1;
+        out.push({ spot: spot, mean: withMeaning && NATAL[n.pillar] ? mt('posMean.' + n.pillar) : '' });
+      });
+    });
+    return out;
+  }
+  function lineRow(g, ko, showHan) {
+    if (!g) return '';
+    var rel = g.type === 'rel' ? g.rel : null;
+    var id = rel ? rel.ruleId : g.id;
+    var cat = rel ? 'relation' : g.category;
+    var c = ko ? copyFor(id) : null;
+    var short = ko ? (c && c.short) || '' : mt('shinsal.' + id + '.short', null, '');
+    var han = ko && showHan && c && c.hanja ? c.hanja : '';
+    var h = '<li class="mxv-line mxv-line--' + esc(cat) + '"><p class="mxv-line__head"><strong class="mxv-line__name">' + esc(rel ? hitName(rel.ruleId, rel.name) : hitName(g.id, g.name)) + '</strong>';
+    if (han) h += '<span class="mxv-han mxv-line__han">' + esc(han) + '</span>';
+    h += '</p>';
+    var places = rel ? placesOf([rel], rel.position, false, false) : placesOf(g.items, null, true, false);
+    if (rel) {
+      h += '<p class="mxv-line__where"><span class="mxv-line__place"><strong class="mxv-line__spot">' + esc(places.map(function (p) { return p.spot; }).join(' · ')) + '</strong></span></p>';
+    } else {
+      h += '<p class="mxv-line__where">' + places.map(function (p) {
+        return '<span class="mxv-line__place"><strong class="mxv-line__spot">' + esc(p.spot) + '</strong>' + (p.mean ? ' <span class="mxv-line__mean">' + esc(p.mean) + '</span>' : '') + '</span>';
+      }).join('') + '</p>';
+    }
+    if (short) h += '<p class="mxv-line__short">' + esc(short) + '</p>';
+    return h + '</li>';
+  }
+  function linesInner() {
+    var ko = isKo();
+    var h = '';
+    if (ko && !root.SajuShinsalCopy) {
+      // 한국어 한 줄 설명은 처음 펼칠 때만 불러온다. 실패하면 이름과 자리만 남긴다.
+      if (!state.linesFailed) ensureCopy().then(fillLines, function () { state.linesFailed = true; fillLines(); });
+      h += '<p class="mxv-lines__note" role="status">' + esc(mt(state.linesFailed ? 'sum.linesFailed' : 'sum.linesLoading')) + '</p>';
+    }
+    var showHan = settings().showHanja;
+    h += '<ul class="mxv-lines__list" aria-label="' + esc(mt('sum.linesLabel')) + '">';
+    state.lines.forEach(function (gi) { h += lineRow(state.groups[gi], ko, showHan); });
+    return h + '</ul>';
+  }
+  function fillLines() {
+    var box = doc.getElementById('mxvShinsalLines');
+    if (box && state.expanded) box.innerHTML = linesInner();
+  }
+  function toggleLines(btn) {
+    state.expanded = !state.expanded;
+    if (state.expanded) state.linesFailed = false;
+    btn.setAttribute('aria-expanded', state.expanded ? 'true' : 'false');
+    var label = btn.querySelector('.mxv-expand__label');
+    if (label) label.textContent = mt(state.expanded ? 'sum.collapse' : 'sum.expand');
+    var box = doc.getElementById('mxvShinsalLines');
+    if (!box) return;
+    if (state.expanded) { box.removeAttribute('hidden'); fillLines(); } else { box.setAttribute('hidden', ''); box.innerHTML = ''; }
   }
 
   /* ── 운 흐름 ─────────────────────────────────────────── */
@@ -870,6 +961,7 @@
 
       closeSheet(false);
       state.groups = [];
+      state.lines = [];
       var gridHtml = basisHtml(tu) + toolbarHtml(s, ko) + tableHtml(p, result, s, tu, ko);
       var sumHtml = summaryHtml(result, s);
       var lHtml = luckHtml(result, luck, s, tu, allowed, ko);
@@ -979,6 +1071,8 @@
         updateSettings(function (s) { var d = sanitize(null); Object.keys(d).forEach(function (key) { s[key] = d[key]; }); }, ctl);
       } else if (k === 'save') {
         saveImage();
+      } else if (k === 'expand') {
+        toggleLines(ctl);
       }
       return;
     }
