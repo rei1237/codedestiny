@@ -3,6 +3,8 @@ import Image from "next/image";
 import {useState,useEffect,useCallback} from 'react';
 import {authFetch,hasMobileAppRefreshToken,logoutWithServer} from '@/app/_lib/auth-client';
 import {hasClientAuthHint} from '@/app/_lib/user-session-cache';
+import {persistSanitizedAuthUser} from '@/app/_lib/auth-storage';
+import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
 import {loginHref,signupHref} from './service-links';
 import {useTPick} from '@/lib/i18n/useT';
 import {useReadingLanguage} from '../_lib/use-reading-language';
@@ -23,6 +25,9 @@ export default function SessionControls({compact=false,onChoose}:{compact?:boole
   try{const response=await authFetch('/api/auth/me',{},{retryOn401:hasClientAuthHint()||hasMobileAppRefreshToken()});const data=await response.json();
    if(response.status===401||data.authenticated===false){setStatus(401);return;}
    if(!response.ok||!data.user)throw new Error('session unavailable');
+   // 쿠키 세션만 있고 로그인 스냅샷이 없으면 프로필 범위(초상화·목록 캐시)가 손님으로 남는다.
+   // 로그인과 같은 정제 스냅샷(토큰 없음)만 저장하고, 범위가 생겼을 때만 구독자에게 알린다.
+   if(!readDestinyProfileAccountId()){persistSanitizedAuthUser(data.user);if(readDestinyProfileAccountId())window.dispatchEvent(new CustomEvent('cd:auth-changed',{detail:{source:'session-controls',event:'login',at:Date.now()}}));}
    setName(data.user.name||data.user.displayName||'');setStatus(200);
   }catch{setStatus(503);}
  },[]);
