@@ -1,6 +1,7 @@
 /** @jest-environment node */
 import {jest} from '@jest/globals';
-const rows=new Map();let account='owner',paid=true,revoked=false,failGeneration=false,calls=0,refunds=0,testEnv={},chapterChars=2000,failKeys=new Set(),seenOptions=[],transientLeft=0;
+const rows=new Map();let account='owner',paid=true,revoked=false,failGeneration=false,calls=0,refunds=0,testEnv={},chapterChars=2000,failKeys=new Set(),seenOptions=[],transientLeft=0,remedyCalls=0,remedyFail=false;
+const REMEDY_CASES={version:'remedy-v1',valid:true,locale:'ko',refYear:2027,sources:{saju:true,ziwei:true},total:1,cases:[{caseId:'samjae',system:'saju'}]};
 const clone=v=>v?structuredClone(v):v;
 function set(row,values){for(const [path,value] of Object.entries(values||{})){const parts=path.split('.');let at=row;while(parts.length>1){const k=parts.shift();at[k]||={};at=at[k];}at[parts[0]]=value;}}
 function match(q){const row=rows.get(`${q.userId}:${q.executionKey}`);if(!row||row.featureKey!==q.featureKey&&q.featureKey)return null;if(q.status&&row.status!==q.status)return null;if(q['lock.token']&&row.lock?.token!==q['lock.token'])return null;return row;}
@@ -20,12 +21,13 @@ jest.unstable_mockModule('../../worker/lib/service-execution-task.js',()=>({
 const CHAPTERS=Array.from({length:27},(_,i)=>({key:`chapter-${i}`,title:`${i}장`}));
 jest.unstable_mockModule('../../worker/lib/heukwol-report.js',()=>({HEUKWOL_FEATURE_KEY:'heukwol-warning-consultation',HEUKWOL_CHAPTERS:CHAPTERS,HEUKWOL_MIN_CHARS:40000,
  HEUKWOL_DELIVERY_PLAN_VERSION:2,HEUKWOL_TRANSIENT_ATTEMPTS:4,isHeukwolTransientError:e=>e?.heukwolTransient===true,heukwolDeliveryV2Enabled:env=>String(env?.HEUKWOL_DELIVERY_V2_ENABLED??'').toLowerCase()!=='false',
+ heukwolRemedyCases:()=>{remedyCalls++;return remedyFail?null:structuredClone(REMEDY_CASES);},
  generateHeukwolChapter:async(_env,_analysis,c,_q,_prev,_gen,options)=>{calls++;seenOptions.push({key:c.key,...(options||{})});if(transientLeft>0){transientLeft--;throw Object.assign(new Error('HEUKWOL_JSON_INVALID'),{heukwolTransient:true,heukwolIssue:'HEUKWOL_JSON_INVALID'});}if(failGeneration||failKeys.has(c.key))throw Object.assign(new Error('mock unavailable'),{heukwolIssue:'HEUKWOL_CHAPTER_SHORT'});return {...c,warning:`경고 ${c.key}`,interpretation:`해석 ${c.key}`,strategy:`대응 ${c.key}`,content:`본문 ${c.key}`,totalChars:chapterChars};}}));
 let handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery,settleDueHeukwolRetryRefunds;
 beforeAll(async()=>{({handleHeukwolRoutes,advanceHeukwol,settleStuckDelivery,settleDueHeukwolRetryRefunds}=await import('../../worker/routes/heukwol.js'));});
 const input={profileId:'profile',year:new Date().getUTCFullYear()+1,question:'같은 일을 반복하지 않으려면 어떤 조건을 확인할까요?',requestId:'heukwol-test-1234'};
 const post=(path,body=input)=>handleHeukwolRoutes(new Request(`https://test.invalid/api/heukwol/${path}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}),testEnv);
-beforeEach(()=>{rows.clear();account='owner';paid=true;revoked=false;failGeneration=false;calls=0;refunds=0;testEnv={};chapterChars=2000;failKeys=new Set();seenOptions=[];transientLeft=0;});
+beforeEach(()=>{rows.clear();account='owner';paid=true;revoked=false;failGeneration=false;calls=0;refunds=0;testEnv={};chapterChars=2000;failKeys=new Set();seenOptions=[];transientLeft=0;remedyCalls=0;remedyFail=false;});
 const V1={HEUKWOL_DELIVERY_V2_ENABLED:'false'};
 test('prepare cannot call LLM or start billing; unproven purchase is blocked',async()=>{
  expect((await post('prepare')).status).toBe(200);expect(rows.size).toBe(0);expect(calls).toBe(0);
@@ -92,6 +94,38 @@ describe('delivery plan v2 (new sessions only)',()=>{
   // 다른 소비처 id 만 켜면 흑월은 핀을 남기지 않는다.
   rows.clear();testEnv={SAJU_SHINSAL_FACTS_V1:'life-book'};
   const other=await (await post('start',{...input,question:input.question+' 다른'})).json();expect(meta(other.id)).not.toHaveProperty('shinsalFacts');
+  expect(refunds).toBe(0);
+ });
+ test('remedy facts and cards are pinned at start; legacy sessions stay off; the kill switch stops the block but keeps the stored cards',async()=>{
+  const run=async(id,env)=>{let data;for(let i=0;i<60;i++){data=await (await advanceHeukwol(env,'owner',id)).json();if(data.status!=='generating')break;}return data;};
+  const meta=id=>rows.get('owner:'+id).metadata;
+  const ON={SAJU_REMEDY_FACTS_V1:'heukwol'};
+  // 플래그 없이 시작한 옛 세션은 나중에 켜도 블록·카드 없이 완료한다(옛 기록에는 카드가 없다).
+  const old=await (await post('start')).json();const hash=meta(old.id).inputHash;
+  expect(meta(old.id)).not.toHaveProperty('remedyFacts');expect(meta(old.id)).not.toHaveProperty('remedyCases');expect(remedyCalls).toBe(0);
+  const oldDone=await run(old.id,ON);expect(oldDone.status).toBe('completed');expect(seenOptions.some(o=>'remedyFacts' in o)).toBe(false);expect(oldDone.report).not.toHaveProperty('remedyCases');
+  // 켠 채 시작한 새 세션: 핀과 카드가 시작 때 한 번 저장되고(입력 해시는 그대로), 일시 실패 뒤 재시도·재개에도 모든 장이 핀을 받는다.
+  rows.clear();seenOptions=[];testEnv=ON;transientLeft=2;
+  const fresh=await (await post('start')).json();
+  expect(meta(fresh.id)).toMatchObject({remedyFacts:'remedy-facts-v1',remedyCases:REMEDY_CASES,inputHash:hash});
+  const done=await run(fresh.id,ON);expect(done.status).toBe('completed');expect(done.report.chapters).toHaveLength(27);expect(done.report.totalChars).toBe(2000*27);
+  expect(seenOptions.length).toBeGreaterThanOrEqual(27);expect(seenOptions.every(o=>o.remedyFacts===true)).toBe(true);
+  // 카드는 보관본(archive)과 결과 응답에 그대로 실린다. 같은 요청으로 다시 들어와도 409 없이 저장본을 돌려주고 다시 계산·생성하지 않는다.
+  expect(meta(fresh.id).archive.remedyCases).toEqual(REMEDY_CASES);expect(done.report.remedyCases).toEqual(REMEDY_CASES);
+  const before=calls,replay=await post('start');expect(replay.status).toBe(200);expect((await replay.json()).report).toEqual(done.report);expect(calls).toBe(before);expect(remedyCalls).toBe(1);
+  // 핀이 있어도 플래그를 끄면 다음 장부터 블록이 빠지지만, 이미 저장한 카드는 결과에서 숨기지 않는다.
+  rows.clear();seenOptions=[];testEnv={SAJU_REMEDY_FACTS_V1:'true'};
+  const killed=await (await post('start')).json();expect(meta(killed.id).remedyFacts).toBe('remedy-facts-v1');expect(seenOptions[0].remedyFacts).toBe(true);
+  const killedDone=await run(killed.id,{});expect(killedDone.status).toBe('completed');expect(seenOptions).toHaveLength(27);expect(seenOptions.slice(1).some(o=>'remedyFacts' in o)).toBe(false);
+  expect(killedDone.report.remedyCases).toEqual(REMEDY_CASES);
+  // 계산이 실패하면 카드만 빠지고 상담은 그대로 끝난다.
+  rows.clear();testEnv=ON;remedyFail=true;
+  const failed=await (await post('start')).json();expect(meta(failed.id).remedyFacts).toBe('remedy-facts-v1');expect(meta(failed.id)).not.toHaveProperty('remedyCases');
+  const failedDone=await run(failed.id,ON);expect(failedDone.status).toBe('completed');expect(failedDone.report).not.toHaveProperty('remedyCases');
+  // 빈 값(킬 스위치)이나 다른 소비처 id 만 켜면 흑월은 핀도 카드도 남기지 않는다.
+  for(const env of [{SAJU_REMEDY_FACTS_V1:''},{SAJU_REMEDY_FACTS_V1:'new-year,tea'}]){
+   rows.clear();testEnv=env;const other=await (await post('start')).json();expect(meta(other.id)).not.toHaveProperty('remedyFacts');expect(meta(other.id)).not.toHaveProperty('remedyCases');
+  }
   expect(refunds).toBe(0);
  });
  test('short but valid chapters reach completed without the 40,000-char gate or a refund',async()=>{

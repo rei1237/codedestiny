@@ -227,6 +227,19 @@ test('sukuyo per-use compat archives are listed by product name and reopen with 
   expect(JSON.stringify(detail.content)).toContain('저장된 궁합 본문');
   revoked=true;expect((await route(request('/detail?source=executions&id='+encodeURIComponent('compat:owner:card-a:sig')))).status).toBe(403);
 });
+test('heukwol rereads keep the stored remedy cards as saved; older archives have none',async()=>{
+  // worker/routes/heukwol.js completeHeukwol 이 쓰는 저장 모양. 카드는 시작 때 저장한 계산값 그대로이고 다시 계산하지 않는다.
+  const {buildHeukwolAnalysis,heukwolProfileBirth}=await import('../../worker/lib/heukwol-analysis.js');
+  const {heukwolRemedyCases}=await import('../../worker/lib/heukwol-report.js');
+  const analysis=buildHeukwolAnalysis(heukwolProfileBirth({gender:'M',birth:{year:1984,month:2,day:3,hour:4,minute:10,timeUnknown:false,calType:'solar'}}),2026,new Date('2026-11-06T00:00:00Z'));
+  const remedyCases=heukwolRemedyCases(analysis);expect(remedyCases?.cases.length).toBeGreaterThan(0);
+  const archive=extra=>({title:'2026 흑월의 주의 시기',year:2026,analysis:{months:[]},chapters:[{key:'closing',title:'마무리',strategy:'저장된 대응'}],totalChars:10,reportId:'x',...extra});
+  stores.serviceexecutiontransactions=[
+    seed('1','01',{featureKey:'heukwol-warning-consultation',executionKey:'heukwol:new',status:'success',premiumStatus:'completed',metadata:{remedyFacts:'remedy-facts-v1',remedyCases,archive:archive({remedyCases})}}),
+    seed('2','02',{featureKey:'heukwol-warning-consultation',executionKey:'heukwol:old',status:'success',premiumStatus:'completed',metadata:{archive:archive({})}})];
+  expect((await library.readRecord(owner,'executions','heukwol:new')).content.remedyCases).toEqual(remedyCases);
+  expect((await library.readRecord(owner,'executions','heukwol:old')).content).not.toHaveProperty('remedyCases');
+});
 test('saved HTML preserves tables and removes script, handlers and unsafe URLs',async()=>{
   const {sanitizePublicInsightHtml}=await import('../../app/insights/_lib/sanitizePublicHtml.js');
   const safe=sanitizePublicInsightHtml('<table onclick="danger()"><tr><td>저장된 표</td></tr></table><script>danger()</script><a href="javascript:danger()">링크</a><img src="/fixture.webp" onerror="danger()">',{tables:true});

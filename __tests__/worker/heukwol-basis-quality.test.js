@@ -4,7 +4,8 @@ import { buildHeukwolAnalysis, heukwolProfileBirth } from '../../worker/lib/heuk
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiConsumerChart } from '../../worker/lib/ziwei-consumer-chart.js';
 import { buildNeoBasisPayload } from '../../worker/lib/neo-operation-room-basis.js';
-import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, isHeukwolTransientError, heukwolPrompt, chapterEvidence, generateHeukwolChapter, heukwolShinsalBlock, HEUKWOL_SHINSAL_RULE, HEUKWOL_SHINSAL_PROMPT_BUDGET, validateHeukwolChapter, validateHeukwolChapterV2 } from '../../worker/lib/heukwol-report.js';
+import { HEUKWOL_CHAPTERS, HEUKWOL_CHAPTER_MIN_CHARS, HEUKWOL_PROMPT_PREFIX, HEUKWOL_REPAIR_HINTS, isHeukwolTransientError, heukwolPrompt, chapterEvidence, generateHeukwolChapter, heukwolShinsalBlock, HEUKWOL_SHINSAL_RULE, HEUKWOL_SHINSAL_PROMPT_BUDGET, validateHeukwolChapter, validateHeukwolChapterV2,
+  heukwolRemedyBlock, heukwolRemedyCases, HEUKWOL_REMEDY_RULE, HEUKWOL_REMEDY_CHAPTER_KEYS, HEUKWOL_REMEDY_MAX_CHARS, HEUKWOL_REMEDY_PROMPT_BUDGET } from '../../worker/lib/heukwol-report.js';
 import { assertWorkersAiInputTokenLimit, workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 const now = new Date('2026-11-06T00:00:00Z');
@@ -497,5 +498,111 @@ describe('신살 사실 블록 (SAJU_SHINSAL_FACTS_V1)', () => {
     const plain = heukwolPrompt(analysis, temperament, '질문', []);
     const withBlock = heukwolPrompt(analysis, temperament, '질문', [], '', { shinsalFacts: true });
     expect(prompts).toEqual([plain, withBlock, plain, plain, withBlock]);
+  });
+});
+
+describe('액땜 블록 (SAJU_REMEDY_FACTS_V1)', () => {
+  const HEADER = '[액땜 방법 — 서버 계산. 이 목록 밖의 액땜 방법은 쓰지 않는다]';
+  const RULE_LINE = '액땜 방법은 블록 목록에서 고르고, 풍속은 소개로만 쓴다.';
+  const targets = HEUKWOL_CHAPTERS.filter(c => HEUKWOL_REMEDY_CHAPTER_KEYS.includes(c.key));
+  const closing = targets.find(c => c.key === 'closing');
+  const traitOn = { traitFirst: 'v1', traitSeed: 'owner|heukwol' };
+  const seoul = buildHeukwolAnalysis(heukwolProfileBirth({ gender: 'M', birth: { year: 1984, month: 2, day: 3, hour: 4, minute: 10, timeUnknown: false, calType: 'solar' } }), 2026, now);
+  const count = (text, part) => text.split(part).length - 1;
+  const bound = content => workersAiInputTokenUpperBound([{ role: 'user', content }]);
+
+  test('off is byte-identical for every chapter; on adds the block once, to alternatives and closing only', () => {
+    expect(targets.map(c => c.key)).toEqual(['alternatives', 'closing']);
+    for (const target of [analysis, seoul]) for (const chapter of HEUKWOL_CHAPTERS) for (const hint of ['', '힌트']) {
+      for (const base of [{}, { shinsalFacts: true }, traitOn]) {
+        const off = heukwolPrompt(target, chapter, '질문', [], hint, base);
+        for (const flag of [false, 'true', 1, 'remedy-facts-v1', undefined]) expect(heukwolPrompt(target, chapter, '질문', [], hint, { ...base, remedyFacts: flag })).toBe(off);
+        const on = heukwolPrompt(target, chapter, '질문', [], hint, { ...base, remedyFacts: true });
+        if (!HEUKWOL_REMEDY_CHAPTER_KEYS.includes(chapter.key)) { expect(on).toBe(off); continue; }
+        const block = heukwolRemedyBlock(target, chapter);
+        expect(count(on, HEADER)).toBe(1);
+        // 늘어난 길이는 블록과 줄바꿈 하나뿐이고, 블록은 보완 요청 바로 앞에 놓인다.
+        expect(on.length - off.length).toBe(block.length + 1);
+        expect(on.replace(`\n${block}`, '')).toBe(off);
+        if (hint) expect(on.endsWith(`\n${block}\n보완 요청: ${hint}`)).toBe(true);
+      }
+    }
+  });
+
+  test('the block is at most 500 chars, carries the pick-from-list rule and no evidence ids, and leaves the analysis untouched', () => {
+    for (const target of [analysis, seoul]) {
+      const before = JSON.stringify(target);
+      const block = heukwolRemedyBlock(target, closing);
+      expect(block.length).toBeGreaterThan(HEADER.length);
+      expect(block.length).toBeLessThanOrEqual(HEUKWOL_REMEDY_MAX_CHARS);
+      expect(block.startsWith(`${HEADER}\n`)).toBe(true);
+      expect(block).toContain(RULE_LINE);
+      expect(block.split('\n').at(-1)).toBe(HEUKWOL_REMEDY_RULE);
+      expect(block.match(/(?:^|[^-\w])(?:saju|ziwei)-[\w-]+/g) ?? []).toEqual([]);
+      expect(heukwolRemedyBlock(target, targets[0])).toBe(block);
+      expect(JSON.stringify(target)).toBe(before);
+      const cases = heukwolRemedyCases(target);
+      expect(cases).toMatchObject({ version: 'remedy-v1', valid: true, locale: 'ko', refYear: target.year, sources: { saju: true, ziwei: true } });
+      expect(cases.cases.length).toBeGreaterThan(0);
+    }
+  });
+
+  test('broken input drops only the block (never throws)', () => {
+    for (const bad of [null, undefined, {}, { year: 'x' }, { ...analysis, year: 'x' }]) {
+      expect(heukwolRemedyCases(bad)).toBeNull();
+      expect(heukwolRemedyBlock(bad, closing)).toBe('');
+    }
+    const broken = { ...analysis, year: 'x' };
+    expect(() => heukwolPrompt(broken, closing, '질문', [], '', { remedyFacts: true })).not.toThrow();
+    const noChart = { ...analysis, chart: null };
+    expect(heukwolRemedyBlock(noChart, { key: 'temperament' })).toBe('');
+  });
+
+  test.each([['New York 2027', analysis], ['Seoul 1984 / 2026', seoul]])('the block stays within the 95%% budget at the realistic maximum and is dropped (not rejected) past it (%s)', (_label, target) => {
+    expect(HEUKWOL_REMEDY_PROMPT_BUDGET).toBe(Math.floor(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95));
+    const longestHint = Object.values(HEUKWOL_REPAIR_HINTS).sort((a, b) => b.length - a.length)[0];
+    for (const chapter of targets) {
+      const previous = HEUKWOL_CHAPTERS.filter(c => c.key !== chapter.key).map(c => ({ title: c.title, strategy: '대응'.repeat(400) }));
+      const on = heukwolPrompt(target, chapter, '흑'.repeat(3000), previous, longestHint, { ...traitOn, shinsalFacts: true, remedyFacts: true });
+      expect(count(on, HEADER)).toBe(1);
+      expect(bound(on)).toBeLessThanOrEqual(HEUKWOL_REMEDY_PROMPT_BUDGET);
+      const huge = '흑'.repeat(20000);
+      expect(heukwolPrompt(target, chapter, huge, previous, longestHint, { ...traitOn, remedyFacts: true })).toBe(heukwolPrompt(target, chapter, huge, previous, longestHint, traitOn));
+    }
+  });
+
+  test('a strategy that picks block methods and cites natal ids passes the v1 and v2 validators unchanged', () => {
+    for (const target of [analysis, seoul]) for (const chapter of targets) {
+      const methods = heukwolRemedyBlock(target, chapter).split('\n').filter(l => l.startsWith('- '))
+        .flatMap(l => l.split('→ 방법: ')[1].split(' / ')[0].split(', '));
+      expect(methods.length).toBeGreaterThan(2);
+      const topics = ['약속을 잡는', '돈을 쓰는', '말을 꺼내는', '쉬는 시간을 정하는', '부탁을 거절하는', '새 일을 맡는', '연락을 미루는', '계획을 바꾸는'];
+      const lines = fn => Array.from({ length: 24 }, (_, i) => fn(methods[i % methods.length], topics[i % topics.length], i + 1)).join(' ');
+      const reply = {
+        warning: lines((m, t, i) => `흑월이 ${i}번째로 짚는 조건은 ${t} 순간에 서두름이 겹치는 경우예요.`),
+        interpretation: lines((m, t, i) => `${i}번째 근거는 ${t} 장면에서 한 박자 쉬어 가면 좋다는 보조 단서로 읽어요.`),
+        strategy: lines((m, t, i) => `${i}번째 액땜은 ${t} 상황 전에 ${m}처럼 작은 불편을 먼저 치르는 거야.`),
+        checkpoints: ['하루 일정에 쉬는 칸을 먼저 적었는가', '큰 지출 전에 하루를 기다렸는가', '부탁을 받으면 답을 미루고 조건을 확인했는가'],
+        evidenceIds: ['natal-saju', 'natal-ziwei'],
+      };
+      expect(validateHeukwolChapter(reply, target, chapter).evidenceIds).toEqual(['natal-saju', 'natal-ziwei']);
+      for (const flags of [{}, { relaxed: true }, { finalAttempt: true }]) {
+        const accepted = validateHeukwolChapterV2(reply, target, chapter, flags);
+        expect(accepted.evidenceIds).toEqual(['natal-saju', 'natal-ziwei']);
+        expect(accepted.strategy).toContain(methods[0]);
+      }
+    }
+  });
+
+  test('the generator forwards only a true pin into the prompt', async () => {
+    const prompts = [];
+    const capture = async (_env, prompt) => { prompts.push(prompt); throw new Error('stop'); };
+    for (const options of [{ deliveryPlanVersion: 2 }, { deliveryPlanVersion: 2, remedyFacts: true }, { remedyFacts: 'remedy-facts-v1' }, { remedyFacts: true }]) {
+      await generateHeukwolChapter({}, analysis, closing, '질문', [], capture, options).catch(() => {});
+    }
+    const plain = heukwolPrompt(analysis, closing, '질문', []);
+    const withBlock = heukwolPrompt(analysis, closing, '질문', [], '', { remedyFacts: true });
+    expect(withBlock).not.toBe(plain);
+    expect(prompts).toEqual([plain, withBlock, plain, withBlock]);
   });
 });

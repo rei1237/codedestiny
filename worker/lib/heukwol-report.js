@@ -6,6 +6,7 @@ import { banmalRegisterDrift, hapnidaDrift } from './expert-character-persona-te
 import { SAJU_LUCK_JUDGEMENT_RULE } from './saju-temperament.js';
 import { sajuTraitFirstLines, traitFirstShadowCheck } from './trait-profile/index.js';
 import { buildShinsalFactsBlock } from '../../lib/saju/shinsal-facts-block.mjs';
+import { computeRemedyCases, serializeRemedyForPrompt } from '../../lib/saju/remedy/index.mjs';
 import { workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/workers-ai-input-token-limit.mjs';
 
 export const HEUKWOL_FEATURE_KEY = "heukwol-warning-consultation";
@@ -166,6 +167,41 @@ export function heukwolShinsalBlock(analysis, chapter) {
     return block ? `${block}\n${HEUKWOL_SHINSAL_RULE}` : '';
   } catch { return ''; }
 }
+// 액땜 케이스(SAJU_REMEDY_FACTS_V1, 소비처 id 'heukwol'). 사주는 원국 4주 + 이 해 세운 + 지금 대운(분석에 대운 연도가 없어 '지금 대운'),
+// 자미두수는 분석에 이미 있는 명반(analysis.chart)이다. 분석 객체는 읽기만 한다(프롬프트 근거·보관본이 그대로).
+// 카드는 시작 때 metadata.remedyCases 에 한 번 저장하고, 블록은 고정된 분석으로 그때그때 다시 계산한다. 어떤 실패도 null 이다.
+export function heukwolRemedyCases(analysis) {
+  try {
+    const year = Number(analysis?.year);
+    if (!Number.isInteger(year)) return null;
+    const pillars = heukwolTraitChart(analysis).pillars;
+    const current = (Array.isArray(analysis?.months) ? analysis.months : []).flatMap(m => Array.isArray(m?.saju) ? m.saju : [])
+      .find(m => String(m?.id || '').startsWith(`saju-${year}-`));
+    const result = computeRemedyCases({
+      saju: { pillars, timeUnknown: !pillars.hour,
+        ...(current?.annual?.pillar ? { sewoon: { year, pillar: current.annual.pillar } } : {}),
+        ...(current?.major?.pillar ? { daewoon: { pillar: current.major.pillar } } : {}) },
+      ...(analysis?.chart && typeof analysis.chart === 'object' ? { ziwei: analysis.chart } : {}),
+      refYear: year, locale: 'ko',
+    });
+    return result?.valid === true && Array.isArray(result.cases) && result.cases.length ? JSON.parse(JSON.stringify(result)) : null;
+  } catch { return null; }
+}
+// 액땜 블록은 네오 strategy 가 한 해를 묶는 두 장(alternatives·closing)에만 붙는다. 블록에는 근거 ID 를 두지 않고,
+// 모델이 액땜 근거를 적으면 기존 ID 로 적게 한다(검증기 허용 목록을 넓히지 않는다). 사용 규칙 줄까지 합쳐 500자 이하.
+export const HEUKWOL_REMEDY_CHAPTER_KEYS = Object.freeze(['alternatives', 'closing']);
+export const HEUKWOL_REMEDY_RULE = '액땜은 네오 strategy 에서 위 목록의 방법 한두 가지만 고르고, 근거 ID 는 natal-saju·natal-ziwei 로 적는다.';
+export const HEUKWOL_REMEDY_MAX_CHARS = 500;
+// 신살 블록과 같은 선: 블록을 붙인 최종 프롬프트가 Workers AI 폴백 입력 상한의 95% 를 넘으면 블록만 뺀다(거부가 아니라 생략).
+export const HEUKWOL_REMEDY_PROMPT_BUDGET = HEUKWOL_SHINSAL_PROMPT_BUDGET;
+export function heukwolRemedyBlock(analysis, chapter) {
+  try {
+    if (!HEUKWOL_REMEDY_CHAPTER_KEYS.includes(chapter?.key)) return '';
+    const cases = heukwolRemedyCases(analysis);
+    const block = cases ? serializeRemedyForPrompt(cases, { maxChars: HEUKWOL_REMEDY_MAX_CHARS - HEUKWOL_REMEDY_RULE.length - 1 }) : '';
+    return block ? `${block}\n${HEUKWOL_REMEDY_RULE}` : '';
+  } catch { return ''; }
+}
 export function heukwolPrompt(analysis, chapter, question, previous = [], repairHint = '', traitOptions = {}) {
   const prompt = `${HEUKWOL_PROMPT_PREFIX}
 지정된 장: ${chapter.title}. 맡은 역할: ${chapter.focus}.
@@ -182,7 +218,11 @@ export function heukwolPrompt(analysis, chapter, question, previous = [], repair
   // 신살 블록은 시작 때 핀이 있고 플래그가 켜진 세션에서만 붙는다. 꺼지면 프롬프트 바이트가 그대로다.
   const shinsal = traitOptions?.shinsalFacts === true ? heukwolShinsalBlock(analysis, chapter) : '';
   const fits = shinsal && workersAiInputTokenUpperBound([{ role: 'user', content: `${withTrait}\n${shinsal}${tail}` }]) <= HEUKWOL_SHINSAL_PROMPT_BUDGET;
-  return `${fits ? `${withTrait}\n${shinsal}` : withTrait}${tail}`;
+  const body = fits ? `${withTrait}\n${shinsal}` : withTrait;
+  // 액땜 블록도 시작 때 핀이 있고 플래그가 켜진 세션의 alternatives·closing 장에만 붙는다. 꺼지면 프롬프트 바이트가 그대로다.
+  const remedy = traitOptions?.remedyFacts === true ? heukwolRemedyBlock(analysis, chapter) : '';
+  const remedyFits = remedy && workersAiInputTokenUpperBound([{ role: 'user', content: `${body}\n${remedy}${tail}` }]) <= HEUKWOL_REMEDY_PROMPT_BUDGET;
+  return `${remedyFits ? `${body}\n${remedy}` : body}${tail}`;
 }
 export function validateHeukwolChapter(value, analysis, chapter) {
   const evidence=chapterEvidence(analysis,chapter);
@@ -268,7 +308,7 @@ export async function generateHeukwolChapter(env, analysis, chapter, question, p
   const v2=Number(options?.deliveryPlanVersion)===HEUKWOL_DELIVERY_PLAN_VERSION;
   const hint=v2?HEUKWOL_REPAIR_HINTS[options?.repairIssue]||'':'';
   let result;
-  try { result=await generate(env,heukwolPrompt(analysis,chapter,question,previous,hint,{traitFirst:options?.traitFirst||null,traitSeed:options?.traitSeed||'',shinsalFacts:options?.shinsalFacts===true}),{
+  try { result=await generate(env,heukwolPrompt(analysis,chapter,question,previous,hint,{traitFirst:options?.traitFirst||null,traitSeed:options?.traitSeed||'',shinsalFacts:options?.shinsalFacts===true,remedyFacts:options?.remedyFacts===true}),{
     attempts:1,baseTokens:16000,capTokens:16000,temperature:0.4,taskType:'fortune',
     // R6b: 연이(존댓말)·네오(반말) 두 화자가 말투를 나눠 쓰므로 공용 ko "존댓말" 최우선 지시를 끈다(한국어 전용 계약은 유지).
     // 켜 두면 네오 대응까지 합니다체가 되어 HEUKWOL_CHAPTER_REGISTER 로 결정적으로 탈락한다(영냥이 7757ef597 선례).
