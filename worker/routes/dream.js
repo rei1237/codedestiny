@@ -86,6 +86,9 @@ export async function verifyPsychoDreamAccess(request, env = {}, body = {}, know
         auth,
         accessType: settled.source,
         accessSource: String(decision.accessSource || decision.reason || "").trim(),
+        // Refund evidence for a terminal delivery failure (paid-narrative-retry.js). Without it a settled pass/coin run was held, not refunded.
+        ...(settled.transactionId ? { transactionId: String(settled.transactionId).trim().slice(0, 120) } : {}),
+        ...(settled.passRefund ? { passRefund: settled.passRefund } : {}),
       };
     }
   }
@@ -104,6 +107,8 @@ export async function verifyPsychoDreamAccess(request, env = {}, body = {}, know
         auth,
         accessType: "single_payment",
         accessSource: "premium_access_token",
+        // The signed payload's payment row is the refund evidence; the body is not trusted for it.
+        ...(String(tokenCheck.payload?.transactionId || "").trim() ? { transactionId: String(tokenCheck.payload.transactionId).trim().slice(0, 120) } : {}),
       };
     }
   }
