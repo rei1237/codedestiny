@@ -561,6 +561,7 @@ const PASS_FAILURE_CODES = Object.freeze({
   monthly_pass_limit_exceeded: "MEMBERSHIP_PASS_NOT_COVERED",
   pass_access_conflict: "MEMBERSHIP_PASS_NOT_COVERED",
   family_pass_required: "MEMBERSHIP_PASS_NOT_ALLOWED",
+  pass_excluded: "MEMBERSHIP_PASS_NOT_ALLOWED",
   no_active_pass: "MEMBERSHIP_PASS_NOT_COVERED",
   invalid_price: "MEMBERSHIP_PASS_NOT_COVERED",
 });
@@ -1906,7 +1907,8 @@ const ROUTES = {
       const outcome = await withDb(env, ctx, async (db) => {
         const user = await db.findOne(User, { _id: toObjectId(userId) });
         const entitlement = resolveCanonicalEntitlement(user || {});
-        const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins, lightFortune });
+        const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins, lightFortune,
+          passExcluded: passExcluded && !isSajuBundleSaleClosed(product.featureKey) });
 
         // 묶음 포함·판매 종료 키: 가진 것은 이용권 한도와 무관하게 열고, 새로 사는 시도는 커버·차감 전에 409 로 닫는다.
         if (isSajuBundleSaleClosed(product.featureKey)) {
