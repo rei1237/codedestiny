@@ -59,11 +59,17 @@ beforeAll(async () => {
   }));
   jest.unstable_mockModule("../../worker/lib/life-book-ai-saju.js", () => ({
     calculateLifeBookAiSaju: jest.fn(async () => ({})),
+    // astrology-ai → fusion-group-plan → master-love-codex-consultation 이 이름으로 import 한다.
+    buildLuckNatalInteractions: jest.fn(() => []),
+    tenGodFor: jest.fn(() => ""),
+    buildHiddenStemDetails: jest.fn(() => []),
   }));
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({
     calculateZiweiAiChart: jest.fn(async () => ({})),
     describeBrightness: jest.fn(() => ""),
     formatStarWithBrightness: jest.fn((starName) => String(starName || "")),
+    FOUR_TRANSFORMATIONS: {},
+    TRANSFORMATION_LABELS: {},
   }));
   jest.unstable_mockModule("../../worker/lib/vedic-ai-chart.js", () => ({
     calculateVedicAiChart: jest.fn(async () => ({})),
