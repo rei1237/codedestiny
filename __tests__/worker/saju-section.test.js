@@ -62,7 +62,17 @@ jest.unstable_mockModule("../../worker/lib/billing-evidence-claim.js", () => ({
 }));
 
 let handleSajuSection, buildSajuSectionHtml, resolvePaidContentUnlockTarget, getBillingFeaturePricing, buildAnimalDestinyReading;
+// 액땜 장(⑮) 실패 경로: 계산이 던져도 장만 빠지는지 본다.
+let throwRemedy = false;
 beforeAll(async () => {
+  const actualRemedy = await import("../../lib/saju/remedy/index.mjs");
+  jest.unstable_mockModule("../../lib/saju/remedy/index.mjs", () => ({
+    ...actualRemedy,
+    computeRemedyCases: (...args) => {
+      if (throwRemedy) throw new Error("remedy boom");
+      return actualRemedy.computeRemedyCases(...args);
+    },
+  }));
   ({ handleSajuSection } = await import("../../worker/routes/saju-section.js"));
   ({ buildSajuSectionHtml } = await import("../../worker/lib/saju-section/report.js"));
   ({ resolvePaidContentUnlockTarget } = await import("../../worker/lib/content-unlocks.js"));
@@ -123,10 +133,10 @@ function grant(overrides = {}, featureKey = "section_summary") {
   });
 }
 
-async function request(body = INPUT, method = "POST") {
+async function request(body = INPUT, method = "POST", env = {}) {
   const response = await handleSajuSection(new Request("https://example.test/api/saju/section", {
     method, ...(method === "POST" ? { body: JSON.stringify(body), headers: { "content-type": "application/json" } } : {}),
-  }), {});
+  }), env);
   expect(response.headers.get("Cache-Control")).toContain("no-store");
   expect(write).not.toHaveBeenCalled();
   return { status: response.status, body: await response.json() };
@@ -437,6 +447,48 @@ test("the summary's this-year label and flow come from the same luck-dynamics ve
   expect(chapter).toContain("올해 2026년 · " + year.seun + " 세운 — " + year.label);
   expect(chapter).toContain(year.flow);
   expect(chapter).not.toContain("억부 판단");
+});
+
+describe("section_summary 액땜 장(⑮)", () => {
+  const REMEDY_LINK = '<a href="#sajuSummaryChapter-remedy">나에게 맞는 액땜</a>';
+  const remedyChapter = (html) => html.match(/<!--saju-ext--><article id="sajuSummaryChapter-remedy"[\s\S]*?<\/article><!--\/saju-ext-->/)?.[0] || "";
+  const summary = (mode, extra = {}) => buildSajuSectionHtml({ birth: CARD_BIRTH, gender: "M", name: "테스트", mode, lang: "ko", now: new Date(PARITY.now), featureKey: "section_summary", ...extra }).html;
+  afterEach(() => { throwRemedy = false; });
+
+  test.each([["pig", "yeoni-saju"], ["neo", "yeongnyangi"]])("켜면 %s 모드의 ⑭ 뒤에 장과 목차 링크가 한 번씩 붙고, 그 둘을 빼면 꺼진 본문과 같다", (mode, narrator) => {
+    const off = summary(mode);
+    expect(summary(mode, { remedyEnabled: false })).toBe(off);
+    expect(off).not.toContain("sajuSummaryChapter-remedy");
+    const on = summary(mode, { remedyEnabled: true });
+    const chapter = remedyChapter(on);
+    expect(chapter).toContain(`data-narrator="${narrator}"`);
+    expect(chapter).toContain("⑮ " + (mode === "neo" ? "너한테" : "나에게") + " 맞는 액땜 — 2026년 기준");
+    expect(on.indexOf('id="sajuSummaryChapter-olhae"')).toBeLessThan(on.indexOf('id="sajuSummaryChapter-remedy"'));
+    expect(on.split(REMEDY_LINK)).toHaveLength(2);
+    expect(on.replace(chapter, "").replace(REMEDY_LINK, "")).toBe(off);
+    expect(withoutExtensions(on)).toBe(withoutExtensions(off));
+  });
+
+  test("한국어가 아니거나 계산이 던지면 장·목차가 빠지고 본문은 꺼진 것과 같다", () => {
+    const off = summary("pig");
+    expect(summary("pig", { remedyEnabled: true, lang: "en" })).toBe(summary("pig", { lang: "en" }));
+    throwRemedy = true;
+    const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      expect(summary("pig", { remedyEnabled: true })).toBe(off);
+      expect(warn.mock.calls.some(([tag]) => tag === "[saju] remedy chapter skipped")).toBe(true);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  test("라우트는 본문 값이 아니라 env 의 natal-static 으로만 켠다", async () => {
+    grant();
+    const off = (await request({ ...INPUT, remedyEnabled: true })).body.html;
+    expect(off).not.toContain("sajuSummaryChapter-remedy");
+    expect((await request(INPUT, "POST", { SAJU_REMEDY_FACTS_V1: "today-saju" })).body.html).toBe(off);
+    expect(remedyChapter((await request(INPUT, "POST", { SAJU_REMEDY_FACTS_V1: "natal-static" })).body.html)).not.toBe("");
+  });
 });
 
 test.each(["pig", "neo"])("the daewun %s reading adds grounded choices and recovery without replacing existing chapters", (mode) => {

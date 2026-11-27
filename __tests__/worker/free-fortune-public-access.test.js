@@ -54,6 +54,11 @@ test('public natal reading takes the shinsal flag from env only, never from the 
  await handleSajuSection(request(body)); expect(build.mock.calls.at(-1)[0].shinsalEnabled).toBe(false);
  await handleSajuSection(request(body), { SAJU_SHINSAL_FACTS_V1: 'natal-static' }); expect(build.mock.calls.at(-1)[0].shinsalEnabled).toBe(true);
 });
+test('public sections take the remedy flag from env only, never from the body', async () => {
+ const body = { featureKey: 'saju_natal_reading', remedyEnabled: true, birth: { date: '1990-05-15', hour: 14, minute: 30 } };
+ await handleSajuSection(request(body)); expect(build.mock.calls.at(-1)[0].remedyEnabled).toBe(false);
+ await handleSajuSection(request(body), { SAJU_REMEDY_FACTS_V1: 'natal-static' }); expect(build.mock.calls.at(-1)[0].remedyEnabled).toBe(true);
+});
 test.each(['section_summary','section_daewun','saju_lifetime_bundle'])('protected %s remains login gated', async featureKey => {
  const response = await handleSajuSection(request({ featureKey })); expect(response.status).toBe(401); expect(build).not.toHaveBeenCalled();
 });
