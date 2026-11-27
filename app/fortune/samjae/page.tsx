@@ -11,6 +11,8 @@ import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { buildSeoMetadata, seoDisplayWidth } from "@/lib/seo";
 import { SERP_TITLE_WIDTH_LIMIT } from "@/lib/fortune/seo-title.mjs";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
+import { METHOD_COPY_KO, REMEDY_CUSTOM_LABEL_KO, REMEDY_DISCLAIMER_KO, REMEDY_INTRO_KO } from "@/lib/saju/remedy/copy.ko.mjs";
+import YeoniPortrait from "@/app/fortune/[period]/YeoniPortrait";
 import {
   AGE_BASE_YEARS,
   ZODIAC_ANIMALS,
@@ -36,6 +38,25 @@ const BIRTH_FROM = 1950;
 /** 삼합의 가운데 글자(왕지)가 정하는 오행 국(局). */
 const SAMHAP_ELEMENT: Record<number, string> = { 0: "수국(水局)", 3: "목국(木局)", 6: "화국(火局)", 9: "금국(金局)" };
 
+/**
+ * 삼재 단계별 액땜. 문구는 lib/saju/remedy/copy.ko.mjs 정본을 그대로 쓴다(검증기 스윕을 이미 통과한 문장).
+ * 띠 단위 안내라 개인 케이스를 계산하지 않고 플래그도 없다 — 되돌릴 때는 이 절을 넣은 커밋을 되돌린다.
+ * 풍속은 소개만 하고 효과를 약속하지 않는다.
+ */
+const STAGE_REMEDIES = [
+  { stage: "들삼재", lead: "새로 벌이는 일은 작게", methods: ["lifestyle-recheck-big", "document-read-twice", "safety-drive"] },
+  { stage: "눌삼재", lead: "체력과 돈의 여유 지키기", methods: ["document-insurance-check", "document-spending-log", "lifestyle-regular-checkup"] },
+  { stage: "날삼재", lead: "3년을 정리하며 마무리", methods: ["lifestyle-declutter", "document-subscription", "lifestyle-new-routine"] },
+];
+const SAMJAE_CUSTOMS = ["custom-samjae-intro", "custom-new-year-aengmagi"];
+
+/** 문구 표에 없는 id 는 빌드에서 바로 실패시킨다(빈 항목을 조용히 내보내지 않는다). */
+function remedyCopy(id: string): { title: string; text: string } {
+  const copy = METHOD_COPY_KO[id];
+  if (!copy) throw new RangeError(`액땜 문구가 없습니다: ${id}`);
+  return copy;
+}
+
 function titleOf() {
   const base = "삼재띠 계산표 | 들삼재·눌삼재·날삼재 연도";
   const branded = `${base} | 꿀꿀 운세`;
@@ -59,6 +80,15 @@ function yearLine(year: number) {
   return groupsInYear(year)
     .map(({ group, stage }) => `${joinAnimals(group.members)} ${stage}`)
     .join(", ");
+}
+
+/** STATUS_YEARS 안에서 그 단계를 지나는 해와 띠. 예: "2028년 호랑이띠·말띠·개띠" */
+function stageYears(stage: string) {
+  return STATUS_YEARS.flatMap((year) =>
+    groupsInYear(year)
+      .filter((g) => g.stage === stage)
+      .map((g) => `${year}년 ${joinAnimals(g.group.members)}`),
+  );
 }
 
 function description() {
@@ -181,6 +211,66 @@ export default function SamjaePage() {
               </tbody>
             </table>
           </div>
+        </section>
+
+        {/* .cd-guide > .cd-card 의 margin-top 8px (0,2,0) 이 mt-8 을 이겨, 위 표의 마지막 행 테두리와 이 구역 구분선이
+            8px 간격 이중선이 된다. 인라인 여백으로만 벌린다. */}
+        <section className={CARD} style={{ marginTop: "var(--cd-sp-xl, 36px)" }} aria-labelledby="samjae-remedy-heading">
+          <h2 id="samjae-remedy-heading">들·눌·날 삼재 액땜</h2>
+          <p className={BODY}>
+            삼재 3년은 해마다 성격이 달라, 단계마다 생활에서 바로 해 볼 수 있는 일을 세 가지씩 골랐습니다. 띠로만 본 안내라 같은 띠라면
+            모두 같고, 무언가를 사거나 따로 준비할 필요는 없습니다.
+          </p>
+          <div className="mt-4 flex items-end gap-3">
+            <YeoniPortrait mood="read" size={64} />
+            {/* p 대신 div — .cd-guide p (0,1,1) 가 Tailwind 글자색·크기·여백을 덮는다. */}
+            <div className="min-w-0 flex-1 break-keep rounded-2xl border border-[rgba(232,213,163,0.45)] bg-[rgba(232,213,163,0.08)] px-4 py-3 text-sm leading-7 text-[#f4eeff]">
+              {REMEDY_INTRO_KO.text} 세 해를 다 챙기지 않아도 괜찮아요. 그해 단계에서 하나만 골라 꾸준히 해 보세요.
+              <span className="mt-1 block text-xs font-bold text-[#e8d5a3]">— 연이</span>
+            </div>
+          </div>
+          {/* 가이드 그리드는 720px 부터 2열이라, 세 단계 + 풍속 네 장이 2×2 로 맞는다. */}
+          <div className="cd-card-grid">
+            {STAGE_REMEDIES.map(({ stage, lead, methods }) => {
+              const years = stageYears(stage);
+              return (
+                <div key={stage} className={CARD}>
+                  <h3 className="text-base font-bold text-[#f4eeff]">{stage}</h3>
+                  <div className="mt-1 break-keep text-sm font-bold text-[#e8d5a3]">{lead}</div>
+                  {years.length > 0 && (
+                    <div className="mt-1 break-keep text-xs leading-6 text-[rgba(244,238,255,0.72)]">{years.join(", ")}</div>
+                  )}
+                  <ul className="mt-3 space-y-3">
+                    {methods.map((id) => {
+                      const method = remedyCopy(id);
+                      return (
+                        <li key={id} className="break-keep text-sm leading-7 text-[rgba(244,238,255,0.82)]">
+                          <strong className="block text-[#f4eeff]">{method.title}</strong>
+                          {method.text}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
+            <div className={CARD}>
+              <h3 className="text-base font-bold text-[#f4eeff]">{REMEDY_CUSTOM_LABEL_KO}</h3>
+              <div className="mt-1 break-keep text-sm font-bold text-[#e8d5a3]">따르지 않아도 되는 옛 풍속</div>
+              <ul className="mt-3 space-y-3">
+                {SAMJAE_CUSTOMS.map((id) => {
+                  const custom = remedyCopy(id);
+                  return (
+                    <li key={id} className="break-keep text-sm leading-7 text-[rgba(244,238,255,0.82)]">
+                      <strong className="block text-[#f4eeff]">{custom.title}</strong>
+                      {custom.text}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+          <div className="mt-5 break-keep text-xs leading-6 text-[rgba(244,238,255,0.62)]">{REMEDY_DISCLAIMER_KO.text}</div>
         </section>
 
         <section className={`${CARD} mt-8`} aria-labelledby="rule-heading">
