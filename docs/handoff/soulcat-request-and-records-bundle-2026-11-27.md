@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-27
-next: 2 — 사용자 결정 대기(결정 8-보충: SoulCat 전용 요청 표식·새 엔드포인트 허용 여부). 답을 받기 전 단계 3(결정 9)부터 진행 가능
+next: 2 — 사용자 결정 대기(결정 8-보충, 추천 c). 단계 3·4 완료(368d6c31f8). 결정 후 2 → 5(pre-push·push·CI 1회)
 ---
 
 # 영냥이 결제 requestId 서버 선생성 + /records/ 사주 묶음 노출
@@ -49,11 +49,34 @@ next: 2 — 사용자 결정 대기(결정 8-보충: SoulCat 전용 요청 표�
     - (a1) 위 1~4 를 모두 구현(RED: 새 라우트 + 스키마 추가 + 결제 코어 분기). SoulCat 출시가 임박했을 때만.
     - (a2) SoulCat 모드에서도 프로필·질문을 받아 기존 `POST requests` 로 정식 상담 생성. CD 가 상담을 생성하고 SoulCat 도 책을 만들어 이중 생성·이중 과금 LLM 위험 — 비추천.
 - 9: `/records/` 목록 소스에 `saju_lifetime_bundle` 해금 기록을 추가하고, 항목 클릭 시 기존 재열람 통로(홈 카드·사주 결과)로 연결한다.
+- 9 구현(368d6c31f8):
+  - `lib/records/service-registry.js` 에 `saju-bundle` 소스를 추가했다. `collection: content_entitlements`, `where: { featureKey: 'saju_lifetime_bundle', status: 'ACTIVE' }` 이고, 소유자는 공통 ownerQuery 로 고른다. `reopenHref` 는 홈 카드와 같은 `/ggulggul/?action=cdOneStepFreeSajuEntry&section=summaryCard` 다. model 이 아니라 collection 으로 둔 것은 record-library 테스트가 model 집합을 고정하기 때문이다.
+  - `worker/lib/record-library.js`:
+    - 상태는 `saved`(저장됨)로 표시한다.
+    - 같은 계정 ProfileCard 를 `$lookup` 해서 "<이름> 프로필" 을 부제로 붙인다.
+    - href·nativeHref 는 reopenHref 를 쓴다.
+    - 상세는 `content = {}` 라 orderId·birthKey 를 내보내지 않는다.
+  - `app/records/view/SavedRecordClient.tsx` 는 상세 직접 진입 시 nativeHref 로 replace 한다.
+  - `reading-registry`·d.ts 를 맞추고 테스트 1건을 추가했다.
+  - 스키마 변경·새 라우트·결제 코드 변경은 없다(읽기 전용).
+- 9 남은 위험(후속, 미해결):
+  - 목록 검색(q)에 걸리지 않는다. 제목을 저장하지 않기 때문이다.
+  - 출생 기반 이관(PROFILE→BIRTH 복사, BACKFILL)으로 한 구매가 여러 줄로 보일 수 있다. 운영 분포는 보지 않았다.
+  - 다시 보기가 현재 활성 프로필로 열린다. 다른 출생 프로필이 활성이면 잠긴 미리 보기가 보인다(재구매 화면 노출 가능, 자동 청구는 없음). 프로필 딥링크가 없다.
+  - 해금 행은 ACTIVE 인데 연결 Payment 만 환불된 불일치면 목록에는 보이고 상세는 403 이다(fail-closed).
+  - 서비스명과 제목이 둘 다 "라이트 사주 풀이" 로 두 번 나온다. 기존 제목 폴백 패턴과 같다.
+  - `recordIndexPlan()` 에 content_entitlements 가 포함된다. 오프라인 계획이라 자동 실행되지 않는다.
 
 ## 단계
 - [x] 1 결정 8 조사: SoulCat 결제 진입부, 서버 requestId 검증 위치, 기존 요청 생성 경로를 찾아 설계를 이 문서에 적는다. → 위 "8 조사 결과"·"8 막힘". 코드 변경 없음.
 - [ ] 2 결정 8 구현 — ⛔ 보류: 새 엔드포인트·스키마 추가·결제 코어 분기가 필요해 승인 범위(a) 밖. 사용자에게 (c)/(a1)/(a2) 선택을 묻는다(추천 c).
   결정 8 구현 + mock 테스트 + paid-gate-auditor + check:fast → 커밋.
-- [ ] 3 결정 9 조사: /records/ 목록 소스와 묶음 해금 저장 위치, library-preservation 정책 대조.
-- [ ] 4 결정 9 구현 + 테스트 + 모바일 너비 화면 확인(visual-checker) + check:fast → 커밋.
+- [x] 3 결정 9 조사: /records/ 목록 소스와 묶음 해금 저장 위치, library-preservation 정책 대조. → 위 "9 구현"(조사 결과는 구현에 반영).
+- [x] 4 결정 9 구현 + 테스트 + 모바일 너비 화면 확인(visual-checker) + check:fast → 커밋. → 368d6c31f8. 검증 결과:
+  - record-library jest 33/33
+  - records-reading·retention node 10/10
+  - sitemap:generate
+  - paid-gate-auditor PASS: payment-freeze 통과, --update 불필요
+  - check:fast(critical): jest 의 기존 범위 밖 실패 card-single-payment-auto-refund 10건 외 전부 통과
+  - 390px 화면(mock): 카드 3개 정렬·넘침 없음, 상세 진입 시 사주 결과로 리다이렉트 확인
 - [ ] 5 마무리: check:pre-push → push → main CI 1회 확인 → 이 문서 `status: done` → 결과 보고(운영 승격은 묻기만).
