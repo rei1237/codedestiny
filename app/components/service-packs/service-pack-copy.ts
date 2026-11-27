@@ -88,7 +88,7 @@ const COPY={
     "appliedDone": "{name} 적용 완료",
     "goConsult": "영냥이 상담하러 가기",
     "viewOwned": "보유 목록 보기",
-    "flowerFamilyApply": "결제 방식 선택에서 꿀단지 이용권으로 적용할 수 있어요.",
+    "flowerFamilyApply": "‘보유 꿀단지 적용하기’ 버튼으로 꿀단지 이용권을 적용할 수 있어요.",
     "packUsable": "이 상담에 사용할 수 있어요.",
     "packApplied": "적용됨 · {remaining}회 남음"
   },
@@ -178,7 +178,7 @@ const COPY={
     "appliedDone": "{name} applied",
     "goConsult": "Start a Yeongnyangi consultation",
     "viewOwned": "View my packs",
-    "flowerFamilyApply": "You can apply your Honey Jar Pass in the payment options.",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "Usable for this consultation.",
     "packApplied": "Applied · {remaining} left"
   },
@@ -268,7 +268,7 @@ const COPY={
     "appliedDone": "{name} 適用完了",
     "goConsult": "ヨンニャンイに相談する",
     "viewOwned": "保有一覧を見る",
-    "flowerFamilyApply": "決済方法の選択ではちみつ壺利用券を適用できます。",
+    "flowerFamilyApply": "「Use existing Honey Jar」ボタンではちみつ壺利用券を適用できます。",
     "packUsable": "この相談に使えます。",
     "packApplied": "適用済み · 残り{remaining}回"
   },
@@ -358,7 +358,7 @@ const COPY={
     "appliedDone": "{name} 已生效",
     "goConsult": "去找灵猫咨询",
     "viewOwned": "查看持有列表",
-    "flowerFamilyApply": "可在选择支付方式时使用蜜罐通行证。",
+    "flowerFamilyApply": "点击“Use existing Honey Jar”按钮即可使用蜜罐通行证。",
     "packUsable": "可用于本次咨询。",
     "packApplied": "已使用 · 剩余{remaining}次"
   },
@@ -448,7 +448,7 @@ const COPY={
     "appliedDone": "{name} 已生效",
     "goConsult": "去找靈貓諮詢",
     "viewOwned": "查看持有列表",
-    "flowerFamilyApply": "可在選擇支付方式時使用蜜罐通行證。",
+    "flowerFamilyApply": "點擊「Use existing Honey Jar」按鈕即可使用蜜罐通行證。",
     "packUsable": "可用於本次諮詢。",
     "packApplied": "已使用 · 剩餘{remaining}次"
   },
@@ -538,7 +538,7 @@ const COPY={
     "appliedDone": "Đã áp dụng {name}",
     "goConsult": "Tư vấn với Yeongnyangi",
     "viewOwned": "Xem vé đang có",
-    "flowerFamilyApply": "Bạn có thể áp dụng Vé Hũ Mật Ong khi chọn cách thanh toán.",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "Dùng được cho buổi tư vấn này.",
     "packApplied": "Đã áp dụng · còn {remaining} lượt"
   },
@@ -628,7 +628,7 @@ const COPY={
     "appliedDone": "{name} लागू हो गया",
     "goConsult": "योंगन्यांगी से परामर्श शुरू करें",
     "viewOwned": "मेरे पैक देखें",
-    "flowerFamilyApply": "भुगतान विकल्पों में शहद जार पास लागू कर सकते हैं।",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "इस परामर्श के लिए उपयोग योग्य।",
     "packApplied": "लागू · {remaining} बाकी"
   },
@@ -718,7 +718,7 @@ const COPY={
     "appliedDone": "{name} aplicado",
     "goConsult": "Consultar a Yeongnyangi",
     "viewOwned": "Ver mis packs",
-    "flowerFamilyApply": "Puedes aplicar tu Pase Tarro de Miel en las opciones de pago.",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "Disponible para esta consulta.",
     "packApplied": "Aplicado · quedan {remaining}"
   },
@@ -808,7 +808,7 @@ const COPY={
     "appliedDone": "{name} appliqué",
     "goConsult": "Consulter Yeongnyangi",
     "viewOwned": "Voir mes packs",
-    "flowerFamilyApply": "Vous pouvez appliquer votre Pass Pot de Miel dans les options de paiement.",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "Utilisable pour cette consultation.",
     "packApplied": "Appliqué · {remaining} restantes"
   },
@@ -898,7 +898,7 @@ const COPY={
     "appliedDone": "{name} angewendet",
     "goConsult": "Beratung mit Yeongnyangi starten",
     "viewOwned": "Meine Pakete ansehen",
-    "flowerFamilyApply": "Du kannst deinen Honigglas-Pass bei den Zahlungsoptionen anwenden.",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "Für diese Beratung nutzbar.",
     "packApplied": "Angewendet · {remaining} übrig"
   },
@@ -988,7 +988,7 @@ const COPY={
     "appliedDone": "{name} toegepast",
     "goConsult": "Consult bij Yeongnyangi starten",
     "viewOwned": "Mijn pakketten bekijken",
-    "flowerFamilyApply": "Je kunt je Honingpot-pas toepassen bij de betaalopties.",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "Bruikbaar voor dit consult.",
     "packApplied": "Toegepast · nog {remaining}"
   },
@@ -1078,7 +1078,7 @@ const COPY={
     "appliedDone": "{name} digunakan",
     "goConsult": "Mulakan konsultasi Yeongnyangi",
     "viewOwned": "Lihat pek saya",
-    "flowerFamilyApply": "Anda boleh menggunakan Pas Balang Madu dalam pilihan pembayaran.",
+    "flowerFamilyApply": "Tap “Use existing Honey Jar” to apply your Honey Jar Pass.",
     "packUsable": "Boleh digunakan untuk konsultasi ini.",
     "packApplied": "Digunakan · baki {remaining}"
   }
