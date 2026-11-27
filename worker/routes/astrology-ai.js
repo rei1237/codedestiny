@@ -5,7 +5,8 @@ import { trimPaidReportText } from "../lib/paid-report-length.js";
 import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
 import { koreanizeExpertTerms } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { scrubFusionText } from "../lib/fusion-group-plan.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -1086,6 +1087,16 @@ function hasRepeatedConsultationSentence(value) {
   return false;
 }
 
+// 마지막 허용 시도(2026-11-27): 다음 시도가 없으므로 되풀이 문장(이 섹션 안·앞서 받은 섹션과의 중복)과 깨진 글자·금지 표현이
+// 든 문장을 결정적으로 덜어 내고 받는다. 남은 본문의 분량·형식 판정(40자 이상·상한)은 그대로다.
+export function scrubAstrologyFinalSectionText(text, prior = "") {
+  const bad = (sentence) => {
+    BROKEN_RESULT_TEXT_PATTERN.lastIndex = 0;
+    return BROKEN_RESULT_TEXT_PATTERN.test(sentence) || hasForbiddenResultTerms(sentence);
+  };
+  return scrubFusionText(dropRepeatedReportSentences(String(text || ""), prior), bad) || "";
+}
+
 function getMissingExpertParts(value) {
   const text = clean(value);
   return ASTROLOGY_EXPERT_PARTS.filter((part) => !part.pattern.test(text));
@@ -1283,6 +1294,13 @@ async function generateSectionedConsultation(env, input, chart, options = {}) {
       rawResponses[section.key] = row.rawText;
       queue = queue.catch(() => {}).then(() => options.checkpoint({ sections: { ...sections }, attempts: { ...attempts }, rawResponses: { ...rawResponses } }));
       await queue;
+      if (row.ok && Number(attempts[section.key] || 0) >= 2 && !valid(section)) {
+        // 마지막 허용 시도이고 받아 둔 초안도 없다: 되풀이·깨진 문장을 거부 사유로 쓰지 않고 덜어 낸 뒤 받는다(바뀌었으면 finalScrubbed 표시).
+        // 받아 둔 초안이 있으면 종전대로 더 긴 유효 본문만 고른다.
+        const priorText = Object.entries(sections).filter(([key]) => key !== section.key).map(([, value]) => value.text).join("\n\n");
+        const scrubbed = scrubAstrologyFinalSectionText(row.text, priorText);
+        if (scrubbed !== row.text) Object.assign(row, { text: scrubbed, finalScrubbed: true });
+      }
       if (!row.ok || !validText(section, trimPaidReportText(row.text, section.hardMaxChars))) return;
       // Reject unsafe/repeated source text before trimming can hide it.
       if (hasRepeatedReportPassage(row.text) || getConsultationQualityIssues(row.text).length) return;
