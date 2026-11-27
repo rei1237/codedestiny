@@ -46,7 +46,10 @@ var SajuReadingDepth = (() => {
     TRAIT_FIRST_SAJU: "true",
     // 정본 신살 사실 블록(lib/saju/natal-core/shinsal/) 주입. 값은 소비처 id CSV, 'true' 는 전부 켠다. 빈 값이면 전부 끈다.
     // 소비처는 shinsalFactsOn(env, id) 로만 읽는다. 블록은 프롬프트 때 계산되고 해시·다이제스트에 넣지 않는다.
-    SAJU_SHINSAL_FACTS_V1: "prompt-hub,free-saju,natal-static,saju-ai,new-year,life-book,heukwol,neo,tea-house,love-codex,karma,guardian,fusion,saju-compat"
+    SAJU_SHINSAL_FACTS_V1: "prompt-hub,free-saju,natal-static,saju-ai,new-year,life-book,heukwol,neo,tea-house,love-codex,karma,guardian,fusion,saju-compat",
+    // 정본 액땜 케이스(lib/saju/remedy/) 주입·카드. 값은 소비처 id CSV(today-saju, natal-static, samjae, new-year, heukwol,
+    // tea-house, ziwei-ai), 'true' 는 전부 켠다. 빈 값이면 전부 끈다. 소비처는 remedyFactsOn(env, id) 로만 읽는다.
+    SAJU_REMEDY_FACTS_V1: ""
   });
 
   // lib/sha256-text.mjs

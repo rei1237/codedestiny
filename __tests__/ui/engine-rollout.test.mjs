@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
-import { ENGINE_ROLLOUT_FLAGS, engineRolloutEnv, withEngineRollout, shinsalFactsOn, selectShinsalFacts, shinsalFactsPinned, SHINSAL_FACTS_META } from '../../worker/lib/engine-rollout.js';
+import { ENGINE_ROLLOUT_FLAGS, engineRolloutEnv, withEngineRollout, shinsalFactsOn, selectShinsalFacts, shinsalFactsPinned, SHINSAL_FACTS_META, remedyFactsOn, selectRemedyFacts, remedyFactsPinned, REMEDY_FACTS_META } from '../../worker/lib/engine-rollout.js';
 
 test('approved flags reach every entry point, an explicit var wins and env identity stays stable', async () => {
   const env = { APP_ENV: 'staging', ZIWEI_CONSUMER_FACTS_V1: 'false' };
@@ -50,4 +50,25 @@ test('the shinsal pin goes on new records only, legacy records stay off and the 
   for (const legacy of [undefined, null, {}, { shinsalFacts: null }, { shinsalFacts: 'shinsal-facts-v2' }]) assert.equal(shinsalFactsPinned(legacy, on, 'new-year'), false);
   assert.equal(shinsalFactsPinned(pinned, engineRolloutEnv({ SAJU_SHINSAL_FACTS_V1: '' }), 'new-year'), false);
   assert.equal(shinsalFactsPinned(pinned, on, 'life-book'), false);
+});
+
+test('remedy facts stay off by default, open per consumer id or all at once, and the pin keeps legacy records off', () => {
+  assert.equal(ENGINE_ROLLOUT_FLAGS.SAJU_REMEDY_FACTS_V1, '');
+  for (const id of ['today-saju', 'natal-static', 'samjae', 'new-year', 'heukwol', 'tea-house', 'ziwei-ai']) assert.equal(remedyFactsOn(engineRolloutEnv({}), id), false);
+  assert.equal(remedyFactsOn(undefined, 'new-year'), false);
+  const some = engineRolloutEnv({ SAJU_REMEDY_FACTS_V1: ' today-saju , samjae ' });
+  assert.equal(remedyFactsOn(some, 'today-saju'), true);
+  assert.equal(remedyFactsOn(some, 'samjae'), true);
+  assert.equal(remedyFactsOn(some, 'new-year'), false);
+  assert.equal(remedyFactsOn(some, ''), false);
+  assert.equal(remedyFactsOn(engineRolloutEnv({ SAJU_REMEDY_FACTS_V1: 'true' }), 'anything'), true);
+  const on = engineRolloutEnv({ SAJU_REMEDY_FACTS_V1: 'new-year,heukwol' });
+  assert.equal(REMEDY_FACTS_META, 'remedy-facts-v1');
+  assert.equal(selectRemedyFacts(on, 'new-year'), REMEDY_FACTS_META);
+  assert.equal(selectRemedyFacts(on, 'tea-house'), null);
+  const pinned = { remedyFacts: REMEDY_FACTS_META };
+  assert.equal(remedyFactsPinned(pinned, on, 'heukwol'), true);
+  for (const legacy of [undefined, null, {}, { remedyFacts: null }, { shinsalFacts: 'shinsal-facts-v1' }, { remedyFacts: 'remedy-facts-v2' }]) assert.equal(remedyFactsPinned(legacy, on, 'heukwol'), false);
+  assert.equal(remedyFactsPinned(pinned, engineRolloutEnv({ SAJU_REMEDY_FACTS_V1: '' }), 'heukwol'), false);
+  assert.equal(remedyFactsPinned(pinned, on, 'tea-house'), false);
 });

@@ -20,6 +20,9 @@ export const ENGINE_ROLLOUT_FLAGS = Object.freeze({
   // 정본 신살 사실 블록(lib/saju/natal-core/shinsal/) 주입. 값은 소비처 id CSV, 'true' 는 전부 켠다. 빈 값이면 전부 끈다.
   // 소비처는 shinsalFactsOn(env, id) 로만 읽는다. 블록은 프롬프트 때 계산되고 해시·다이제스트에 넣지 않는다.
   SAJU_SHINSAL_FACTS_V1: 'prompt-hub,free-saju,natal-static,saju-ai,new-year,life-book,heukwol,neo,tea-house,love-codex,karma,guardian,fusion,saju-compat',
+  // 정본 액땜 케이스(lib/saju/remedy/) 주입·카드. 값은 소비처 id CSV(today-saju, natal-static, samjae, new-year, heukwol,
+  // tea-house, ziwei-ai), 'true' 는 전부 켠다. 빈 값이면 전부 끈다. 소비처는 remedyFactsOn(env, id) 로만 읽는다.
+  SAJU_REMEDY_FACTS_V1: '',
 });
 
 const rolledOut = new WeakMap();
@@ -64,4 +67,26 @@ export function selectShinsalFacts(env, id) {
 
 export function shinsalFactsPinned(meta, env, id) {
   return meta?.shinsalFacts === SHINSAL_FACTS_META && shinsalFactsOn(env, id);
+}
+
+// 액땜 소비처 스위치. env.SAJU_REMEDY_FACTS_V1 이 'true' 면 전부, CSV 면 목록에 든 id 만 켠다.
+export function remedyFactsOn(env, id) {
+  const raw = String(env?.SAJU_REMEDY_FACTS_V1 ?? '').trim();
+  if (!raw) return false;
+  if (raw === 'true') return true;
+  const want = String(id || '').trim();
+  if (!want) return false;
+  return raw.split(',').map((part) => part.trim()).filter(Boolean).includes(want);
+}
+
+// 액땜 핀. 새 기록·세션을 만들 때 selectRemedyFacts 값을 meta.remedyFacts 에 넣고, 생성·재시도·재개는
+// remedyFactsPinned 로 읽는다. 키 없는 기존 기록은 플래그를 켜도 영구 off, 핀이 있어도 플래그를 끄면 off(킬 스위치).
+export const REMEDY_FACTS_META = 'remedy-facts-v1';
+
+export function selectRemedyFacts(env, id) {
+  return remedyFactsOn(env, id) ? REMEDY_FACTS_META : null;
+}
+
+export function remedyFactsPinned(meta, env, id) {
+  return meta?.remedyFacts === REMEDY_FACTS_META && remedyFactsOn(env, id);
 }
