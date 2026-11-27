@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-27
-next: 단계 8 — 이용권 개선 (RED, mock 테스트 필수)
+next: 단계 9 — 전달 (check:pre-push → 메인 체크아웃 merge·push → main CI 1회 → production dispatch 1회 → 워크트리 배수·문서 done)
 ---
 
 # 유료 LLM 결제 후 미제공 제거 + 이용권 혜택 정확 적용
@@ -86,7 +86,7 @@ next: 단계 8 — 이용권 개선 (RED, mock 테스트 필수)
 - [x] 7. **보고만**
   - 자미두수 V1 2종, 흑월 V1, 시빌 V1이 대상이다.
   - V2 플래그가 기본값으로 켜져 있는지 `worker/wrangler.toml` vars와 코드 기본값으로 확인만 한다.
-- [ ] 8. **이용권 개선** (RED, mock 테스트 필수)
+- [x] 8. **이용권 개선** (RED, mock 테스트 필수)
   - (a) `expireStalePendingOrders`(worker/payments/reconcile.js:114-139): 취소 전에 PortOne에 다시 조회한다. paid면 `settleOrderFromReconcile`로 확정하고, 조회에 실패하면 건너뛴다(fail-closed). 지금은 낡은 `metadata.reconcile.lastPgStatus`만 보고 취소한다.
   - (b) `evaluateConfirmable`(worker/payments/index.js:866-897)과 `markOrderPaid`(worker/payments/orders.js:282, `NOT_CONFIRMABLE_RAW_STATUSES`): `cancelled`이면서 `failureCode`가 ORDER_EXPIRED 또는 client_failure인 주문을, PortOne이 PAID이고 금액이 일치하면 되살린다. PortOne이 cancelled/refunded인 주문은 그대로 둔다.
   - (c) 복구 스윕: 최근 30일 안에서 ORDER_EXPIRED로 취소된 주문 중 PortOne이 PAID인 주문을 확정하고 혜택을 지급한다. `runPaymentsV2Reconcile`(index.js:2389)에 붙인다. 1회 처리량에 상한을 둔다.
@@ -177,3 +177,45 @@ next: 단계 8 — 이용권 개선 (RED, mock 테스트 필수)
 - vars 확인: `git grep DELIVERY_V2`로 worker/wrangler.toml·worker/wrangler.staging.toml·루트 wrangler.toml·config/env.contract.json을 검색했고 0건이다. 운영은 코드 기본값(ON)으로 돈다.
 - 남은 위험: 이미 V1으로 시작한 세션은 세션별로 계획 버전이 고정되어 V1으로 끝난다. 이런 V1 잔여 세션에는 이번 마지막 시도 전달 완화가 적용되지 않았다. 신규 세션은 V2 경로로 간다.
 - 관련 테스트: __tests__/worker/heukwol.test.js, sibyl-report-store-v2.test.js, ziwei-paid-delivery.test.js.
+
+### 단계 8 — f572a7d7b9 · 3aaeaf1086 · ca930824bc · 3c6762ba07
+- (a)+(b) f572a7d7b9
+  - `expireStalePendingOrders`가 reconcile.js 순수 단계에서 빠지고 `runPaymentsV2Reconcile`로 옮겼다. 슬롯 밖에서 PortOne을 다시 조회(probe)한다.
+    - paid이면 `settleOrderFromReconcile`로 확정한다.
+    - ready·failed·cancelled일 때만 ORDER_EXPIRED로 취소한다. 월정석 주문은 failed·cancelled일 때만 취소한다.
+    - 조회 실패, id 불일치, settle 실패, probe 없음은 건너뛴다(fail-closed). 처리량 상한은 1회 20건이다.
+  - `isRevivableClosedOrder`/`revivableClosedOrderFilter`(orders.js)의 대상은 cancelled+ORDER_EXPIRED 주문, 그리고 client_report 단계에서 cancelled·failed된 주문이다.
+    - 환불·자동환불·월정석 할인 반환 주문은 제외한다.
+    - 되살릴 때는 `evaluateConfirmable`에서 `verifyPgPayment`(PAID·금액·통화)를 거친 뒤 `markOrderPaid` CAS로 확정한다.
+    - CAS에서 지고 주문이 PAID가 아니면 ORDER_NOT_CONFIRMABLE을 내고 지급하지 않는다.
+- (c) 3aaeaf1086
+  - `recoverClosedPaidOrders`는 최근 30일 안의 되살릴 수 있는 닫힌 주문을 대상으로 한다. 조건은 updatedAt이 10분 넘게 지났고, business_api·월정석 반환 주문이 아니며, 6시간 재확인 간격을 지킨 주문이다. 1회 20건이다.
+  - PortOne이 paid이면 settle하고, cancelled·failed이면 `recoveryPgStatus`를 남겨 다시 조회하지 않는다.
+  - `runPaymentsV2Reconcile`에서 expiry 다음에 슬롯 밖에서 실행되며, 반환값에 `recovered`가 있다.
+- (d) ca930824bc
+  - `evaluatePassCoverage({..., passExcluded})`는 passExcluded이면 `pass_excluded`를 반환한다. `PASS_FAILURE_CODES.pass_excluded`는 MEMBERSHIP_PASS_NOT_ALLOWED다.
+  - `consumePassForFeature`는 catalog `resolveProduct().passExcluded`를 직접 판정한다. 미등재 키는 false다. 판매 종료 묶음 키는 보유 경로를 유지하려고 제외했다.
+  - 이미 차감된 (기능, requestId)를 다시 보내면 그대로 열린다.
+  - pass-check 라우트에도 같은 값을 넘긴다. 이 라우트는 원래 앞단에서 막고 있었다.
+  - 실측: 판매 종료가 아닌 passExcluded 상품은 neo-email-consultation과 profile-card-manage 두 개다. rpt_* 등은 판매 종료 키로 정규화된다.
+- (e) 3c6762ba07
+  - legacy `handleCancel`이 membership_pass 셀프 취소 때 PG 취소 다음에 `revokePassGrantForOrder(consultationRefundDb(), {orderId: merchantUid, durationMonths})`를 호출한다. 웹훅과 같은 규칙으로, lastPassOrderId가 일치할 때만 회수한다.
+  - 일치하지 않음, 부분취소, 회수 오류는 모두 취소 기록을 남기고 `cancellationReviewRequired` 검토 마커를 단다.
+  - V2에는 셀프 취소 라우트가 없고, 웹훅 경로는 원래 회수하고 있었다.
+  - payment-freeze 매니페스트를 3845에서 3869로 갱신해 같은 커밋에 담았다.
+- (f) 보고만, id 변경 없음
+  - 현재 등급은 standard, premium, vvip, family로 첫 글자가 s/p/v/f다. 그래서 지금은 접두가 충돌하지 않는다.
+  - 다만 해시에 tier가 들어가지 않는다. s·p·v·f로 시작하는 등급이 새로 생기면 같은 idempotencyKey에서 id가 겹칠 수 있다. createPassOrder의 idempotencyKey 조회와 IDEMPOTENCY_CONFLICT가 이를 막는다.
+  - 기존 주문 id와 관리자 접두 식별 때문에 바꾸지 않았다.
+- 테스트
+  - jest payments-v2·pass-*·paid-completed-result-access·payment-reconcile·yeongnyangi-service-pack·ziwei-expired-order-access 등: `Test Suites: 59 passed / Tests: 1367 passed`.
+  - consumePassForFeature·passExcluded 관련 30개 파일: `1082 passed`.
+  - cancel 라우트 포함 51개 스위트: `986 passed`.
+  - 변이 확인 (d): passExcluded=false로 바꾸면 1 failed. (e): 분기를 끄면 3 failed.
+  - verify-payment-reconcile PASS, verify-payment-concurrency-guards OK, verify-payment-freeze 통과, `npm run typecheck` exit 0.
+- check:fast (`--base=f572a7d7b9^`): paid-gate-suite 통과 78 / 실패 0, lint 통과. 이어서 같은 sitemap 날짜 드리프트로 BLOCKED(무관, 재생성 파일 없음).
+- 남은 위험
+  - 복구 스윕과 expiry는 10분 tick마다 PortOne을 최대 40회 조회한다. 버려진 ready 주문은 6시간마다 다시 조회한다.
+  - 스윕 쿼리의 Mongo 인덱스 적합성은 확인하지 못했다.
+  - legacy 셀프 취소 회수 뒤 접근 상태 캐시(최대 60초)는 비우지 않는다. 기존 취소 경로와 같다.
+  - neo-email-consultation과 profile-card-manage를 이용권으로 직접 차감하던 라우트가 있었다면 이제 402 PAYMENT_REQUIRED가 난다. 의도한 변경이다.
