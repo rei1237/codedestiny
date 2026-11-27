@@ -422,6 +422,8 @@ export type FortuneTeaHouseConsultResponse = {
   createdAt?: string;
   promptVersion?: string;
   calculationSnapshot?: {engine:string;version?:string;policy?:Record<string,unknown>;source?:string;basis?:unknown};
+  // 액땜 카드 데이터(SAJU_REMEDY_FACTS_V1). 서버가 checkpoint 에 고정한 값을 그대로 저장한다. 카드는 이 값만 읽고, 형식 검사는 카드 쪽이 맡는다.
+  remedyCases?: unknown;
   resultFormatVersion?: string;
   resultId?: string;
   consultationMode?: FortuneTeaHouseConsultMode;

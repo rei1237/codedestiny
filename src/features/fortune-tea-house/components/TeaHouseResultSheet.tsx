@@ -31,6 +31,7 @@ import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
 import SajuPillarBoard from "./SajuPillarBoard";
 import FiveElementBalance from "./FiveElementBalance";
 import ResultReference from "@/components/fortune/ResultReference";
+import RemedyCaseCards from "@/components/fortune/remedy/RemedyCaseCards";
 import { ANSWER_FIRST_LAYOUT_V1 } from "@/lib/result-layout";
 import TeaHouseSajuCompatResultPanel from "./TeaHouseSajuCompatResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
@@ -1038,6 +1039,14 @@ export default function TeaHouseResultSheet({
             </div>
           ) : null}
         </section>
+        ) : null}
+
+        {/* 액땜 카드(SAJU_REMEDY_FACTS_V1): 사주 단독 상담 결과에 저장된 remedyCases 만 그린다(재계산·LLM 호출 없음). 플래그와 무관하게 저장값을 따르고,
+            없거나 깨지면 카드만 빠지고 칸은 :empty 로 접힌다. 캡처 마커는 칸 하나에만 둔다(다른 마커와 중첩 없음). */}
+        {consultationMode === "saju" && rawResult.remedyCases && typeof rawResult.remedyCases === "object" ? (
+        <div className={styles.remedySlot} data-tea-pdf-section>
+          <RemedyCaseCards remedyCases={rawResult.remedyCases} narrator="yeoni" theme="light" headingLevel={3} />
+        </div>
         ) : null}
 
         <TeaHouseFollowUpCard result={rawResult} readOnly={readOnly} onChange={applyFollowUpPatch} />
