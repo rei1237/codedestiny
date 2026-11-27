@@ -421,10 +421,26 @@ const FORBIDDEN_RES = [
 // 엔진이 계산하지 않은(= 근거로 주지 않은) 사주 요소.
 const UNPROVIDED_RE = /(대운|세운|월운|연운|삼합|방합|반합|삼형|상형|자형|육해|육파|원진|귀문|천을귀인|도화|역마|화개|공망|백호|양인|괴강|신살|납음|격국|십이운성|12운성|지장간|시주|시지|월주)/u;
 
+// 신살 블록(프롬프트 때만 계산)의 줄 이름('- 도화살: …')에 든 위 용어. 블록을 받은 그룹은 이 이름을 근거로 본다.
+// 자리(시주·시지·월주)와 운(대운·세운·월운·연운)은 블록 이름에 있어도 허용하지 않는다(기존 규칙 그대로).
+const SHINSAL_KEEP_BANNED = new Set(["대운", "세운", "월운", "연운", "시주", "시지", "월주"]);
+export function sajuCompatShinsalTerms(block) {
+  if (typeof block !== "string" || !block) return [];
+  const terms = new Set(["신살"]);
+  for (const line of block.split("\n")) {
+    const name = /^- ([^:]+):/u.exec(line)?.[1] || "";
+    for (const match of name.matchAll(new RegExp(UNPROVIDED_RE.source, "gu"))) if (!SHINSAL_KEEP_BANNED.has(match[1])) terms.add(match[1]);
+  }
+  return [...terms];
+}
+
 function hasUnprovidedTerm(sentence, input) {
   const evidence = input.facts.relationship;
-  if (!evidence) return UNPROVIDED_RE.test(sentence);
-  let rest = sentence.replace(/월주/g, '');
+  // input.shinsalTerms 는 produce 가 핀을 확인하고 블록에서 뽑아 넘긴 값이다(저장하지 않는다). 없으면 문장 그대로다.
+  const provided = Array.isArray(input.shinsalTerms) ? input.shinsalTerms : [];
+  const own = provided.reduce((text, term) => text.replaceAll(term, ""), sentence);
+  if (!evidence) return UNPROVIDED_RE.test(own);
+  let rest = own.replace(/월주/g, '');
   if (evidence.chapters.find(ch => ch.key === 'hour')?.available) rest = rest.replace(/시주|시지/g, '');
   const kinds = new Set([...evidence.cross, ...evidence.natal].flatMap(row => row.branches));
   for (const kind of ['원진', '귀문', '자형']) if (kinds.has(kind)) rest = rest.replaceAll(kind, '');

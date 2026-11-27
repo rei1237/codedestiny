@@ -4,6 +4,8 @@ import { STORY_PROMPT_VERSION, usesStoryArt, storyArtFor } from '../../js/saju-c
 import { SAJU_COMPAT_PROMPT_VERSION, groupFields } from "./saju-compat-schema.js";
 import { sajuTemperamentPromptLines } from './saju-temperament.js';
 import { approvedSajuFacts, approvedSajuLabels, consumerPillars } from './saju-authority-consumer.js';
+import { buildShinsalFactsBlock } from '../../lib/saju/shinsal-facts-block.mjs';
+import { SHINSAL_PROMPT_HEADER, SHINSAL_PROMPT_FOOTER } from '../../lib/saju/natal-core/shinsal/index.mjs';
 
 export { SAJU_COMPAT_PROMPT_VERSION };
 
@@ -82,6 +84,34 @@ export function withApprovedSajuCompat(input) {
     .map((position, i) => ({ position, stem: side.pillars[i].gan, branch: side.pillars[i].ji }))
     .filter((row) => !(row.position === "hour" && side.birthTimeUnknown === true)))));
   return { ...input, approvedSaju: { self: facts(input.self), partner: facts(input.partner) } };
+}
+
+// 두 사람 원국 신살을 한 블록(머리말·사용 규칙 한 번, 사람마다 이름표)으로 묶는다. 궁합 확정값에 대운·세운이 없으므로
+// 운 줄은 넣지 않는다. 사람마다 같은 몫을 직렬화기에 넘겨(우선순위 절단은 직렬화기 그대로) 합친 길이가 maxChars 를
+// 넘지 않는다. 던지지 않는다 — 계산이 안 되거나 남는 줄이 없으면 '' 이다. pin·hash·저장 값에 넣지 않는다.
+export const SAJU_COMPAT_SHINSAL_MAX_CHARS = 500;
+export const SAJU_COMPAT_SHINSAL_GUIDE = "두 사람 각자의 원국에서 계산한 신살입니다. 쓸 때는 자리 이름보다 누구의 신살인지(당신·상대)를 밝히고, 성향과 관계 습관의 보조 단서로만 짧게 씁니다. 목록에 없는 신살은 쓰지 않고, 신살 하나로 관계의 결말을 단정하지 않습니다.";
+const SHINSAL_SIDES = [["self", "당신의 원국"], ["partner", "상대의 원국"]];
+export function buildSajuCompatShinsalBlock(input, maxChars = SAJU_COMPAT_SHINSAL_MAX_CHARS) {
+  try {
+    const labels = SHINSAL_SIDES.reduce((sum, [, label]) => sum + label.length, 0);
+    const share = Math.floor((maxChars + SHINSAL_PROMPT_HEADER.length + SHINSAL_PROMPT_FOOTER.length - labels - 1) / 2);
+    const groups = SHINSAL_SIDES.map(([key, label]) => {
+      const side = input?.[key];
+      const pillars = Array.isArray(side?.pillars) ? side.pillars : [];
+      const ganji = (index) => (pillars[index]?.gan && pillars[index]?.ji ? `${pillars[index].gan}${pillars[index].ji}` : null);
+      const timeUnknown = side?.birthTimeUnknown === true || !ganji(3);
+      const block = buildShinsalFactsBlock({ pillars: { year: ganji(0), month: ganji(1), day: ganji(2), hour: timeUnknown ? null : ganji(3) }, timeUnknown },
+        { maxChars: share, maxNatal: 4, maxLuck: 0 });
+      const body = block ? block.split("\n").slice(1, -1) : [];
+      return body.length ? [label, ...body] : [];
+    }).flat();
+    if (!groups.length) return "";
+    const text = [SHINSAL_PROMPT_HEADER, ...groups, SHINSAL_PROMPT_FOOTER].join("\n");
+    return text.length <= maxChars ? text : "";
+  } catch {
+    return "";
+  }
 }
 
 const FIELD_GUIDE = {
@@ -230,7 +260,7 @@ const reasonGuide = (input) => (spec) => {
  * 그룹별 사용자 프롬프트. issues 가 있으면 이전 응답에서 비었거나 짧았던 항목을, shortfall 이면 전반적인 분량 부족을 보강하게 한다.
  * 분량은 목표일 뿐이며 정확한 JSON 구조가 우선이다.
  */
-export function buildSajuCompatPrompt(group, input, { issues = [], shortfall = false } = {}) {
+export function buildSajuCompatPrompt(group, input, { issues = [], shortfall = false, shinsalFacts = "" } = {}) {
   const { required } = groupFields(group, input);
   const guide = group === "reasons" ? reasonGuide(input) : (spec) => `약 ${spec.target}자${spec.kind === "list" ? "(질문 한 문장)" : ""}: ${(input.approvedSaju && APPROVED_FIELD_GUIDE[spec.path]) || FIELD_GUIDE[spec.path] || spec.path}`;
   const skeleton = skeletonOf(required, guide);
@@ -241,6 +271,8 @@ export function buildSajuCompatPrompt(group, input, { issues = [], shortfall = f
   if (input.facts.relationship) lines.push(`[서버 계산 기둥 관계]
 ${JSON.stringify(input.facts.relationship)}
 본인·상대의 기둥 위치를 명시하고 일간·월령·오행·조후 근거와 함께 읽으세요. 연애는 친밀감과 생활, 사업은 역할·의사결정·책임, 친구는 소통과 거리 중심으로 설명하세요. 점수에 새 가감을 하지 마세요.`);
+  // 핀이 있는 새 납품의 core 그룹에만 produce 가 넘긴다. 비어 있으면 이전과 같은 바이트다.
+  if (group === "core" && typeof shinsalFacts === "string" && shinsalFacts) lines.push(`${shinsalFacts}\n${SAJU_COMPAT_SHINSAL_GUIDE}`);
   if (usesStoryArt(input.promptVersion)) {
     if (group === 'core') lines.push('overview 첫 문장은 모바일에서 바로 읽을 수 있도록 관계의 핵심을 한 줄로 요약하세요. 뒤에서 같은 요약을 되풀이하지 마세요.');
     if (group === 'reasons') lines.push('긍정 근거의 첫 문장은 함께할 때 힘이 되는 점, 주의 근거의 첫 문장은 조율할 점을 일상 장면으로 쓰세요.');

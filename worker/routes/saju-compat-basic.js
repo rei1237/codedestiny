@@ -18,9 +18,11 @@ import {
   SAJU_COMPAT_FEATURE_KEY, SAJU_COMPAT_REPORT_TYPE, SAJU_COMPAT_SHORTFALL_RATIO,
   assembleSajuCompatSnapshot, buildSajuCompatPart, completeSajuCompatPart, groupTargetChars, measureSajuCompatPart,
   mergeSajuCompatShaped, normalizeSajuCompatInput, parseSajuCompatResponse, sajuCompatSeenKeys, sajuCompatShapedChars,
-  sajuCompatTasks, shapeSajuCompatGroup, sajuCompatResponseSchema,
+  sajuCompatTasks, shapeSajuCompatGroup, sajuCompatResponseSchema, sajuCompatShinsalTerms,
 } from "../lib/saju-compat-schema.js";
-import { buildSajuCompatPrompt, buildSajuCompatSystemPrompt, withApprovedSajuCompat } from "../lib/saju-compat-prompts.js";
+import { buildSajuCompatPrompt, buildSajuCompatShinsalBlock, buildSajuCompatSystemPrompt, withApprovedSajuCompat } from "../lib/saju-compat-prompts.js";
+import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/gemini-input-token-limit.mjs";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 
@@ -40,9 +42,52 @@ const clippedRetryTokens = (raw, tokens) => {
   try { JSON.parse(raw); return tokens; } catch { return Math.max(tokens, Math.min(32768, tokens * 2)); }
 };
 
+// 신살 블록은 시스템 + 사용자 프롬프트 + 응답 스키마가 Gemini 입력 상한(countTokens 50,000)의 95% 안에 들 때만 붙인다.
+const SHINSAL_PROMPT_BUDGET = Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+// 보수적 토큰 추정(유료 사주 AI·퓨전과 같은 규칙): 비ASCII 글자·숫자는 한 글자 한 토큰, 나머지 ASCII 는 두 글자 한 토큰.
+function estimatePromptTokens(value) {
+  let tokens = 0;
+  let ascii = 0;
+  for (const ch of String(value || "")) {
+    const code = ch.codePointAt(0);
+    if (code >= 0x80 || (code >= 0x30 && code <= 0x39)) tokens += 1;
+    else ascii += 1;
+  }
+  return tokens + Math.ceil(ascii / 2);
+}
+
+// promptOptions.shinsalFacts 는 produce 가 핀을 확인하고 만든 블록이다. 없으면 이전과 같은 호출이고,
+// 상한을 넘거나 어떤 실패가 나도 블록만 뺀다.
+function sajuCompatGroupPrompt(group, input, promptOptions, systemPrompt, responseSchema) {
+  const { shinsalFacts = "", ...options } = promptOptions || {};
+  const base = buildSajuCompatPrompt(group, input, options);
+  if (!shinsalFacts) return base;
+  try {
+    const withBlock = buildSajuCompatPrompt(group, input, { ...options, shinsalFacts });
+    const tokens = estimatePromptTokens(systemPrompt) + estimatePromptTokens(withBlock) + estimatePromptTokens(JSON.stringify(responseSchema || {}));
+    return tokens <= SHINSAL_PROMPT_BUDGET ? withBlock : base;
+  } catch {
+    return base;
+  }
+}
+
+// 새 납품(seed 가 핀을 남긴 기록)의 core 그룹만 두 사람 원국 신살을 받는다. 핀 없는 기존 기록은 플래그를 켜도 off,
+// 플래그를 비우면 핀이 있어도 off(킬 스위치). 블록과 허용 용어는 매번 기둥에서 다시 계산하고 저장하지 않는다.
+function withShinsalFacts(env, state, group, input) {
+  try {
+    if (group !== "core" || !shinsalFactsPinned(state, env, "saju-compat")) return { input, shinsalFacts: "" };
+    const shinsalFacts = buildSajuCompatShinsalBlock(input);
+    return shinsalFacts ? { input: { ...input, shinsalTerms: sajuCompatShinsalTerms(shinsalFacts) }, shinsalFacts } : { input, shinsalFacts: "" };
+  } catch {
+    return { input, shinsalFacts: "" };
+  }
+}
+export const __sajuCompatShinsalTestUtils = { groupPrompt: sajuCompatGroupPrompt, estimatePromptTokens, budget: SHINSAL_PROMPT_BUDGET };
+
 async function generateGroup(env, group, input, seen, promptOptions, previousRaw, answerVoice = null) {
-  const ai = await callGeminiText(env, buildSajuCompatPrompt(group, input, promptOptions), {
-    systemPrompt: appendAnswerVoice(buildSajuCompatSystemPrompt(input), answerVoice, { master: "yeoni", locale: input.locale }),
+  const systemPrompt = appendAnswerVoice(buildSajuCompatSystemPrompt(input), answerVoice, { master: "yeoni", locale: input.locale });
+  const ai = await callGeminiText(env, sajuCompatGroupPrompt(group, input, promptOptions, systemPrompt, sajuCompatResponseSchema(group, input)), {
+    systemPrompt,
     locale: toAiLocale(input.locale),
     temperature: 0.6,
     maxOutputTokens: clippedRetryTokens(previousRaw, group === "core" && input.facts.relationship ? 16384 : 8192),
@@ -85,13 +130,13 @@ export function sajuCompatNarrativeAdapter(env) {
     produce: async (task, state) => {
       const group = task.id;
       // The saved purchase language also owns resume/cron; a later UI choice cannot change it.
-      const input = { ...state.input, locale: toAiLocale(state.locale) };
+      const { input, shinsalFacts } = withShinsalFacts(env, state, group, { ...state.input, locale: toAiLocale(state.locale) });
       const attempt = Number(state.attempts?.[group]) || 1;
       const seen = sajuCompatSeenKeys(state.parts);
       const stash = state.lenient?.[group] || null;
       const retry = attempt > 1 ? { issues: state.issues?.[group] || [], shortfall: Boolean(state.shortfall?.[group]) } : {};
       let fresh = null;
-      try { fresh = await generateGroup(env, group, input, seen, retry, state.rawResponses?.[group], pinAnswerVoice(state, env)); } catch { fresh = null; }
+      try { fresh = await generateGroup(env, group, input, seen, shinsalFacts ? { ...retry, shinsalFacts } : retry, state.rawResponses?.[group], pinAnswerVoice(state, env)); } catch { fresh = null; }
       let shaped = fresh?.shaped || null;
       const model = fresh?.model || stash?.model || "";
       if (attempt < 2) {
@@ -126,7 +171,9 @@ export function seedSajuCompat(env,original){
       const input = sajuAuthorityOn(env) ? withApprovedSajuCompat(normalized) : normalized;
       const tasks = sajuCompatTasks(input);
       const answerVoice = selectAnswerVoice(env);
-      return { input, tasks, minBodyChars: tasks.reduce((sum, task) => sum + task.minChars, 0), ...(answerVoice ? { answerVoice } : {}) };
+      // 신살 핀은 엔진이 evidenceHash 밖(state.shinsalFacts)에 둔다. 블록 자체는 저장하지 않는다.
+      const shinsalFacts = selectShinsalFacts(env, "saju-compat");
+      return { input, tasks, minBodyChars: tasks.reduce((sum, task) => sum + task.minChars, 0), ...(answerVoice ? { answerVoice } : {}), ...(shinsalFacts ? { shinsalFacts } : {}) };
 }
 
 async function handleGenerate(request, env) {

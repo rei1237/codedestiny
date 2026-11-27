@@ -285,6 +285,108 @@ test('승인 판정 플래그로 시작한 납품은 프롬프트가 읽은 appr
   expect(provider).not.toHaveBeenCalled();
 });
 
+describe('신살 사실 블록 SAJU_SHINSAL_FACTS_V1 (saju-compat)', () => {
+  const ON = { SAJU_SHINSAL_FACTS_V1: 'saju-compat' };
+  const HEADER = '[신살 계산값 — 서버 계산.';
+  const count = (text, part) => text.split(part).length - 1;
+  const postAt = (env, payload) => route(new Request('https://mock.test/api/saju-compat-basic/generate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(payload) }), env);
+  // 시작 env 와 재개 env 를 따로 받는다(핀 이후 플래그를 바꾸는 경우). 모든 응답 상태를 모은다.
+  async function run(startEnv, resumeEnv = startEnv) {
+    const statuses = [];
+    let response = await postAt(startEnv, original());
+    statuses.push(response.status);
+    for (let i = 0; i < 12 && response.status === 202; i += 1) { response = await postAt(resumeEnv, { resumeResultId: docs[0].executionKey }); statuses.push(response.status); }
+    return { response, statuses, text: await response.clone().text() };
+  }
+  const promptsOf = (group) => provider.mock.calls.map((args) => args[1]).filter((prompt) => groupOf(prompt) === group);
+  const once = (first) => { let used = false; return (prompt) => (used ? reply(groupOf(prompt)) : (used = true, first(prompt))); };
+  let lib, k, block;
+  beforeEach(async () => {
+    lib = await import('../../worker/lib/saju-compat-prompts.js');
+    k = { ...input(), locale: 'ko' };
+    block = lib.buildSajuCompatShinsalBlock(k);
+  });
+
+  test('끄면 프롬프트가 바이트 단위로 같고, 켜면 core 에만 블록이 한 번 붙으며 핀은 evidenceHash 밖에 남는다', async () => {
+    expect(block.startsWith(HEADER)).toBe(true);
+    expect(block.length).toBeLessThanOrEqual(lib.SAJU_COMPAT_SHINSAL_MAX_CHARS);
+    for (const env of [{}, { SAJU_SHINSAL_FACTS_V1: 'fusion' }]) {
+      docs = []; provider.mockClear();
+      expect((await run(env)).response.status).toBe(200);
+      for (const group of ['core', 'reasons', 'practice', 'pastLife']) expect(promptsOf(group)).toEqual([lib.buildSajuCompatPrompt(group, k)]);
+      expect(docs[0].metadata.paidNarrative).not.toHaveProperty('shinsalFacts');
+    }
+    const offHash = docs[0].metadata.paidNarrative.evidenceHash;
+    docs = []; provider.mockClear();
+    expect((await run(ON)).response.status).toBe(200);
+    const [core] = promptsOf('core');
+    expect(count(core, HEADER)).toBe(1);
+    expect(core).toBe(lib.buildSajuCompatPrompt('core', k, { shinsalFacts: block }));
+    expect(core.length - lib.buildSajuCompatPrompt('core', k).length).toBe(2 + block.length + 1 + lib.SAJU_COMPAT_SHINSAL_GUIDE.length);
+    for (const group of ['reasons', 'practice', 'pastLife']) expect(promptsOf(group)).toEqual([lib.buildSajuCompatPrompt(group, k)]);
+    expect(docs[0].metadata.paidNarrative.shinsalFacts).toBe('shinsal-facts-v1');
+    expect(docs[0].metadata.paidNarrative.evidenceHash).toBe(offHash);
+    expect(JSON.stringify(docs[0])).not.toContain(HEADER);
+  });
+
+  test('블록에 실린 신살 이름은 core 정제에서 살아남고, 목록 밖 신살과 꺼진 기록은 여전히 걷어낸다', async () => {
+    const { sajuCompatShinsalTerms } = await import('../../worker/lib/saju-compat-schema.js');
+    const terms = sajuCompatShinsalTerms(block).filter((term) => term !== '신살');
+    const outside = ['도화', '역마', '화개', '천을귀인', '양인', '괴강', '백호', '공망', '귀문', '원진'].find((term) => !terms.includes(term));
+    expect(terms.length).toBeGreaterThan(0);
+    const kept = `당신의 원국에 있는 ${terms[0]} 기운은 새로운 취향을 함께 나누려는 마음으로 자주 드러나는 편입니다.`;
+    const dropped = `상대에게는 ${outside} 기운도 함께 들어와 있어서 관계의 속도가 빨라질 수 있습니다.`;
+    plan.core = () => { const raw = llmResponse('core', input()); raw.overview = `${kept} ${dropped} ${raw.overview}`; return { ok: true, provider: 'gemini', model: 'gemini-2.5-flash', text: JSON.stringify(raw) }; };
+    expect((await run(ON)).response.status).toBe(200);
+    expect(JSON.stringify(docs[0].metadata.result)).toContain(kept);
+    expect(JSON.stringify(docs[0].metadata.result)).not.toContain(dropped);
+    docs = [];
+    expect((await run({})).response.status).toBe(200);
+    expect(JSON.stringify(docs[0].metadata.result)).not.toContain(kept);
+  });
+
+  test('핀 없는 기존 기록은 켜도 off, 핀 뒤 플래그를 비우면 off, 블록을 단 재시도·재개는 409 없이 끝난다', async () => {
+    plan.core = once(() => ({ ok: false }));
+    const legacy = await run({}, ON);
+    expect(legacy.response.status).toBe(200);
+    expect(promptsOf('core')).toHaveLength(2);
+    for (const prompt of promptsOf('core')) expect(prompt).not.toContain(HEADER);
+    expect(docs[0].metadata.paidNarrative).not.toHaveProperty('shinsalFacts');
+
+    docs = []; provider.mockClear(); plan.core = once(() => ({ ok: false }));
+    const killed = await run(ON, {});
+    expect(killed.response.status).toBe(200);
+    expect(docs[0].metadata.paidNarrative.shinsalFacts).toBe('shinsal-facts-v1');
+    const [pinnedCore, killedCore] = promptsOf('core');
+    expect(count(pinnedCore, HEADER)).toBe(1);
+    expect(killedCore).not.toContain(HEADER);
+    expect(killedCore).toBe(lib.buildSajuCompatPrompt('core', k));
+
+    docs = []; provider.mockClear(); plan.core = once(() => reply('core', { scale: 0.3 }));
+    const retried = await run(ON);
+    expect(retried.response.status).toBe(200);
+    expect(promptsOf('core')).toHaveLength(2);
+    for (const prompt of promptsOf('core')) expect(count(prompt, HEADER)).toBe(1);
+    expect(promptsOf('core')[1]).toContain('[보강 요청]');
+    for (const outcome of [legacy, killed, retried]) {
+      expect(outcome.statuses).not.toContain(409);
+      expect(outcome.text).not.toContain('REPRESENTATIVE_FACTS_MISMATCH');
+    }
+  });
+
+  test('입력 상한 95%를 넘으면 블록만 빼고 같은 프롬프트로 부른다', async () => {
+    const { __sajuCompatShinsalTestUtils: utils } = await import('../../worker/routes/saju-compat-basic.js');
+    const { sajuCompatResponseSchema } = await import('../../worker/lib/saju-compat-schema.js');
+    const schema = sajuCompatResponseSchema('core', k);
+    const options = { issues: ['overview'], shinsalFacts: block };
+    const base = lib.buildSajuCompatPrompt('core', k, { issues: ['overview'] });
+    expect(utils.groupPrompt('core', k, options, 'system', schema)).toBe(lib.buildSajuCompatPrompt('core', k, options));
+    const room = utils.budget - utils.estimatePromptTokens(base) - utils.estimatePromptTokens(JSON.stringify(schema));
+    expect(utils.groupPrompt('core', k, options, '가'.repeat(room), schema)).toBe(base);
+    expect(utils.groupPrompt('core', k, { issues: ['overview'] }, 'system', schema)).toBe(base);
+  });
+});
+
 test('결제 확인이 안 되면 402 이고 LLM 도 DB 행도 없다', async () => {
   mode = 'denied';
   expect((await start()).status).toBe(402);
