@@ -29,6 +29,9 @@ import {
 } from "./fusion-fortune-visual.js";
 import { buildGuardianFortuneContext } from "./guardian-fortune-context.js";
 import { sajuAuthorityOn } from "./saju-authority-consumer.js";
+import { selectShinsalFacts, shinsalFactsPinned } from "./engine-rollout.js";
+import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/gemini-input-token-limit.mjs";
 import { buildIntegratedInsight } from "./guardian-fortune-insight.js";
 import { buildFortuneQuestionFocus } from "./fortune-question-focus.js";
 import { createGeminiContextCache, deleteGeminiContextCache, pickGeminiKeys } from "./gemini.js";
@@ -133,6 +136,75 @@ function fusionSalvageSentenceIsBad(sentence, { birthTimeKnown = true, birthPlac
 function text(value, max = 1200) { return String(value || "").trim().slice(0, max); }
 function count(value) { return Math.max(0, Number(value || 0)); }
 function flag(env, name) { return env?.[name] === true || String(env?.[name] || "").toLowerCase() === "true"; }
+
+const FUSION_SHINSAL_MAX_CHARS = 500;
+// 운 줄은 세운이 먼저 차면 현재 대운이 빠진다(유료 사주 AI·수호신과 같은 12). 전체 길이는 maxChars 가 막는다.
+const FUSION_SHINSAL_MAX_LUCK = 12;
+// 시스템 + 사용자 프롬프트 + 응답 스키마가 Gemini 입력 상한(countTokens 50,000)의 95% 안에 들 때만 붙인다.
+const FUSION_SHINSAL_PROMPT_BUDGET = Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+const FUSION_SHINSAL_PILLARS = ["year", "month", "day", "hour"];
+
+// 보수적 토큰 추정(유료 사주 AI 와 같은 규칙): 비ASCII 글자·숫자는 한 글자 한 토큰, 나머지 ASCII 는 두 글자 한 토큰.
+function estimateFusionPromptTokens(value) {
+  let tokens = 0;
+  let ascii = 0;
+  for (const ch of String(value || "")) {
+    const code = ch.codePointAt(0);
+    if (code >= 0x80 || (code >= 0x30 && code <= 0x39)) tokens += 1;
+    else ascii += 1;
+  }
+  return tokens + Math.ceil(ascii / 2);
+}
+
+const fusionGanji = (value) => (typeof value === "string" ? value : value?.ganji || "");
+
+// 던지지 않는다. 저장된 계산 컨텍스트의 사주 원국(격국 권위 핀 또는 엔진 사실)과 시기표(현재 대운,
+// 계산 기준일이 속한 KST 해의 세운)로 블록을 만든다. 원국이 없으면 '' 이라 블록만 빠진다.
+function fusionSajuShinsalBlock(context = {}, referenceDate = new Date()) {
+  try {
+    const saju = context?.systems?.saju || {};
+    const authority = saju.sajuAuthority?.pillars;
+    const facts = saju.engineFacts?.facts?.pillars;
+    const source = authority && typeof authority === "object" ? authority : facts;
+    if (!source || typeof source !== "object") return "";
+    const pillars = Object.fromEntries(FUSION_SHINSAL_PILLARS.map((key) => [key, fusionGanji(source[key]) || null]));
+    // 출생 시간이 확인된 컨텍스트만 시주 신살을 계산한다(모르면 시주 미상 줄이 대신 들어간다).
+    const timeUnknown = context.birthTimeKnown !== true || !pillars.hour || saju.engineFacts?.facts?.calculationMeta?.timeUnknown === true;
+    const timing = saju.timingFacts || saju.engineFacts?.facts?.timingFacts || {};
+    const cycle = timing.majorLuck?.available === false ? null : timing.majorLuck?.currentCycle;
+    const years = Array.isArray(timing.yearlyLuck) ? timing.yearlyLuck : [];
+    const time = new Date(referenceDate).getTime();
+    const targetYear = Number.isFinite(time) ? new Date(time + 9 * 60 * 60 * 1000).getUTCFullYear() : NaN;
+    const sewoon = years.find((row) => Number(row?.year) === targetYear && row?.pillar) || years.find((row) => row?.pillar);
+    const luckRows = [
+      cycle?.pillar ? { scope: "daewoon", ganji: cycle.pillar, age: cycle.startAge } : null,
+      sewoon ? { scope: "sewoon", ganji: sewoon.pillar, year: sewoon.year } : null,
+    ].filter(Boolean);
+    return buildShinsalFactsBlock({ pillars: { ...pillars, hour: timeUnknown ? null : pillars.hour }, timeUnknown, luckRows },
+      { maxChars: FUSION_SHINSAL_MAX_CHARS, maxLuck: FUSION_SHINSAL_MAX_LUCK });
+  } catch {
+    return "";
+  }
+}
+
+// 그룹 호출 프롬프트. 전문가 판 1단계 사주 그룹이고, 저장된 컨텍스트에 핀(context.shinsalFacts)이 있고,
+// 플래그에 'fusion' 이 켜진 경우에만 신살 블록을 그룹 꼬리에 붙인다. 다른 그룹·핀 없는 기존 세션은
+// 플래그를 켜도 그대로이고, 플래그를 비우면 핀이 있어도 꺼진다(킬 스위치). 상한 95%를 넘거나 어떤
+// 실패가 나도 블록만 뺀다. 블록은 저장·해시·캐시 접두사에 들어가지 않는다 — 호출 때마다 다시 계산한다.
+function buildFusionGroupCallPrompt({ context = {}, group, priorSections = null, extraInstruction = "", referenceDate = new Date(), env = {} } = {}) {
+  const base = buildFusionSectionGroupPrompt({ context, group, priorSections, extraInstruction, schemaInPrompt: false, referenceDate });
+  try {
+    if (group?.id !== "saju" || context?.version !== FUSION_EXPERT_VERSION) return base;
+    if (!shinsalFactsPinned(context, env, "fusion")) return base;
+    const block = fusionSajuShinsalBlock(context, referenceDate);
+    if (!block) return base;
+    const withBlock = buildFusionSectionGroupPrompt({ context, group, priorSections, extraInstruction, schemaInPrompt: false, referenceDate, shinsalFacts: block });
+    const tokens = estimateFusionPromptTokens(withBlock.systemPrompt) + estimateFusionPromptTokens(withBlock.userPrompt) + estimateFusionPromptTokens(JSON.stringify(withBlock.geminiSchema || {}));
+    return tokens <= FUSION_SHINSAL_PROMPT_BUDGET ? withBlock : base;
+  } catch {
+    return base;
+  }
+}
 function isDate(value) { return /^\d{4}-\d{2}-\d{2}$/.test(text(value, 10)); }
 function safeRequestId(value) { return text(value, 120) || globalThis.crypto?.randomUUID?.() || `fusion-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`; }
 function objectIdOrString(value) {
@@ -1361,7 +1433,7 @@ export async function generateFusionFortuneWithRealLLM({
     if (context.version === FUSION_EXPERT_VERSION && group.stage === 1) await emitFusionFortuneStage(onStage, group.id, { phase: "analysis_start", status: "running" });
     // responseSchema below already carries every key, descriptor and array minimum.
     // Keep the display prompt intact; send each schema only once to the provider.
-    const groupPrompt = buildFusionSectionGroupPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, schemaInPrompt: false, referenceDate: now });
+    const groupPrompt = buildFusionGroupCallPrompt({ context, group, priorSections: { ...prior, ...merged }, extraInstruction, referenceDate: now, env });
     let model = modelFor(group);
     if (Number(attemptCounts[attemptId] || 0) >= attemptLimit) return { ok: savedValid, group, value: savedValid ? saved : undefined, issue: "budget_exhausted" };
     const reservedAttempt = typeof onAttempt === "function" ? await onAttempt(attemptId, lengthRepair ? { lengthRepair: true } : {}) : null;
@@ -1820,6 +1892,9 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (!priorSnapshot?.context && !priorResult && selectAnswerVoice(env)) contextResult.context = { ...contextResult.context, answerVoice: selectAnswerVoice(env) };
     // 그룹 계획 2판도 새 계산 컨텍스트에만 박는다 — 진행 중인 세션은 저장된 컨텍스트(판 없음)대로 끝난다.
     if (!priorSnapshot?.context && !priorResult && shouldPinFusionGroupPlanV2(contextResult.context, env)) contextResult.context = { ...contextResult.context, groupPlanVersion: FUSION_GROUP_PLAN_VERSION };
+    // 신살 사실 블록 핀도 새 전문가 판 계산 컨텍스트에만 박는다. 핀 없이 저장된 세션은 플래그를 켜도 끝까지 off 다.
+    // 핀은 비공개 스냅샷 컨텍스트에만 남고 입력 식별자·캐시 접두사·프롬프트 투영에는 들어가지 않는다.
+    if (!priorSnapshot?.context && !priorResult && contextResult.context?.version === FUSION_EXPERT_VERSION && selectShinsalFacts(env, "fusion")) contextResult.context = { ...contextResult.context, shinsalFacts: selectShinsalFacts(env, "fusion") };
     if (!priorSnapshot?.context && typeof onSnapshot === "function") await onSnapshot({ requestId: safeId, input: normalized, context: contextResult.context, calculatedAt: calculationDate.toISOString(), lease: deliveryLease });
     throwIfFusionFortuneAborted(abortSignal);
     // 🔴 데드라인 시계를 요청 시작 시점(결제 증빙 직후)으로 고정해 넘긴다. 컨텍스트 빌드(6개
@@ -1920,3 +1995,6 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     if (deliveryLease && typeof onReleased === "function") await onReleased(deliveryLease).catch(() => {});
   }
 }
+
+// 테스트 전용: 신살 블록 판정·계산·추정을 그대로 노출한다.
+export const __fusionShinsalTestUtils = Object.freeze({ buildFusionGroupCallPrompt, fusionSajuShinsalBlock, estimateFusionPromptTokens, FUSION_SHINSAL_PROMPT_BUDGET });

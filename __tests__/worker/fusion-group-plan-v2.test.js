@@ -5,8 +5,9 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { FUSION_PREMIUM_VERSION, FUSION_PREMIUM_V2, FUSION_PREMIUM_TARGETS_V2 as targets } from "../../lib/fusion-premium-report.js";
 import { FUSION_EXPERT_VERSION, fusionEvidenceReferences, normalizeFusionSignals, ownFusionEvidencePath } from "../../worker/lib/fusion-expert-contract.js";
 import { FUSION_GEMINI_ENUM_CHAR_BUDGET, buildFusionSectionGroupPrompt, fusionGeminiSchemaIssues, fusionGroupsForStage } from "../../worker/lib/fusion-fortune-prompt.js";
-import { createMemoryFusionFortuneStore, fusionPlan2SoftIssues, generateFusionFortuneRequest, generateFusionFortuneWithRealLLM, scrubFusionPlan2Assembly } from "../../worker/lib/fusion-fortune.js";
+import { __fusionShinsalTestUtils, createMemoryFusionFortuneStore, fusionPlan2SoftIssues, generateFusionFortuneRequest, generateFusionFortuneWithRealLLM, scrubFusionPlan2Assembly, validateFusionFortuneGroup } from "../../worker/lib/fusion-fortune.js";
 import { normalizeFusionPlan2Subchapters, resolveFusionEvidenceReference, scrubFusionSection } from "../../worker/lib/fusion-group-plan.js";
+import { selectSajuAuthority } from "../../worker/lib/saju-authority-consumer.js";
 
 const systems = ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot"];
 const base = { version: FUSION_EXPERT_VERSION, locale: "ko", birthTimeKnown: true, birthPlaceKnown: true, topic: "이직", customerQuestion: "지금 옮길지 준비부터 할지", systems: Object.fromEntries(systems.map((system) => [system, system === "tarot" ? { cards: [{ name: "바보", orientation: "upright", positionKey: "current", meaningSummary: "시작" }] } : { expertEvidence: { theme: "준비", pattern: "책임" } }])), tarotSpread: { cards: [] } };
@@ -292,5 +293,115 @@ describe("plan 2 never drops a chapter after a 400", () => {
     expect(generated.deliverable).toBe(true);
     expect(generated.qualityIssues).toContain("domain_chapter_missing");
     for (const key of chapterKeys("domainHanbi")) expect(attempts[`rescue-${key}`]).toBe(2);
+  });
+});
+
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, id 'fusion') — 핀이 박힌 전문가 판 1단계 사주 그룹 꼬리에만 붙는다.
+describe("shinsal facts block rides only on the pinned saju expert group", () => {
+  const { buildFusionGroupCallPrompt, fusionSajuShinsalBlock, estimateFusionPromptTokens, FUSION_SHINSAL_PROMPT_BUDGET } = __fusionShinsalTestUtils;
+  const now = new Date("2026-11-27T03:00:00Z");
+  // 격국 권위 핀은 투영 때 다이제스트를 검사하므로 서버와 같은 함수로 서명된 핀을 만든다.
+  const pillar = (ganji) => ({ stem: ganji[0], branch: ganji[1], ganji });
+  const sajuAuthority = selectSajuAuthority({ year: pillar("癸酉"), month: pillar("己未"), day: pillar("癸卯"), hour: pillar("丙辰") }, { enabled: true });
+  const saju = { ...base.systems.saju, sajuAuthority, timingFacts: { majorLuck: { currentCycle: { pillar: "壬戌", startAge: 27 } }, yearlyLuck: [{ year: 2026, pillar: "丙午" }, { year: 2027, pillar: "丁未" }] } };
+  const legacy = { ...plan2, systems: { ...plan2.systems, saju } };
+  const pinned = { ...legacy, shinsalFacts: "shinsal-facts-v1" };
+  const unknown = { ...pinned, birthTimeKnown: false };
+  const envOn = { ...env, SAJU_SHINSAL_FACTS_V1: "fusion" };
+  const HEADER = "[신살 계산값";
+  const quote = "\n\n신살 계산값에서 일지 卯에 천을귀인과 문창귀인이 함께 잡혀, 배움과 주변의 도움을 받는 경향을 보조 단서로 살펴요.";
+  const sajuOf = (context) => fusionGroupsForStage(1, context).find((group) => group.id === "saju");
+  const call = (context, group, callEnv, extraInstruction = "") => buildFusionGroupCallPrompt({ context, group, priorSections: { consultationPlan: plan }, extraInstruction, referenceDate: now, env: callEnv });
+  const plain = (context, group, extraInstruction = "", shinsalFacts = "") => buildFusionSectionGroupPrompt({ context, group, priorSections: { consultationPlan: plan }, extraInstruction, schemaInPrompt: false, referenceDate: now, shinsalFacts });
+  const tokens = (prompt) => estimateFusionPromptTokens(prompt.systemPrompt) + estimateFusionPromptTokens(prompt.userPrompt) + estimateFusionPromptTokens(JSON.stringify(prompt.geminiSchema || {}));
+  const same = (a, b) => expect([a.systemPrompt, a.promptPrefix, a.userPrompt, JSON.stringify(a.geminiSchema)]).toEqual([b.systemPrompt, b.promptPrefix, b.userPrompt, JSON.stringify(b.geminiSchema)]);
+
+  it("keeps every prompt byte-identical with the flag off and adds the block once to the saju group only", () => {
+    const block = fusionSajuShinsalBlock(pinned, now);
+    expect(block.startsWith(HEADER)).toBe(true);
+    expect(block.length).toBeLessThanOrEqual(500);
+    for (const group of allGroups(pinned)) {
+      same(call(pinned, group, env), plain(pinned, group));
+      const on = call(pinned, group, envOn), off = plain(pinned, group);
+      expect([on.systemPrompt, on.promptPrefix]).toEqual([off.systemPrompt, off.promptPrefix]);
+      expect(on.userPrompt.startsWith(on.promptPrefix)).toBe(true);
+      if (group.id !== "saju") { same(on, off); continue; }
+      expect(on.userPrompt.split(HEADER)).toHaveLength(2);
+      expect(on.userPrompt.length - off.userPrompt.length).toBe(block.length + 2);
+    }
+    expect(call(pinned, sajuOf(pinned), { ...env, SAJU_SHINSAL_FACTS_V1: "true" }).userPrompt).toContain(block);
+    same(call(pinned, sajuOf(pinned), { ...env, SAJU_SHINSAL_FACTS_V1: "karma,guardian" }), plain(pinned, sajuOf(pinned)));
+  });
+
+  it("leaves unpinned and v1 sessions off, obeys the env kill switch, and skips hour shinsal when the time is unknown", () => {
+    same(call(legacy, sajuOf(legacy), envOn), plain(legacy, sajuOf(legacy)));
+    same(call(pinned, sajuOf(pinned), { ...env, SAJU_SHINSAL_FACTS_V1: "" }), plain(pinned, sajuOf(pinned)));
+    const v1 = { ...pinned, version: "fusion-fortune.v1" };
+    for (const group of allGroups(v1)) same(call(v1, group, envOn), plain(v1, group));
+    expect(fusionSajuShinsalBlock(pinned, now)).toContain("시지");
+    const block = fusionSajuShinsalBlock(unknown, now);
+    expect(block).toContain("시주 신살은 계산하지 않았다");
+    expect(block).not.toContain("시지");
+    expect(call(unknown, sajuOf(unknown), envOn).userPrompt).toContain(block);
+  });
+
+  it("drops only the block when the saju call would pass 95% of the input limit", () => {
+    const group = sajuOf(pinned);
+    const block = fusionSajuShinsalBlock(pinned, now);
+    const blockTokens = tokens(plain(pinned, group, "", block)) - tokens(plain(pinned, group));
+    const room = FUSION_SHINSAL_PROMPT_BUDGET - tokens(plain(pinned, group));
+    const tight = "가".repeat(room - Math.floor(blockTokens / 2));
+    expect(tokens(plain(pinned, group, tight))).toBeLessThanOrEqual(FUSION_SHINSAL_PROMPT_BUDGET);
+    expect(tokens(plain(pinned, group, tight, block))).toBeGreaterThan(FUSION_SHINSAL_PROMPT_BUDGET);
+    same(call(pinned, group, envOn, tight), plain(pinned, group, tight));
+    expect(call(pinned, group, envOn, "가".repeat(room - blockTokens - 10)).userPrompt).toContain(block);
+  });
+
+  it("pins new expert sessions only and resumes a pinned session without a 409", async () => {
+    const capture = () => jest.fn(async () => ({ result: {}, deliverable: false, generationSource: "gemini_partial" }));
+    const input = { birthDate: "1995-04-18", birthTime: "08:30", calendarType: "solar", gender: "female", topic: "삶", concern: "", reportVersion: FUSION_PREMIUM_V2 };
+    const run = (generator, extra = {}) => generateFusionFortuneRequest({ input, userId: "u", requestId: `s-${Math.random()}`, store: createMemoryFusionFortuneStore(), resolvePaidAccess: async () => ({ ok: true }), contextBuilder: async () => ({ ok: true, context: { ...legacy } }), generator, env: envOn, ...extra });
+    const store = createMemoryFusionFortuneStore(); let snapshot;
+    const fresh = capture();
+    const first = await run(fresh, { requestId: "shinsal-resume", store, onSnapshot: async (value) => { snapshot = value; } });
+    expect(first.ok).toBe(true);
+    expect(fresh.mock.calls[0][0].context.shinsalFacts).toBe("shinsal-facts-v1");
+    expect(snapshot.context.shinsalFacts).toBe("shinsal-facts-v1");
+    const resumed = capture();
+    const again = await run(resumed, { requestId: "shinsal-resume", store, priorSnapshot: snapshot, priorResult: first.result });
+    expect(again.ok).toBe(true);
+    expect(resumed.mock.calls[0][0].context).toEqual(snapshot.context);
+    for (const extra of [{ priorSnapshot: { context: legacy } }, { env }, { contextBuilder: async () => ({ ok: true, context: { ...legacy, version: "fusion-fortune.v1" } }) }]) {
+      const generator = capture(); await run(generator, extra);
+      expect(generator.mock.calls[0][0].context.shinsalFacts).toBeUndefined();
+    }
+  });
+
+  it("accepts a saju chapter that quotes the block, with or without a birth time", () => {
+    for (const context of [pinned, unknown]) {
+      const group = sajuOf(context);
+      const value = payload(group, context, { extra: `\n\n${fusionSajuShinsalBlock(context, now)}${quote}` });
+      expect(validateFusionFortuneGroup(value, group, { birthTimeKnown: context.birthTimeKnown })).toMatchObject({ ok: true });
+    }
+  });
+
+  it("sends the block only in the saju call of a mocked paid stage and keeps the quoted answer", async () => {
+    const prompts = {}; const attempts = {}; let prior = {};
+    for (let wave = 0; wave < 8; wave++) {
+      const generated = await generateFusionFortuneWithRealLLM({ context: pinned, stage: 1, requestId: "shinsal-stage", env: envOn, priorResult: prior, priorSnapshot: { attempts: { ...attempts } },
+        onCheckpoint: async (result) => { prior = { ...prior, ...result }; },
+        onAttempt: async (id) => { attempts[id] = (attempts[id] || 0) + 1; return attempts[id]; },
+        providerCall: async (_env, prompt, options) => {
+          const id = options.logContext.sectionGroup;
+          prompts[id] = prompt;
+          const group = allGroups(pinned).find((item) => item.id === id);
+          return { ok: true, text: JSON.stringify(payload(group, pinned, { extra: id === "saju" ? quote : "" })), provider: "gemini", model: options.model };
+        } });
+      prior = generated.result;
+      if (generated.deliverable) break;
+    }
+    expect(Object.keys(prompts).sort()).toEqual(fusionGroupsForStage(1, pinned).map((group) => group.id).sort());
+    for (const [id, prompt] of Object.entries(prompts)) expect(prompt.includes(HEADER)).toBe(id === "saju");
+    expect(prior.sajuSection.content).toContain("천을귀인과 문창귀인");
   });
 });

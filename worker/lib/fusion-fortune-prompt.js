@@ -747,8 +747,9 @@ export function buildFusionSectionPromptPrefix({ context = {}, stage = 1, priorS
  * priorSections 는 2단계 그룹에만 의미가 있다 — 1단계 결과 객체를 넘기면 요약이 서버 컨텍스트 앞에 실린다.
  * @param {{ context?: object, group: object, priorSections?: object, extraInstruction?: string, schemaInPrompt?: boolean }} args
  */
-export function buildFusionSectionGroupPrompt({ context = {}, group, priorSections = null, extraInstruction = "", schemaInPrompt = true, referenceDate = new Date() } = {}) {
-  if (context.version === FUSION_EXPERT_VERSION) return buildExpertGroupPrompt(context, group, priorSections, extraInstruction, schemaInPrompt, referenceDate);
+export function buildFusionSectionGroupPrompt({ context = {}, group, priorSections = null, extraInstruction = "", schemaInPrompt = true, referenceDate = new Date(), shinsalFacts = "" } = {}) {
+  // shinsalFacts: 전문가 판 1단계 사주 그룹 꼬리에만 붙는 신살 사실 블록(fusion-fortune.js 가 핀·플래그·상한을 판정한다).
+  if (context.version === FUSION_EXPERT_VERSION) return buildExpertGroupPrompt(context, group, priorSections, extraInstruction, schemaInPrompt, referenceDate, shinsalFacts);
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const responseSchema = pickSchema(group.keys);
   // 🔴 상한은 스키마 서술자(lengthDirective)와 **같은 함수**에서 나온다 — 두 자리가 다른 천장을
@@ -995,7 +996,7 @@ function fusionPlan2Lines(context, group) {
       : "고객의 질문 원문은 첫 장에서 이미 다뤘다. 원문을 다시 옮겨 적지 말고 배경으로만 삼아, consultationPlan의 세부 질문에 이 장의 근거로 답한다.",
   ].join("\n");
 }
-function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaInPrompt = true, referenceDate = new Date()) {
+function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaInPrompt = true, referenceDate = new Date(), shinsalFacts = "") {
   const safeContext = projectFusionFortuneContextForPrompt(context);
   const prefix = expertPromptPrefix(context, group.stage, prior);
   const premiumLength = premiumLengthFor(context);
@@ -1053,6 +1054,8 @@ function buildExpertGroupPrompt(context, group, prior, extraInstruction, schemaI
     group.keys.includes("finalVerdict") ? "finalVerdict.systemVerdicts[].stance는 agree·conditional·caution 중 하나다 — 이 결론과 같은 방향이면 agree, 조건이 맞을 때만 같은 방향이면 conditional, 다른 방향이거나 속도를 늦추라고 하면 caution. 1단계 signals의 advance·pause·adapt는 다른 필드의 값이므로 옮겨 쓰지 않는다. 근거 없이 전부 agree로 몰지 않는다. confidence는 0으로 둔다." : "",
     group.systems.includes("tarot") ? "여섯 카드의 카드명·정역방향·포지션을 모두 인용한다. 카드 이름 자체는 서버의 표기를 유지한다." : "",
     group.systems.includes("saju") ? "격국·용신·대운·세운의 제공 근거를 설명한다. 사주 엔진은 실제 경력 10년차 명리학자 설계·자문이라는 신뢰 요소를 존중한다. 추가 계산이 별도 전문가 검수를 받았다고 표현하지 않는다." : "",
+    // 신살 사실 블록은 사주 전문가 그룹 꼬리에만 둔다 — 공유 접두사·시스템 프롬프트(캐시)와 다른 그룹은 바이트 그대로다.
+    group.id === "saju" && typeof shinsalFacts === "string" && shinsalFacts ? shinsalFacts : "",
     // 화자 지시는 묶음마다 다르므로 공유 접두사(prefix) 뒤, 그룹별 꼬리에만 둔다 — 캐시 접두사가 바이트 그대로 유지된다.
     (() => { const narration = fusionGroupNarration(group, context); return fusionVoiceText(narration.narrator, narration.keys, context.locale); })(),
     answerVoiceBlock(context.answerVoice ?? null, { master: fusionGroupNarration(group, context).narrator || "neutral", locale: context.locale }),
