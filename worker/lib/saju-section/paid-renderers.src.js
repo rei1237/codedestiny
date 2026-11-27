@@ -1083,13 +1083,15 @@ function renderSummary(p,johu,natal){
     '정인':'배우고 나누는 길 — 배움이 네 평생 자산이야. 좋은 스승을 찾아 배우고, 받은 만큼 나눠 봐.'
   };
 
+  // ⑮ 액땜 카드는 목차 링크를 붙일지 먼저 알아야 해서 여기서 계산하고, 상자는 ⑭ 뒤에 둔다. '' 이면 목차·상자 둘 다 빠진다.
+  var _remedyBody=_sajuRemedyCardsHtml(_isNeoSaju);
   var html='<div class="saju-summary-report">'+
     '<nav class="saju-summary-nav" aria-label="라이트 사주 풀이 목차">'+
     '<a href="#sajuSummaryChapter-chongpyeong">기질과 계절</a>'+
     '<a href="#sajuSummaryChapter-ohaeng">오행과 십성</a>'+
     '<a href="#sajuSummaryChapter-seonggyeok">성격과 관계</a>'+
     (_isNeoSaju?'<a href="#sajuSummaryChapter-jeollyak">앞으로의 길</a>':'<a href="#sajuSummaryChapter-jeollyak">현실 전략</a>')+
-    '<!--saju-ext--><a href="#sajuSummaryChapter-yongsin">필요한 기운</a><a href="#sajuSummaryChapter-olhae">올해·내년 처방</a><!--/saju-ext-->'+
+    '<!--saju-ext--><a href="#sajuSummaryChapter-yongsin">필요한 기운</a><a href="#sajuSummaryChapter-olhae">올해·내년 처방</a>'+(_remedyBody?'<a href="#sajuSummaryChapter-remedy">나에게 맞는 액땜</a>':'')+'<!--/saju-ext-->'+
     '</nav>';
 
   /* ───────────────────────────────
@@ -1746,6 +1748,14 @@ function renderSummary(p,johu,natal){
   })();
 
   /* ───────────────────────────────
+     12-2. 나에게 맞는 액땜 — lib/saju/remedy 케이스 카드. 볼 때마다 다시 계산하고 저장하지 않는다(위 _remedyBody).
+  ─────────────────────────────── */
+  if(_remedyBody){
+    html+='<!--saju-ext-->'+box('remedy','🛡️ ⑮ '+(_isNeoSaju?'너한테':'나에게')+' 맞는 액땜 — '+(Number(BIRTH_YEAR)+Number(CURRENT_AGE)-1)+'년 기준',
+      _remedyBody,'#6d4c41','rgba(239,235,233,.7)')+'<!--/saju-ext-->';
+  }
+
+  /* ───────────────────────────────
      13. 연이의 현실 조언 / 영냥이의 현실 체크 (NEO_MODE 분기)
   ─────────────────────────────── */
   if (_isNeoSaju) {
@@ -1982,6 +1992,24 @@ function buildDaewunReadingGuide(age, gan, zhi, ev) {
   },document.body.classList.contains('neo-mode')?'neo':'pig');
 }
 // natal-core·luck-dynamics 가 읽는 원국({y,m,d,h}: {g,j}). 시각을 모르면 시주는 빈 글자다.
+// 정적 유료 사주의 액땜 카드(lib/saju/remedy). 서버가 SAJU_REMEDY_FACTS_V1 의 natal-static 을 켠 한국어 요청에서만
+// window.__cdRemedyEnabled 를 세운다(worker/lib/saju-section/report.js). 기준 해는 ⑭ 와 같은 올해, 대운은 그해를 덮는 G_DAEWUN 줄.
+// 연이 모드는 yeoni-saju, neo-mode(영냥이)는 yeongnyangi 화자다 — remedy 의 'neo' 키는 네오라 쓰지 않는다. 실패하면 '' 로 상자만 빠진다.
+function _sajuRemedyCardsHtml(neo){
+  if(window.__cdRemedyEnabled!==true)return '';
+  var api=window.SajuRemedy,view=window.SajuRemedyHtml,chart=_sajuCoreChart();
+  if(!api||!view||!chart||!BIRTH_YEAR||!CURRENT_AGE)return '';
+  try{
+    var refYear=Number(BIRTH_YEAR)+Number(CURRENT_AGE)-1;
+    var dw=(window.G_DAEWUN||[]).find(function(row){return refYear>=row.startYear&&refYear<=row.endYear;});
+    var unknown=!!window.__cdSajuTimeUnknown;
+    var result=api.computeRemedyCases({
+      saju:{pillars:{year:chart.y,month:chart.m,day:chart.d,hour:unknown?null:chart.h},timeUnknown:unknown,
+        daewoon:dw?{pillar:dw.g+dw.j,startYear:dw.startYear,endYear:dw.endYear}:undefined},
+      refYear:refYear,locale:'ko'});
+    return view.renderRemedyCardsHtml(result,{narrator:neo?'yeongnyangi':'yeoni-saju'})||'';
+  }catch(e){console.warn('[saju] remedy chapter skipped',e);return '';}
+}
 function _sajuCoreChart(){
   var p=G_PILLARS;if(!p||!p.y||!p.m||!p.d)return null;
   var unknown=!!window.__cdSajuTimeUnknown;

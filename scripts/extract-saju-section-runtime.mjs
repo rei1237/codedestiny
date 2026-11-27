@@ -203,6 +203,8 @@ import * as KoreanCalendar from '../../../lib/korean-calendar/index.js';
 import * as SajuReadingDepth from '../../../lib/saju/reading-depth.mjs';
 import * as SajuNatalCore from '../../../lib/saju/natal-core/index.mjs';
 import * as SajuShinsal from '../../../lib/saju/natal-core/shinsal/index.mjs';
+import * as SajuRemedy from '../../../lib/saju/remedy/index.mjs';
+import * as SajuRemedyHtml from '../../../lib/saju/remedy/render-html.mjs';
 import * as SajuLuckDynamics from '../../../lib/saju/luck-dynamics.mjs';
 
 const I18N = ${JSON.stringify(i18n)};
@@ -218,6 +220,8 @@ export function createSajuSectionRuntime(ctx) {
   window.SajuReadingDepth = SajuReadingDepth;
   window.SajuNatalCore = SajuNatalCore;
   window.SajuShinsal = SajuShinsal;
+  window.SajuRemedy = SajuRemedy;
+  window.SajuRemedyHtml = SajuRemedyHtml;
   window.SajuLuckDynamics = SajuLuckDynamics;
   // sajuReading.* 는 브라우저 cdTranslate(key, vars, fallback)와 같게 푼다: 한국어는 fallback, 그 밖의 언어는 사전 값(없으면 안내문).
   function _readingAt(source, path) { return String(path || '').replace(/\\[(\\d+)\\]/g, '.$1').split('.').reduce(function (acc, k) { return !acc || !k ? acc : acc[k]; }, source); }

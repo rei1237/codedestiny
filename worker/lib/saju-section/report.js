@@ -400,6 +400,8 @@ export function buildSajuSectionHtml(input) {
     return { html: bodies[featureKey] };
   }
   if (featureKey === "section_summary") {
+    // 액땜 장(⑮)은 한국어 요청에서만 — 카드 문구가 한국어뿐이다. 라우트가 env 로만 정한 remedyEnabled 를 읽는다.
+    window.__cdRemedyEnabled = input.remedyEnabled === true && (input.lang || "ko") === "ko";
     rt.renderSummary(p, johu, natal);
     return { html: captured.innerHTML };
   }

@@ -11,7 +11,7 @@ import { claimRequestBillingEvidence, evidenceClaimErrorBody } from "../lib/bill
 import { SAJU_SECTION_FEATURE_KEYS, SUKUYO_COMPAT_FEATURE_KEYS, ZIWEI_COMPAT_FEATURE_KEYS, SajuSectionInputError, buildSajuSectionHtml, sukuyoNatureMoment } from "../lib/saju-section/report.js";
 import { calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
-import { shinsalFactsOn } from "../lib/engine-rollout.js";
+import { remedyFactsOn, shinsalFactsOn } from "../lib/engine-rollout.js";
 import { SAJU_RECEIPT_FEATURE_KEYS, readBundleReceipt } from "../lib/saju-bundle-receipt.js";
 
 const degraded = () => json({
@@ -218,7 +218,7 @@ export async function handleSajuSection(request, env = {}) {
       const birth = bodyBirth(input);
       const sukuyo = publicKey === 'sukuyo-nature-deep-dive'
         ? await calculateSukuyoForMoment(env, sukuyoNatureMoment(birth, input.place)) : null;
-      const result = buildSajuSectionHtml({ ...input, featureKey: publicKey, birth, sukuyo, gender: input.gender === "M" ? "M" : "F", mode: input.mode === "neo" ? "neo" : "pig", lang: typeof input.lang === "string" ? input.lang.slice(0, 8) : "ko", authorityEnabled: sajuAuthorityOn(env), shinsalEnabled: shinsalFactsOn(env, "natal-static") });
+      const result = buildSajuSectionHtml({ ...input, featureKey: publicKey, birth, sukuyo, gender: input.gender === "M" ? "M" : "F", mode: input.mode === "neo" ? "neo" : "pig", lang: typeof input.lang === "string" ? input.lang.slice(0, 8) : "ko", authorityEnabled: sajuAuthorityOn(env), shinsalEnabled: shinsalFactsOn(env, "natal-static"), remedyEnabled: remedyFactsOn(env, "natal-static") });
       return json({ ok: true, unlocked: true, accessSource: 'public', featureKey: publicKey, ...result });
     }
 
@@ -306,7 +306,7 @@ export async function handleSajuSection(request, env = {}) {
       featureKey, birth, gender: gender === "M" ? "M" : "F",
       name: body?.name, mode: body?.mode === "neo" ? "neo" : "pig", lang: typeof body?.lang === "string" ? body.lang.slice(0, 8) : "ko",
       place: body?.place, daewun: body?.daewun, encyclopedia: body?.encyclopedia, energy: body?.energy, sukuyo, house: body?.house,
-      authorityEnabled: sajuAuthorityOn(env), shinsalEnabled: shinsalFactsOn(env, "natal-static"),
+      authorityEnabled: sajuAuthorityOn(env), shinsalEnabled: shinsalFactsOn(env, "natal-static"), remedyEnabled: remedyFactsOn(env, "natal-static"),
     });
     // 결제번호(주문번호): 이 계정의 결제 완료 주문이 연 권한일 때만 — 조회 키에 userId 가 들어 있고, 환불·타 계정·주문 아닌 근거는 null 이다.
     const receipt = profileId && SAJU_RECEIPT_FEATURE_KEYS.includes(featureKey)
