@@ -7,7 +7,7 @@
  *
  * 세 가지를 본다:
  *   1. PAID 인데 지급 표식이 없는 주문 → 다시 지급한다(지급은 멱등이라 안전하다)
- *   2. 오래된 PENDING → 취소한다(결제창을 열고 이탈한 주문이 영원히 남지 않게)
+ *   2. 오래된 PENDING → PortOne 을 다시 물은 뒤 취소한다(결제창을 열고 이탈한 주문이 영원히 남지 않게). PAID 면 확정한다
  *   3. 죽은 환불 락 → 놓아 준다(PG 호출 중 아이솔레이트가 죽은 경우)
  *
  * 🔴 **재시도 루프가 아니다.** 각 항목을 한 번씩만 시도하고, 실패하면 다음 크론에 다시 만난다.
@@ -104,16 +104,31 @@ export async function regrantUnfulfilledOrders(db, { grant, now = new Date(), li
   return { scanned: orders.length, repaired, failed };
 }
 
+/** 만료 직전 PortOne 재조회 1틱 상한. 주문마다 PG 를 부르므로(8s 상한) 작게 두고, 밀린 것은 다음 틱이 이어받는다. */
+export const PENDING_EXPIRY_PROBE_LIMIT = 20;
+/** 이 PG 상태일 때만 만료 취소한다. 그 밖(pay_pending 등 모르는 값)은 건너뛴다 — fail-closed. */
+const EXPIRABLE_PG_STATUSES = Object.freeze(["ready", "failed", "cancelled"]);
+
 /**
  * 오래된 PENDING 주문을 취소한다. 주체가 없으므로 나이 조건이 소유권을 대신한다.
  * 🔴 fail-closed: 구 재조정 태스크가 PortOne 과 대조해 남긴 `metadata.reconcile.lastPgStatus` 가 있고
- * 그 값이 paid 가 아닌 주문만 취소한다. 대조한 적 없는 주문·PG 가 PAID 라는 주문은 그대로 둔다 —
- * 그 주문은 다음 틱의 구 태스크가 정산(settleOrderFromReconcile)한다. 취소해 버리면 돈만 나가고
- * 어떤 주체도 되살릴 수 없다(2026-09-03 이용권 미적용 사고).
+ * 그 값이 paid 가 아닌 주문만 후보로 고른다. 대조한 적 없는 주문·PG 가 PAID 라는 주문은 그대로 둔다(2026-09-03 사고).
+ * 🔴 그 값은 낡을 수 있다(예: 마지막 대조 뒤 승인). 그래서 **취소 직전에 PortOne 을 다시 묻는다**(2026-11-27) —
+ *   · PAID → 취소하지 않고 settle(=settleOrderFromReconcile, 금액·통화 대조 포함)로 확정·지급한다.
+ *   · 조회 실패·주문 id 불일치·모르는 상태 → 건너뛴다(다음 틱).
+ *   · ready/failed/cancelled → ORDER_EXPIRED 취소(월정석 할인 주문은 failed/cancelled 만).
+ * probe 가 없으면 아무것도 취소하지 않는다. PG 조회는 DB 슬롯 밖에서 돌아야 하므로 DB 접근은 withDb 로만 한다.
+ *
+ * @param {object|null} db  withDb 를 넘기지 않을 때 쓸 DB(테스트).
+ * @param {{ probe?: (order) => Promise<object>, settle?: (order, pg) => Promise<unknown>, withDb?: (fn) => Promise<unknown> }} options
  */
-export async function expireStalePendingOrders(db, { now = new Date(), limit = 50, olderThanMs = PENDING_EXPIRY_MS } = {}) {
+export async function expireStalePendingOrders(db, {
+  now = new Date(), limit = PENDING_EXPIRY_PROBE_LIMIT, olderThanMs = PENDING_EXPIRY_MS,
+  probe = null, settle = null, withDb = (fn) => fn(db),
+} = {}) {
+  if (typeof probe !== "function") return { scanned: 0, cancelled: 0, settled: 0, skipped: 0, probe: false };
   const cutoff = new Date(now.getTime() - olderThanMs);
-  const orders = await db.find(
+  const orders = await withDb((conn) => conn.find(
     Payment,
     {
       status: "pending",
@@ -123,19 +138,46 @@ export async function expireStalePendingOrders(db, { now = new Date(), limit = 5
       $or:[{'pricingSnapshot.moonstoneDiscount':{$exists:false}},
         {'metadata.reconcile.lastPgStatus':{$in:['failed','cancelled']}}],
     },
-    { limit },
-  );
+    // 조회가 계속 실패하는 주문이 뒤 주문을 굶기지 않게 확인 시각으로 돌린다.
+    { sort: { "metadata.reconcile.expiryCheckedAt": 1, createdAt: 1 }, limit },
+  ));
 
-  let cancelled = 0;
+  let cancelled = 0, settled = 0, skipped = 0;
   for (const order of orders) {
-    const ok = await markOrderCancelled(db, {
-      orderId: String(order.merchantUid || ""),
+    const orderId = String(order.merchantUid || "");
+    await withDb((conn) => conn.updateOne(Payment, { merchantUid: orderId, status: "pending" },
+      { $set: { "metadata.reconcile.expiryCheckedAt": now } }));
+    let pg;
+    try {
+      pg = await probe(order);
+    } catch {
+      skipped += 1; // PG 에 닿지 못했다 — 상태를 모르면 닫지 않는다.
+      continue;
+    }
+    if (!pg || String(pg.paymentId || "") !== orderId) { skipped += 1; continue; }
+    const pgStatus = String(pg.status || "");
+    if (pgStatus === "paid") {
+      if (typeof settle !== "function") { skipped += 1; continue; }
+      try {
+        await settle(order, pg);
+        settled += 1;
+      } catch (error) {
+        skipped += 1;
+        console.error("[payments-v2-reconcile] expiry settle failed:", { orderId, code: String(error?.code || error?.message || error) });
+      }
+      continue;
+    }
+    const moonstone = Boolean(order.pricingSnapshot?.moonstoneDiscount);
+    const expirable = moonstone ? ["failed", "cancelled"] : EXPIRABLE_PG_STATUSES;
+    if (!expirable.includes(pgStatus)) { skipped += 1; continue; }
+    const ok = await withDb((conn) => markOrderCancelled(conn, {
+      orderId,
       reason: "ORDER_EXPIRED",
       olderThan: cutoff,
-    });
+    }));
     if (ok) cancelled += 1;
   }
-  return { scanned: orders.length, cancelled };
+  return { scanned: orders.length, cancelled, settled, skipped };
 }
 
 /**
@@ -190,16 +232,19 @@ export async function purgeExpiredResumePayloads(db, { now = new Date(), limit =
   return { scanned: orders.length, purged };
 }
 
+/**
+ * 슬롯 안에서 도는 정리 묶음. 🔴 PENDING 만료(expireStalePendingOrders)는 여기서 돌지 않는다 — 취소 직전 PortOne
+ * 재조회가 필요해 슬롯 밖에서 따로 돈다(index.js runPaymentsV2Reconcile).
+ */
 export async function runPaymentReconcile(db, { grant, now = new Date(), limit = 50 } = {}) {
   const regrant = await regrantUnfulfilledOrders(db, { grant, now, limit });
-  const expired = await expireStalePendingOrders(db, { now, limit });
   const locks = await releaseStaleRefundLocks(db, { now, limit });
   const resumePrivacy = await purgeExpiredResumePayloads(db, { now, limit });
   // Cold cron only; no gift queries on balance/home requests.
   const { Gift } = await import("../lib/gift-models.js");
   const gifts = await db.find(Gift, { status: "PAID", expiresAt: { $lte: now } }, { limit });
   for (const gift of gifts) await db.updateOne(Gift, { _id: gift._id, status: "PAID", expiresAt: { $lte: now } }, { $set: { status: "EXPIRED", updatedAt: now } });
-  return { regrant, expired, locks, resumePrivacy, expiredGifts: gifts.length };
+  return { regrant, locks, resumePrivacy, expiredGifts: gifts.length };
 }
 
 /** 결제 후 이만큼 지나도 권한이 없으면 알린다. 정상 확정과 재지급 몇 틱이 끝날 여유다. */

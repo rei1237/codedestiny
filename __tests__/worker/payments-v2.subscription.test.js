@@ -616,6 +616,65 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     expect(again).toMatchObject({ ok: true, replayed: true, granted: true });
   });
 
+  /* 🔴 우리 추정(30분 만료·클라이언트 실패 보고)으로 닫힌 주문은 PortOne 이 PAID·금액 일치면 되살린다(2026-11-27).
+     PG 취소·환불·자동환불·금액 불일치·사용자 취소는 그대로 둔다. */
+  const closedPg = (row, overrides = {}) => ({
+    paymentId: row.merchantUid, status: "paid", amount: Number(row.paymentAmount), currency: "KRW",
+    pay_method: "card", paid_at: Math.floor(Date.now() / 1000), ...overrides,
+  });
+  test.each([
+    ["30분 만료", { status: "cancelled", orderState: "CANCELLED", failureCode: "ORDER_EXPIRED" }],
+    ["클라이언트 취소 보고", { status: "cancelled", failureCode: "cancelled", failureStage: "client_report" }],
+    ["클라이언트 실패 보고", { status: "failed", failureCode: "client_failure", failureStage: "client_report" }],
+  ])("닫힌 주문 되살림 — %s 뒤 PortOne PAID·금액 일치면 확정·지급하고 재실행은 멱등이다", async (_label, closed) => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", `sub-revive-${closed.failureCode}`);
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    Object.assign(row, closed);
+    const { settleOrderFromReconcile } = await import("../../worker/payments/index.js");
+    const result = await settleOrderFromReconcile(ENV, { orderId: order.merchantUid, pgPayment: closedPg(row) }, { withDb: (_e, _c, fn) => fn(db) });
+    expect(result).toEqual({ ok: true, replayed: false, granted: true });
+    expect(row).toMatchObject({ status: "paid", failureCode: "", failureStage: "" });
+    expect(user.profileSubscription.tier).toBe("standard");
+    expect(user.profileSubscription.lastPassOrderId).toBe(order.merchantUid);
+    const again = await settleOrderFromReconcile(ENV, { orderId: order.merchantUid, pgPayment: closedPg(row) }, { withDb: (_e, _c, fn) => fn(db) });
+    expect(again).toMatchObject({ ok: true, replayed: true, granted: true });
+  });
+
+  test("🔴 확정 CAS 를 진 뒤 주문이 PAID 가 아니면 재생으로 넘기지 않는다 — 결제 안 된 주문에 지급 금지", async () => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", "sub-cas-lost-closed");
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    row.metadata = { ...(row.metadata || {}), moonstoneDiscountReleasedAt: new Date() }; // CAS 가 거절하는 상태
+    const pg = { pgTransactionId: "mock-tx", paidAt: new Date(), summary: { mock: true } };
+    await expect(__paymentsContextTestUtils.settleVerifiedOrder(db, {}, { order: row, pg }))
+      .rejects.toMatchObject({ code: "ORDER_NOT_CONFIRMABLE" });
+    expect(row.status).toBe("pending");
+    expect(user.profileSubscription.tier).toBe("free");
+  });
+
+  test.each([
+    ["PortOne 취소", { status: "cancelled", orderState: "CANCELLED", failureCode: "ORDER_EXPIRED" }, { status: "cancelled" }],
+    ["금액 불일치", { status: "cancelled", orderState: "CANCELLED", failureCode: "ORDER_EXPIRED" }, { amount: 1 }],
+    ["사용자 취소", { status: "cancelled", orderState: "CANCELLED", failureCode: "USER_CANCELLED" }, {}],
+    ["결과 실패 자동환불", { status: "cancelled", failureCode: "ORDER_EXPIRED", failureStage: "result_failure_auto_refund", metadata: { refundStatus: "refunded" } }, {}],
+    ["환불", { status: "refunded", orderState: "CANCELLED", failureCode: "ORDER_EXPIRED", refundedAt: new Date() }, {}],
+  ])("🔴 닫힌 주문 유지 — %s 는 되살리지 않고 혜택도 주지 않는다", async (_label, closed, pgOverrides) => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", `sub-keep-${String(closed.failureStage || closed.status)}-${Object.keys(pgOverrides).join("") || "none"}-${closed.failureCode}`);
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    Object.assign(row, closed);
+    const { settleOrderFromReconcile } = await import("../../worker/payments/index.js");
+    await expect(settleOrderFromReconcile(ENV, { orderId: order.merchantUid, pgPayment: closedPg(row, pgOverrides) }, { withDb: (_e, _c, fn) => fn(db) }))
+      .rejects.toBeTruthy();
+    expect(row.status).toBe(closed.status);
+    expect(row.entitlementGrantedAt).toBeFalsy();
+    expect(user.profileSubscription.tier).toBe("free");
+  });
+
   /* 🔴 카드는 이미 승인됐다. 여기서 503 을 내면 사용자는 결제된 돈에 대해 "실패"를 보고, 재시도해도
      주문이 PAID 라 같은 답만 돌아온다 — confirmOrder 머리주석이 "구 코드의 모순"이라며 제거를 선언한
      그 패턴이 이용권 경로에만 남아 있었다. 마무리는 웹훅 재생과 재조정 크론이 맡는다. */

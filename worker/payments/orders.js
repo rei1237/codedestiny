@@ -52,6 +52,39 @@ export const ORDER_STATUS = Object.freeze({
      · success/fulfilled — **구 코드가 쓴 주문**을 신규 코드가 다시 처리하는 것
      · refunded/cancelled — 늦게 도착한 webhook 이 환불된 주문을 되살리는 것 */
 const NOT_CONFIRMABLE_RAW_STATUSES = Object.freeze(["paid", "success", "fulfilled", "refunded", "cancelled"]);
+/* 🔴 예외 — 확정 전에 **우리 쪽 추정만으로** 닫힌 주문(2026-11-27). 크론 만료(ORDER_EXPIRED)와 클라이언트 실패
+   보고(failureStage client_report)는 PG 사실이 아니라 추정으로 닫혔으므로, PortOne 이 PAID·금액 일치라고
+   말하면(pg.verifyPgPayment) 되살린다 — 그대로 두면 돈만 나가고 혜택이 없다. PG 취소·환불·자동환불
+   (result_failure_auto_refund)·월정석 할인 반환 주문은 여기에 들지 않는다. */
+const REVIVABLE_CLOSED_FAILURE_CODE = "ORDER_EXPIRED";
+const REVIVABLE_CLOSED_FAILURE_STAGE = "client_report";
+const NON_REVIVABLE_FAILURE_STAGES = Object.freeze(["result_failure_auto_refund"]);
+
+/** 되살릴 수 있는 닫힌 주문인가(순수 판정 — evaluateConfirmable 이 쓴다). 쿼리판은 revivableClosedOrderFilter. */
+export function isRevivableClosedOrder(order) {
+  if (!order) return false;
+  const status = String(order.status || "");
+  const stage = String(order.failureStage || "");
+  if (order.refundedAt || order.metadata?.refundStatus || order.metadata?.moonstoneDiscountReleasedAt) return false;
+  if (NON_REVIVABLE_FAILURE_STAGES.includes(stage)) return false;
+  if (status === "cancelled" && String(order.failureCode || "") === REVIVABLE_CLOSED_FAILURE_CODE) return true;
+  return (status === "cancelled" || status === "failed") && stage === REVIVABLE_CLOSED_FAILURE_STAGE;
+}
+
+/** isRevivableClosedOrder 의 Mongo 필터판. 호출마다 새 객체를 돌려준다(Mongoose 가 필터를 제자리에서 캐스팅한다). */
+export function revivableClosedOrderFilter() {
+  return {
+    $and: [
+      { $or: [
+        { status: "cancelled", failureCode: REVIVABLE_CLOSED_FAILURE_CODE },
+        { status: { $in: ["cancelled", "failed"] }, failureStage: REVIVABLE_CLOSED_FAILURE_STAGE },
+      ] },
+      { failureStage: { $nin: [...NON_REVIVABLE_FAILURE_STAGES] } },
+      { refundedAt: null },
+      { "metadata.refundStatus": { $exists: false } },
+    ],
+  };
+}
 /** 아직 PAID 로 취급해야 하는 레거시 값들. 환불·재지급 대상 판정에 쓴다. */
 const PAID_RAW_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 
@@ -282,7 +315,9 @@ export async function createOrder(db, {
 export async function markOrderPaid(db, { orderId, order, pg }) {
   const result = await db.findOneAndUpdate(
     Payment,
-    { merchantUid: orderId, status: { $nin: NOT_CONFIRMABLE_RAW_STATUSES },
+    { merchantUid: orderId,
+      // 확정 전 상태이거나 우리 추정으로만 닫힌 주문(isRevivableClosedOrder). 그 밖의 닫힌 주문은 되살리지 않는다.
+      $or: [{ status: { $nin: NOT_CONFIRMABLE_RAW_STATUSES } }, revivableClosedOrderFilter()],
       'metadata.moonstoneDiscountReleasedAt':{$exists:false},
       ...(order?.pricingSnapshot?.moonstoneDiscount?.quantity ? {'metadata.moonstoneDiscountReserved':true} : {}),
     },
