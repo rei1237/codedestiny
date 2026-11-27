@@ -22,7 +22,6 @@ import { readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
 // 🔴 access-state.js 가 아니라 의존 없는 저장소 모듈에서 가져온다 — 그쪽을 가져오면
 // models.js·content-unlocks.js 까지 이 라우트의 모듈 그래프에 딸려 들어온다(그 파일 머리말 참고).
 import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
-import { deleteSoulCatAccount } from "../lib/soulcat-account.js";
 import {
   ACCESS_COOKIE_NAME,
   APP_REFRESH_TOKEN_HEADER,
@@ -4200,13 +4199,6 @@ async function handleWithdraw(request, env) {
     }
   }
 
-  // 🔴 모든 거부 조건을 통과한 뒤, 비식별화 전에만 부른다. SoulCat 은 이 쿠키를 /api/auth/me 로 다시
-  // 확인하므로 비식별화 뒤에는 인증이 안 되고, 거부 조건 앞에 두면 탈퇴 실패에도 영냥이 데이터가 지워진다.
-  const soulcatCleanup = await deleteSoulCatAccount(request, env);
-  if (soulcatCleanup.status === "failed") {
-    console.error("[auth/withdraw] soulcat account delete failed (retry from deleted_account_logs):", soulcatCleanup);
-  }
-
   // Apple 연결 해제(Phase 5). 비식별화가 refreshTokenEnc 를 지우므로 그 전에 부른다.
   // 설정·토큰이 없거나 실패해도 탈퇴는 그대로 진행한다(결과는 로그로만 남는다).
   await revokeAppleTokenForWithdraw(env, user);
@@ -4216,7 +4208,7 @@ async function handleWithdraw(request, env) {
   const emailHash = hashEmailForAudit(user.email, env);
   const anonymizedEmail = `withdrawn_${userId}_${now.getTime()}@withdrawn.local`;
 
-  let partialFailure = soulcatCleanup.status === "failed";
+  let partialFailure = false;
 
   try {
     await User.collection.updateOne(
@@ -4355,7 +4347,6 @@ async function handleWithdraw(request, env) {
       withdrawnAt: now,
       reason: "self",
       partialFailure,
-      soulcatCleanup,
       source: "worker_auth_withdraw",
     });
   } catch (error) {

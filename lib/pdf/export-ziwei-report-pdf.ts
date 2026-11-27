@@ -42,9 +42,9 @@ export function typesetZiweiReport(pdf: JsPDFInstance, fonts: PdfFonts, options:
       else writer.body(block.text);
     }
   }
-  drawContentsPage(pdf, fonts, 2, entries, '차례');
+  drawContentsPage(pdf, fonts, 2, entries, '차례', editorial.muted);
   drawEditorialPageMarks(pdf, editorial);
-  drawFooters(pdf, fonts, 'Code Destiny · 자미두수 상담');
+  drawFooters(pdf, fonts, 'Code Destiny · 자미두수 상담', 3, editorial.muted);
   pdf.setProperties({ title: options.title, subject: '자미두수 심층 상담', author: 'Code Destiny' });
   return pdf;
 }

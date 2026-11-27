@@ -20,6 +20,7 @@
  */
 import { LIGHT_FORTUNE_AUDIT_EXCLUDED_KEYS, LIGHT_FORTUNE_FEATURE_KEYS, isLightFortuneFeatureKey } from "../worker/lib/light-fortune-catalog.js";
 import { PAID_FEATURE_KEY_ALIASES } from "../worker/lib/paid-feature-registry.js";
+import { SAJU_BUNDLE_SALE_CLOSED_KEYS } from "../worker/lib/saju-bundle-policy.js";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -410,6 +411,12 @@ for (const file of localeFiles) {
     .filter(([, key]) => LIGHT_FORTUNE_FEATURE_KEYS.includes(key)).map(([alias]) => alias).sort();
   check("pass-verdict 라이트 운세 키가 서버 목록과 같다", JSON.stringify(mirror("LIGHT_FORTUNE_FEATURE_KEYS")) === JSON.stringify([...LIGHT_FORTUNE_FEATURE_KEYS].sort()));
   check("pass-verdict 라이트 운세 별칭이 서버 목록과 같다", JSON.stringify(mirror("LIGHT_FORTUNE_FEATURE_ALIASES")) === JSON.stringify(serverAliases));
+  /* 판매 종료 미러: 빠지면 클라가 이용권으로 열린다고 낙관하고 서버는 409 PRODUCT_SALE_ENDED 로 막는다. */
+  const closedKeys = [...SAJU_BUNDLE_SALE_CLOSED_KEYS].sort();
+  const closedAliases = Object.entries(PAID_FEATURE_KEY_ALIASES)
+    .filter(([alias, key]) => alias !== key && SAJU_BUNDLE_SALE_CLOSED_KEYS.includes(key)).map(([alias]) => alias).sort();
+  check("pass-verdict 판매 종료 키가 서버 목록과 같다", closedKeys.length > 0 && JSON.stringify(mirror("SALE_CLOSED_FEATURE_KEYS")) === JSON.stringify(closedKeys));
+  check("pass-verdict 판매 종료 별칭이 서버 목록과 같다", JSON.stringify(mirror("SALE_CLOSED_FEATURE_ALIASES")) === JSON.stringify(closedAliases));
 }
 
 /* ── ⑥ 월 한도 소진 임계값이 레지스트리 최저가에서 파생됐는가 ────────────

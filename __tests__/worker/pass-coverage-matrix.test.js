@@ -9,7 +9,7 @@ import { createRequire } from "node:module";
 import { listProducts } from "../../worker/payments/catalog.js";
 import { evaluatePassCoverage } from "../../worker/payments/passes.js";
 import { resolveCanonicalEntitlement } from "../../worker/lib/entitlement-policy.js";
-import { isSajuBundleSaleClosed } from "../../worker/lib/saju-bundle-policy.js";
+import { SAJU_BUNDLE_SALE_CLOSED_KEYS, isSajuBundleSaleClosed } from "../../worker/lib/saju-bundle-policy.js";
 import { CURRENT_PASS_POLICY_VERSION, currentPassPlan } from "../../lib/payment/pass-policy.js";
 
 const passVerdict = createRequire(import.meta.url)("../../js/core/pass-verdict.js");
@@ -52,6 +52,18 @@ test("excluded, sale-closed and Family-only products go to direct payment on non
   const exclusive = PRODUCTS.filter((p) => !shared.includes(p));
   expect(exclusive.map((p) => p.featureKey)).toEqual(expect.arrayContaining(["profile-card-manage", "yeongnyangi-fusion-all"]));
   for (const tier of ["standard", "premium", "vvip"]) expect(exclusive.filter((p) => serverCovers(p, holder(tier), tier)).map((p) => p.featureKey)).toEqual([]);
+});
+
+test.each(TIERS)("%s: the client never optimistically opens a sale-closed product, so the server decides owned vs sale ended", (tier) => {
+  const pass = holder(tier);
+  const keys = [...SAJU_BUNDLE_SALE_CLOSED_KEYS, "tetogen-deep-report", "tetogenDeepReport", "openTetogenDeepReport"];
+  const optimistic = keys.filter((key) => {
+    const verdict = passVerdict.resolveVerdict(pass.snapshot, 50, key);
+    return verdict.coversNow || !isSajuBundleSaleClosed(key);
+  });
+  expect(optimistic).toEqual([]);
+  const closedProducts = PRODUCTS.filter((p) => isSajuBundleSaleClosed(p.featureKey));
+  expect(closedProducts.filter((p) => clientCovers(p, pass)).map((p) => p.featureKey)).toEqual([]);
 });
 
 test.each(TIERS)("%s: an exhausted budget or a remainder below the price sends both sides to direct payment", (tier) => {

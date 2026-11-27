@@ -16,7 +16,7 @@ export const RECORD_METADATA_PROJECTION = Object.freeze({
   title: 1, topic: 1, question: 1, userQuestion: 1, questionSummary: 1, selectedTopic: 1,
   status: 1, generationStatus: 1, premiumStatus: 1, stage: 1, mode: 1,
   featureKey: 1, featureId: 1, serviceType: 1, reportType: 1, consultationType: 1, characterId: 1,
-  state: 1, persona: 1, completedChapters: 1, questionExcerpt: 1, paymentId: 1, orderId: 1, merchantUid: 1,
+  state: 1, persona: 1, purchaseProfileId: 1, completedChapters: 1, questionExcerpt: 1, paymentId: 1, orderId: 1, merchantUid: 1,
   'snapshot.analysis.consultation.question': 1,
   'metadata.paidNarrative.body.question': 1, 'metadata.paidNarrative.body.userQuestion': 1,
   'metadata.paidNarrative.body.topic': 1, 'metadata.archive.title': 1,
@@ -55,6 +55,8 @@ function retryHeld(doc, status, now) {
     !codex.closedAt && !codex.refundRequestedAt && futureAt(codex.refundAt, now);
 }
 export function recordStatus(doc, source, now = Date.now()) {
+  // 라이트 사주 풀이는 해금 행이다. 목록 조건이 ACTIVE 만 고르므로 열람 가능한 저장 상태다.
+  if (source.id === 'saju-bundle') return doc.status === 'ACTIVE' ? 'saved' : 'revoked';
   const refund = doc.llmMeta?.deliveryRefund?.status;
   if (refund === 'refunded') return 'revoked';
   if (['pending', 'manual_review'].includes(refund)) return 'refund_pending';
@@ -93,12 +95,12 @@ export function recordMetadata(source, doc) {
     // 후기 작성 링크(/reviews/?write=1&product=…)가 쓰는 카탈로그 slug. 콘텐츠 ID 가 아니다.
     reviewProductId: product?.productId || '',
     title: titleFields.map(field => clean(readRecordField(doc, field), 200)).find(Boolean) || name,
-    question: questionFields.map(field => clean(readRecordField(doc, field))).find(Boolean) || clean(doc.questionExcerpt) || clean(doc.summaryExcerpt),
+    question: questionFields.map(field => clean(readRecordField(doc, field))).find(Boolean) || clean(doc.questionExcerpt) || clean(doc.summaryExcerpt) || (clean(doc.profileName, 80) ? `${clean(doc.profileName, 80)} 프로필` : ''),
     createdAt: doc.createdAt && Number.isFinite(Date.parse(doc.createdAt)) ? new Date(doc.createdAt).toISOString() : null,
     status, group: source.dynamic ? variant?.group || source.group : source.group, character: clean(doc.persona || doc.characterId || source.character, 30),
-    href: savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
+    href: source.reopenHref || savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
     recoveryHref: featureKey === 'heukwol-warning-consultation' ? `/heukwol/?result=${encodeURIComponent(id)}` : featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : featureKey === 'premium-naming-prompt' && doc.executionId ? `/naming-ai/result?executionId=${encodeURIComponent(doc.executionId)}` : source.id === 'chat-consultation' ? source.resultPath + encodeURIComponent(id): source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
-    nativeHref: status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
+    nativeHref: source.reopenHref && status === 'saved' ? source.reopenHref : status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
   };
 }
 export function ownerQuery(userId) {
@@ -183,6 +185,7 @@ export async function listRecords(userId, params, readPage = async (source, quer
     ...(source.id === 'codex' ? { chapterPlanVersion: '$deliveryMeta.chapterPlanVersion', chapterManifest: { $map: { input: { $ifNull: ['$chapters', []] }, as: 'chapter', in: { id: '$$chapter.id', ok: '$$chapter.ok', chars: { $strLenCP: { $convert: { input: { $ifNull: ['$$chapter.body', '$$chapter.content'] }, to: 'string', onError: '', onNull: '' } } } } } } } : {}),
     ...(source.id === 'chat-consultation' ? { refundStatus:'$generationCheckpoint.deliveryRefund.status',manifestCount: { $size: { $ifNull: ['$snapshot.manifest', []] } } } : {}),
     ...(source.id === 'executions' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$metadata.paidNarrative.parts', {}] } } } } : {}),
+    ...(source.id === 'saju-bundle' ? { profileName: 1 } : {}),
     ...(source.id === 'tea' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$generationCheckpoint.parts', {}] } } } } : {}),
   };
   // A Payment mirror is the same naming delivery as its paid execution. Resolve
@@ -194,7 +197,11 @@ export async function listRecords(userId, params, readPage = async (source, quer
     from: models.FortuneChatSession.collection.collectionName,
     let: { messageId: { $concat: [{ $ifNull: ['$metadata.paidNarrative.body.requestId', ''] }, ':1'] }, feature: '$featureKey' },
     pipeline: [{ $match: { ...ownerQuery(userId), $expr: { $and: [{ $eq: ['$$feature', 'fortune-chat-consultation'] }, { $ne: ['$$messageId', ':1'] }, { $in: ['$$messageId', { $ifNull: ['$messages.id', []] }] }] } } }, { $limit: 1 }, { $project: { _id: 1 } }], as: '_conversation',
-  } }, { $match: { '_conversation.0': { $exists: false } } }] : [];
+  } }, { $match: { '_conversation.0': { $exists: false } } }] : source.id === 'saju-bundle' ? [{ $lookup: {
+    // 같은 계정의 구매 프로필 이름만 붙인다(출생 정보·다른 계정은 읽지 않는다). 프로필을 지웠으면 이름 없이 남는다.
+    from: models.ProfileCard.collection.collectionName, let: { profile: '$purchaseProfileId' },
+    pipeline: [{ $match: { ...ownerQuery(userId), $expr: { $eq: ['$profileId', '$$profile'] } } }, { $limit: 1 }, { $project: { _id: 0, name: 1 } }], as: '_profile',
+  } }, { $set: { profileName: { $arrayElemAt: ['$_profile.name', 0] } } }] : [];
   return collectionFor(source).aggregate([{ $match: query }, { $sort: { createdAt: -1, _id: -1 } }, ...mirror, { $limit: limit }, { $project: projection }], { maxTimeMS: 5000 }).toArray();
 }) {
   const search = clean(params.get('q'), 160), group = params.get('group') || 'all';
@@ -262,6 +269,8 @@ export async function readRecord(userId, sourceId, id) {
   }
   let content = source.id === 'executions' ? doc.metadata?.result || doc.metadata?.archive || doc.metadata?.palmResult || doc.metadata?.celestialDelivery?.reading || {} :
     source.id === 'paid-results' ? doc.result : source.id === 'legacy-naming' ? doc.namingPrompt || doc.pricingSnapshot?.namingPrompt : doc;
+  // 라이트 사주 풀이는 저장 본문이 없다 — 해금 행의 주문·출생 신원을 화면에 내보내지 않고, 사주 결과 화면으로 다시 연다.
+  if (source.id === 'saju-bundle') content = {};
   if (source.id === 'codex') content = { ...doc, status: record.status, consultationHash: undefined, consultation: doc.consultation ? { ...doc.consultation, records: undefined } : null };
   if (source.id === 'chat-consultation') {
     const { presentFortune } = await import('../yeongnyangi/service.ts');
