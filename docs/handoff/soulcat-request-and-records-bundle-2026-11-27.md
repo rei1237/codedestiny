@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-27
-next: 2 — 사용자 결정 대기(결정 8-보충, 추천 c). 단계 3·4 완료(368d6c31f8). 결정 후 2 → 5(pre-push·push·CI 1회)
+next: 5 — check:pre-push·push·main CI 1회(메인 세션). 단계 2(3b8f37b401)·3·4(368d6c31f8) 완료
 ---
 
 # 영냥이 결제 requestId 서버 선생성 + /records/ 사주 묶음 노출
@@ -17,6 +17,7 @@ next: 2 — 사용자 결정 대기(결정 8-보충, 추천 c). 단계 3·4 완�
 - 결정 8: "(a) 서버가 먼저 요청 생성" — 결제 전에 서버가 YeongnyangiRequest 를 만들고 id(`yn-<64hex>`)를 돌려준다. 소유 검증은 그대로 둔다. 서버 형식 완화(b)는 기각.
 - 결정 9: "보여준다" — `/records/` 에 라이트 사주 묶음(`saju_lifetime_bundle`, 정적 해금)을 목록으로 노출한다.
 - 결정 10: "현행 유지" — CI 트리거 추가하지 않는다.
+- 결정 8 변경(2026-11-27 사용자 원문): "SOULCAT을 지금 운세보는 영냥이로 꿀꿀운세에 출시한거야 SOULCAT 프로젝트는 합쳐졌으니 영냥이 서비스만 제대로 되면 되고 용량 차지하지 않게 그 프로젝트는 삭제해줘". 이어서 "꿀꿀운세 안의 SoulCat 모드 코드" 삭제를 명시 선택. 서버 선생성(a)·(c)·(a1)·(a2)는 모두 폐기. 외부 자원(GitHub 레포·D1)은 메인 세션 담당.
 - 운영 승격: "지금은 배포 안 함". push 는 해도 되지만 production dispatch 는 별도 요청 때만.
 
 ## 작업 규칙과 함정
@@ -69,8 +70,11 @@ next: 2 — 사용자 결정 대기(결정 8-보충, 추천 c). 단계 3·4 완�
 
 ## 단계
 - [x] 1 결정 8 조사: SoulCat 결제 진입부, 서버 requestId 검증 위치, 기존 요청 생성 경로를 찾아 설계를 이 문서에 적는다. → 위 "8 조사 결과"·"8 막힘". 코드 변경 없음.
-- [ ] 2 결정 8 구현 — ⛔ 보류: 새 엔드포인트·스키마 추가·결제 코어 분기가 필요해 승인 범위(a) 밖. 사용자에게 (c)/(a1)/(a2) 선택을 묻는다(추천 c).
-  결정 8 구현 + mock 테스트 + paid-gate-auditor + check:fast → 커밋.
+- [x] 2 결정 8 해소: SoulCat 통합 → 레포 내 SoulCat 모드 제거(3b8f37b401).
+  - 삭제: `worker/lib/soulcat-account.js`(+ `worker/routes/auth.js` 탈퇴 호출·`soulcatCleanup` 로그 필드, `partialFailure` 시작값 false), `worker/routes/yeongnyangi-entitlement.js`(임포터 없음, `worker/index.js` 410 스텁은 유지), `__tests__/ui/checkout-soulcat-mode.static.test.js`, `__tests__/worker/yeongnyangi-entitlement.route.test.js`, auth.withdraw 의 SoulCat 테스트 4건.
+  - `app/checkout/CheckoutClient.tsx`: `isSoulCatMode` 분기·`yn-soulcat-*` 채번·`stableSlug`·host/receipt 블록 제거. requestId 없는 진입은 결제 버튼 대신 기존 notice(fail-closed). checkout.module.css 의 죽은 .host/.receipt/.total 규칙 제거, page.tsx 주석 갱신, pass-consolidation-shop 테스트의 receipt 단언 1줄 제거.
+  - 검증: deletion-auditor(조건부 SAFE, 지적 2건 반영), paid-gate-auditor PASS(동결 미해당·--update 불필요, payment-freeze·choice-parity·checkout-pass-card·paid-gate-ui 등 11개 verify PASS, tsc 0), node 테스트 24/24, verify-feature-marketing-schema OK, sitemap:generate(변경 없음), check:fast(critical) — 기존 범위 밖 card-single-payment-auto-refund 10건 외 전부 통과.
+  - 남김(보고만): checkout-copy 의 rowComposition·rowMethod·methodDirect·rowAmount 키와 alliance.imageAlt/title/story, `public/assets/yeongnyangi/payment-alliance/yeoni-alliance-v1.webp`(코드 참조 0), styles/home-funnel.css·saju-reading.css 의 `.cd-soulcat-entry*` 와 js/core/saju/reading-personas.js 의 `[data-soulcat-price]`(마크업 참조 0인 옛 홈 진입 카드 잔재, 정적 셸 인라인 CSS라 별도 변경), consultation-kinds.ts·original.css 의 유래 주석.
 - [x] 3 결정 9 조사: /records/ 목록 소스와 묶음 해금 저장 위치, library-preservation 정책 대조. → 위 "9 구현"(조사 결과는 구현에 반영).
 - [x] 4 결정 9 구현 + 테스트 + 모바일 너비 화면 확인(visual-checker) + check:fast → 커밋. → 368d6c31f8. 검증 결과:
   - record-library jest 33/33
