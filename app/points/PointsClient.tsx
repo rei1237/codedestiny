@@ -2558,7 +2558,7 @@ function MoonlightShopPlans({
                   type="button"
                   onClick={() => onSubscribe(plan)}
                   disabled={ctaDisabled}
-                  className={`${plan.badge === "recommended" ? "btn-moonlight" : "btn-moonlight-ghost"} inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50`}
+                  className={`${plan.badge === "recommended" ? "btn-moonlight" : "btn-moonlight-ghost"} inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-75`}
                 >
                   {saleStatus === "loading" ? "판매 정보 확인 중" : saleStatus === "error" ? "판매 정보 확인 필요" : saleReady[plan.tier] === undefined ? "판매 정보 확인 필요" : !saleReady[plan.tier] ? "판매 준비 중" : isCurrentActive ? (consultationExhausted ? "다시 구매하기 →" : "연장하기 →") : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
                 </button>
@@ -2624,7 +2624,7 @@ function MoonlightOrderHistory({
       <section className="moon-card rounded-[24px] p-5 sm:p-6">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-black text-white">최근 주문 내역</h2>
-          <span className="text-xs font-bold text-[color:var(--moon-mist)]">달빛 주문 기록 확인 중</span>
+          <span className="text-xs font-bold text-[color:var(--moon-mist)]">이용권 주문 기록 확인 중</span>
         </div>
         <div className="space-y-3">
           <div className="moon-loading-line h-24 rounded-[18px]" />
@@ -2639,7 +2639,7 @@ function MoonlightOrderHistory({
       <section className="moon-card rounded-[24px] p-5 sm:p-6">
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
           <MoonIcon phase="outline" className="h-14 w-14" title={copy.passOrderHistoryPendingTitle} />
-          <p className="mt-3 text-base font-black text-white">주문 내역의 달빛이 잠시 가려졌어요</p>
+          <p className="mt-3 text-base font-black text-white">주문 내역을 잠시 불러오지 못했어요</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             결제 기능은 그대로 유지되며, 내역은 잠시 뒤 다시 확인할 수 있어요.
           </p>
