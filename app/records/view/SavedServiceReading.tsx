@@ -120,7 +120,7 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  }
  if(family==='astrology') return <div className={styles.night}>{answerFirst(<SavedAstrology value={model.astrologyChart||model.chart}/>,body)}</div>;
  if(family==='ziwei'&&(model.serviceType==='ziwei-island-palace-consult'||model.palaceKey)) return <article className={styles.island}><img className={styles.islandArt} src="/images/destiny-island/consult-reading.webp" alt="" width={720} height={720}/><p>{reader.palaceLetter}</p><h2>{text(model.palaceKey)}{model.palaceTitle?' · '+text(model.palaceTitle):''}</h2>{answerFirst(<SavedZiwei value={model.ziweiChart||model.chart}/>,body)}</article>;
- if(family==='ziwei') return <div className={styles.reader}>{view.fields.includes('messages')&&<SavedZiweiAiPdfButton row={row} locale={locale}/>}{view.fields.includes('chapters')&&<SavedZiweiDeepPdfButton row={row} locale={locale}/>}{answerFirst(<SavedZiwei value={model.ziweiChart||model.chart}/>,body)}</div>;
+ if(family==='ziwei') return <div className={styles.reader}>{view.fields.includes('messages')&&<SavedZiweiAiPdfButton row={row} locale={locale}/>}{view.fields.includes('chapters')&&<SavedZiweiDeepPdfButton row={row} locale={locale}/>}{answerFirst(<SavedZiwei value={model.ziweiChart||model.chart}/>,<>{body}<RemedyCaseCards remedyCases={row.remedyCases} narrator="musung" theme="dark" headingLevel={2}/></>)}</div>; // 액땜 카드: 자미두수 AI 가 저장한 remedyCases 만(재계산·LLM·결제 없음, 옛 기록은 카드 없음)
  if(family==='human-design') {
   const chart=row.calculation||object(row.basis).chart||row.chart;
   const reportPdf=serviceId==='human-design'&&!!chart&&list(row.sections).some(s=>!!text(object(s).body));

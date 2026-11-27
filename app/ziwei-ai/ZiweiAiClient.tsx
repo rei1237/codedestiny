@@ -11,6 +11,7 @@ import introductionArt from "@/lib/marketing/service-introduction-art.json";
 import CraftedProductDisclosure from "@/app/components/CraftedProductDisclosure";
 import { RecommendationResult } from "@/app/components/recommendations/RecommendationResult";
 import { adviceTopics } from "@/js/recommendations-context.mjs";
+import RemedyCaseCards from "@/components/fortune/remedy/RemedyCaseCards";
 const PaidResultImageGuide = dynamic(() => import('@/components/fortune/PaidResultImageGuide'), { ssr: false });
 
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
@@ -274,6 +275,8 @@ type Consultation = {
   ziweiChart?: ZiweiChart;
   analysisBasis?: AnalysisBasis | null;
   messages?: ConsultationMessage[];
+  // 액땜 카드: 상담 시작 때 저장한 computeRemedyCases 결과(옛 상담에는 없다).
+  remedyCases?: unknown;
 };
 
 type StructuredZiweiResult = {
@@ -1697,6 +1700,8 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
 
                   </div>
                 </details>
+                {/* 액땜 카드: 저장된 remedyCases 만 그린다(플래그와 무관, 재계산 없음). 없거나 깨지면 카드만 빠지고 칸은 :empty 로 접힌다. 접힌 명반 밖, 캡처 영역 안. */}
+                {consultation.remedyCases && typeof consultation.remedyCases === "object" ? <div className="remedySlot" data-ziwei-pdf-section><RemedyCaseCards remedyCases={consultation.remedyCases} narrator="musung" theme="dark" headingLevel={3} /></div> : null}
                 <PaidResultImageGuide domain="ziwei" reviewProductId="ziwei" status={consultation.status} content={assistantMessages.map(message=>message.content)} basis={consultation.analysisBasis} toolsLabel={resultCopy.imageTools} />
               </div>
               {consultation.status === "completed" && !busy && <RecommendationResult service="ziwei-ai-consultation" practiceTags={adviceTopics([structuredResult?.sections?.action_plan?.body])}/>}
@@ -1779,6 +1784,7 @@ export default function ZiweiAiPage({paymentSurface="web",ProfilePicker,TossPric
         .resultToolbar button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border:1px solid rgba(245,217,145,.42);border-radius:8px;background:rgba(245,217,145,.14);color:#fff0b8;padding:0 13px;font-family:var(--font-display);font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 12px 24px rgba(0,0,0,.18)}
         .resultToolbar button:disabled{cursor:not-allowed;opacity:.62}
         .resultDocument{display:grid;gap:14px;background:#060712;color:#f8fafc}
+        .remedySlot{min-width:0}.remedySlot:empty{display:none}
         .resultDetails{border-top:1px solid var(--cd-border)}
         .resultDetails>summary{min-height:44px;padding:12px 0;cursor:pointer;font-family:var(--font-display);font-weight:700}
         .resultDetails>summary:focus-visible{outline:2px solid currentColor;outline-offset:4px}
