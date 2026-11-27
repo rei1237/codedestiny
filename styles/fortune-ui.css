@@ -17922,6 +17922,7 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
 #resultPage #sajuCard .mxv-say,
 .mxv-sheet .mxv-say { display: flex; align-items: flex-end; gap: 10px; margin: 0 0 12px; }
 #resultPage #sajuCard .mxv-say--nyang { margin: 14px 0 0; }
+.mxv-sheet .mxv-say { margin: 12px 0 0; }
 #resultPage #sajuCard .mxv-say--nyang,
 .mxv-sheet .mxv-say--nyang { flex-direction: row-reverse; }
 #resultPage #sajuCard .mxv-say__face,
@@ -18134,6 +18135,13 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
 .mxv-sheet .mxv-how__row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; padding: 6px 0; border-bottom: 1px solid var(--mx-gold-line); font-size: 14px; }
 .mxv-sheet .mxv-how__row dt { color: var(--mx-muted); }
 .mxv-sheet .mxv-how__row dd { margin: 0; }
+/* 대화형 시트: 설명 칸이 말풍선 안에 들어가면 칸 바탕을 걷어 내고 제목만 작게 남긴다. */
+.mxv-sheet .mxv-say .mxv-copy { margin: 6px 0 0; padding: 0; border-radius: 0; background: transparent; }
+.mxv-sheet .mxv-say .mxv-copy + .mxv-copy { margin-top: 10px; }
+.mxv-sheet .mxv-say .mxv-copy__title { margin: 0 0 2px; font-size: 13px; }
+.mxv-sheet .mxv-how__place { display: block; }
+.mxv-sheet .mxv-how__place + .mxv-how__place { margin-top: 4px; }
+.mxv-sheet .mxv-how__mean { display: block; color: var(--mx-muted); font-size: 13px; line-height: 1.55; }
 .mxv-sheet .mxv-sheet__sub { margin: 14px 0 6px; font-size: 14px; font-weight: 700; }
 .mxv-sheet .mxv-sheet__note { margin: 8px 0; color: var(--mx-muted); font-size: 14px; }
 .mxv-sheet .mxv-sheet__foot { margin: 16px 0 0; color: var(--mx-muted); font-size: 13px; line-height: 1.6; }

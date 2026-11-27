@@ -1299,10 +1299,21 @@
     }
     var h = '';
     if (c.short) h += '<p class="mxv-sheet__short">' + esc(c.short) + '</p>';
-    [['easy', 'sheet.easy'], ['good', 'sheet.good'], ['caution', 'sheet.caution'], ['tip', 'sheet.tip']].forEach(function (pair) {
-      if (c[pair[0]]) h += '<section class="mxv-copy mxv-copy--' + pair[0] + '"><h4 class="mxv-copy__title">' + esc(mt(pair[1])) + '</h4><p>' + esc(c[pair[0]]) + '</p></section>';
+    // 연이는 쉬운 풀이와 좋은 쪽을, 영냥이는 조심할 점과 활용 팁을 말한다. 설명문 자체는 정본 그대로 둔다.
+    [['yeoni', [['easy', 'sheet.easy'], ['good', 'sheet.good']]], ['nyang', [['caution', 'sheet.caution'], ['tip', 'sheet.tip']]]].forEach(function (turn) {
+      var inner = '';
+      turn[1].forEach(function (pair) {
+        if (c[pair[0]]) inner += '<section class="mxv-copy mxv-copy--' + pair[0] + '"><h4 class="mxv-copy__title">' + esc(mt(pair[1])) + '</h4><p>' + esc(c[pair[0]]) + '</p></section>';
+      });
+      if (inner) h += sayHtml(turn[0], inner);
     });
     return h;
+  }
+  /* 한국어 시트의 '어떻게 잡혔나요?' 자리 칸. 원국 자리에는 그 기둥이 비추는 영역을 함께 적는다. */
+  function howPlacesHtml(it) {
+    return placesOf([it], null, true, true).map(function (p) {
+      return '<span class="mxv-how__place">' + esc(p.spot) + (p.mean ? '<span class="mxv-how__mean">' + esc(p.mean) + '</span>' : '') + '</span>';
+    }).join('');
   }
   function hanjaOf(id, token) {
     // 일본어·중국어는 이름 자체가 한자라 겹쳐 쓰지 않는다. 그 밖의 언어는 한자를 함께 보인다.
@@ -1332,8 +1343,10 @@
       h += '<div class="mxv-sheet__meta">' + polChip(g.polarity) + hanjaOf(g.id, token) + '<span class="mxv-sheet__cat"><span aria-hidden="true">' + (EMOJI[g.category] || '') + '</span> ' + esc(catLabel(g.category)) + '</span></div>';
       h += copyBlock(g.id, token);
       h += '<section class="mxv-how"><h4 class="mxv-how__title">' + esc(mt('sheet.how')) + '</h4><dl class="mxv-how__list">';
+      var koSheet = isKo();
       g.items.forEach(function (it) {
-        h += '<div class="mxv-how__row"><dt>' + esc(mt('sheet.where')) + '</dt><dd>' + esc(hitSpots(it, true).join(' · ')) + '</dd><dt>' + esc(mt('sheet.basis')) + '</dt><dd>' + esc(basisText(it)) + '</dd></div>';
+        var where = koSheet ? howPlacesHtml(it) : esc(hitSpots(it, true).join(' · '));
+        h += '<div class="mxv-how__row"><dt>' + esc(mt('sheet.where')) + '</dt><dd>' + where + '</dd><dt>' + esc(mt('sheet.basis')) + '</dt><dd>' + esc(basisText(it)) + '</dd></div>';
       });
       h += '</dl></section>';
     } else if (g.type === 'rel') {
