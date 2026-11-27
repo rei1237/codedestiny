@@ -46,6 +46,8 @@ export default function SavedRecordClient() {
           target.searchParams.set('fromRecords', '1'); target.searchParams.set('readOnly', '1');
           window.location.replace(target.pathname + target.search); return;
         }
+        // 라이트 사주 풀이는 저장 본문 없이 사주 결과 화면에서 다시 열린다(추가 결제·생성 없음).
+        if (source === 'saju-bundle' && data.record.nativeHref) { window.location.replace(data.record.nativeHref); return; }
         setDetail(data);
       } catch { if (!disposed) setError(c.error); }
       finally { window.clearTimeout(limit); if (!disposed) setLoading(false); }

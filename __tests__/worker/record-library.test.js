@@ -36,6 +36,7 @@ const collection = name => ({
     for (const stage of pipeline.filter(stage => stage.$lookup)) {
       const lookup = stage.$lookup;
       if (lookup.as === '_mirror') rows = rows.filter(doc => !(stores[lookup.from] || []).some(other => matches(other, library.ownerQuery(user)) && other.featureId === 'premium-naming-prompt' && doc.merchantUid && doc.merchantUid === other.paymentId));
+      if (lookup.as === '_profile') rows = rows.map(doc => ({ ...doc, profileName: (stores[lookup.from] || []).find(other => matches(other, library.ownerQuery(user)) && other.profileId === doc.purchaseProfileId)?.name }));
       if (lookup.as === '_conversation') rows = rows.filter(doc => !(stores[lookup.from] || []).some(other => matches(other, library.ownerQuery(user)) && doc.featureKey === 'fortune-chat-consultation' && doc.metadata?.paidNarrative?.body?.requestId && other.messages?.some(message => message.id === doc.metadata.paidNarrative.body.requestId + ':1')));
     }
     rows.sort((a,b) => (+b.createdAt || 0) - (+a.createdAt || 0) || String(b._id).localeCompare(String(a._id)));
@@ -358,4 +359,25 @@ test('R7b: held retries show as retry_available with the service retry entry, ne
     const toss=namingHeld();toss.result.namingPrompt.tossIntentId='t';expect(library.recordStatus(toss,paid,now)).toBe('failed');
   }finally{Date.now=realNow;}
   for(const field of ['result.namingPrompt.retryable','result.namingPrompt.refundEligibleAt','result.namingPrompt.tossIntentId','executionId','llmMeta.retryable','llmMeta.refundEligibleAt','llmMeta.billingCleanupPending','metadata.retryable','deliveryMeta.retryable','deliveryMeta.reviewReason'])expect(library.RECORD_METADATA_PROJECTION[field]).toBe(1);
+});
+test('light saju bundle unlocks are listed for their owner and reopen the saju result without a stored body',async()=>{
+  const models=await import('../../worker/lib/models.js');
+  const cards=models.ProfileCard.collection.collectionName, href='/ggulggul/?action=cdOneStepFreeSajuEntry&section=summaryCard';
+  stores[cards]=[{userId:owner,profileId:'p-me',name:'나'},{userId:foreign,profileId:'p-me',name:'남의 프로필'}];
+  stores.content_entitlements=[
+    seed('1','01',{featureKey:'saju_lifetime_bundle',status:'ACTIVE',scope:'BIRTH',profileId:'birth:secret',purchaseProfileId:'p-me',orderId:'order-1'}),
+    seed('2','02',{featureKey:'saju_lifetime_bundle',status:'REFUNDED',purchaseProfileId:'p-me'}),
+    seed('3','03',{featureKey:'other_feature',status:'ACTIVE'}),
+    seed('4','04',{featureKey:'saju_lifetime_bundle',status:'ACTIVE',userId:foreign}),
+  ];
+  const body=await (await route(request('?source=saju-bundle'),{})).json();
+  expect(body.items).toHaveLength(1);
+  expect(body.items[0]).toMatchObject({source:'saju-bundle',status:'saved',href,nativeHref:href,question:'나 프로필',reviewProductId:expect.any(String)});
+  expect(JSON.stringify(body.items[0])).not.toMatch(/birth:secret|order-1/);
+  const detail=await (await route(request('/detail?source=saju-bundle&id='+body.items[0].id),{})).json();
+  expect(detail.content).toEqual({});expect(detail.record.nativeHref).toBe(href);
+  user=foreign;
+  const other=await (await route(request('?source=saju-bundle'),{})).json();
+  expect(other.items.map(item=>item.id)).not.toContain(body.items[0].id);
+  expect((await route(request('/detail?source=saju-bundle&id='+body.items[0].id),{})).status).toBe(404);
 });
