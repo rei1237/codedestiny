@@ -6,6 +6,7 @@ import SavedSibylReading from './SavedSibylReading';
 import SavedFptiReading from './SavedFptiReading';
 import { useState, type ReactNode } from 'react';
 import ResultReference from '@/components/fortune/ResultReference';
+import RemedyCaseCards from '@/components/fortune/remedy/RemedyCaseCards';
 import { ANSWER_FIRST_LAYOUT_V1 } from '@/lib/result-layout';
 import type { EvidenceItem } from '@/app/karma-destiny-ai/result/_lib/report-model';
 import { asRecord as object, asList as list, storedText as text, parseSavedText, readingLabel, savedReadingModel } from '@/lib/records/reading-content';
@@ -131,7 +132,8 @@ export default function SavedServiceReading({source,serviceId,value,status}:{sou
  if(family.startsWith('tarot')||family==='celestial') return <div className={styles.night}><SavedCards value={model.cards||model.savedCards||object(model.reading).cards} variant={family}/>{body}</div>;
  if(family==='geomancy') return <SavedGeomancy row={model}/>;
  if(family==='yoga') return <SavedYoga row={model}/>;
- if(family==='year') return <div className={styles.timeline}><SavedNewYearPdfButton row={row} locale={locale}/>{answerFirst(saju?<SavedSaju value={saju}/>:null,body)}</div>;
+ // 신년 액땜 카드: 생성 시작 때 저장한 remedyCases 그대로다(재계산·LLM·결제 없음). 옛 기록에는 없어 카드가 안 보인다.
+ if(family==='year') return <div className={styles.timeline}><SavedNewYearPdfButton row={row} locale={locale}/>{answerFirst(saju?<SavedSaju value={saju}/>:null,<>{body}<RemedyCaseCards remedyCases={row.remedyCases} narrator="neo" theme="dark" headingLevel={2}/></>)}</div>;
  if(family==='dream') return <div className={styles.notebook}>{list(model.chapters).length?body:<SavedChapters value={object(model.record).markdown||model}/>}</div>;
  if(family==='totem') return <SavedTotem row={model}/>;
  if(family==='palm') return <div className={styles.notebook}>{Object.entries(object(model.lines||model.lineReadings)).map(([key,value])=><section className={styles.chapter} key={key}><h2>{readingLabel(key,locale)}</h2><SavedChapters value={value} showEmpty={false}/></section>)}<SavedChapters value={model} omit={['lines','lineReadings']} fields={['mounts','fingers','palmResult']}/></div>;
