@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-27
-next: 5 — check:pre-push·push·main CI 1회(메인 세션). 단계 2(3b8f37b401)·3·4(368d6c31f8) 완료
+next: 없음 — 완료. GitHub rei1237/SoulCat 저장소 삭제만 사용자 delete_repo 권한 승인 대기
 ---
 
 # 영냥이 결제 requestId 서버 선생성 + /records/ 사주 묶음 노출
@@ -83,4 +83,10 @@ next: 5 — check:pre-push·push·main CI 1회(메인 세션). 단계 2(3b8f37b4
   - paid-gate-auditor PASS: payment-freeze 통과, --update 불필요
   - check:fast(critical): jest 의 기존 범위 밖 실패 card-single-payment-auto-refund 10건 외 전부 통과
   - 390px 화면(mock): 카드 3개 정렬·넘침 없음, 상세 진입 시 사주 결과로 리다이렉트 확인
-- [ ] 5 마무리: check:pre-push → push → main CI 1회 확인 → 이 문서 `status: done` → 결과 보고(운영 승격은 묻기만).
+- [x] 5 마무리: check:pre-push → push → main CI 1회 확인 → 이 문서 `status: done` → 결과 보고(운영 승격은 묻기만).
+
+## 마무리 (2026-11-27)
+- rebase onto 1ba491c3cd(옆 세션 auto-refund mock 수정) 후 check:pre-push exit 0 → main push.
+- 구현 SHA: 92e9b39740(records 묶음), 54c2cfdf43(SoulCat 모드 제거).
+- 외부 자원: D1 soulcat-fortune·soulcat-fortune-staging 백업(D:Developmentackupssoulcat-20261127) 후 삭제 완료. GitHub rei1237/SoulCat 은 gh 토큰 delete_repo 스코프 없음(403) → 사용자 승인 대기.
+- 후속(보고만): checkout-copy·alliance 미사용 copy 키, yeoni-alliance-v1.webp 참조 0, .cd-soulcat-entry* CSS·[data-soulcat-price] 잔재, records 다시보기가 현재 프로필로 열림, 출생 이관으로 한 구매 여러 줄 가능.
