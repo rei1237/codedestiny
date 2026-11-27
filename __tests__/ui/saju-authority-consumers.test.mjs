@@ -9,6 +9,9 @@ import { execFileSync } from 'node:child_process';
 import { build } from 'esbuild';
 import ts from 'typescript';
 import { expertSubchapterPromptLines } from '../../worker/lib/expert-subchapter-prompt.js';
+import { selectShinsalFacts, shinsalFactsPinned } from '../../worker/lib/engine-rollout.js';
+import { buildShinsalFactsBlock } from '../../lib/saju/shinsal-facts-block.mjs';
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/gemini-input-token-limit.mjs';
 
 const root = process.cwd(), baseline = '692080c4e';
 const clone = v => JSON.parse(JSON.stringify(v));
@@ -160,6 +163,7 @@ function executionFixture() {
   });
   const ctx = vm.createContext({ Date, JSON, console, SAJU_AI_PROMPT_FEATURE_KEY: 'saju', SAJU_AI_PROMPT_ACCESS_MODE: 'paid', SAJU_AI_PROMPT_AMOUNT_KRW: 1,
     withMongoRetry: async (_env, fn) => fn(), normalizeSajuAIPromptAccessMethod: () => 'single',
+    selectShinsalFacts, shinsalFactsPinned, buildShinsalFactsBlock, GEMINI_INPUT_TOKEN_HARD_LIMIT,
     buildSajuAIPromptExecutionId: ({ userId, requestId }) => `${userId}:${requestId}`, buildSajuAIProgress: () => ({}),
     PaidExecutionRecord: { findOneAndUpdate(filter, update, options) {
       const run = async () => {
@@ -245,7 +249,8 @@ test('actual saju handler: new ON request, mock payment/LLM, OFF partial resume,
     buildSajuAILlmRetryableError: () => { throw Error(f.ctx.failureMessage || 'unexpected generation failure'); },
   });
   f.ctx.PaidExecutionRecord.updateOne = async (_filter, update) => { f.ctx.failureMessage = update.$set.error.message; };
-  load(f.ctx, 'worker/routes/fortune.js', ['handleSajuAIPrompt']);
+  load(f.ctx, 'worker/routes/fortune.js', ['handleSajuAIPrompt', 'attachSajuAIShinsalBlock', 'sajuAIShinsalBlock', 'estimateSajuAIPromptTokens'],
+    ['SAJU_AI_SHINSAL_MAX_CHARS', 'SAJU_AI_SHINSAL_MAX_LUCK', 'SAJU_AI_SHINSAL_PROMPT_BUDGET']);
   const env = { SAJU_GYEOKGUK_AUTHORITY_V2: 'true' };
   const post = body => f.ctx.handleSajuAIPrompt(new Request('https://mock.test/saju', { method: 'POST', body: JSON.stringify(body) }), { userId: 'owner' }, env);
   const first = await post({ ...args, requestId: 'actual-route', sajuAuthority: { forged: true } });
@@ -257,6 +262,8 @@ test('actual saju handler: new ON request, mock payment/LLM, OFF partial resume,
   assert.equal(complete.status, 200, await complete.text());
   assert.equal(f.doc.status, 'completed');
   assert.equal(seen.length, 2);
+  // 신살 플래그가 꺼진 기록은 블록을 받지 않는다(SAJU_SHINSAL_FACTS_V1 기본 off).
+  for (const built of seen) assert.equal(built.shinsalBlock, undefined);
   for (const built of seen) { assert.equal(built.sajuAuthority.digest, pinned.digest); assert.equal(built.factSnapshot.natalAnalysisId, pinned.analysis.evidence.natalAnalysisId); }
   assert.equal(consumed.size, 1);
   const saved = JSON.stringify(f.doc);

@@ -9,6 +9,9 @@ const { toAiLocale, AI_OUTPUT_LOCALES } = require("../../lib/i18n/ai-locale.js")
 const { isCompleteLlmResponse } = require("../../worker/lib/llm-result-delivery.js");
 const gyeokgukGuard = require("../../lib/saju/gyeokguk-claim-guard.mjs");
 const { NATAL_CORE_VERSION } = require("../../lib/saju/natal-core/version.mjs");
+const rollout = require("../../worker/lib/engine-rollout.js");
+const { buildShinsalFactsBlock } = require("../../lib/saju/shinsal-facts-block.mjs");
+const { GEMINI_INPUT_TOKEN_HARD_LIMIT } = require("../../lib/gemini-input-token-limit.mjs");
 const source = fs.readFileSync(require.resolve("../../worker/routes/fortune.js"), "utf8");
 const ast = ts.createSourceFile("fortune.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
 const names = new Set([
@@ -23,6 +26,7 @@ const names = new Set([
   "findSajuAIExecutionForRead", "handleSajuAIConsultationStatus", "handleSajuAIConsultationResult",
   "sajuAIDeliveryV2Enabled", "isSajuAIDeliveryV2", "readSajuAIBestSectionText", "assembleSajuAIBestEffortText",
   "settleStuckDelivery", "readSajuAIPromptMonthlyRefundContext",
+  "estimateSajuAIPromptTokens", "sajuAIShinsalBlock", "attachSajuAIShinsalBlock",
 ]);
 const constants = new Set([
   "SAJU_AI_REQUIRED_CHAPTER_PATTERNS",
@@ -44,6 +48,9 @@ const constants = new Set([
   "SAJU_AI_PERSONA_SUMMARY_END",
   "SAJU_AI_PERSONA_SUMMARY_FIELDS",
   "SAJU_AI_DELIVERY_PLAN_VERSION",
+  "SAJU_AI_SHINSAL_MAX_CHARS",
+  "SAJU_AI_SHINSAL_MAX_LUCK",
+  "SAJU_AI_SHINSAL_PROMPT_BUDGET",
 ]);
 const extracted = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && names.has(node.name?.text)
   || ts.isVariableStatement(node) && node.declarationList.declarations.some((d) => constants.has(d.name.getText(ast))))
@@ -87,7 +94,8 @@ function harness(mode = "single", env = V1_ENV) {
   const calls = [];
   const ctx = {
     toAiLocale, getAmbientAiLocale: () => 'ko',
-    ...prompt, ...quality, ...gyeokgukGuard, NATAL_CORE_VERSION, isCompleteLlmResponse, Request, Response, Headers, Date, crypto: webcrypto,
+    ...prompt, ...quality, ...gyeokgukGuard, NATAL_CORE_VERSION, isCompleteLlmResponse,
+    selectShinsalFacts: rollout.selectShinsalFacts, shinsalFactsPinned: rollout.shinsalFactsPinned, buildShinsalFactsBlock, GEMINI_INPUT_TOKEN_HARD_LIMIT, Request, Response, Headers, Date, crypto: webcrypto,
     console: { info() {}, warn() {}, error() {} },
     SAJU_AI_PROMPT_ACCESS_MODE: "per_use", SAJU_AI_PROMPT_AMOUNT_KRW: 20000,
     SAJU_AI_RESULT_SYSTEM_PROMPT: "mock", FEATURE_AI_LLM_BUDGET_MS: 80000,
@@ -490,6 +498,212 @@ describe("delivery plan v2", () => {
     expect(res.status).toBe(503);
     expect(h.record().status).toBe("generation_failed");
     expect(h.record().result.sections.find((row) => row.key === "life_domains")).toMatchObject({ qualityRepair: true, attempts: 1 });
+  });
+});
+
+// ── 신살 사실 블록 (S9, SAJU_SHINSAL_FACTS_V1 'saju-ai') ──
+// 핀(result.shinsalFacts)은 새 기록에만 박힌다. 블록은 해시·다이제스트·기록 선점이 끝난 뒤 접두사에 한 번 붙고
+// 해시·저장 결과·캐시 접미에는 들어가지 않는다. 실패나 예산 초과는 블록만 뺀다.
+describe("shinsal facts block (SAJU_SHINSAL_FACTS_V1 saju-ai)", () => {
+  const { createHash } = require("node:crypto");
+  const sha = (text) => createHash("sha256").update(String(text)).digest("hex");
+  const HEADER = "[신살 계산값";
+  const ON = { ...V1_ENV, SAJU_SHINSAL_FACTS_V1: "saju-ai" };
+  const SNAPSHOT = {
+    pillars: { year: { stem: "甲", branch: "子" }, month: { stem: "丙", branch: "寅" }, day: { stem: "甲", branch: "申" }, hour: { stem: "癸", branch: "辰" } },
+    luck: { luckRows: [
+      { scope: "daewoon", stem: "己", branch: "巳", age: 24 },
+      { scope: "daewoon", stem: "庚", branch: "午", age: 34 },
+      { scope: "daewoon", stem: "辛", branch: "未", age: 44 },
+      { scope: "sewoon", stem: "乙", branch: "巳", year: 2025 },
+      { scope: "sewoon", stem: "丙", branch: "午", year: 2026 },
+    ] },
+  };
+  const BODY = { question: "앞으로 진로를 어떻게 정할까요", domain: "life_direction", requestId: "same",
+    sajuResult: { targetYear: 2026, engineContext: { quantumMyeongli: { currentAge: 37 } } } };
+  // 지금 대운(37세 → 34세 庚午)과 상담 연도 세운(2026 丙午)만 고른 결과와 같아야 한다.
+  const BLOCK = buildShinsalFactsBlock({
+    pillars: SNAPSHOT.pillars, timeUnknown: false,
+    luckRows: [{ scope: "daewoon", stem: "庚", branch: "午", age: 34 }, { scope: "sewoon", stem: "丙", branch: "午", year: 2026 }],
+  }, { maxChars: 900, maxLuck: 12 });
+  function run(env) {
+    const h = harness("single", env);
+    h.ctx.buildSajuAIPromptWithDomain = () => ({ prompt: "same", digestSource: "same", domain: "life_direction", promptVersion: "v7",
+      factSnapshot: clone(SNAPSHOT), categoryRubric: { validationKeywords: [["진로"], ["직업"], ["재물"], ["관계"]] } });
+    const post = (input = BODY) => h.post(input);
+    const drive = async (limit = 20) => {
+      const statuses = [];
+      for (let i = 0; i < limit; i += 1) {
+        const res = await post();
+        statuses.push(res.status);
+        if (res.status !== 202) break;
+      }
+      return statuses;
+    };
+    const prompts = () => h.ctx.callGeminiText.mock.calls.map((args) => args[1]);
+    return { ...h, post, drive, prompts };
+  }
+
+  test("the block holds the natal lines, the current 대운 and the consultation-year 세운 only", () => {
+    expect(BLOCK.startsWith(HEADER)).toBe(true);
+    expect(BLOCK).toContain("대운 34세 庚午");
+    expect(BLOCK).toContain("세운 2026년 丙午");
+    expect(BLOCK).not.toMatch(/대운 (?:24|44)세|乙巳|현재/);
+    expect(BLOCK.length).toBeLessThanOrEqual(900);
+    const h = run(ON);
+    expect(h.ctx.sajuAIShinsalBlock({ factSnapshot: SNAPSHOT }, BODY.sajuResult)).toBe(BLOCK);
+    // 나이·연도를 모르면 운 줄 없이 원국만 낸다. 어느 대운이 지금인지 추정하지 않는다.
+    const natal = h.ctx.sajuAIShinsalBlock({ factSnapshot: SNAPSHOT }, {});
+    expect(natal.startsWith(HEADER)).toBe(true);
+    expect(natal).not.toMatch(/대운|세운/);
+    expect(h.ctx.sajuAIShinsalBlock(null, null)).toBe("");
+  });
+
+  test("off keeps the prompt bytes; on adds the block exactly once per chapter group and nothing else", async () => {
+    const off = run(V1_ENV);
+    const other = run({ ...V1_ENV, SAJU_SHINSAL_FACTS_V1: "love-codex,yearly" });
+    const on = run(ON);
+    expect(await off.drive()).toEqual([202, 202, 202, 202, 200]);
+    expect(await other.drive()).toEqual([202, 202, 202, 202, 200]);
+    expect(await on.drive()).toEqual([202, 202, 202, 202, 200]);
+    expect(off.prompts()).toHaveLength(5);
+    expect(other.prompts().map(sha)).toEqual(off.prompts().map(sha));
+    for (const text of off.prompts()) expect(text).not.toContain(HEADER);
+    on.prompts().forEach((text, index) => {
+      expect(text.split(BLOCK)).toHaveLength(2);
+      expect(text.length - off.prompts()[index].length).toBe(BLOCK.length + 2);
+      expect(text.replace(`${BLOCK}\n\n`, "")).toBe(off.prompts()[index]);
+    });
+    expect(on.record().status).toBe("completed");
+    expect(on.record().result.consultation.resultText).toBe(off.record().result.consultation.resultText);
+  });
+
+  test("payloadHash, resultId, promptDigest and the cache key suffix are identical on and off; the block is never stored", async () => {
+    const off = run(V1_ENV); const on = run(ON);
+    await off.post(); await on.post();
+    expect(on.record().result.shinsalFacts).toBe("shinsal-facts-v1");
+    expect(off.record().result.shinsalFacts).toBeUndefined();
+    expect(on.record().result.payloadHash).toBe(off.record().result.payloadHash);
+    expect(on.record().resultId).toBe(off.record().resultId);
+    expect(JSON.stringify(on.record())).not.toContain(HEADER);
+    await off.drive(); await on.drive();
+    expect(on.record().result.promptDigest).toBe(off.record().result.promptDigest);
+    const keys = (h) => h.ctx.callGeminiText.mock.calls.map((args) => args[2].cache?.keyExtra);
+    expect(keys(on)).toEqual(keys(off));
+    expect(keys(on).every((key) => key.startsWith(`v7|${NATAL_CORE_VERSION}-`))).toBe(true);
+    expect(JSON.stringify(on.record())).not.toContain(HEADER);
+  });
+
+  test("the pin survives claim, checkpoint, a failed attempt, retry and resume without 409", async () => {
+    const on = run(ON);
+    on.fault("short");
+    expect((await on.post()).status).toBe(503);
+    expect(on.record()).toMatchObject({ status: "generation_failed", result: { shinsalFacts: "shinsal-facts-v1" } });
+    on.fault("");
+    const statuses = [(await on.post()).status];
+    expect(on.record().result.shinsalFacts).toBe("shinsal-facts-v1");
+    statuses.push((await on.post({ resumeJobId: "owner:same" })).status);
+    expect(on.record().result.shinsalFacts).toBe("shinsal-facts-v1");
+    statuses.push(...await on.drive());
+    expect(statuses).not.toContain(409);
+    expect(statuses.at(-1)).toBe(200);
+    expect(on.record().status).toBe("completed");
+    for (const text of on.prompts()) expect(text.split(BLOCK)).toHaveLength(2);
+  });
+
+  test("a record started off stays off after the flag turns on, and clearing the flag is a kill switch", async () => {
+    const legacy = run(V1_ENV);
+    expect((await legacy.post()).status).toBe(202);
+    legacy.setEnv(ON);
+    expect((await legacy.post()).status).toBe(202);
+    expect(legacy.record().result.shinsalFacts).toBeUndefined();
+    const legacyStatuses = await legacy.drive();
+    expect(legacyStatuses).not.toContain(409);
+    expect(legacyStatuses.at(-1)).toBe(200);
+    expect(legacy.prompts()).toHaveLength(5);
+    for (const text of legacy.prompts()) expect(text).not.toContain(HEADER);
+
+    const pinned = run(ON);
+    expect((await pinned.post()).status).toBe(202);
+    expect(pinned.prompts()[0].split(BLOCK)).toHaveLength(2);
+    pinned.setEnv(V1_ENV);
+    expect((await pinned.post()).status).toBe(202);
+    expect(pinned.record().result.shinsalFacts).toBe("shinsal-facts-v1");
+    const pinnedStatuses = await pinned.drive();
+    expect(pinnedStatuses).not.toContain(409);
+    expect(pinnedStatuses.at(-1)).toBe(200);
+    expect(pinned.prompts().slice(1).some((text) => text.includes(HEADER))).toBe(false);
+  });
+
+  test("an over-budget prompt or a failing block builder drops only the block and still delivers", async () => {
+    const h = run(ON);
+    const budget = vm.runInContext("SAJU_AI_SHINSAL_PROMPT_BUDGET", h.ctx);
+    expect(budget).toBe(Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95));
+    expect(h.ctx.estimateSajuAIPromptTokens("가1ab c")).toBe(4);
+    const built = h.ctx.buildSajuAIPromptWithDomain();
+    const largest = Math.max(...prompt.SAJU_AI_SECTION_GROUPS.map((group) =>
+      h.ctx.estimateSajuAIPromptTokens(h.ctx.buildSajuAISectionPrompt({ ...built, shinsalBlock: BLOCK }, group))));
+    const attach = () => h.ctx.attachSajuAIShinsalBlock(built, { env: ON, existingExecution: null, sajuResult: BODY.sajuResult });
+    h.ctx.cmsPromptText = async () => "가".repeat(budget - largest);
+    expect((await attach()).shinsalBlock).toBe(BLOCK);
+    h.ctx.cmsPromptText = async () => "가".repeat(budget - largest + 1);
+    expect(await attach()).toBe(built);
+
+    const big = run(ON);
+    big.ctx.cmsPromptText = async () => "가".repeat(budget);
+    expect((await big.drive()).at(-1)).toBe(200);
+    expect(big.prompts()).toHaveLength(5);
+    for (const text of big.prompts()) expect(text).not.toContain(HEADER);
+
+    const broken = run(ON);
+    broken.ctx.buildShinsalFactsBlock = () => { throw new Error("shinsal build failed"); };
+    expect((await broken.drive()).at(-1)).toBe(200);
+    expect(broken.prompts()).toHaveLength(5);
+    for (const text of broken.prompts()) expect(text).not.toContain(HEADER);
+    expect(broken.record().status).toBe("completed");
+  });
+
+  test("a real prompt carries the block once per group, and an answer quoting it passes every validator", async () => {
+    const h = run(ON);
+    h.ctx.validateSajuMyeongsikTenGodText = prompt.validateSajuMyeongsikTenGodText;
+    const gans = "甲乙丙丁戊己庚辛壬癸"; const zhis = "子丑寅卯辰巳午未申酉戌亥";
+    const daewun = Array.from({ length: 9 }, (_, i) => ({ age: 4 + i * 10, gan: gans[(3 + i) % 10], zhi: zhis[(3 + i) % 12], score: 60, label: "t" }));
+    const sajuResult = {
+      profile: { name: "테스트", gender: "F", birth: { year: 1990, month: 3, day: 18, hour: 7, minute: 20 } },
+      pillars: { y: { g: "甲", j: "子" }, m: { g: "丙", j: "寅" }, d: { g: "甲", j: "申" }, h: { g: "癸", j: "辰" } },
+      power: { isStrong: true, yongshin: ["화"], kijishin: ["금"] }, targetYear: 2026,
+      engineContext: { quantumMyeongli: { dayStem: "甲", monthBranch: "寅", currentAge: 37, elementMap: [], daewun } },
+    };
+    const built = prompt.buildSajuAIPromptWithDomain({ question: BODY.question, sajuResult, domain: "life_direction" });
+    const block = h.ctx.sajuAIShinsalBlock(built, sajuResult);
+    expect(block).toContain("대운 34세 庚午");
+    expect(block).toContain("세운 2026년 丙午");
+    const on = await h.ctx.attachSajuAIShinsalBlock(built, { env: ON, existingExecution: null, sajuResult });
+    expect(on.shinsalBlock).toBe(block);
+    for (const group of prompt.SAJU_AI_SECTION_GROUPS) {
+      const withBlock = h.ctx.buildSajuAISectionPrompt(on, group);
+      expect(withBlock.split(block)).toHaveLength(2);
+      expect(withBlock.length - h.ctx.buildSajuAISectionPrompt(built, group).length).toBe(block.length + 2);
+    }
+
+    // 블록 줄을 그대로 옮긴 목록과 줄마다 풀어 쓴 산문을 첫 챕터에 넣는다.
+    const lines = block.split("\n").filter((line) => line.startsWith("- ")).map((line) => line.slice(2));
+    const prose = lines.map((line) => `${line.replace(/ · /, "에서 ")}로 잡혀 있어 성향의 보조 단서로만 참고합니다.`).join(" ");
+    const quoteInto = (text) => text.replace(/\n/, `\n${block}\n${prose}\n`);
+    const fact = h.ctx.gyeokgukClaimFact(built.factSnapshot?.majorStructures?.gyeokguk);
+    const groups = prompt.SAJU_AI_SECTION_GROUPS.map((group, index) => (index === 0 ? quoteInto(groupBody(group)) : groupBody(group)));
+    prompt.SAJU_AI_SECTION_GROUPS.forEach((group) => {
+      const quoted = quoteInto(groupBody(group));
+      expect(h.ctx.validateSajuAISection(quoted, group, built.factSnapshot)).toBe(true);
+      expect(vm.runInContext("SAJU_AI_RESULT_FORBIDDEN_PATTERNS", h.ctx).some((pattern) => pattern.test(quoted))).toBe(false);
+      expect(h.ctx.findSajuAIUnsupportedAdvice(quoted)).toBeNull();
+      expect(prompt.validateSajuMyeongsikTenGodText(quoted, built.factSnapshot).ok).toBe(true);
+      const guarded = h.ctx.correctGyeokgukText(quoted, fact);
+      expect(guarded.replaced || guarded.dropped || 0).toBeFalsy();
+    });
+    const full = groups.join("\n\n");
+    const result = h.ctx.validateSajuAIResultText(full, built.factSnapshot, { domain: "life_direction", categoryRubric: { validationKeywords: [["진로"], ["직업"], ["재물"], ["관계"]] } });
+    expect(result.ok).toBe(true);
   });
 });
 

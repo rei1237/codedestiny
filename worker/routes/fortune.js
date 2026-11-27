@@ -93,6 +93,9 @@ import {
 } from "../lib/saju-ai-prompt.js";
 import { correctGyeokgukText, gyeokgukClaimFact } from "../../lib/saju/gyeokguk-claim-guard.mjs";
 import { NATAL_CORE_VERSION } from "../../lib/saju/natal-core/version.mjs";
+import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/gemini-input-token-limit.mjs";
+import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
 import {
   buildAstrologyAIPrompt,
   buildAstrologyAIPromptWithDomain,
@@ -455,9 +458,80 @@ function buildSajuAISectionPromptPrefix(builtPrompt) {
     formatSajuAIResultRubric(categoryRubric),
     factCard && !internalPrompt.includes(factCard) ? "내부 명식 사실 카드:" : "",
     internalPrompt.includes(factCard) ? "" : factCard,
+    // 신살 사실 블록(핀 있는 기록만, attachSajuAIShinsalBlock). 비면 filter 로 빠져 이전과 바이트가 같다.
+    // 접두사에 한 번만 둔다 — 다섯 묶음이 같은 접두사(명시적 캐시)를 공유한다.
+    String(builtPrompt?.shinsalBlock || "").trim(),
     "내부 프롬프트:",
     internalPrompt,
   ].filter(Boolean).join("\n\n").trim();
+}
+
+// ── 신살 사실 블록(SAJU_SHINSAL_FACTS_V1 'saju-ai') ─────────────────────────
+// 원국 4주 + 현재 대운(나이를 알 때만) + 상담 연도 세운(연도가 명시된 때만). 프롬프트를 보낼 때만 계산하고
+// digestSource·payloadHash·promptDigest·저장 결과·LLM 캐시 키 접미에는 넣지 않는다. 실패하면 '' 이라 블록만 빠진다.
+const SAJU_AI_SHINSAL_MAX_CHARS = 900;
+// 운 줄은 세운이 순위 1위라 기본 3줄이면 세운이 다 차지하고 현재 대운이 빠진다. 같은 지지면 세운·대운이 각각 6줄까지 나와
+// 12줄을 연다(인생의 책과 같은 값). 전체 길이는 maxChars 가 막는다.
+const SAJU_AI_SHINSAL_MAX_LUCK = 12;
+// 블록을 붙인 묶음 프롬프트가 Gemini 입력 상한(countTokens 50,000)의 95% 안에 들 때만 붙인다.
+const SAJU_AI_SHINSAL_PROMPT_BUDGET = Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+
+// 보수적 토큰 추정: 비ASCII 글자·숫자는 한 글자 한 토큰, 나머지 ASCII 는 두 글자 한 토큰.
+// 실제 상한 판정은 llm-client 의 countTokens 가 한다. 여기서는 상한 근처에서 블록만 먼저 빼려는 것이다.
+function estimateSajuAIPromptTokens(text) {
+  let tokens = 0;
+  let ascii = 0;
+  for (const ch of String(text || "")) {
+    const code = ch.codePointAt(0);
+    if (code >= 0x80 || (code >= 0x30 && code <= 0x39)) tokens += 1;
+    else ascii += 1;
+  }
+  return tokens + Math.ceil(ascii / 2);
+}
+
+function sajuAIShinsalBlock(builtPrompt, sajuResult) {
+  try {
+    const snapshot = builtPrompt?.factSnapshot || {};
+    const pillars = snapshot.pillars || {};
+    const hour = pillars.hour || null;
+    const rows = Array.isArray(snapshot.luck?.luckRows) ? snapshot.luck.luckRows : [];
+    // 현재 대운은 경험 대조(findCalibrationDaewunRow)와 같은 규칙: 시작 나이가 현재 나이 이하인 가장 늦은 대운.
+    const currentAge = Number(sajuResult?.engineContext?.quantumMyeongli?.currentAge || 0);
+    const daewoon = currentAge > 0
+      ? rows.filter((row) => row?.scope === "daewoon" && Number(row.age) > 0 && Number(row.age) <= currentAge)
+        .sort((a, b) => Number(a.age) - Number(b.age)).at(-1)
+      : null;
+    const year = Number(sajuResult?.targetYear || sajuResult?.currentYear || sajuResult?.engineContext?.currentYear || 0);
+    const sewoon = year > 0 ? rows.find((row) => row?.scope === "sewoon" && Number(row.year) === year) : null;
+    return buildShinsalFactsBlock({
+      pillars: { year: pillars.year, month: pillars.month, day: pillars.day, hour },
+      timeUnknown: !hour,
+      luckRows: [
+        ...(daewoon ? [{ scope: "daewoon", stem: daewoon.stem, branch: daewoon.branch, age: Number(daewoon.age) }] : []),
+        ...(sewoon ? [{ scope: "sewoon", stem: sewoon.stem, branch: sewoon.branch, year }] : []),
+      ],
+    }, { maxChars: SAJU_AI_SHINSAL_MAX_CHARS, maxLuck: SAJU_AI_SHINSAL_MAX_LUCK });
+  } catch {
+    return "";
+  }
+}
+
+// 해시·다이제스트·저장 프롬프트를 모두 정한 뒤에 부른다. 핀(result.shinsalFacts)이 있는 기록만 블록을 받는다.
+// 키 없는 옛 기록은 플래그를 켜도 꺼진 채이고, 플래그를 비우면 핀이 있어도 꺼진다(킬 스위치).
+// 묶음 다섯 개가 접두사를 공유하므로 붙일지 말지는 가장 긴 묶음 기준으로 한 번만 정한다. 어떤 실패도 블록만 뺀다.
+async function attachSajuAIShinsalBlock(builtPrompt, { env, existingExecution, sajuResult } = {}) {
+  try {
+    const meta = existingExecution ? existingExecution.result : { shinsalFacts: selectShinsalFacts(env, "saju-ai") };
+    if (!shinsalFactsPinned(meta, env, "saju-ai")) return builtPrompt;
+    const block = sajuAIShinsalBlock(builtPrompt, sajuResult);
+    if (!block) return builtPrompt;
+    const withBlock = { ...builtPrompt, shinsalBlock: block };
+    const systemTokens = estimateSajuAIPromptTokens(await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT));
+    const largest = Math.max(...SAJU_AI_SECTION_GROUPS.map((group) => estimateSajuAIPromptTokens(buildSajuAISectionPrompt(withBlock, group))));
+    return systemTokens + largest <= SAJU_AI_SHINSAL_PROMPT_BUDGET ? withBlock : builtPrompt;
+  } catch {
+    return builtPrompt;
+  }
 }
 
 /**
@@ -1290,6 +1364,8 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
           ...(existingExecution?.result || {}),
           // 판은 새 기록에만 고정한다. 진행 중인 1판 기록은 1판으로 끝난다.
           ...(!existingExecution && sajuAIDeliveryV2Enabled(env) ? { deliveryPlanVersion: SAJU_AI_DELIVERY_PLAN_VERSION } : {}),
+          // 신살 블록 핀도 새 기록에만 넣는다. 기존 기록은 위 펼침으로 있던 값을 그대로 이어받는다.
+          ...(!existingExecution && selectShinsalFacts(env, "saju-ai") ? { shinsalFacts: selectShinsalFacts(env, "saju-ai") } : {}),
           ...(sajuAuthority ? { sajuAuthority } : {}),
           leaseToken,
           payloadHash,
@@ -5073,6 +5149,9 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     if (current?.status === "generating") return json(buildSajuAIStatusPayload(current), { status: 202 });
     return buildSajuAIPromptError("RESULT_STORAGE_UNAVAILABLE", "상담 시작 상태를 확인하고 있습니다. 추가 결제 없이 잠시 후 다시 시도해 주세요.", 503, { retryable: true, reason: "RESULT_STORAGE_UNAVAILABLE", resultId });
   }
+  // 🔴 payloadHash·promptDigest 계산과 기록 선점 뒤에 붙인다. shinsalBlock 은 해시에 들어가지 않는 필드라
+  // 플래그를 바꿔 재시도·재개해도 409(REQUEST_CONFLICT)가 나지 않는다.
+  builtPrompt = await attachSajuAIShinsalBlock(builtPrompt, { env, existingExecution, sajuResult });
 
   logSajuAIPromptStage("LLM_JOB_STARTED", {
     userId: auth.userId,
@@ -7345,6 +7424,10 @@ export const __sajuAiSectionTestUtils = {
   runSajuAISectionWaves,
   buildSajuAISectionPrompt,
   buildSajuAISectionPromptPrefix,
+  sajuAIShinsalBlock,
+  attachSajuAIShinsalBlock,
+  estimateSajuAIPromptTokens,
+  SAJU_AI_SHINSAL_PROMPT_BUDGET,
   extractSajuAIPersonaSummaries,
   buildSajuAIPromptResultPayload,
   isSajuAISectionRowShort,

@@ -23,6 +23,7 @@ const modules = Promise.all([
   import('../../worker/lib/ziwei-ai-prompt.js'),
   import('../../lib/i18n/ai-locale.js'),
   import('../../worker/lib/ai-locale-context.js'),
+  import('../../worker/lib/engine-rollout.js'),
 ]);
 const USER = '64b000000000000000000001';
 
@@ -225,7 +226,7 @@ test('명식 사주 AI 실제 라우트: 누락 카운터 이용권 재개 → �
 
 for (const priorStatus of [null, 'generation_failed', 'generating']) {
   test(`사주 생성 시작 CAS: ${priorStatus || '최초'} 동시 요청 중 1건만 생성 소유권 획득`, async () => {
-    const [, , , { makeFakePaymentDb }] = await modules;
+    const [, , , { makeFakePaymentDb }, , , , , rollout] = await modules;
     const db = makeFakePaymentDb({ uniqueKeys: [['executionId']] });
     const existing = priorStatus ? { userId: USER, featureId: 'saju_ai_prompt_generator', profileId: 'profile', requestId: 'req',
       executionId: 'execution', status: priorStatus, updatedAt: new Date(0) } : null;
@@ -234,6 +235,8 @@ for (const priorStatus of [null, 'generation_failed', 'generating']) {
       console, SAJU_AI_PROMPT_FEATURE_KEY: 'saju_ai_prompt_generator', SAJU_AI_PROMPT_ACCESS_MODE: 'per_use',
       normalizeSajuAIPromptAccessMethod: () => 'pass', buildSajuAIPromptExecutionId: () => 'execution',
       buildSajuAIProgress: () => ({ status: 'generating' }),
+      // 새 기록의 신살 블록 핀(SAJU_SHINSAL_FACTS_V1 'saju-ai')도 실제 판정으로 돈다.
+      selectShinsalFacts: rollout.selectShinsalFacts,
       withMongoRetry: async (_env, action) => action(),
       PaidExecutionRecord: { findOneAndUpdate: (filter, update, options) => db.findOneAndUpdate({}, filter,
         { ...update, $set: { ...update.$set, updatedAt: new Date() } }, { ...options, returnDocument: 'after' }) },
