@@ -29,6 +29,8 @@ async function generate({ tossNative, attempts = 0 }) {
     pinAnswerVoice: () => null,
     // 신살 블록 핀(S7). 이 경계 테스트는 캐시 정책만 보므로 꺼 둔다.
     shinsalFactsPinned: () => false,
+    // 액땜 블록 핀(R7). 신살과 같은 이유로 꺼 둔다.
+    remedyFactsPinned: () => false,
     buildUserPrompt: () => 'synthetic prompt',
     buildSystemPrompt: () => 'synthetic system prompt',
     appendAnswerVoice: prompt => prompt,

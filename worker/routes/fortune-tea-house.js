@@ -79,8 +79,9 @@ import { scopeConnection } from "../lib/db-scope-connection.js";
 import { buildSajuGuests, kstDate } from "../../lib/fortune-tea-house/saju-guests.js";
 import { CATEGORY_FOCUS, resolveQuestionCategory } from "../../lib/fortune-tea-house/saju-category.js";
 import { buildGuestPrompt } from "../../lib/fortune-tea-house/saju-guest-prompt.js";
-import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { selectShinsalFacts, shinsalFactsPinned, selectRemedyFacts, remedyFactsPinned } from "../lib/engine-rollout.js";
 import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
+import { computeRemedyCases, serializeRemedyForPrompt } from "../../lib/saju/remedy/index.mjs";
 import { workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/workers-ai-input-token-limit.mjs";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -4087,10 +4088,63 @@ function fortuneTeaShinsalBlock(request, saju) {
   }
 }
 
+// 액땜 케이스(SAJU_REMEDY_FACTS_V1, 소비처 id 'tea-house'). 사주 단독 상담의 새 checkpoint 를 만들 때 한 번 계산해 checkpoint 에 두고,
+// 완성 결과의 remedyCases 로 저장한다(카드는 저장값만 읽는다). 원국 4주 + 지금 세운 + 지금 대운. 어떤 실패도 null 이라 카드·블록만 빠진다.
+function fortuneTeaRemedyCases(request, saju) {
+  try {
+    const hourRow = Array.isArray(saju?.pillars) ? saju.pillars.find((item) => item?.key === "hour") : null;
+    const timeUnknown = request?.birthTimeUnknown === true || saju?.birthSummary?.birthTimeUnknown === true || hourRow?.available === false;
+    const pillars = fortuneTeaSajuPillarMap(saju, timeUnknown);
+    const timing = buildFortuneTeaTimingFacts(saju);
+    const sewoon = timing.sewoonRows.find((row) => row.isCurrent) || timing.sewoonRows[0];
+    const refYear = Number(sewoon?.year) || null;
+    const daewoon = timing.daewoonRows.find((row) => row.isCurrent)
+      || (refYear ? timing.daewoonRows.find((row) => row.startYear <= refYear && refYear <= row.endYear) : null);
+    const result = computeRemedyCases({
+      saju: {
+        pillars: { ...pillars, hour: timeUnknown ? null : pillars.hour || null },
+        timeUnknown,
+        ...(refYear && sewoon?.pillar ? { sewoon: { year: refYear, pillar: sewoon.pillar } } : {}),
+        ...(daewoon ? { daewoon: { pillar: daewoon.pillar, startYear: daewoon.startYear, endYear: daewoon.endYear } } : {}),
+      },
+      ...(refYear ? { refYear } : {}),
+      locale: "ko",
+    });
+    return result?.valid === true && Array.isArray(result.cases) && result.cases.length ? JSON.parse(JSON.stringify(result)) : null;
+  } catch {
+    return null;
+  }
+}
+
+// 새 checkpoint 의 액땜 핀. 사주 단독 상담이고 플래그가 켜졌을 때만 핀과 케이스를 남긴다. 옛 checkpoint 는 키가 없어 꺼진 채 끝난다.
+function fortuneTeaRemedyPin(env, request, fallback) {
+  const pin = normalizeConsultationMode(request?.consultationMode) === "saju" ? selectRemedyFacts(env, "tea-house") : null;
+  if (!pin) return {};
+  const remedyCases = fortuneTeaRemedyCases(request, fallback?.saju);
+  return { remedyFacts: pin, ...(remedyCases ? { remedyCases } : {}) };
+}
+
+const FORTUNE_TEA_REMEDY_MAX_CHARS = 500;
+const FORTUNE_TEA_REMEDY_RULE = "액땜은 '찻집의 처방' 장에서만 위 목록의 방법 한두 가지를 손님의 생활 장면으로 풀어 쓴다.";
+const isFortuneTeaRemedyGroup = (group) => [group?.sectionTitle, ...(Array.isArray(group?.sectionTitles) ? group.sectionTitles : [])]
+  .some((title) => typeof title === "string" && title.startsWith("찻집의 처방"));
+// 액땜 블록은 '찻집의 처방' 장을 쓰는 그룹 하나에만 싣는다. 다른 그룹·실패는 '' 이라 프롬프트 바이트가 그대로다.
+function fortuneTeaRemedyBlock(remedyCases, group) {
+  try {
+    if (!remedyCases || typeof remedyCases !== "object" || !isFortuneTeaRemedyGroup(group)) return "";
+    const block = serializeRemedyForPrompt(remedyCases, { maxChars: FORTUNE_TEA_REMEDY_MAX_CHARS - FORTUNE_TEA_REMEDY_RULE.length - 1 });
+    return block ? `${block}\n${FORTUNE_TEA_REMEDY_RULE}` : "";
+  } catch {
+    return "";
+  }
+}
+
 function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", group = null, options = {}) {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
   // 신살 블록은 checkpoint 를 만들 때 핀이 있고 플래그가 켜진 상담에서만 붙는다. 꺼지면 프롬프트 바이트가 그대로다.
   const shinsalFacts = consultationMode === "saju" && options?.shinsalFacts === true ? fortuneTeaShinsalBlock(request, fallback?.saju) : "";
+  // 액땜 블록도 같은 조건(핀 + 플래그)의 사주 단독 상담에서 '찻집의 처방' 그룹에만 붙는다. 케이스는 checkpoint 에 고정된 값을 받는다.
+  const remedyFacts = consultationMode === "saju" && options?.remedyCases ? fortuneTeaRemedyBlock(options.remedyCases, group) : "";
   const sajuRule = resolveSajuCategoryRule(request);
   const tarotRule = resolveTarotCategoryRule(request);
   const requiredSajuSections = getSajuRequiredSectionTitles(request);
@@ -4127,6 +4181,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
       sajuFactInput,
       guestReading: consultationMode === "saju" ? buildGuestPrompt(request, fallback.saju.guests || [], sajuFactInput.timingFacts.todayKst) : undefined,
       shinsalFacts: shinsalFacts || undefined,
+      remedyFacts: remedyFacts || undefined,
       tarotFactInput,
       sukuyoFactInput,
       sajuQualityRule: isSajuFamilyMode(consultationMode)
@@ -4431,22 +4486,28 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", 
     null,
     2,
   );
-  if (!shinsalFacts || workersAiInputTokenUpperBound([{ role: "user", content: promptText }]) <= FORTUNE_TEA_SHINSAL_PROMPT_BUDGET) return promptText;
-  // 상한 근처면 같은 자리의 키만 비워 블록 없는 프롬프트(OFF 와 같은 바이트)로 되돌린다.
-  return JSON.stringify({ ...JSON.parse(promptText), shinsalFacts: undefined }, null, 2);
+  const fits = (text) => workersAiInputTokenUpperBound([{ role: "user", content: text }]) <= FORTUNE_TEA_SHINSAL_PROMPT_BUDGET;
+  if ((!shinsalFacts && !remedyFacts) || fits(promptText)) return promptText;
+  // 상한 근처면 같은 자리의 키만 비워 블록 없는 프롬프트(OFF 와 같은 바이트)로 되돌린다. 액땜을 먼저 빼고, 그래도 넘으면 신살도 뺀다.
+  const parsed = JSON.parse(promptText);
+  if (remedyFacts) {
+    const withoutRemedy = JSON.stringify({ ...parsed, remedyFacts: undefined }, null, 2);
+    if (!shinsalFacts || fits(withoutRemedy)) return withoutRemedy;
+  }
+  return JSON.stringify({ ...parsed, shinsalFacts: undefined, remedyFacts: undefined }, null, 2);
 }
 
 /**
  * 그룹 하나를 생성한다. **절대 throw 하지 않는다** — 한 그룹의 실패가 나머지를 죽이면
  * 결제한 상담이 통째로 사라진다(love-secret-ai.js 와 같은 계약).
  */
-async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, finalAttempt = false, answerVoice = null, cacheAllowed = true, shinsalFacts = false }) {
+async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0, finalAttempt = false, answerVoice = null, cacheAllowed = true, shinsalFacts = false, remedyCases = null }) {
   const fail = (reason, provider = "", model = "") => ({ key: group.key, ok: false, parsed: null, chars: 0, reason, provider, model });
   // 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아간다 — 그 앞에서 막아야 한다.
   if (!(timeoutMs > 0)) return fail("BUDGET_EXHAUSTED");
 
   try {
-    const call = callGeminiText(env, buildUserPrompt(request, fallback, attempt, qualityHint, group, { shinsalFacts: shinsalFacts === true }), {
+    const call = callGeminiText(env, buildUserPrompt(request, fallback, attempt, qualityHint, group, { shinsalFacts: shinsalFacts === true, remedyCases }), {
       systemPrompt: appendAnswerVoice(buildSystemPrompt(consultationMode), answerVoice, { master: "yeoni" }),
       taskType: "fortune",
       temperature: attempt > 0 ? 0.54 : 0.62,
@@ -4676,6 +4737,8 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
     const state = checkpoint || { version: 1, request, fallback, groups: buildTeaCheckpointGroups(request, fallback), locale: getAmbientAiLocale() || 'ko', answerVoice: selectAnswerVoice(env),
         // 신살 블록 핀: 사주 단독 상담의 새 checkpoint 에만 남긴다. 옛 checkpoint 는 키가 없어 꺼진 채 끝난다.
         ...(normalizeConsultationMode(request.consultationMode) === 'saju' && selectShinsalFacts(env, 'tea-house') ? { shinsalFacts: selectShinsalFacts(env, 'tea-house') } : {}),
+        // 액땜 핀: 같은 새 checkpoint 에만 핀과 케이스를 남긴다. 재시도·재개는 이 저장값만 읽고, 완성 결과의 remedyCases 가 된다.
+        ...fortuneTeaRemedyPin(env, request, fallback),
         requestBody: JSON.parse(JSON.stringify(body, (key, value) => /^(?:premiumAccessToken|_premiumAccessToken|accessToken|token|authorization)$/i.test(key) ? undefined : value)), parts: {}, attempts: {}, repairs: [] };
     state.repairs ||= [];
     const pickEligible = () => state.groups.filter(group => teaGroupNeedsWork(state, group) && teaGroupHasAttempts(state, group)).slice(0, PAID_LLM_PARTS_PER_REQUEST);
@@ -4708,7 +4771,7 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
         return [...new Set(errors)];
     };
     const outcomes = await Promise.allSettled(eligible.map(async (group) => {
-        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, finalAttempt: teaIsFinalAttempt(state.attempts[group.key]), qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env), cacheAllowed: auth?.tossNative !== true, shinsalFacts: shinsalFactsPinned(state, env, 'tea-house') }));
+        const output = await runWithAiLocale(state.locale, () => generateFortuneTeaGroup(env, { request: state.request, fallback: state.fallback, group, consultationMode: state.request.consultationMode, timeoutMs: 45000, attempt: state.attempts[group.key] - 1, finalAttempt: teaIsFinalAttempt(state.attempts[group.key]), qualityHint: state.qualityError || '', answerVoice: pinAnswerVoice(state, env), cacheAllowed: auth?.tossNative !== true, shinsalFacts: shinsalFactsPinned(state, env, 'tea-house'), remedyCases: remedyFactsPinned(state, env, 'tea-house') ? state.remedyCases || null : null }));
         if (!output.ok)
             return;
         // Required provider fields must exist before the deterministic fallback is merged.
@@ -4783,7 +4846,8 @@ async function generateTeaCheckpoint(request, fallback, env, { auth, resultId, l
     }
     if (!isFortuneTeaHouseComplete(state))
         return teaPartialOrExhausted(state, resultId);
-    return { result, generationMeta: { mode: 'gemini', checkpointVersion: 1, generatedAt: new Date().toISOString(), completedGroups: state.groups.map(group => group.key) } };
+    // 액땜 카드는 핀을 남긴 checkpoint 의 저장값만 넘긴다. 플래그를 나중에 꺼도 이미 계산된 카드는 결과에 남는다.
+    return { result, ...(state.remedyCases && typeof state.remedyCases === 'object' ? { remedyCases: state.remedyCases } : {}), generationMeta: { mode: 'gemini', checkpointVersion: 1, generatedAt: new Date().toISOString(), completedGroups: state.groups.map(group => group.key) } };
 }
 
 async function generateConsultResult(request, fallback, env) {
@@ -6821,6 +6885,8 @@ async function handleConsult(request, env, ctx = null, recoveryAuth = null) {
     resultFormatVersion: fallback.resultFormatVersion,
     promptVersion: fallback.promptVersion,
     calculationSnapshot: fallback.calculationSnapshot,
+    // 액땜 카드(SAJU_REMEDY_FACTS_V1): checkpoint 에 고정된 케이스만 싣는다. 결과·보관함 재열람은 이 저장값만 읽는다.
+    ...(generated.remedyCases && typeof generated.remedyCases === "object" ? { remedyCases: generated.remedyCases } : {}),
   };
   let honeyDrops = auth?.userId ? null : await readHoneyDropsState(request, env);
 
@@ -7079,6 +7145,8 @@ export const __fortuneTeaHouseTestUtils = {
   buildSajuFactInput,
   buildUserPrompt,
   fortuneTeaRequestHash,
+  fortuneTeaRemedyBlock,
+  fortuneTeaRemedyCases,
   getSajuRequiredSectionTitles,
   normalizeDraftResult,
   normalizeRequest,

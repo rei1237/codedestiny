@@ -390,6 +390,145 @@ describe("운명 찻집 사주 — 신살 사실 블록(SAJU_SHINSAL_FACTS_V1)",
   });
 });
 
+describe("운명 찻집 사주 — 액땜 카드(SAJU_REMEDY_FACTS_V1)", () => {
+  const HEADER = "[액땜 방법";
+  const PRESCRIPTION = 7;
+  const headerCount = (raw) => raw.split(HEADER).length - 1;
+  const isPrescription = (raw) => JSON.parse(raw).groupRule?.exactSectionTitle === SECTION_TITLES[PRESCRIPTION];
+  const withoutBlock = (raw) => JSON.stringify({ ...JSON.parse(raw), remedyFacts: undefined }, null, 2);
+  const long = (label) => Array.from({ length: 17 }, (_, index) => `${label} 사례 ${index}에서는 일간과 오행, 십성의 계산 근거를 확인합니다. ${label} 검토 ${index}의 재성, 비겁, 소비, 금전, 투자, 30일 계획은 대운과 세운의 주어진 구간을 기준으로 현실의 수입과 지출을 비교하며 해석하는 예시입니다.`).join('\n');
+
+  // '찻집의 처방' 그룹은 첫 시도만 실패해 재생성 경로에서도 블록이 그대로 실리는지 본다. 블록이 실리면 그 방법을 처방 본문에 인용한다.
+  function installMock() {
+    const run = { prompts: [], quote: "" };
+    let failServed = false;
+    callGeminiTextMock.mockImplementation(async (_env, raw) => {
+      run.prompts.push(raw);
+      if (!failServed && isPrescription(raw)) {
+        failServed = true;
+        return { ok: false, error: "provider_busy" };
+      }
+      const output = JSON.parse(JSON.stringify(teaFixtures.buildLlmPayload('three')).replace(/펜타클 10|황제|컵 5/g, '입력 명식').replace(/카드/g, '명식'));
+      const deepSections = SECTION_TITLES.map((title, index) => ({ id: 'llm-' + index, title, body: long(title) }));
+      const methods = String(JSON.parse(raw).remedyFacts || "").match(/방법: ([^/\n]+)/);
+      if (methods) {
+        run.quote = `이번 달 처방으로는 ${methods[1].trim()} 가운데 한두 가지를 생활 속에서 먼저 해 보세요. 헌혈은 헌혈 기준과 그날 컨디션을 먼저 확인하세요.`;
+        deepSections[PRESCRIPTION].body = `${run.quote}\n${deepSections[PRESCRIPTION].body}`;
+      }
+      output.saju = { title: '명식과 금전의 흐름', summary: long('요약'), oneLineAdvice: '지출 기록으로 작은 기준을 확인하세요.', deepSections };
+      return { ok: true, provider: 'gemini', text: JSON.stringify(output) };
+    });
+    return run;
+  }
+
+  async function runWaves(attemptId, envForWave, body = consultBody({ attemptId })) {
+    const statuses = [];
+    const callsAfterWave = [];
+    let response;
+    for (let wave = 0; wave < 12; wave += 1) {
+      response = await postConsult(body, envForWave(wave));
+      statuses.push(response.status);
+      callsAfterWave.push(callGeminiTextMock.mock.calls.length);
+      if (response.status !== 202 || response.payload.retryable === false) break;
+    }
+    const saved = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    return { response, statuses, callsAfterWave, saved, checkpoint: saved.generationCheckpoint };
+  }
+
+  async function getDetail(resultId, env = {}) {
+    const response = await handleFortuneTeaHouseRoutes(new Request(`https://example.com/api/fortune-tea-house/results/${encodeURIComponent(resultId)}`, {
+      method: "GET",
+      headers: { 'cf-connecting-ip': resultId },
+    }), { NODE_ENV: "test", GEMINIF_API_KEY: "test-key", ...env });
+    return { status: response.status, payload: await response.json() };
+  }
+
+  test("켠 뒤 만든 상담은 케이스를 고정하고, '찻집의 처방' 프롬프트에만 블록을 싣고, 결과·재열람에 카드 데이터를 남긴다", async () => {
+    const offRun = installMock();
+    const off = await runWaves("saju-remedy-pin", () => ({}));
+    expect(off.response.status).toBe(200);
+    expect(off.checkpoint.remedyFacts).toBeUndefined();
+    expect(off.response.payload.result.remedyCases).toBeUndefined();
+    expect(offRun.prompts.every(raw => headerCount(raw) === 0)).toBe(true);
+    const offKeyExtras = callGeminiTextMock.mock.calls.map(call => call[2]?.cache?.keyExtra);
+
+    fakeCollections.clear();
+    callGeminiTextMock.mockReset();
+    const onRun = installMock();
+    const env = { SAJU_REMEDY_FACTS_V1: "tea-house" };
+    const on = await runWaves("saju-remedy-pin", () => env);
+    expect(on.statuses.every(status => status === 202 || status === 200)).toBe(true);
+    expect({ status: on.response.status, quality: on.checkpoint.qualityError, code: on.response.payload.code }).toEqual({ status: 200, quality: undefined, code: undefined });
+    expect(on.checkpoint.remedyFacts).toBe("remedy-facts-v1");
+    expect(on.checkpoint.remedyCases).toMatchObject({ valid: true, locale: "ko" });
+    expect(on.checkpoint.remedyCases.cases.length).toBeGreaterThan(0);
+    // 호출 수·상태 흐름·캐시 keyExtra 는 OFF 와 같고, 블록은 '찻집의 처방' 그룹(재생성 포함)에만 한 번 실린다.
+    expect(onRun.prompts).toHaveLength(offRun.prompts.length);
+    expect(on.statuses).toEqual(off.statuses);
+    expect(callGeminiTextMock.mock.calls.map(call => call[2]?.cache?.keyExtra)).toEqual(offKeyExtras);
+    const prescriptionPrompts = onRun.prompts.filter(isPrescription);
+    expect(prescriptionPrompts.length).toBeGreaterThanOrEqual(2);
+    onRun.prompts.forEach((raw, index) => {
+      expect(headerCount(raw)).toBe(isPrescription(raw) ? 1 : 0);
+      expect(withoutBlock(raw)).toBe(offRun.prompts[index]);
+      if (!isPrescription(raw)) expect(raw).toBe(offRun.prompts[index]);
+    });
+    const block = JSON.parse(prescriptionPrompts[0]).remedyFacts;
+    expect(block.length).toBeLessThanOrEqual(500);
+    expect(prescriptionPrompts[0].length - offRun.prompts[onRun.prompts.indexOf(prescriptionPrompts[0])].length).toBe(`  "remedyFacts": ${JSON.stringify(block)},\n`.length);
+    // 블록 방법을 인용한 처방 본문이 출력 검사를 지나 그대로 전달된다.
+    expect(onRun.quote).not.toBe("");
+    expect(on.response.payload.result.saju.deepSections[PRESCRIPTION].body).toContain(onRun.quote);
+    expect(off.response.payload.result.saju.deepSections[PRESCRIPTION].body).not.toContain("이번 달 처방으로는");
+    // 결과 응답·저장본·결과 상세 API 가 같은 케이스를 돌려준다(재계산·LLM 호출 없음).
+    expect(on.response.payload.result.remedyCases).toEqual(on.checkpoint.remedyCases);
+    expect(on.saved.result.remedyCases).toEqual(on.checkpoint.remedyCases);
+    const calls = callGeminiTextMock.mock.calls.length;
+    const detail = await getDetail(on.saved.resultId, env);
+    expect(detail.status).toBe(200);
+    expect(detail.payload.result.remedyCases).toEqual(on.checkpoint.remedyCases);
+    // 플래그를 꺼도 저장된 카드 데이터는 그대로 다시 열린다.
+    expect((await getDetail(on.saved.resultId, { SAJU_REMEDY_FACTS_V1: "" })).payload.result.remedyCases).toEqual(on.checkpoint.remedyCases);
+    const replay = await postConsult(consultBody({ attemptId: "saju-remedy-pin" }), env);
+    expect(replay.status).toBe(200);
+    expect(replay.payload.result.remedyCases).toEqual(on.checkpoint.remedyCases);
+    expect(callGeminiTextMock).toHaveBeenCalledTimes(calls);
+  });
+
+  test("플래그를 켜기 전에 시작한 상담은 이어지는 요청에서 켜져도 블록·카드가 없다", async () => {
+    const run = installMock();
+    const legacy = await runWaves("saju-remedy-legacy", wave => (wave === 0 ? {} : { SAJU_REMEDY_FACTS_V1: "tea-house" }));
+    expect(legacy.response.status).toBe(200);
+    expect(legacy.checkpoint.remedyFacts).toBeUndefined();
+    expect(legacy.checkpoint.remedyCases).toBeUndefined();
+    expect(run.prompts.length).toBeGreaterThan(legacy.callsAfterWave[0]);
+    expect(run.prompts.every(raw => headerCount(raw) === 0)).toBe(true);
+    expect(legacy.response.payload.result.remedyCases).toBeUndefined();
+    expect(legacy.saved.result.remedyCases).toBeUndefined();
+  });
+
+  test("고정된 상담도 플래그를 끄면 블록은 빠지지만, 이미 계산된 카드 데이터는 결과에 남는다", async () => {
+    const run = installMock();
+    const killed = await runWaves("saju-remedy-kill", wave => (wave === 0 ? { SAJU_REMEDY_FACTS_V1: "true" } : { SAJU_REMEDY_FACTS_V1: "" }));
+    expect(killed.response.status).toBe(200);
+    expect(killed.checkpoint.remedyFacts).toBe("remedy-facts-v1");
+    // 첫 요청은 앞 그룹만 만들고 '찻집의 처방' 그룹은 뒤 요청에서 만든다 — 그때는 꺼져 있다.
+    expect(run.prompts.slice(0, killed.callsAfterWave[0]).some(isPrescription)).toBe(false);
+    expect(run.prompts.some(isPrescription)).toBe(true);
+    expect(run.prompts.every(raw => headerCount(raw) === 0)).toBe(true);
+    expect(killed.response.payload.result.remedyCases).toEqual(killed.checkpoint.remedyCases);
+  });
+
+  test("다른 소비처 id 만 켜져 있으면 찻집은 고정하지 않는다", async () => {
+    const run = installMock();
+    const other = await runWaves("saju-remedy-other", () => ({ SAJU_REMEDY_FACTS_V1: "heukwol,new-year" }));
+    expect(other.response.status).toBe(200);
+    expect(other.checkpoint.remedyFacts).toBeUndefined();
+    expect(run.prompts.every(raw => headerCount(raw) === 0)).toBe(true);
+    expect(other.response.payload.result.remedyCases).toBeUndefined();
+  });
+});
+
 describe("운명 찻집 사주 — 명식 계산 근거", () => {
   // 음력 작은달 30일처럼 양력 검사만 통과한 날짜는 명식 계산이 닫힌 채(available:false) 올라온다.
   // 그 초안으로 상담문이 완성되면 일간·오행·대운 없는 리포트에 100코인이 청구된다.
@@ -475,6 +614,18 @@ describe("운명 찻집 사주 궁합 — 두 사람 명식 계산 근거", () =
     expect(saved.generationCheckpoint.shinsalFacts).toBeUndefined();
     expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
     expect(callGeminiTextMock.mock.calls.every(call => !call[1].includes("[신살 계산값"))).toBe(true);
+  });
+
+  test("궁합 상담은 액땜 플래그를 전부 켜도 고정하지 않고 블록도 싣지 않는다", async () => {
+    callGeminiTextMock.mockImplementation(async () => ({ ok: true, provider: "gemini", text: "{}" }));
+
+    await postConsult(compatConsultBody("saju-compat-remedy", compatDraft({})), { SAJU_REMEDY_FACTS_V1: "true" });
+
+    const saved = await fakeDb.collection('fortune_tea_house_results').find({}).next();
+    expect(saved.generationCheckpoint.remedyFacts).toBeUndefined();
+    expect(saved.generationCheckpoint.remedyCases).toBeUndefined();
+    expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(0);
+    expect(callGeminiTextMock.mock.calls.every(call => !call[1].includes("[액땜 방법"))).toBe(true);
   });
 });
 
