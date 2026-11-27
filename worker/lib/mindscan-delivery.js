@@ -91,7 +91,7 @@ export function deliverMindscan(request, env, auth, body, verify) {
 // The route and the server resume task share render and produce.
 export function mindscanNarrativeAdapter(env) {
   return { featureKey: 'tarot-mindscan', reportType: 'mindscan', render,
-    produce: async (task, state) => {
+    produce: async (task, state, { finalAttempt = false } = {}) => {
       assertTarotNarrativeSnapshot(state);
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 짧은 문단으로 나누고 같은 문장을 반복하지 않는다.`, {
         timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55,
@@ -109,7 +109,8 @@ export function mindscanNarrativeAdapter(env) {
       if (task.id === 'summary') value.body = normalizeNarrativeParagraphs(value.body, 10);
       else if (task.sectionIndex !== undefined && paragraphs(value.body).length < asked) value.body = normalizeNarrativeParagraphs(value.body, asked);
       const count = paragraphs(value.body).length;
-      if ((task.sectionIndex !== undefined && count < least) || (task.id === 'summary' && count !== 10)) return null;
+      // The last allowed call keeps a deduped answer with too few sentences to split into every field.
+      if (finalAttempt ? count < 1 : (task.sectionIndex !== undefined && count < least) || (task.id === 'summary' && count !== 10)) return null;
       const evidence = drawnEvidence(state);
       if (evidence && findTarotProseViolation(value.body, evidence)) return null;
       return value;

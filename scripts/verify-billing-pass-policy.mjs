@@ -28,7 +28,9 @@ import {
   getPaidFeaturePaymentPolicy,
   calculatePaidFeatureMembershipCreditCost,
   listServerPricedFeatureKeys,
+  MOONSTONE_MIN_PRODUCT_KRW,
 } from "../worker/lib/paid-feature-registry.js";
+import { createRequire } from "node:module";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 // Windows 체크아웃은 eol=lf 파일도 CRLF 로 남을 수 있다 — 단언은 논리 줄(LF) 기준이므로 읽을 때 정규화한다.
@@ -43,6 +45,18 @@ const indexSource = readSource(resolve(root, "index.html"));
 // 결제 선택창 CSS 규칙(PAYMENT_CHOICE_CSS_RULES)과 카드 마크업 조립(buildPaymentChoiceCardsHtml) 정본
 // (2026-08-21 부터 js/core/checkout-entry.js) — 모달 치수·카드 뼈대 단언은 이 파일을 봐야 한다.
 const checkoutEntrySource = readSource(resolve(root, "js/core/checkout-entry.js"));
+// 결제창의 월정석 카드 숨김 기준(정가 하한)은 서버 정본과 같은 값이어야 한다 — 어긋나면 카드가 보이는데 402 MONTHLY_NOT_ALLOWED 가 나거나,
+// 쓸 수 있는 상품에서 월정석이 사라진다.
+const checkoutEntryApi = createRequire(import.meta.url)(resolve(root, "js/core/checkout-entry.js"));
+assert.equal(checkoutEntryApi.MOONSTONE_MIN_PRODUCT_KRW, MOONSTONE_MIN_PRODUCT_KRW, "checkout-entry MOONSTONE_MIN_PRODUCT_KRW 가 서버 paid-feature-registry 정본과 다릅니다");
+for (const [featureKey, spec] of Object.entries(FEATURE_KEY_PRICE_TABLE)) {
+  if (!Number.isSafeInteger(spec?.amountKRW) || spec.amountKRW <= 0) continue;
+  // 서버가 정가 하한으로 월정석을 막는 상품은 결제창도 반드시 숨겨야 한다(역방향은 서버 다른 사유가 있어 단언하지 않는다).
+  if (spec.amountKRW < MOONSTONE_MIN_PRODUCT_KRW) {
+    assert.equal(getPaidFeaturePaymentPolicy(featureKey).monthlyExcluded, true, featureKey + ": 서버가 정가 하한 미만인데 월정석을 허용");
+    assert.equal(checkoutEntryApi.isMonthlyChoiceExcluded({ featureKey, amountKRW: spec.amountKRW }), true, featureKey + ": 정가 " + spec.amountKRW + "원인데 결제창이 월정석 카드를 띄운다(서버는 402 MONTHLY_NOT_ALLOWED)");
+  }
+}
 const destinyProfileSource = readSource(resolve(root, "js/destiny-profile.js"));
 const billingClientSource = readSource(resolve(root, "app/_lib/billing-client.ts"));
 const tarotPromptMakerSource = readSource(resolve(root, "app/tarot/prompt-maker/page.tsx"));

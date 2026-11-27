@@ -80,7 +80,7 @@ export function deliverLoveTarot(request, env, auth, body, verify, buildBase) {
 // The route and the server resume task share render and produce.
 export function loveTarotNarrativeAdapter(env) {
   return { featureKey: 'tarot-love-relationship', reportType: 'loveTarot', render,
-    produce: async (task, state) => {
+    produce: async (task, state, { finalAttempt = false } = {}) => {
       assertTarotNarrativeSnapshot(state);
       const ai = await callGeminiText(env, `${state.prompt}\n[이번 부분 ${task.id}] ${task.prompt}${narrativePriorDigest(state, task)}\nJSON {"body":"본문"}만 출력한다. 문단은 빈 줄로 나누고 번호·항목명을 붙이지 않는다. 제목·기호·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자. 같은 문장을 반복하지 않는다.`, {
         timeoutMs: 45000, maxOutputTokens: 9500, thinkingBudget: 0, temperature: 0.55, responseMimeType: 'application/json', responseSchema: NARRATIVE_RESPONSE_SCHEMA, fallbackToWorkersAI: false,
@@ -97,7 +97,9 @@ export function loveTarotNarrativeAdapter(env) {
       if (count) value.body = normalizeNarrativeParagraphs(value.body, count);
       else if (legacyCard && paragraphs(value.body).length < 2) value.body = normalizeNarrativeParagraphs(value.body, 2);
       const found = paragraphs(value.body).length;
-      if ((count && found !== count) || (legacyCard && found < 2)) return null;
+      // The last allowed call keeps a deduped answer with too few sentences to split; render leaves the
+      // fields it cannot fill empty instead of refunding a paid reading for its paragraph count.
+      if (finalAttempt ? found < 1 : (count && found !== count) || (legacyCard && found < 2)) return null;
       const evidence = drawnEvidence(state);
       if (evidence && findTarotProseViolation(value.body, evidence)) return null;
       return value;

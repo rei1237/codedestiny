@@ -1,8 +1,9 @@
 import * as models from "./models.js";
 
 // 결제창만 열고 떠난 주문을 크론이 30분 뒤 닫은 흔적(worker/payments/reconcile.js expireStalePendingOrders →
-// markOrderCancelled 는 대기 주문만 닫는다). 결제된 적이 없어 회수할 권한도 없고, 취소 주문은 결제로 되살아나지
-// 않는다(orders.js markOrderPaid). 쿼리마다 새 객체를 돌려준다 — Mongoose 가 필터를 제자리에서 캐스팅한다.
+// markOrderCancelled 는 대기 주문만 닫는다). 결제된 적이 없어 회수할 권한도 없다. PortOne 이 PAID 라고 확인되면 같은
+// 주문이 paid 로 되살아나며(orders.js isRevivableClosedOrder) 그때는 이 조건(status cancelled)에서 빠진다.
+// 쿼리마다 새 객체를 돌려준다 — Mongoose 가 필터를 제자리에서 캐스팅한다.
 export function neverPaidExpiredOrder() {
   return { status: "cancelled", failureCode: "ORDER_EXPIRED", paidAt: null };
 }

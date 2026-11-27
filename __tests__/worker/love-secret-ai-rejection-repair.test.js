@@ -6,6 +6,7 @@
  */
 import { createHash } from "node:crypto";
 import {
+  LOVE_SECRET_AI_GROUP_MIN_CHARS,
   LOVE_SECRET_AI_GROUPS,
   LOVE_SECRET_AI_GROUPS_V1,
   buildLoveSecretGroupPrompt,
@@ -132,6 +133,44 @@ describe("반려 사유와 걸린 문맥을 남기고 표적 수리 지시로 �
   });
 });
 
+// 2026-11-27: 하드 한도 마지막 시도(lastChance)는 다음 시도가 없으므로 비지 않은 본문을 분량·되풀이로 거부하지 않는다.
+describe("🔴 하드 한도 마지막 시도(lastChance)는 비지 않은 본문을 전달한다", () => {
+  const repeated = "같은 위로 문장이 두 번 나오면 반복 문장으로 걸리는 긴 문장이에요.";
+  const lastChance = { lengthRepair: true, scrubUnsafe: true, salvage: true, salvageFloorRatio: 0.3, lastChance: true };
+
+  test("salvage 하한(0.3배) 아래의 짧은 본문과 되풀이 본문도 받고 shortAccepted 를 남긴다", () => {
+    const text = groupJson(risk, () => `${prose(120)}${repeated} ${prose(40)}${repeated} `);
+    const salvage = parseLoveSecretGroupResponse(text, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true, salvageFloorRatio: 0.3 });
+    expect(salvage.ok).toBe(false);
+    const parsed = parseLoveSecretGroupResponse(text, risk, lastChance);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.shortAccepted).toBe(true);
+    expect(parsed.chars).toBeLessThan(Math.round(LOVE_SECRET_AI_GROUP_MIN_CHARS * 0.3));
+    const body = parsed.sections.map((section) => section.body).join(" ");
+    expect(body.split(repeated).length - 1).toBe(1);
+    expect(isLoveSecretComplete([parsed], [risk])).toBe(true);
+  });
+
+  test("문자열이 아닌 섹션 본문은 그 섹션만 버린다 — 필수 섹션이 다 남으면 받고, 빠지면 거부한다", () => {
+    const sections = risk.sections.map((section) => ({ title: section.title, body: prose(300) }));
+    const extraBad = JSON.stringify({ sections: [...sections, { title: "덤", body: { nested: true } }] });
+    expect(parseLoveSecretGroupResponse(extraBad, risk, { lengthRepair: true, scrubUnsafe: true, salvage: true }).reason).toBe("INVALID_SECTION_BODY");
+    const accepted = parseLoveSecretGroupResponse(extraBad, risk, lastChance);
+    expect(accepted.ok).toBe(true);
+    expect(accepted.sections.some((section) => section.title === "덤")).toBe(false);
+    const requiredBad = JSON.stringify({ sections: sections.map((section, index) => (index === 1 ? { title: section.title, body: 42 } : section)) });
+    expect(parseLoveSecretGroupResponse(requiredBad, risk, lastChance).ok).toBe(false);
+  });
+
+  test("lastChance 여도 필수 섹션이 비거나 금지·위험 표현이 남으면 거부한다", () => {
+    const oneEmpty = groupJson(risk, (index) => (index === 1 ? "" : prose(300)));
+    expect(parseLoveSecretGroupResponse(oneEmpty, risk, lastChance).ok).toBe(false);
+    const unsafe = groupJson(risk, () => `${prose(300)}그 사람을 감시하면서 기다리세요. `);
+    expect(parseLoveSecretGroupResponse(unsafe, risk, { ...lastChance, scrubUnsafe: false }).ok).toBe(false);
+    expect(parseLoveSecretGroupResponse("", risk, lastChance).ok).toBe(false);
+  });
+});
+
 describe("V2 프롬프트 보정과 V1 보존", () => {
   const input = { myInfo: { name: "테스트" }, relationshipStatus: "썸", topic: "연락", userQuestion: "연락이 뜸해졌어요" };
   const saju = { facts: ["일간: 병화"] };
@@ -167,5 +206,5 @@ describe("연애 비책 말투 점검은 합니다체 비율을 본다(로그·�
   });
 });
 
-// HEAD(96282eecc) 모듈로 같은 입력을 돌려 얻은 값과 같다.
-const V1_HASH = "e7fb167d41de2ca131e5d1d8494c671d2a879e5a37a7da26520806a60039bbca";
+// HEAD(96282eecc) 모듈로 같은 입력을 돌려 얻은 값에서 2026-11-27 목표 분량 하향(분량 줄)만 반영했다.
+const V1_HASH = "84172da8ce7c187a5b18758714c47d87e630e1ce3290af3ceb42839cd0d5baf8";

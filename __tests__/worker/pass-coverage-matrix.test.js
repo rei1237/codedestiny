@@ -65,3 +65,42 @@ test.each(TIERS)("%s: an exhausted budget or a remainder below the price sends b
   expect(serverCovers(product, holder(tier, budget - 50), tier)).toBe(true);
   expect(clientCovers(product, holder(tier, budget - 50))).toBe(true);
 });
+
+describe("server enforces passExcluded outside the pass-check route", () => {
+  const excluded = PRODUCTS.filter((p) => p.passExcluded && !isSajuBundleSaleClosed(p.featureKey));
+  const allowed = shared.find((p) => !p.lightFortune && p.priceCoins === 50);
+
+  test.each(TIERS)("%s: evaluatePassCoverage refuses passExcluded with pass_excluded", (tier) => {
+    const pass = holder(tier);
+    expect(excluded.length).toBeGreaterThan(0);
+    for (const p of excluded) {
+      expect(evaluatePassCoverage({ ...pass, coinCost: p.priceCoins, passExcluded: true })).toMatchObject({ covered: false, reason: "pass_excluded" });
+    }
+  });
+
+  test("consumePassForFeature does not debit a Family pass for excluded keys, still covers allowed keys and replays", async () => {
+    const { consumePassForFeature } = await import("../../worker/lib/pass-consumption.js");
+    const { buildPassConsumeMarker } = await import("../../worker/payments/passes.js");
+    const { makeFakePaymentDb } = await import("../fixtures/fake-payment-db.mjs");
+    const run = async (product, markers = []) => {
+      const db = makeFakePaymentDb();
+      const { user, entitlement } = holder("family");
+      user.recentConsumeRequestIds = markers;
+      db.rows.push(user);
+      const result = await consumePassForFeature({ db, user, entitlement, userId: user._id,
+        featureKey: product.featureKey, requestId: "excl-1", coinCost: product.priceCoins });
+      return { result, spent: db.rows[0].profileSubscription.monthlySpendCoin };
+    };
+    for (const key of ["profile-card-manage", "neo-email-consultation"]) {
+      const { result, spent } = await run(excluded.find((p) => p.featureKey === key));
+      expect(result).toMatchObject({ covered: false, reason: "pass_excluded" });
+      expect(spent).toBe(0);
+    }
+    const ok = await run(allowed);
+    expect(ok.result.covered).toBe(true);
+    expect(ok.spent).toBe(50);
+    const replayed = await run(excluded.find((p) => p.featureKey === "profile-card-manage"),
+      [buildPassConsumeMarker("profile-card-manage", "excl-1")]);
+    expect(replayed.result).toMatchObject({ covered: true, replayed: true });
+  });
+});

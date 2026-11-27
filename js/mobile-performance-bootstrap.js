@@ -456,19 +456,25 @@ function setupTextCollapse() {
     el.style.overflow = 'hidden';
     el.style.position = 'relative';
 
+    // 한국어 화면은 한국어 라벨을 쓴다(영어 More/Less 가 상담 카드에 섞여 보였다).
+    const ko = /^ko/i.test(document.documentElement.lang || 'ko');
+    const moreLabel = ko ? '더 보기' : 'More';
+    const lessLabel = ko ? '접기' : 'Less';
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'btn-sub';
+    btn.className = 'btn-sub cd-text-collapse-toggle';
+    btn.setAttribute('aria-expanded', 'false');
     btn.style.marginTop = '8px';
     btn.style.padding = '8px 12px';
     btn.style.fontSize = '0.82rem';
-    btn.textContent = 'More';
+    btn.textContent = moreLabel;
 
     let open = false;
     btn.addEventListener('click', () => {
       open = !open;
       el.style.maxHeight = open ? 'none' : '6.2em';
-      btn.textContent = open ? 'Less' : 'More';
+      btn.textContent = open ? lessLabel : moreLabel;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }, { passive: true });
 
     el.insertAdjacentElement('afterend', btn);

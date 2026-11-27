@@ -213,6 +213,27 @@ it('does not replace historical short completed results',async()=>{await start()
 it('delivers saved result when usage bookkeeping fails',async()=>{await start();await batch();usage.mockImplementation(()=>{throw new Error('bookkeeping unavailable')});expect((await batch()).status).toBe(200);expect(docs[0].status).toBe('completed');expect(refund).not.toHaveBeenCalled()});
 it('retries only the chapter with contradictory calculated evidence',async()=>{const normal=provider.getMockImplementation();provider.mockImplementationOnce(async(...args)=>{const result=await normal(...args);const value=JSON.parse(result.text);value.vedicEvidence='잘못된 별자리';return{...result,text:JSON.stringify(value)}});await start();expect(docs[0].sections).toHaveLength(3);await batch();await batch();expect(docs[0].status).toBe('completed');expect(provider).toHaveBeenCalledTimes(10)});
 
+// 2026-11-27 마지막 허용 시도 전달: 거절 대신 salvage·scrub·dedupe·계산값 채움. 첫 시도 기준은 그대로다.
+it('delivers a truncated, evidence-less, repeated chapter on the last attempt instead of failing',async()=>{
+  const target=definitions[definitions.length-1];const normal=provider.getMockImplementation();const own=prose('마지막장',target.minChars+100);
+  const copied=prose(definitions[0].title.replace(/[?!]/g,""),definitions[0].minChars+100);
+  provider.mockImplementation(async(...args)=>{const result=await normal(...args);if(!args[1].includes(`[이 장: ${target.title}]`))return result;
+    const text=JSON.stringify({keyInsight:'assistant 요약',vedicEvidence:'',sukuyoEvidence:'',body:copied+own+own+'assistant 가 덧붙인 메타 문장입니다. 끝맺지 못하고 잘린 문장'});
+    return{...result,truncated:true,finishReason:'MAX_TOKENS',text:text.slice(0,-2)}});
+  await start();for(let i=0;i<6&&docs[0].status!=='completed';i++)await batch();
+  expect(docs[0].status).toBe('completed');expect(refund).not.toHaveBeenCalled();expect(passRefund).not.toHaveBeenCalled();
+  const row=docs[0].sections.find(saved=>saved.id===target.id);const identity=docs[0].factSummary.identity;
+  expect(docs[0].llmMeta.attempts[target.id]).toBe(2);expect(row.finalCorrected).toBe(true);
+  expect(row.body).not.toMatch(/assistant|잘린 문장$/);expect(row.body).not.toContain(copied.trim().split('. ')[1]);
+  expect(row.vedicEvidence).toContain(identity.nakshatraKo);expect(row.sukuyoEvidence).toContain(identity.sukuyoKo);expect(row.keyInsight).not.toMatch(/assistant/);
+  const {hasRepeatedReportPassage}=await import('../../worker/lib/paid-report-quality.js');expect(hasRepeatedReportPassage(docs[0].sections.map(saved=>saved.body).join('\n'))).toBe(false);
+});
+it('still fails a last attempt whose body is empty or unparseable',async()=>{
+  const target=definitions[definitions.length-1];const normal=provider.getMockImplementation();
+  provider.mockImplementation(async(...args)=>args[1].includes(`[이 장: ${target.title}]`)?{ok:true,provider:'gemini',model:'fixture',text:'{"body": 깨진'}:normal(...args));
+  await start();let last;for(let i=0;i<6&&docs[0].status!=='completed'&&(!last||last.status!==503);i++)last=await batch();
+  expect(last.status).toBe(503);expect(docs[0].status).not.toBe('completed');expect(docs[0].sections.find(saved=>saved.id===target.id&&saved.body)).toBeUndefined();
+});
 it('uncertain exhausted attempts remain a storage failure without refund or extra calls',async()=>{await start();const missing=definitions.find(spec=>!docs[0].sections.some(row=>row.id===spec.id));docs[0].llmMeta.attempts[missing.id]=3;expect((await batch()).status).toBe(503);expect(docs[0].status).toBe('generating');expect(provider).toHaveBeenCalledTimes(4);expect(refund).not.toHaveBeenCalled()});
 it('reuses the original nine chapters for an authenticated Toss order and keeps its stored result off the web route',async()=>{
   const {bindNativeTossRequest}=await import('../../worker/toss/native-context.js');

@@ -15,6 +15,8 @@ import {
   releaseStaleRefundLocks,
   runPaymentReconcile,
   purgeExpiredResumePayloads,
+  recoverClosedPaidOrders,
+  CLOSED_ORDER_RECOVERY_RECHECK_MS,
 } from "../../worker/payments/reconcile.js";
 import { REFUND_LOCK_TTL_MS } from "../../worker/payments/orders.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
@@ -173,13 +175,16 @@ describe("PAID 인데 권한이 없는 주문", () => {
 });
 
 describe("오래된 PENDING 주문", () => {
+  // 취소 직전 PortOne 재조회(2026-11-27). 기본은 각 주문의 lastPgStatus 를 그대로 돌려주는 PG 다.
+  const pgAs = (status) => async (order) => ({ paymentId: order.merchantUid, status });
+  const echoPg = async (order) => ({ paymentId: order.merchantUid, status: order.metadata?.reconcile?.lastPgStatus });
   test("유예를 넘긴 것만 취소한다", async () => {
     const db = makeFakePaymentDb();
     await seed(db, [
       { merchantUid: "cd-old", status: "pending", createdAt: ago(PENDING_EXPIRY_MS + 60_000), metadata: { reconcile: { lastPgStatus: "ready" } } },
       { merchantUid: "cd-new", status: "pending", createdAt: ago(60_000), metadata: { reconcile: { lastPgStatus: "ready" } } },
     ]);
-    const report = await expireStalePendingOrders(db, { now: NOW });
+    const report = await expireStalePendingOrders(db, { now: NOW, probe: echoPg });
     expect(report).toMatchObject({ scanned: 1, cancelled: 1 });
     expect(db.rows.find((r) => r.merchantUid === "cd-old").status).toBe("cancelled");
     expect(db.rows.find((r) => r.merchantUid === "cd-old").failureCode).toBe("ORDER_EXPIRED");
@@ -192,7 +197,7 @@ describe("오래된 PENDING 주문", () => {
       { merchantUid: "cd-unprobed", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10) },
       { merchantUid: "cd-claimed-only", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10), metadata: { reconcile: { attempts: 1 } } },
     ]);
-    expect(await expireStalePendingOrders(db, { now: NOW })).toEqual({ scanned: 0, cancelled: 0 });
+    expect(await expireStalePendingOrders(db, { now: NOW, probe: echoPg })).toMatchObject({ scanned: 0, cancelled: 0 });
     expect(db.rows.every((r) => r.status === "pending")).toBe(true);
   });
 
@@ -202,7 +207,7 @@ describe("오래된 PENDING 주문", () => {
       { merchantUid: "cd-pg-paid", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10), metadata: { reconcile: { lastPgStatus: "paid" } } },
       { merchantUid: "cd-pg-failed", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 10), metadata: { reconcile: { lastPgStatus: "failed" } } },
     ]);
-    expect(await expireStalePendingOrders(db, { now: NOW })).toEqual({ scanned: 1, cancelled: 1 });
+    expect(await expireStalePendingOrders(db, { now: NOW, probe: echoPg })).toMatchObject({ scanned: 1, cancelled: 1 });
     expect(db.rows.find((r) => r.merchantUid === "cd-pg-paid").status).toBe("pending");
     expect(db.rows.find((r) => r.merchantUid === "cd-pg-failed").status).toBe("cancelled");
   });
@@ -210,8 +215,107 @@ describe("오래된 PENDING 주문", () => {
   test("🔴 PAID 주문은 절대 취소되지 않는다", async () => {
     const db = makeFakePaymentDb();
     await seed(db, [{ merchantUid: "cd1", status: "paid", createdAt: ago(PENDING_EXPIRY_MS * 10) }]);
-    expect((await expireStalePendingOrders(db, { now: NOW })).scanned).toBe(0);
+    expect((await expireStalePendingOrders(db, { now: NOW, probe: echoPg })).scanned).toBe(0);
     expect(db.rows[0].status).toBe("paid");
+  });
+
+  const staleReady = () => ({ merchantUid: "cd-stale", status: "pending", createdAt: ago(PENDING_EXPIRY_MS * 2), metadata: { reconcile: { lastPgStatus: "ready" } } });
+
+  test("🔴 lastPgStatus 가 ready 로 낡았어도 PortOne 이 PAID 면 취소하지 않고 정산한다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [staleReady()]);
+    const settled = [];
+    const report = await expireStalePendingOrders(db, {
+      now: NOW, probe: pgAs("paid"), settle: async (order, pg) => { settled.push([order.merchantUid, pg.status]); },
+    });
+    expect(report).toMatchObject({ scanned: 1, cancelled: 0, settled: 1 });
+    expect(settled).toEqual([["cd-stale", "paid"]]);
+    expect(db.rows[0].status).toBe("pending");
+  });
+
+  test("🔴 PortOne 조회 실패·정산 실패·주문 id 불일치·모르는 상태는 건너뛴다(fail-closed)", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    for (const options of [
+      { probe: async () => { throw new Error("PG_UNAVAILABLE"); } },
+      { probe: pgAs("paid"), settle: async () => { throw Object.assign(new Error("amount"), { code: "AMOUNT_MISMATCH" }); } },
+      { probe: pgAs("paid") }, // 정산 주체가 없으면 PAID 주문을 닫지도 정산하지도 않는다
+      { probe: async () => ({ paymentId: "someone-else", status: "cancelled" }) },
+      { probe: pgAs("pay_pending") },
+    ]) {
+      const db = makeFakePaymentDb();
+      await seed(db, [staleReady()]);
+      expect(await expireStalePendingOrders(db, { now: NOW, ...options })).toMatchObject({ scanned: 1, cancelled: 0, skipped: 1 });
+      expect(db.rows[0].status).toBe("pending");
+    }
+    errorSpy.mockRestore();
+  });
+
+  test("🔴 PortOne 조회 수단이 없으면 아무것도 취소하지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [staleReady()]);
+    expect(await expireStalePendingOrders(db, { now: NOW })).toMatchObject({ scanned: 0, cancelled: 0 });
+    expect(db.rows[0].status).toBe("pending");
+  });
+
+  test("월정석 할인 주문은 PortOne 이 failed/cancelled 일 때만 만료한다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [{ ...staleReady(), pricingSnapshot: { moonstoneDiscount: { quantity: 1 } }, metadata: { reconcile: { lastPgStatus: "failed" } } }]);
+    expect(await expireStalePendingOrders(db, { now: NOW, probe: pgAs("ready") })).toMatchObject({ scanned: 1, cancelled: 0, skipped: 1 });
+    expect(await expireStalePendingOrders(db, { now: NOW, probe: pgAs("failed") })).toMatchObject({ scanned: 1, cancelled: 1 });
+    expect(db.rows[0]).toMatchObject({ status: "cancelled", failureCode: "ORDER_EXPIRED" });
+  });
+});
+
+describe("닫힌 주문 복구 스윕", () => {
+  const closed = (merchantUid, extra = {}) => ({
+    merchantUid, status: "cancelled", failureCode: "ORDER_EXPIRED", refundedAt: null,
+    createdAt: ago(86_400_000), updatedAt: ago(3_600_000), ...extra,
+  });
+  const pgAs = (status) => async (order) => ({ paymentId: order.merchantUid, status });
+
+  test("최근 30일 안의 추정 취소 주문만 PortOne 에 묻고, PAID 면 정산 주체에 넘긴다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, [
+      closed("cd-expired"),
+      closed("cd-client", { status: "failed", failureCode: "client_failure", failureStage: "client_report" }),
+      closed("cd-too-old", { createdAt: ago(31 * 86_400_000) }),
+      closed("cd-just-closed", { updatedAt: ago(60_000) }),
+      closed("cd-user-cancel", { failureCode: "USER_CANCELLED" }),
+      closed("cd-auto-refund", { failureStage: "result_failure_auto_refund", metadata: { refundStatus: "refunded" } }),
+      closed("cd-refunded", { status: "refunded", refundedAt: ago(1) }),
+      closed("cd-ms-released", { metadata: { moonstoneDiscountReleasedAt: ago(1) } }),
+    ]);
+    const settled = [];
+    const report = await recoverClosedPaidOrders(db, { now: NOW, probe: pgAs("paid"), settle: async (order) => { settled.push(order.merchantUid); } });
+    expect(settled.sort()).toEqual(["cd-client", "cd-expired"]);
+    expect(report).toMatchObject({ scanned: 2, settled: 2 });
+  });
+
+  test("🔴 조회 실패·정산 실패는 건너뛰고, PortOne 이 취소라고 하면 닫힌 그대로 두고 다시 묻지 않는다", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    const db = makeFakePaymentDb();
+    await seed(db, [closed("cd-a"), closed("cd-b"), closed("cd-c")]);
+    const probe = async (order) => {
+      if (order.merchantUid === "cd-a") throw new Error("PG_UNAVAILABLE");
+      return { paymentId: order.merchantUid, status: order.merchantUid === "cd-b" ? "paid" : "cancelled" };
+    };
+    const settle = async () => { throw Object.assign(new Error("mismatch"), { code: "AMOUNT_MISMATCH" }); };
+    expect(await recoverClosedPaidOrders(db, { now: NOW, probe, settle })).toMatchObject({ scanned: 3, settled: 0, closed: 1, skipped: 2 });
+    expect(db.rows.every((r) => r.status === "cancelled")).toBe(true);
+    // 재확인 간격 안에서는 다시 묻지 않고, 간격이 지나도 PG 취소 주문은 다시 묻지 않는다.
+    expect((await recoverClosedPaidOrders(db, { now: NOW, probe, settle })).scanned).toBe(0);
+    const later = new Date(NOW.getTime() + CLOSED_ORDER_RECOVERY_RECHECK_MS + 1);
+    const asked = [];
+    await recoverClosedPaidOrders(db, { now: later, probe: async (o) => { asked.push(o.merchantUid); return probe(o); }, settle });
+    expect(asked.sort()).toEqual(["cd-a", "cd-b"]);
+    errorSpy.mockRestore();
+  });
+
+  test("상한과 fail-closed — 1틱 limit 건만, 조회 수단이 없으면 아무것도 하지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    await seed(db, Array.from({ length: 25 }, (_, i) => closed(`cd-${i}`)));
+    expect(await recoverClosedPaidOrders(db, { now: NOW })).toMatchObject({ scanned: 0, settled: 0 });
+    expect((await recoverClosedPaidOrders(db, { now: NOW, probe: pgAs("ready"), settle: async () => {} })).scanned).toBe(20);
   });
 });
 
@@ -237,7 +341,7 @@ describe("죽은 환불 락", () => {
 });
 
 describe("크론 진입점", () => {
-  test("셋을 모두 돌고 각각의 보고를 돌려준다", async () => {
+  test("슬롯 안 정리를 모두 돌고 각각의 보고를 돌려준다 — PENDING 만료는 PG 재조회 때문에 슬롯 밖(index.js)에서 돈다", async () => {
     const db = makeFakePaymentDb();
     await seed(db, [
       { merchantUid: "cd1", status: "paid", entitlementGrantedAt: null, updatedAt: ago(10 * 60_000) },
@@ -246,7 +350,8 @@ describe("크론 진입점", () => {
     ]);
     const report = await runPaymentReconcile(db, { grant: async () => {}, now: NOW });
     expect(report.regrant.repaired).toBe(1);
-    expect(report.expired.cancelled).toBe(1);
+    expect(report.expired).toBeUndefined();
+    expect(db.rows.find((r) => r.merchantUid === "cd2").status).toBe("pending");
     expect(report.locks.released).toBe(1);
   });
 
@@ -254,7 +359,6 @@ describe("크론 진입점", () => {
     const db = makeFakePaymentDb();
     const report = await runPaymentReconcile(db, { grant: async () => {}, now: NOW });
     expect(report.regrant.scanned).toBe(0);
-    expect(report.expired.scanned).toBe(0);
     expect(report.locks.scanned).toBe(0);
   });
 });

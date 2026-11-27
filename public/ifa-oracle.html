@@ -7,11 +7,11 @@
 <meta name="description" content="요루바 256 오두의 흐름으로 질문의 방향을 읽는 IFA 오라클입니다." />
 <link rel="canonical" href="https://code-destiny.com/ifa-oracle.html" />
 <meta name="robots" content="noindex, nofollow" />
-<script src="/js/core/pass-verdict.js?v=build-53c497d3d22c"></script>
-<script src="/js/core/checkout-entry.js?v=build-53c497d3d22c"></script>
+<script src="/js/core/pass-verdict.js?v=build-bef9922902a4"></script>
+<script src="/js/core/checkout-entry.js?v=build-bef9922902a4"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
 <script src="/js/core/free-fortune-policy.js?v=build-3cdd86400e71"></script>
-<script src="/js/destiny-profile.js?v=build-c5d4c7549819"></script>
+<script src="/js/destiny-profile.js?v=build-7214d33f3fb6"></script>
 <style>
 :root{
   --bg-void:#080503;
@@ -207,7 +207,7 @@ html,body{margin:0;padding:0;background:#040200;color:var(--text);font-family:Ge
     <div class="divider" aria-hidden="true"><span class="line"></span><span class="gem">◈</span><span class="line"></span></div>
 
     <section class="action">
-      <button id="castBtn" class="btn-cast" type="button">운명 확인하기 (3,000원) • Consult the Oracle</button>
+      <button id="castBtn" class="btn-cast" type="button">무료로 이파점 보기 • Consult the Oracle</button>
       <div id="miniBtns" class="mini">
         <button id="saveBtn" type="button">결과 저장</button>
         <button id="resetBtn" type="button">새 점괘</button>
@@ -418,7 +418,7 @@ function vib(seq){if(navigator.vibrate)navigator.vibrate(seq);}
 function wait(ms){return new Promise((r)=>setTimeout(r,ms));}
 
 function setIfaPaymentPending(show,message){
-  var text=String(message||'').trim()||'IFÀ 오라클 결제를 확인하는 중입니다...';
+  var text=String(message||'').trim()||'IFÀ 오라클을 준비하고 있습니다...';
   try{
     if(typeof window._cdSetCoinGateOverlay==='function'){
       window._cdSetCoinGateOverlay(!!show,text);
@@ -431,7 +431,7 @@ function setIfaPaymentPending(show,message){
     overlay=document.createElement('div');
     overlay.id='ifaPaymentOverlay';
     overlay.style.cssText='position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(6,10,20,.72), rgba(2,6,14,.9));backdrop-filter:blur(6px);padding:16px;';
-    overlay.innerHTML='<div style="width:min(420px,100%);border-radius:16px;border:1px solid rgba(217,119,6,.34);background:linear-gradient(135deg, rgba(22,14,8,.95), rgba(8,16,30,.95));box-shadow:0 16px 44px rgba(0,0,0,.45);padding:18px;text-align:center;color:#fef3c7;"><div style="width:40px;height:40px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(251,191,36,.28);border-top-color:rgba(251,191,36,.95);animation:ifaPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">오두 결제 의식 진행 중</p><p id="ifaPaymentOverlayMsg" style="margin:0;font-size:13px;color:rgba(254,240,138,.96);">IFÀ 오라클 결제를 확인하는 중입니다...</p></div>';
+    overlay.innerHTML='<div style="width:min(420px,100%);border-radius:16px;border:1px solid rgba(217,119,6,.34);background:linear-gradient(135deg, rgba(22,14,8,.95), rgba(8,16,30,.95));box-shadow:0 16px 44px rgba(0,0,0,.45);padding:18px;text-align:center;color:#fef3c7;"><div style="width:40px;height:40px;margin:0 auto 10px;border-radius:999px;border:3px solid rgba(251,191,36,.28);border-top-color:rgba(251,191,36,.95);animation:ifaPaySpin .9s linear infinite"></div><p style="margin:0 0 6px;font-size:17px;font-weight:800;">오두 결제 의식 진행 중</p><p id="ifaPaymentOverlayMsg" style="margin:0;font-size:13px;color:rgba(254,240,138,.96);">IFÀ 오라클을 준비하고 있습니다...</p></div>';
     document.body.appendChild(overlay);
     if(!document.getElementById('ifaPaymentOverlayStyle')){
       var st=document.createElement('style');
@@ -468,7 +468,7 @@ function ensureIfaCoinGate(resume){
       return;
     }
     // 공유 결제 게이트(destiny-profile.js) 미로드: 정책 우회 차감(직접 coin-gate/forceDeduct) 대신 안내.
-    alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    alert('이파점을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
     resolve(false);
   });
 }
@@ -523,7 +523,7 @@ async function cast(){
   if(!gateOk){
     busy=false;                     // 게이트 미통과 시 잠금·버튼 원복
     castBtn.disabled=false;
-    setPhase("의식이 보류되었습니다 • 결제 권한 확인 후 다시 시도해 주세요");
+    setPhase("이파점을 시작하지 못했습니다 • 잠시 후 다시 시도해 주세요");
     return;
   }
   await castCore();
@@ -628,7 +628,7 @@ function resetAll(){
   typingRunId++;
   lastOracleText="";
   setPhase("질문을 품고, 오리샤의 바람을 들으세요");
-  el("castBtn").textContent="운명 확인하기 (3,000원) • Consult the Oracle";
+  el("castBtn").textContent="무료로 이파점 보기 • Consult the Oracle";
   el("castBtn").disabled=false;
   el("reveal").style.display="none";
   el("oracleBox").style.display="none";

@@ -51,7 +51,7 @@
       '.cd-direct-payment-modal.is-open{display:flex}',
       '.cd-direct-payment-modal[data-yn-night]{--pay-paper:var(--yn-night);--pay-soft:var(--yn-surface);--pay-ink:var(--yn-ivory);--pay-muted:var(--yn-muted);--pay-gold:var(--yn-gold);--pay-rose:var(--yn-violet);--pay-shadow:var(--yn-deep);--pay-on-gold:var(--yn-deep)}',
       '.cd-direct-payment-dialog{outline:1px solid color-mix(in srgb,var(--pay-gold) 30%,transparent);outline-offset:-6px}',
-      '.cd-direct-payment-dialog::after{content:"";position:absolute;right:16px;top:12px;width:72px;height:60px;background:var(--pay-gold);mask:var(--yn-yehwa-mask-branch-spray,var(--cd-yehwa-mask-branch-spray)) center/contain no-repeat;opacity:.16;pointer-events:none;z-index:-1}',
+      '.cd-direct-payment-dialog::after{content:"";position:absolute;right:16px;top:12px;width:72px;height:60px;background:var(--pay-gold);mask:var(--yn-yehwa-mask-branch-spray,var(--cd-yehwa-mask-branch-spray,linear-gradient(transparent,transparent))) center/contain no-repeat;opacity:.16;pointer-events:none;z-index:-1}',
       '.cd-direct-payment-dialog ::selection{background:var(--pay-rose);color:var(--pay-ink)}',
       '.cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:1px solid color-mix(in srgb,var(--pay-gold) 28%,transparent);border-radius:20px;background:linear-gradient(180deg,color-mix(in srgb,var(--pay-paper) 4%,transparent),color-mix(in srgb,var(--pay-paper) 0%,transparent) 30%),linear-gradient(160deg,var(--pay-paper),var(--pay-paper) 52%,var(--pay-paper));color:var(--pay-ink);box-shadow:0 26px 78px color-mix(in srgb,var(--pay-shadow) 55%,transparent),inset 0 1px 0 color-mix(in srgb,var(--pay-paper) 10%,transparent);padding:0 20px 20px;position:relative;z-index:1;overflow:auto;overflow-x:hidden;scrollbar-width:thin;isolation:isolate}',
       '.cd-direct-payment-hairline{display:block;position:relative;container-type:inline-size;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--pay-gold) 85%,transparent) 50%,transparent)}',
@@ -683,6 +683,36 @@
       if (cost <= Number(limitFor(tier) || 0)) return tier;
     }
     return PASS_STORE_PLAN_ORDER[PASS_STORE_PLAN_ORDER.length - 1];
+  }
+
+  /**
+   * 월정석 카드를 **서버 정책상** 아예 빼야 하는지. 🔴 세 렌더러 공유 순수 함수(서버 호출 없음).
+   * 서버 정본은 worker/lib/paid-feature-registry.js getPaidFeaturePaymentPolicy().monthlyExcluded 이고
+   * 거기서 제외된 상품에 월정석을 보내면 402 MONTHLY_NOT_ALLOWED 가 난다 — 그 카드를 띄우지 않는 것이 목적이다.
+   * 판정 순서: ① paymentOptions.hiddenMethods 에 MOONLIGHT_STONE ② allowedPaymentMethods 가 있는데 빠짐
+   * ③ 정가(할인 전 amountKRW) < MOONSTONE_MIN_PRODUCT_KRW ④ 정가 모름 → 제외(fail-closed; 이용권·단건은 그대로).
+   * 잔량 부족은 여기서 다루지 않는다(그건 회색 비활성으로 남긴다).
+   */
+  var MOONSTONE_MIN_PRODUCT_KRW = 10000;
+  function normalizeMonthlyMethodList(value) {
+    var list = Array.isArray(value) ? value : (value == null ? [] : String(value).split(","));
+    return list.map(function (method) {
+      var normalized = String(method || "").trim().toUpperCase().replace(/[\s-]+/g, "_");
+      if (normalized === "MONTHLY_CREDIT" || normalized === "MEMBERSHIP_CREDIT" || normalized === "MOONLIGHTSTONE") return "MOONLIGHT_STONE";
+      return normalized;
+    }).filter(Boolean);
+  }
+  function isMonthlyChoiceExcluded(input) {
+    var opts = input || {};
+    var paymentOptions = opts.paymentOptions && typeof opts.paymentOptions === "object" ? opts.paymentOptions : {};
+    if (normalizeMonthlyMethodList(paymentOptions.hiddenMethods).indexOf("MOONLIGHT_STONE") >= 0) return true;
+    if (paymentOptions.allowedPaymentMethods != null) {
+      var allowed = normalizeMonthlyMethodList(paymentOptions.allowedPaymentMethods);
+      if (allowed.indexOf("MOONLIGHT_STONE") < 0) return true;
+    }
+    var amount = Number(opts.amountKRW);
+    if (!Number.isFinite(amount) || amount <= 0) return true;
+    return amount < MOONSTONE_MIN_PRODUCT_KRW;
   }
 
   /**
@@ -2320,6 +2350,8 @@
     refundConsentAgreed: refundConsentAgreed,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
+    MOONSTONE_MIN_PRODUCT_KRW: MOONSTONE_MIN_PRODUCT_KRW,
+    isMonthlyChoiceExcluded: isMonthlyChoiceExcluded,
     buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,
     DIRECT_PAY_METHOD_ORDER: DIRECT_PAY_METHOD_ORDER,
     DEFAULT_DIRECT_PAY_METHOD: DEFAULT_DIRECT_PAY_METHOD,

@@ -86,7 +86,8 @@ function openChoice(window, options = {}) {
     title: "심층 사주 리포트",
     featureKey: "saju-deep",
     coinPrice: 50,
-    amountKrw: 5000,
+    // 정가 10,000원 미만은 서버 정책상 월정석 제외라 카드가 숨는다(2026-11-26). 3카드 위계를 보려고 하한 정가로 둔다.
+    amountKrw: 10000,
     membershipCreditCost: 500,
   }, options));
 }
@@ -691,7 +692,8 @@ console.log("\n[12] 결제 서비스 경계를 중첩해도 결제창이 뜨는�
     // 정상 동작을 교착으로 오진했다. 렌더될 때까지 기다리되 상한을 두면, 진짜 교착은 그대로 실패로 잡히고
     // (상한까지 못 뜬다) 느리기만 한 경우는 통과한다. entries 는 렌더 시점에 함께 읽으므로 정상 경로의
     // 관측 시점은 예전과 같다 — 경계가 두 번 열리는 회귀는 여전히 잡힌다.
-    const isRendered = () => Boolean(findCard(window, "direct")) && Boolean(findCard(window, "monthly"));
+    // 3,000원 상품은 서버 정책상 월정석 제외라 월정석 카드가 없다 — 렌더 판정은 단건 카드로 한다.
+    const isRendered = () => Boolean(findCard(window, "direct"));
     const deadline = Date.now() + 5000;
     while (!isRendered() && Date.now() < deadline) await flush();
     // 렌더 직후 한 틱 안에 들어오는 두 번째 경계 진입까지 보고 세도록 여유를 준다. 렌더되자마자 읽으면
@@ -710,6 +712,10 @@ console.log("\n[12] 결제 서비스 경계를 중첩해도 결제창이 뜨는�
     const { window } = bootRuntime();
     const { rendered, entries } = await openGate(window, GATE_OPTIONS, { throughBoundary: false });
     check("정적 경로: 결제창이 열린다", () => assert.equal(rendered, true, "결제수단 선택창이 렌더되지 않았다"));
+    check("🔴 정적 경로: 정가 3,000원 상품에는 월정석 카드가 없다(이용권·단건은 유지)", () => {
+      assert.equal(findCard(window, "monthly"), null, "10,000원 미만 상품에 월정석 카드가 그려졌다");
+      assert.ok(findCard(window, "pass-store"), "이용권 카드가 사라졌다");
+    });
     check("정적 경로: 경계 진입은 1회", () => assert.equal(entries, 1));
   }
 

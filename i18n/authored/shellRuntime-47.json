@@ -435,18 +435,18 @@
     "ms": "Is this reading only for people with low self-esteem?"
   },
   "shellRuntime.f2470": {
-    "ko": "무료와 유료 범위는 어떻게 다른가요?",
-    "en": "How do the free and paid ranges differ?",
-    "ja": "無料と有料の範囲はどう違いますか？",
-    "zh-CN": "免费与付费的范围有什么不同？",
-    "zh-TW": "免費與付費的範圍有什麼不同？",
-    "vi": "How do the free and paid ranges differ?",
-    "hi": "How do the free and paid ranges differ?",
-    "es": "How do the free and paid ranges differ?",
-    "fr": "How do the free and paid ranges differ?",
-    "de": "How do the free and paid ranges differ?",
-    "nl": "How do the free and paid ranges differ?",
-    "ms": "How do the free and paid ranges differ?"
+    "ko": "어디까지 무료로 이용할 수 있나요?",
+    "en": "What can I read for free?",
+    "ja": "どこまで無料で利用できますか？",
+    "zh-CN": "哪些内容可以免费阅读？",
+    "zh-TW": "哪些內容可以免費閱讀？",
+    "vi": "Tôi có thể đọc miễn phí những nội dung nào?",
+    "hi": "मैं क्या मुफ़्त पढ़ सकता हूँ?",
+    "es": "¿Qué puedo leer gratis?",
+    "fr": "Que puis-je lire gratuitement ?",
+    "de": "Was kann ich kostenlos lesen?",
+    "nl": "Wat kan ik gratis lezen?",
+    "ms": "Apakah yang boleh saya baca secara percuma?"
   },
   "shellRuntime.f2471": {
     "ko": "재회 타로는 다시 만날지 알려 주나요?",

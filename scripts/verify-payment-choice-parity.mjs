@@ -448,6 +448,70 @@ for (const { rel, label } of RENDERERS) {
 }
 assertNoBannedMarkers("js/core/checkout-entry.js", read("js/core/checkout-entry.js"));
 
+// ── 2-c) 서버 정책상 월정석 제외(정가 10,000원 미만 등)는 카드 숨김 (2026-11-26) ────────────
+// 서버는 MOONSTONE_MIN_PRODUCT_KRW 미만 상품에 월정석을 402 MONTHLY_NOT_ALLOWED 로 거절한다. 셸·독립 폴백이
+// 그 카드를 계속 띄우면 사용자는 누를 때마다 거절당한다. 판정은 공유 코어 isMonthlyChoiceExcluded 하나이고,
+// 셸은 equalPriority 강제·전부 꺼짐 폴백 **뒤**에서 적용해야 그 줄들이 월정석을 되살리지 못한다.
+// React(billing-client.ts)는 서버 monthlyExcluded 를 따로 읽으므로 이 절의 대상이 아니다.
+const MONTHLY_EXCLUSION_RENDERERS = [
+  ...SHELL_MIRRORS.map((rel) => ({ rel, label: "정적 셸", marker: "  async function _cdChooseServicePaymentMode(options) {", apply: "if (monthlyPolicyExcluded) allowMonthlyChoice = false;" })),
+  ...STANDALONE_FALLBACKS.map((rel) => ({ rel, label: "독립 폴백", marker: "  function _dpRenderStandalonePaymentChoice(options) {", apply: "var allowMonthlyChoice = !monthlyPolicyExcluded;" })),
+];
+function assertMonthlyExclusionWiring(label, body, apply, isShell) {
+  assert.ok(body.includes(".isMonthlyChoiceExcluded("), `${label}: 월정석 서버 정책 제외를 공유 코어 isMonthlyChoiceExcluded 에 위임하지 않습니다.`);
+  assert.ok(body.includes(apply), `${label}: 월정석 제외 판정 결과(${apply})를 카드 노출에 반영하지 않습니다.`);
+  assert.ok(body.includes("allow: allowMonthlyChoice,"), `${label}: 월정석 카드 allow 가 제외 판정을 따르지 않습니다.`);
+  assert.ok(body.includes("allowMonthly: allowMonthlyChoice,"), `${label}: 추천 계산 allowMonthly 가 제외 판정을 따르지 않습니다.`);
+  assert.ok(body.includes("var monthlyBalanceCheckHtml = allowMonthlyChoice"), `${label}: 잔량 확인 버튼이 제외 판정을 따르지 않습니다.`);
+  if (isShell) {
+    const fallbackAt = body.indexOf("if (!allowDirectChoice && !allowMonthlyChoice && !allowPassChoice) { allowDirectChoice = true; allowMonthlyChoice = true; }");
+    const applyAt = body.indexOf(apply);
+    const canUseAt = body.indexOf("var canUseMonthly = allowMonthlyChoice &&");
+    assert.ok(fallbackAt >= 0 && applyAt > fallbackAt && canUseAt > applyAt, `${label}: 월정석 제외는 전부 꺼짐 폴백 뒤·canUseMonthly 앞에 있어야 합니다(앞에 두면 폴백이 되살린다).`);
+  }
+}
+for (const { rel, label, marker, apply } of MONTHLY_EXCLUSION_RENDERERS) {
+  assertMonthlyExclusionWiring(`${label} ${rel}`, sliceFunction(read(rel), marker, `${rel}/monthly-exclusion`), apply, label === "정적 셸");
+}
+// 월정석 카드를 숨겼는데 하단 안내가 "이용권 · 월정석 · 카드"라고 말하면 없는 선택지를 안내하는 셈이다(2026-11-26).
+// 세 렌더러 모두 월정석 노출 플래그(셸·독립 allowMonthlyChoice / React canShowMonthly)로 안내 문구를 고른다.
+const MONTHLY_NOTE_RENDERERS = [
+  ...SHELL_MIRRORS.map((rel) => ({ rel, label: "정적 셸", marker: "  async function _cdChooseServicePaymentMode(options) {", guard: /allowMonthlyChoice \? _cdPaymentI18n\('payment\.directModal\.note\.withPass',[^)]*\) : _cdPaymentI18n\('payment\.directModal\.note\.withPassNoMonthly',/ })),
+  ...STANDALONE_FALLBACKS.map((rel) => ({ rel, label: "독립 폴백", marker: "  function _dpRenderStandalonePaymentChoice(options) {", guard: /allowMonthlyChoice \? _dpCheckoutText\('payment\.directModal\.note\.withPass',[^)]*\) : _dpCheckoutText\('payment\.directModal\.note\.withPassNoMonthly',/ })),
+  { rel: REACT_CLIENT, label: "React", marker: null, guard: /const noteWithPassText = canShowMonthly\s*\?\s*checkoutEntry\.text\("payment\.directModal\.note\.withPass",[^)]*\)\s*:\s*checkoutEntry\.text\("payment\.directModal\.note\.withPassNoMonthly",/ },
+];
+function assertMonthlyNoteWiring(label, body, guard) {
+  assert.ok(guard.test(body), `${label}: 하단 안내가 월정석 노출 여부를 따르지 않습니다 — 월정석 카드가 빠진 결제창에서도 월정석을 안내합니다(note.withPass ↔ note.withPassNoMonthly).`);
+}
+for (const { rel, label, marker, guard } of MONTHLY_NOTE_RENDERERS) {
+  const source = read(rel);
+  assertMonthlyNoteWiring(`${label} ${rel}`, marker ? sliceFunction(source, marker, `${rel}/monthly-note`) : source, guard);
+}
+// 실제 공유 함수로 렌더해 본다: 렌더러가 넘기는 것과 같이 allow = !isMonthlyChoiceExcluded(...).
+function renderMonthlyPresence(api, amountKRW, paymentOptions) {
+  const excluded = api.isMonthlyChoiceExcluded({ amountKRW, paymentOptions });
+  const card = (dataMode, allow) => ({ allow, dataMode, glyph: "*", badgeLabel: "b", titleHtml: "t", descHtml: "d" });
+  const html = api.buildPaymentChoiceCardsHtml({
+    order: ["pass", "direct", "monthly"], recommendedOption: "pass", escape: (v) => String(v), recommendLabel: "r", goLabel: "g",
+    cards: { pass: card("pass-store", true), direct: card("direct", true), monthly: Object.assign(card("monthly", !excluded), { extraDataAttrs: " data-monthly-option" }) },
+  });
+  assert.ok(html.includes('data-mode="pass-store"') && html.includes('data-mode="direct"'), `월정석 제외(${amountKRW})가 이용권·단건 카드까지 지웠습니다.`);
+  return html.includes('data-mode="monthly"');
+}
+function assertMonthlyExclusionBehavior(api) {
+  assert.equal(api.MOONSTONE_MIN_PRODUCT_KRW, 10000, "checkout-entry MOONSTONE_MIN_PRODUCT_KRW 가 10000 이 아닙니다.");
+  for (const amount of [3000, 5000, 9999, 0, undefined]) {
+    assert.equal(renderMonthlyPresence(api, amount), false, `정가 ${amount}원(미만·모름)에 월정석 카드가 보입니다 — 서버가 402 MONTHLY_NOT_ALLOWED 로 거절합니다.`);
+  }
+  for (const amount of [10000, 15000]) {
+    assert.equal(renderMonthlyPresence(api, amount), true, `정가 ${amount}원에 월정석 카드가 사라졌습니다(10,000원 이상은 허용).`);
+  }
+  assert.equal(renderMonthlyPresence(api, 15000, { hiddenMethods: ["MOONLIGHT_STONE"] }), false, "hiddenMethods 의 MOONLIGHT_STONE 을 무시했습니다.");
+  assert.equal(renderMonthlyPresence(api, 15000, { allowedPaymentMethods: ["PASS", "DIRECT_KRW"] }), false, "allowedPaymentMethods 에 없는 월정석을 띄웠습니다.");
+  assert.equal(renderMonthlyPresence(api, 15000, { allowedPaymentMethods: ["PASS", "DIRECT_KRW", "MOONLIGHT_STONE"] }), true, "allowedPaymentMethods 에 있는 월정석을 숨겼습니다.");
+}
+assertMonthlyExclusionBehavior(checkoutEntry);
+
 // 🔴 단건결제 2단계(결제수단) 패널도 정본은 하나다 — js/core/checkout-entry.js 의
 // buildDirectPayMethodStepHtml. 렌더러가 각자 마크업을 손으로 그리면 PG 승인이 떨어졌을 때
 // 한 렌더러만 '준비 중' 목록이 낡은 채 남는다(CSS 배열이 정확히 그 이유로 공유로 옮겨졌다).
@@ -550,6 +614,8 @@ const REQUIRED_ALL = [
   // 하단 안내.
   "payment.directModal.note.basis",
   "payment.directModal.note.withPass",
+  // 월정석 카드가 빠진 결제창(정가 10,000원 미만 등)의 하단 안내 — 월정석을 말하지 않는다(2026-11-26).
+  "payment.directModal.note.withPassNoMonthly",
 ];
 
 // 렌더러마다 다른 분기를 갖고 있어 그쪽에만 등장하는 키.
@@ -890,10 +956,33 @@ if (process.argv.includes("--self-test")) {
   for (const banned of BANNED_BALANCE_MARKERS) {
     shouldThrow(`폐기 마커 ${banned}`, () => assertNoBannedMarkers("fixture", `<div>${banned}</div>`));
   }
+  // 월정석 제외 판정이 항상 허용(옛 동작)으로 돌아가면 실패해야 한다.
+  shouldThrow("월정석 제외 무력화", () =>
+    assertMonthlyExclusionBehavior(Object.assign({}, checkoutEntry, { isMonthlyChoiceExcluded: () => false })));
+  // 셸이 제외를 전부 꺼짐 폴백 앞에 두면(되살아남) 실패해야 한다.
+  shouldThrow("월정석 제외 순서", () => {
+    const body = sliceFunction(read("index.html"), "  async function _cdChooseServicePaymentMode(options) {", "fixture");
+    const apply = "if (monthlyPolicyExcluded) allowMonthlyChoice = false;";
+    const moved = apply + " " + body.split(apply).join("");
+    assertMonthlyExclusionWiring("fixture", moved, apply, true);
+  });
+  // 하단 안내가 월정석 노출과 무관하게 note.withPass 하나로 돌아가면 실패해야 한다(셸·독립·React 각각).
+  shouldThrow("월정석 없는 결제창 안내 무력화(셸)", () => {
+    const body = sliceFunction(read("index.html"), "  async function _cdChooseServicePaymentMode(options) {", "fixture");
+    assertMonthlyNoteWiring("fixture", body.split("allowMonthlyChoice ? _cdPaymentI18n('payment.directModal.note.withPass'").join("true ? _cdPaymentI18n('payment.directModal.note.withPass'"), MONTHLY_NOTE_RENDERERS[0].guard);
+  });
+  shouldThrow("월정석 없는 결제창 안내 무력화(독립)", () => {
+    const body = sliceFunction(read("js/destiny-profile.js"), "  function _dpRenderStandalonePaymentChoice(options) {", "fixture");
+    assertMonthlyNoteWiring("fixture", body.split("note.withPassNoMonthly").join("note.withPass"), MONTHLY_NOTE_RENDERERS.find((r) => r.label === "독립 폴백").guard);
+  });
+  shouldThrow("월정석 없는 결제창 안내 무력화(React)", () => {
+    const source = read(REACT_CLIENT).split("const noteWithPassText = canShowMonthly").join("const noteWithPassText = true");
+    assertMonthlyNoteWiring("fixture", source, MONTHLY_NOTE_RENDERERS[MONTHLY_NOTE_RENDERERS.length - 1].guard);
+  });
   // 정상 입력은 통과해야 한다(가드가 무조건 던지면 그것도 가드가 아니다).
   assertMarkersPresent("fixture", renderedSkeleton, BUILDER_MARKERS, "h");
   assertNoBannedMarkers("fixture", "<div>clean</div>");
-  console.log(`[verify-payment-choice-parity] self-test OK — ${3 + BANNED_BALANCE_MARKERS.length}개 음성 케이스 + 정상 2건`);
+  console.log(`[verify-payment-choice-parity] self-test OK — ${8 + BANNED_BALANCE_MARKERS.length}개 음성 케이스 + 정상 2건`);
 }
 
 // 🔴 마커 개수를 요약에 찍는다. 검사가 죽었는지 알아채는 신호는 이 줄뿐이다 — 옛

@@ -369,6 +369,42 @@ it("delivers all usable short sections after one length repair each", async () =
   expect(refund).not.toHaveBeenCalled();
 });
 
+// 2026-11-27 마지막 허용 시도: 되풀이·깨진 문장은 거부하지 않고 덜어 낸 뒤 받는다(1차 시도의 거부 기준은 그대로).
+it("rejects a repeated section on the first attempt and delivers it deduped and scrubbed on the last", async () => {
+  const { hasRepeatedReportPassage } = await import("../../worker/lib/paid-report-quality.js");
+  provider.mockImplementation(async () => {
+    const seed = `반복${provider.mock.calls.length}`;
+    return { ok: true, provider: "gemini", text: `${prose(seed, 3600)}\n\n${prose(seed, 3600)}\n\n깨진 Ã 문장이 끼어든 줄입니다.` };
+  });
+  expect((await start()).status).toBe(202);
+  expect(Object.keys(docs[0].llmMeta.sections)).toHaveLength(0);
+  for (let i = 0; i < 8 && docs[0].status !== "completed"; i++) expect((await start()).status).not.toBe(503);
+  expect(docs[0].status).toBe("completed");
+  expect(provider).toHaveBeenCalledTimes(12);
+  const rows = Object.values(docs[0].llmMeta.sections);
+  expect(rows).toHaveLength(6);
+  for (const row of rows) {
+    expect(row.finalScrubbed).toBe(true);
+    expect(row.text).not.toContain("Ã");
+    expect(hasRepeatedReportPassage(row.text)).toBe(false);
+  }
+  expect(hasRepeatedReportPassage(rows.map(row => row.text).join("\n\n"))).toBe(false);
+  expect(refund).not.toHaveBeenCalled(); expect(card).not.toHaveBeenCalled();
+});
+it("drops sentences copied from an accepted section on the last attempt", async () => {
+  const { scrubAstrologyFinalSectionText } = await import("../../worker/routes/astrology-ai.js");
+  const { hasRepeatedReportPassage } = await import("../../worker/lib/paid-report-quality.js");
+  const prior = prose("앞섹션", 1200);
+  const own = prose("이섹션", 1200);
+  const scrubbed = scrubAstrologyFinalSectionText(`${own}
+
+${prior}`, prior);
+  expect(scrubbed).toContain("이섹션번 분석의 0번째");
+  expect(scrubbed).not.toContain("앞섹션번 분석의 0번째");
+  expect(hasRepeatedReportPassage(`${prior}
+
+${scrubbed}`)).toBe(false);
+});
 it('server resumes the stored owner after the browser leaves without a new purchase',async()=>{
  await start();const {resumeConsultationOnServer}=await import('../../worker/routes/astrology-ai.js');
  userId='not-the-owner-of-the-browser';

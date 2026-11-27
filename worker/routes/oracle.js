@@ -108,19 +108,42 @@ function clippedRetryOptions(raw, options) {
   try { JSON.parse(raw); return options; } catch { return { ...options, maxOutputTokens: Math.max(options.maxOutputTokens, Math.min(32768, options.maxOutputTokens * 2)) }; }
 }
 
+// A cut JSON answer ends inside its body string: close it before the shared parser checks the evidence hash.
+function closeTruncatedGeomancyJson(text, evidenceHash) {
+  const raw = String(text || ""), start = raw.indexOf("{");
+  if (start < 0) return null;
+  const head = raw.slice(start).replace(/\\+$/, "");
+  for (const closer of ["", '"}', "}"]) {
+    const value = parseNarrativeResponse(head + closer, evidenceHash);
+    if (value) return value;
+  }
+  return null;
+}
+
+function trimGeomancyToLastSentence(text) {
+  const match = String(text || "").trim().match(/^[\s\S]*[.!?。！？…]["'”’)\]』」）]*/u);
+  return match ? match[0].trim() : "";
+}
+
 // The route and the server resume task share produce and render.
 export function geomancyNarrativeAdapter(env) {
   return {
     reportType: "geomancyOracle",
-    produce: async (task, state) => {
+    produce: async (task, state, { finalAttempt = false } = {}) => {
       const scope = task.id === "answer" ? "" : " 세 형상의 기본 상징 설명은 앞 부분에서 했으니 반복하지 말고 이번 범위로 바로 들어가세요.";
       const timingScope = task.id === "timing" ? "\n7일·21일·40일을 각각 하나의 점검 단계로 쓰세요. 각 단계에는 확인할 현실 자료, 실행할 작은 행동, 중단하거나 수정할 조건을 넣으세요. 형상의 뜻·불의 충동·질문 요약으로 시작하지 말고 '7일 동안'의 행동부터 시작하세요. 세 단계가 끝나면 마무리하며 종합 해석을 다시 쓰지 마세요." : "";
       const prompt = `${state.prompt}\n[이번 호출 범위] ${task.id}: ${task.prompt}${narrativePriorDigest(state, task)}\n이번 부분만 JSON {"body":"본문"}로 출력하세요. 제목·목차·마크다운·공백 제외 최소 ${task.minChars}자, 목표 ${Math.ceil(task.minChars * 1.3)}~${Math.ceil(task.minChars * 1.5)}자입니다.${scope} 세 형상의 실제 근거와 적용 조건을 연결하세요. 시간은 실천 점검 시점이며 확정 예언이 아닙니다.${timingScope}`;
       const ai = await callGeminiText(env, prompt, clippedRetryOptions(state.rawResponses?.[task.id], { model: clean(env.GEOMANCY_GEMINI_MODEL), temperature: 0.65,
         timeoutMs: Math.min(45000, Math.max(15000, Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS) || 45000)),
         maxOutputTokens: 11000, thinkingBudget: 0, fallbackToWorkersAI: false, responseMimeType: "application/json", responseSchema: NARRATIVE_RESPONSE_SCHEMA }));
-      if (!ai?.ok || ai.truncated || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
-      return parseNarrativeResponse(ai.text, state.evidenceHash);
+      if (!ai?.ok || ai.isMock || /mock/i.test(`${ai.provider || ""} ${ai.model || ""}`)) return null;
+      // A cut answer is bought again with a doubled budget; the part's last allowed call keeps it up to
+      // its last complete sentence instead. No complete sentence leaves an empty body, which is rejected.
+      if (ai.truncated && !finalAttempt) return null;
+      if (!ai.truncated) return parseNarrativeResponse(ai.text, state.evidenceHash);
+      const value = closeTruncatedGeomancyJson(ai.text, state.evidenceHash);
+      if (value) value.body = trimGeomancyToLastSentence(value.body);
+      return value;
     },
     render: state => ({ ...Object.fromEntries(ORACLE_SECTIONS.map(([id]) => [id, state.parts[id] || ""])),
       source: Object.keys(state.parts).length ? "gemini" : "pending", requestId: state.body.requestId,

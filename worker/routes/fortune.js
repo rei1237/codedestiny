@@ -6856,21 +6856,24 @@ async function handleGuardianFortuneAnonymousMergeRoute(request, env, trace) {
  * 🔴 proven === null 은 "결제 안 함"이 아니라 "DB 장애로 확인 못 함"이다. 이걸 402 로
  * 내리면 이미 결제한 사용자가 결과를 못 받고 돈만 나간다 — degraded 로 올려 503 을 만든다.
  */
-function buildGuardianFortunePaidAccessResolver(env, coinPrice) {
+function buildGuardianFortunePaidAccessResolver(env, coinPrice, verify = verifyPerUsePayment) {
   return async ({ userId, requestId }) => {
     if (!userId) return { ok: false };
-    const proof = await verifyPerUsePayment(env, {
+    const proof = await verify(env, {
       userId,
       featureKey: GUARDIAN_FORTUNE_PAID_FEATURE_KEY,
       coinPrice,
       requestId,
     });
     logPerUsePaymentProof(GUARDIAN_FORTUNE_PAID_FEATURE_KEY, proof);
-    if (proof?.proven === true) return { ok: true };
+    // The proof is the refund evidence guardian-paid-delivery stores; returning only ok held a terminal failure instead of refunding it.
+    if (proof?.proven === true) return { ok: true, ...(proof.transactionId ? { transactionId: String(proof.transactionId) } : {}), ...(proof.passRefund ? { passRefund: proof.passRefund } : {}) };
     if (proof?.proven === null) return { ok: false, degraded: true };
     return { ok: false };
   };
 }
+
+export const __guardianFortunePaidAccessResolverForTest = buildGuardianFortunePaidAccessResolver;
 
 async function handleGuardianFortuneGenerateRoute(request, env, ctx, trace) {
   if (!isGuardianFortuneApiEnabled(env)) {

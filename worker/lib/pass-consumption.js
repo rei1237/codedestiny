@@ -19,6 +19,7 @@ import { mongoose, mongoTransactionOptions } from "./db.js";
 import { isLightFortuneFeatureKey } from "./light-fortune-catalog.js";
 import { isDirectOrFamilyPaidFeatureKey } from "./paid-feature-registry.js";
 import { scopeConnection } from "./db-scope-connection.js";
+import { isSajuBundleSaleClosed } from "./saju-bundle-policy.js";
 
 function invalidatePassUsageReadCaches(userId) {
   const uid = String(userId || "").trim();
@@ -163,11 +164,26 @@ export async function hasConsumedPassFeature(user, featureKey, requestId, db = n
   return Boolean(await findPassUsageEvidence(db, user?._id || user?.id, featureKey, requestId));
 }
 
+/* 이용권 제외 판정의 정본은 catalog.resolveProduct().passExcluded 다. 판매 종료 묶음 키는 보유 확인 경로가
+   따로 있어서(pass-check 라우트와 같은 예외) 여기서 막지 않는다. 미등재 키는 기존 커버 판정에 맡긴다.
+   이미 차감된 (기능, requestId) 재시도는 아래 멱등 경로가 그대로 연다. */
+async function isPassExcludedFeatureKey(featureKey) {
+  const key = String(featureKey || "");
+  if (!key || isSajuBundleSaleClosed(key)) return false;
+  try {
+    const { resolveProduct } = await import("../payments/catalog.js");
+    return resolveProduct({ featureKey: key }).passExcluded === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function consumePassForFeature({ user, entitlement, userId, featureKey, requestId = "", coinCost = 0, profileId = "", db = nativeDb }) {
   if(String(featureKey || '').startsWith('yeongnyangi-'))return consumeYeongnyangiPass({user,entitlement,userId,featureKey,requestId,coinCost,db});
   const { buildPassConsumeMarker, consumePassCoverage, evaluatePassCoverage, recordPassUsageEvidence, rearmRefundedPassUsageEvidence, passUsageEvidenceId } = await loadPassPolicy();
   const cost = Math.max(0, Math.floor(Number(coinCost) || 0));
-  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost, lightFortune: isLightFortuneFeatureKey(featureKey) });
+  const passExcluded = await isPassExcludedFeatureKey(featureKey);
+  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: cost, lightFortune: isLightFortuneFeatureKey(featureKey), passExcluded });
   // 멱등: 같은 (기능, requestId) 재시도가 예산을 두 번 깎지 않는다.
   // 정본과 같은 마커·같은 배열을 쓰므로 coin-gate 경로와도 서로 중복 차감하지 않는다.
   const markers = Array.isArray(user?.recentConsumeRequestIds) ? user.recentConsumeRequestIds : [];

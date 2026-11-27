@@ -37,7 +37,9 @@ import {
 } from "../lib/models.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { scrubFusionText } from "../lib/fusion-group-plan.js";
+import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
 import { consumePassForFeature, hasConsumedPassFeature, passDenialCode, refundPassUseEvidence } from "../lib/pass-consumption.js";
@@ -711,7 +713,56 @@ async function computeNatalFacts(env, normalized, request) {
 // 잘림·빈 파싱·목표 미달은 다음 요청에서 해당 장만 제한적으로 다시 생성한다.
 // 🔴 fallbackMinChars: Workers AI 폴백(70B는 약 1,700자에서 스스로 멈춘다)이 짧은 응답을 완성본으로
 //    돌려주는 것을 막는다. 이게 없으면 2만자 상품이 8% 분량으로 '완료' 저장된다(CLAUDE.md 필수 규칙).
-async function generateSectionOnce(env, section, prompt, cacheConfig, truncationRetry = false) {
+// 2026-11-27 마지막 허용 시도 전달 규칙: 마지막 시도에서는 거절 대신 결정적으로 교정한다 —
+// 잘린 응답은 마지막 완결 문장까지 살리고, 금지 문장은 문장 단위로 빼고, 반복 문장은 지우고,
+// 빠지거나 오염된 보조 필드(keyInsight·두 근거)는 계산값으로 채운다. 본문이 비거나 파싱 불가면 그대로 거절한다.
+function salvageNakshatraSectionJson(text) {
+  const raw = String(text || "");
+  const start = raw.indexOf("{");
+  if (start < 0) return null;
+  const head = raw.slice(start).replace(/\\+$/, "");
+  for (const closer of ['"}', "}", '"]}', ""]) {
+    try { const value = JSON.parse(head + closer); if (value && typeof value === "object") return value; } catch { /* 다음 닫기 후보 */ }
+  }
+  return salvageTruncatedJsonObject(raw);
+}
+
+function trimNakshatraToLastSentence(text) {
+  const raw = String(text || "").trim();
+  const match = raw.match(/^[\s\S]*[.!?。！？…]["'”’)\]』」）]*/u);
+  return match ? match[0].trim() : "";
+}
+
+function nakshatraComputedEvidence(identity = {}) {
+  const join = (parts) => parts.filter(Boolean).join(" · ");
+  const vedic = join([identity.nakshatraKo && `${identity.nakshatraKo}${identity.nakshatraEn ? `(${identity.nakshatraEn})` : ""}`, identity.pada ? `${identity.pada}파다` : "", identity.lordKo ? `지배성 ${identity.lordKo}` : ""]);
+  const sukuyo = join([identity.sukuyoKo && `${identity.sukuyoKo}${identity.sukuyoHan ? `(${identity.sukuyoHan})` : ""}`, identity.sukuyoDirection, identity.sukuyoGuardian]);
+  return {
+    vedicEvidence: `${vedic || "베다 낙샤트라"} 계산값을 근거로 읽었습니다.`,
+    sukuyoEvidence: `${sukuyo || "숙요"} 계산값을 근거로 읽었습니다.`,
+  };
+}
+
+// 점성술·베딕과 같은 구조 하한(40자). 품질 하한이 아니라 "짧은 결과" 같은 빈껍데기만 거른다.
+const NAKSHATRA_FINAL_MIN_BODY_CHARS = 40;
+
+export function correctNakshatraFinalSection(parsed, identity = {}, truncated = false) {
+  const bad = (sentence) => hasForbiddenResultText(sentence);
+  let body = scrubFusionText(dropRepeatedReportSentences(String(parsed?.body || ""), ""), bad) || "";
+  if (truncated) body = trimNakshatraToLastSentence(body);
+  if (countPaidReportBodyChars(body) < NAKSHATRA_FINAL_MIN_BODY_CHARS) return null;
+  const computed = nakshatraComputedEvidence(identity);
+  const usable = (value, name) => Boolean(value) && !bad(value) && (!name || value.includes(name));
+  const firstSentence = (body.match(/^[^\n]*?[.!?。！？](?=\s|$)/u)?.[0] || body.split("\n")[0] || "").trim();
+  return {
+    keyInsight: usable(parsed?.keyInsight) ? parsed.keyInsight : firstSentence.slice(0, 45),
+    vedicEvidence: usable(parsed?.vedicEvidence, identity.nakshatraKo) ? parsed.vedicEvidence : computed.vedicEvidence,
+    sukuyoEvidence: usable(parsed?.sukuyoEvidence, identity.sukuyoKo) ? parsed.sukuyoEvidence : computed.sukuyoEvidence,
+    body,
+  };
+}
+
+async function generateSectionOnce(env, section, prompt, cacheConfig, truncationRetry = false, finalAttempt = null) {
   const base = { id: section.id, deck: section.deck, title: section.title, keyInsight: "", vedicEvidence: "", sukuyoEvidence: "", body: "", chars: 0, ok: false };
   try {
     // 직전 시도가 MAX_TOKENS 로 잘렸으면 같은 예산 재시도는 또 잘려 환불된다 — 재시도만 2배(≤32768). 기본 예산은 그대로.
@@ -720,7 +771,14 @@ async function generateSectionOnce(env, section, prompt, cacheConfig, truncation
       ...(cacheConfig ? { cache: cacheConfig } : {}) });
     const isMock = (/mock/i.test(ai?.provider || "") || /mock/i.test(ai?.model || "") || ai?.isMock === true) && !isStagingLlmMockEnabled(env);
     if (!ai?.ok || isMock) return base;
-    if (ai.truncated || /^(MAX_TOKENS|length)$/i.test(ai.finishReason || "")) return { ...base, truncated: true };
+    const truncated = Boolean(ai.truncated || /^(MAX_TOKENS|length)$/i.test(ai.finishReason || ""));
+    if (finalAttempt) {
+      const salvaged = truncated ? salvageNakshatraSectionJson(ai.text) : null;
+      const corrected = correctNakshatraFinalSection(salvaged ? parseSectionResponse(JSON.stringify(salvaged)) : parseSectionResponse(ai.text), finalAttempt.identity || {}, truncated);
+      if (!corrected) return truncated ? { ...base, truncated: true } : base;
+      return { ...base, ...corrected, chars: countPaidReportBodyChars(corrected.body), provider: clean(ai.provider), model: clean(ai.model), ok: true, finalCorrected: true };
+    }
+    if (truncated) return { ...base, truncated: true };
     const parsed = parseSectionResponse(ai.text);
     if (!parsed.body || hasForbiddenResultText(parsed)) return base;
     return { ...base, ...parsed, chars: countPaidReportBodyChars(parsed.body), provider: clean(ai.provider), model: clean(ai.model), ok: true };
@@ -971,14 +1029,22 @@ async function advanceGeneration({ request, env, auth, sessionId, idempotencyKey
         const prompt = buildSectionPrompt(section, context) + (attempts[`${section.id}:lengthRepair`]
           ? `\n[분량 보강] 기존 계산 근거를 유지하고 새로운 생활 장면과 행동 조언을 더해 공백 제외 본문 ${Math.ceil(section.minChars / 0.8)}자 이상의 완결된 JSON으로 작성하세요. 반복으로 채우지 마세요.` : "");
         const row = await runWithAiLocale(storedAiLocale(session), () => generateSectionOnce(env, section, prompt, { store: createLlmCacheStore(env), deterministic: true, ttlSeconds: 2592000,
-          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }, Boolean(attempts[`${section.id}:truncated`])));
+          minChars: section.minChars, keyExtra: `nakshatra-delivery-v4-${section.id}-r${attempts[section.id]}` }, Boolean(attempts[`${section.id}:truncated`]),
+          // 마지막 허용 시도이고 보존된 유효 초안이 없을 때만 교정 전달한다. 첫 시도 품질 기준은 그대로다.
+          Number(attempts[section.id] || 0) >= SECTION_MAX_ATTEMPTS && !isSectionSettled(readSections(session).find(saved => saved.id === section.id), {}, true) ? { identity: session.factSummary?.identity || {} } : null));
         const identity = session.factSummary?.identity;
         if (!isSectionSettled(row, {}, true) || (identity?.nakshatraKo && !row.vedicEvidence.includes(identity.nakshatraKo)) || (identity?.sukuyoKo && !row.sukuyoEvidence.includes(identity.sukuyoKo))) { await recordGenerationFailure(section.id, row.truncated === true); return; }
         const write = queue.catch(() => {}).then(async () => {
           const previous = readSections(session).find(saved => saved.id === row.id);
           if (isSectionSettled(previous, {}, true) && countPaidReportBodyChars(previous.body) >= countPaidReportBodyChars(row.body)) return;
+          if (row.finalCorrected) {
+            // 마지막 시도: 이미 저장된 다른 장과 겹치는 문장은 거절 대신 지운다. 다 지워지면 기존대로 실패 기록.
+            const priorBodies = readSections(session).filter(saved => saved.id !== row.id).map(saved => saved.body).join("\n\n");
+            row.body = dropRepeatedReportSentences(row.body, priorBodies) || "";
+            row.chars = countPaidReportBodyChars(row.body);
+          }
           const sections = [...readSections(session).filter(saved => saved.id !== row.id), row].sort((a,b) => NAKSHATRA_SECTIONS.findIndex(spec => spec.id === a.id) - NAKSHATRA_SECTIONS.findIndex(spec => spec.id === b.id));
-          if (hasRepeatedReportPassage(sections.map(saved => saved.body).join("\n"))) {
+          if (!countPaidReportBodyChars(row.body) || hasRepeatedReportPassage(sections.map(saved => saved.body).join("\n"))) {
             const generationFailures = { ...session.llmMeta?.generationFailures, [section.id]: Number(session.llmMeta?.generationFailures?.[section.id] || 0) + 1 };
             session = await saveNakshatraDelivery(filter, { llmMeta: { ...session.llmMeta, generationFailures } }, sessionId);
             return;

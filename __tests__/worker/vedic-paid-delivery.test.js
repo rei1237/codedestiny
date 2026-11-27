@@ -347,6 +347,32 @@ for (const repair of ["shorter", "repeated", "empty", "truncated", "wrong-chart"
   else expect(docs[0].llmMeta.groups[key]).toEqual(draft);
   expect(docs[0].llmMeta.attempts[key]).toBe(2); expect(provider).toHaveBeenCalledTimes(6); expect(refund).not.toHaveBeenCalled();
 });
+// 2026-11-27 마지막 허용 시도: 되풀이·원시 값·기계적 머리말은 거부하지 않고 덜어 낸 뒤 받는다(1차 시도의 거부 기준은 그대로).
+it("rejects a repeated, leaking group on the first attempt and delivers it scrubbed on the last", async () => {
+  const { hasRepeatedReportPassage } = await import("../../worker/lib/paid-report-quality.js");
+  const normal = provider.getMockImplementation();
+  provider.mockImplementation(async (...args) => {
+    const result = await normal(...args);
+    const parsed = JSON.parse(result.text);
+    for (const row of Object.values(parsed.sections)) row.body = `${row.body} ${row.body} 이 결과는 참고용으로 정리된 문장입니다. 값은 undefined 로 남았습니다.`;
+    if (parsed.scores) parsed.scores.moksha = null;
+    return { ...result, text: JSON.stringify(parsed) };
+  });
+  expect((await start()).status).toBe(202);
+  expect(Object.keys(docs[0].llmMeta.groups || {})).toHaveLength(0);
+  for (let i = 0; i < 12 && docs[0].status !== "completed"; i++) expect((await start()).status).not.toBe(503);
+  expect(docs[0].status).toBe("completed");
+  const groups = utils.VEDIC_SECTION_GROUPS;
+  expect(provider).toHaveBeenCalledTimes(groups.length * 2);
+  for (const group of groups) {
+    const row = docs[0].llmMeta.groups[group.key];
+    expect(row.finalScrubbed).toBe(true);
+    expect(row.text).not.toMatch(/undefined|null|이 결과는/);
+    const bodies = Object.values(JSON.parse(row.text).sections).map(section => section.body).join("\n\n");
+    expect(hasRepeatedReportPassage(bodies)).toBe(false);
+  }
+  expect(refund).not.toHaveBeenCalled();
+});
 it("doubles the output budget only for the retry after an unsalvageable truncated group", async () => {
   const normal = provider.getMockImplementation();
   provider.mockImplementation(async (...args) => provider.mock.calls.length === 1 ? { ...(await normal(...args)), text: '{"sections":{"', truncated: true, finishReason: "MAX_TOKENS" } : normal(...args));

@@ -403,11 +403,13 @@ export function buildPassConsumeMarker(featureKey, requestId) {
  * 커버 판정. **읽기 0회** — 호출부가 이미 읽은 User 문서로만 판단한다.
  * @returns {{ covered: boolean, reason?: string, tier?: string, ... }}
  */
-export function evaluatePassCoverage({ user, entitlement, coinCost, lightFortune = false }) {
+export function evaluatePassCoverage({ user, entitlement, coinCost, lightFortune = false, passExcluded = false }) {
   const cost = Math.max(0, Math.floor(Number(coinCost || 0)));
   const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : {};
   const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
   if (!entitlement?.isActive || !tier) return { covered: false, reason: "no_active_pass" };
+  // 이용권 제외 상품(catalog.passExcluded)은 서버에서도 커버하지 않는다 — 화면 판정(describePassEligibility)과 같은 결론.
+  if (passExcluded === true) return { covered: false, reason: "pass_excluded", tier };
   if (!Number.isFinite(cost) || cost <= 0) return { covered: false, reason: "invalid_price", tier };
 
   const perItemLimit = Math.max(0, Math.floor(Number(resolvePassPolicy(sub, tier)?.maxCoveredCoin || 0)));

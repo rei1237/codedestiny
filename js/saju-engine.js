@@ -13104,7 +13104,7 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── 유명인 선택 → 시나스트리 결과 계산 ── */
     window._astroPickCeleb = function(name, birth, hour) {
-        /* 5,000원 퍼유즈 게이트 */
+        /* 퍼유즈 게이트 진입점 — compat-astro-synastry 는 무료 허용 목록(lib/payment/free-fortune-policy.mjs)이라 _cdCoinGatePerUse 가 결제 없이 바로 통과시킨다 */
         if (typeof window._cdCoinGatePerUse === 'function') {
           // 결제마다 새 requestId — 같은 값으로 결제를 확인해 보관함에 남긴다(상대가 매번 바뀐다).
           var celebArchiveRequestId = _seNewCompatArchiveRequestId('compat-astro-synastry');
@@ -13161,7 +13161,7 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── 💑 직접 입력 시나스트리 계산 함수 ── */
     window._astroDirectSynastry = function() {
-        /* 5,000원 퍼유즈 게이트 */
+        /* 퍼유즈 게이트 진입점 — compat-astro-direct-synastry 는 무료 허용 목록(lib/payment/free-fortune-policy.mjs)이라 _cdCoinGatePerUse 가 결제 없이 바로 통과시킨다 */
         if (typeof window._cdCoinGatePerUse === 'function') {
           var directArchiveRequestId = _seNewCompatArchiveRequestId('compat-astro-direct-synastry');
           var directArchiveProfileId = _sajuPromptResolveProfileId();
@@ -23463,8 +23463,9 @@ function cdEnsureCompatLlmHost() {
    2026-09-07 이설(PR-J): 셸 다이어리 모달 js/luck-sync-diary.js 의 「관계 흐름 메모」
    (#lsdCompatResult 렌더, 옛 1815~1949줄)와 자미·점성 Lite 두 줄을 결과 화면으로 옮긴 것이다.
    🔴 셸 모달의 원본은 지우지 않았다 — 진입점만 /diary 로 돌렸고 파일은 그대로 남는다.
-   🔴 이 블록은 결제 게이트 **밖**이다. 아래 runCompat()(2026-11-20부터 무료) 앞단에
-      아무 이용권·코인 판정도 넣지 않는다(CLAUDE.md 결제 게이팅 3).
+   🔴 이 블록은 결제 게이트 **밖**이다. 아래 runCompat() 앞단에
+      아무 이용권·코인 판정도 넣지 않는다(CLAUDE.md 결제 게이팅 3). runCompat 은 2026-11-26부터 무료 미리보기 + 잠금 카드를 그리고,
+      전체 풀이는 잠금 카드의 라이트 궁합(saju-compat-light, 3,000원) 결제 뒤에만 연다.
    옮기지 않은 것 둘:
      - 7일 추천일 탐색 → PR-I-3 의 다이어리 「함께 보기」가 같은 일을 이미 한다. 두 번째 구현을
        만들지 않고 마지막 줄 링크로 보낸다.
@@ -23726,7 +23727,7 @@ function _seSajuCompatRenderLightPreview(resultArea, compat, name, bd, type) {
   if (unlockBtn) unlockBtn.addEventListener('click', function() { _seSajuCompatLightGate(unlockBtn, name, bd, type); });
 }
 
-/* 예전 유료 흐름에서 결제는 끝났지만 생성이 안 끝난 같은 입력이 있으면 그 상태를 돌려준다. 없거나 모듈을 못 올리면 null(무료 결과). */
+/* 예전 유료 흐름에서 결제는 끝났지만 생성이 안 끝난 같은 입력이 있으면 그 상태를 돌려준다. 없거나 모듈을 못 올리면 null(무료 미리보기 + 라이트 궁합 잠금 카드). */
 async function _seSajuCompatLegacyPending(name, bd, type) {
   var owner = _seSajuCompatOwnerId();
   if (!owner) return null;
@@ -23743,7 +23744,7 @@ async function _seSajuCompatLegacyPending(name, bd, type) {
 }
 
 /* ─── 기본 사주 궁합 LLM 서비스: 선결제 → 서버 생성 → 보관함 스냅샷 ─────────────────────────────
-   2026-11-20부터 runCompat 은 새 결제로 여기 들어오지 않는다(기본 궁합 무료). 남은 진입은 예전 구매의 진행 중 생성 잇기
+   2026-11-20부터 runCompat 은 새 결제로 여기 들어오지 않는다(2026-11-26부터 무료 미리보기 + 라이트 궁합 saju-compat-light 3,000원 잠금 카드). 남은 진입은 예전 구매의 진행 중 생성 잇기
    (_seSajuCompatLegacyPending)와 결제 복귀(_seRunSajuCompatResume)뿐이다. 결제는 공유 게이트(_cdCoinGatePerUse)가
    먼저 끝내고, 생성·재개·보관은 서버(worker/routes/saju-compat-basic.js)가 한다. 이 파일은 연결만 하고,
    요청 본문·대기 기록·생성 실행은 js/saju-compat-flow.mjs, 화면 그리기는 js/saju-compat-render.mjs 가 맡는다.
@@ -24013,7 +24014,7 @@ function _seSajuCompatMountRetry(resultId, inputKey, store) {
   }).catch(function() {});
 }
 
-/* ─── 무료 결과 아래 사주 고급 궁합 진입(달빛 예화) ─────────────────────────────
+/* ─── 무료 미리보기·라이트 궁합 결과 아래 사주 고급 궁합 진입(달빛 예화) ─────────────────────────────
    두 사람 입력은 URL 이 아니라 sessionStorage 한 번짜리 값으로 넘긴다(개인정보를 주소·로그에 남기지 않는다).
    읽는 쪽: app/saju/compatibility/premium/_lib/premium-delivery.ts readPremiumPrefill(읽자마자 지운다). 키·모양을 함께 바꾼다. */
 var _SE_SAJU_COMPAT_PREMIUM_HREF = '/saju/compatibility/premium/';
@@ -24264,6 +24265,8 @@ async function runCompatCore(compatRunBtn, name, bd, type, llm, access){
 var _SE_COMPAT_TEN_KEYWORD={비견:'자립심·주관',겁재:'승부욕·추진력',식신:'여유·표현력',상관:'재치·비판적 시선',편재:'활동성·사교성',정재:'성실함·꼼꼼함',편관:'책임감·결단력',정관:'원칙·신중함',편인:'직관·독창성',정인:'수용·배려'};
 var _SE_COMPAT_TEN_GROUP={비견:'비겁',겁재:'비겁',식신:'식상',상관:'식상',편재:'재성',정재:'재성',편관:'관성',정관:'관성',편인:'인성',정인:'인성'};
 var _SE_COMPAT_GROUP_ORDER=['비겁','식상','재성','관성','인성'];
+// 소통 묶음 동점 정리의 마지막 고정 순서 — 비겁을 맨 뒤에 둔다(앞에 두면 동점이 모두 비겁으로 쏠려 약 30%가 비겁이 됐다).
+var _SE_COMPAT_GROUP_TIE_ORDER=['식상','재성','관성','인성','비겁'];
 var _SE_COMPAT_GROUP_LABEL={비겁:'비겁(자기 주관)',식상:'식상(표현·재능)',재성:'재성(현실·실리)',관성:'관성(원칙·책임)',인성:'인성(생각·수용)'};
 var _SE_COMPAT_EL_THEME={wood:'새로 시작하고 키워 가는 힘',fire:'표현과 열정',earth:'안정과 중재',metal:'결단과 정리',water:'생각의 깊이와 유연함'};
 var _SE_COMPAT_STYLE={
@@ -24299,7 +24302,18 @@ function _seCompatPersonProfile(p, n, pw) {
   });
   var tens = Object.keys(tenCnt).sort(function(a, b) { return tenCnt[b] - tenCnt[a]; });
   var topTens = tens.filter(function(t, i) { return i < 2 && (i === 0 || tenCnt[t] >= 2); });
-  var group = _SE_COMPAT_GROUP_ORDER.reduce(function(best, g) { return groupCnt[g] > groupCnt[best] ? g : best; }, _SE_COMPAT_GROUP_ORDER[0]);
+  // 두드러진 묶음: 개수가 가장 많은 묶음. 동점이면 ① 월지(계절의 중심) 십성의 묶음 ② 천간에 드러난(투출) 개수 ③ 고정 순서로 정한다.
+  var stemGroupCnt = { 비겁: 0, 식상: 0, 재성: 0, 관성: 0, 인성: 0 };
+  [p.y.g, p.m.g, p.h.g].forEach(function(c) {
+    var t = getTenGod(dg, c);
+    if (t && t !== '?') stemGroupCnt[_SE_COMPAT_TEN_GROUP[t]]++;
+  });
+  var monthGroup = _SE_COMPAT_TEN_GROUP[getTenGod(dg, p.m.j)] || '';
+  var maxGroupCnt = Math.max.apply(null, _SE_COMPAT_GROUP_ORDER.map(function(g) { return groupCnt[g]; }));
+  var tiedGroups = _SE_COMPAT_GROUP_TIE_ORDER.filter(function(g) { return groupCnt[g] === maxGroupCnt; });
+  var group = tiedGroups.indexOf(monthGroup) >= 0 ? monthGroup : tiedGroups.reduce(function(best, g) {
+    return stemGroupCnt[g] > stemGroupCnt[best] ? g : best;
+  }, tiedGroups[0]);
   var surface = (n && n.surface && n.surface.counts) ? n.surface.counts : ((n && n.counts) || {});
   var counts = {};
   ['wood', 'fire', 'earth', 'metal', 'water'].forEach(function(el) { counts[el] = Number(surface[el] || 0); });
@@ -24817,7 +24831,8 @@ function analyzeCompat(p1,n1,pw1,jh1,jg1,p2,n2,pw2,jh2,jg2,type,name,opts){
     '<div class="compat-section-title">🧩 세부 해석</div>'+
     '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">'+detailCardsHtml+'</div>'+
     '</div>'+
-    _seCompatLightSectionsHtml(p1,n1,pw1,p2,n2,pw2,type,USER_NAME,name,{commonY:commonY||[],partnerTimeUnknown:!!(opts&&opts.partnerTimeUnknown)})+
+    /* 🔴 라이트 궁합(3,000원) 유료 섹션. 토스 무료 화면(apps/toss/service/compat-basis-loader.mjs)은 판매 SKU가 없어 omitLightSections 로 뺀다. */
+    (opts&&opts.omitLightSections?'':_seCompatLightSectionsHtml(p1,n1,pw1,p2,n2,pw2,type,USER_NAME,name,{commonY:commonY||[],partnerTimeUnknown:!!(opts&&opts.partnerTimeUnknown)}))+
     '<div class="compat-section">'+
     '<div class="compat-section-title">📋 궁합 포인트 체크 <span style="font-size:.7rem;font-weight:400;color:#aaa">총점 '+score.toFixed(1)+'점</span></div>'+
     reasons.map(function(r){

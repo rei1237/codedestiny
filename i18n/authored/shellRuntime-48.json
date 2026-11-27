@@ -449,18 +449,18 @@
     "ms": "Tarot card meanings"
   },
   "shellRuntime.f2522": {
-    "ko": "무료 궁합 보기",
-    "en": "See free compatibility",
-    "ja": "無料の相性を見る",
-    "zh-CN": "查看免费合盘",
-    "zh-TW": "查看免費合盤",
-    "vi": "See free compatibility",
-    "hi": "See free compatibility",
-    "es": "See free compatibility",
-    "fr": "See free compatibility",
-    "de": "See free compatibility",
-    "nl": "See free compatibility",
-    "ms": "See free compatibility"
+    "ko": "궁합 보기",
+    "en": "See compatibility",
+    "ja": "相性を見る",
+    "zh-CN": "查看合盘",
+    "zh-TW": "查看合盤",
+    "vi": "See compatibility",
+    "hi": "See compatibility",
+    "es": "See compatibility",
+    "fr": "See compatibility",
+    "de": "See compatibility",
+    "nl": "See compatibility",
+    "ms": "See compatibility"
   },
   "shellRuntime.f2523": {
     "ko": "기초 리딩 · 무료",

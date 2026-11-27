@@ -252,10 +252,11 @@ body.cd-mnav-collapsed .cd-mnav__chevron {
 /* 데스크탑 표현 — 바닥에서 띄운 도크 패널. */
 @media (min-width: 769px) {
   :root {
-    /* 도크 총높이 = 패널 60(패딩 6 + 링크 48 + 패딩 6) + 바닥에서 띄우는 18.
+    /* 도크 총높이 = 패널 63(패딩 6 + 링크 49 + 패딩 6 + 테두리 1×2) + 바닥에서 띄우는 18.
+       링크는 min-height 48 이지만 내용물이 49 로 자란다(2026-11-27 실측 769·1024 모두 81). 78 은 테두리와 그 1px 를 빼먹었다.
        🔴 여기서 --cd-mnav-offset 을 다시 쓸 필요는 없다 — 같은 요소(:root)의 선언이라
        offset 의 var(--cd-mnav-bar-h) 가 이 값을 읽는다. */
-    --cd-mnav-bar-h: 78px;
+    --cd-mnav-bar-h: 81px;
   }
 
   /* 도크의 접기 손잡이는 바 위로 --cd-mnav-handle-h 만큼 솟는다. 본문 끝 여백이 바만 세면

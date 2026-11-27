@@ -4,7 +4,8 @@
  * - 명식·궁합 사실은 saju-compat-premium-facts.js 가 결정적으로 계산한다. LLM 은 그 사실만 해석한다.
  * - 신뢰·이성 기질 장은 partnerTemperament.evidence 에 있는 근거만 풀어 쓴다. 단정·비난 표현은 거부 대신
  *   해당 문장을 결정적으로 덜어 낸다(규칙 17: 형식 위반은 교정).
- * - 분량: 그룹 목표 2,400~3,200자, 받는 하한은 목표 하한의 60%(≤80% 규칙). 출력 토큰은 상한+머리말+thinking 몫.
+ * - 분량: 그룹 목표 1,900~2,600자(2026-11-27 하향), 받는 하한은 목표 하한의 60%(≤80% 규칙). 출력 토큰은 상한+머리말+thinking 몫.
+ * - 마지막 허용 시도는 비지 않은 본문이면 분량·반복으로 거부하지 않는다(반복은 덜어 내고 shortAccepted 표시).
  * - 레거시 saju-compat-schema/prompts 를 참조하지 않는다(2026-11-20 사용자 지시).
  */
 import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
@@ -12,11 +13,11 @@ import { jsonSchemaFromExample } from "./json-text-repair.js";
 import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "./paid-report-quality.js";
 
 export const SAJU_COMPAT_PREMIUM_PROMPT_VERSION = "saju-compat-premium-prompt-v1";
-export const SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS = 2400;
-export const SAJU_COMPAT_PREMIUM_GROUP_MAX_CHARS = 3200;
+export const SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS = 1900;
+export const SAJU_COMPAT_PREMIUM_GROUP_MAX_CHARS = 2600;
 /** 받는 하한 = 목표 하한 × 0.6. 목표만 올리고 하한은 목표의 80% 이하로 둔다(규칙 17). */
 export const SAJU_COMPAT_PREMIUM_ACCEPT_RATIO = 0.6;
-/** 3,200자 상한(≈2,400토큰) + JSON 머리말 + thinking 여유. */
+/** 2,600자 상한(≈2,000토큰) + JSON 머리말 + thinking 여유. */
 export const SAJU_COMPAT_PREMIUM_MAX_OUTPUT_TOKENS = 8192;
 /** 문단이 이보다 길면 문장 경계에서 결정적으로 나눈다. */
 export const SAJU_COMPAT_PREMIUM_PARAGRAPH_MAX_CHARS = 420;
@@ -205,8 +206,9 @@ export function sajuCompatPremiumSectionFloor(group) {
 /**
  * 그룹 응답을 파싱·교정한다. 반환 { key, ok, sections, extras, chars, issues, reason }.
  * 섹션 제목은 계획의 제목으로 고정한다(모델이 바꾼 제목은 순서로 매핑).
+ * finalAttempt: 마지막 허용 시도. 분량·섹션 하한·반복으로 거부하지 않는다(빈 섹션·파싱 실패만 거부).
  */
-export function parseSajuCompatPremiumGroupResponse(text, group) {
+export function parseSajuCompatPremiumGroupResponse(text, group, { finalAttempt = false } = {}) {
   const base = { key: group?.key || "", ok: false, sections: [], extras: {}, chars: 0, issues: [], reason: "" };
   const raw = clean(text);
   if (!raw || !group) return { ...base, reason: "EMPTY_RESPONSE", issues: ["EMPTY_LLM_RESPONSE"] };
@@ -236,9 +238,15 @@ export function parseSajuCompatPremiumGroupResponse(text, group) {
   const floor = sajuCompatPremiumSectionFloor(group);
   const chars = sections.reduce((sum, item) => sum + countPaidReportBodyChars(item.body), 0);
   const issues = [];
-  if (sections.some((item) => countPaidReportBodyChars(item.body) < floor)) issues.push("REQUIRED_SECTIONS_INCOMPLETE");
-  if (chars < Math.round(SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS * SAJU_COMPAT_PREMIUM_ACCEPT_RATIO)) issues.push("LENGTH_SHORT");
-  if (hasRepeatedReportPassage(sections.map((item) => item.body).join("\n"))) issues.push("REPEATED_PASSAGE");
+  const shortIssues = [];
+  if (sections.some((item) => countPaidReportBodyChars(item.body) === 0)) issues.push("REQUIRED_SECTIONS_INCOMPLETE");
+  else if (sections.some((item) => countPaidReportBodyChars(item.body) < floor)) shortIssues.push("REQUIRED_SECTIONS_INCOMPLETE");
+  if (chars < Math.round(SAJU_COMPAT_PREMIUM_GROUP_MIN_CHARS * SAJU_COMPAT_PREMIUM_ACCEPT_RATIO)) shortIssues.push("LENGTH_SHORT");
+  // 반복 문장은 위에서 이미 덜어 냈다. 마지막 시도는 남은 반복 판정으로 거부하지 않는다.
+  if (hasRepeatedReportPassage(sections.map((item) => item.body).join("\n"))) shortIssues.push("REPEATED_PASSAGE");
+  // 마지막 허용 시도: 빈 섹션이 없으면 분량·반복으로 거부하지 않고 받는다(규칙 17).
+  const acceptShort = Boolean(finalAttempt) && issues.length === 0 && shortIssues.length > 0;
+  if (!acceptShort) issues.push(...shortIssues);
 
   const extras = {};
   if (group.emits.includes("header")) {
@@ -253,7 +261,8 @@ export function parseSajuCompatPremiumGroupResponse(text, group) {
   if (group.emits.includes("closing")) extras.finalMessage = scrubSajuCompatPremiumSentences(clean(parsed.finalMessage, 400)).body;
 
   const ok = issues.length === 0;
-  return { ...base, ok, sections, extras, chars, issues, reason: ok ? "" : issues[0] };
+  return { ...base, ok, sections, extras, chars, issues, reason: ok ? "" : issues[0],
+    ...(acceptShort ? { shortAccepted: true, acceptedIssues: shortIssues } : {}) };
 }
 
 /** 저장된 그룹 행이 완성본으로 쓸 수 있는지. 다시 시도는 이 판정이 true 인 행을 다시 생성하지 않는다. */

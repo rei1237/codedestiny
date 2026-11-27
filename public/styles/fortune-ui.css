@@ -4526,12 +4526,14 @@ body.neo-mode .qm-wrap{border-color:rgba(250,204,21,.22)!important;box-shadow:0 
 .compat-grade-area{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#FFF5FB,#F3EBF9);border:1.5px solid #F0C8E8;border-radius:16px;padding:16px 18px;margin-bottom:12px}
 .compat-grade-icon{font-size:2.8rem;flex-shrink:0}
 .compat-grade-badge{display:inline-block;padding:4px 14px;border-radius:999px;font-size:1.05rem;font-weight:900;letter-spacing:.05em;margin-bottom:4px}
-.grade-s{background:linear-gradient(135deg,#FFD700,#FFA500);color:#fff;box-shadow:0 2px 10px rgba(255,165,0,.4)}
-.grade-a{background:linear-gradient(135deg,#FF8BA7,#FF6B9D);color:#fff;box-shadow:0 2px 10px rgba(255,107,157,.3)}
-.grade-b{background:linear-gradient(135deg,#7C9EE5,#5B7FD4);color:#fff;box-shadow:0 2px 10px rgba(91,127,212,.3)}
-.grade-c{background:linear-gradient(135deg,#69C782,#45B363);color:#fff}
-.grade-d{background:linear-gradient(135deg,#FFB848,#FF8C00);color:#fff}
-.grade-f{background:linear-gradient(135deg,#9E9E9E,#757575);color:#fff}
+/* 궁합 등급 배지 — 달빛 예화 금·장미 팔레트(2026-11-26). 예전 파랑·초록·회색 원색은 예화 화면에서 혼자 튀었다. 흰 글자는 진한 바탕(S·A)에만 쓴다. */
+.compat-grade-badge[class*="grade-"]{border:1px solid var(--cd-yehwa-line,#c9a46a);box-shadow:inset 0 0 0 2px rgba(255,253,248,.55),0 2px 10px rgba(169,123,62,.18)}
+.grade-s{background:linear-gradient(135deg,#f9e2b2,#d9ab5c);color:#4a2410}
+.grade-a{background:linear-gradient(135deg,#d65a92,#a8326b);color:#fff}
+.grade-b{background:linear-gradient(135deg,#fdeef4,#f4d3e1);color:#9c2a5f}
+.grade-c{background:linear-gradient(135deg,#fffdf8,#f6e6ee);color:#7a3f5c}
+.grade-d{background:linear-gradient(135deg,#fff6e6,#f6e1bd);color:#80521a}
+.grade-f{background:linear-gradient(135deg,#faf6f3,#efe6ea);color:#5f4a55}
 .compat-grade-label{font-size:1.03rem;font-weight:800;color:#3f3f46;margin-bottom:4px;line-height:1.5}
 .compat-grade-desc{font-size:.92rem;color:#5f6368;line-height:1.74}
 .compat-section{background:#fff;border:1px solid #F2E0EC;border-radius:13px;padding:16px 17px;margin-bottom:12px}
@@ -4672,6 +4674,9 @@ body.neo-mode .cd-compat-light-sections .compat-section,body.neo-mode #resultPag
 .cd-fun-compat-note__desc{display:block;color:#6b4a5c;font-size:.86rem;line-height:1.6;word-break:keep-all}
 .cd-fun-compat-note__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .cd-fun-compat-note__actions .cd-yehwa-button{border-radius:999px}
+/* 알약 끝의 둥근 곡선에 가지가 닿았다(2026-11-26 실측: 28px 가지가 끝에서 8px). 가지를 줄여 곡선 안쪽으로 들이고 글자와도 띄운다. */
+.cd-fun-compat-note__actions .cd-yehwa-button--primary{padding-inline-end:50px}
+.cd-fun-compat-note__actions .cd-yehwa-button--primary::after{inset-inline-end:18px;top:calc(50% - 11px);width:22px;height:22px}
 .cd-fun-compat-note__pig{display:block;margin:0 12px 0 0;width:84px;height:auto;aspect-ratio:384/512;background:none;filter:drop-shadow(0 6px 10px rgba(120,40,80,.2))}
 @media (max-width:420px){.cd-fun-compat-note__pig{width:68px}}
 body.neo-mode .cd-compat-flow,body.neo-mode .cd-compat-flow-notice,body.neo-mode .cd-compat-flow-saved{background:var(--cd-surface,rgba(19,16,42,.96));border-color:var(--cd-border,rgba(196,181,253,.32));color:var(--cd-text,#f4eeff)}
@@ -18235,6 +18240,73 @@ body.neo-mode #resultPage #compatResult .compat-check-detail,
 body.neo-mode .cd-compat-archive .compat-check-detail {
   color: var(--cd-text-muted, rgba(200,170,255,.7));
 }
+/* 팩폭 분석·천기적 처방 — 달빛 예화 진주 종이(2026-11-26). 예전 노랑·초록 상자와 초록 본문이 예화 화면에서 튀고, 네오에서는 어두운 본문이 어두운 면 위에 남았다. */
+#resultPage #compatResult .compat-fact-box,
+.cd-compat-archive .compat-fact-box {
+  border-color: rgba(201,164,106,.55);
+  border-radius: 22px;
+  background: linear-gradient(160deg, var(--cd-yehwa-pearl, #fffdf8), #fdeef4);
+}
+#resultPage #compatResult .compat-advice-box,
+.cd-compat-archive .compat-advice-box {
+  border-color: rgba(201,164,106,.55);
+  border-radius: 22px;
+  background: linear-gradient(160deg, var(--cd-yehwa-pearl, #fffdf8), #fbf1dc);
+}
+#resultPage #compatResult .compat-advice-title,
+.cd-compat-archive .compat-advice-title { color: #8a5a1e; }
+#resultPage #compatResult .compat-fact-body,
+.cd-compat-archive .compat-fact-body,
+#resultPage #compatResult .compat-advice-body,
+.cd-compat-archive .compat-advice-body { color: var(--cd-text, #3c1830); }
+/* 긴 본문 접기 버튼(js/mobile-performance-bootstrap.js setupTextCollapse) — 회색 사각 대신 동글동글한 예화 알약. 인라인 여백·크기를 덮으려고 !important 를 쓴다. */
+#resultPage #compatResult .cd-text-collapse-toggle,
+.cd-compat-archive .cd-text-collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  min-height: 40px;
+  margin-top: 10px !important;
+  padding: 8px 16px 8px 18px !important;
+  border: 1px solid rgba(201,164,106,.72);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--cd-yehwa-pearl, #fffdf8), #fdeef4);
+  color: #9c2a5f;
+  font-size: .88rem !important;
+  font-weight: 800;
+  box-shadow: 0 2px 8px rgba(169,123,62,.14);
+}
+#resultPage #compatResult .cd-text-collapse-toggle::after,
+.cd-compat-archive .cd-text-collapse-toggle::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  background: var(--cd-yehwa-line-deep, #a97b3e);
+  -webkit-mask: var(--cd-button-sprig-mask) center/contain no-repeat;
+  mask: var(--cd-button-sprig-mask) center/contain no-repeat;
+}
+body.neo-mode #resultPage #compatResult .compat-fact-box,
+body.neo-mode .cd-compat-archive .compat-fact-box,
+body.neo-mode #resultPage #compatResult .compat-advice-box,
+body.neo-mode .cd-compat-archive .compat-advice-box {
+  border-color: rgba(232,213,163,.34);
+  background: var(--cd-surface, rgba(19,16,42,.96));
+}
+body.neo-mode #resultPage #compatResult .compat-advice-title,
+body.neo-mode .cd-compat-archive .compat-advice-title { color: var(--cd-yehwa-champagne, #f4d69f); }
+body.neo-mode #resultPage #compatResult .compat-fact-body,
+body.neo-mode .cd-compat-archive .compat-fact-body,
+body.neo-mode #resultPage #compatResult .compat-advice-body,
+body.neo-mode .cd-compat-archive .compat-advice-body { color: var(--cd-text, #f4eeff); }
+body.neo-mode #resultPage #compatResult .cd-text-collapse-toggle,
+body.neo-mode .cd-compat-archive .cd-text-collapse-toggle {
+  border: 1px solid rgba(232,213,163,.5) !important;
+  background: rgba(232,213,163,.08) !important;
+  color: var(--cd-yehwa-champagne, #f4d69f) !important;
+}
+body.neo-mode #resultPage #compatResult .cd-text-collapse-toggle::after,
+body.neo-mode .cd-compat-archive .cd-text-collapse-toggle::after { background: var(--cd-yehwa-champagne, #f4d69f); }
 @media (max-width: 640px) {
   #resultPage #summaryArea .saju-summary-chapter { padding: 16px 14px; }
   #resultPage #summaryArea .saju-summary-chapter__head { gap: 8px; }

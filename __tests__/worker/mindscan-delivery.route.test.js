@@ -225,3 +225,15 @@ test('Toss uses the full web provider contract, checkpoints and original saved c
   expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
   expect(provider).toHaveBeenCalledTimes(before);
 });
+// The part's last allowed call delivers a parseable answer too short to split into its paragraphs;
+// the first call still asks again, and an empty answer is never saved.
+const answerOnly=(id,body)=>{const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes(`[이번 부분 ${id}]`))return ai;const value=JSON.parse(ai.text);value.body=body;return {...ai,text:JSON.stringify(value)};});};
+test.each(['summary','section-0'])('a one-sentence %s answer is bought once more, then delivered on the last attempt',async id=>{
+ const sentence='지금의 관계는 서두르지 않고 서로가 바라는 조건과 경계를 차분하게 확인할 때 가장 안정적으로 흘러갑니다.';
+ answerOnly(id,sentence);await start();expect((await finish()).status).toBe(200);
+ expect(callsFor(id)).toBe(2);expect(docs[0].metadata.paidNarrative.parts[id]).toBe(sentence);expect(docs[0].status).toBe('success');
+});
+test('an empty summary answer is still rejected on the last attempt',async()=>{
+ answerOnly('summary','   ');await start();await finish();
+ expect(callsFor('summary')).toBe(2);expect(docs[0].metadata.paidNarrative.parts.summary).toBeUndefined();expect(docs[0].status).not.toBe('success');
+});

@@ -2753,6 +2753,30 @@ async function handleCancel(request, env, auth) {
         status: CONTENT_ENTITLEMENT_STATUSES.CANCELLED,
         reason: "self_service_payment_cancellation",
       });
+  } else if (String(paymentRecord.paymentType || "") === "membership_pass") {
+    /* 🔴 이용권 셀프 취소도 profileSubscription 을 회수한다. 예전에는 PG 취소·포인트 롤백만 하고
+       등급·한도를 그대로 둬 "환불받고 이용권 유지"가 됐다. 회수 규칙은 PG 콘솔 취소 웹훅과 같은
+       revokePassGrantForOrder(lastPassOrderId 가 이 주문일 때만)를 쓴다. 매칭되지 않거나 실패하면
+       PG 취소는 이미 끝났으므로 주문 취소 기록은 그대로 남기고 관리자 검토로 넘긴다. */
+    try {
+      if (partialCancel) {
+        revocation = { unlockRevoked: false, adminReviewRequired: true };
+      } else {
+        const [{ revokePassGrantForOrder }, { consultationRefundDb }] = await Promise.all([
+          import("../payments/passes.js"),
+          import("../lib/pass-consumption.js"),
+        ]);
+        const revoked = await revokePassGrantForOrder(consultationRefundDb(), {
+          userId: paymentRecord.userId,
+          orderId: String(paymentRecord.merchantUid || merchantUid || ""),
+          durationMonths: Number(paymentRecord?.metadata?.durationMonths
+            || paymentRecord?.pricingSnapshot?.durationMonths || paymentRecord?.durationMonths || 1),
+        });
+        revocation = { unlockRevoked: revoked === true, adminReviewRequired: revoked !== true };
+      }
+    } catch (error) {
+      revocation = { unlockRevoked: false, adminReviewRequired: true, error: String(error?.message || "pass_revoke_failed").slice(0, 200) };
+    }
   }
 
   const updateResult = await runCancelUpdate({

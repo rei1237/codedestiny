@@ -7,7 +7,8 @@ import { trimPaidReportSections } from "../lib/paid-report-length.js";
 import { SYSTEM_INSTRUCTION_TERM_PATTERN } from "../lib/system-instruction-term.js";
 import { koreanizeExpertTerms, nakshatraKo } from "../lib/korean-term-gloss.js";
 import { createHash, randomUUID } from "node:crypto";
-import { countPaidReportBodyChars, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { countPaidReportBodyChars, dropRepeatedReportSentences, hasRepeatedReportPassage } from "../lib/paid-report-quality.js";
+import { scrubFusionText } from "../lib/fusion-group-plan.js";
 import { resultStorageUnavailable, resultStorageFailurePayload } from "../lib/result-storage.js";
 import { isStoredPaidResultRevoked } from "../lib/paid-result-revocation.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -1209,6 +1210,31 @@ function describeQualityIssuesForRepair(issues, chart) {
   return lines;
 }
 
+const VEDIC_RAW_LEAK_PATTERN = /\b(?:undefined|null|NaN)\b|\[object Object\]|```|schema/i;
+const VEDIC_MECHANICAL_LABEL_PATTERN = /이 기능은|이 결과는|분석 결과는/;
+const isVedicLeakText = (value) => VEDIC_RAW_LEAK_PATTERN.test(value) || VEDIC_MECHANICAL_LABEL_PATTERN.test(value);
+
+/**
+ * 마지막 허용 시도의 그룹 JSON 교정(2026-11-27). 섹션 본문은 앞 그룹(prior)·앞 섹션과 겹치는 문장과 원시 값·기계적 머리말
+ * 문장을 덜어 내고, 걸린 제목은 정해진 라벨로 바꾸고, 걸린 부가 필드는 버린다. scores 는 숫자 값만 남긴다.
+ * 돌려주는 값은 JSON 문자열이다(비게 된 섹션은 빠진다).
+ */
+export function scrubVedicFinalGroupPayload(payload, prior = "") {
+  let seen = String(prior || "");
+  const sections = {};
+  for (const [key, value] of Object.entries(payload?.sections || {})) {
+    if (typeof value?.body !== "string") continue;
+    const body = scrubFusionText(dropRepeatedReportSentences(value.body, seen), isVedicLeakText) || "";
+    if (!countPaidReportBodyChars(body)) continue;
+    const extras = Object.fromEntries(Object.entries(value).filter(([field, item]) => !["title", "body"].includes(field) && item != null && !isVedicLeakText(JSON.stringify(item))));
+    const title = clean(value.title);
+    sections[key] = { ...extras, title: title && !isVedicLeakText(title) ? title : REQUIRED_SECTION_LABELS[key] || key, body };
+    seen = `${seen}\n\n${body}`;
+  }
+  const scores = Object.fromEntries(Object.entries(payload?.scores && typeof payload.scores === "object" ? payload.scores : {}).filter(([, value]) => (typeof value === "number" && Number.isFinite(value)) || (typeof value === "string" && value.trim() !== "" && Number.isFinite(Number(value)))));
+  return JSON.stringify({ ...(Object.keys(scores).length ? { scores } : {}), sections });
+}
+
 function validateConsultationQuality(content, options = {}) {
   const minTotalChars = Number(options.minTotalChars || 0);
   const maxTotalChars = Number(options.maxTotalChars || 0);
@@ -1567,6 +1593,12 @@ async function generateInitialReading(env, input, chart, context, options = {}) 
         const keys = group.includeReasoning ? Object.keys(buildReasoningSectionSchema()) : group.sectionKeys;
         recovered.sections = Object.fromEntries(Object.entries(recovered.sections).filter(([key, value]) => keys.includes(key) && typeof value?.body === 'string').map(([key, value]) => [key, { ...value, title: clean(value.title) || REQUIRED_SECTION_LABELS[key] || key, body: normalizeNarrativeBody(value.body.split(/(?<=[.!?。])\s+/u).filter(sentence => !validateChartConsistency(JSON.stringify({ sections: { [key]: { body: sentence } } }), chart).some(issue => issue.endsWith("_mismatch"))).join(' ')) }]).filter(([, value]) => value.body));
         row.text = JSON.stringify(recovered);
+        if (!repairing && attempts[group.key] >= 2) {
+          // 마지막 허용 시도이고 받아 둔 초안도 없다(2026-11-27): 되풀이(그룹 안·다른 그룹과의 중복)와 원시 값·기계적 머리말 문장을
+          // 거부 사유로 쓰지 않고 덜어 낸 뒤 받는다. 본문 40자 미만·파싱 실패는 종전대로 거부한다.
+          row.text = scrubVedicFinalGroupPayload(recovered, Object.entries(rows).filter(([key]) => key !== group.key).map(([, value]) => bodies(value.text)).join("\n\n"));
+          row.finalScrubbed = true;
+        }
       }
       const sourceText = bodies(row.text);
       const sourceValid = valid(group, row);

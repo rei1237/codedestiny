@@ -77,7 +77,7 @@ import {
 } from "./birth-profile-claim.js";import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
 import { quoteYeongnyangiMoonstoneDiscount } from '../lib/paid-feature-registry.js';
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
-import { alertPaymentAnomalies, runPaymentReconcile } from "./reconcile.js";
+import { alertPaymentAnomalies, expireStalePendingOrders, recoverClosedPaidOrders, runPaymentReconcile } from "./reconcile.js";
 import { createOperatorAlertSender } from "./fulfillment-alert.js";
 import { grantPurchaseEntitlement, readPaidExecution, readPurchaseEntitlement } from "./executions.js";
 import { consumePassForFeature, hasConsumedPassFeature } from "../lib/pass-consumption.js";
@@ -125,6 +125,7 @@ import {
   createOrder,
   createPayableOrder,
   findOrder,
+  isRevivableClosedOrder,
   markEntitlementGranted,
   markOrderCancelled,
   markOrderFailed,
@@ -560,6 +561,7 @@ const PASS_FAILURE_CODES = Object.freeze({
   monthly_pass_limit_exceeded: "MEMBERSHIP_PASS_NOT_COVERED",
   pass_access_conflict: "MEMBERSHIP_PASS_NOT_COVERED",
   family_pass_required: "MEMBERSHIP_PASS_NOT_ALLOWED",
+  pass_excluded: "MEMBERSHIP_PASS_NOT_ALLOWED",
   no_active_pass: "MEMBERSHIP_PASS_NOT_COVERED",
   invalid_price: "MEMBERSHIP_PASS_NOT_COVERED",
 });
@@ -889,7 +891,10 @@ function evaluateConfirmable(ctx, order, { orderId, actorUserId = "", systemActo
   }
   // PG 미확정/실패로 닫힌 주문도 지연 승인을 서버에서 다시 검증한다.
   // 금액 불일치 등 검증 실패와 CANCELLED·REFUNDED는 되살리지 않는다.
-  const revivable = status === "FAILED" && ["PG_PAYMENT_NOT_PAID","PG_PAYMENT_FAILED","PG_PAYMENT_CANCELLED","pg_webhook_failed"].includes(String(order.failureCode || ""));
+  // 크론 만료(ORDER_EXPIRED)·클라이언트 실패 보고(client_report)로 닫힌 주문도 같은 검증을 거쳐 되살린다 — 우리 추정으로
+  // 닫았을 뿐 PG 사실이 아니다(orders.js isRevivableClosedOrder, 2026-11-27). PG 취소·환불 주문은 여기에 들지 않는다.
+  const revivable = (status === "FAILED" && ["PG_PAYMENT_NOT_PAID","PG_PAYMENT_FAILED","PG_PAYMENT_CANCELLED","pg_webhook_failed"].includes(String(order.failureCode || "")))
+    || isRevivableClosedOrder(order);
   if (status !== "PENDING" && !revivable) {
     throw paymentError("ORDER_NOT_CONFIRMABLE", "이 주문은 확정할 수 없는 상태입니다.", { orderId, status });
   }
@@ -906,7 +911,12 @@ async function settleVerifiedOrder(db, ctx, { order, pg }) {
   if (!paid) {
     // CAS 를 졌다 = 다른 주체가 방금 확정했다. 재조회해 그 결과를 그대로 쓴다.
     const current = await findOrder(db, { orderId });
-    return { order: current || order, replayed: true, granted: Boolean(current?.entitlementGrantedAt) };
+    // 🔴 이긴 쪽이 PAID 로 옮긴 경우만 재생이다. 그 사이 취소·환불·월정석 반환으로 닫혔다면 지급 단계(afterSettle 의
+    //    grantOrderEntitlement)로 넘기지 않는다 — 결제되지 않은 주문에 혜택이 나가는 길을 막는다.
+    if (toOrderStatus(current) !== "PAID") {
+      throw paymentError("ORDER_NOT_CONFIRMABLE", "이 주문은 확정할 수 없는 상태입니다.", { orderId, status: toOrderStatus(current) });
+    }
+    return { order: current, replayed: true, granted: Boolean(current?.entitlementGrantedAt) };
   }
   ctx.pgTransactionId = pg.pgTransactionId;
 
@@ -1897,7 +1907,8 @@ const ROUTES = {
       const outcome = await withDb(env, ctx, async (db) => {
         const user = await db.findOne(User, { _id: toObjectId(userId) });
         const entitlement = resolveCanonicalEntitlement(user || {});
-        const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins, lightFortune });
+        const coverage = evaluatePassCoverage({ user, entitlement, coinCost: product.priceCoins, lightFortune,
+          passExcluded: passExcluded && !isSajuBundleSaleClosed(product.featureKey) });
 
         // 묶음 포함·판매 종료 키: 가진 것은 이용권 한도와 무관하게 열고, 새로 사는 시도는 커버·차감 전에 409 로 닫는다.
         if (isSajuBundleSaleClosed(product.featureKey)) {
@@ -2439,6 +2450,32 @@ export async function runPaymentsV2Reconcile(env) {
     } catch (error) {
       console.error("[payments-v2-reconcile] webhook replay failed:", String(error?.message || error));
     }
+    /* 30분 PENDING 만료 — 취소 직전 PortOne 을 다시 묻는다(reconcile.js expireStalePendingOrders, 2026-11-27).
+       PAID 면 취소 대신 구 태스크와 같은 settleOrderFromReconcile(금액·통화 대조 포함)로 확정·지급하고, 조회 실패는 건너뛴다.
+       PG 조회가 있어 슬롯 밖에서 돈다. 실패해도 위 결과는 잃지 않는다. */
+    let expired = null;
+    try {
+      expired = await expireStalePendingOrders(null, {
+        withDb: (fn) => withPaymentDb(env, ctx, fn),
+        probe: (order) => fetchPortOnePayment(env, String(order.merchantUid || "")),
+        settle: (order, pg) => settleOrderFromReconcile(env, { orderId: String(order.merchantUid || ""), pgPayment: pg }),
+      });
+    } catch (error) {
+      console.error("[payments-v2-reconcile] pending expiry failed:", String(error?.message || error));
+    }
+    /* 닫힌 주문 복구 — 만료·클라이언트 실패 보고로 닫혔지만 PortOne 이 PAID 인 최근 30일 주문을 확정·지급한다
+       (reconcile.js recoverClosedPaidOrders, 1틱 20건 상한). 같은 정산 주체, 슬롯 밖, 실패해도 위 결과는 잃지 않는다. */
+    let recovered = null;
+    try {
+      recovered = await recoverClosedPaidOrders(null, {
+        withDb: (fn) => withPaymentDb(env, ctx, fn),
+        probe: (order) => fetchPortOnePayment(env, String(order.merchantUid || "")),
+        settle: (order, pg) => settleOrderFromReconcile(env, { orderId: String(order.merchantUid || ""), pgPayment: pg }),
+      });
+      if (Number(recovered?.settled || 0) > 0) console.warn("[CRON] payments-v2 closed order recovery", recovered);
+    } catch (error) {
+      console.error("[payments-v2-reconcile] closed order recovery failed:", String(error?.message || error));
+    }
     let giftRefunds = null;
     try {
       const { reconcileGiftRefunds } = await import("./gift-refund.js");
@@ -2473,7 +2510,7 @@ export async function runPaymentsV2Reconcile(env) {
       // External PG/GA requests run outside the DB slot; analytics cannot fail payment reconciliation.
       ga4Refunds=await sendPendingGa4Refunds(env,fn=>withPaymentDb(env,ctx,fn));
     } catch { console.error('[GA4_REFUND_RECONCILE_FAILED]'); }
-    return { ...report, webhookReplay, giftRefunds, ga4Refunds };
+    return { ...report, expired, recovered, webhookReplay, giftRefunds, ga4Refunds };
   } catch (error) {
     const contract = classify(error);
     status = contract.status;

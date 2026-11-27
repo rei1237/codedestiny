@@ -231,7 +231,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-c5d4c7549819"', "React paid runtime cache key carries the current profile runtime");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-7214d33f3fb6"', "React paid runtime cache key carries the current profile runtime");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
@@ -669,5 +669,29 @@ assert.ok(
   /document\.body\.appendChild\(modal\);[\s\S]{0,300}?_cdEndPreCheckoutWaitUiSuppression\(\);/.test(indexSource),
   "pre-checkout suppression ends after the modal is mounted",
 );
+
+// 2026-11-26: 서버가 402 MONTHLY_NOT_ALLOWED(정가 10,000원 미만 등 월정석 대상 아님)로 거절하면, 같은 월정석 카드를
+// 4번까지 다시 띄우던 루프를 끊는다 — 월정석을 숨긴 채 결제창을 **한 번만** 다시 열고, 두 번째 거절은 재제안하지 않는다.
+{
+  const src = indexSource.replace(/\r\n/g, "\n");
+  const fnMatch = src.match(/function _cdIsMonthlyNotAllowedError\(error\) \{[\s\S]*?\n {2}\}/);
+  assert.ok(fnMatch, "shell has _cdIsMonthlyNotAllowedError");
+  const isNotAllowed = new Function(`${fnMatch[0]}; return _cdIsMonthlyNotAllowedError;`)();
+  assert.equal(isNotAllowed({ status: 402, code: "MONTHLY_NOT_ALLOWED" }), true, "402 MONTHLY_NOT_ALLOWED is recognised");
+  assert.equal(isNotAllowed({ status: 402, code: "INSUFFICIENT_MONTHLY_CREDITS" }), false, "insufficient balance stays on the grey path");
+  assert.equal(isNotAllowed({ status: 503, code: "MONTHLY_NOT_ALLOWED" }), false, "only the server 402 verdict hides moonlight");
+  const branch = src.indexOf("if (choice === 'monthly' && _cdIsMonthlyNotAllowedError(_cdLeafError)) {");
+  assert.ok(branch > 0, "leaf catch handles MONTHLY_NOT_ALLOWED before the insufficient branch");
+  const branchBody = src.slice(branch, branch + 600);
+  const guardAt = branchBody.indexOf("if (_cdMonthlyBlockedReason === 'not_allowed') throw _cdLeafError;");
+  const setAt = branchBody.indexOf("_cdMonthlyBlockedReason = 'not_allowed';");
+  assert.ok(guardAt > 0 && setAt > guardAt, "MONTHLY_NOT_ALLOWED re-offer is bounded to once (second rejection throws)");
+  assert.ok(branchBody.indexOf("continue;") > setAt, "MONTHLY_NOT_ALLOWED re-offers the choice sheet (no auto-switch to direct)");
+  assert.ok(!/forceDirectPayment|_cdRunDirectKrwCheckout/.test(branchBody.slice(0, branchBody.indexOf("continue;"))), "MONTHLY_NOT_ALLOWED must not auto-run direct checkout");
+  assertContains(src, "_cdMonthlyBlockedReason === 'not_allowed' ? { monthlyExcludedReason: 'not_allowed' } : {}", "re-offered sheet receives the not_allowed exclusion");
+  assertContains(src, "var monthlyPolicyExcluded = opts.monthlyExcludedReason === 'not_allowed';", "choice sheet hides moonlight on not_allowed");
+  assertContains(src, "payment.directModal.note.monthlyNotAllowed", "re-offered sheet explains why moonlight disappeared");
+  assertContains(src, "for (var _cdGateAttempt = 0; _cdGateAttempt < 4; _cdGateAttempt += 1) {", "gate re-offer loop stays bounded");
+}
 
 console.log("[verify-paid-gate-ui-regression] PASS");
