@@ -29,6 +29,7 @@ import {
   toBranchKo,
   toStemKo,
 } from "./saju-shinsal.js";
+import { buildRemedyCardModel, computeRemedyCases } from "../../lib/saju/remedy/index.mjs";
 
 // ── 문장표 ────────────────────────────────────────────────────────────────
 
@@ -231,9 +232,10 @@ function buildHourWindows(verdict) {
  * @param {object} params
  * @param {object} params.verdict judgeSajuDayFortune() 결과
  * @param {object} params.natal   calculateLifeBookAiSaju() 결과
+ * @param {number|null} [params.remedyYear] 액땜 케이스 기준 해. 주면 처방 뒤에 remedyCase 섹션을 붙인다(플래그·로케일 판정은 호출부)
  * @returns {{highlights: string[], sections: object[]}}
  */
-export function buildTodaySajuDetail({ verdict, natal }) {
+export function buildTodaySajuDetail({ verdict, natal, remedyYear = null }) {
   if (!verdict) return { highlights: [], sections: [] };
 
   const todayBranch = verdict.dayGanji.slice(1, 2);
@@ -332,9 +334,27 @@ export function buildTodaySajuDetail({ verdict, natal }) {
   }
   if (remedyItems.length) sections.push({ key: "remedy", title: "오늘의 처방", items: remedyItems });
 
+  // 7) 액땜 케이스(덧붙이기만). 계산이 실패하거나 카드가 안 나오면 섹션만 빠진다.
+  const remedyCase = remedyYear ? buildRemedyCaseSection(natal, remedyYear) : null;
+  if (remedyCase) sections.push(remedyCase);
+
   if (!highlights.length && stemLine) highlights.push(`${verdict.tenGod} — ${stemLine.split(".")[0]}.`);
 
   return { highlights: highlights.slice(0, 3), sections };
+}
+
+// 액땜 케이스 섹션. 화면(app/today/TodayHubClient.tsx)이 remedyCases 로 연이 카드를 그린다.
+// 판정은 lib/saju/remedy 정본이 한다. 어떤 예외도 섹션 생략으로 끝낸다 — 오늘의 사주 본문은 그대로 나간다.
+function buildRemedyCaseSection(natal, refYear) {
+  try {
+    const result = computeRemedyCases({ saju: natal, refYear, locale: "ko" });
+    if (!result?.valid || !result.total) return null;
+    if (!buildRemedyCardModel(result, { narrator: "yeoni" })) return null;
+    return { key: "remedyCase", title: "나에게 맞는 액땜", remedyCases: result };
+  } catch (error) {
+    console.warn("[today-saju-remedy-skip]", String(error?.message || error).slice(0, 200));
+    return null;
+  }
 }
 
 // ── 날짜만으로 참인 부분(생년 없음) ────────────────────────────────────────

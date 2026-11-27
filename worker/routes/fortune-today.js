@@ -31,6 +31,7 @@ import { getRoutePath, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { judgeSajuDayFortune } from "../lib/saju-day-fortune.js";
 import { sajuAuthorityOn } from "../lib/saju-authority-consumer.js";
+import { remedyFactsOn } from "../lib/engine-rollout.js";
 import { buildSukuyoFromMoonLongitude, calculateSukuyoForMoment } from "../lib/sukuyo-astronomy.js";
 import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { assembleTodayMoon } from "../lib/nakshatra-codex.js";
@@ -214,7 +215,7 @@ function withDepth(card, depth, wantDetail) {
   return out;
 }
 
-function buildSaju(input, today, wantDetail, approvedStrength = false) {
+function buildSaju(input, today, wantDetail, approvedStrength = false, remedy = false) {
   const dayPillar = todayDayPillar(today);
   if (!input) {
     const publicCard = buildTodaySajuPublic(dayPillar);
@@ -256,7 +257,7 @@ function buildSaju(input, today, wantDetail, approvedStrength = false) {
     score: verdict.score,
     detail: `내 일간 ${verdict.dayMasterKo}(${verdict.dayMaster}) · 오늘 ${verdict.tenGod}`,
     personalized: true,
-  }, buildTodaySajuDetail({ verdict, natal }), wantDetail);
+  }, buildTodaySajuDetail({ verdict, natal, remedyYear: remedy && wantDetail ? today.year : null }), wantDetail);
 }
 
 function buildSukuyo(natalIndex, natalSukuyo, todaySukuyo, wantDetail) {
@@ -396,7 +397,9 @@ async function buildTodayHubPayload(request, env, input, wantDetail, onlyNumber 
     if (!number) return null;
     return localizeTodayPayload({ ok: true, date: dateKey(today), personalized: true, systems: { number } }, requestLocale(request));
   }
-  const { saju, sukuyo, vedic, number } = await buildTodayFortunes(env, input, today, { requestUrl: request.url, wantDetail });
+  // 액땜 카드는 한국어 화면만 그린다(components/fortune/remedy). 다른 로케일 응답에는 섹션을 싣지 않는다.
+  const remedy = requestLocale(request) === "ko";
+  const { saju, sukuyo, vedic, number } = await buildTodayFortunes(env, input, today, { requestUrl: request.url, wantDetail, remedy });
 
   // 수비학은 계산이 실패할 일이 거의 없어 "모두 실패" 판정에 넣지 않는다 — 넣으면 Swiss·사주가 다 죽어도
   // 한 장짜리 응답이 공개 캐시에 30분 굳는다.
@@ -412,7 +415,9 @@ async function buildTodayHubPayload(request, env, input, wantDetail, onlyNumber 
 
 // 네 점술의 오늘 카드(한국어 원문). 허브와 영냥이 자유질문 근거가 같은 계산을 쓴다.
 // 체계별 실패는 null 로 돌려주고, 모두 실패했는지는 호출부가 판정한다.
-export async function buildTodayFortunes(env, input, today, { requestUrl, wantDetail = false } = {}) {
+// remedy 는 허브 화면만 켠다 — 액땜 섹션은 SAJU_REMEDY_FACTS_V1 의 today-saju 가 켜졌을 때 detail=1 개인 응답에만 붙고,
+// 영냥이 자유질문 근거(daily-cross)는 이 옵션을 넘기지 않아 섹션이 들어가지 않는다.
+export async function buildTodayFortunes(env, input, today, { requestUrl, wantDetail = false, remedy = false } = {}) {
   // 숙요 본명수별 조언 표의 CMS 오버라이드를 judgeDayFortune 호출 전에 채운다.
   // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다(기본 숙요점과 같은 관례).
   await primeCmsRecords(env);
@@ -429,7 +434,7 @@ export async function buildTodayFortunes(env, input, today, { requestUrl, wantDe
 
   let saju = null;
   try {
-    saju = buildSaju(input, today, wantDetail, sajuAuthorityOn(env));
+    saju = buildSaju(input, today, wantDetail, sajuAuthorityOn(env), remedy && remedyFactsOn(env, "today-saju"));
   } catch (error) {
     console.warn("[today-hub-saju-skip]", String(error?.message || error).slice(0, 200));
   }

@@ -25,6 +25,7 @@ import Link from "next/link";
 import Image from "next/image";
 import styles from "./today-hub.module.css";
 import FortuneScroll from "@/components/fortune/scroll/FortuneScroll";
+import RemedyCaseCards from "@/components/fortune/remedy/RemedyCaseCards";
 import ScrollActions from "@/components/fortune/scroll/ScrollActions";
 import { moodForScore } from "@/app/fortune/[period]/YeoniPortrait";
 import { luckyFor, practiceFor } from "@/lib/fortune/scroll-lucky.mjs";
@@ -57,6 +58,8 @@ interface DetailSection {
   title: string;
   items?: DetailItem[];
   lines?: string[];
+  /** key "remedyCase" 일 때만 — 서버 computeRemedyCases 결과(worker/lib/today-saju-detail.js) */
+  remedyCases?: unknown;
 }
 
 interface SystemCard {
@@ -870,7 +873,23 @@ function VerdictBadge({ card, copy, paper = false }: { card: SystemCard; copy: T
   );
 }
 
-function SectionBlock({ section }: { section: DetailSection }) {
+// 액땜 섹션은 연이 카드로 그린다. 한국어 화면에서만 보이고, 카드가 안 나오면 RemedyCaseCards 가 null 이다.
+function RemedySectionBlock({ section }: { section: DetailSection }) {
+  return (
+    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
+      <h3 className="break-keep text-sm font-extrabold tracking-tight text-amber-200">{section.title}</h3>
+      {/* 카드 루트는 모듈 CSS 가 margin 0 으로 고정해 className 여백이 먹지 않는다 — 감싸서 다른 섹션과 같은 mt-3 를 준다 */}
+      <div className="mt-3">
+        <RemedyCaseCards remedyCases={section.remedyCases} narrator="yeoni" theme="dark" headingLevel={4} />
+      </div>
+    </section>
+  );
+}
+
+function SectionBlock({ section, locale }: { section: DetailSection; locale: LoadingLocale }) {
+  if (section.key === "remedyCase") {
+    return locale === "ko" && section.remedyCases ? <RemedySectionBlock section={section} /> : null;
+  }
   return (
     <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
       <h3 className="break-keep text-sm font-extrabold tracking-tight text-amber-200">{section.title}</h3>
@@ -1013,7 +1032,7 @@ function CardPanel({
         </summary>
         {hasSections ? (
           <div className="mt-4 space-y-4">{(card.sections || []).map((section) => (
-            <SectionBlock key={section.key} section={section} />
+            <SectionBlock key={section.key} section={section} locale={locale} />
           ))}</div>
         ) : detailState === "failed" ? (
           <p role="alert" className="mt-4 break-keep rounded-xl border border-rose-200/20 bg-rose-400/10 px-4 py-3 text-sm leading-7 text-rose-50">
