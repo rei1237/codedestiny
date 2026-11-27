@@ -187,14 +187,14 @@ test('프롬프트 허브: ON 은 라벨과 해석 규칙, OFF 는 없음, 시�
   assert.ok(pending.includes(PENDING));
 });
 
-test('프롬프트 허브 신살 블록: 기본(꺼짐)은 그대로, 켜짐은 블록만 덧붙이고 공망은 빼며 시각 미상을 밝힌다', async () => {
+test('프롬프트 허브 신살 블록: 기본(켜짐)은 켜짐과 같고, 켜짐은 블록만 덧붙이고 공망은 빼며 시각 미상을 밝힌다', async () => {
   const { buildSajuPromptFacts } = fromRoot('app/fortune/prompt-hub/saju-prompt-facts.ts');
   const { buildShinsalFactsBlock } = await import('../../lib/saju/shinsal-facts-block.mjs');
   // 1990-02-11 은 일주 기준 공망(인·묘)이 월지 인에 걸린다 — 제외가 실제로 일하는 명식.
   const input = { birthDate: '1990-02-11', birthTime: '08:30', birthTimeUnknown: false, gender: 'female', calendarType: 'solar' };
   const off = String(buildSajuPromptFacts(input, { shinsalEnabled: false }));
   const on = String(buildSajuPromptFacts(input, { shinsalEnabled: true }));
-  assert.equal(String(buildSajuPromptFacts(input)), off, '플래그 기본값(꺼짐)은 꺼짐과 바이트 동일');
+  assert.equal(String(buildSajuPromptFacts(input)), on, '플래그 기본값(prompt-hub 켜짐)은 켜짐과 바이트 동일');
   assert.doesNotMatch(off, /신살 계산값/);
   const start = on.indexOf('\n\n[신살 계산값');
   const end = on.indexOf('\n\n위 명식은');

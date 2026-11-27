@@ -23,9 +23,12 @@ test('unverified astronomy systems stay off and the worker export is wired', () 
   assert.match(fs.readFileSync('worker/index.js', 'utf8'), /export default withEngineRollout\(withStagingLlmRouting\(withDbScopes\(app\)\)\);/);
 });
 
-test('shinsal facts stay off by default and open per consumer id or all at once', () => {
-  assert.equal(ENGINE_ROLLOUT_FLAGS.SAJU_SHINSAL_FACTS_V1, '');
-  assert.equal(shinsalFactsOn(engineRolloutEnv({}), 'saju-ai'), false);
+test('shinsal facts open for the approved consumer ids by default, per consumer id or all at once, and an empty var turns them off', () => {
+  const approved = ['prompt-hub', 'free-saju', 'natal-static', 'saju-ai', 'new-year', 'life-book', 'heukwol', 'neo', 'tea-house', 'love-codex', 'karma', 'guardian', 'fusion', 'saju-compat'];
+  assert.equal(ENGINE_ROLLOUT_FLAGS.SAJU_SHINSAL_FACTS_V1, approved.join(','));
+  for (const id of approved) assert.equal(shinsalFactsOn(engineRolloutEnv({}), id), true);
+  assert.equal(shinsalFactsOn(engineRolloutEnv({}), 'naming'), false);
+  assert.equal(shinsalFactsOn(engineRolloutEnv({ SAJU_SHINSAL_FACTS_V1: '' }), 'saju-ai'), false);
   assert.equal(shinsalFactsOn(undefined, 'saju-ai'), false);
   const some = engineRolloutEnv({ SAJU_SHINSAL_FACTS_V1: ' saju-ai , new-year ' });
   assert.equal(shinsalFactsOn(some, 'saju-ai'), true);
@@ -41,10 +44,10 @@ test('the shinsal pin goes on new records only, legacy records stay off and the 
   assert.equal(SHINSAL_FACTS_META, 'shinsal-facts-v1');
   assert.equal(selectShinsalFacts(on, 'new-year'), SHINSAL_FACTS_META);
   assert.equal(selectShinsalFacts(on, 'life-book'), null);
-  assert.equal(selectShinsalFacts(engineRolloutEnv({}), 'new-year'), null);
+  assert.equal(selectShinsalFacts(engineRolloutEnv({ SAJU_SHINSAL_FACTS_V1: '' }), 'new-year'), null);
   const pinned = { shinsalFacts: SHINSAL_FACTS_META };
   assert.equal(shinsalFactsPinned(pinned, on, 'new-year'), true);
   for (const legacy of [undefined, null, {}, { shinsalFacts: null }, { shinsalFacts: 'shinsal-facts-v2' }]) assert.equal(shinsalFactsPinned(legacy, on, 'new-year'), false);
-  assert.equal(shinsalFactsPinned(pinned, engineRolloutEnv({}), 'new-year'), false);
+  assert.equal(shinsalFactsPinned(pinned, engineRolloutEnv({ SAJU_SHINSAL_FACTS_V1: '' }), 'new-year'), false);
   assert.equal(shinsalFactsPinned(pinned, on, 'life-book'), false);
 });
