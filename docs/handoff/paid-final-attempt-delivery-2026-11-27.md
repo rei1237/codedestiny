@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-27
-next: 단계 3 — 점성술·베딕 마지막 시도 dedupe·scrub 후 유지
+next: 단계 4 — 낙샤트라 마지막 시도 salvage·evidence 계산값 채움·교차 반복 dedupe
 ---
 
 # 유료 LLM 결제 후 미제공 제거 + 이용권 혜택 정확 적용
@@ -71,7 +71,7 @@ next: 단계 3 — 점성술·베딕 마지막 시도 dedupe·scrub 후 유지
 - [x] 2. **연애 비책**
   - worker/lib/love-secret-ai-prompt.js:228·232의 GROUP_MIN을 5000→4000, V2는 6000→4800으로 내리고, MAX도 비례해 내린다.
   - 하드캡 마지막 시도(라우트 worker/routes/love-secret-ai.js:1003-1020, 1143)에서 salvage는 kept>0이면 수용하고, 반복은 dedupe한다. `INVALID_SECTION_BODY`는 빈 섹션일 때만 거부한다.
-- [ ] 3. **점성술·베딕**
+- [x] 3. **점성술·베딕**
   - 대상: worker/routes/astrology-ai.js:1247-1307, worker/routes/vedic-ai.js:1535-1578.
   - 마지막 시도에서는 반복·품질 이슈를 dedupe·scrub한 뒤 유지한다.
 - [ ] 4. **낙샤트라**
@@ -116,3 +116,10 @@ next: 단계 3 — 점성술·베딕 마지막 시도 dedupe·scrub 후 유지
 - V1 프롬프트 해시 2개 갱신(분량 줄만 바뀐 것을 HEAD 모듈과 줄 단위 비교로 확인).
 - 테스트: jest love-secret-ai-prompt.gate·love-secret-ai-rejection-repair·paid-report-length-recovery·love-secret-native-contract `Tests: 73 passed, 73 total`; node --test __tests__/ui/love-secret-*.behavior.test.js `pass 87 fail 0`; verify-love-secret-ai-flow PASS; verify-llm-generation-resilience ok (1357 checks); verify-paid-llm-delivery-contract exit 0.
 - check:fast: paid-gate-suite 통과 78 / 실패 0, 이후 단계 1과 같은 sitemap 날짜 드리프트로 BLOCKED(무관).
+
+### 단계 3 — cd8af59b57
+- 점성술: `scrubAstrologyFinalSectionText(text, prior)` 추가. 마지막 시도(attempts ≥ 2)이고 저장된 유효 초안이 없을 때만, 다른 섹션과 겹치는 문장·자기 반복 문장을 `dropRepeatedReportSentences`로 지우고, 깨진 글자·금지어 문장을 `scrubFusionText`로 문장 단위로 뺀다(`finalScrubbed: true`). 이후 기존 `validText` 검사는 그대로 탄다.
+- 베딕: `scrubVedicFinalGroupPayload(payload, prior)` 추가. 마지막 시도에서 그룹 섹션 본문을 앞선 그룹·같은 그룹 앞 섹션 기준으로 dedupe하고, undefined/null/NaN/schema/코드펜스·기계적 라벨("이 결과는" 등) 문장을 뺀다. 오염된 보조 필드는 버리고 제목은 정본 라벨로 되돌린다. 점수는 유한 숫자만 남긴다.
+- 편차: 기존 40자 본문 하한(구조 하한)은 유지했다 — 기존 테스트 "stops after two unusable section attempts"("짧은 결과")가 그대로 실패해야 해서다. 첫 시도 품질 기준·시도 횟수·토큰 변경 없음.
+- 테스트: jest astrology-paid-delivery `Tests: 58 passed, 58 total`; jest vedic-paid-delivery `Tests: 55 passed, 55 total`; node --test astrology/vedic paid-resume·wake-recovery·vedic-ai-prompt-partial-delivery `pass 17 fail 0`; verify-llm-generation-resilience ok (1357 checks); verify-paid-llm-delivery-contract exit 0; verify-astrology-ai-flow ok; verify-astrology-sectioned-generation A/B/C ok; verify-vedic-ai-flow ok; verify-vedic-basic-quality passed.
+- check:fast: paid-gate-suite 통과 78 / 실패 0, lint 통과, 이후 같은 sitemap 날짜 드리프트로 BLOCKED(무관, 재생성 파일 없음). typecheck는 BLOCKED 뒤라 미실행 → 단계 4 끝에 따로 1회 돌린다.
