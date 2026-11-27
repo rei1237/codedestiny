@@ -27,6 +27,8 @@ async function generate({ tossNative, attempts = 0 }) {
     saveTeaCheckpoint: async (...args) => saves.push(args),
     runWithAiLocale: (_locale, fn) => fn(),
     pinAnswerVoice: () => null,
+    // 신살 블록 핀(S7). 이 경계 테스트는 캐시 정책만 보므로 꺼 둔다.
+    shinsalFactsPinned: () => false,
     buildUserPrompt: () => 'synthetic prompt',
     buildSystemPrompt: () => 'synthetic system prompt',
     appendAnswerVoice: prompt => prompt,
