@@ -142,6 +142,7 @@ export function RemedyCaseCardsView({ model, theme = "light", headingLevel = 3, 
             aria-expanded={open}
             aria-controls={restId}
             onClick={() => setOpen((v) => !v)}
+            data-html2canvas-ignore="true"
           >
             {open ? "접기" : model.moreLabel}
           </button>

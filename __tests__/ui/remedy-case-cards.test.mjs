@@ -82,6 +82,7 @@ test('3장을 넘으면 앞 3장만 펼치고 나머지는 aria-expanded 버튼 
     assert.equal(button.getAttribute('type'), 'button');
     assert.equal(button.getAttribute('aria-expanded'), 'false');
     assert.equal(button.getAttribute('aria-controls'), rest.id);
+    assert.equal(button.getAttribute('data-html2canvas-ignore'), 'true');
     assert.equal(button.textContent, '+2 더 보기');
     button.click(); await view.settle();
     assert.equal(button.getAttribute('aria-expanded'), 'true');

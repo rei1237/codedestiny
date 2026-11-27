@@ -48,6 +48,7 @@ test('앞 3장은 펼치고 나머지는 JS 없는 <details> 로 접는다', () 
   assert.equal(cards(details[0]).length, 2);
   assert.equal(details[0].querySelector('summary').textContent, '+2 더 보기');
   assert.match(details[0].querySelector('summary').getAttribute('style'), /min-height:44px/);
+  assert.equal(details[0].querySelector('summary').getAttribute('data-html2canvas-ignore'), 'true');
   for (const card of cards(root)) {
     const methods = card.querySelectorAll('ul.saju-summary-list > li');
     assert.ok(methods.length >= 2 && methods.length <= 3);
