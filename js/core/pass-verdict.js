@@ -172,6 +172,43 @@
     var key = String(featureKey || "").trim().toLowerCase();
     return Boolean(key) && Object.prototype.hasOwnProperty.call(LIGHT_FORTUNE_LOOKUP, key);
   }
+  /* 판매 종료 키 미러 — 서버 정본 worker/lib/saju-bundle-policy.js 의 SAJU_BUNDLE_SALE_CLOSED_KEYS 와
+     그 키로 정규화되는 PAID_FEATURE_KEY_ALIASES 별칭(verify:pass-tier-policy 가 대조한다).
+     서버 guardSaleClosedEntry 는 이 키를 이용권으로 열지 않는다: 보유자는 ALREADY_UNLOCKED, 아니면 409
+     PRODUCT_SALE_ENDED. 그래서 클라가 '이용권으로 열린다'고 낙관하면 안 되고 "아직 모름"으로 서버에 넘긴다. */
+  var SALE_CLOSED_FEATURE_KEYS = [
+    "animal-destiny-unlock",
+    "fun.quantumLotto.ritualReport",
+    "healthReport",
+    "rpgCharacter",
+    "rpt_energyCoordCard",
+    "rpt_healthReportCard",
+    "rpt_quantumCard",
+    "rpt_secretHouseEntryCard",
+    "rpt_skillTreeCard",
+    "rpt_specialCharmCard",
+    "rpt_villainCard",
+    "saju-career-style",
+    "secretHouseEpisodes",
+    "section_compat",
+    "section_daewun",
+    "section_summary",
+    "tetogen_deep_report",
+    "travelDestiny",
+  ];
+  var SALE_CLOSED_FEATURE_ALIASES = [
+    "openTetogenDeepReport",
+    "tetogen-deep-report",
+    "tetogenDeepReport",
+  ];
+  var SALE_CLOSED_LOOKUP = {};
+  SALE_CLOSED_FEATURE_KEYS.concat(SALE_CLOSED_FEATURE_ALIASES).forEach(function (key) {
+    SALE_CLOSED_LOOKUP[key.toLowerCase()] = true;
+  });
+  function isSaleClosedKey(featureKey) {
+    var key = String(featureKey || "").trim().toLowerCase();
+    return Boolean(key) && Object.prototype.hasOwnProperty.call(SALE_CLOSED_LOOKUP, key);
+  }
   var REASON_PASS_LIMIT = "snapshot_pass_limit_exceeded";
   var REASON_NONE = "subscription_snapshot_none";
   /* 🔴 '프리미엄 상담 포함 횟수'는 2026-08-24 폐지됐다(서버 정본
@@ -741,6 +778,8 @@
         return result;
       }
     }
+    // 판매 종료 키는 서버가 보유 여부로 ALREADY_UNLOCKED / PRODUCT_SALE_ENDED 를 가른다 — "아직 모름"으로 넘긴다.
+    if (isSaleClosedKey(featureKey)) return result;
     // 커버 확정. TTL 을 넘겼어도 이용권 만료일이 아직 남아 있으면 판정은 그대로 유효하다.
     result.coversNow = !snapshot.stale || isFutureDate(snapshot.expiresAt);
     return result;
@@ -898,6 +937,7 @@
     LIGHT_FORTUNE_FEATURE_KEYS: LIGHT_FORTUNE_FEATURE_KEYS,
     LIGHT_FORTUNE_FEATURE_ALIASES: LIGHT_FORTUNE_FEATURE_ALIASES,
     isLightFortuneKey: isLightFortuneKey,
+    isSaleClosedKey: isSaleClosedKey,
     resolveVerdict: resolveVerdict,
     coverageFromSnapshot: coverageFromSnapshot,
     storeMonthlyQuotaFromPayload: storeMonthlyQuotaFromPayload,

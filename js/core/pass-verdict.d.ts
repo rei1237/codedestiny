@@ -95,6 +95,7 @@ declare const passVerdict: {
   LIGHT_FORTUNE_FEATURE_KEYS: string[];
   LIGHT_FORTUNE_FEATURE_ALIASES: string[];
   isLightFortuneKey(featureKey?: string): boolean;
+  isSaleClosedKey(featureKey?: string): boolean;
   resolveVerdict(snapshot: PassVerdictSnapshot | null, coinCost: number, featureKey?: string): PassVerdict;
   coverageFromSnapshot(snapshot: PassVerdictSnapshot | null, coinCost: number, sourceLabel?: string, featureKey?: string): PassCoverage | null;
   /** coin-gate 응답(200/402)의 monthlySpendRemaining 을 활성 스냅샷에만 반영한다(더 작은 값 우선). */
