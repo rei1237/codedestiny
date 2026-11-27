@@ -1,6 +1,9 @@
 .reader { min-width: 0; max-width: 100%; color: inherit; }
 .chapters { min-width: 0; }
 .chapter { max-width: 72ch; margin: 0 auto; padding: 28px 0; border-bottom: 1px solid var(--cd-border); scroll-margin-top: 28px; }
+/* 액땜 카드 칸: 본문 장(.chapter)과 같은 폭·리듬. 카드가 없으면(옛 기록) :empty 로 접힌다. */
+.remedySlot { max-width: 72ch; margin: 0 auto; padding-top: 28px; }
+.remedySlot:empty { display: none; }
 .chapter h2 { margin-bottom: 18px; font-family: 'CodeDestinyDisplay', var(--font-body); font-weight: 500; font-size: 1.4rem; line-height: 1.55; }
 .chapter p { line-height: 1.85; }
 .html { overflow-x: auto; overflow-wrap: anywhere; line-height: 1.85; }
