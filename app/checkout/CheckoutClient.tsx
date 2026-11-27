@@ -294,12 +294,14 @@ function PreparedCheckoutClient() {
   const [passChoice,setPassChoice]=useState<{key:string;owner:string;label:string}|null>(null);
   useEffect(()=>{
     if(!pricing||isSoulCatMode||!signedIn||!checked||!available)return;
+    // PG 성공 복귀 문서는 재개 핸들러가 곧 location.replace 로 떠나 이 조회가 취소만 된다. 실패 복귀(code·imp_success=false, ServicePacks 와 같은 판별)는 이 화면에 남으므로 그대로 읽는다.
+    if(params.paymentReturn){const q=new URLSearchParams(window.location.search);if(!(q.has('code')||q.get('imp_success')==='false'))return;}
     let active=true;const key=pricing.featureKey,owner=ownerId;
     void fetchPaymentEligibility({featureKey:key},{revalidate:true}).then(result=>{
       if(active)setPassChoice(result.ok&&result.data?.pass?.canUse?{key,owner,label:String(result.data.pass.label||'')}:null);
     }).catch(()=>{/* 판정을 못 읽으면 접힌 영역의 기존 버튼만 남긴다. */});
     return ()=>{active=false;};
-  },[pricing,isSoulCatMode,signedIn,checked,available,ownerId]);
+  },[pricing,isSoulCatMode,signedIn,checked,available,ownerId,params.paymentReturn]);
   const passBeside=Boolean(passChoice&&pricing&&passChoice.key===pricing.featureKey&&passChoice.owner===ownerId&&!isSoulCatMode);
 
   const startPayment = useCallback(async (paymentMode:'DIRECT_KRW'|'MEMBERSHIP_PASS'|'MOONLIGHT_STONE'='DIRECT_KRW') => {
