@@ -33,3 +33,17 @@ test('all recipe routes are in the canonical sitemap', () => {
   const xml = readFileSync('sitemap-ko.xml','utf8');
   for (const path of ['/recipes/', ...RECIPES.map(recipePath)]) assert.ok(xml.includes(`https://code-destiny.com${path}</loc>`), path);
 });
+
+test('the bitter collection uses four distinct non-chicory ingredients and documented techniques', () => {
+  const additions = RECIPES.filter(r => r.ingredientTheme);
+  assert.deepEqual(additions.map(r => r.ingredientTheme), ['커피', '카카오', '여주', '루콜라']);
+  for (const r of additions) {
+    assert.equal(r.element, '화(火)');
+    assert.equal(r.taste, '쓴맛');
+    assert.match(r.steps.map(s => s[1]).join(' '), /mL|g|분/);
+    assert.ok(r.sources.length >= 1);
+    assert.ok(r.sources.every(([title, url]) => title && new URL(url).protocol === 'https:'));
+  }
+  assert.ok(RECIPES.some(r => r.slug === 'chicory-chicken-salad'));
+  assert.ok(RECIPES.some(r => r.slug === 'black-pepper-shiitake-tteok'));
+});
