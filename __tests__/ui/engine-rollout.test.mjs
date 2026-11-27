@@ -52,9 +52,13 @@ test('the shinsal pin goes on new records only, legacy records stay off and the 
   assert.equal(shinsalFactsPinned(pinned, on, 'life-book'), false);
 });
 
-test('remedy facts stay off by default, open per consumer id or all at once, and the pin keeps legacy records off', () => {
-  assert.equal(ENGINE_ROLLOUT_FLAGS.SAJU_REMEDY_FACTS_V1, '');
-  for (const id of ['today-saju', 'natal-static', 'samjae', 'new-year', 'heukwol', 'tea-house', 'ziwei-ai']) assert.equal(remedyFactsOn(engineRolloutEnv({}), id), false);
+test('remedy facts open for the approved consumer ids by default, per consumer id or all at once, an empty var turns them off, and the pin keeps legacy records off', () => {
+  const approved = ['today-saju', 'natal-static', 'samjae', 'new-year', 'heukwol', 'tea-house', 'ziwei-ai'];
+  assert.equal(ENGINE_ROLLOUT_FLAGS.SAJU_REMEDY_FACTS_V1, approved.join(','));
+  for (const id of approved) assert.equal(remedyFactsOn(engineRolloutEnv({}), id), true);
+  assert.equal(remedyFactsOn(engineRolloutEnv({}), 'anything-else'), false);
+  for (const id of approved) assert.equal(remedyFactsOn(engineRolloutEnv({ SAJU_REMEDY_FACTS_V1: '' }), id), false);
+  assert.equal(selectRemedyFacts(engineRolloutEnv({ SAJU_REMEDY_FACTS_V1: '' }), 'new-year'), null);
   assert.equal(remedyFactsOn(undefined, 'new-year'), false);
   const some = engineRolloutEnv({ SAJU_REMEDY_FACTS_V1: ' today-saju , samjae ' });
   assert.equal(remedyFactsOn(some, 'today-saju'), true);
