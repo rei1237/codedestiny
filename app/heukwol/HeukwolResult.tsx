@@ -2,6 +2,7 @@
 import {useState} from 'react';
 import Image from 'next/image';
 import {readDestinyProfileAccountId} from '@/app/_lib/profile-card-storage';
+import RemedyCaseCards from '@/components/fortune/remedy/RemedyCaseCards';
 import type {HeukwolReport} from './types';
 import styles from './heukwol.module.css';
 const labels:Record<string,string>={huaLu:'화록 · 활용할 자원',huaQuan:'화권 · 책임과 실행',huaKe:'화과 · 조력과 정리',huaJi:'화기 · 막힘을 점검'};
@@ -44,6 +45,8 @@ export default function HeukwolResult({report,isCurrent=()=>true}:{report:Heukwo
    <div className={styles.readingVoice}><VoiceHeading voice="yeoni"/><ReadingPassage text={c.interpretation}/></div>
    <div className={styles.readingVoice}><VoiceHeading voice="neo"/><ReadingPassage text={c.strategy}/></div>
    {c.checkpoints?.length?<aside className={styles.actionList}><h3>실천 점검</h3><ul>{c.checkpoints.map((line,i)=><li key={i}>{line}</li>)}</ul></aside>:null}
+   {/* 액땜 카드는 마지막 장(완성본에서는 closing)의 실천 점검 뒤에 한 번만 둔다. 저장된 remedyCases 만 그리고, 없거나 그리다 실패하면 카드만 빠진다. */}
+   {index===report.chapters.length-1?<RemedyCaseCards remedyCases={report.remedyCases} narrator="neo" theme="light" headingLevel={3}/>:null}
    <nav className={styles.chapterLinks} aria-label={`${c.title} 읽기 이동`}><a href="#report-contents">차례로</a>{report.chapters[index+1]&&<a href={`#chapter-${report.chapters[index+1].key}`}>다음 장으로</a>}</nav>
   </article>)}
   <p>{report.analysis.limitation}</p>{report.analysis.uncertainty.map(line=><p key={line}>{line}</p>)}<a href="/records/">내 보관함</a>
