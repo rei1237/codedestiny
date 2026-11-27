@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-27
-next: 단계 4 — 낙샤트라 마지막 시도 salvage·evidence 계산값 채움·교차 반복 dedupe
+next: 단계 5 — 타로 어댑터 3종에 finalAttempt 전달(문단 하한 1개·반복 dedupe)
 ---
 
 # 유료 LLM 결제 후 미제공 제거 + 이용권 혜택 정확 적용
@@ -74,7 +74,7 @@ next: 단계 4 — 낙샤트라 마지막 시도 salvage·evidence 계산값 채
 - [x] 3. **점성술·베딕**
   - 대상: worker/routes/astrology-ai.js:1247-1307, worker/routes/vedic-ai.js:1535-1578.
   - 마지막 시도에서는 반복·품질 이슈를 dedupe·scrub한 뒤 유지한다.
-- [ ] 4. **낙샤트라**
+- [x] 4. **낙샤트라**
   - 대상: worker/routes/nakshatra-ai.js:714-737, 948, 983.
   - final이면 잘린 응답을 salvage하고, 빠진 evidence 필드를 계산값으로 채우고, 교차 섹션 반복은 dedupe한다.
 - [ ] 5. **타로 어댑터** (love-tarot-delivery.js, mindscan-delivery.js, tarot-oracle-delivery.js)
@@ -123,3 +123,11 @@ next: 단계 4 — 낙샤트라 마지막 시도 salvage·evidence 계산값 채
 - 편차: 기존 40자 본문 하한(구조 하한)은 유지했다 — 기존 테스트 "stops after two unusable section attempts"("짧은 결과")가 그대로 실패해야 해서다. 첫 시도 품질 기준·시도 횟수·토큰 변경 없음.
 - 테스트: jest astrology-paid-delivery `Tests: 58 passed, 58 total`; jest vedic-paid-delivery `Tests: 55 passed, 55 total`; node --test astrology/vedic paid-resume·wake-recovery·vedic-ai-prompt-partial-delivery `pass 17 fail 0`; verify-llm-generation-resilience ok (1357 checks); verify-paid-llm-delivery-contract exit 0; verify-astrology-ai-flow ok; verify-astrology-sectioned-generation A/B/C ok; verify-vedic-ai-flow ok; verify-vedic-basic-quality passed.
 - check:fast: paid-gate-suite 통과 78 / 실패 0, lint 통과, 이후 같은 sitemap 날짜 드리프트로 BLOCKED(무관, 재생성 파일 없음). typecheck는 BLOCKED 뒤라 미실행 → 단계 4 끝에 따로 1회 돌린다.
+
+### 단계 4 — 9a61bb2dd7
+- `generateSectionOnce(..., finalAttempt)`: 마지막 시도(attempts ≥ SECTION_MAX_ATTEMPTS 2)이고 저장된 유효 초안이 없을 때만 `{ identity }`를 넘긴다. final이면 잘린 응답(MAX_TOKENS)을 열린 문자열을 닫아 파싱(`salvageNakshatraSectionJson`, 실패 시 `salvageTruncatedJsonObject`)하고 본문을 마지막 완결 문장까지 자른다.
+- `correctNakshatraFinalSection`: 자기 반복 문장 dedupe → 금지어(mock/provider/assistant/JSON 등) 문장 단위 제거. keyInsight는 비거나 오염되면 본문 첫 문장(45자). vedic/sukuyo 근거는 비거나 오염되거나 계산된 낙샤트라·숙요 이름이 없으면 `factSummary.identity` 계산값 문장으로 채운다. 결과 행에 `finalCorrected: true`.
+- 쓰기 큐: final 행은 다른 저장 장 본문과 겹치는 문장을 `dropRepeatedReportSentences`로 지운 뒤 교차 반복 검사를 탄다. 다 지워져 0자가 되면 기존처럼 generationFailure로 기록한다.
+- 편차: 본문 구조 하한 40자(`NAKSHATRA_FINAL_MIN_BODY_CHARS`, 점성술·베딕과 동일)를 두었다. 없으면 기존 테스트 "does not complete or consume for short output"·"restores a pass pre-deducted…"("짧은 결과" 5자)가 계산값 근거로 채워져 완료돼 버린다. 빈 본문·파싱 불가는 그대로 거부.
+- 테스트: jest nakshatra-paid-delivery `Tests: 56 passed, 56 total`(신규 2: 잘림+근거 누락+자기·교차 반복+메타 문장 → completed·attempts 2·환불 0 / 파싱 불가 본문은 계속 503). 변이 확인: finalAttempt 전달을 끄면 신규 테스트 1건 실패. node --test nakshatra-paid-resume `pass 6 fail 0`, nakshatra-wake-recovery `pass 1 fail 0`; verify-nakshatra-ai-flow·verify-nakshatra-flow·verify-nakshatra-premium·verify-llm-generation-resilience·verify-paid-llm-delivery-contract 모두 exit 0; `npm run typecheck` exit 0(단계 3·4 포함).
+- check:fast: paid-gate-suite 통과 78 / 실패 0, lint 통과, 이후 같은 sitemap 날짜 드리프트로 BLOCKED(무관, 재생성 파일 없음).
