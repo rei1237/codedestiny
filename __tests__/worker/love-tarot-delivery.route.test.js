@@ -247,3 +247,16 @@ test('Toss uses the full web provider contract, checkpoints and original saved c
   expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
   expect(provider).toHaveBeenCalledTimes(before);
 });
+// The part's last allowed call delivers a parseable answer too short to split into its paragraphs;
+// the first call still asks again, and an empty answer is never saved.
+const answerOnly=(id,body)=>{const base=provider.getMockImplementation();provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes(`[이번 부분 ${id}]`))return ai;const value=JSON.parse(ai.text);value.body=body;return {...ai,text:JSON.stringify(value)};});};
+test('a one-sentence matrix answer is bought once more, then delivered on the last attempt',async()=>{
+ const sentence='여섯 카드는 함께 관계의 속도를 잠시 늦추고 서로가 바라는 조건과 경계를 차분하게 확인하라고 말합니다.';
+ answerOnly("matrix",sentence);await start();expect((await finish()).status).toBe(200);
+ const state=docs[0].metadata.paidNarrative;expect(callsFor('matrix')).toBe(2);expect(state.parts.matrix).toBe(sentence);
+ expect(docs[0].status).toBe('success');const data=await (await resume()).json();expect(data.reading.relationshipMatrix.projectionGap).toBe(sentence);expect(provider).toHaveBeenCalledTimes(10);
+});
+test('an empty matrix answer is still rejected on the last attempt',async()=>{
+ answerOnly('matrix','   ');await start();await finish();
+ const state=docs[0].metadata.paidNarrative;expect(callsFor('matrix')).toBe(2);expect(state.parts.matrix).toBeUndefined();expect(docs[0].status).not.toBe('success');
+});

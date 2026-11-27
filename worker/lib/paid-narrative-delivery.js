@@ -193,6 +193,10 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
   // Other adapters keep delivering a short complete answer without buying a repair.
   const longEnough = (task, body) => Boolean(body) && (measureBody || countPaidReportBodyChars)(body) >= (task.minChars || 0);
   const finalAttempt = task => !repairShortParts || (state.attempts[task.id] || 0) >= 2;
+  // The part's last allowed provider call, passed to produce(): an adapter then corrects a parseable,
+  // non-empty answer (paragraph count, repeats) instead of rejecting it. finalAttempt above is true on
+  // every call for an adapter without repairShortParts, so it cannot carry this.
+  const lastAttempt = task => (state.attempts[task.id] || 0) >= (v2 ? V2_PART_ATTEMPTS : 2);
   const persist = async () => { doc = await save(env, filter, { metadata: { ...doc.metadata, paidNarrative: structuredClone(state), paidNarrativeAlertedAt: null,
     // A crash after the checkpoint must not turn a saved-only review into a paid resume.
     paidNarrativeRecovery: savedOnly ? { ...doc.metadata.paidNarrativeRecovery, reviewRequired: true, code: "DELIVERY_REVIEW_REQUIRED" } : null },
@@ -238,7 +242,7 @@ export async function runPaidNarrativeDelivery(request, env, auth, body, { featu
       let ai, value;
       try {
         if (produce) {
-          value = await runWithAiLocale(state.locale, () => produce(task, state));
+          value = await runWithAiLocale(state.locale, () => produce(task, state, { finalAttempt: lastAttempt(originalTask) }));
           ai = value ? { ok: true } : null;
         } else {
           ai = await runWithAiLocale(state.locale, () => callGeminiJsonWithRetry(env, prompt, {

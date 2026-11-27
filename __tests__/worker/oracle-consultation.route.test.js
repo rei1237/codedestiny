@@ -164,3 +164,10 @@ test('Toss uses the full web provider contract, checkpoints and original saved c
   expect((await generateTarotLibraryResult(featureId,input,options)).presentation).toEqual(result.presentation);
   expect(provider).toHaveBeenCalledTimes(before);
 });
+// A card part's last allowed call delivers a one-sentence answer; the first call still asks again.
+test('a one-sentence card answer is bought once more, then delivered on the last attempt',async()=>{
+ const sentence='지금의 선택은 서두르지 않고 바라는 조건과 지켜야 할 경계를 하나씩 차분하게 확인할 때 가장 안정적으로 이어집니다.',base=provider.getMockImplementation();
+ provider.mockImplementation(async(...args)=>{const ai=await base(...args);if(!args[1].includes('[이번 부분 card.0.0]'))return ai;const value=JSON.parse(ai.text);value.body=sentence;return {...ai,text:JSON.stringify(value)};});
+ await start();expect((await finish()).status).toBe(200);
+ expect(callsFor('card.0.0')).toBe(2);expect(docs[0].metadata.paidNarrative.parts['card.0.0']).toBe(sentence);expect(docs[0].status).toBe('success');
+});
