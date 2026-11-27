@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-27
-next: 단계 5 — 타로 어댑터 3종에 finalAttempt 전달(문단 하한 1개·반복 dedupe)
+next: 단계 8 — 이용권 개선 (RED, mock 테스트 필수)
 ---
 
 # 유료 LLM 결제 후 미제공 제거 + 이용권 혜택 정확 적용
@@ -77,13 +77,13 @@ next: 단계 5 — 타로 어댑터 3종에 finalAttempt 전달(문단 하한 1�
 - [x] 4. **낙샤트라**
   - 대상: worker/routes/nakshatra-ai.js:714-737, 948, 983.
   - final이면 잘린 응답을 salvage하고, 빠진 evidence 필드를 계산값으로 채우고, 교차 섹션 반복은 dedupe한다.
-- [ ] 5. **타로 어댑터** (love-tarot-delivery.js, mindscan-delivery.js, tarot-oracle-delivery.js)
+- [x] 5. **타로 어댑터** (love-tarot-delivery.js, mindscan-delivery.js, tarot-oracle-delivery.js)
   - paid-narrative-delivery.js:195의 finalAttempt를 어댑터에 전달한다.
   - final이면 문단 수 하한을 1개 이상으로 하고, 반복은 dedupe한다.
-- [ ] 6. **지오맨시**
+- [x] 6. **지오맨시**
   - 대상: worker/routes/oracle.js:115-125.
   - final이면 잘린 응답을 마지막 완결 문장까지 유지한다.
-- [ ] 7. **보고만**
+- [x] 7. **보고만**
   - 자미두수 V1 2종, 흑월 V1, 시빌 V1이 대상이다.
   - V2 플래그가 기본값으로 켜져 있는지 `worker/wrangler.toml` vars와 코드 기본값으로 확인만 한다.
 - [ ] 8. **이용권 개선** (RED, mock 테스트 필수)
@@ -131,3 +131,49 @@ next: 단계 5 — 타로 어댑터 3종에 finalAttempt 전달(문단 하한 1�
 - 편차: 본문 구조 하한 40자(`NAKSHATRA_FINAL_MIN_BODY_CHARS`, 점성술·베딕과 동일)를 두었다. 없으면 기존 테스트 "does not complete or consume for short output"·"restores a pass pre-deducted…"("짧은 결과" 5자)가 계산값 근거로 채워져 완료돼 버린다. 빈 본문·파싱 불가는 그대로 거부.
 - 테스트: jest nakshatra-paid-delivery `Tests: 56 passed, 56 total`(신규 2: 잘림+근거 누락+자기·교차 반복+메타 문장 → completed·attempts 2·환불 0 / 파싱 불가 본문은 계속 503). 변이 확인: finalAttempt 전달을 끄면 신규 테스트 1건 실패. node --test nakshatra-paid-resume `pass 6 fail 0`, nakshatra-wake-recovery `pass 1 fail 0`; verify-nakshatra-ai-flow·verify-nakshatra-flow·verify-nakshatra-premium·verify-llm-generation-resilience·verify-paid-llm-delivery-contract 모두 exit 0; `npm run typecheck` exit 0(단계 3·4 포함).
 - check:fast: paid-gate-suite 통과 78 / 실패 0, lint 통과, 이후 같은 sitemap 날짜 드리프트로 BLOCKED(무관, 재생성 파일 없음).
+
+### 단계 5 — 40bdaca724
+- paid-narrative-delivery.js: 195행의 `finalAttempt`는 쓰지 않았다. 그 값은 `!repairShortParts || attempts>=2`라서, repairShortParts·deliveryV2를 쓰지 않는 타로 어댑터에서는 첫 시도부터 항상 true다. 그대로 넘기면 첫 시도 기준까지 풀린다. 그래서 `lastAttempt(task) = attempts >= (v2 ? V2_PART_ATTEMPTS : 2)`를 따로 두고 `produce(task, state, { finalAttempt: lastAttempt(originalTask) })`로 넘긴다.
+- 어댑터 3종은 `produce(task, state, { finalAttempt = false } = {})` 형태로 받는다.
+  - love-tarot: final이면 문단 1개 이상이면 받는다. 종전에는 정확한 문단 수(count)와 legacy 카드 2문단 이상을 요구했다.
+  - mindscan: final이면 문단 1개 이상이면 받는다. 종전에는 위치 파트 3문단 이상, summary 정확히 10문단을 요구했다.
+  - tarot-oracle: 카드 파트를 final이면 1문단이라도 받는다. 종전 요구는 2문단이었다.
+  - 반복 dedupe는 기존 `dropRepeatedReportSentences`(파트 안 + 앞선 파트)를 그대로 쓴다. 채우지 못한 렌더 필드는 빈 값으로 남는다.
+- 유지한 거부(편차):
+  - 빈 본문, 그리고 코어의 `completeNarrativeBody` 구조 하한 40자.
+  - 카드 사실 위반(`findTarotProseViolation`).
+  - dedupe 뒤에도 남는 반복 구간. 코어의 `hasRepeatedReportPassage`가 어차피 거부한다.
+  - 첫 시도 기준·시도 횟수·토큰은 바꾸지 않았다.
+  - 다른 어댑터도 produce의 세 번째 인자를 받지만 쓰지 않고 무시한다.
+- 테스트:
+  - jest love-tarot-delivery.route·mindscan-delivery.route·oracle-consultation.route: `Tests: 168 passed, 168 total`. 신규 테스트는 한 문장 응답이 2회 뒤 전달되는지, 빈 응답이 여전히 거부되는지를 본다.
+  - 변이 확인: finalAttempt 대신 `{}`를 넘기면 `4 failed`.
+  - paid-narrative 계열 jest(adapters·candidate·retry·recovery-task·geomancy·intent): `128 passed`.
+  - node --test ui paid-narrative-retry·paid-tarot-contract·paid-narrative-reader: `pass 18 fail 0`.
+  - verify-llm-generation-resilience(1357 checks), verify-paid-llm-delivery-contract, verify-mindscan-reading, verify-tarot-love-instant-flow: 모두 exit 0.
+- check:fast: paid-gate-suite 통과 78 / 실패 0, lint 통과. 이어서 같은 sitemap 날짜 드리프트로 BLOCKED(무관, 재생성 파일 없음).
+
+### 단계 6 — 8b998a5b54
+- worker/routes/oracle.js의 `geomancyNarrativeAdapter.produce`가 `{ finalAttempt }`를 받는다.
+  - 첫 시도: 잘린 응답은 종전대로 거부한다.
+  - final: 잘린 응답을 `closeTruncatedGeomancyJson`으로 처리한다. 끝의 백슬래시를 떼고, 닫는 문자 `""`·`'"}'`·`"}"`를 차례로 붙여 parseNarrativeResponse로 파싱한다. 그다음 `trimGeomancyToLastSentence`로 본문을 마지막 완결 문장(.!?。！？… 뒤 닫는 따옴표·괄호 포함)까지 자른다.
+  - 완결 문장이 없으면 빈 본문이 된다. 코어가 이를 거부해 기존 실패 경로를 탄다.
+- 테스트:
+  - __tests__/worker/geomancy-paid-delivery.test.js 신규 test.each 2건은 두 번 다 잘린 응답 상황이다. 토큰 예산 [11000, 22000]은 그대로다.
+  - 문장이 있으면 마지막 완결 문장까지 전달된다.
+  - 완결 문장이 없으면 파트를 채우지 않는다(attempts 2, success 아님).
+  - jest geomancy·paid-narrative-adapters·recovery-task: `88 passed, 88 total`.
+  - 변이 확인: 잘린 응답을 모두 거부하게 바꾸면 `1 failed`.
+  - node --test __tests__/ui/geomancy-paid-delivery.test.js: `pass 3 fail 0`.
+  - verify-llm-generation-resilience, verify-paid-llm-delivery-contract, verify-oracle-consultation, verify-oracle-consultation-fallback: 모두 exit 0.
+- check:fast: paid-gate-suite 통과 78 / 실패 0, lint 통과. 이어서 같은 sitemap 날짜 드리프트로 BLOCKED(무관, 재생성 파일 없음).
+
+### 단계 7 — 보고(코드 변경 없음)
+- V2 플래그 4종은 모두 코드에서 기본 ON이다(`!== 'false'`).
+  - `ZIWEI_AI_DELIVERY_V2_ENABLED`: worker/lib/ziwei-ai-delivery-v2.js:11
+  - `ZIWEI_DEEP_DELIVERY_V2_ENABLED`: worker/lib/ziwei-deep-delivery-v2.js:14
+  - `HEUKWOL_DELIVERY_V2_ENABLED`: worker/lib/heukwol-report.js:183. 사용처는 worker/routes/heukwol.js:348이며 새 세션에만 적용된다.
+  - `SIBYL_DELIVERY_V2_ENABLED`: worker/lib/sibyl-report-store.js:55
+- vars 확인: `git grep DELIVERY_V2`로 worker/wrangler.toml·worker/wrangler.staging.toml·루트 wrangler.toml·config/env.contract.json을 검색했고 0건이다. 운영은 코드 기본값(ON)으로 돈다.
+- 남은 위험: 이미 V1으로 시작한 세션은 세션별로 계획 버전이 고정되어 V1으로 끝난다. 이런 V1 잔여 세션에는 이번 마지막 시도 전달 완화가 적용되지 않았다. 신규 세션은 V2 경로로 간다.
+- 관련 테스트: __tests__/worker/heukwol.test.js, sibyl-report-store-v2.test.js, ziwei-paid-delivery.test.js.
