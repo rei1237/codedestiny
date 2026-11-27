@@ -700,3 +700,139 @@ describe('Trait-First (TRAIT_FIRST_SAJU)', () => {
     expect(codexTraitFacts({ ...saju, approvedSaju: { gyeokguk: '정관격' } }, gate, on)).toEqual([]);
   });
 });
+
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, 'love-codex'): 시작 때 핀으로 저장하고, 생성은 핀과 플래그가 둘 다 있을 때만 7·11장에 붙인다.
+describe('shinsal facts (SAJU_SHINSAL_FACTS_V1 love-codex)', () => {
+  const ON = { SAJU_SHINSAL_FACTS_V1: 'love-codex' };
+  const birth = { birthDate: '1990-05-12', birthTime: '09:30', gender: 'female', calendarType: 'solar' };
+  const generateWith = env => route(new Request('https://mock.test/api/master-love-codex/generate', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ sessionId: 'saved-codex' }) }),
+    env, { generateChapter: provider, refundPassCoverage: refund, runCoinRefund: refund, runMonthlyCreditRefund: refund, runPaymentCancel: refund });
+  const mod = () => import('../../worker/routes/master-love-codex.js');
+  async function start(env, key, extra = {}) {
+    const { startCodexSession } = await mod();
+    const original = model.findOneAndUpdate;
+    model.findOneAndUpdate = (filter, update) => {
+      if (!update.$setOnInsert) return original(filter, update);
+      let doc = docs.find(row => String(row._id) === String(filter._id));
+      if (!doc) { doc = { _id: String(filter._id), ...clone(update.$setOnInsert) }; docs.push(doc); }
+      return query(doc);
+    };
+    try {
+      const res = await startCodexSession(new Request('https://mock.test/api/master-love-codex/start', { method: 'POST' }), env, { userId: uid },
+        { birthInfo: birth, idempotencyKey: key, ...extra }, { verify: async () => {}, access: { ok: true, accessType: 'paid', paymentId: `pay-${key}` }, id: 'toss-x', inputHash: 'toss-hash' });
+      return { res, doc: docs.find(row => row.idempotencyKey === key) };
+    } finally { model.findOneAndUpdate = original; }
+  }
+
+  it('start pins v1 for solo books only when the flag names love-codex, and a replayed start keeps the pin without 409', async () => {
+    for (const [env, key] of [[ON, 'pin-csv'], [{ SAJU_SHINSAL_FACTS_V1: 'true' }, 'pin-all']]) {
+      const { res, doc } = await start(env, key);
+      expect(res.status).toBe(202);
+      expect(doc.deliveryMeta.shinsalFacts).toBe('shinsal-facts-v1');
+      const again = await start(env, key);
+      expect(again.res.status).toBe(202);
+      expect(docs.filter(row => row.idempotencyKey === key)).toHaveLength(1);
+      expect(again.doc.deliveryMeta.shinsalFacts).toBe('shinsal-facts-v1');
+    }
+    for (const [env, key, extra] of [[{}, 'pin-off'], [{ SAJU_SHINSAL_FACTS_V1: 'tea-house' }, 'pin-other'], [ON, 'pin-compat', { partnerInfo: { birthDate: '1991-03-04', gender: 'male' } }]]) {
+      const { res, doc } = await start(env, key, extra);
+      expect(res.status).toBe(202);
+      expect('shinsalFacts' in doc.deliveryMeta).toBe(false);
+    }
+  });
+
+  it('generation forwards the flag only for pinned sessions; unpinned stays off, and turning the flag off is a kill switch', async () => {
+    expect((await generateWith(ON)).status).toBe(202);
+    expect(provider.mock.calls.length).toBeGreaterThan(0);
+    expect(provider.mock.calls.every(([, input]) => !('shinsalFacts' in input))).toBe(true);
+    provider.mockClear();
+    Object.assign(docs[0], { chapters: [], status: 'generating', deliveryMeta: { shinsalFacts: 'shinsal-facts-v1' } });
+    provider.mockImplementationOnce(async () => ({ status: 'fallback' }));
+    const statuses = [];
+    for (let wave = 0; wave < 6 && docs[0].status !== 'completed'; wave++) statuses.push((await generateWith(ON)).status);
+    expect(statuses).not.toContain(409);
+    expect(docs[0].status).toBe('completed');
+    expect(provider).toHaveBeenCalledTimes(21);
+    expect(provider.mock.calls.every(([, input]) => input.shinsalFacts === true)).toBe(true);
+    expect(docs[0].deliveryMeta.shinsalFacts).toBe('shinsal-facts-v1');
+    provider.mockClear();
+    Object.assign(docs[0], { chapters: [], status: 'generating', deliveryMeta: { shinsalFacts: 'shinsal-facts-v1' } });
+    expect((await generateWith({})).status).toBe(202);
+    expect(provider.mock.calls.every(([, input]) => !('shinsalFacts' in input))).toBe(true);
+  });
+
+  it('prompt bytes stay identical when off; when on, the block appears once in the movement and empty-seat chapters only', async () => {
+    const { codexShinsalFacts, codexChapterPrompt, CODEX_SHINSAL_RULE, __masterLoveCodexTestUtils: utils } = await mod();
+    const solo = await import('../../worker/lib/master-love-codex-prompt.mjs');
+    const { calculateLifeBookAiSaju } = await import('../../worker/lib/life-book-ai-saju.js');
+    const { buildCodexEvidence, formatCodexEvidence } = await import('../../worker/lib/master-love-codex-evidence.js');
+    const { codexConsultationPrompt } = await import('../../worker/lib/master-love-codex-consultation.js');
+    const { appendAnswerVoice } = await import('../../worker/lib/consultation-answer-contract.js');
+    const modeDef = utils.MODES.solo;
+    const saju = calculateLifeBookAiSaju(birth, { year: 2026 });
+    const on = { shinsalFacts: true, locale: 'ko' };
+    const targets = [];
+    for (const chapter of solo.MASTER_LOVE_CODEX_CHAPTERS_V2) {
+      const evidenceContract = buildCodexEvidence({ chapter, saju, ziweiChart: null });
+      const args = { modeDef, saju, ziweiChart: null, birthInfo: birth, chapter, memory: [], evidenceContract };
+      // 바뀌기 전 generateChapter 의 조립식 그대로.
+      const legacy = appendAnswerVoice(`${solo.buildMasterLoveCodexChapterPrompt({ saju, ziweiChart: null, birthInfo: birth, chapter, memory: [], evidenceProvided: true, consultation: evidenceContract.consultation })}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, null, { master: 'hanbi', locale: 'ko' });
+      expect(codexChapterPrompt(args)).toBe(legacy);
+      expect(codexChapterPrompt({ ...args, shinsalFacts: '' })).toBe(legacy);
+      const block = codexShinsalFacts(saju, chapter, on);
+      expect(codexShinsalFacts(saju, chapter, { ...on, shinsalFacts: false })).toBe('');
+      expect(codexShinsalFacts(saju, chapter, { ...on, locale: 'en' })).toBe('');
+      if (!block) { expect(codexChapterPrompt({ ...args, shinsalFacts: block })).toBe(legacy); continue; }
+      targets.push(chapter.id);
+      const prompt = codexChapterPrompt({ ...args, shinsalFacts: block });
+      expect(prompt.split(block)).toHaveLength(2);
+      expect(prompt.replace(`\n${block}`, '')).toBe(legacy);
+      expect(prompt.length - legacy.length).toBe(block.length + 1);
+      expect(block.length).toBeLessThanOrEqual(400);
+      expect(block.endsWith(`\n${CODEX_SHINSAL_RULE}`)).toBe(true);
+      expect(block.slice(0, -CODEX_SHINSAL_RULE.length)).not.toContain('self.saju.');
+      // 너무 큰 프롬프트는 거부하지 않고 블록만 뺀다.
+      expect(codexChapterPrompt({ ...args, shinsalFacts: '가'.repeat(60_000) })).toBe(legacy);
+      expect(codexChapterPrompt({ ...args, modeDef: { ...modeDef, mode: 'compat' }, shinsalFacts: block })).not.toContain(block);
+    }
+    expect(targets).toEqual(['meeting-place', 'conflict-root']);
+    // 공망이 일반 상한에 잘리는 명식도 11장에서는 공망 줄을 맨 앞에 둔다.
+    const { buildShinsalFactsBlock } = await import('../../lib/saju/shinsal-facts-block.mjs');
+    const gongSaju = calculateLifeBookAiSaju({ birthDate: '1964-01-01', birthTime: '12:00', gender: 'female', calendarType: 'solar' }, { year: 2026 });
+    const conflict = solo.MASTER_LOVE_CODEX_CHAPTERS_V2.find(chapter => chapter.id === 'conflict-root');
+    const pillars = { year: gongSaju.yearPillar, month: gongSaju.monthPillar, day: gongSaju.dayPillar, hour: gongSaju.hourPillar };
+    expect(buildShinsalFactsBlock({ pillars, timeUnknown: false }, { maxChars: 400 - CODEX_SHINSAL_RULE.length - 1 })).not.toContain('공망');
+    const focused = codexShinsalFacts(gongSaju, conflict, on);
+    expect(focused.split('\n')[1].startsWith('- 공망')).toBe(true);
+    expect(focused.length).toBeLessThanOrEqual(400);
+  });
+
+  it('a chapter that quotes the block and cites an invented shinsal id still passes the codex validator', async () => {
+    const { codexShinsalFacts, __masterLoveCodexTestUtils: utils } = await mod();
+    const solo = await import('../../worker/lib/master-love-codex-prompt.mjs');
+    const { calculateLifeBookAiSaju } = await import('../../worker/lib/life-book-ai-saju.js');
+    const { calculateZiweiConsumerChart } = await import('../../worker/lib/ziwei-consumer-chart.js');
+    const { buildCodexEvidence } = await import('../../worker/lib/master-love-codex-evidence.js');
+    const { buildCodexStagingChapter, assertCodexChapterQuality } = await import('../../worker/lib/master-love-codex-quality.js');
+    const { buildCodexConsultationFixture } = await import('../../worker/lib/master-love-codex-consultation.js');
+    const saju = calculateLifeBookAiSaju(birth, { year: 2026 });
+    const ziweiChart = calculateZiweiConsumerChart({ birthInfo: birth }, { env: {}, year: 2026 });
+    const metricDefs = utils.MODES.solo.dnaMetrics;
+    for (const id of ['meeting-place', 'conflict-root']) {
+      const chapter = solo.MASTER_LOVE_CODEX_CHAPTERS_V2.find(row => row.id === id);
+      const contract = buildCodexEvidence({ chapter, saju, ziweiChart });
+      const block = codexShinsalFacts(saju, chapter, { shinsalFacts: true });
+      expect(block).not.toBe('');
+      const staged = buildCodexStagingChapter(chapter, metricDefs);
+      const palace = contract.records.find(record => record.system === 'ziwei');
+      const parsed = { ...staged, ...buildCodexConsultationFixture(contract), body: `${staged.body}\n\n${block}`,
+        evidence: [
+          { evidenceId: 'self.saju.dayMaster', label: '일간', system: 'saju', explanation: '신살 계산값을 일간 근거로 묶어 설명합니다.' },
+          ...(palace ? [{ evidenceId: palace.id, label: '명궁', system: 'ziwei', explanation: '자미두수 궁 배치를 함께 봅니다.' }] : []),
+          { evidenceId: 'self.saju.shinsal.yeokmasal', label: '역마', system: 'saju', explanation: '새로 만든 id 는 계약에 없어 빠집니다.' },
+        ] };
+      expect(() => assertCodexChapterQuality(parsed, chapter, metricDefs, contract)).not.toThrow();
+      expect(parsed.evidence.map(item => item.evidenceId)).toEqual(['self.saju.dayMaster', ...(palace ? [palace.id] : [])]);
+    }
+  });
+});

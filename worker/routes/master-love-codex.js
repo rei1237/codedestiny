@@ -1,5 +1,9 @@
 import { appendAnswerVoice, pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, TRAIT_FIRST_META, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
+import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
+import { computeShinsal, SHINSAL_PROMPT_FOOTER, SHINSAL_PROMPT_HEADER, SHINSAL_TIME_UNKNOWN_LINE } from "../../lib/saju/natal-core/shinsal/index.mjs";
+import { workersAiInputTokenUpperBound, WORKERS_AI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/workers-ai-input-token-limit.mjs";
 import { normalizeCodexConsultation, buildCodexConsultation, codexConsultationPrompt, buildCodexConsultationFixture, assertCodexConsultation } from "../lib/master-love-codex-consultation.js";
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -712,6 +716,65 @@ export function codexTraitFacts(saju, chapter, { traitFirst = null, traitSeed = 
   return sajuTraitFirstLines(saju, { traitFirst, seed: traitSeed }).filter(line => !line.startsWith("사용 규칙:"));
 }
 
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, 소비처 id 'love-codex'): 개인판·한국어·sajuFocus 에 역마/공망이 있는 장(7장 만남의 자리·11장 갈등의 뿌리)에만
+// 원국 신살을 붙인다. 블록에는 근거 id 를 두지 않고, 신살을 근거로 쓰면 늘 있는 기존 기록 id 로 적게 한다(근거 계약·검증기는 그대로).
+// 블록은 프롬프트 때만 만든다(세션 meta·digest·snapshotKey 에 넣지 않는다). 실패하면 '' 이라 블록만 빠진다.
+const CODEX_SHINSAL_MAX_CHARS = 400;
+export const CODEX_SHINSAL_RULE = "신살 근거는 새 id 를 만들지 않고 evidence 의 evidenceId 에 self.saju.dayMaster 로 적는다.";
+// 블록을 붙인 최종 프롬프트가 Workers AI 폴백 입력 상한의 95% 를 넘으면 블록만 뺀다. 거부가 아니라 생략이다.
+export const CODEX_SHINSAL_PROMPT_BUDGET = Math.floor(WORKERS_AI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+const CODEX_SHINSAL_FOCUS_RULES = Object.freeze({ 역마: "yeokmasal", 공망: "gongmang" });
+export function codexShinsalFacts(saju, chapter, { shinsalFacts = false, locale = "ko" } = {}) {
+  try {
+    const focus = (chapter?.sajuFocus || []).map(String);
+    const focusIds = Object.entries(CODEX_SHINSAL_FOCUS_RULES).filter(([word]) => focus.some(item => item.includes(word))).map(([, id]) => id);
+    if (shinsalFacts !== true || locale !== "ko" || !focusIds.length) return "";
+    const timeUnknown = saju?.calculationMeta?.timeUnknown === true || !saju?.hourPillar;
+    const chart = { pillars: { year: saju.yearPillar, month: saju.monthPillar, day: saju.dayPillar, hour: timeUnknown ? null : saju.hourPillar }, timeUnknown };
+    const block = codexFocusedShinsalBlock(chart, focusIds, CODEX_SHINSAL_MAX_CHARS - CODEX_SHINSAL_RULE.length - 1);
+    return block ? `${block}\n${CODEX_SHINSAL_RULE}` : "";
+  } catch {
+    return "";
+  }
+}
+
+// 장이 특히 보라고 한 신살(역마·공망)이 원국에 있으면 줄 수·글자 상한에 잘리지 않게 맨 앞에 둔다.
+// 헤더가 "이 목록 밖의 신살은 쓰지 않는다"라서, 잘린 채로 두면 있는 역마·공망을 없다고 쓰게 된다. 원국에 없으면 일반 블록 그대로다.
+function codexFocusedShinsalBlock(chart, focusIds, maxChars) {
+  const general = buildShinsalFactsBlock(chart, { maxChars });
+  const others = [...new Set((computeShinsal(chart)?.hits || []).map(hit => hit.ruleId))].filter(id => !focusIds.includes(id));
+  const bodyOf = (block) => (block ? block.split("\n").slice(1, -1).filter(line => line !== SHINSAL_TIME_UNKNOWN_LINE) : []);
+  const focusLines = bodyOf(buildShinsalFactsBlock(chart, { maxChars, excludeRuleIds: others }));
+  const generalLines = general.split("\n");
+  if (!focusLines.length || focusLines.every(line => generalLines.includes(line))) return general;
+  const focusChars = focusLines.reduce((sum, line) => sum + line.length + 1, 0);
+  const rest = bodyOf(buildShinsalFactsBlock(chart, { maxChars: maxChars - focusChars, excludeRuleIds: focusIds }));
+  const merged = [SHINSAL_PROMPT_HEADER, ...focusLines, ...rest, ...(chart.timeUnknown ? [SHINSAL_TIME_UNKNOWN_LINE] : []), SHINSAL_PROMPT_FOOTER].join("\n");
+  return merged.length <= maxChars ? merged : general;
+}
+
+// 장 프롬프트 조립. shinsalFacts 가 비어 있으면(기본·옛 세션·대상 밖 장) 이전과 바이트가 같다.
+export function codexChapterPrompt({ modeDef, saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility, birthInfo, partnerInfo, chapter, prologueChoice, memory,
+  evidenceContract, answerVoice = null, locale = "ko", traitFirst = null, traitSeed = "", shinsalFacts = "" }) {
+  const compose = (block) => {
+    const basePrompt = modeDef.mode === "compat"
+      ? buildMasterLoveCodexCompatChapterPrompt({
+        selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
+        compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true, consultation: evidenceContract.consultation,
+      })
+      : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true, consultation: evidenceContract.consultation,
+        ...(traitFirst ? { traitFacts: codexTraitFacts(saju, chapter, { traitFirst, traitSeed, locale }) } : {}),
+        ...(block ? { shinsalFacts: block } : {}) });
+    return appendAnswerVoice(`${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, answerVoice, { master: "hanbi", locale });
+  };
+  if (!shinsalFacts || modeDef.mode === "compat") return compose("");
+  try {
+    const withBlock = compose(shinsalFacts);
+    if (workersAiInputTokenUpperBound([{ role: "user", content: withBlock }]) <= CODEX_SHINSAL_PROMPT_BUDGET) return withBlock;
+  } catch {}
+  return compose("");
+}
+
 function buildChapterLogContext(modeDef, chapter) {
   return {
     serviceId: modeDef.featureKey,
@@ -722,7 +785,7 @@ function buildChapterLogContext(modeDef, chapter) {
 async function generateChapter(env, {
   mode = "solo", saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility,
   birthInfo, partnerInfo, chapter, prologueChoice, consultation, memory, previousError = "", snapshotKey, deadlineAt = Infinity, answerVoice = null, locale = "ko",
-  finalAttempt = false, repairHint = "", providerFallback = false, traitFirst = null, traitSeed = "",
+  finalAttempt = false, repairHint = "", providerFallback = false, traitFirst = null, traitSeed = "", shinsalFacts = false,
 }) {
   // 남은 예산이 한 장을 쓰기에도 모자라면 아예 시작하지 않는다(시작해도 못 끝낸다).
   const remainingMs = deadlineAt - Date.now();
@@ -743,14 +806,9 @@ async function generateChapter(env, {
         content, chars: content.body.length, provider: "staging-mock", ok: true },
       loveDna: chapter.jsonMode ? normalizeLoveDna(parsed, modeDef.dnaMetrics) : null };
   }
-  const basePrompt = modeDef.mode === "compat"
-    ? buildMasterLoveCodexCompatChapterPrompt({
-      selfSaju: saju, selfZiwei: ziweiChart, partnerSaju, partnerZiwei: partnerZiweiChart,
-      compatibility, birthInfo, partnerInfo, chapter, memory, evidenceProvided: true, consultation: evidenceContract.consultation,
-    })
-    : buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice, memory, evidenceProvided: true, consultation: evidenceContract.consultation,
-      ...(traitFirst ? { traitFacts: codexTraitFacts(saju, chapter, { traitFirst, traitSeed, locale }) } : {}) });
-  const prompt = appendAnswerVoice(`${basePrompt}\n${formatCodexEvidence(evidenceContract)}\n${codexConsultationPrompt(evidenceContract)}`, answerVoice, { master: "hanbi", locale });
+  const prompt = codexChapterPrompt({ modeDef, saju, ziweiChart, partnerSaju, partnerZiweiChart, compatibility, birthInfo, partnerInfo, chapter, prologueChoice, memory,
+    evidenceContract, answerVoice, locale, traitFirst, traitSeed,
+    shinsalFacts: modeDef.mode === "solo" ? codexShinsalFacts(saju, chapter, { shinsalFacts, locale }) : "" });
   const cache = chapterCache(env, modeDef.mode, chapter, evidenceContract);
   // S16: Workers AI 폴백은 장의 마지막 시도에서만 켠다. 짧은 폴백은 최소 분량 × 0.3 문턱으로 거른다.
   const fallback = providerFallback
@@ -1344,6 +1402,8 @@ export async function startCodexSession(request, env, auth, body, nativeAccess =
     //    이후 상품 구성이 바뀌어도 진행 중인 이 책의 기대 장 수·순서는 변하지 않는다.
     deliveryMeta: { ...(nativeAccess?{tossIntentId:nativeAccess.id,tossInputHash:nativeAccess.inputHash}:{}), locale: resolveAiLocaleFromRequest(request, body), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
       ...(selectTraitFirst(env) ? { traitFirst: TRAIT_FIRST_META } : {}),
+      // 신살 블록 핀(개인판만). 생성·재시도·재개는 shinsalFactsPinned 로 읽는다. 키 없는 옛 세션은 플래그를 켜도 꺼진 채다.
+      ...(normalized.mode === "solo" && selectShinsalFacts(env, "love-codex") ? { shinsalFacts: selectShinsalFacts(env, "love-codex") } : {}),
       chapterPlanVersion: CODEX_CHAPTER_PLAN_VERSION,
       manifest: { mode: normalized.mode, chapterIds: codexChaptersForPlan(normalized.mode, CODEX_CHAPTER_PLAN_VERSION).map(spec => spec.id),
         version: resolveMode(normalized.mode).cacheKeyExtra } },
@@ -1798,6 +1858,7 @@ async function runCodexWaveInternal(env, { sessionId, userId, doc, lockToken, de
           answerVoice: pinAnswerVoice(doc.deliveryMeta || {}, env), locale: doc.deliveryMeta?.locale || "ko",
           // Trait-First 는 세션 시작 때 저장한 값만 따른다. 키가 없는 옛 세션은 꺼진 채로 끝난다.
           ...(pinTraitFirst(doc.deliveryMeta || {}, env) ? { traitFirst: TRAIT_FIRST_META, traitSeed: `${clean(doc.userId)}|master-love-codex` } : {}),
+          ...(shinsalFactsPinned(doc.deliveryMeta || {}, env, "love-codex") ? { shinsalFacts: true } : {}),
         }); } catch { result = { status: "retryable", failure: { code: "LLM_TIMEOUT_UNCERTAIN", kind: "uncertain" } }; }
         const write = queue.catch(() => {}).then(async () => {
           const failures = { ...current.deliveryMeta?.failures };

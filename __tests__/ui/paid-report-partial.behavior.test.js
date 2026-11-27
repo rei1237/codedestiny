@@ -107,8 +107,9 @@ for (const mode of ["solo", "compat"]) {
     });
     const answerContract = await import("../../worker/lib/consultation-answer-contract.js");
     const traitProfile = await import("../../worker/lib/trait-profile/index.js");
+    const engineRollout = await import("../../worker/lib/engine-rollout.js");
     const wave = runFunction("worker/routes/master-love-codex.js", "runCodexWaveInternal", {
-      ...answerContract, ...traitProfile,
+      ...answerContract, ...traitProfile, ...engineRollout,
       ...codexQuality, codexNeedsRepair, codexEarlierBodies,
       sha256: value => value, syncCodexExecution: async () => true, splitPendingChapters, savedChapterRows, codexTotalReady,
       CODEX_EVIDENCE_VERSION: "test-evidence",
