@@ -36,8 +36,10 @@ import { markRetryableRefundDue, publicRetryState, reopenRetryableConsultation, 
 import { appendExpertPersona, expertPersonaText } from "../lib/expert-character-personas.js";
 import { pinAnswerVoice, selectAnswerVoice } from "../lib/consultation-answer-contract.js";
 import { pinTraitFirst, sajuTraitFirstLines, selectTraitFirst, traitFirstShadowCheck } from "../lib/trait-profile/index.js";
-import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { selectShinsalFacts, shinsalFactsPinned, selectRemedyFacts, remedyFactsPinned } from "../lib/engine-rollout.js";
 import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
+import { computeRemedyCases, serializeRemedyForPrompt } from "../../lib/saju/remedy/index.mjs";
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/gemini-input-token-limit.mjs";
 import { isStagingLlmMockEnabled } from "../lib/staging-llm-mock.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -1815,6 +1817,60 @@ function newYearShinsalBlock(fortuneData) {
   }
 }
 
+// 정본 액땜 케이스(SAJU_REMEDY_FACTS_V1 'new-year'). 원국 4주 + 목표 연도 세운 + 현재 대운.
+// fortuneData·다이제스트에는 넣지 않는다 — 카드는 생성 시작 때 문서 최상위 remedyCases 에 한 번 저장하고,
+// 프롬프트 블록은 고정된 fortuneData 로 그때그때 다시 계산한다. 어떤 실패도 null 이라 카드·블록만 빠진다.
+function newYearRemedyCases(fortuneData) {
+  try {
+    const saju = fortuneData?.saju || {};
+    const timeUnknown = fortuneData?.calculationMeta?.timeUnknown === true || fortuneData?.birthCalendar?.timeUnknown === true;
+    const target = fortuneData?.targetYear;
+    const year = Number(target?.year) || null;
+    const result = computeRemedyCases({
+      saju: {
+        yearPillar: saju.yearPillar, monthPillar: saju.monthPillar, dayPillar: saju.dayPillar,
+        hourPillar: timeUnknown ? null : saju.hourPillar, timeUnknown,
+        ...(year && target?.pillar ? { sewoon: { year, pillar: target.pillar } } : {}),
+        ...(fortuneData?.majorLuck && typeof fortuneData.majorLuck === "object" ? { majorLuck: fortuneData.majorLuck } : {}),
+      },
+      ...(year ? { refYear: year } : {}),
+      locale: "ko",
+    });
+    return result?.valid === true && Array.isArray(result.cases) && result.cases.length ? JSON.parse(JSON.stringify(result)) : null;
+  } catch {
+    return null;
+  }
+}
+
+// 액땜 프롬프트 블록. 600자 안팎으로 자르고, 실패하면 '' 이라 블록만 빠진다.
+function newYearRemedyBlock(fortuneData) {
+  try {
+    const cases = newYearRemedyCases(fortuneData);
+    return cases ? serializeRemedyForPrompt(cases, { maxChars: NEW_YEAR_REMEDY_MAX_CHARS }) : "";
+  } catch {
+    return "";
+  }
+}
+
+const NEW_YEAR_REMEDY_MAX_CHARS = 600;
+// 시스템 프롬프트 + 섹션 프롬프트가 공급자 입력 상한의 95% 를 넘을 것 같으면 액땜 블록만 뺀다.
+// 글자 수를 토큰 수의 상한으로 본다(한글은 한 글자 한 토큰 이하). 실제 상한 판정은 gemini 쪽 countTokens 가 한다.
+const NEW_YEAR_REMEDY_PROMPT_BUDGET = Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+
+// 섹션 프롬프트를 만든다. 액땜 블록 때문에 시스템 프롬프트 + 섹션 프롬프트가 예산을 넘으면 블록만 뺀다
+// (블록 없는 프롬프트 = OFF 와 같은 바이트). 블록이 없으면 한 번만 만든다.
+function newYearSectionPromptWithinBudget(systemPrompt, build, traitOptions = {}) {
+  const prompt = build(traitOptions);
+  if (!traitOptions.remedyFacts || String(systemPrompt || "").length + prompt.length <= NEW_YEAR_REMEDY_PROMPT_BUDGET) return prompt;
+  return build({ ...traitOptions, remedyFacts: "" });
+}
+
+// 액땜 블록을 받는 장: 건강 장(개운법 항목)과, 주의점 계약이 켜진 총운(예방 소제목). 나머지 장은 받지 않는다.
+function newYearRemedyTarget(section, fortuneData) {
+  if (section?.key === "health") return "health";
+  return section?.key === "overview" && fortuneData?.prevention?.version === PREVENTION_VERSION ? "overview" : "";
+}
+
 function buildFirstPrompt(input, fortuneData, section = null, traitOptions = {}) {
   const outline = buildConsultationOutline(input);
   const questionLines = [
@@ -1860,6 +1916,13 @@ function buildFirstPrompt(input, fortuneData, section = null, traitOptions = {})
         : '총운의 주의점 요약을 반복하지 말고 이번 분야에 해당하는 구체적인 신호와 예방 행동을 설명한다.',
       '월별 판정의 기회와 주의는 함께 존재할 수 있다. 기회와 주의로 표시된 달은 양쪽 조건을 모두 설명한다. 합은 자동 길운·합화가 아니고 형충파해는 자동 흉운이 아니다. 요청한 대상 연도와 계산된 월운만 사용한다.',
       '신살·오행·명식으로 호르몬, 질환이나 장기의 상태를 판단하지 않는다. 건강 해석은 관찰 가능한 생활 리듬·휴식·과부하 예방에 한정한다.',
+    ] : []),
+    // 액땜 블록: 핀(llmMeta.remedyFacts)과 플래그가 맞는 세션의 건강 장·총운 예방 소제목에만. OFF·다른 장은 빈 배열이라 바이트 단위로 같다.
+    ...(traitOptions.remedyFacts && newYearRemedyTarget(section, fortuneData) ? [
+      traitOptions.remedyFacts,
+      newYearRemedyTarget(section, fortuneData) === "health"
+        ? "개운법 항목에서 액땜을 말할 때는 위 목록의 방법 가운데 한두 가지만 고른다."
+        : "**올해 주의할 흐름과 나를 지키는 선택**에서 액땜을 말할 때는 위 목록의 방법 가운데 한두 가지만 고른다.",
     ] : []),
     // 운 판정이 계산된 상담에만 붙인다(이전에 계산해 둔 세션의 프롬프트는 그대로).
     ...(fortuneData.advancedSajuSummary?.luckJudgement ? [SAJU_LUCK_JUDGEMENT_RULE] : []),
@@ -2190,8 +2253,11 @@ async function generateConsultationSection(env, options) {
   // 예산이 바닥났으면 호출 자체를 건너뛴다(직전 텍스트가 있으면 그대로 살린다).
   if (!(timeoutMs > 0)) return { ...base, text: previousText, ok: false, reason: "BUDGET_EXHAUSTED" };
   try {
-    const ai = await callGeminiText(env, buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections, { traitFirst: options.traitFirst ?? null, seed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "" }), {
-      systemPrompt: await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(null, { planVersion: section.planVersion }), { answerVoice: options.answerVoice ?? null }),
+    const traitOptions = { traitFirst: options.traitFirst ?? null, seed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "", remedyFacts: options.remedyFacts || "" };
+    const systemPrompt = await appendExpertPersona(env, "neoNewYear", buildSystemPrompt(null, { planVersion: section.planVersion }), { answerVoice: options.answerVoice ?? null });
+    const prompt = newYearSectionPromptWithinBudget(systemPrompt, opts => buildSectionPrompt(input, fortuneData, section, repairLines, previousText, priorSections, opts), traitOptions);
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt,
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
       maxOutputTokens: sectionMaxOutputTokens(section),
@@ -2292,7 +2358,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
     input,
     fortuneData,
     answerVoice: options.answerVoice ?? null,
-    traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "",
+    traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "", remedyFacts: options.remedyFacts || "",
     section,
     cache: newYearLlmCache,
     timeoutMs: wave1TimeoutMs,
@@ -2310,7 +2376,7 @@ async function generateConsultationText(env, input, fortuneData, options = {}) {
         input,
         fortuneData,
         answerVoice: options.answerVoice ?? null,
-        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "",
+        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "", remedyFacts: options.remedyFacts || "",
         section: row.section,
         cache: newYearLlmCache,
         timeoutMs: wave2TimeoutMs,
@@ -2525,6 +2591,8 @@ function publicSession(doc) {
       tenGod: clean(target.tenGodToDayMaster),
     },
     monthlyFlow: publicMonthlyFlow(doc),
+    // 액땜 카드: 생성 시작 때 저장한 값만 그대로 돌려준다. 없는 기록은 키가 없어 응답이 예전과 같다.
+    ...(doc?.remedyCases && typeof doc.remedyCases === "object" ? { remedyCases: doc.remedyCases } : {}),
     sections: publicSections(doc),
     messages: Array.isArray(doc.messages)
       ? doc.messages.map((message) => ({
@@ -2766,7 +2834,7 @@ async function generateNewYearWave(env, input, fortuneData, options) {
       const generated = await generateConsultationSection(env, {
         input, fortuneData, section: candidate.section, allowShortDraft: true,
         answerVoice: options.answerVoice ?? null,
-        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "",
+        traitFirst: options.traitFirst ?? null, traitSeed: options.traitSeed || "", shinsalFacts: options.shinsalFacts || "", remedyFacts: options.remedyFacts || "",
         supportRecovery: recovery,
         priorSections: results.filter(row => row.key !== candidate.key && row.ok && !row.truncated && !row.isMock),
         timeoutMs: Math.min(NEW_YEAR_AI_SECTION_TIMEOUT_MS, remaining),
@@ -2997,6 +3065,8 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
     return serverError(SERVER_ERROR_MESSAGE, 500);
   }
   if (!existing) {
+    const remedyPin = selectRemedyFacts(env, 'new-year');
+    const remedyCases = remedyPin ? newYearRemedyCases(fortuneData) : null;
     try {
       await NewYearAiConsultation.create({ id: sessionId, userId: clean(auth.userId), year: normalized.input.year,
         birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, accessType: access.accessType, paymentId: clean(access.paymentId, 160), ...(nativeTossContext(request) ? {accessSource:'toss'} : {}),
@@ -3007,7 +3077,10 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
           ...(selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
           // 신살 블록도 새 기록만 고정한다. 키 없는 기존 기록은 플래그를 켜도 끝까지 OFF(engine-rollout.js).
           ...(selectShinsalFacts(env, 'new-year') ? { shinsalFacts: selectShinsalFacts(env, 'new-year') } : {}),
-          sectionPlanVersion: NEW_YEAR_AI_SECTION_PLAN_VERSION } });
+          // 액땜도 새 기록만 고정한다. 카드는 같은 때 최상위 remedyCases 에 한 번 저장하고, 결과·보관함은 저장값만 읽는다.
+          ...(remedyPin ? { remedyFacts: remedyPin } : {}),
+          sectionPlanVersion: NEW_YEAR_AI_SECTION_PLAN_VERSION },
+        ...(remedyCases ? { remedyCases } : {}) });
     } catch (error) {
       if (error?.code !== 11000) throw resultStorageUnavailable(sessionId);
       const duplicate = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
@@ -3048,6 +3121,7 @@ async function handleStart(request, env, _routeContext = null, recoveryAuth = nu
       answerVoice: pinAnswerVoice(claimed.llmMeta, env),
       traitFirst: pinTraitFirst(claimed.llmMeta ?? {}, env), traitSeed: `${clean(auth.userId)}|new-year-ai`,
       shinsalFacts: shinsalFactsPinned(claimed.llmMeta, env, 'new-year') ? newYearShinsalBlock(fortuneData) : "",
+      remedyFacts: remedyFactsPinned(claimed.llmMeta, env, 'new-year') ? newYearRemedyBlock(fortuneData) : "",
       supportRecovery: claimed.llmMeta?.supportRecovery,
       onReserve: async (key, lengthRepair) => {
         await reserveSupportRecoveryAttempt({ Model: NewYearAiConsultation, id: sessionId, userId: auth.userId, lockToken });
@@ -3328,6 +3402,10 @@ export const __newYearAiTestUtils = {
   calculateNewYearFortuneData,
   buildFirstPrompt,
   newYearShinsalBlock,
+  newYearRemedyCases,
+  newYearRemedyBlock,
+  NEW_YEAR_REMEDY_PROMPT_BUDGET,
+  newYearSectionPromptWithinBudget,
   buildSystemPrompt,
   buildCanonicalNewYearFacts,
   cleanForbiddenResult,

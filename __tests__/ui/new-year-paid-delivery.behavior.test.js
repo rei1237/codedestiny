@@ -59,7 +59,7 @@ function fixture(accessType = 'pass', currentSections = null) {
     },
   };
   const plan = currentSections || ['overview', 'wealth', 'romance', 'monthly', 'health'].map(key => ({ key, label: key, minChars: 4000, maxChars: 5000 }));
-  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), ...require('../../worker/lib/trait-profile/index.js'), ...require('../../worker/lib/engine-rollout.js'), buildShinsalFactsBlock: require('../../lib/saju/shinsal-facts-block.mjs').buildShinsalFactsBlock, nativeTossContext: () => null, nativeNewYearStoredState: async () => clone(doc), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {}, warn() {} }, normalizeConsultAccessType: value => value,
+  const ctx = vm.createContext({ ...require('../../worker/lib/consultation-answer-contract.js'), ...require('../../worker/lib/trait-profile/index.js'), ...require('../../worker/lib/engine-rollout.js'), buildShinsalFactsBlock: require('../../lib/saju/shinsal-facts-block.mjs').buildShinsalFactsBlock, computeRemedyCases: require('../../lib/saju/remedy/index.mjs').computeRemedyCases, serializeRemedyForPrompt: require('../../lib/saju/remedy/index.mjs').serializeRemedyForPrompt, NEW_YEAR_REMEDY_MAX_CHARS: 600, nativeTossContext: () => null, nativeNewYearStoredState: async () => clone(doc), sajuAuthorityOn: () => false, runWithAiLocale, getAmbientAiLocale, storedAiLocale, toAiLocale, URL, Request, Response, Headers, Date, JSON, Map, crypto: webcrypto, console: { error() {}, warn() {} }, normalizeConsultAccessType: value => value,
     PASS_SETTLEMENT_DENIAL_CODES: new Set(['MONTHLY_PASS_LIMIT_EXCEEDED', 'PAYMENT_REQUIRED', 'PRICE_EXCEEDS_PASS_LIMIT']),
     // 증빙 claim 은 billing-evidence-claim.test.js 가 따로 검증한다 — 여기서는 통과로 둔다.
     claimRequestBillingEvidence: async () => ({ ok: true, skipped: true }), releaseRequestBillingEvidence: async () => ({ released: 0 }), evidenceClaimErrorBody: result => result, FEATURE_KEY: 'new-year-ai-consultation',
@@ -109,7 +109,7 @@ function fixture(accessType = 'pass', currentSections = null) {
   load(ctx, 'worker/lib/paid-report-quality.js', ['paidReportBody', 'countPaidReportBodyChars', 'reportSentenceKey', 'hasRepeatedReportPassage']);
   load(ctx, 'worker/lib/master-love-codex-quality.js', ['dedupeCodexBody']);
   load(ctx, 'worker/lib/paid-report-length.js', ['trimPaidReportText', 'lastSentenceBoundary']);
-  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars', 'newYearRetryMeta', 'newYearHeldBillingFields', 'releaseNewYearHeldBilling', 'newYearRetryPayload', 'newYearRetryReset', 'handleRetry', 'handleRefundRequest', 'newYearShinsalBlock']);
+  load(ctx, 'worker/routes/new-year-ai.js', ['handleNewYearAiRoutes', 'handleStart', 'resolveNewYearRequestAccess', 'generateNewYearWave', 'assembleConsultationSections', 'trimToLastCompleteSentence', 'saveNewYearState', 'finishNewYearDelivery', 'startEvidenceIds', 'newYearSectionsForPlan', 'ownsQuestion', 'planMaxTotalChars', 'newYearRetryMeta', 'newYearHeldBillingFields', 'releaseNewYearHeldBilling', 'newYearRetryPayload', 'newYearRetryReset', 'handleRetry', 'handleRefundRequest', 'newYearShinsalBlock', 'newYearRemedyCases', 'newYearRemedyBlock']);
   ctx.generateConsultationText = ctx.generateNewYearWave;
   const post = (body = {}, env = {}) => ctx.handleNewYearAiRoutes(new Request('https://mock.test/api/new-year-ai/start', {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'idempotency-key': 'original-paid-request' }, body: JSON.stringify(body),
@@ -465,7 +465,7 @@ test('P2 initial and repair calls retain expanded token budget and timeout', asy
     assert.ok(declaration, name);
     vm.runInContext(`var ${declaration.getText(ast)};`, ctx);
   }
-  load(ctx, file, ['generateConsultationSection', 'sectionMaxOutputTokens']);
+  load(ctx, file, ['generateConsultationSection', 'sectionMaxOutputTokens', 'newYearSectionPromptWithinBudget']);
   ctx.NEW_YEAR_AI_SECTIONS = [...ctx.NEW_YEAR_AI_SECTIONS_V1, ...ctx.NEW_YEAR_AI_SECTIONS_V2];
   for (const section of ctx.NEW_YEAR_AI_SECTIONS) for (const repairLines of [[], ['내용 보강']]) {
     const result = await ctx.generateConsultationSection({}, { section, repairLines, timeoutMs: ctx.NEW_YEAR_AI_SECTION_TIMEOUT_MS });
@@ -684,6 +684,48 @@ test('new-year shinsal block pins only new records and keeps the fact pin throug
  const killed=await run(ON,OFF);
  assert.equal(killed.pin,'shinsal-facts-v1');assert.deepEqual(killed.seen.slice(0,killed.created).map(Boolean),Array(killed.created).fill(true));
  for(const value of killed.seen.slice(killed.created))assert.equal(value,'');
+});
+
+// 액땜(SAJU_REMEDY_FACTS_V1 'new-year'): 새 기록만 llmMeta.remedyFacts 로 고정하고 카드(remedyCases)는 생성 시작 때 한 번 저장한다.
+// 블록은 fortuneData 밖에서 다시 계산하므로 이어쓰기·다시 시도·플래그 전환에도 409·REPRESENTATIVE_FACTS_MISMATCH 가 나지 않는다.
+test('new-year remedy block pins only new records, stores cards once, and survives resume, retry and the kill switch', async () => {
+ const helper=await import('../../worker/lib/representative-consumer-facts.js');const {calculateLifeBookAiSaju}=await import('../../worker/lib/life-book-ai-saju.js');
+ const birth={birthDate:'2000-05-15',birthTime:'08:30',calendarType:'solar',gender:'male'};const actual=calculateLifeBookAiSaju(birth,{year:2026});
+ const ON={SAJU_CONSUMER_FACTS_V1:'true',SAJU_REMEDY_FACTS_V1:'new-year'},OFF={SAJU_CONSUMER_FACTS_V1:'true'};
+ const run=async(createEnv,resumeEnv,{retry=false}={})=>{
+  const f=fixture(retry?'pass':'paid');Object.assign(f.ctx,helper);const seen=[],statuses=[];const generate=f.ctx.generateConsultationSection;let broken=retry;
+  f.ctx.generateConsultationSection=async(env,options)=>{seen.push(options.remedyFacts);
+   return options.section.key==='romance'&&broken?{key:'romance',ok:false,text:'',failure:{status:400,retryable:false,message:'Provider rejected.'}}:generate(env,options);};
+  f.ctx.normalizeConsultationInput=()=>({ok:true,inputHash:'same-input',input:{birthInfo:birth,year:2026,topic:'신년'}});
+  f.ctx.calculateNewYearFortuneData=()=>({targetYear:{year:2026,pillar:'병오'},saju:actual,calculationMeta:actual.calculationMeta,advancedSajuSummary:{daewoonSewoon:{}}});
+  statuses.push((await f.post({},createEnv)).status);const created=seen.length;const saved=clone(f.doc.llmMeta.fortuneData);const cards=clone(f.doc.remedyCases);
+  if(retry){
+   for(let i=0;i<12&&f.doc.status!=='generation_failed';i++)statuses.push((await f.post({resumeSessionId:f.doc.id},resumeEnv)).status);
+   assert.ok(retryOpen(f.doc));broken=false;
+   const retried=await f.ctx.handleRetry(new Request('https://mock.test/api/new-year-ai/retry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:f.doc.id})}),resumeEnv);
+   assert.ok([200,202].includes(retried.status),await retried.text());
+  }
+  for(let i=0;i<20&&f.doc.status!=='completed';i++)statuses.push((await f.post({resumeSessionId:f.doc.id},resumeEnv)).status);
+  for(const status of statuses)assert.ok(![409,500].includes(status),'status '+status);
+  assert.equal(f.doc.status,'completed');assert.deepEqual(f.doc.llmMeta.fortuneData,saved);assert.equal(f.charges,1);assert.equal(f.refunds,0);
+  assert.notEqual(f.doc.generationError?.code,'REPRESENTATIVE_FACTS_MISMATCH');
+  assert.deepEqual(f.doc.remedyCases,cards);
+  return {pin:f.doc.llmMeta.remedyFacts,seen,created,cards,block:f.ctx.newYearRemedyBlock(saved),expected:f.ctx.newYearRemedyCases(saved)};
+ };
+ const pinned=await run(ON,ON);
+ assert.equal(pinned.pin,'remedy-facts-v1');assert.ok(pinned.block.startsWith('[액땜 방법 — 서버 계산'));assert.ok(pinned.block.length<=600);
+ assert.equal(pinned.cards?.valid,true);assert.deepEqual(pinned.cards,pinned.expected);assert.ok(pinned.seen.length>pinned.created);
+ for(const value of pinned.seen)assert.equal(value,pinned.block);
+ const legacy=await run(OFF,ON);
+ assert.equal(legacy.pin,undefined);assert.equal(legacy.cards,undefined);for(const value of legacy.seen)assert.equal(value,'');
+ const killed=await run(ON,OFF);
+ assert.equal(killed.pin,'remedy-facts-v1');assert.deepEqual(killed.cards,pinned.cards);
+ assert.deepEqual(killed.seen.slice(0,killed.created).map(Boolean),Array(killed.created).fill(true));
+ for(const value of killed.seen.slice(killed.created))assert.equal(value,'');
+ const emptied=await run({...ON,SAJU_REMEDY_FACTS_V1:''},ON);
+ assert.equal(emptied.pin,undefined);assert.equal(emptied.cards,undefined);for(const value of emptied.seen)assert.equal(value,'');
+ const retried=await run(ON,ON,{retry:true});
+ assert.equal(retried.pin,'remedy-facts-v1');assert.deepEqual(retried.cards,pinned.cards);for(const value of retried.seen)assert.equal(value,pinned.block);
 });
 
 // ── 결제 뒤 신년 생성 화면: 일시 장애·숨은 탭·긴 생성에서 멈추지 않고, 종결 실패면 환불 안내 ──

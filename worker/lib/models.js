@@ -957,6 +957,9 @@ const newYearAiConsultationSchema = new mongoose.Schema({
   usageAppliedAt: { type: Date, default: null },
   generationError: { type: mongoose.Schema.Types.Mixed, default: null },
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+  // 액땜 카드(SAJU_REMEDY_FACTS_V1 'new-year'). 생성 시작 때 한 번 저장한 computeRemedyCases 결과 그대로다.
+  // 결과·보관함 재열람은 이 값만 읽는다(재계산·LLM·결제 없음). 옛 기록에는 없어 카드가 안 보인다.
+  remedyCases: { type: mongoose.Schema.Types.Mixed, default: undefined },
 }, { timestamps: true, collection: "newYearAiConsultations" });
 
 newYearAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });

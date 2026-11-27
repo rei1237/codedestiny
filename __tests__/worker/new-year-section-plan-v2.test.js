@@ -205,3 +205,93 @@ describe('shinsal facts block (SAJU_SHINSAL_FACTS_V1)', () => {
     expect(utils.newYearShinsalBlock({ saju: { yearPillar: '??' } })).toBe('');
   });
 });
+
+// 액땜 블록(SAJU_REMEDY_FACTS_V1 'new-year'): handleStart 는 핀(llmMeta.remedyFacts)과 플래그가 모두 맞을 때만 블록 문자열을 넘긴다.
+// 건강 장(개운법)과 주의점 계약이 켜진 총운(예방 소제목)에만 들어가고, 다른 장과 OFF 는 바이트 단위로 같다.
+describe('remedy facts block (SAJU_REMEDY_FACTS_V1)', () => {
+  const header = '[액땜 방법 — 서버 계산. 이 목록 밖의 액땜 방법은 쓰지 않는다]';
+  const sections = () => [...utils.NEW_YEAR_AI_SECTIONS_V1, ...utils.NEW_YEAR_AI_SECTIONS_V2];
+  const setup = (birthInfo = body.birthInfo) => {
+    const input = utils.normalizeConsultationInput({ ...body, birthInfo }).input;
+    const fortuneData = utils.calculateNewYearFortuneData(input);
+    return { input, fortuneData, block: utils.newYearRemedyBlock(fortuneData) };
+  };
+  // ON 프롬프트에서 블록과 그 뒤 안내 한 줄을 빼면 OFF 프롬프트가 되어야 한다.
+  const withoutBlock = (on, block) => {
+    const start = on.indexOf(block);
+    const end = on.indexOf('\n', start + block.length + 1);
+    return { line: on.slice(start + block.length + 1, end), rest: on.slice(0, start) + on.slice(end + 1) };
+  };
+
+  it('OFF (missing or empty) keeps every V1 and V2 prompt byte-identical', () => {
+    const { input, fortuneData } = setup();
+    for (const section of sections()) {
+      const base = utils.buildSectionPrompt(input, fortuneData, section, [], '', []);
+      expect(base).not.toContain(header);
+      for (const off of [{}, { remedyFacts: '' }, { remedyFacts: undefined }]) expect(utils.buildSectionPrompt(input, fortuneData, section, [], '', [], off)).toBe(base);
+    }
+  });
+
+  it('ON puts the block once in the health and overview chapters only, with a bounded length delta', () => {
+    const { input, fortuneData, block } = setup();
+    expect(block.startsWith(`${header}\n`)).toBe(true);
+    expect(block).toContain('사용 규칙: 액땜 방법은 블록 목록에서 고르고, 풍속은 소개로만 쓴다.');
+    expect(block.length).toBeLessThanOrEqual(600);
+    const targeted = [];
+    for (const section of sections()) {
+      const off = utils.buildSectionPrompt(input, fortuneData, section, [], '', []);
+      const on = utils.buildSectionPrompt(input, fortuneData, section, [], '', [], { remedyFacts: block });
+      if (!['health', 'overview'].includes(section.key)) { expect(on).toBe(off); continue; }
+      targeted.push(section.key);
+      expect(on.split(header).length - 1).toBe(1);
+      const { line, rest } = withoutBlock(on, block);
+      expect(rest).toBe(off);
+      expect(line).toContain('위 목록의 방법 가운데 한두 가지만 고른다.');
+      expect(on.length - off.length).toBe(block.length + line.length + 2);
+      expect(on.length - off.length).toBeLessThan(700);
+    }
+    expect(targeted.sort()).toEqual(['health', 'health', 'overview', 'overview']);
+  });
+
+  it('overview without the prevention contract gets no block; health still does', () => {
+    const { input, fortuneData, block } = setup();
+    const noPrevention = { ...fortuneData, prevention: null };
+    for (const section of utils.NEW_YEAR_AI_SECTIONS_V2.filter(row => ['overview', 'health'].includes(row.key))) {
+      const off = utils.buildSectionPrompt(input, noPrevention, section, [], '', []);
+      const on = utils.buildSectionPrompt(input, noPrevention, section, [], '', [], { remedyFacts: block });
+      if (section.key === 'overview') expect(on).toBe(off);
+      else expect(on.split(header).length - 1).toBe(1);
+    }
+  });
+
+  it('drops only the block when system + section prompt would pass 95% of the input limit', () => {
+    const { input, fortuneData, block } = setup();
+    const health = utils.NEW_YEAR_AI_SECTIONS_V2.find(row => row.key === 'health');
+    const build = opts => utils.buildSectionPrompt(input, fortuneData, health, [], '', [], opts);
+    const off = build({}), on = build({ remedyFacts: block });
+    expect(utils.NEW_YEAR_REMEDY_PROMPT_BUDGET).toBe(Math.floor(50000 * 0.95));
+    expect(utils.newYearSectionPromptWithinBudget('짧은 시스템', build, { remedyFacts: block })).toBe(on);
+    expect(utils.newYearSectionPromptWithinBudget('가'.repeat(utils.NEW_YEAR_REMEDY_PROMPT_BUDGET - off.length), build, { remedyFacts: block })).toBe(off);
+    expect(utils.newYearSectionPromptWithinBudget('가'.repeat(utils.NEW_YEAR_REMEDY_PROMPT_BUDGET), build, {})).toBe(off);
+  });
+
+  it('an unknown birth time keeps the hour out and a broken chart drops only the block and the cards', () => {
+    const { fortuneData } = setup({ ...body.birthInfo, birthTime: '', birthTimeUnknown: true });
+    const cases = utils.newYearRemedyCases(fortuneData);
+    expect(cases === null || cases.valid === true).toBe(true);
+    for (const broken of [null, {}, { saju: { yearPillar: '??' } }]) {
+      expect(utils.newYearRemedyCases(broken)).toBeNull();
+      expect(utils.newYearRemedyBlock(broken)).toBe('');
+    }
+  });
+
+  it('the public session returns stored cards as saved and leaves old records without the key', () => {
+    const { fortuneData } = setup();
+    const cases = utils.newYearRemedyCases(fortuneData);
+    expect(cases?.valid).toBe(true);
+    const doc = { id: 's1', status: 'completed', messages: [], llmMeta: { savedSections: [], sectionPlanVersion: 2, fortuneData } };
+    expect(utils.publicSession({ ...doc, remedyCases: cases }).remedyCases).toEqual(cases);
+    expect('remedyCases' in utils.publicSession(doc)).toBe(false);
+    expect('remedyCases' in utils.publicSession({ ...doc, remedyCases: null })).toBe(false);
+  });
+});
