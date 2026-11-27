@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { ServiceExecutionTransaction } from './models.js';
 import { connectDb } from './db.js';
 import { runPaidNarrativeDelivery } from './paid-narrative-delivery.js';
+import { selectShinsalFacts } from './engine-rollout.js';
 import { buildGuardianFortuneContext } from './guardian-fortune-context.js';
 import { generateGuardianFortuneWithConfiguredLLM } from './guardian-fortune-llm.js';
 import { shouldUseRealGuardianFortuneLLM } from './guardian-fortune-llm-policy.js';
@@ -44,8 +45,10 @@ export async function deliverGuardianPaid({ env, input, userId, requestId, resol
         if (!calculated?.ok || calculated.context?.availableSystems?.length !== 1 || calculated.context.availableSystems[0] !== original.category) throw Object.assign(Error('계산 근거를 확인하지 못했어요.'), { accessStatus: 422 });
         // The answer's visible text is both the part target and the total floor, so a
         // short final answer is preserved for review rather than completed.
+        // A new paid saju turn pins the shinsal block (state, not evidence); the block itself is built per call.
+        const shinsalFacts = original.category === 'saju' ? selectShinsalFacts(env, 'guardian') : null;
         return { input: original, context: calculated.context, prompt: '', minBodyChars: GUARDIAN_FORTUNE_RESULT_LENGTH.min,
-          tasks: [{ id: 'answer', prompt: '', minChars: GUARDIAN_FORTUNE_RESULT_LENGTH.min }] };
+          tasks: [{ id: 'answer', prompt: '', minChars: GUARDIAN_FORTUNE_RESULT_LENGTH.min }], ...(shinsalFacts ? { shinsalFacts } : {}) };
       },
     });
     const payload = await response.json();
@@ -87,7 +90,7 @@ export function guardianNarrativeAdapter(env, userId, generator = generateGuardi
       }
       const drafts = task.minChars >= GUARDIAN_FORTUNE_RESULT_LENGTH.min;
       const generated = await generator({ input: state.input, context: state.context, env, requestId: state.body.requestId, userId, generationSource: 'paid', singleAttempt: true,
-        ...(drafts ? { acceptShortDraft: true, repairDraft: state.drafts?.[task.id] || '' } : {}) });
+        ...(drafts ? { acceptShortDraft: true, repairDraft: state.drafts?.[task.id] || '' } : {}), ...(state.shinsalFacts ? { shinsalFacts: state.shinsalFacts } : {}) });
       if (!generated?.result || generated.usedFallback || generated.isMock || generated.deliverable === false) return null;
       return { evidenceHash: state.evidenceHash, body: JSON.stringify(generated.lengthDraft ? { ...generated.result, lengthDraft: true } : generated.result) };
     },

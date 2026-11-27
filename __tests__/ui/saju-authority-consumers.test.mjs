@@ -276,7 +276,7 @@ test('actual saju handler: new ON request, mock payment/LLM, OFF partial resume,
 test('actual guardian paid seed selects only new saju; stored context resumes OFF and other systems stay unchanged', async () => {
   let seed, saved = null, generated = 0;
   const ctx = vm.createContext({ Request, Response, JSON, featureKey: 'guardian', executionId: () => 'turn', unavailable: () => ({ status: 503 }),
-    connectDb: async () => {}, GUARDIAN_FORTUNE_RESULT_LENGTH: { min: 1 },
+    connectDb: async () => {}, GUARDIAN_FORTUNE_RESULT_LENGTH: { min: 1 }, selectShinsalFacts,
     ServiceExecutionTransaction: { findOne: () => ({ sort: () => ({ lean: async () => saved }) }) },
     guardianNarrativeAdapter: () => ({}),
     runPaidNarrativeDelivery: async (_request, _env, _auth, body, options) => {
@@ -291,6 +291,8 @@ test('actual guardian paid seed selects only new saju; stored context resumes OF
     contextBuilder: async (input, options) => { optionsSeen.push(options); return { ok: true, context: { availableSystems: [input.category], [input.category]: input.category === 'saju' ? await api.buildSajuAdapter(input, options) : { unchanged: true } } }; } };
   assert.equal((await ctx.deliverGuardianPaid(request)).status, 200);
   assert.equal(seed.context.saju.sajuAuthority.digest, pin.digest);
+  // 신살 핀은 플래그 기본값('')에서 시드에 들어가지 않는다.
+  assert.equal(seed.shinsalFacts, undefined);
   env.SAJU_GYEOKGUK_AUTHORITY_V2 = 'false';
   assert.equal((await ctx.deliverGuardianPaid({ ...request, resumeOnly: true })).status, 200);
   assert.equal(optionsSeen.length, 1); assert.equal(generated, 2);

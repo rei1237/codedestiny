@@ -294,7 +294,9 @@ export function buildAdminLabPrompt(body = {}, options = {}) {
   };
 }
 
-export function buildGuardianFortunePrompt({ input = {}, context = {}, answerVoice = null } = {}) {
+// shinsalFacts: 서버가 계산한 신살 사실 블록 문자열(guardian-fortune-llm.js 가 핀이 있는 유료 사주 턴에만 넘긴다).
+// 빈 값이면 프롬프트는 이전과 바이트 단위로 같다.
+export function buildGuardianFortunePrompt({ input = {}, context = {}, answerVoice = null, shinsalFacts = "" } = {}) {
   const inputSummary = context?.inputSummary || {};
   const mode = inputSummary.mode === "neo" || input?.mode === "neo" ? "neo" : "yeoni";
   const topic = GUARDIAN_FORTUNE_TOPICS[inputSummary.topic]
@@ -327,6 +329,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {}, answerVoi
     `주제별 우선 근거: ${priority.join(" > ")}`,
     `전문가 해석 지침: ${TOPIC_EXPERT_INSTRUCTIONS[topic] || TOPIC_EXPERT_INSTRUCTIONS.daily}`,
     `사용자 입력 요약과 계산 근거:\n${formatGuardianFortuneContextForPrompt(context)}`,
+    ...(typeof shinsalFacts === "string" && shinsalFacts ? [shinsalFacts] : []),
     "첫 문장은 integratedInsight.openingHook을 자연스럽게 반영하고, 선택한 단일 체계의 실제 계산 근거를 핵심 해석으로 삼아.",
     "타로는 서버 projection의 카드명, 정/역방향, positionKey, spreadType만 사용하고 새 카드를 만들지 마.",
     "생시가 없으면 시주·라그나·상승궁·하우스·신궁을 확정하지 말고, 출생지가 없으면 하우스/상승궁 기반 단정을 피해서 말해.",

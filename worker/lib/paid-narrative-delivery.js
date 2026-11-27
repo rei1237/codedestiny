@@ -41,9 +41,9 @@ export { cleanBody as cleanPaidNarrativeBody };
 // No updatedAt: schema timestamps add $set.updatedAt to every update, and MongoDB
 // rejects a path under both $set and $setOnInsert (code 40).
 export function paidNarrativeInsert({ userId, executionKey, featureKey, reportType, original, seeded, locale, lock, now, timeoutAt, metadata = {}, refundEvidence = null }) {
-  // A seed may pin its delivery plan; the pin is not evidence, so the hash and prompt stay the same.
-  const { deliveryPlanVersion, ...evidence } = seeded;
-  const state = { ...evidence, body: cleanBody(original), evidenceHash: hash(evidence), locale, parts: {}, attempts: {}, ...(deliveryPlanVersion ? { deliveryPlanVersion } : {}) };
+  // A seed may pin its delivery plan or its shinsal facts version; a pin is not evidence, so the hash and prompt stay the same.
+  const { deliveryPlanVersion, shinsalFacts, ...evidence } = seeded;
+  const state = { ...evidence, body: cleanBody(original), evidenceHash: hash(evidence), locale, parts: {}, attempts: {}, ...(deliveryPlanVersion ? { deliveryPlanVersion } : {}), ...(shinsalFacts ? { shinsalFacts } : {}) };
   return {
     userId, executionKey, featureKey, reportType,
     reportId: typeof original.sessionId === "string" && original.sessionId ? original.sessionId : executionKey,

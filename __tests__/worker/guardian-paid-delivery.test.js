@@ -87,3 +87,87 @@ test('length metadata does not prevent delivery or leak to the displayed answer'
  expect(result).toMatchObject({ok:true,status:200,saved:true});expect(docs[0].premiumStatus).toBe('completed');
  expect(result.result).not.toHaveProperty('lengthDraft');expect(provider).toHaveBeenCalledTimes(1);
 });
+
+// SAJU_SHINSAL_FACTS_V1 'guardian': a new paid saju turn pins the block; the block is built per call from the stored context.
+describe('shinsal facts block on paid saju turns',()=>{
+ const HEADER='[신살 계산값 — 서버 계산. 이 목록 밖의 신살은 쓰지 않는다]',PIN='shinsal-facts-v1';
+ const liveEnv=flag=>({NODE_ENV:'production',APP_ENV:'production',ENABLE_GUARDIAN_FORTUNE_API:'true',ENABLE_GUARDIAN_FORTUNE_REAL_LLM:'true',ALLOW_REAL_GUARDIAN_FORTUNE_LLM:'true',GUARDIAN_FORTUNE_LLM_PROVIDER:'gemini',SAJU_SHINSAL_FACTS_V1:flag});
+ const sajuInput={birthDate:'1993-07-21',birthTime:'09:00',calendarType:'solar',gender:'female',category:'saju',topic:'daily',mode:'yeoni',locale:'ko',targetDate:'2026-11-27',concern:'어떤 선택을 준비할까요?'};
+ let llm,utils,validate,buildContext,buildPrompt,selectAnswerVoice;
+ beforeAll(async()=>{
+  llm=await import('../../worker/lib/guardian-fortune-llm.js');utils=llm.__guardianShinsalTestUtils;
+  ({validateAndNormalizeGuardianFortuneResult:validate}=await import('../../worker/lib/guardian-fortune-result.js'));
+  ({buildGuardianFortuneContext:buildContext}=await import('../../worker/lib/guardian-fortune-context.js'));
+  ({buildGuardianFortunePrompt:buildPrompt}=await import('../../worker/lib/guardian-fortune-prompt.js'));
+  ({selectAnswerVoice}=await import('../../worker/lib/consultation-answer-contract.js'));
+ });
+ const sajuContext=async(extra={})=>{const built=await buildContext({...sajuInput,...extra},{gyeokgukAuthorityV2:true,captureEngineFacts:true});expect(built.ok).toBe(true);return built.context;};
+ // The configured generator with the mocked Gemini call (provider receives env, userPrompt, options).
+ const live=(context,flag)=>start({env:liveEnv(flag),input:sajuInput,contextBuilder:async()=>({ok:true,context:clone(context)}),generator:llm.generateGuardianFortuneWithConfiguredLLM});
+ const reply=body=>async()=>({ok:true,provider:'gemini',model:'gemini-test',text:JSON.stringify(body)});
+ const down=async()=>({ok:false,status:503,error:'timeout'});
+ const prompts=()=>provider.mock.calls.map(call=>call[1]);
+ const quoting=block=>{const body=answer(2800);body.coreReading=block.split('\n').slice(1,-1).map(line=>line.replace(/^- /,'')).join('. ')+'. '+body.coreReading;return body;};
+
+ test('off keeps prompt and hash; a new pinned turn adds the block once and a quoting answer is delivered',async()=>{
+  const context=await sajuContext(),block=utils.guardianShinsalBlock(context);
+  expect(block.startsWith(HEADER)).toBe(true);expect(block.length).toBeLessThanOrEqual(500);
+  provider.mockImplementation(reply(answer(3000)));
+  expect(await live(context,'')).toMatchObject({ok:true,status:200,saved:true});
+  const off=docs[0].metadata.paidNarrative,offPrompt=prompts()[0];
+  expect(off).not.toHaveProperty('shinsalFacts');
+  expect(offPrompt).toBe(buildPrompt({input:off.input,context:off.context,answerVoice:selectAnswerVoice(liveEnv(''))}).userPrompt);
+  docs=[];provider.mockReset();provider.mockImplementation(reply(quoting(block)));
+  const done=await live(context,'guardian');
+  expect(done).toMatchObject({ok:true,status:200,saved:true});expect(done.result.coreReading).toContain('천을귀인: 일간 기준, 일지(卯)');
+  const on=docs[0].metadata.paidNarrative,onPrompt=prompts()[0];
+  expect(on.shinsalFacts).toBe(PIN);expect(on.evidenceHash).toBe(off.evidenceHash);
+  expect(onPrompt.split(HEADER)).toHaveLength(2);expect(onPrompt.length-offPrompt.length).toBe(block.length+2);
+  expect(onPrompt.replace('\n\n'+block,'')).toBe(offPrompt);expect(JSON.stringify(docs[0])).not.toContain(HEADER);
+ });
+
+ test('legacy records stay off, the kill switch and other ids drop a pinned block, resume never conflicts',async()=>{
+  const context=await sajuContext();
+  const run=async(seedFlag,resumeFlag)=>{docs=[];provider.mockReset();provider.mockImplementation(down);
+   expect(await live(context,seedFlag)).toMatchObject({ok:false,status:202});
+   provider.mockImplementation(reply(answer(3000)));const resumed=await live(context,resumeFlag);
+   expect(resumed).toMatchObject({ok:true,status:200,saved:true});expect([409,503]).not.toContain(resumed.status);
+   expect(provider).toHaveBeenCalledTimes(2);return prompts().map(prompt=>prompt.includes(HEADER));};
+  expect(await run('','true')).toEqual([false,false]);expect(docs[0].metadata.paidNarrative).not.toHaveProperty('shinsalFacts');
+  expect(await run('guardian','')).toEqual([true,false]);expect(docs[0].metadata.paidNarrative.shinsalFacts).toBe(PIN);
+  expect(await run('guardian','karma,fusion')).toEqual([true,false]);
+  expect(await run('true','guardian')).toEqual([true,true]);
+ });
+
+ test('only a paid saju turn is pinned and passes the pin to the generator',async()=>{
+  const stub=jest.fn(async()=>({usedFallback:false,deliverable:true,result:answer(3000)})),env={NODE_ENV:'test',SAJU_SHINSAL_FACTS_V1:'true'};
+  for(const category of ['ziwei','tarot']){docs=[];
+   expect(await start({env,input:{...input,category},contextBuilder:async()=>({ok:true,context:{availableSystems:[category],inputSummary:{category}}}),generator:stub})).toMatchObject({ok:true,saved:true});
+   expect(docs[0].metadata.paidNarrative).not.toHaveProperty('shinsalFacts');expect(stub.mock.calls.at(-1)[0]).not.toHaveProperty('shinsalFacts');}
+  docs=[];await start({env,generator:stub});
+  expect(docs[0].metadata.paidNarrative.shinsalFacts).toBe(PIN);expect(stub.mock.calls.at(-1)[0].shinsalFacts).toBe(PIN);
+  const context=await sajuContext();expect(utils.guardianShinsalBlock({...context,inputSummary:{...context.inputSummary,category:'ziwei'}})).toBe('');
+ });
+
+ test('the block alone drops at the 95% budget, on a broken chart and on free turns; time unknown is stated',async()=>{
+  const context=await sajuContext(),env=liveEnv('guardian');
+  const call=(extra={})=>utils.buildGuardianFortuneCallPrompt({input:sajuInput,context,env,singleAttempt:true,acceptShortDraft:true,...extra});
+  const tokens=prompt=>utils.estimateGuardianPromptTokens(prompt.systemPrompt)+utils.estimateGuardianPromptTokens(prompt.userPrompt);
+  expect(call().userPrompt).not.toContain(HEADER);
+  const small=call({repairDraft:'가',shinsalFacts:PIN});expect(small.userPrompt.split(HEADER)).toHaveLength(2);
+  const fits='가'.repeat(utils.GUARDIAN_SHINSAL_PROMPT_BUDGET-tokens(small)+1),over=fits+'가';
+  expect(tokens(call({repairDraft:fits,shinsalFacts:PIN}))).toBe(utils.GUARDIAN_SHINSAL_PROMPT_BUDGET);expect(call({repairDraft:fits,shinsalFacts:PIN}).userPrompt).toContain(HEADER);
+  expect(call({repairDraft:over,shinsalFacts:PIN})).toEqual(call({repairDraft:over}));
+  const broken={...context,saju:{...context.saju,sajuAuthority:{...context.saju.sajuAuthority,pillars:{year:'XX'}},engineFacts:undefined}};
+  expect(utils.guardianShinsalBlock(broken)).toBe('');
+  const legacy=(await buildContext(sajuInput,{})).context;expect(utils.guardianShinsalBlock(legacy)).toBe('');
+  expect(call({context:legacy,shinsalFacts:PIN})).toEqual(call({context:legacy}));
+  const unknown=utils.guardianShinsalBlock(await sajuContext({birthTime:undefined}));
+  expect(unknown).toContain('- 시주: 출생 시간 미상이라 시주 신살은 계산하지 않았다');expect(unknown).not.toContain('대운');
+ });
+
+ test('an answer quoting the block passes the guardian validator with and without a birth time',async()=>{
+  for(const extra of [{},{birthTime:undefined}]){const context=await sajuContext(extra);
+   expect(validate({parsed:quoting(utils.guardianShinsalBlock(context)),input:{...sajuInput,...extra},context,preserveShort:true}).ok).toBe(true);}
+ });
+});

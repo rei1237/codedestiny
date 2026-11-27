@@ -2,6 +2,9 @@ import { callGeminiText } from "./gemini.js";
 import { toAiLocale } from "../../lib/i18n/ai-locale.js";
 import { buildGuardianFortunePrompt } from "./guardian-fortune-prompt.js";
 import { selectAnswerVoice } from "./consultation-answer-contract.js";
+import { shinsalFactsPinned } from "./engine-rollout.js";
+import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/gemini-input-token-limit.mjs";
 import {
   buildFallbackGuardianFortuneResult,
   parseGuardianFortuneLLMResponse,
@@ -86,6 +89,77 @@ async function callProviderWithLimitedRetry({ providerCall, env, prompt, options
   return lastResult;
 }
 
+const GUARDIAN_SHINSAL_MAX_CHARS = 500;
+// 운 줄은 세운이 먼저 차면 현재 대운이 빠진다(유료 사주 AI·인생의 책과 같은 12). 전체 길이는 maxChars 가 막는다.
+const GUARDIAN_SHINSAL_MAX_LUCK = 12;
+// 시스템 + 사용자 프롬프트가 Gemini 입력 상한(countTokens 50,000)의 95% 안에 들 때만 붙인다.
+const GUARDIAN_SHINSAL_PROMPT_BUDGET = Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+const SHINSAL_PILLARS = ["year", "month", "day", "hour"];
+
+// 보수적 토큰 추정(유료 사주 AI 와 같은 규칙): 비ASCII 글자·숫자는 한 글자 한 토큰, 나머지 ASCII 는 두 글자 한 토큰.
+function estimateGuardianPromptTokens(text) {
+  let tokens = 0;
+  let ascii = 0;
+  for (const ch of String(text || "")) {
+    const code = ch.codePointAt(0);
+    if (code >= 0x80 || (code >= 0x30 && code <= 0x39)) tokens += 1;
+    else ascii += 1;
+  }
+  return tokens + Math.ceil(ascii / 2);
+}
+
+const ganjiOf = (value) => (typeof value === "string" ? value : value?.ganji || "");
+
+// 던지지 않는다. 사주 단일 체계 컨텍스트의 저장된 원국(격국 권위 핀 또는 엔진 사실 스냅샷)과
+// 시기표(현재 대운, 기준 날짜 해의 세운)로 블록을 만든다. 원국이 없으면 '' 이라 블록만 빠진다.
+function guardianShinsalBlock(context = {}) {
+  try {
+    if (context?.inputSummary?.category !== "saju") return "";
+    const saju = context.saju || {};
+    const authority = saju.sajuAuthority?.pillars;
+    const facts = saju.engineFacts?.facts?.pillars;
+    const source = authority && typeof authority === "object" ? authority : facts;
+    if (!source || typeof source !== "object") return "";
+    const pillars = Object.fromEntries(SHINSAL_PILLARS.map((key) => [key, ganjiOf(source[key]) || null]));
+    const timeUnknown = !pillars.hour || saju.engineFacts?.facts?.calculationMeta?.timeUnknown === true;
+    const timing = saju.timingFacts || saju.engineFacts?.facts?.timingFacts || {};
+    const cycle = timing.majorLuck?.available === false ? null : timing.majorLuck?.currentCycle;
+    const years = Array.isArray(timing.yearlyLuck) ? timing.yearlyLuck : [];
+    const targetYear = Number(String(context.inputSummary.targetDate || "").slice(0, 4));
+    const sewoon = years.find((row) => Number(row?.year) === targetYear && row?.pillar) || years.find((row) => row?.pillar);
+    const luckRows = [
+      cycle?.pillar ? { scope: "daewoon", ganji: cycle.pillar, age: cycle.startAge } : null,
+      sewoon ? { scope: "sewoon", ganji: sewoon.pillar, year: sewoon.year } : null,
+    ].filter(Boolean);
+    return buildShinsalFactsBlock({ pillars: { ...pillars, hour: timeUnknown ? null : pillars.hour }, timeUnknown, luckRows },
+      { maxChars: GUARDIAN_SHINSAL_MAX_CHARS, maxLuck: GUARDIAN_SHINSAL_MAX_LUCK });
+  } catch {
+    return "";
+  }
+}
+
+// 유료 사주 턴의 프롬프트. 핀(paidNarrative.shinsalFacts)이 있고 플래그에 'guardian' 이 켜진 경우에만
+// 신살 블록을 계산 근거 바로 뒤에 붙인다. 핀이 없는 기존 기록·무료 상담은 플래그를 켜도 그대로이고,
+// 플래그를 비우면 핀이 있어도 꺼진다(킬 스위치). 상한 95%를 넘거나 어떤 실패가 나도 블록만 뺀다.
+// 블록은 저장·해시·핀에 들어가지 않는다 — 호출 때마다 저장된 컨텍스트에서 다시 계산한다.
+function buildGuardianFortuneCallPrompt({ input = {}, context = {}, env = {}, singleAttempt = false, acceptShortDraft = false, repairDraft = "", shinsalFacts } = {}) {
+  const answerVoice = selectAnswerVoice(env);
+  const withRepair = (built) => singleAttempt && acceptShortDraft && typeof repairDraft === "string" && repairDraft ? {
+    ...built,
+    userPrompt: `${built.userPrompt}\n\n[저장된 초안 보완]\n${repairDraft}\n위 초안의 계산 근거와 답변 방향을 보존하고, 부족한 해석·반대 조건·행동 조언만 보완한 같은 JSON 필드 전체를 다시 반환해. 결과 본문 합계 ${GUARDIAN_FORTUNE_RESULT_LENGTH.min}자 이상 ${GUARDIAN_FORTUNE_RESULT_LENGTH.max}자 이하를 목표로 하고, 같은 문장 반복이나 context 에 없는 새 계산값으로 분량을 채우지 마.`,
+  } : built;
+  const base = withRepair(buildGuardianFortunePrompt({ input, context, answerVoice }));
+  try {
+    if (!shinsalFactsPinned({ shinsalFacts }, env, "guardian")) return base;
+    const block = guardianShinsalBlock(context);
+    if (!block) return base;
+    const withBlock = withRepair(buildGuardianFortunePrompt({ input, context, answerVoice, shinsalFacts: block }));
+    return estimateGuardianPromptTokens(withBlock.systemPrompt) + estimateGuardianPromptTokens(withBlock.userPrompt) <= GUARDIAN_SHINSAL_PROMPT_BUDGET ? withBlock : base;
+  } catch {
+    return base;
+  }
+}
+
 export async function generateGuardianFortuneWithRealLLM({
   input = {},
   context = {},
@@ -100,14 +174,12 @@ export async function generateGuardianFortuneWithRealLLM({
   // on the one repair call send that saved draft back to be completed.
   acceptShortDraft = false,
   repairDraft = "",
+  // Paid delivery only: the record's shinsal pin (guardian-paid-delivery.js). Free turns never pass it.
+  shinsalFacts,
 } = {}) {
   assertGuardianFortuneRealLLMAllowed({ env, userId });
   const config = getGuardianFortuneLLMConfig(env);
-  const built = buildGuardianFortunePrompt({ input, context, answerVoice: selectAnswerVoice(env) });
-  const prompt = singleAttempt && acceptShortDraft && typeof repairDraft === "string" && repairDraft ? {
-    ...built,
-    userPrompt: `${built.userPrompt}\n\n[저장된 초안 보완]\n${repairDraft}\n위 초안의 계산 근거와 답변 방향을 보존하고, 부족한 해석·반대 조건·행동 조언만 보완한 같은 JSON 필드 전체를 다시 반환해. 결과 본문 합계 ${GUARDIAN_FORTUNE_RESULT_LENGTH.min}자 이상 ${GUARDIAN_FORTUNE_RESULT_LENGTH.max}자 이하를 목표로 하고, 같은 문장 반복이나 context 에 없는 새 계산값으로 분량을 채우지 마.`,
-  } : built;
+  const prompt = buildGuardianFortuneCallPrompt({ input, context, env, singleAttempt, acceptShortDraft, repairDraft, shinsalFacts });
   const startedAt = Date.now();
   const providerResult = await callProviderWithLimitedRetry({
     providerCall,
@@ -204,3 +276,4 @@ export async function generateGuardianFortuneWithConfiguredLLM(args = {}) {
 }
 
 export { emitMetric as recordGuardianFortuneLLMMetric };
+export const __guardianShinsalTestUtils = Object.freeze({ buildGuardianFortuneCallPrompt, guardianShinsalBlock, estimateGuardianPromptTokens, GUARDIAN_SHINSAL_PROMPT_BUDGET });
