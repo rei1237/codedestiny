@@ -42,6 +42,8 @@ export const SHARED_REFUND_PATHS = Object.freeze({
   refundYeongnyangiServicePack: "worker/lib/pass-consumption.js",
   // paid-narrative 엔진의 실행 기록(ServiceExecutionTransaction, timeoutAt)은 runServiceExecutionTimeoutTask 가 정산한다.
   runPaidNarrativeDelivery: "worker/lib/paid-narrative-delivery.js",
+  // 서술형 실행의 최종 실패 환불: 저장된 근거로 coin·이용권·월정석·PG 취소를 한 번에 정산한다(settleExecutionById).
+  settlePaidNarrativeExecution: "worker/lib/service-execution-task.js",
 });
 
 // 결제 원시함수+LLM 을 함께 쓰지만 서비스 자체가 아닌 파일. 이유 필수.
@@ -57,10 +59,11 @@ export const EXEMPT_FILES = Object.freeze({
 
 // 자동 환불 경로가 아직 없는 서비스(정확히 일치해야 한다).
 // 2026-11-18 release review: retain the pre-existing fortune-chat card support-review gap; unsafe new auto-refund excluded.
+// 2026-11-27: 서술형 10개는 근거 저장 + settlePaidNarrativeExecution 정산으로 닫았다. 남은 둘:
+//   fortune-chat-question — PER_USE 카드 결제는 Payment 에 consumedBy·요청 paymentId 연결이 없어 영냥이 예약·정산 경로를 재사용할 수 없다.
+//   toss-native — 토스 인앱결제 파트너 환불 API 가 없다(대사 cron 은 읽기 전용).
 export const KNOWN_REFUND_GAPS = Object.freeze([
-  "fortune-chat-question",
-  "tarot-oracle", "love-tarot", "mindscan", "dream", "yoga-guru", "saju-compat-basic", "pet-saju-ai",
-  "geomancy-oracle", "animal-totem", "guardian-fortune", "toss-native",
+  "fortune-chat-question", "toss-native",
 ]);
 
 // 저장 후 결제(2026-11-25): 생성 경로는 결제하지 않고 결과를 먼저 저장하며, 결제는 저장 뒤 클라이언트 게이트가 하고,

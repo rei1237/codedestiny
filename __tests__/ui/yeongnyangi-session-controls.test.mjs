@@ -12,3 +12,15 @@ test('yeongnyangi session control skips the refresh chain for a guest with no lo
   const client = read('../../app/_lib/auth-client.ts');
   assert.match(client, /export function hasMobileAppRefreshToken\(\) \{\s*return Boolean\(readMobileAppRefreshToken\(\)\);/);
 });
+
+test('yeongnyangi session control stores only the sanitized login snapshot when it is missing', () => {
+  // 쿠키 세션만 있으면 fortune_auth_user 가 없어 프로필 범위가 손님으로 남고 초상화가 빠진다.
+  const controls = read('../../app/yeongnyangi/_home/SessionControls.tsx');
+  assert.match(controls, /if\(!readDestinyProfileAccountId\(\)\)\{persistSanitizedAuthUser\(data\.user\);/);
+  assert.doesNotMatch(controls, /localStorage\.setItem/);
+  const storage = read('../../app/_lib/auth-storage.ts');
+  assert.doesNotMatch(storage.match(/export function sanitizeClientAuthUser[\s\S]*?\n}\n/)[0], /token/i);
+  // 로그아웃은 같은 키를 지운다.
+  const client = read('../../app/_lib/auth-client.ts');
+  assert.match(client, /const AUTH_LOCAL_STORAGE_KEYS = \[[^\]]*"fortune_auth_user"/);
+});

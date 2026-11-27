@@ -8,9 +8,26 @@ $ErrorActionPreference = 'Stop'
 
 function Invoke-Git {
   param([string[]]$GitArgs)
-  $output = & git @GitArgs
-  if ($LASTEXITCODE -ne 0) {
-    throw "Git command failed: git $($GitArgs -join ' ')"
+  # git 은 정상 진행 메시지("Preparing worktree", "From ...")도 stderr 로 쓴다. 호출자가
+  # stderr 를 넘겨받으면(2>&1 등) PowerShell 5.1 은 그 줄을 NativeCommandError 로 감싸고,
+  # 위의 Stop 때문에 성공한 명령에서도 스크립트가 중단된다. 이 호출 동안만 Continue 로
+  # 두고 stderr 는 화면에만 보낸다. 실패 판정은 $LASTEXITCODE 로만 한다.
+  $previousPreference = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try {
+    $output = & git @GitArgs 2>&1 | ForEach-Object {
+      if ($_ -is [System.Management.Automation.ErrorRecord]) {
+        Write-Host $_.Exception.Message
+      } else {
+        $_
+      }
+    }
+    $exitCode = $LASTEXITCODE
+  } finally {
+    $ErrorActionPreference = $previousPreference
+  }
+  if ($exitCode -ne 0) {
+    throw "Git command failed (exit $exitCode): git $($GitArgs -join ' ')"
   }
   return ($output -join [Environment]::NewLine).Trim()
 }

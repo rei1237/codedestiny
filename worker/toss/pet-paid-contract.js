@@ -9,7 +9,10 @@ const PRODUCTS=Object.freeze({report:'pet-saju-ai-consultation',compat:'pet-comp
 
 // Only the server chooses the calculation date. A saved request reuses its
 // frozen date so a midnight retry cannot silently create a different reading.
-export async function tossPetPaidContract(body,{today=kstDateString(),stored=false}={}){
+// `charts` is an optional per-read Set of pet+date inputs already validated by
+// the full chart. The chart is deterministic for a frozen input, so one read may
+// validate each input once; the returned contract is identical either way.
+export async function tossPetPaidContract(body,{today=kstDateString(),stored=false,charts}={}){
   if(!body||typeof body!=='object'||Array.isArray(body)||typeof body.requestId!=='string'||!REQUEST_ID.test(body.requestId)||typeof body.kind!=='string'||!Object.hasOwn(PRODUCTS,body.kind))throw new TossError('PET_INPUT_INVALID',400);
   const keys=body.kind==='report'?['requestId','kind','pet']:['requestId','kind','petA','petB'];
   if(stored)keys.push('date');
@@ -18,7 +21,9 @@ export async function tossPetPaidContract(body,{today=kstDateString(),stored=fal
   try{date=normalizeRequestDate(stored?body.date:today);}catch{throw new TossError('PET_INPUT_INVALID',400);}
   if(date!==(stored?body.date:today))throw new TossError('PET_INPUT_INVALID',400);
   const normalize=pet=>{
-    calculateTossPet({pet},{today:date});
+    // undefined is kept in the key so an extra undefined field cannot reuse a valid entry.
+    const key=charts?JSON.stringify([pet,date],(_name,value)=>value===undefined?'\u0000undefined':value):'';
+    if(!charts?.has(key)){calculateTossPet({pet},{today:date});charts?.add(key);}
     try{return normalizePetProfile(pet);}catch{throw new TossError('PET_INPUT_INVALID',400);}
   };
   const input={requestId:body.requestId.toLowerCase(),kind:body.kind,date,

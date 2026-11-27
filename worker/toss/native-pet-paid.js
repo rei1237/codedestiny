@@ -14,30 +14,32 @@ const ownerFilter=auth=>nativeOwnerFilter(auth,SERVICE);
 const reportType=kind=>kind==='report'?'petSajuReport':'petCompatReport';
 
 export async function prepareNativePet(env,auth,input,orderId){
-  let prepared=await tossPetPaidContract(input);
+  const charts=new Set();
+  let prepared=await tossPetPaidContract(input,{charts});
   const id=await nativeIntentId(auth,prepared.contract,SERVICE);
   const previous=await withMongoRetry(env,()=>TossNativeConsultation.findOne({_id:id,...ownerFilter(auth)}).lean());
   // A user retry after midnight retains the original server-selected date.
-  if(previous)prepared=await tossPetPaidContract({...input,date:previous.input?.date},{stored:true});
+  if(previous)prepared=await tossPetPaidContract({...input,date:previous.input?.date},{stored:true,charts});
   return prepareNativeConsultation(env,auth,prepared.input,orderId,prepared.contract,SERVICE);
 }
 
-async function checkedIntent(row,auth){
+async function checkedIntent(row,auth,charts){
   assertNativeIntent(row,auth);
   if(row.nativeService!==SERVICE)throw new TossError('RESULT_NOT_FOUND',404);
-  const prepared=await tossPetPaidContract(row.input,{stored:true});
+  const prepared=await tossPetPaidContract(row.input,{stored:true,charts});
   assertNativeIntent(row,auth,prepared.contract);
   return prepared;
 }
 
-async function authorizedIntent(env,auth,id,original,doc){
+// `charts` is shared by one read so each frozen pet input runs the chart once.
+async function authorizedIntent(env,auth,id,original,doc,charts=new Set()){
   if(!idPattern.test(id))throw new TossError('RESULT_NOT_FOUND',404);
   const row=await withMongoRetry(env,()=>TossNativeConsultation.findOne({_id:id,...ownerFilter(auth)}).lean());
-  const prepared=await checkedIntent(row,auth);
+  const prepared=await checkedIntent(row,auth,charts);
   if(original){
     const {tossIntentId,...savedInput}=original;
     if(tossIntentId!==id)throw new TossError('RESULT_NOT_FOUND',404);
-    const saved=await tossPetPaidContract(savedInput,{stored:true});
+    const saved=await tossPetPaidContract(savedInput,{stored:true,charts});
     assertNativeIntent(row,auth,saved.contract);
   }
   const expected=paidNarrativeExecutionKey(String(auth.userId),row.featureKey,row.requestId);
@@ -49,10 +51,11 @@ async function authorizedIntent(env,auth,id,original,doc){
 // GET only reads; POST generates from the immutable paid intent. A paid order
 // without its first checkpoint remains recoverable without a second checkout.
 export async function readNativePet(env,auth,id,{generate=false}={}){
-  const {row,prepared,expected}=await authorizedIntent(env,auth,id);
+  const charts=new Set();
+  const {row,prepared,expected}=await authorizedIntent(env,auth,id,undefined,undefined,charts);
   const doc=await withMongoRetry(env,()=>ServiceExecutionTransaction.findOne({userId:auth.userId,featureKey:row.featureKey,executionKey:expected}).lean());
   if(!doc&&!generate){
-    await authorizedIntent(env,auth,id);
+    await authorizedIntent(env,auth,id,undefined,undefined,charts);
     return Response.json({ok:true,status:'generating',saved:false,retryable:true,intentId:id},{status:202});
   }
   const url=new URL('https://internal.invalid/toss-pet');
@@ -61,7 +64,7 @@ export async function readNativePet(env,auth,id,{generate=false}={}){
   return runPaidNarrativeDelivery(request,env,{userId:String(auth.userId)},generate?{...prepared.input,tossIntentId:id}:{},
     {...petNarrativeAdapter(env,reportType(prepared.input.kind)),featureKey:row.featureKey,generationOrigin:'toss',
       seed:original=>seedPetNarrative(prepared.input.kind,original,env),
-      verify:(original,stored)=>authorizedIntent(env,auth,id,original,stored)});
+      verify:(original,stored)=>authorizedIntent(env,auth,id,original,stored,charts)});
 }
 
 const KINDS=Object.freeze({'pet-saju-ai-consultation':'report','pet-compatibility-ai':'compat'});
