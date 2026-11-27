@@ -983,12 +983,17 @@
         "symbol": "../../lib/gemini-provider-errors.mjs"
       },
       {
-        "line": 2193,
+        "line": 42,
+        "kind": "import-or-injected-call",
+        "symbol": "../../lib/gemini-input-token-limit.mjs"
+      },
+      {
+        "line": 2259,
         "kind": "call",
         "symbol": "callGeminiText"
       },
       {
-        "line": 2345,
+        "line": 2411,
         "kind": "call",
         "symbol": "callGeminiText"
       }
