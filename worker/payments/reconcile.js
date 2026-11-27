@@ -14,7 +14,7 @@
  * 크론 안에서 재시도를 돌리면 admission 슬롯을 몰아 쓰게 되고, 그게 사용자 요청을 굶긴다.
  */
 import { Payment } from "../lib/models.js";
-import { REFUND_LOCK_TTL_MS, markOrderCancelled } from "./orders.js";
+import { REFUND_LOCK_TTL_MS, markOrderCancelled, revivableClosedOrderFilter } from "./orders.js";
 import { RESUME_APPROVED_TTL_MS } from "./resume-context.js";
 import { listProducts } from "./catalog.js";
 import { buildPaymentAlert } from "./fulfillment-alert.js";
@@ -178,6 +178,80 @@ export async function expireStalePendingOrders(db, {
     if (ok) cancelled += 1;
   }
   return { scanned: orders.length, cancelled, settled, skipped };
+}
+
+/** 닫힌 주문 복구 스윕(2026-11-27). 1틱 상한·되돌아볼 기간·같은 주문 재확인 간격. */
+export const CLOSED_ORDER_RECOVERY_LIMIT = 20;
+export const CLOSED_ORDER_RECOVERY_LOOKBACK_MS = 30 * 24 * 60 * 60_000;
+export const CLOSED_ORDER_RECOVERY_RECHECK_MS = 6 * 60 * 60_000;
+/** 막 닫힌 주문은 만료 단계가 방금 PortOne 을 물었으므로 이만큼 지난 뒤부터 본다. */
+const CLOSED_ORDER_RECOVERY_SETTLE_MS = 10 * 60_000;
+
+/**
+ * 우리 추정으로 닫힌 주문(30분 만료 ORDER_EXPIRED · 클라이언트 실패 보고, orders.js isRevivableClosedOrder) 중
+ * 최근 30일 안의 것을 PortOne 에 다시 물어, PAID 면 settle(=settleOrderFromReconcile — 금액·통화 대조 · markOrderPaid CAS ·
+ * 멱등 지급)로 확정·지급한다. 이 단계가 없으면 만료 뒤 승인된 결제(가상계좌 입금 등)를 아무 주체도 되살리지 않는다.
+ *   · 조회 실패·주문 id 불일치·정산 실패 → 건너뛴다(다음 재확인 때 다시).
+ *   · PortOne 이 cancelled/failed → 그 사실을 표식으로 남기고 다시 묻지 않는다. 주문은 닫힌 그대로다.
+ *   · 그 밖(ready 등) → 6시간 뒤 다시 본다.
+ * 🔴 환불·PG 취소는 하지 않는다. probe 가 없으면 아무것도 하지 않는다. PG 조회는 슬롯 밖, DB 접근은 withDb 로만.
+ */
+export async function recoverClosedPaidOrders(db, {
+  now = new Date(), limit = CLOSED_ORDER_RECOVERY_LIMIT,
+  probe = null, settle = null, withDb = (fn) => fn(db),
+} = {}) {
+  if (typeof probe !== "function" || typeof settle !== "function") return { scanned: 0, settled: 0, closed: 0, skipped: 0, probe: false };
+  const orders = await withDb((conn) => conn.find(
+    Payment,
+    {
+      $and: [
+        revivableClosedOrderFilter(),
+        { createdAt: { $gte: new Date(now.getTime() - CLOSED_ORDER_RECOVERY_LOOKBACK_MS) } },
+        { updatedAt: { $lt: new Date(now.getTime() - CLOSED_ORDER_RECOVERY_SETTLE_MS) } },
+        { "pricingSnapshot.billingType": { $ne: "business_api" } },
+        { "metadata.moonstoneDiscountReleasedAt": { $exists: false } },
+        { "metadata.reconcile.recoveryPgStatus": { $nin: ["cancelled", "failed"] } },
+        { $or: [
+          { "metadata.reconcile.recoveryCheckedAt": { $exists: false } },
+          { "metadata.reconcile.recoveryCheckedAt": { $lt: new Date(now.getTime() - CLOSED_ORDER_RECOVERY_RECHECK_MS) } },
+        ] },
+      ],
+    },
+    { sort: { "metadata.reconcile.recoveryCheckedAt": 1, createdAt: 1 }, limit },
+  ));
+
+  let settled = 0, closed = 0, skipped = 0;
+  for (const order of orders) {
+    const orderId = String(order.merchantUid || "");
+    const stamp = (fields) => withDb((conn) => conn.updateOne(Payment, { merchantUid: orderId, status: { $in: ["cancelled", "failed"] } }, { $set: fields }));
+    await stamp({ "metadata.reconcile.recoveryCheckedAt": now });
+    let pg;
+    try {
+      pg = await probe(order);
+    } catch {
+      skipped += 1;
+      continue;
+    }
+    if (!pg || String(pg.paymentId || "") !== orderId) { skipped += 1; continue; }
+    const pgStatus = String(pg.status || "");
+    if (pgStatus === "paid") {
+      try {
+        await settle(order, pg);
+        settled += 1;
+      } catch (error) {
+        skipped += 1;
+        console.error("[payments-v2-reconcile] closed order recovery failed:", { orderId, code: String(error?.code || error?.message || error) });
+      }
+      continue;
+    }
+    if (pgStatus === "cancelled" || pgStatus === "failed") {
+      await stamp({ "metadata.reconcile.recoveryPgStatus": pgStatus });
+      closed += 1;
+      continue;
+    }
+    skipped += 1;
+  }
+  return { scanned: orders.length, settled, closed, skipped };
 }
 
 /**

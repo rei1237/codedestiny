@@ -77,7 +77,7 @@ import {
 } from "./birth-profile-claim.js";import { settleOrphanSpends, spendMoonstone, reserveOrderMoonstones, releaseOrderMoonstones } from "./moonstone.js";
 import { quoteYeongnyangiMoonstoneDiscount } from '../lib/paid-feature-registry.js';
 import { acceptWebhook, claimReplayableEvents, describeEventFailure, markEventFailed, markEventProcessed } from "./webhook.js";
-import { alertPaymentAnomalies, expireStalePendingOrders, runPaymentReconcile } from "./reconcile.js";
+import { alertPaymentAnomalies, expireStalePendingOrders, recoverClosedPaidOrders, runPaymentReconcile } from "./reconcile.js";
 import { createOperatorAlertSender } from "./fulfillment-alert.js";
 import { grantPurchaseEntitlement, readPaidExecution, readPurchaseEntitlement } from "./executions.js";
 import { consumePassForFeature, hasConsumedPassFeature } from "../lib/pass-consumption.js";
@@ -2461,6 +2461,19 @@ export async function runPaymentsV2Reconcile(env) {
     } catch (error) {
       console.error("[payments-v2-reconcile] pending expiry failed:", String(error?.message || error));
     }
+    /* 닫힌 주문 복구 — 만료·클라이언트 실패 보고로 닫혔지만 PortOne 이 PAID 인 최근 30일 주문을 확정·지급한다
+       (reconcile.js recoverClosedPaidOrders, 1틱 20건 상한). 같은 정산 주체, 슬롯 밖, 실패해도 위 결과는 잃지 않는다. */
+    let recovered = null;
+    try {
+      recovered = await recoverClosedPaidOrders(null, {
+        withDb: (fn) => withPaymentDb(env, ctx, fn),
+        probe: (order) => fetchPortOnePayment(env, String(order.merchantUid || "")),
+        settle: (order, pg) => settleOrderFromReconcile(env, { orderId: String(order.merchantUid || ""), pgPayment: pg }),
+      });
+      if (Number(recovered?.settled || 0) > 0) console.warn("[CRON] payments-v2 closed order recovery", recovered);
+    } catch (error) {
+      console.error("[payments-v2-reconcile] closed order recovery failed:", String(error?.message || error));
+    }
     let giftRefunds = null;
     try {
       const { reconcileGiftRefunds } = await import("./gift-refund.js");
@@ -2495,7 +2508,7 @@ export async function runPaymentsV2Reconcile(env) {
       // External PG/GA requests run outside the DB slot; analytics cannot fail payment reconciliation.
       ga4Refunds=await sendPendingGa4Refunds(env,fn=>withPaymentDb(env,ctx,fn));
     } catch { console.error('[GA4_REFUND_RECONCILE_FAILED]'); }
-    return { ...report, expired, webhookReplay, giftRefunds, ga4Refunds };
+    return { ...report, expired, recovered, webhookReplay, giftRefunds, ga4Refunds };
   } catch (error) {
     const contract = classify(error);
     status = contract.status;

@@ -642,6 +642,24 @@ describe("webhook·크론 주체 — grantOrderEntitlement 이용권 분기", ()
     expect(again).toMatchObject({ ok: true, replayed: true, granted: true });
   });
 
+  test("복구 스윕 — 30분 만료로 닫힌 이용권 주문을 PortOne PAID 확인 뒤 같은 정산 주체로 확정·지급한다", async () => {
+    const db = makeFakePaymentDb();
+    const user = seedUser(db);
+    const order = await prepareOrder(db, "standard", "sub-recovery-sweep");
+    const row = db.rows.find((r) => r.merchantUid === order.merchantUid);
+    Object.assign(row, { status: "cancelled", orderState: "CANCELLED", failureCode: "ORDER_EXPIRED", updatedAt: new Date(Date.now() - 3_600_000) });
+    const { settleOrderFromReconcile } = await import("../../worker/payments/index.js");
+    const { recoverClosedPaidOrders } = await import("../../worker/payments/reconcile.js");
+    const report = await recoverClosedPaidOrders(db, {
+      probe: async () => closedPg(row),
+      settle: (o, pg) => settleOrderFromReconcile(ENV, { orderId: o.merchantUid, pgPayment: pg }, { withDb: (_e, _c, fn) => fn(db) }),
+    });
+    expect(report).toMatchObject({ scanned: 1, settled: 1 });
+    expect(row.status).toBe("paid");
+    expect(user.profileSubscription.tier).toBe("standard");
+    expect(user.profileSubscription.lastPassOrderId).toBe(order.merchantUid);
+  });
+
   test("🔴 확정 CAS 를 진 뒤 주문이 PAID 가 아니면 재생으로 넘기지 않는다 — 결제 안 된 주문에 지급 금지", async () => {
     const db = makeFakePaymentDb();
     const user = seedUser(db);
