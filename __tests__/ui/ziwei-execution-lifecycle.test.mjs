@@ -7,6 +7,7 @@ import ts from 'typescript';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import * as answerContract from '../../worker/lib/consultation-answer-contract.js';
+import { selectRemedyFacts, remedyFactsPinned } from '../../worker/lib/engine-rollout.js';
 
 // Execute actual orchestration functions, never import the payment/Swiss route graph.
 const routeFile = 'worker/routes/ziwei-ai.js';
@@ -88,6 +89,10 @@ function setup({ old = false, on = false } = {}) {
     resultStorageUnavailable: storageError, resultStorageFailurePayload: () => ({ reason: 'RESULT_STORAGE_UNAVAILABLE' }),
     saveZiweiDelivery: async (q, fields) => { if (state.fault === 'save') throw storageError(); return update(q, fields); },
     runWithAiLocale: (_locale, fn) => fn(), storedAiLocale: () => 'ko',
+    // 액땜(R8): 실제 플래그 판정을 쓴다. 이 하네스 env 에는 SAJU_REMEDY_FACTS_V1 이 없어 꺼진 채 기준선과 같은 문서를 만든다.
+    selectRemedyFacts, remedyFactsPinned,
+    ziweiRemedyCases: () => { throw new Error('remedy cases must not run while OFF'); },
+    ziweiRemedyBlock: () => { throw new Error('remedy block must not run while OFF'); },
     generateInitialConsultation: async (_env, options) => {
       state.generations++; state.generatedVoice = options.answerVoice; if (state.waitForGeneration) await state.waitForGeneration;
       assert.ok(options.chart); return { complete: state.complete, text: 'stored mock chapters', meta: {} };

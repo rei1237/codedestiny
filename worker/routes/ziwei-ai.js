@@ -37,6 +37,9 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText, isCompleteLlmResponse } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { selectRemedyFacts, remedyFactsPinned } from "../lib/engine-rollout.js";
+import { computeRemedyCases, serializeRemedyForPrompt } from "../../lib/saju/remedy/index.mjs";
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/gemini-input-token-limit.mjs";
 import { readZiweiExecutionSnapshot } from "../lib/ziwei-execution-adapter.js";
 import { resolveZiweiPreparation } from "../lib/ziwei-calculation-preparation.js";
 import { ZIWEI_STRENGTH_LEGEND } from "../../lib/ziwei-star-strength.js";
@@ -1533,7 +1536,7 @@ function buildGroupReasoningRuleLines(sectionKeys, charTargets = {}) {
  * 그보다 작으면 그 그룹만 쓰게 하는 병렬 생성용 프롬프트가 된다.
  */
 // plan(판 2)을 넘기면 그 판의 묶음 구성·섹션 규칙을 쓰고, 질문 비담당 묶음에서는 질문 줄을 뺀다.
-function buildSectionGroupPrompt(input, chart, group, plan = null) {
+function buildSectionGroupPrompt(input, chart, group, plan = null, { remedyFacts = "" } = {}) {
   const birth = input.birthInfo || {};
   const sectionKeys = group.sections;
   const charTargets = buildSectionCharTargets(group);
@@ -1570,12 +1573,50 @@ function buildSectionGroupPrompt(input, chart, group, plan = null) {
     "",
     "섹션별 작성 규칙:",
     ...sectionKeys.map((key) => (sectionRules[key] ? `- ${sectionRules[key]}` : "")).filter(Boolean),
+    // 액땜 블록은 처방 섹션을 쓰는 묶음에만 한 번 붙는다(끄면 바이트 그대로).
+    ...(remedyFacts && sectionKeys.includes("prescription") ? [remedyFacts] : []),
     "",
     // 위 [계산 확정값]이 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
     ...buildEvidenceRuleLines(buildZiweiAnalysisBasis(chart, birth), { includeFactTable: false }),
     "",
     ...buildGroupReasoningRuleLines(sectionKeys, charTargets),
   ].filter(Boolean).join("\n");
+}
+
+// 액땜 카드(SAJU_REMEDY_FACTS_V1 'ziwei-ai'). 상담 시작 때 명반으로 한 번 계산해 저장한다.
+// 한국어 상담만 만든다(서술·카드가 한국어 전용). 실패하면 null — 카드도 블록도 없다.
+function ziweiRemedyCases(chart, locale) {
+  try {
+    const refYear = Number.isInteger(chart?.yearlyLuck?.year) ? chart.yearlyLuck.year : new Date().getFullYear();
+    const result = computeRemedyCases({ ziwei: chart, refYear, locale });
+    return result?.valid === true && result.locale === "ko" && Array.isArray(result.cases) && result.cases.length
+      ? JSON.parse(JSON.stringify(result))
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+const ZIWEI_REMEDY_MAX_CHARS = 500;
+const ZIWEI_REMEDY_RULE = "액땜은 prescription(지금의 처방) 섹션에서만 위 목록의 방법 한두 가지를 골라 명반 근거와 함께 생활 장면으로 풀어 쓴다.";
+
+// 저장된 remedyCases → 처방 묶음 지시문 블록(최대 500자). 해시·캐시 키·저장 프롬프트에는 넣지 않는다. 실패는 ''.
+function ziweiRemedyBlock(remedyCases) {
+  try {
+    if (!remedyCases || typeof remedyCases !== "object") return "";
+    const block = serializeRemedyForPrompt(remedyCases, { maxChars: ZIWEI_REMEDY_MAX_CHARS - ZIWEI_REMEDY_RULE.length - 1 });
+    return block ? `${block}\n${ZIWEI_REMEDY_RULE}` : "";
+  } catch {
+    return "";
+  }
+}
+
+// 블록을 붙인 프롬프트가 입력 상한의 95%를 넘으면 블록 없이(꺼진 것과 같은 바이트로) 다시 만든다.
+const ZIWEI_REMEDY_PROMPT_BUDGET = Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+function ziweiPromptWithinRemedyBudget(systemPrompt, build, remedyFacts) {
+  const prompt = build(remedyFacts);
+  if (!remedyFacts || String(systemPrompt || "").length + prompt.length <= ZIWEI_REMEDY_PROMPT_BUDGET) return prompt;
+  return build("");
 }
 
 // meta 는 본문보다 훨씬 짧고, 대부분의 값은 enforceZiweiChartFacts 가 계산 확정값으로 덮어쓴다.
@@ -1869,7 +1910,7 @@ function buildZiweiDuplicateInstruction(duplicates, group) {
  */
 const ZIWEI_GROUP_MAX_ATTEMPTS = 2;
 const ziweiSectionBody = sections => Object.values(sections).map(row => String(row?.body || "")).join("\n");
-async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {}, answerVoice }) {
+async function generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {}, answerVoice, remedyFacts = "" }) {
   groups = { ...groups }; attempts = { ...attempts }; rawResponses = { ...rawResponses };
   const merge = () => Object.assign({}, ...Object.values(groups));
   let sections = merge();
@@ -1898,13 +1939,14 @@ async function generateCheckpointedZiwei(env, { input, chart, logContext, checkp
     const groupTokens = attempts[`${group.id}:truncated`] ? Math.max(SECTION_GROUP_TARGET_TOKENS, Math.min(32768, SECTION_GROUP_TARGET_TOKENS * 2)) : SECTION_GROUP_TARGET_TOKENS;
     let generated;
     try {
-      generated = await callGeminiJsonWithRetry(env, [
-        buildSectionGroupPrompt(input, chart, group),
+      const systemPrompt = await resolveSystemPrompt(env, input.locale, answerVoice);
+      generated = await callGeminiJsonWithRetry(env, ziweiPromptWithinRemedyBudget(systemPrompt, (remedy) => [
+        buildSectionGroupPrompt(input, chart, group, null, { remedyFacts: remedy }),
         `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
         ...(repairIds.includes(group.id) ? describeZiweiGroundingIssues(grounding.issues, chart) : []),
         ...(repairing ? [`직전 본문은 공백 제외 ${countPaidReportBodyChars(ziweiSectionBody(groups[group.id]))}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
-      ].join("\n"), {
-        systemPrompt: await resolveSystemPrompt(env, input.locale, answerVoice), taskType: "fortune", responseMimeType: "application/json",
+      ].join("\n"), remedyFacts), {
+        systemPrompt, taskType: "fortune", responseMimeType: "application/json",
         responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(group.sections) }),
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
         baseTokens: Math.max(groupTokens, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / SECTION_GROUP_SPECS.length)),
@@ -1979,7 +2021,7 @@ function ziweiGroupSectionsFromText(group, text) {
   return { source, next: trimPaidReportSections(source, Math.ceil(group.targetChars * SECTION_GROUP_MAX_OVER_TARGET)) };
 }
 
-async function generateCheckpointedZiweiV2(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {}, answerVoice }) {
+async function generateCheckpointedZiweiV2(env, { input, chart, logContext, checkpoint, groups = {}, attempts = {}, meta = {}, rawResponses = {}, answerVoice, remedyFacts = "" }) {
   groups = { ...groups }; attempts = { ...attempts }; rawResponses = { ...rawResponses };
   const specs = ZIWEI_V2_GROUP_SPECS;
   const question = clean(input.userQuestion);
@@ -2027,14 +2069,15 @@ async function generateCheckpointedZiweiV2(env, { input, chart, logContext, chec
     const duplicates = collectZiweiCrossSectionDuplicates({ ...merge(), ...(ziweiGroupSectionsFromText(group, rawResponses[group.id]).next || {}) });
     let generated;
     try {
-      generated = await callGeminiJsonWithRetry(env, [
-        buildSectionGroupPrompt(input, chart, generationGroup, ZIWEI_V2_PLAN),
+      const systemPrompt = await resolveSystemPrompt(env, input.locale, answerVoice);
+      generated = await callGeminiJsonWithRetry(env, ziweiPromptWithinRemedyBudget(systemPrompt, (remedy) => [
+        buildSectionGroupPrompt(input, chart, generationGroup, ZIWEI_V2_PLAN, { remedyFacts: remedy }),
         `제목과 공백을 제외한 본문 목표 ${group.targetChars}자, 최소 ${group.minChars}자. 각 필수 섹션을 빠짐없이 작성하세요.`,
         ...(lengthShort ? [`직전 본문은 공백 제외 ${chars(saved)}자입니다. 같은 문장 반복 없이 계산 근거와 행동 조언을 보강해 완결된 JSON으로 다시 작성하세요.`] : []),
         ...(savedSoft.length ? [ziweiSoftIssueHint(savedSoft)] : []),
         ...(!savedValid && attempts[group.id] > 1 ? [buildZiweiDuplicateInstruction(duplicates, group)].filter(Boolean) : []),
-      ].join("\n"), {
-        systemPrompt: await resolveSystemPrompt(env, input.locale, answerVoice), taskType: "fortune", responseMimeType: "application/json",
+      ].join("\n"), remedyFacts), {
+        systemPrompt, taskType: "fortune", responseMimeType: "application/json",
         responseSchema: jsonSchemaFromExample({ sections: buildSectionSchemaFor(generationGroup.sections) }),
         temperature: config.temperature ?? 0.72, attempts: 1, timeoutMs: 45000,
         baseTokens: Math.max(groupTokens, Math.floor(Number(config.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS) / specs.length)),
@@ -2107,9 +2150,9 @@ async function saveZiweiDelivery(filter, fields, resultId) {
   } catch { throw resultStorageUnavailable(resultId); }
 }
 
-async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice, planVersion }) {
-  if (checkpoint && Number(planVersion) === ZIWEI_AI_GROUP_PLAN_VERSION) return generateCheckpointedZiweiV2(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice });
-  if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice });
+async function generateInitialConsultation(env, { input, chart, logContext = {}, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice, planVersion, remedyFacts = "" }) {
+  if (checkpoint && Number(planVersion) === ZIWEI_AI_GROUP_PLAN_VERSION) return generateCheckpointedZiweiV2(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice, remedyFacts });
+  if (checkpoint) return generateCheckpointedZiwei(env, { input, chart, logContext, checkpoint, groups, attempts, meta: checkpointMeta, rawResponses, answerVoice, remedyFacts });
   const startedAt = Date.now();
   const remainingMs = () => INITIAL_CONSULTATION_DEADLINE_MS - (Date.now() - startedAt);
   const retryTimeoutMs = () => Math.max(18000, Math.min(SECTION_GROUP_TIMEOUT_MS, remainingMs() - 6000));
@@ -2596,6 +2639,8 @@ function publicConsultation(doc) {
       // 명반은 예전부터 저장돼 있었으므로, 이 변경 이전에 생성된 상담도 근거 패널을 그대로 얻는다.
       analysisBasis: buildZiweiAnalysisBasis(chart, doc.birthInfo),
       ziweiChart: chart,
+      // 액땜 카드: 시작 때 저장한 값만 내보낸다(재계산 없음, 옛 상담에는 없다).
+      ...(doc?.remedyCases && typeof doc.remedyCases === "object" ? { remedyCases: doc.remedyCases } : {}),
       messages: Array.isArray(doc.messages)
         ? doc.messages.map((message) => ({
           role: message.role,
@@ -2820,7 +2865,10 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
     } else {
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType };
       delete resumeBody.accessToken;
-      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, ...(nativeTossContext(request) ? { accessSource: 'toss' } : {}), paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart, ...(ziweiAiDeliveryV2Enabled(env) ? { groupPlanVersion: ZIWEI_AI_GROUP_PLAN_VERSION } : {}), ...(preparationId ? { calculationPreparationId: preparationId } : {}), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}) } });
+      // 액땜(SAJU_REMEDY_FACTS_V1 'ziwei-ai'): 시작 때 한 번 계산해 저장한다. 재시도·재개는 이 저장본과 고정값만 읽는다.
+      const remedyPin = selectRemedyFacts(env, "ziwei-ai");
+      const remedyCases = remedyPin ? ziweiRemedyCases(initialChart, storedAiLocale({ llmMeta: { resumeBody } })) : null;
+      doc = await ZiweiAiConsultation.create({ ...owner, serviceType: SERVICE_KEY, idempotencyKey, inputHash: normalized.inputHash, birthInfo: normalized.input.birthInfo, topic: normalized.input.topic, userQuestion: normalized.input.userQuestion, accessType: access.accessType, ...(nativeTossContext(request) ? { accessSource: 'toss' } : {}), paymentId: clean(access.paymentId, 160), status: "generating", generationLease: lease, messages: [], llmMeta: { resumeBody, groups: {}, attempts: {}, chartSnapshot: initialChart, ...(ziweiAiDeliveryV2Enabled(env) ? { groupPlanVersion: ZIWEI_AI_GROUP_PLAN_VERSION } : {}), ...(preparationId ? { calculationPreparationId: preparationId } : {}), ...(selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}), ...(remedyPin ? { remedyFacts: remedyPin } : {}) }, ...(remedyCases ? { remedyCases } : {}) });
       doc = typeof doc.toObject === "function" ? doc.toObject() : doc;
     }
   } catch (error) {
@@ -2847,7 +2895,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate", recov
       calculated = Boolean(chart);
       const resumeBody = { ...body, idempotencyKey, accessType: access.accessType }; delete resumeBody.accessToken;
       doc = await saveZiweiDelivery(locked, { llmMeta: { ...doc.llmMeta, chartSnapshot: chart, resumeBody: doc.llmMeta?.resumeBody || resumeBody } }, sessionId);
-      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses, answerVoice: pinAnswerVoice(doc.llmMeta || {}, env), planVersion: doc.llmMeta?.groupPlanVersion,
+      const generated = await runWithAiLocale(storedAiLocale(doc), async () => generateInitialConsultation(env, { input: normalized.input, chart, groups: doc.llmMeta.groups, attempts: doc.llmMeta.attempts, meta: doc.llmMeta.reportMeta, rawResponses: doc.llmMeta.rawResponses, answerVoice: pinAnswerVoice(doc.llmMeta || {}, env), planVersion: doc.llmMeta?.groupPlanVersion, remedyFacts: remedyFactsPinned(doc.llmMeta, env, "ziwei-ai") ? ziweiRemedyBlock(doc.remedyCases) : "",
         checkpoint: async ({ groups, attempts, meta, rawResponses }) => {
           const sections = Object.assign({}, ...Object.values(groups));
           const content = enforceZiweiChartFacts(JSON.stringify({ meta, sections }), chart).text;
@@ -3325,6 +3373,11 @@ export const __ziweiAiTestUtils = {
   buildSectionCharTargets,
   buildSectionGroupPrompt,
   buildMetaPrompt,
+  ziweiRemedyCases,
+  ziweiRemedyBlock,
+  ziweiPromptWithinRemedyBudget,
+  ZIWEI_REMEDY_MAX_CHARS,
+  ZIWEI_REMEDY_PROMPT_BUDGET,
   parseSectionsFromGroupText,
   countSectionChars,
   collectZiweiCrossSectionDuplicates,

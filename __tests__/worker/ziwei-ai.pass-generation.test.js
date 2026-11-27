@@ -370,3 +370,59 @@ test("Family 이용권: 실제 prepare → generate는 provider-free 결과를 �
   expect(paymentCreateMock).not.toHaveBeenCalled();
   expect(paymentUpdateMock).not.toHaveBeenCalled();
 });
+
+// 액땜(R8, SAJU_REMEDY_FACTS_V1 'ziwei-ai'): 첫 호출 env 로 시작하고, 나머지 파도는 later env 로 이어 간다.
+const REMEDY_HEAD = "[액땜 방법";
+const baseEnv = { APP_ENV: "staging", STAGING_LLM_MOCK_ENABLED: "true", WORKERS_AI_ENABLED: "false" };
+const promptAt = (index) => String(structuredLlmMock.mock.calls[index]?.[1] || "");
+const groupKeys = (prompt) => (prompt.match(/- 위 JSON 의 ([^\n]+?) 만 작성합니다\./)?.[1] || "").split(",").map((key) => key.trim());
+async function runRemedyConsultation(firstEnv, laterEnv) {
+  const prepared = await (await handleZiweiAiRoutes(post("/prepare", requestBody()), firstEnv)).json();
+  let response;
+  let firstWaveCalls = 0;
+  for (let wave = 0; wave < 7; wave++) {
+    response = await handleZiweiAiRoutes(post("/generate", requestBody(prepared.accessToken)), wave === 0 ? firstEnv : laterEnv, EXECUTION_CTX);
+    expect(response.status).toBe(wave < 6 ? 202 : 200);
+    if (wave === 0) firstWaveCalls = structuredLlmMock.mock.calls.length;
+  }
+  const generated = await response.json();
+  expect(generated.consultation.status).toBe("completed");
+  const replay = await handleZiweiAiRoutes(post("/generate", requestBody(prepared.accessToken)), laterEnv, EXECUTION_CTX);
+  expect(replay.status).toBe(200);
+  const prompts = structuredLlmMock.mock.calls.map((_, index) => promptAt(index));
+  return { generated, replayed: await replay.json(), prompts, firstWaveCalls };
+}
+
+test("액땜 ON: 시작 때 카드를 저장하고 처방 묶음 프롬프트에만 블록을 한 번 붙인다", async () => {
+  const env = { ...baseEnv, SAJU_REMEDY_FACTS_V1: "ziwei-ai" };
+  const { generated, replayed, prompts } = await runRemedyConsultation(env, env);
+  expect(consultation.llmMeta.remedyFacts).toBe("remedy-facts-v1");
+  expect(consultation.remedyCases).toMatchObject({ version: "remedy-v1", valid: true, locale: "ko" });
+  expect(consultation.remedyCases.cases.length).toBeGreaterThan(0);
+  const withBlock = prompts.filter((prompt) => prompt.includes(REMEDY_HEAD));
+  expect(withBlock).toHaveLength(1);
+  expect(withBlock[0].split(REMEDY_HEAD).length - 1).toBe(1);
+  expect(groupKeys(withBlock[0])).toContain("prescription");
+  expect(withBlock[0]).toContain("액땜 방법은 블록 목록에서 고르고, 풍속은 소개로만 쓴다.");
+  expect(structuredLlmMock).toHaveBeenCalledTimes(7);
+  expect(generated.consultation.remedyCases).toEqual(consultation.remedyCases);
+  expect(replayed.consultation.remedyCases).toEqual(consultation.remedyCases);
+  expect(consumePassForFeatureMock).toHaveBeenCalledTimes(1);
+});
+
+test("액땜 킬 스위치(\"\"): 진행 중 상담은 블록 없이 끝까지 전달되고 저장한 카드는 남는다", async () => {
+  const { generated, prompts, firstWaveCalls } = await runRemedyConsultation({ ...baseEnv, SAJU_REMEDY_FACTS_V1: "ziwei-ai" }, { ...baseEnv, SAJU_REMEDY_FACTS_V1: "" });
+  expect(consultation.llmMeta.remedyFacts).toBe("remedy-facts-v1");
+  expect(prompts.slice(firstWaveCalls).some((prompt) => prompt.includes(REMEDY_HEAD))).toBe(false);
+  expect(generated.consultation.remedyCases).toEqual(consultation.remedyCases);
+  expect(consumePassForFeatureMock).toHaveBeenCalledTimes(1);
+});
+
+test("액땜 옛 상담: 꺼진 채 시작한 상담은 나중에 켜도 블록·카드가 없다", async () => {
+  const { generated, prompts } = await runRemedyConsultation(baseEnv, { ...baseEnv, SAJU_REMEDY_FACTS_V1: "ziwei-ai" });
+  expect(consultation.llmMeta.remedyFacts).toBeUndefined();
+  expect(consultation.remedyCases).toBeUndefined();
+  expect(prompts.some((prompt) => prompt.includes(REMEDY_HEAD))).toBe(false);
+  expect(generated.consultation).not.toHaveProperty("remedyCases");
+  expect(consumePassForFeatureMock).toHaveBeenCalledTimes(1);
+});
