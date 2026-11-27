@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-27
-next: 단계 9 — 전달 (check:pre-push → 메인 체크아웃 merge·push → main CI 1회 → production dispatch 1회 → 워크트리 배수·문서 done)
+next: (완료) 운영 dispatch 는 옆 세션 커밋 포함 범위 재확인 후 메인 세션이 실행
 ---
 
 # 유료 LLM 결제 후 미제공 제거 + 이용권 혜택 정확 적용
@@ -94,7 +94,7 @@ next: 단계 9 — 전달 (check:pre-push → 메인 체크아웃 merge·push �
   - (e) worker/routes/payments.js:2554-2780에서 legacy success 이용권 주문을 셀프 취소하면 `profileSubscription`을 회수한다. 지금은 `isDigitalSinglePurchase`(2747)만 회수한다.
   - (f) `derivePassOrderId`(passes.js:93-98)에서 standard와 s 티어의 접두가 충돌한다. id 변경은 RED이므로 안전하지 않으면 보고만 한다.
   - 테스트: lastPgStatus가 "ready"인데 PortOne이 PAID면 expire하지 않고 확정한다. 실행 대상은 `__tests__/worker/payments-v2.reconcile.test.js`, `payments-v2.subscription`, `payments-v2.entitlements`, `payments-v2.webhook-events`, `pass-policy-v5`, `pass-coverage-matrix`, `scripts/verify-payment-reconcile.mjs`, `verify-payment-concurrency-guards.mjs`다.
-- [ ] 9. **전달**
+- [x] 9. **전달** — main push 06d863056e (check:pre-push exit 0). 운영 dispatch 는 범위 재확인 대기
   1. `npm run check:pre-push`를 돌린다.
   2. 메인 체크아웃에서 `git merge`(PR 없음)한 뒤 push하고, main CI를 1회 확인한다.
   3. production dispatch를 1회 실행한다.
