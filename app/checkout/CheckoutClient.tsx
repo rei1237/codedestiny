@@ -1,17 +1,15 @@
 "use client";
 
 /**
- * 영냥이(SoulCat) Family·월정석·단건 결제 호스트 — 겸 CD 내부 영냥이 상품(app/yeongnyangi/) 결제창.
+ * CD 내부 영냥이 상품(app/yeongnyangi/) 결제창 — 꿀단지 이용권·월정석·단건 결제.
  *
  * 흐름: 상담 요청이 402 `PAYMENT_REQUIRED` 로 `/checkout/?featureKey=yeongnyangi-…&returnTo=/yeongnyangi/…` 를
  * 가리킨다 → 여기서 CD 결제창을 **꿀단지 이용권·월정석·단건 결제**로 연다 → 권한이 확인되면 returnTo 로 돌아간다.
  * 결과 화면은 CODE DESTINY 서버에서 동일 요청의 PG 증명을 확인하고 저장된 상담을 이어간다.
  *
- * 이 페이지는 두 진입점을 공유한다 — `isSoulCatMode = !params.requestId`로 분기한다.
- * - **SoulCat 모드**(`requestId` 없음, featureKey+returnTo만 옴): 위 흐름 그대로. 가용성 확인·웹훅
- *   선확인을 스킵한다(SoulCat 쪽에 대응하는 CD 상담 레코드가 없어 조회 자체가 불가능하기 때문).
- * - **CD 내부 모드**(`requestId`=64자리 상담 id): CD 자체 영냥이 상품이 결제 전 만들어 둔 상담
- *   레코드의 id로 이 페이지를 연다 — `available`/웹훅 선확인이 그 레코드를 직접 조회한다.
+ * 진입은 `requestId`(64자리 상담 id)가 필수다 — 영냥이가 결제 전 만들어 둔 상담 레코드를 `available`/웹훅
+ * 선확인이 직접 조회한다. requestId 없는 진입은 결제를 열지 않고 안내(notice)만 보인다.
+ * (옛 외부 SoulCat 프로젝트의 requestId 없는 결제 모드는 영냥이로 통합되며 2026-11-27 제거했다.)
  *
  * 🔴 이용권 적용 범위는 레지스트리 paymentScope 와 서버 evaluatePassCoverage 가 정한다: 생선 상담(direct_or_pass)은
  *    모든 꿀단지가 건당 상한·남은 한도 안에서 열고(고등어 100코인은 중간 꿀단지부터), 모둠·오마카세(direct_or_family)는
@@ -135,8 +133,6 @@ function saveQuestionEdit(reading: FortuneRecord | null): void {
   catch { /* The question form remains usable without local storage. */ }
 }
 
-/** SoulCat 모드(requestId 없음)의 결정론적 requestId 재료. 서버 idempotency 키는 120자 상한만 있고
- * charset 제약은 없다 — 이 정리는 가독성용이지 정확성 요건이 아니다. */
 // 결제 화면 오류 문구. 한국어 화면은 공용 규칙(한국어 안내만 통과, "Failed to fetch" 같은 원문은 숨김)을 따르고,
 // 다른 언어 화면은 서버의 한국어 문구 대신 그 언어 안내를 쓴다. ownMessages 는 이 화면이 직접 던진 안내다.
 function checkoutErrorText(caught: unknown, fallback: string, lang: string, ownMessages: string[] = []): string {
@@ -144,10 +140,6 @@ function checkoutErrorText(caught: unknown, fallback: string, lang: string, ownM
   if (text && ownMessages.includes(text)) return text;
   if (lang !== "ko") return fallback;
   return friendlyErrorMessage(typeof caught === "string" ? new Error(caught) : caught, fallback);
-}
-
-function stableSlug(value: string): string {
-  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "default";
 }
 
 export default function CheckoutClient({draft}:{draft?:ConsultationCheckoutDraft}={}) {
@@ -171,7 +163,6 @@ function SavedConsultationCheckout({requestId,featureKey}:{requestId:string;feat
 }
 function PreparedCheckoutClient() {
   const [params] = useState<CheckoutParams>(() => readParams());
-  const isSoulCatMode = !params.requestId;
   const auth = useAuthStore();
   const paymentLock=useRef(false),packLock=useRef(false);
   const [packBusy,setPackBusy]=useState(false);
@@ -275,7 +266,6 @@ function PreparedCheckoutClient() {
   }, [pricing, authSettled, signedIn]);
 
   useEffect(()=>{
-    if(isSoulCatMode){setAvailable(true);setChecked(true);return;}
     if(!signedIn||!params.requestId){setChecked(true);return;}
     let active=true;
     Promise.all([fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`),fortuneApi<{products:{cdFeatureKey:string;available:boolean}[]}>('products')]).then(([record,catalog])=>{
@@ -286,14 +276,14 @@ function PreparedCheckoutClient() {
       setAvailable(catalog.products.some(p=>p.cdFeatureKey===params.featureKey&&p.available));
     }).catch(e=>{if(active)setGate({phase:'error',message:checkoutErrorText(e,copy.errPaymentUnknown,lang,[copy.errProductMismatch])});}).finally(()=>{if(active)setChecked(true);});
     return ()=>{active=false;};
-  },[isSoulCatMode,signedIn,params,copy,lang]);
+  },[signedIn,params,copy,lang]);
 
   // 보유 꿀단지가 이 상담을 지금 덮는지(상품 범위·건당 상한·남은 한도)는 서버 적격성만 쓴다. 덮을 때만 주 버튼 옆에 둔다.
-  // 표시 전용 조회다 — 차감은 사용자가 고른 뒤 공용 게이트가 서버에서 다시 판정한다. SoulCat 모드는 CD 상담 레코드가 없어 제외한다.
+  // 표시 전용 조회다 — 차감은 사용자가 고른 뒤 공용 게이트가 서버에서 다시 판정한다.
   const ownerId=String(auth.user?.id||auth.user?._id||'');
   const [passChoice,setPassChoice]=useState<{key:string;owner:string;label:string}|null>(null);
   useEffect(()=>{
-    if(!pricing||isSoulCatMode||!signedIn||!checked||!available)return;
+    if(!pricing||!signedIn||!checked||!available)return;
     // PG 성공 복귀 문서는 재개 핸들러가 곧 location.replace 로 떠나 이 조회가 취소만 된다. 실패 복귀(code·imp_success=false, ServicePacks 와 같은 판별)는 이 화면에 남으므로 그대로 읽는다.
     if(params.paymentReturn){const q=new URLSearchParams(window.location.search);if(!(q.has('code')||q.get('imp_success')==='false'))return;}
     let active=true;const key=pricing.featureKey,owner=ownerId;
@@ -301,28 +291,24 @@ function PreparedCheckoutClient() {
       if(active)setPassChoice(result.ok&&result.data?.pass?.canUse?{key,owner,label:String(result.data.pass.label||'')}:null);
     }).catch(()=>{/* 판정을 못 읽으면 접힌 영역의 기존 버튼만 남긴다. */});
     return ()=>{active=false;};
-  },[pricing,isSoulCatMode,signedIn,checked,available,ownerId,params.paymentReturn]);
-  const passBeside=Boolean(passChoice&&pricing&&passChoice.key===pricing.featureKey&&passChoice.owner===ownerId&&!isSoulCatMode);
+  },[pricing,signedIn,checked,available,ownerId,params.paymentReturn]);
+  const passBeside=Boolean(passChoice&&pricing&&passChoice.key===pricing.featureKey&&passChoice.owner===ownerId);
 
   const startPayment = useCallback(async (paymentMode:'DIRECT_KRW'|'MEMBERSHIP_PASS'|'MOONLIGHT_STONE'='DIRECT_KRW') => {
     if (!pricing || !available || paymentLock.current || packLock.current) return;
     const moonstoneQuantity=paymentMode==='DIRECT_KRW'?Number(moonstoneInput):0;
     if (!Number.isSafeInteger(moonstoneQuantity) || moonstoneQuantity<0
-      || (moonstoneQuantity>0 && (isSoulCatMode || pricing.monthlyCreditMultiplier!==1
+      || (moonstoneQuantity>0 && (pricing.monthlyCreditMultiplier!==1
         || pricing.amountKRW-moonstoneQuantity*(pricing.amountKRW/pricing.membershipCreditCost)<1000))) {
       setGate({phase:'error',message:'사용할 월정석 수량을 확인해 주세요. 단건 결제 잔액은 1,000원 이상이어야 해요.'});return;
     }
     paymentLock.current=true;
     setGate({ phase: "paying" });
     try {
-      if (!isSoulCatMode) {
-        // Read only: activate can consume Family before a payment method is chosen.
-        const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`);
-        if(fortune.paid){window.location.replace(params.returnTo);return;}
-      }
-      const requestId = isSoulCatMode
-        ? `yn-soulcat-${params.featureKey}-${stableSlug(params.returnTo)}`
-        : `yn-${params.requestId}`;
+      // Read only: activate can consume Family before a payment method is chosen.
+      const {fortune}=await fortuneApi<{fortune:FortuneRecord}>(`requests/${params.requestId}`);
+      if(fortune.paid){window.location.replace(params.returnTo);return;}
+      const requestId = `yn-${params.requestId}`;
       const result = await runPaidAccessGate({
         featureKey: pricing.featureKey,
         reason: productName,
@@ -331,7 +317,7 @@ function PreparedCheckoutClient() {
         amountKRW: pricing.amountKRW,
         // The shared direct-payment dialog records refund consent and chooses the PG method.
         paymentMode: paymentMode==='DIRECT_KRW'?undefined:paymentMode,
-        allowedPaymentModes: paymentMode==='DIRECT_KRW'&&!isSoulCatMode ? ["direct"] : pricing.monthlyExcluded ? ["pass", "direct"] : ["pass", "direct", "monthly"],
+        allowedPaymentModes: paymentMode==='DIRECT_KRW' ? ["direct"] : pricing.monthlyExcluded ? ["pass", "direct"] : ["pass", "direct", "monthly"],
         membershipCreditCost: pricing.membershipCreditCost,
         moonstoneQuantity,
         disablePassFirst: paymentMode!=='MEMBERSHIP_PASS',
@@ -351,14 +337,13 @@ function PreparedCheckoutClient() {
       if(error instanceof FortuneApiError && error.status===401){redirectToLogin();return;}
       setGate({phase:'error',message:checkoutErrorText(error,copy.errPaymentUnknown,lang)});
     } finally { paymentLock.current=false; }
-  }, [pricing, available, buildResume, params, copy, lang, isSoulCatMode, productName, moonstoneInput]);
+  }, [pricing, available, buildResume, params, copy, lang, productName, moonstoneInput]);
 
-  // CD 내부 모드의 returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)라 결제를 그만두고 나가는 링크에 쓰지 않는다.
-  // SoulCat 모드의 returnTo 는 진짜 직전 화면이라 그대로 쓴다.
-  const leaveHref = isSoulCatMode ? params.returnTo : DEFAULT_RETURN_TO;
-  const chooseHref = isSoulCatMode ? params.returnTo : FISH_CHOOSER_PATH;
+  // returnTo 는 결제 "성공" 뒤 이동 주소(미결제면 "0 / N개 챕터 저장됨" 결과 화면)라 결제를 그만두고 나가는 링크에 쓰지 않는다.
+  const leaveHref = DEFAULT_RETURN_TO;
+  const chooseHref = FISH_CHOOSER_PATH;
   const leaveToPreviousScreen = (event: MouseEvent<HTMLAnchorElement>) => {
-    if (!isSoulCatMode) returnToPreviousScreen(event, params.paymentReturn);
+    returnToPreviousScreen(event, params.paymentReturn);
   };
 
   const showTierDepth = Boolean(reading?.manifest?.some(isConciseReading) && product && readingTierDepth(product.fishId,lang));
@@ -367,15 +352,11 @@ function PreparedCheckoutClient() {
       <nav className={styles.nav} aria-label={copy.navAria}>
         <a href={leaveHref} onClick={leaveToPreviousScreen}>{copy.backToRoom}</a><a href="/">CODE DESTINY</a>
       </nav>
-      <section className={`${styles.checkout} ${!isSoulCatMode?styles.simpleCheckout:''}`} aria-labelledby="checkout-title">
-        {isSoulCatMode&&<div className={styles.host}>
-          <img src="/assets/yeongnyangi/payment-alliance/yeoni-alliance-v1.webp" alt={alliance.imageAlt} width={1200} height={800} />
-          <div><h2>{alliance.title}</h2><p>{alliance.story}</p></div>
-        </div>}
+      <section className={`${styles.checkout} ${styles.simpleCheckout}`} aria-labelledby="checkout-title">
         <div className={styles.paper}>
-          <h1 id="checkout-title">{!isSoulCatMode&&lang==='ko'?'상담 범위와 결제 확인':copy.title}</h1>
-          <p className={styles.intro}>{!isSoulCatMode&&lang==='ko'?'먼저 이번 상담 한 번으로 시작해도 좋아요.':copy.intro}</p>
-          {!pricing || !product ? (
+          <h1 id="checkout-title">{lang==='ko'?'상담 범위와 결제 확인':copy.title}</h1>
+          <p className={styles.intro}>{lang==='ko'?'먼저 이번 상담 한 번으로 시작해도 좋아요.':copy.intro}</p>
+          {!pricing || !product || !params.requestId ? (
             <div className={styles.notice}>
               <h2>{copy.noticeTitle}</h2>
               <p>{copy.noticeBody}</p>
@@ -387,27 +368,21 @@ function PreparedCheckoutClient() {
                 <img src={lang==='ko'?`/assets/yeongnyangi/fish/${product.fishId}.webp`:product.reactionAsset} alt="" width={240} height={108} />
                 <div><h2>{lang==='ko'?scopeName||`${product.name} · ${product.fishName}`:`${localizedSystem(product.readingKind==='single'?product.domain:'fusion',lang)} · ${localizedTier(product.fishId,lang)}`}</h2><p data-reading-tier-depth={showTierDepth?product.fishId:undefined}>{showTierDepth?readingTierDepth(product.fishId,lang):lang==='ko'?depthDescriptions[product.fishId]:consultationLocaleCopy(lang).method}</p></div>
               </div>
-              {!isSoulCatMode&&scopeName&&<p className={styles.depthNote}>{lang==='ko'?`${product.name} · ${FOLLOWUP_LIMITS[product.fishId as FishId]>0?`기본 상담과 추가 질문 ${FOLLOWUP_LIMITS[product.fishId as FishId]}회 포함`:'이번 질문에 대한 답과 근거, 실천할 행동을 정리해요.'}`:copy.chapters(reading?.manifest?.length??product.chapterCount)}</p>}
+              {scopeName&&<p className={styles.depthNote}>{lang==='ko'?`${product.name} · ${FOLLOWUP_LIMITS[product.fishId as FishId]>0?`기본 상담과 추가 질문 ${FOLLOWUP_LIMITS[product.fishId as FishId]}회 포함`:'이번 질문에 대한 답과 근거, 실천할 행동을 정리해요.'}`:copy.chapters(reading?.manifest?.length??product.chapterCount)}</p>}
               {showTierDepth&&<p className={styles.depthNote} data-reading-depth-note>{readingDepthCopy(lang).sharedTopics}</p>}
-              {isSoulCatMode&&<dl className={styles.receipt}>
-                <div><dt>{copy.rowComposition}</dt><dd>{copy.chapters(reading?.manifest?.length ?? product.chapterCount)}</dd></div>
-                <div><dt>{copy.rowMethod}</dt><dd>{copy.methodDirect}</dd></div>
-                {!(iosApp && !nativePrice) && <div className={styles.total}><dt>{copy.rowAmount}</dt><dd>{nativePrice === null ? formatKrw(pricing.amountKRW) : nativePrice || 'Google Play'}</dd></div>}
-
-              </dl>}
               <p data-reading-output-locale={reading?.locale||lang}>{askPhase5Copy(lang).input.language}: <b lang={reading?.locale||lang}>{readingLanguageNames[reading?.locale||lang]}</b></p>
               {/* 2026-10-17 "직관성": 기본 화면은 결제 버튼 하나. 보유 이용권·월정석은 이 접힘 영역 하나에 둔다(결제 로직은 그대로). */}
               <details className={styles.benefits}>
                 <summary>{lang==='ko'?'이용권 · 월정석으로 결제하기':'Use existing benefits'}</summary>
                 <p>{lang==='ko'?'직접 선택한 혜택만 사용해요. 적용 가능 여부는 서버에서 확인해요.':'Benefits are used only when you select them. Eligibility is verified by the server.'}</p>
-              {!isSoulCatMode && checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
+              {checked && signedIn && available && <ServicePackCheckout requestId={params.requestId} featureKey={pricing.featureKey} locale={lang}
                 disabled={gate.phase === "paying" || gate.phase === "paid"}
                 onBusyChange={busy=>{packLock.current=busy;setPackBusy(busy);}}
                 onPaid={()=>{setGate({phase:"paid"});window.location.replace(params.returnTo);}} />}
 
                 {!passBeside&&<button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MEMBERSHIP_PASS')}>{lang==='ko'?'보유 꿀단지 적용하기':'Use existing Honey Jar'}</button>}
                 {!pricing.monthlyExcluded&&<button type="button" disabled={!authSettled||!signedIn||!checked||!available||packBusy||gate.phase==='paying'||gate.phase==='paid'} onClick={()=>void startPayment('MOONLIGHT_STONE')}>{lang==='ko'?`보유 월정석 ${pricing.membershipCreditCost.toLocaleString('ko-KR')}개 사용`:alliance.moonstones(pricing.membershipCreditCost.toLocaleString(intlLocale))}</button>}
-              {!isSoulCatMode && nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
+              {nativePrice===null && lang==='ko' && !pricing.monthlyExcluded && pricing.monthlyCreditMultiplier===1 && <fieldset className={styles.discount} disabled={gate.phase==='paying'||gate.phase==='paid'||packBusy}>
                 <legend>월정석으로 단건 결제 할인받기</legend>
                 <MoonstoneDiscountBalance signedIn={signedIn} userId={String(auth.user?.id||'')} maxDiscountStones={Math.floor((pricing.amountKRW-1000)/(pricing.amountKRW/pricing.membershipCreditCost))} selected={selectedStones} onUse={setMoonstoneInput}/>
                 <label htmlFor="moonstone-discount">사용할 월정석 수량</label>
@@ -428,7 +403,7 @@ function PreparedCheckoutClient() {
                 disabled={!authSettled || !signedIn || !checked || !available || packBusy || gate.phase === "paying" || gate.phase === "paid"}
                 className={styles.pay}>
                 {!authSettled ? copy.payAuthChecking : !checked ? copy.payOrderChecking : !available ? copy.payUnavailable : gate.phase === "paying" ? copy.payOpening
-                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : lang==='ko'&&!isSoulCatMode&&nativePrice===null ? `${formatKrw(validDiscount ? discountedAmount : pricing.amountKRW)} 결제하기` : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || (iosApp ? '' : 'Google Play'))}
+                  : gate.phase === "paid" ? copy.payReturning : gate.phase === "confirming" ? copy.payOrderChecking : lang==='ko'&&nativePrice===null ? `${formatKrw(validDiscount ? discountedAmount : pricing.amountKRW)} 결제하기` : copy.payAction(nativePrice === null ? formatKrw(validDiscount ? discountedAmount : pricing.amountKRW) : nativePrice || (iosApp ? '' : 'Google Play'))}
               </button>
               </div>
               {passBeside&&<p className={styles.passNote}>{lang==='ko'?`${passChoice?.label||'보유 꿀단지'} 한도에서 이용할 수 있어요 · 추가 결제 없음`:'Your Honey Jar covers this consultation · no extra payment'}</p>}
@@ -440,8 +415,8 @@ function PreparedCheckoutClient() {
                 {gate.phase === "confirming" ? <p role="status">{gate.message}</p> : null}
               </div>
               <a href={chooseHref} className={styles.back} onClick={()=>{
-                if(!isSoulCatMode)saveQuestionEdit(reading);
-              }}>{!isSoulCatMode&&lang==='ko'?'질문 조건 수정하기':copy.reselect}</a>
+                saveQuestionEdit(reading);
+              }}>{lang==='ko'?'질문 조건 수정하기':copy.reselect}</a>
               <p className={styles.security}>
                 <a href={policyHrefs.terms}>{copy.legalTerms}</a> · <a href={policyHrefs.refund}>{copy.legalRefund}</a> · <a href={policyHrefs.support}>{copy.legalSupport}</a>
               </p>

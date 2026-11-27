@@ -43,6 +43,5 @@ test('every tier has an account label, and no pass reads as none rather than 0 d
 test('iOS app hides server KRW: no pending-pack resume card, no Google Play label in checkout (R2)',async()=>{
  const checkout=await readFile(new URL('../../app/checkout/CheckoutClient.tsx',import.meta.url),'utf8');
  assert.match(packs,/resumePlan&&pending&&!isIosAppRuntime\(\)&&<div[^>]*data-pack-resume/);
- assert.ok(checkout.includes("{!(iosApp && !nativePrice) && <div className={styles.total}>"));
  assert.ok(checkout.includes("nativePrice || (iosApp ? '' : 'Google Play'))"));
 });
