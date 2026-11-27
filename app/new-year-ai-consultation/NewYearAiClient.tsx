@@ -57,6 +57,7 @@ import SajuPillarTable from "@/components/fortune/SajuPillarTable";
 import { splitGanji, tenGodOfStem } from "@/lib/five-element-colors";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import ChapterReaderDock from "@/components/fortune/reader/ChapterReaderDock";
+import RemedyCaseCards from "@/components/fortune/remedy/RemedyCaseCards";
 import { FLAGSHIP_CHAPTER_READER_ENABLED } from "@/lib/flagship-premium/flags.mjs";
 
 // 접근성 속성(aria-label/title)만 다국어화한다 — 이 파일의 본문 표시 텍스트 전체 번역은
@@ -326,6 +327,8 @@ type ConsultationResult = {
   sections?: ConsultationSection[];
   sajuProfile?: SajuProfile | null;
   monthlyFlow?: MonthlyFlowRow[];
+  // 액땜 카드: 생성 시작 때 서버가 한 번 저장한 값. 옛 기록에는 없어 카드가 안 보인다.
+  remedyCases?: unknown;
   targetYear?: TargetYearInfo | null;
   reason?: string;
   message?: string;
@@ -1607,6 +1610,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
   const [readingCount, setReadingCount] = useState<{ completed: number; total: number } | null>(null);
   const [sajuProfile, setSajuProfile] = useState<SajuProfile | null>(null);
   const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlowRow[]>([]);
+  const [remedyCases, setRemedyCases] = useState<unknown>(null);
   const [targetYearInfo, setTargetYearInfo] = useState<TargetYearInfo | null>(null);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
   const [showCustomYear, setShowCustomYear] = useState(false);
@@ -1631,7 +1635,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     window.clearTimeout(autoResumeRef.current.timer); autoResumeRef.current = { timer: 0, rounds: 0, best: 0 };
     idempotencyKeyRef.current = createIdempotencyKey();
     if(paymentSurface==='toss'){tossRevision.current++;tossBusy.current=false;tossViewedId.current='';setForm(defaultForm());setTossFailureCode('');setTossRecovery(typeof window!=='undefined'&&new URLSearchParams(window.location.search).get('sid')?'checking':'none');}
-    setMessages([]); setServerSections([]); setSajuProfile(null); setMonthlyFlow([]); setTargetYearInfo(null); setRecentSessions([]);
+    setMessages([]); setServerSections([]); setSajuProfile(null); setMonthlyFlow([]); setRemedyCases(null); setTargetYearInfo(null); setRecentSessions([]);
     setStatus("idle"); setError(""); setNotice(""); setReloadEpoch(value => value + 1);
   });
   const resultRef = useRef<HTMLDivElement | null>(null);
@@ -1663,6 +1667,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     setReadingCount(result.status && result.status !== "completed" ? result.progress ?? null : null);
     setSajuProfile(result.sajuProfile || null);
     setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
+    setRemedyCases(result.remedyCases && typeof result.remedyCases === "object" ? result.remedyCases : null);
     setTargetYearInfo(result.targetYear || null);
     setNotice("");
     setError("");
@@ -1939,7 +1944,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     if(paymentSurface!=='toss')return;
     const owner=captureDeliveryScope();let cancelled=false;
     const sid=new URLSearchParams(window.location.search).get('sid')||'',changed=sid!==tossViewedId.current;
-    if(changed){tossViewedId.current=sid;tossRevision.current++;tossBusy.current=false;setMessages([]);setServerSections([]);setSajuProfile(null);setMonthlyFlow([]);setTargetYearInfo(null);setError('');}
+    if(changed){tossViewedId.current=sid;tossRevision.current++;tossBusy.current=false;setMessages([]);setServerSections([]);setSajuProfile(null);setMonthlyFlow([]);setRemedyCases(null);setTargetYearInfo(null);setError('');}
     else if(tossBusy.current)return()=>{cancelled=true;};
     if(sid)void resumeTossNewYear(sid,()=>!cancelled&&owner());else if(changed){setTossRecovery('none');setStatus('idle');}
     const readRevision=tossRevision.current;
@@ -1982,6 +1987,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     setReadingCount(null);
     setSajuProfile(null);
     setMonthlyFlow([]);
+    setRemedyCases(null);
     setTargetYearInfo(null);
     setError("");
     setNotice("");
@@ -2029,7 +2035,7 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
     }
   });
 
-  function clearTossResult(){setMessages([]);setServerSections([]);setSajuProfile(null);setMonthlyFlow([]);setTargetYearInfo(null);setAccessType('');}
+  function clearTossResult(){setMessages([]);setServerSections([]);setSajuProfile(null);setMonthlyFlow([]);setRemedyCases(null);setTargetYearInfo(null);setAccessType('');}
   function showTossFailure(caught:unknown){
     const code=tossNewYearFailure(caught);
     const denied=['LOGIN_REQUIRED','SESSION_EXPIRED','ACCESS_DENIED','ORDER_OWNERSHIP_MISMATCH','ORDER_REFUNDED','PAYMENT_REVOKED','RESULT_NOT_FOUND'].includes(code);
@@ -2595,6 +2601,10 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
                   <RevealBlock index={4}>
                     <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />
                   </RevealBlock>
+                  {/* 액땜 카드는 저장된 remedyCases 만 그린다. 없거나 깨지면 카드만 빠지고 칸은 :empty 로 접힌다. */}
+                  <div className="nyai-remedy-slot">
+                    <RemedyCaseCards remedyCases={remedyCases} narrator="neo" theme="dark" headingLevel={3} />
+                  </div>
                   <RevealBlock index={5}>
                     <MonthlyLetterAccordion rows={monthlyFlow} letters={classified.monthLetters} />
                   </RevealBlock>
@@ -2722,6 +2732,15 @@ export default function NewYearAiConsultationPage({paymentSurface="web",ProfileP
         .nyai-reveal {
           display: block;
           min-width: 0;
+        }
+
+        .nyai-remedy-slot {
+          margin: 14px 0;
+          min-width: 0;
+        }
+
+        .nyai-remedy-slot:empty {
+          display: none;
         }
 
         .nyai-messages.is-exporting .nyai-reveal,
