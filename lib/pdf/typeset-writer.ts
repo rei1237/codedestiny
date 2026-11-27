@@ -365,6 +365,7 @@ export function drawContentsPage(
   page: number,
   entries: { label: string; page: number }[],
   heading: string,
+  numberColor: Rgb = INK.muted,
 ): void {
   pdf.setPage(page);
   pdf.setFont(fonts.title, "normal");
@@ -381,20 +382,20 @@ export function drawContentsPage(
     pdf.setTextColor(INK.body[0], INK.body[1], INK.body[2]);
     const label = (pdf.splitTextToSize(entry.label, CONTENT_WIDTH_MM - 14) as string[])[0] || entry.label;
     pdf.text(label, MARGIN_X_MM, cursorY);
-    pdf.setTextColor(INK.muted[0], INK.muted[1], INK.muted[2]);
+    pdf.setTextColor(numberColor[0], numberColor[1], numberColor[2]);
     pdf.text(String(entry.page), MARGIN_X_MM + CONTENT_WIDTH_MM, cursorY, { align: "right" });
     cursorY += lineHeightMm(10.5, 2.1);
   }
 }
 
-export function drawFooters(pdf: JsPDFInstance, fonts: PdfFonts, watermarkText: string, fromPage = 3): void {
+export function drawFooters(pdf: JsPDFInstance, fonts: PdfFonts, watermarkText: string, fromPage = 3, color: Rgb = INK.muted): void {
   const total = pdf.getNumberOfPages();
   // 표지(1)와 차례(2)에는 쪽번호를 넣지 않는다 — 본문 쪽번호와 차례의 숫자가 어긋나면 안 된다.
   for (let page = fromPage; page <= total; page += 1) {
     pdf.setPage(page);
     pdf.setFont(fonts.body, "normal");
     pdf.setFontSize(8);
-    pdf.setTextColor(INK.muted[0], INK.muted[1], INK.muted[2]);
+    pdf.setTextColor(color[0], color[1], color[2]);
     pdf.text(watermarkText, MARGIN_X_MM, FOOTER_BASELINE_MM);
     pdf.text(String(page), MARGIN_X_MM + CONTENT_WIDTH_MM, FOOTER_BASELINE_MM, { align: "right" });
   }

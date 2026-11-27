@@ -225,7 +225,8 @@ function addFooterToAllPages(pdf: JsPDFInstance, watermarkText: string, bodyFont
     pdf.setPage(page);
     if (bodyFont) pdf.setFont(bodyFont, "normal");
     pdf.setFontSize(8);
-    pdf.setTextColor(150, 150, 150);
+    // 8pt 바닥글 — (150,150,150)은 흰 종이 위 2.96:1 이라 (112,112,112) ≈ 4.9:1 로 내린다.
+    pdf.setTextColor(112, 112, 112);
     pdf.text(watermarkText, PAGE_MARGIN_MM, FOOTER_BASELINE_MM);
     pdf.text(`${page} / ${totalPages}`, PAGE_WIDTH_MM - PAGE_MARGIN_MM, FOOTER_BASELINE_MM, { align: "right" });
   }

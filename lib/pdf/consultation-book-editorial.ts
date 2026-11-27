@@ -42,8 +42,23 @@ export function consultationEditorialTheme(theme?: ConsultationBookOptions['cove
 }
 
 /** 본문 조판기의 제목·강조·괘선 색. 본문 글자색은 읽기 대비를 위해 기본 먹색을 유지한다. */
+const luminance = (color: RGB) => {
+  const channel = (value: number) => { const v = value / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+  return 0.2126 * channel(color[0]) + 0.7152 * channel(color[1]) + 0.0722 * channel(color[2]);
+};
+/** 종이(252,250,246) 위 작은 글자가 4.6:1 을 넘을 때까지 색을 같은 색조로 어둡게 한다. */
+export function readableOnPaper(color: RGB, paper: RGB = [252, 250, 246]): RGB {
+  const paperLight = luminance(paper) + 0.05;
+  let next: RGB = [color[0], color[1], color[2]];
+  while (paperLight / (luminance(next) + 0.05) < 4.6 && next.some(value => value > 0)) {
+    next = [Math.floor(next[0] * 0.95), Math.floor(next[1] * 0.95), Math.floor(next[2] * 0.95)];
+  }
+  return next;
+}
+
+/** 본문 writer 색. 장 머리 글자(gold)는 꽃가지 색을 읽히는 농도까지만 어둡게 쓴다. */
 export function editorialWriterInk(palette: EditorialPalette): TypesetInk {
-  return { title: palette.ink, accent: palette.accent, gold: palette.motif, muted: palette.muted, rule: palette.rule, wash: palette.wash };
+  return { title: palette.ink, accent: palette.accent, gold: readableOnPaper(palette.motif), muted: palette.muted, rule: palette.rule, wash: palette.wash };
 }
 
 function moon(pdf: Pdf, x: number, y: number, r: number, gold: RGB, background: RGB) {

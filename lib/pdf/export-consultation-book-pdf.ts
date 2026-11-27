@@ -167,7 +167,7 @@ export function typesetConsultationBook(pdf: JsPDFInstance, fonts: PdfFonts, opt
   }
   drawLinkedContents(pdf, fonts, toc, editorial);
   drawEditorialPageMarks(pdf, editorial);
-  drawFooters(pdf, fonts, `Code Destiny · ${options.productLabel}`, toc.pages + 2);
+  drawFooters(pdf, fonts, `Code Destiny · ${options.productLabel}`, toc.pages + 2, editorial.muted);
   pdf.setProperties({ title: options.title || options.productLabel, subject: options.productLabel, author: options.byline || 'Code Destiny' });
   return { pdf, chapters: chapters.length, summaryFigures: figures.length, contentsPages: toc.pages, destinations: toc.entries.map(entry => entry.destination) };
 }

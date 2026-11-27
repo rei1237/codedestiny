@@ -3,7 +3,7 @@ import type { jsPDF as JsPDFInstance } from "jspdf";
 import { registerPdfFontsSafely } from "./export-result-pdf";
 import { buildHumanDesignPdfChapters } from "./human-design-report-chapters";
 import { isHumanDesignPdfLocaleSupported } from "./human-design-pdf-locale";
-import { consultationEditorialTheme, drawEditorialFrame, drawEditorialPageMarks, editorialWriterInk } from "./consultation-book-editorial";
+import { consultationEditorialTheme, drawEditorialFrame, drawEditorialPageMarks, editorialWriterInk, readableOnPaper } from "./consultation-book-editorial";
 import {
   CONTENT_WIDTH_MM,
   INK,
@@ -74,6 +74,9 @@ export type ExportHumanDesignReportPdfOptions = {
 
 /** 휴먼 디자인 보고서의 본문 색. 기존 보라·금 인쇄색에 가장 가까운 인연의 서 팔레트다. */
 const HUMAN_DESIGN_EDITORIAL = consultationEditorialTheme('codex');
+/** 표지·차례 작은 글자색 — 공용 INK.gold·muted 는 종이 위 4.5:1 에 못 미쳐 테마 색을 쓴다. */
+const COVER_KICKER = readableOnPaper(HUMAN_DESIGN_EDITORIAL.motif);
+const COVER_MUTED = HUMAN_DESIGN_EDITORIAL.muted;
 
 const CONTENTS_LABEL: Record<string, string> = { ko: "차례", en: "Contents" };
 const KICKER: Record<string, string> = { ko: "CODE DESTINY · 휴먼 디자인", en: "CODE DESTINY · HUMAN DESIGN" };
@@ -84,7 +87,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
 
   pdf.setFont(fonts.body, "normal");
   pdf.setFontSize(9);
-  pdf.setTextColor(INK.gold[0], INK.gold[1], INK.gold[2]);
+  pdf.setTextColor(COVER_KICKER[0], COVER_KICKER[1], COVER_KICKER[2]);
   pdf.text(KICKER[lang], MARGIN_X_MM, 74);
 
   pdf.setFont(fonts.title, "normal");
@@ -102,7 +105,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
 
   pdf.setFont(fonts.body, "normal");
   pdf.setFontSize(11);
-  pdf.setTextColor(INK.muted[0], INK.muted[1], INK.muted[2]);
+  pdf.setTextColor(COVER_MUTED[0], COVER_MUTED[1], COVER_MUTED[2]);
   cursorY += 16;
   pdf.text(cleanReportText(cover.subtitle, 120), MARGIN_X_MM, cursorY);
   cursorY += lineHeightMm(11, 2.2);
@@ -110,7 +113,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   // 확정값 — 차트 계산에서 나온 값만. 모델이 쓴 문장은 표지에 한 줄도 오르지 않는다.
   pdf.setFontSize(10.5);
   for (const fact of cover.facts) {
-    pdf.setTextColor(INK.muted[0], INK.muted[1], INK.muted[2]);
+    pdf.setTextColor(COVER_MUTED[0], COVER_MUTED[1], COVER_MUTED[2]);
     pdf.text(cleanReportText(fact.label, 40), MARGIN_X_MM, cursorY);
     pdf.setTextColor(INK.body[0], INK.body[1], INK.body[2]);
     pdf.text(cleanReportText(fact.value, 80), MARGIN_X_MM + 42, cursorY);
@@ -118,7 +121,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   }
 
   pdf.setFontSize(9);
-  pdf.setTextColor(INK.muted[0], INK.muted[1], INK.muted[2]);
+  pdf.setTextColor(COVER_MUTED[0], COVER_MUTED[1], COVER_MUTED[2]);
   let footY = PAGE_HEIGHT_MM - 46;
   const stamp = [cleanReportText(options.date, 40), `${cover.chapterCount}${lang === "en" ? " chapters" : "장"}`, cover.planVersion]
     .filter(Boolean)
@@ -191,9 +194,9 @@ export async function exportHumanDesignReportPdf(options: ExportHumanDesignRepor
     }
   }
 
-  drawContentsPage(pdf, fonts, contentsPage, entries, CONTENTS_LABEL[lang]);
+  drawContentsPage(pdf, fonts, contentsPage, entries, CONTENTS_LABEL[lang], COVER_MUTED);
   drawEditorialPageMarks(pdf, HUMAN_DESIGN_EDITORIAL);
-  drawFooters(pdf, fonts, watermarkText);
+  drawFooters(pdf, fonts, watermarkText, 3, HUMAN_DESIGN_EDITORIAL.muted);
   if(options.saveBase64)await options.saveBase64(pdf.output("datauristring").split(",")[1],fileName);
   else pdf.save(fileName);
 }

@@ -1,8 +1,11 @@
 import {createBookWriter} from './book-writer';
-import { consultationEditorialTheme, drawEditorialFrame, drawEditorialPageMarks, editorialWriterInk } from './consultation-book-editorial';
+import { consultationEditorialTheme, drawEditorialFrame, drawEditorialPageMarks, editorialWriterInk, readableOnPaper } from './consultation-book-editorial';
 
 /** 초융합 보고서는 기존 보라·금 인쇄색에 가장 가까운 인연의 서 본문 팔레트를 쓴다. */
 const FUSION_EDITORIAL = consultationEditorialTheme('codex');
+/** 표지 작은 글자색 — 공용 INK.gold·muted 는 종이 위 4.5:1 에 못 미쳐 테마 색을 쓴다. */
+const COVER_KICKER = readableOnPaper(FUSION_EDITORIAL.motif);
+const COVER_MUTED = FUSION_EDITORIAL.muted;
 import {bookParagraphs} from './book-paragraphs';
 import {loadFusionArt} from './report-art';
 import {planLinkedContents,drawLinkedContents} from './linked-contents';
@@ -99,7 +102,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   const title = clean(options.result.title, 200) || "초융합 운세";
   pdf.setFont(fonts.body, "normal");
   pdf.setFontSize(9);
-  pdf.setTextColor(INK.gold[0], INK.gold[1], INK.gold[2]);
+  pdf.setTextColor(COVER_KICKER[0], COVER_KICKER[1], COVER_KICKER[2]);
   pdf.text("CODE DESTINY · 여섯 체계 교차 판정", MARGIN_X_MM, 74);
 
   pdf.setFont(fonts.title, "normal");
@@ -122,7 +125,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
 
   pdf.setFont(fonts.body, "normal");
   pdf.setFontSize(11);
-  pdf.setTextColor(INK.muted[0], INK.muted[1], INK.muted[2]);
+  pdf.setTextColor(COVER_MUTED[0], COVER_MUTED[1], COVER_MUTED[2]);
   cursorY += 16;
   for (const line of ["사주 · 자미두수 · 베다점 · 숙요점 · 점성술 · 타로", options.topic ? `상담 주제 · ${clean(options.topic, 80)}` : ""]) {
     if (!line) continue;
@@ -144,7 +147,7 @@ function drawCover(pdf: JsPDFInstance, fonts: { title: string; body: string }, o
   if (!notice) return;
   // 강등 배달을 표지에서 숨기지 않는다 — 나중에 "왜 짧지?"에 답할 근거가 문서 안에 있어야 한다.
   pdf.setFontSize(8.5);
-  pdf.setTextColor(INK.muted[0], INK.muted[1], INK.muted[2]);
+  pdf.setTextColor(COVER_MUTED[0], COVER_MUTED[1], COVER_MUTED[2]);
   let noticeY = PAGE_HEIGHT_MM - 34;
   for (const line of pdf.splitTextToSize(notice, CONTENT_WIDTH_MM) as string[]) {
     pdf.text(line, MARGIN_X_MM, noticeY);
@@ -222,6 +225,6 @@ export async function exportFusionReportPdf(options: ExportFusionReportPdfOption
 
   drawLinkedContents(pdf, fonts, toc, FUSION_EDITORIAL);
   drawEditorialPageMarks(pdf, FUSION_EDITORIAL);
-  drawFooters(pdf, fonts, watermarkText, toc.pages + 2);
+  drawFooters(pdf, fonts, watermarkText, toc.pages + 2, FUSION_EDITORIAL.muted);
   pdf.save(fileName);
 }
