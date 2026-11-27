@@ -175,3 +175,51 @@ test("operator refund is not blocked and returns the counts", async () => {
   expect(cancelPortOnePayment).toHaveBeenCalledTimes(1);
   expect(result.passUse).toEqual({ useCount: 1, lightUseCount: 1, ownedUnlockCount: 1, hasUse: true });
 });
+
+describe("self cancel of an unused pass order revokes the pass", () => {
+  let dbModule;
+  let paymentUpdate;
+  beforeAll(async () => { dbModule = await import("../../worker/lib/db.js"); });
+  beforeEach(() => {
+    seedUse([]);
+    cancelPortOnePayment.mockReset();
+    cancelPortOnePayment.mockResolvedValue({ status: "CANCELLED", cancellation: { status: "SUCCEEDED" } });
+    dbModule.mongoose.startSession = jest.fn(async () => { throw new Error("Transaction numbers are only allowed on a replica set member"); });
+    paymentUpdate = jest.fn(() => ({ lean: async () => passOrder({ status: "cancelled" }) }));
+    models.Payment.findByIdAndUpdate = paymentUpdate;
+  });
+  const sub = (lastPassOrderId) => ({ profileSubscription: {
+    tier: "standard", passTier: "standard", isActive: true, lastPassOrderId,
+    expiresAt: new Date(Date.now() + 10 * 86_400_000), monthlyLimitCoin: 150, monthlySpendCoin: 0 } });
+
+  test("the latest pass order is downgraded and the cancel records the revocation", async () => {
+    models.User.collection.findOne = jest.fn(async () => sub("cdorder-pass"));
+    models.User.collection.updateOne = jest.fn(async () => ({ matchedCount: 1, modifiedCount: 1 }));
+    const { status, payload } = await postCancel();
+    expect(status).toBe(200);
+    expect(payload.unlockRevoked).toBe(true);
+    expect(payload.adminReviewRequired).toBe(false);
+    expect(models.User.collection.updateOne).toHaveBeenCalledTimes(1);
+    const [, update] = models.User.collection.updateOne.mock.calls[0];
+    expect(Object.keys(update.$set).every((key) => key.startsWith("profileSubscription."))).toBe(true);
+    expect(paymentUpdate.mock.calls[0][1].$set).toMatchObject({ status: "cancelled", "metadata.unlockRevoked": true, "pricingSnapshot.cancellationReviewRequired": false });
+  });
+
+  test("a newer pass order is left alone and the cancel is flagged for review", async () => {
+    models.User.collection.findOne = jest.fn(async () => sub("sub_s1m_newer"));
+    models.User.collection.updateOne = jest.fn();
+    const { payload } = await postCancel();
+    expect(payload.unlockRevoked).toBe(false);
+    expect(payload.adminReviewRequired).toBe(true);
+    expect(models.User.collection.updateOne).not.toHaveBeenCalled();
+    expect(paymentUpdate.mock.calls[0][1].$set).toMatchObject({ status: "cancelled", "pricingSnapshot.cancellationReviewRequired": true });
+  });
+
+  test("a revoke failure after the PG cancel still records the cancel and asks for review", async () => {
+    models.User.collection.findOne = jest.fn(async () => { throw new Error("db down"); });
+    const { status, payload } = await postCancel();
+    expect(status).toBe(200);
+    expect(payload.adminReviewRequired).toBe(true);
+    expect(paymentUpdate.mock.calls[0][1].$set).toMatchObject({ status: "cancelled", "metadata.unlockRevocationError": "db down" });
+  });
+});
