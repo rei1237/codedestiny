@@ -118,6 +118,7 @@
   font-size: 0.9375rem;
   line-height: 1.65;
   word-break: keep-all;
+  text-wrap: pretty;
 }
 .bubble b { display: block; margin-bottom: 2px; color: var(--rc-accent); font-size: 0.8125rem; }
 
