@@ -45,10 +45,10 @@ export default function HeukwolResult({report,isCurrent=()=>true}:{report:Heukwo
    <div className={styles.readingVoice}><VoiceHeading voice="yeoni"/><ReadingPassage text={c.interpretation}/></div>
    <div className={styles.readingVoice}><VoiceHeading voice="neo"/><ReadingPassage text={c.strategy}/></div>
    {c.checkpoints?.length?<aside className={styles.actionList}><h3>실천 점검</h3><ul>{c.checkpoints.map((line,i)=><li key={i}>{line}</li>)}</ul></aside>:null}
-   {/* 액땜 카드는 마지막 장(완성본에서는 closing)의 실천 점검 뒤에 한 번만 둔다. 저장된 remedyCases 만 그리고, 없거나 그리다 실패하면 카드만 빠진다. */}
-   {index===report.chapters.length-1?<RemedyCaseCards remedyCases={report.remedyCases} narrator="neo" theme="light" headingLevel={3}/>:null}
    <nav className={styles.chapterLinks} aria-label={`${c.title} 읽기 이동`}><a href="#report-contents">차례로</a>{report.chapters[index+1]&&<a href={`#chapter-${report.chapters[index+1].key}`}>다음 장으로</a>}</nav>
   </article>)}
+  {/* 액땜 카드는 마지막 장 뒤에 한 번만 둔다. 장 본문 서식(.chapter p·h3)이 카드 글자에 번지지 않게 article 밖 칸에 두고, 저장된 remedyCases 가 없거나 그리다 실패하면 빈 칸은 :empty 로 숨는다. */}
+  {report.chapters.length?<div className={styles.remedySlot}><RemedyCaseCards remedyCases={report.remedyCases} narrator="neo" theme="light" headingLevel={3}/></div>:null}
   <p>{report.analysis.limitation}</p>{report.analysis.uncertainty.map(line=><p key={line}>{line}</p>)}<a href="/records/">내 보관함</a>
  </section>;
 }
