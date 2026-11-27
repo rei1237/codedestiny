@@ -3,6 +3,9 @@ import { runWithAiLocale, storedAiLocale } from '../lib/ai-locale-context.js';
 import { sajuTemperamentPromptLines } from '../lib/saju-temperament.js';
 import { sajuTraitFirstLines, selectTraitFirst, traitFirstShadowCheck } from '../lib/trait-profile/index.js';
 import { sajuAuthorityOn } from '../lib/saju-authority-consumer.js';
+import { selectShinsalFacts, shinsalFactsPinned } from '../lib/engine-rollout.js';
+import { buildShinsalFactsBlock } from '../../lib/saju/shinsal-facts-block.mjs';
+import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from '../../lib/gemini-input-token-limit.mjs';
 import { createHash } from "node:crypto";
 import {lunarToSolar} from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -2141,6 +2144,66 @@ function buildChapterV2Lines(definition, context = {}) {
   ].filter(Boolean);
 }
 
+// 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, id 'karma'). 사주가 실제 주도 렌즈인 장(V2 00·02·07·09, V1 02·07·09)에만 싣는다.
+// 판정은 승계(resolveEffectiveLead) 뒤 주도 렌즈로 한다: 사주가 계산되지 않아 밀린 장은 빠지고, 주도 렌즈가 없어 사주가 올라온 장은 받는다.
+// 원국 + 현재 대운 + 계산한 해의 세운으로 만들고, 해시·캐시 판·저장 메타에는 넣지 않는다.
+const KARMA_SHINSAL_MAX_CHARS = 700;
+// 운 줄은 세운이 먼저 차면 현재 대운이 빠진다(유료 사주 AI·인생의 책과 같은 12). 전체 길이는 maxChars 가 막는다.
+const KARMA_SHINSAL_MAX_LUCK = 12;
+// 시스템 + 장 프롬프트가 Gemini 입력 상한(countTokens 50,000)의 95% 안에 들 때만 붙인다.
+const KARMA_SHINSAL_PROMPT_BUDGET = Math.floor(GEMINI_INPUT_TOKEN_HARD_LIMIT * 0.95);
+
+// 보수적 토큰 추정(유료 사주 AI 와 같은 규칙): 비ASCII 글자·숫자는 한 글자 한 토큰, 나머지 ASCII 는 두 글자 한 토큰.
+function estimateKarmaPromptTokens(text) {
+  let tokens = 0;
+  let ascii = 0;
+  for (const ch of String(text || "")) {
+    const code = ch.codePointAt(0);
+    if (code >= 0x80 || (code >= 0x30 && code <= 0x39)) tokens += 1;
+    else ascii += 1;
+  }
+  return tokens + Math.ceil(ascii / 2);
+}
+
+// 던지지 않는다. 계산이 안 되면 '' 이라 블록만 빠진다.
+function karmaShinsalBlock(integratedResult) {
+  try {
+    const data = asObject(integratedResult?.lenses?.saju?.data);
+    const pillars = asObject(data.pillars);
+    const timeUnknown = !clean(pillars.hour) || data.calculationMeta?.timeUnknown === true;
+    const daewoon = safeArray(data.majorLuckActive).find((row) => clean(row?.pillar || row?.ganZhi));
+    const sewoon = safeArray(data.yearlyLuck).find((row) => clean(row?.pillar));
+    const luckRows = [
+      daewoon ? { scope: "daewoon", ganji: clean(daewoon.pillar || daewoon.ganZhi), age: daewoon.startAge } : null,
+      sewoon ? { scope: "sewoon", ganji: clean(sewoon.pillar), year: sewoon.year } : null,
+    ].filter(Boolean);
+    return buildShinsalFactsBlock({
+      pillars: { year: pillars.year, month: pillars.month, day: pillars.day, hour: timeUnknown ? null : pillars.hour },
+      timeUnknown,
+      luckRows,
+    }, { maxChars: KARMA_SHINSAL_MAX_CHARS, maxLuck: KARMA_SHINSAL_MAX_LUCK });
+  } catch {
+    return "";
+  }
+}
+
+// 장 프롬프트에 신살 블록을 붙인다. 핀(llmMeta.shinsalFacts)이 있는 새 세션만 받는다.
+// 키 없는 옛 문서는 플래그를 켜도 꺼진 채이고, 플래그를 비우면 핀이 있어도 꺼진다(킬 스위치).
+// 블록을 붙여 입력 상한 95%를 넘거나 어떤 실패가 나도 블록만 빼고 원래 프롬프트로 간다.
+function buildKarmaChapterPrompt(env, consultation, definition, context = {}, systemPrompt = "") {
+  const base = buildChapterPrompt(consultation, definition, context);
+  try {
+    if (!shinsalFactsPinned(consultation?.llmMeta, env, "karma")) return base;
+    if (resolveEffectiveLead(definition, asObject(consultation?.integratedResult?.lenses)).leadLens !== "saju") return base;
+    const block = karmaShinsalBlock(consultation.integratedResult);
+    if (!block) return base;
+    const withBlock = buildChapterPrompt(consultation, definition, { ...context, shinsalFacts: block });
+    return estimateKarmaPromptTokens(systemPrompt) + estimateKarmaPromptTokens(withBlock) <= KARMA_SHINSAL_PROMPT_BUDGET ? withBlock : base;
+  } catch {
+    return base;
+  }
+}
+
 function buildChapterPrompt(consultation, definition, context = {}) {
   const birth = consultation.birthInfo || {};
   const place = birth.birthPlace || {};
@@ -2172,6 +2235,8 @@ function buildChapterPrompt(consultation, definition, context = {}) {
     buildLensDigest(consultation.integratedResult, definition),
     // 성향 장(chapter-00, 장 구성 판 2)에만 핵심 근거를 덧붙인다. OFF·옛 문서는 빈 배열이라 프롬프트가 바이트 단위로 같다.
     ...(definition.id === KARMA_DISPOSITION_CHAPTER.id ? sajuTraitFirstLines(lensesForChapter.saju?.data, { traitFirst: consultation.llmMeta?.traitFirst, seed: `${clean(consultation.userId)}|karma-destiny-ai` }) : []),
+    // 신살 계산값 블록 — buildKarmaChapterPrompt 가 사주 주도 장에만 넘긴다. 없으면 빈 줄이라 걸러져 프롬프트가 바이트 단위로 같다.
+    typeof context.shinsalFacts === "string" ? context.shinsalFacts : "",
     buildRelationshipPrompt(consultation.integratedResult?.relationshipAnalysis, definition.id),
     "",
     "[이 장의 렌즈 구성]",
@@ -2252,11 +2317,12 @@ function chapterMaxOutputTokens(definition) {
 
 async function generateOneChapter(env, consultation, definition, context = {}) {
   try {
-    const generated = await callRealGeminiText(env, buildChapterPrompt(consultation, definition, context), {
+    const systemPrompt = buildSystemPrompt("initial", pinAnswerVoice(consultation?.llmMeta || {}, env), definition.perspective ? KARMA_CHAPTER_PLAN_VERSION : 1);
+    const generated = await callRealGeminiText(env, buildKarmaChapterPrompt(env, consultation, definition, context, systemPrompt), {
       temperature: context.retry ? 0.66 : 0.72,
       // 잘린 뒤의 재시도만 두 배 예산 — 기본 상한은 비용 예약에 쓰이므로 그대로 둔다.
       maxOutputTokens: context.truncatedRetry ? Math.min(32768, chapterMaxOutputTokens(definition) * 2) : chapterMaxOutputTokens(definition),
-      systemPrompt: buildSystemPrompt("initial", pinAnswerVoice(consultation?.llmMeta || {}, env), definition.perspective ? KARMA_CHAPTER_PLAN_VERSION : 1),
+      systemPrompt,
       // 장별 캐시 키 — 재시도 시 이미 성공한 장은 캐시에서 즉시 돌아온다.
       cacheStage: `${context.singleAttempt ? "delivery-v2-" : ""}chapter-${definition.id}`,
       singleAttempt: context.singleAttempt === true, skipCache: context.retry === true,
@@ -2792,6 +2858,8 @@ async function handleStart(request, env, recoveryAuth = null, options = {}) {
     llmMeta: { ...existing?.llmMeta, resumeBody: existing?.llmMeta?.resumeBody || resumeBody, ...(!existing?.llmMeta && selectAnswerVoice(env) ? { answerVoice: selectAnswerVoice(env) } : {}),
       // Trait-First(TRAIT_FIRST_SAJU): 새 세션만 생성 시작 때 고정한다. 기존·진행 중 문서는 키가 없어 끝까지 OFF.
       ...(!existing?.llmMeta && selectTraitFirst(env) ? { traitFirst: selectTraitFirst(env) } : {}),
+      // 신살 사실 블록(SAJU_SHINSAL_FACTS_V1, id 'karma'): 새 세션만 시작 때 고정한다. 블록 문자열은 저장하지 않고 장 프롬프트 때만 만든다.
+      ...(!existing?.llmMeta && selectShinsalFacts(env, "karma") ? { shinsalFacts: selectShinsalFacts(env, "karma") } : {}),
       // 장 구성 판: 이미 쓴 장이 있는 문서는 그 판 그대로(저장값이 없으면 1), 장이 하나도 없으면 새 판(2)으로 시작한다.
       chapterPlanVersion: resumedChapters.length ? karmaPlanVersion(existing) : KARMA_CHAPTER_PLAN_VERSION },
     id: sessionId,
@@ -3501,6 +3569,10 @@ export const __karmaDestinyAiTestUtils = {
   ENERGY_DOMAIN_LABELS,
   buildLensDigest,
   buildChapterPrompt,
+  buildKarmaChapterPrompt,
+  karmaShinsalBlock,
+  estimateKarmaPromptTokens,
+  KARMA_SHINSAL_PROMPT_BUDGET,
   buildChapterEvidence,
   detectLensRoleViolation,
   detectCrossChapterConclusionOverlap,

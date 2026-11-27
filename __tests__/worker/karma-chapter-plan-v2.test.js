@@ -247,3 +247,121 @@ describe("Trait-First (TRAIT_FIRST_SAJU)", () => {
     expect(docs[0].llmMeta).not.toHaveProperty("traitFirst");
   });
 });
+
+describe("신살 사실 블록 (SAJU_SHINSAL_FACTS_V1, id karma)", () => {
+  const HEADER = "[신살 계산값 — 서버 계산. 이 목록 밖의 신살은 쓰지 않는다]";
+  const ON = { SAJU_SHINSAL_FACTS_V1: "karma" };
+  const SAJU_LED = ["chapter-00", "chapter-02", "chapter-07", "chapter-09"];
+  const lensOn = { confidence: "high", data: {} };
+  const withChart = (saju = {}) => { chart = jest.fn(async () => ({ lenses: { saju: { confidence: "high", data: { pillars: { year: "癸酉", month: "己未", day: "癸卯", hour: "丙辰" }, dayMaster: "癸", majorLuckActive: [{ pillar: "壬戌", startAge: 27 }], yearlyLuck: [{ year: 2026, pillar: "丙午" }], ...saju } }, ziwei: lensOn, vedic: lensOn, western: lensOn, sukuyo: lensOn }, synthesis: {}, saju: { dayMaster: "癸" } })); };
+  const startWith = env => route(new Request("https://mock.test/api/karma-destiny-ai/start", { method: "POST", headers: { "Content-Type": "application/json", "idempotency-key": "original-paid-request" }, body: JSON.stringify(body) }), env);
+  const batchWith = env => route(new Request("https://mock.test/api/karma-destiny-ai/generate-batch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ sessionId: docs[0]?.id }) }), env);
+  async function runWith(env, limit = 20) { for (let i = 0; i < limit && docs[0].status !== "completed"; i++) expect([409, 503]).not.toContain((await batchWith(env)).status); }
+  const promptOf = (doc, def, env, systemPrompt = utils.buildSystemPrompt("initial", null, 2)) => utils.buildKarmaChapterPrompt(env, doc, def, {}, systemPrompt);
+
+  it("flag off: no pin, and every chapter prompt is byte-identical — also for an unpinned session with the flag on", async () => {
+    withChart();
+    await startWith({});
+    expect(docs[0].llmMeta).not.toHaveProperty("shinsalFacts");
+    for (const def of [...utils.PREMIUM_CHAPTERS_V2, ...utils.PREMIUM_CHAPTERS]) {
+      const off = utils.buildChapterPrompt(docs[0], def, {});
+      expect(promptOf(docs[0], def, {})).toBe(off);
+      expect(promptOf(docs[0], def, ON)).toBe(off);
+    }
+  });
+
+  it("flag on pins at start; only saju-led chapters get the block, exactly once, and nothing stores it", async () => {
+    withChart();
+    await startWith(ON);
+    expect(docs[0].llmMeta.shinsalFacts).toBe("shinsal-facts-v1");
+    const block = utils.karmaShinsalBlock(docs[0].integratedResult);
+    expect(block.startsWith(HEADER)).toBe(true);
+    expect(block.length).toBeLessThanOrEqual(700);
+    expect(block).toContain("대운 27세 壬戌");
+    expect(block).toContain("세운 2026년 丙午");
+    expect(JSON.stringify(docs[0])).not.toContain(HEADER);
+    expect(utils.PREMIUM_CHAPTERS_V2.filter(def => def.leadLens === "saju").map(def => def.id)).toEqual(SAJU_LED);
+    for (const def of [...utils.PREMIUM_CHAPTERS_V2, ...utils.PREMIUM_CHAPTERS]) {
+      const off = utils.buildChapterPrompt(docs[0], def, {});
+      const on = promptOf(docs[0], def, ON);
+      if (def.leadLens !== "saju") { expect(on).toBe(off); continue; }
+      expect(on.split(HEADER)).toHaveLength(2);
+      expect(on.length - off.length).toBe(block.length + 1);
+      expect(on.replace(`${block}\n`, "")).toBe(off);
+    }
+    expect(utils.PREMIUM_CHAPTERS.filter(def => promptOf(docs[0], def, ON).includes(HEADER)).map(def => def.id)).toEqual(["chapter-02", "chapter-07", "chapter-09"]);
+  });
+
+  it("clearing the flag is a kill switch, other ids leave it off, and resumes keep the original pin state without 409", async () => {
+    withChart();
+    await startWith(ON);
+    const def = utils.PREMIUM_CHAPTERS_V2[2];
+    const off = utils.buildChapterPrompt(docs[0], def, {});
+    expect(promptOf(docs[0], def, {})).toBe(off);
+    expect(promptOf(docs[0], def, { SAJU_SHINSAL_FACTS_V1: "saju-ai,life-book" })).toBe(off);
+    expect(promptOf(docs[0], def, { SAJU_SHINSAL_FACTS_V1: "true" })).toContain(HEADER);
+    expect((await startWith({})).status).not.toBe(409);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].llmMeta.shinsalFacts).toBe("shinsal-facts-v1");
+    docs = [];
+    await startWith({});
+    expect((await startWith(ON)).status).not.toBe(409);
+    expect(docs).toHaveLength(1);
+    expect(docs[0].llmMeta).not.toHaveProperty("shinsalFacts");
+  });
+
+  it("a pinned paid run completes all 16 chapters and only saju-led calls carry the block", async () => {
+    withChart();
+    await startWith(ON);
+    await runWith(ON);
+    expect(docs[0].status).toBe("completed");
+    expect(docs[0].chapters).toHaveLength(16);
+    expect(docs[0].llmMeta.shinsalFacts).toBe("shinsal-facts-v1");
+    expect(refund).not.toHaveBeenCalled();
+    for (const [, prompt, options] of provider.mock.calls) expect(prompt.includes(HEADER)).toBe(SAJU_LED.includes(idOf(options)));
+    expect(provider.mock.calls.filter(([, prompt]) => prompt.includes(HEADER)).length).toBeGreaterThanOrEqual(SAJU_LED.length);
+  });
+
+  it("turning the flag off mid-run still delivers; later calls drop the block", async () => {
+    withChart();
+    await startWith(ON);
+    expect([409, 503]).not.toContain((await batchWith(ON)).status);
+    const before = provider.mock.calls.length;
+    expect(provider.mock.calls.some(([, prompt]) => prompt.includes(HEADER))).toBe(true);
+    await runWith({});
+    expect(docs[0].status).toBe("completed");
+    expect(docs[0].chapters).toHaveLength(16);
+    expect(refund).not.toHaveBeenCalled();
+    expect(provider.mock.calls.slice(before).some(([, prompt]) => prompt.includes(HEADER))).toBe(false);
+  });
+
+  it("an answer that quotes the block passes the chapter checks on the first try", async () => {
+    withChart();
+    await startWith(ON);
+    const block = utils.karmaShinsalBlock(docs[0].integratedResult);
+    const base = provider.getMockImplementation();
+    provider.mockImplementation(async (...args) => idOf(args[2]) === "chapter-02" ? payload("chapter-02", `${block}\n${prose("chapter-02", 2250)}`) : base(...args));
+    await runWith(ON);
+    expect(docs[0].status).toBe("completed");
+    expect(provider.mock.calls.filter(([, , options]) => idOf(options) === "chapter-02")).toHaveLength(1);
+    expect(docs[0].chapters.find(row => row.id === "chapter-02").content).toContain("대운 27세 壬戌");
+    expect(refund).not.toHaveBeenCalled();
+  });
+
+  it("the input budget and calculation failures drop only the block", async () => {
+    withChart({ pillars: { year: "癸酉", month: "己未", day: "癸卯", hour: "" } });
+    await startWith(ON);
+    const def = utils.PREMIUM_CHAPTERS_V2[0];
+    const off = utils.buildChapterPrompt(docs[0], def, {});
+    expect(utils.karmaShinsalBlock(docs[0].integratedResult)).toContain("시간 미상");
+    const room = utils.KARMA_SHINSAL_PROMPT_BUDGET - utils.estimateKarmaPromptTokens(off);
+    expect(promptOf(docs[0], def, ON, "가".repeat(room))).toBe(off);
+    expect(promptOf(docs[0], def, ON, "가".repeat(room - 2000))).toContain(HEADER);
+    const broken = { ...clone(docs[0]), integratedResult: { ...docs[0].integratedResult, lenses: { ...docs[0].integratedResult.lenses, saju: { confidence: "high", data: { pillars: { year: "??" } } } } } };
+    expect(utils.karmaShinsalBlock(broken.integratedResult)).toBe("");
+    expect(promptOf(broken, def, ON)).toBe(utils.buildChapterPrompt(broken, def, {}));
+    const noSaju = { ...clone(docs[0]), integratedResult: { ...docs[0].integratedResult, lenses: { ...docs[0].integratedResult.lenses, saju: { confidence: "none" } } } };
+    const chapter02 = utils.PREMIUM_CHAPTERS_V2[2];
+    expect(promptOf(noSaju, chapter02, ON)).toBe(utils.buildChapterPrompt(noSaju, chapter02, {}));
+  });
+});
