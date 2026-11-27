@@ -171,3 +171,16 @@ test('a part cut at the token limit retries once with a doubled budget',async()=
  expect(budgets.filter(([id])=>id===firstId).map(([,tokens])=>tokens)).toEqual([11000,22000]);
  expect(budgets.filter(([id])=>id!==firstId).every(([,tokens])=>tokens===11000)).toBe(true);
 });
+// The part's last allowed call keeps a cut answer up to its last complete sentence; a cut answer
+// with no complete sentence still goes to review.
+test.each([['a sentence','{"body":"세 형상은 서두르지 않고 바라는 조건과 지켜야 할 경계를 하나씩 차분하게 확인하며 움직이라고 말합니다. 두 번째 문장은 토큰 한도에서 끊겨',true],
+ ['no sentence','{"body":"계산된 근거를 살펴보면 아직',false]])('a part cut twice with %s %#',async(_name,text,delivered)=>{
+ const {capturePaidGenerationRaw}=await import('../../worker/lib/paid-generation-context.js');
+ const good=provider.getMockImplementation();let firstId;
+ provider.mockImplementation(async(...args)=>{const id=args[1].split('[이번 호출 범위] ')[1].split(':')[0];firstId ||= id;
+  if(id===firstId){capturePaidGenerationRaw(text);return {ok:true,provider:'gemini',truncated:true,finishReason:'MAX_TOKENS',text};}return good(...args);});
+ await start();const result=await finish();const state=docs[0].metadata.paidNarrative;
+ expect(provider.mock.calls.filter(call=>call[1].includes(`[이번 호출 범위] ${firstId}:`)).map(call=>call[2].maxOutputTokens)).toEqual([11000,22000]);
+ if(delivered){expect(result.status).toBe(200);expect(state.parts[firstId]).toBe('세 형상은 서두르지 않고 바라는 조건과 지켜야 할 경계를 하나씩 차분하게 확인하며 움직이라고 말합니다.');expect(docs[0].status).toBe('success');}
+ else{expect(state.parts[firstId]).toBeUndefined();expect(state.attempts[firstId]).toBe(2);expect(docs[0].status).not.toBe('success');}
+});
