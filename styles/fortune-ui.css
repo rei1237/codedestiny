@@ -17918,21 +17918,45 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
 #resultPage #sajuCard .mxv-bar--water .mxv-bar__fill { background: var(--mx-water-ink); }
 #resultPage #sajuCard .mxv-bar__n { font-variant-numeric: tabular-nums; text-align: right; }
 
-/* 신살 요약 */
-#resultPage #sajuCard .mxv-say {
-  margin: 0 0 12px;
+/* 신살 요약·설명 시트의 말풍선: 연이는 왼쪽, 영냥이는 오른쪽에서 말한다(얼굴 48px 고정 틀 + 말풍선) */
+#resultPage #sajuCard .mxv-say,
+.mxv-sheet .mxv-say { display: flex; align-items: flex-end; gap: 10px; margin: 0 0 12px; }
+#resultPage #sajuCard .mxv-say--nyang { margin: 14px 0 0; }
+#resultPage #sajuCard .mxv-say--nyang,
+.mxv-sheet .mxv-say--nyang { flex-direction: row-reverse; }
+#resultPage #sajuCard .mxv-say__face,
+.mxv-sheet .mxv-say__face {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 14px;
+  background: var(--mx-paper);
+}
+#resultPage #sajuCard .mxv-say__face img,
+.mxv-sheet .mxv-say__face img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
+#resultPage #sajuCard .mxv-say__bubble,
+.mxv-sheet .mxv-say__bubble {
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 10px 14px;
   border: 1px solid var(--mx-gold-line);
-  border-radius: 16px;
+  border-radius: 16px 16px 16px 6px;
   background: var(--mx-paper);
   color: var(--mx-ink);
   font-size: 14px;
   line-height: 1.65;
   word-break: keep-all;
 }
-#resultPage #sajuCard .mxv-say__who { margin-right: 4px; color: var(--mx-rose); font-weight: 700; }
-#resultPage #sajuCard .mxv-say--nyang { margin: 14px 0 0; border-style: dashed; background: transparent; }
-#resultPage #sajuCard .mxv-say--nyang .mxv-say__who { color: var(--mxv-twelve-ink); }
+.mxv-sheet .mxv-say__bubble { background: var(--mxv-sheet-tint); font-size: 15px; }
+#resultPage #sajuCard .mxv-say--nyang .mxv-say__bubble,
+.mxv-sheet .mxv-say--nyang .mxv-say__bubble { border-color: var(--mxv-twelve-line); border-radius: 16px 16px 6px 16px; background: var(--mxv-twelve-bg); }
+#resultPage #sajuCard .mxv-say__who,
+.mxv-sheet .mxv-say__who { display: block; margin: 0 0 2px; color: var(--mx-rose); font-size: 13px; font-weight: 700; line-height: 1.5; }
+#resultPage #sajuCard .mxv-say--nyang .mxv-say__who,
+.mxv-sheet .mxv-say--nyang .mxv-say__who { color: var(--mxv-twelve-ink); }
+#resultPage #sajuCard .mxv-say__text { margin: 0; }
 #resultPage #sajuCard .mxv-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 4px; padding: 0; list-style: none; }
 #resultPage #sajuCard .mxv-legend__item {
   padding: 3px 10px;

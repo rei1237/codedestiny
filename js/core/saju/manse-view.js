@@ -725,6 +725,18 @@
   }
 
   /* ── 신살 요약 ───────────────────────────────────────── */
+  /* 말하는 캐릭터. 둘 다 160px 정사각 컷아웃(알파)이고, 화면에서는 48px 고정 틀에 담는다.
+     #manseShinsalList 가 aria-live 라 얼굴은 장식(alt="")으로 두고 이름은 말풍선 글자로 읽힌다. */
+  var SPEAKERS = {
+    yeoni: { src: '/images/saju/yeoni-clue-160.webp', name: 'sum.yeoniName' },
+    nyang: { src: '/images/saju/yeongnyangi-160.webp', name: 'sum.nyangName' }
+  };
+  function sayHtml(who, inner) {
+    var sp = SPEAKERS[who];
+    return '<div class="mxv-say mxv-say--' + who + '"><span class="mxv-say__face" aria-hidden="true"><img src="' + sp.src + '" alt="" width="160" height="160" loading="eager" decoding="async"></span>' +
+      '<div class="mxv-say__bubble"><strong class="mxv-say__who">' + esc(mt(sp.name)) + '</strong>' + inner + '</div></div>';
+  }
+  function sayText(text) { return '<p class="mxv-say__text">' + esc(text) + '</p>'; }
   function summaryHtml(result, s) {
     var natalHits = (result.hits || []).filter(function (x) { return NATAL[x.pillar] && natalOnly(x) && catOn(s, x.category); });
     var groups = groupHits(natalHits);
@@ -734,7 +746,7 @@
     if (!groups.length && !rels.length) return '<p class="manse-shinsal__empty">' + esc(mt('sum.empty')) + '</p>';
     var byCat = {};
     groups.forEach(function (g) { (byCat[g.category] = byCat[g.category] || []).push(g); });
-    var h = '<p class="mxv-say mxv-say--yeoni"><span class="mxv-say__who">🌸 ' + esc(mt('sum.yeoniName')) + '</span> ' + esc(mt('sum.yeoni', { n: groups.length })) + '</p>';
+    var h = sayHtml('yeoni', sayText(mt('sum.yeoni', { n: groups.length })));
     h += '<ul class="mxv-legend">';
     CATS.forEach(function (c) {
       var n = c === 'relation' ? rels.length : (byCat[c] || []).length;
@@ -759,7 +771,7 @@
       if (!chips) return;
       h += '<div class="mxv-group mxv-group--' + c + '"><h5 class="mxv-group__title"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + '</h5><div class="mxv-chips">' + chips + '</div></div>';
     });
-    h += '<p class="mxv-say mxv-say--nyang"><span class="mxv-say__who">' + esc(mt('sum.nyangName')) + '</span> ' + esc(mt('sum.nyang')) + '</p>';
+    h += sayHtml('nyang', sayText(mt('sum.nyang')));
     return h;
   }
 
