@@ -11446,6 +11446,28 @@
         return;
       }
     }
+    // 보관함(/records/) 라이트 사주 풀이 다시 보기는 구매 프로필 카드 id(profile)를 싣는다. 표식은 권한을 주지 않는다 —
+    // 서버에서 새로 받은 이 계정 소유 프로필 목록에 있을 때만 그 프로필로 열고, 없으면(삭제·다른 계정) 평소 진입으로 간다.
+    var recordProfileId = '';
+    try { recordProfileId = String(new URLSearchParams(window.location.search).get('profile') || '').trim().slice(0, 80); } catch (_) {}
+    if (recordProfileId && !__cdDirectSajuEntryState.recordProfileTried) {
+      __cdDirectSajuEntryState.recordProfileTried = true;
+      if (__cdDirectSajuEntryState.inFlight) return;
+      var recordScope = _dpGetProfileScope();
+      _dpLoadFromServer(function(loaded) {
+        var owned = loaded && recordScope === _dpGetProfileScope() ? _dpFindProfileById(DPStorage.list(), recordProfileId) : null;
+        if (owned && owned.birth && _dpHasValidProfileDate(owned.birth.year, owned.birth.month, owned.birth.day)) {
+          if (__cdDirectSajuEntryState.inFlight) return;
+          __cdDirectSajuEntryState.inFlight = true;
+          DPStorage.setCurrent(recordProfileId);
+          _dpHomeIntent('');
+          _injectAndRun(owned, 'saju');
+          return;
+        }
+        window.cdOneStepFreeSajuEntry();
+      });
+      return;
+    }
     var cached = _dpResolveCurrentProfileForSaju('');
     if (cached && cached.birth && _dpHasValidProfileDate(cached.birth.year, cached.birth.month, cached.birth.day)) {
       _dpHomeIntent('');

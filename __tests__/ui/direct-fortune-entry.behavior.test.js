@@ -66,6 +66,39 @@ test("사주 직행 액션은 저장 프로필·입력폼 순서와 중복 실�
   assert.equal(createCount, 1);
 });
 
+test("보관함 다시 보기의 profile 표식은 서버에서 받은 소유 프로필일 때만 그 프로필로 연다", () => {
+  const profile = read("js/destiny-profile.js");
+  const start = profile.indexOf("var __cdDirectSajuEntryState =");
+  const end = profile.indexOf("  /**\n   * 모바일 하단 네비 '사주' 탭 진입점.", start);
+  assert.ok(start >= 0 && end > start, "사주 직행 액션 소스 경계를 찾지 못했습니다");
+  const run = (search, list) => {
+    const calls = [], current = [];
+    const context = {
+      window: { addEventListener() {}, location: { search } },
+      URLSearchParams,
+      _dpResolveCurrentProfileForSaju: () => ({ id: "p-now", birth: { year: 1990, month: 1, day: 2 } }),
+      _dpHasValidProfileDate: (year, month, day) => [year, month, day].every(Boolean),
+      readFormData: () => null,
+      _injectAndRun: (value, type) => calls.push({ id: value.id, type }),
+      _dpLoadFromServer: (callback) => callback(true),
+      _dpGetProfileScope: () => "user:owner",
+      _dpFindProfileById: (profiles, id) => profiles.find((item) => item.id === id) || null,
+      DPStorage: { list: () => list, setCurrent: (id) => current.push(id) },
+      document: { addEventListener() {} },
+      _toast() {},
+      _dpHasSessionHint: () => true,
+    };
+    vm.runInNewContext(profile.slice(start, end), context);
+    context.window.cdOneStepFreeSajuEntry();
+    return { calls, current };
+  };
+  const owned = [{ id: "p-mom", birth: { year: 1965, month: 3, day: 4 } }];
+  assert.deepEqual(run("?action=cdOneStepFreeSajuEntry&section=summaryCard&profile=p-mom", owned), { calls: [{ id: "p-mom", type: "saju" }], current: ["p-mom"] });
+  // 목록에 없는 id(삭제·다른 계정)는 권한도 프로필 전환도 주지 않고 평소 진입(현재 프로필)으로 간다.
+  assert.deepEqual(run("?action=cdOneStepFreeSajuEntry&profile=p-other", owned), { calls: [{ id: "p-now", type: "saju" }], current: [] });
+  assert.deepEqual(run("?action=cdOneStepFreeSajuEntry", owned), { calls: [{ id: "p-now", type: "saju" }], current: [] });
+});
+
 test("타로와 숙요점은 한 번의 진입에서 모달 초기화를 한 번만 예약한다", () => {
   const runtime = read("js/core/index-inline-runtime.js");
 
