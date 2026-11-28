@@ -17964,6 +17964,9 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
 #resultPage #sajuCard .mxv-say__text { margin: 0; }
 #resultPage #sajuCard .mxv-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 4px; padding: 0; list-style: none; }
 #resultPage #sajuCard .mxv-legend__item {
+  min-height: 44px;
+  font-family: inherit;
+  cursor: pointer;
   padding: 3px 10px;
   border: 1px solid var(--mxv-c-line);
   border-radius: 999px;
@@ -17973,6 +17976,7 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
   line-height: 1.5;
 }
 #resultPage #sajuCard .mxv-group { margin-top: 12px; }
+#resultPage #sajuCard .mxv-legend__item:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 #resultPage #sajuCard .mxv-group__title { margin: 0 0 6px; color: var(--mx-ink); font-family: var(--font-body, sans-serif); font-size: 14px; font-weight: 700; }
 #resultPage #sajuCard .mxv-chips,
 .mxv-sheet .mxv-chips { display: flex; flex-wrap: wrap; gap: 6px; }

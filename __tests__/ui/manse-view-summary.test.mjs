@@ -88,6 +88,20 @@ test('speaker lines show Yeoni on top and Yeongnyangi below with fixed-size deco
   } finally { dom.window.close(); }
 });
 
+test('every legend button moves focus to its first matching detail chip without opening a sheet', () => {
+  const { doc, dom } = mount();
+  try {
+    const buttons = [...doc.querySelectorAll('.mxv-legend button')];
+    assert.ok(buttons.length > 1);
+    for (const button of buttons) {
+      button.focus(); button.querySelector('strong').click();
+      const group = doc.getElementById(button.getAttribute('aria-controls'));
+      assert.equal(doc.activeElement, group.querySelector('button.mxv-chip'));
+      assert.equal(doc.querySelector('[role="dialog"]'), null);
+    }
+  } finally { dom.window.close(); }
+});
+
 test('with the speaker bundle the faces are the same round crops as the reading', () => {
   const { dom, doc } = mount({ speaker: true });
   try {

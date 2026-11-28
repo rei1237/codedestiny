@@ -778,7 +778,7 @@
     CATS.forEach(function (c) {
       var n = c === 'relation' ? rels.length : (byCat[c] || []).length;
       if (!catOn(s, c) || !n) return;
-      h += '<li class="mxv-legend__item mxv-legend__item--' + c + '"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + ' <strong>' + n + '</strong></li>';
+      h += '<li><button type="button" class="mxv-legend__item mxv-legend__item--' + c + '" data-mxv-jump="' + c + '" aria-controls="mxv-group-' + c + '"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + ' <strong>' + n + '</strong></button></li>';
     });
     h += '</ul>';
     var body = '';
@@ -799,7 +799,7 @@
         });
       }
       if (!chips) return;
-      body += '<div class="mxv-group mxv-group--' + c + '"><h5 class="mxv-group__title"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + '</h5><div class="mxv-chips">' + chips + '</div></div>';
+      body += '<div id="mxv-group-' + c + '" class="mxv-group mxv-group--' + c + '"><h5 class="mxv-group__title"><span aria-hidden="true">' + EMOJI[c] + '</span> ' + esc(catLabel(c)) + '</h5><div class="mxv-chips">' + chips + '</div></div>';
     });
     if (state.lines.length) h += linesBlockHtml();
     h += body;
@@ -1076,6 +1076,13 @@
   function onClick(e) {
     var t = e.target && e.target.closest ? e.target : null;
     if (!t) return;
+    var jump = t.closest('button[data-mxv-jump]');
+    if (jump) {
+      var group = doc.getElementById(jump.getAttribute('aria-controls'));
+      var chip = group && group.querySelector('button.mxv-chip');
+      if (chip) chip.focus();
+      return;
+    }
     var ctl = t.closest('[data-mxv-ctl]');
     if (ctl && ctl.tagName === 'BUTTON') {
       var k = ctl.getAttribute('data-mxv-ctl');
