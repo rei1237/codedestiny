@@ -82,6 +82,15 @@ export function recordStatus(doc, source, now = Date.now()) {
   // Legacy models whose schema predates status have persisted result documents.
   return status || 'saved';
 }
+// 라이트 사주 풀이 다시 보기는 구매 프로필로 연다. profileCardId 는 같은 계정 소유 프로필 카드 조회로만 채워지는
+// 불투명 카드 id 다(출생 정보·다른 계정 아님). 카드를 지웠으면 표식 없이 평소 사주 진입으로 연다.
+function reopenHref(source, doc) {
+  if (!source.reopenHref) return '';
+  const card = clean(doc.profileCardId, 80);
+  return card ? `${source.reopenHref}&profile=${encodeURIComponent(card)}` : source.reopenHref;
+}
+// 구매 프로필 카드 id 후보: 출생 기반 행은 purchaseProfileId, 이관 전 PROFILE 행은 profileId 가 카드 id 다.
+const bundleProfileRef = doc => clean(doc?.purchaseProfileId, 80) || (doc?.scope === 'PROFILE' ? clean(doc?.profileId, 80) : '');
 export function recordMetadata(source, doc) {
   const id = String(doc[source.idField] || doc._id || '');
   const featureKey = clean(doc.featureKey || doc.featureId || doc.serviceType || (source.id === 'codex' && doc.mode === 'compat' ? 'master-love-codex-compat' : source.featureKey), 160);
@@ -91,16 +100,18 @@ export function recordMetadata(source, doc) {
     source.id === 'life-book' && (featureKey === 'life-fortune-ai-consultation' || (doc.consultationType || doc.llmMeta?.input?.consultationType) === 'lifeFortune') ? '인생 총운' :
       source.id === 'ziwei' && doc.serviceType === 'ziwei-island-palace-consult' ? '운명의 섬 12궁 상담' : source.name;
   const status = recordStatus(doc, source);
+  // 라이트 사주 풀이 행에는 제목 필드가 없어 제목이 서비스명과 같아진다 — 구매 프로필 이름을 제목으로 쓴다.
+  const bundleTitle = source.id === 'saju-bundle' && clean(doc.profileName, 80) ? `${clean(doc.profileName, 80)} 프로필` : '';
   return { id, source: source.id, key: `${source.id}:${id}`, serviceId: featureKey || source.id, serviceName: name,
     // 후기 작성 링크(/reviews/?write=1&product=…)가 쓰는 카탈로그 slug. 콘텐츠 ID 가 아니다.
     reviewProductId: product?.productId || '',
-    title: titleFields.map(field => clean(readRecordField(doc, field), 200)).find(Boolean) || name,
-    question: questionFields.map(field => clean(readRecordField(doc, field))).find(Boolean) || clean(doc.questionExcerpt) || clean(doc.summaryExcerpt) || (clean(doc.profileName, 80) ? `${clean(doc.profileName, 80)} 프로필` : ''),
+    title: titleFields.map(field => clean(readRecordField(doc, field), 200)).find(Boolean) || bundleTitle || name,
+    question: bundleTitle ? '' : questionFields.map(field => clean(readRecordField(doc, field))).find(Boolean) || clean(doc.questionExcerpt) || clean(doc.summaryExcerpt) || (clean(doc.profileName, 80) ? `${clean(doc.profileName, 80)} 프로필` : ''),
     createdAt: doc.createdAt && Number.isFinite(Date.parse(doc.createdAt)) ? new Date(doc.createdAt).toISOString() : null,
     status, group: source.dynamic ? variant?.group || source.group : source.group, character: clean(doc.persona || doc.characterId || source.character, 30),
-    href: source.reopenHref || savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
+    href: reopenHref(source, doc) || savedRecordPath(source.id, id), startHref: variant?.href || product?.href || source.href,
     recoveryHref: featureKey === 'heukwol-warning-consultation' ? `/heukwol/?result=${encodeURIComponent(id)}` : featureKey === 'premium-sibyl-dominator' ? savedRecordPath(source.id,id) : featureKey === 'premium-naming-prompt' && doc.executionId ? `/naming-ai/result?executionId=${encodeURIComponent(doc.executionId)}` : source.id === 'chat-consultation' ? source.resultPath + encodeURIComponent(id): source.id === 'tea' ? `/fortune-tea-house/?recoverResultId=${encodeURIComponent(id)}` : source.resultPath && source.group !== 'chat' ? source.resultPath + encodeURIComponent(id) : '/points/history/',
-    nativeHref: source.reopenHref && status === 'saved' ? source.reopenHref : status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
+    nativeHref: source.reopenHref && status === 'saved' ? reopenHref(source, doc) : status === 'completed' && featureKey === 'nakshatra-compat' && doc.metadata?.nakshatraCompat ? '/nakshatra/compat/?resultId=' + encodeURIComponent(id) : status === 'completed' && source.resultPath && doc[source.idField] ? source.resultPath + encodeURIComponent(id) : '',
   };
 }
 export function ownerQuery(userId) {
@@ -185,7 +196,7 @@ export async function listRecords(userId, params, readPage = async (source, quer
     ...(source.id === 'codex' ? { chapterPlanVersion: '$deliveryMeta.chapterPlanVersion', chapterManifest: { $map: { input: { $ifNull: ['$chapters', []] }, as: 'chapter', in: { id: '$$chapter.id', ok: '$$chapter.ok', chars: { $strLenCP: { $convert: { input: { $ifNull: ['$$chapter.body', '$$chapter.content'] }, to: 'string', onError: '', onNull: '' } } } } } } } : {}),
     ...(source.id === 'chat-consultation' ? { refundStatus:'$generationCheckpoint.deliveryRefund.status',manifestCount: { $size: { $ifNull: ['$snapshot.manifest', []] } } } : {}),
     ...(source.id === 'executions' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$metadata.paidNarrative.parts', {}] } } } } : {}),
-    ...(source.id === 'saju-bundle' ? { profileName: 1 } : {}),
+    ...(source.id === 'saju-bundle' ? { profileName: 1, profileCardId: 1 } : {}),
     ...(source.id === 'tea' ? { partCount: { $size: { $objectToArray: { $ifNull: ['$generationCheckpoint.parts', {}] } } } } : {}),
   };
   // A Payment mirror is the same naming delivery as its paid execution. Resolve
@@ -198,10 +209,16 @@ export async function listRecords(userId, params, readPage = async (source, quer
     let: { messageId: { $concat: [{ $ifNull: ['$metadata.paidNarrative.body.requestId', ''] }, ':1'] }, feature: '$featureKey' },
     pipeline: [{ $match: { ...ownerQuery(userId), $expr: { $and: [{ $eq: ['$$feature', 'fortune-chat-consultation'] }, { $ne: ['$$messageId', ':1'] }, { $in: ['$$messageId', { $ifNull: ['$messages.id', []] }] }] } } }, { $limit: 1 }, { $project: { _id: 1 } }], as: '_conversation',
   } }, { $match: { '_conversation.0': { $exists: false } } }] : source.id === 'saju-bundle' ? [{ $lookup: {
-    // 같은 계정의 구매 프로필 이름만 붙인다(출생 정보·다른 계정은 읽지 않는다). 프로필을 지웠으면 이름 없이 남는다.
-    from: models.ProfileCard.collection.collectionName, let: { profile: '$purchaseProfileId' },
-    pipeline: [{ $match: { ...ownerQuery(userId), $expr: { $eq: ['$profileId', '$$profile'] } } }, { $limit: 1 }, { $project: { _id: 0, name: 1 } }], as: '_profile',
-  } }, { $set: { profileName: { $arrayElemAt: ['$_profile.name', 0] } } }] : [];
+    // 출생 기반 이관 사본(PROFILE→BIRTH 복사·BACKFILL)은 원 주문의 orderId 를 그대로 가진다. 같은 계정·같은 주문의
+    // 열람 가능한 행 중 _id 가 가장 작은 행(원 구매 행)만 싣는다. 주문 번호가 없는 행은 묶지 않고 그대로 싣는다(숨기지 않는다).
+    from: source.collection, let: { order: { $ifNull: ['$orderId', ''] }, self: '$_id' },
+    pipeline: [{ $match: { $and: [ownerQuery(userId), sourceCondition(source)], $expr: { $and: [{ $ne: ['$$order', ''] }, { $eq: ['$orderId', '$$order'] }, { $lt: ['$_id', '$$self'] }] } } }, { $limit: 1 }, { $project: { _id: 1 } }], as: '_canonical',
+  } }, { $match: { '_canonical.0': { $exists: false } } }, { $lookup: {
+    // 같은 계정의 구매 프로필 이름·카드 id 만 붙인다(출생 정보·다른 계정은 읽지 않는다). 프로필을 지웠으면 이름 없이 남는다.
+    from: models.ProfileCard.collection.collectionName,
+    let: { profile: { $ifNull: ['$purchaseProfileId', { $cond: [{ $eq: ['$scope', 'PROFILE'] }, '$profileId', null] }] } },
+    pipeline: [{ $match: { ...ownerQuery(userId), $expr: { $eq: ['$profileId', '$$profile'] } } }, { $limit: 1 }, { $project: { _id: 0, name: 1, profileId: 1 } }], as: '_profile',
+  } }, { $set: { profileName: { $arrayElemAt: ['$_profile.name', 0] }, profileCardId: { $arrayElemAt: ['$_profile.profileId', 0] } } }] : [];
   return collectionFor(source).aggregate([{ $match: query }, { $sort: { createdAt: -1, _id: -1 } }, ...mirror, { $limit: limit }, { $project: projection }], { maxTimeMS: 5000 }).toArray();
 }) {
   const search = clean(params.get('q'), 160), group = params.get('group') || 'all';
@@ -250,6 +267,10 @@ export async function readRecord(userId, sourceId, id) {
   if (!doc) return null;
   if (source.id === 'chat-consultation') doc.manifestCount = doc.snapshot?.manifest?.length || 0;
   doc.partCount = Object.keys(doc.metadata?.paidNarrative?.parts || doc.generationCheckpoint?.parts || {}).length;
+  if (source.id === 'saju-bundle' && bundleProfileRef(doc)) {
+    const card = await collectionFor({ model: 'ProfileCard' }).findOne({ $and: [ownerQuery(userId), { profileId: bundleProfileRef(doc) }] }, { projection: { _id: 0, name: 1, profileId: 1 } });
+    doc.profileName = card?.name; doc.profileCardId = card?.profileId;
+  }
   const record = recordMetadata(source, doc);
   record.title = titleFields.map(field => readRecordField(doc, field)).find(value => typeof value === 'string' && value.trim()) || record.title;
   record.question = questionFields.map(field => readRecordField(doc, field)).find(value => typeof value === 'string' && value.trim()) ||
