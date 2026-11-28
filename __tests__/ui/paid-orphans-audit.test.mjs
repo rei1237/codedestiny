@@ -35,3 +35,21 @@ test('a toss purchase without a saved native result is an orphan lead', () => {
     tossConsultations: [{ ownerId: 'o', orderId: 'tp2', savedResult: true }] });
   assert.equal(report.tossOrphans.length, 1);
 });
+
+test('S7: refund failures, held narratives and manual-review consultations are listed without owner data', () => {
+  const report = classifyPaidOrphans({ now: new Date('2026-11-30T00:00:00Z'),
+    payments: [pay({ _id: 'rf-old', paymentAmount: 9900, metadata: { refundStatus: 'refund_failed', refundFailedAt: new Date('2026-11-20T00:00:00Z') } }),
+      pay({ _id: 'rf-new', metadata: { refundStatus: 'refund_failed', refundFailedAt: new Date('2026-11-29T00:00:00Z'), refundRetry: { count: 2 } } }),
+      pay({ _id: 'rf-manual', metadata: { refundStatus: 'refund_failed', refundFailedAt: new Date('2026-11-29T00:00:00Z'), refundRetry: { count: 5, manualReview: true } } })],
+    transactions: [{ _id: 'n1', userId: 'owner', status: 'pending', featureKey: 'geomancy', createdAt: old,
+      metadata: { tossPaidNarrative: true, paidNarrativeRetry: { heldAt: old, holdCode: 'PAID_NARRATIVE_REFUND_EVIDENCE_MISSING' } } },
+      { _id: 'n2', userId: 'owner', status: 'refunded', metadata: { paidNarrativeRetry: { heldAt: old } } }],
+    results: [{ _id: 'c1', userId: 'owner', collection: 'newYearAiConsultations', status: 'generation_failed', accessSource: 'toss', llmMeta: { refundEligibleAt: old } },
+      { _id: 'c2', userId: 'owner', status: 'generation_failed', llmMeta: { deliveryRefund: { status: 'manual_review', code: 'X_REVIEW' } } },
+      { _id: 'c3', userId: 'owner', status: 'generation_failed', llmMeta: { refundEligibleAt: old } }] });
+  assert.deepEqual(report.refundFailures.map(row => [row.autoRetry, row.manualReview, row.retryCount]), [[false, false, 0], [true, false, 2], [false, true, 5]]);
+  assert.equal(report.refundFailures[0].amount, 9900);
+  assert.deepEqual(report.heldNarratives.map(row => [row.code, row.toss]), [['PAID_NARRATIVE_REFUND_EVIDENCE_MISSING', true]]);
+  assert.deepEqual(report.consultationReviews.map(row => row.code), ['TOSS_ORDER_REVIEW_REQUIRED', 'X_REVIEW']);
+  assert.ok(!JSON.stringify(report).includes('owner'));
+});
