@@ -125,7 +125,7 @@
   {
    "id": "solar-m-1990",
    "mode": "pig",
-   "summary": "e12cd5070d91ddf27958e1a20be59e65ed31e6ac0ad488b15f81d5a82567406b",
+   "summary": "283fe0009e2a8eb991a86668ad74432f5a6d91f0b9126364c901261dade93550",
    "daewun": [
     [
      8,
@@ -177,7 +177,7 @@
   {
    "id": "solar-m-1990",
    "mode": "neo",
-   "summary": "5bfddf6b4c54a4d98d9715667d6e7c8c1322e5e77868969b3524232e0181affb",
+   "summary": "f4f01acb259039fa8d3f00b39a10184f913989104c02e7c41a17b24f07852a9e",
    "daewun": [
     [
      8,
@@ -229,7 +229,7 @@
   {
    "id": "solar-f-1985",
    "mode": "pig",
-   "summary": "728a381e54eafb3b0ced9731fbec16fe6179d807410bd972aebd819132eac1c7",
+   "summary": "84de2c1e302b129e86e2bcaf0bd16b621df64529d9aa8d18f1fd3a1293bee8a5",
    "daewun": [
     [
      3,
@@ -281,7 +281,7 @@
   {
    "id": "solar-f-1985",
    "mode": "neo",
-   "summary": "9b2a3fb65a64c5ca83354cac3b1a0b940adfcc81df9dd743f90c58aa5cac99cf",
+   "summary": "44f909c4e56381c5268ac2a2f481d0405d23ddb5c45a3eb4afedfda4c6c415f4",
    "daewun": [
     [
      3,
@@ -333,19 +333,19 @@
   {
    "id": "unknown-f-1978",
    "mode": "pig",
-   "summary": "5955cf782deb2e47a7bfcb0acff94f01b39ecbc91851128523c92f655ef799c1",
+   "summary": "ee9181e3b9aa95444431b61077688c5dc9bfee19427b770634ec399fea49f2ef",
    "daewun": []
   },
   {
    "id": "unknown-f-1978",
    "mode": "neo",
-   "summary": "6113165ce4447467606bcdc8bae77fa1a9749a066e7f2b52d96165f529d5d5ae",
+   "summary": "3598741cfc8e704bec9fd6f94dce097c78d12c71690f40c02cc0185aa7de033b",
    "daewun": []
   },
   {
    "id": "lunar-m-1962",
    "mode": "pig",
-   "summary": "180252cf17b32da196ad079943e6bcee451160f3efd4fa51acba4abf2ff4b7b8",
+   "summary": "576544856b39df0d765734c4cfa6eaa2ff5ad03086d90e46cba39fd02416d62e",
    "daewun": [
     [
      10,
@@ -397,7 +397,7 @@
   {
    "id": "lunar-m-1962",
    "mode": "neo",
-   "summary": "35f682aaf70b401ae3cea16e64ef41d447a5e562778767bc8a17b9d94c4e7336",
+   "summary": "31dd253d583fd5614e3e89bf17ab36f7a5ffdd8447d606cc3552207331c97aef",
    "daewun": [
     [
      10,
@@ -449,7 +449,7 @@
   {
    "id": "leap-f-2020",
    "mode": "pig",
-   "summary": "67e9a5760227812a0fdc352d9ceee11622e016dfc24803317e5ee66d57167ff8",
+   "summary": "2642c1dea2efda54df5af52f2c5d8afd428b80cd9c0c3af85dff2cb40a9f190c",
    "daewun": [
     [
      10,
@@ -501,7 +501,7 @@
   {
    "id": "leap-f-2020",
    "mode": "neo",
-   "summary": "73724239292a57a6492f5629e799fa7747a19144184cde998621dc2c06e3cff4",
+   "summary": "a7f8809d75ad2c5acca99641cbaabcb9a4a58639b81f9ef8e7b9208c30fb239e",
    "daewun": [
     [
      10,
@@ -553,7 +553,7 @@
   {
    "id": "newyear-m-2001",
    "mode": "pig",
-   "summary": "2605d157c384fe1b738ab702a2ef42119af12c616bb981cab61db23bf5cd0167",
+   "summary": "59cf41f2a769b2340ba7776f0141e292bf503efa37afca5b95daefed8abf9c65",
    "daewun": [
     [
      2,
@@ -605,7 +605,7 @@
   {
    "id": "newyear-m-2001",
    "mode": "neo",
-   "summary": "2255da5982e698cfbff80ddb7e500b7e260daf0d4b06d22f8321c680b7d447f1",
+   "summary": "14405d064bc1d9ce5a3b7d8b7fce01bf574e93e2a08e329b708880537b4c41a0",
    "daewun": [
     [
      2,
@@ -657,7 +657,7 @@
   {
    "id": "ny-f-1995",
    "mode": "pig",
-   "summary": "2b3d577981662b4b9a5c8686e1a3584e3dd80424210c0601e2a6cefae8149e6c",
+   "summary": "e8e708c92b8b330d65ebd349dae62b045db033574f7c36be51f605b3e9d7af51",
    "daewun": [
     [
      7,
@@ -709,7 +709,7 @@
   {
    "id": "ny-f-1995",
    "mode": "neo",
-   "summary": "56630590b05edd3008a6cde88f215761c3eabe61232fcf8df92a04755a9c970d",
+   "summary": "27c924f9d9c49c59ea1761404649da3c50f7247aeec86866093b2521e6fd627f",
    "daewun": [
     [
      7,
@@ -761,7 +761,7 @@
   {
    "id": "old-m-1941",
    "mode": "pig",
-   "summary": "dfb2099bd577ea6c60237c5c4be35e8d1307bb9f33ad671e40d018512207831f",
+   "summary": "a7163c1b4279f0c3c3c4e3cc2722a66dd1a2eb5f66965ffcb76e231e783c3073",
    "daewun": [
     [
      6,
@@ -813,7 +813,7 @@
   {
    "id": "old-m-1941",
    "mode": "neo",
-   "summary": "8f19a17c8e4960b2c097ecf34397fad45a6c0a241094b4972eaa694544f18a62",
+   "summary": "2e192071aaa9cd3e8a0491e49ea5b1ab29a5498da2b65c59d0a935395cffe8d0",
    "daewun": [
     [
      6,
@@ -865,7 +865,7 @@
   {
    "id": "young-f-2015",
    "mode": "pig",
-   "summary": "1606cd8c4db0db8de53e6ff2c84931569282ce1bc2611b4d945441d6afac3bda",
+   "summary": "cafe6556b15e5fbb7b77cf3327f4b6e7ec465ee6bffc0788e3f36421e6da235c",
    "daewun": [
     [
      3,
@@ -917,7 +917,7 @@
   {
    "id": "young-f-2015",
    "mode": "neo",
-   "summary": "d24b8c981708f3b8c4e6d9ce39d3b4db94a17b9d8e461eb3a8784014f31f0216",
+   "summary": "3728750a02844e201e5501dc937c0c1f0060a7e5a837bb0c00943d535cf9887f",
    "daewun": [
     [
      3,
@@ -969,7 +969,7 @@
   {
    "id": "jong-confirmed",
    "mode": "pig",
-   "summary": "0e206e506f838e56cda5464c6a79db918868ec51bc205957d4ac3e0fe1818c01",
+   "summary": "a002099018f6779a72b25acf2493a69d5aea948a9df6ceefa870fe108cddd47b",
    "daewun": [
     [
      1,
@@ -1021,7 +1021,7 @@
   {
    "id": "jong-confirmed",
    "mode": "neo",
-   "summary": "eaa62c6d380c72fa77d4759a5c3fa64a04a4aa9757b7fd69dacb5476debb532c",
+   "summary": "6ac35de7455ef2652267b9a287f398df087a8551b70e6f39d8d6e00017201420",
    "daewun": [
     [
      1,
@@ -1073,7 +1073,7 @@
   {
    "id": "jong-rejected",
    "mode": "pig",
-   "summary": "0e206e506f838e56cda5464c6a79db918868ec51bc205957d4ac3e0fe1818c01",
+   "summary": "a002099018f6779a72b25acf2493a69d5aea948a9df6ceefa870fe108cddd47b",
    "daewun": [
     [
      1,
@@ -1125,7 +1125,7 @@
   {
    "id": "jong-rejected",
    "mode": "neo",
-   "summary": "eaa62c6d380c72fa77d4759a5c3fa64a04a4aa9757b7fd69dacb5476debb532c",
+   "summary": "6ac35de7455ef2652267b9a287f398df087a8551b70e6f39d8d6e00017201420",
    "daewun": [
     [
      1,
@@ -1177,7 +1177,7 @@
   {
    "id": "jong-unverified",
    "mode": "pig",
-   "summary": "0e206e506f838e56cda5464c6a79db918868ec51bc205957d4ac3e0fe1818c01",
+   "summary": "a002099018f6779a72b25acf2493a69d5aea948a9df6ceefa870fe108cddd47b",
    "daewun": [
     [
      1,
@@ -1229,7 +1229,7 @@
   {
    "id": "jong-unverified",
    "mode": "neo",
-   "summary": "eaa62c6d380c72fa77d4759a5c3fa64a04a4aa9757b7fd69dacb5476debb532c",
+   "summary": "6ac35de7455ef2652267b9a287f398df087a8551b70e6f39d8d6e00017201420",
    "daewun": [
     [
      1,
@@ -1281,7 +1281,7 @@
   {
    "id": "hwa-confirmed",
    "mode": "pig",
-   "summary": "09561e8a4bbcecb79a83676d6922a41687139886fd7d713a45b6b4e4163dada4",
+   "summary": "74944b8de81fe58fcae80e1f31266b23daa6c4537f349e529e7eff57caa211b4",
    "daewun": [
     [
      6,
@@ -1333,7 +1333,7 @@
   {
    "id": "hwa-confirmed",
    "mode": "neo",
-   "summary": "8f9e5d2967e152193e9e270acd011a2fa42e30a67df4ba6c5e61ff67d3c9b4ca",
+   "summary": "a10678e2c986a5cf61de5cb8dee5e10ddf108f4a2dffa0105ab61f992c1f74d3",
    "daewun": [
     [
      6,
