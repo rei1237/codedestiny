@@ -83,17 +83,17 @@
         "symbol": "./gemini-provider-errors.mjs"
       },
       {
-        "line": 159,
+        "line": 165,
         "kind": "provider-url",
         "symbol": "direct REST"
       },
       {
-        "line": 968,
+        "line": 974,
         "kind": "provider-url",
         "symbol": "direct REST"
       },
       {
-        "line": 1130,
+        "line": 1136,
         "kind": "call",
         "symbol": "env.AI.run"
       }
@@ -1234,6 +1234,21 @@
       },
       {
         "line": 101,
+        "kind": "call",
+        "symbol": "callGeminiText"
+      }
+    ]
+  },
+  {
+    "file": "worker/yeongnyangi/support.ts",
+    "matches": [
+      {
+        "line": 5,
+        "kind": "import-or-injected-call",
+        "symbol": "../lib/gemini.js"
+      },
+      {
+        "line": 85,
         "kind": "call",
         "symbol": "callGeminiText"
       }

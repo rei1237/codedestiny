@@ -984,6 +984,7 @@ const LLM_CALL_FILES = [
   "worker/lib/paid-narrative-delivery.js", "worker/routes/sukuyo-compatibility-ai.js", "worker/routes/vedic-ai.js",
   "worker/routes/yoga-guru.js", "worker/routes/saju-compat-basic.js", "worker/routes/ziwei-ai.js", "worker/routes/ziwei-deep-report.js",
   "worker/lib/fusion-fortune.js", "worker/lib/palm-vision.js",
+  "worker/yeongnyangi/support.ts",
 ];
 
 // 죽은 옵션: callGeminiText/callGeminiJsonWithRetry 가 읽지 않는 키. 지정하면 "설정했다"는
@@ -1087,6 +1088,8 @@ const EXPECTED_LLM_CALL_SITES = {
   // Ziwei: two checkpointed calls (body/meta) per plan (판 1·판 2), all disable fallback and use one bounded attempt; legacy helpers retain three calls.
   "worker/routes/yoga-guru.js": 1, "worker/routes/saju-compat-basic.js": 1, "worker/routes/ziwei-ai.js": 7, "worker/routes/ziwei-deep-report.js": 1,
   "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
+  // S9 고객센터 1건: 무료 안내 답변(Workers AI 먼저, 실패는 고정 폴백 문구). 유료 배달이 아니라 fallbackMinChars 불필요.
+  "worker/yeongnyangi/support.ts": 1,
 };
 for (const [path, expected] of Object.entries(EXPECTED_LLM_CALL_SITES)) {
   const actual = llmCallSiteCounts.get(path) ?? 0;

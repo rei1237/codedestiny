@@ -117,3 +117,28 @@ test('structured wrapper passes finalProviderAttempt through to the provider cal
     assert.equal(final.ok, true); assert.equal(final.provider, 'workers-ai'); assert.equal(h.counts.fallback, 1);
   } finally { h.restore(); }
 });
+
+// 2026-11-28 S9 고객센터: primaryProvider 'cloudflare' 는 Workers AI 를 먼저 1회 쓰고, 실패에만 Gemini 를 1회 쓴다.
+test('primaryProvider cloudflare: Workers AI answers first and Gemini is not called', async () => {
+  const h = harness({ generate: () => Response.json(success) });
+  try {
+    const result = await callLLM({ prompt: 'fixture', primaryProvider: 'cloudflare', maxProviderAttempts: 1 }, h.env);
+    assert.equal(result.provider, 'cloudflare'); assert.equal(h.counts.fallback, 1);
+    assert.equal(h.counts.generations, 0); assert.equal(h.counts.tokenizer, 0);
+  } finally { h.restore(); }
+});
+
+test('primaryProvider cloudflare: a Workers AI failure goes to Gemini once, never back to Workers AI', async () => {
+  const h = harness({ generate: () => Response.json(success) });
+  h.env.AI.run = async () => { h.counts.fallback++; throw new Error('workers ai down'); };
+  try {
+    const result = await callLLM({ prompt: 'fixture', primaryProvider: 'cloudflare', maxProviderAttempts: 1 }, h.env);
+    assert.equal(result.text, BODY); assert.equal(h.counts.generations, 1); assert.equal(h.counts.fallback, 1);
+  } finally { h.restore(); }
+  const both = harness({ generate: invalid });
+  both.env.AI.run = async () => { both.counts.fallback++; throw new Error('workers ai down'); };
+  try {
+    await assert.rejects(callLLM({ prompt: 'fixture', primaryProvider: 'cloudflare', maxProviderAttempts: 1 }, both.env));
+    assert.equal(both.counts.generations, 1); assert.equal(both.counts.fallback, 1);
+  } finally { both.restore(); }
+});
