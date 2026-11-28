@@ -1496,7 +1496,9 @@ async function lockNextTimedOutExecution() {
       },
     },
     {
-      sort: { timeoutAt: 1, createdAt: 1 },
+      // nextRetryAt 먼저(2026-11-28): "recoverable" 판정 건은 환불 없이 nextRetryAt 만 10분 미뤄진다. timeoutAt 순이면
+      // 오래 멈춘 그런 건 몇 개가 10분 크론의 소량 한도를 매번 다 차지해 다른 타임아웃 건이 굶는다. 방금 미룬 건은 뒤로 간다.
+      sort: { nextRetryAt: 1, timeoutAt: 1, createdAt: 1 },
       returnDocument: "after",
     },
   ).lean();

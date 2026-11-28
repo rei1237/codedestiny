@@ -51,3 +51,11 @@ test("옵션 없이 부르면(일일 크론) 예전처럼 env 값, 없으면 30�
   await runServiceExecutionTimeoutTask({});
   expect(lockClaims).toHaveBeenCalledTimes(30);
 });
+
+test("락 클레임은 nextRetryAt 이 가장 이른 건부터 잡는다 — 방금 미룬 recoverable 건이 소량 한도를 독차지하지 않는다", async () => {
+  await runServiceExecutionTimeoutTask({}, { limit: 1 });
+  const [filter, , options] = lockClaims.mock.calls[0];
+  expect(Object.keys(options.sort)[0]).toBe("nextRetryAt");
+  expect(filter).toMatchObject({ status: "pending" });
+  expect(filter.nextRetryAt).toBeDefined();
+});
