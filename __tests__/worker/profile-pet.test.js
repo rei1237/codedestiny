@@ -19,6 +19,15 @@ function collection(name) {
       if (rows().some(item => item._id === row._id)) throw Object.assign(new Error('duplicate'), { code: 11000 });
       rows().push(clone(row));
     },
+    deleteMany: async filter => {
+      const before = rows().length; db[name] = rows().filter(row => !matches(row, filter));
+      return { deletedCount: before - db[name].length };
+    },
+    deleteOne: async filter => {
+      const index = rows().findIndex(row => matches(row, filter));
+      if (index >= 0) rows().splice(index, 1);
+      return { deletedCount: index >= 0 ? 1 : 0 };
+    },
     updateOne: async (filter, change, options = {}) => {
       if (failOn === name) throw new Error('injected failure');
       let row = rows().find(item => matches(item, filter));
@@ -231,4 +240,12 @@ test('반려 캐릭터 API는 미로그인 요청을 거절한다', async () => 
     const response = await route(new Request('https://example.test/api/rpg/' + path, { method: body ? 'POST' : 'GET', ...(body ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}) }), {});
     expect(response.status).toBe(401);
   }
+});
+test('프로필 카드 삭제는 그 카드의 반려 캐릭터와 돌봄 기록만 지운다', async () => {
+  await hatch('one'); await hatch('two');
+  await care('feed', 'one'); await care('feed', 'two');
+  await pets.deleteProfilePetData({}, uid, 'one');
+  expect(db.profile_pets.map(row => row.profileId)).toEqual(['two']);
+  expect(db.profile_pet_actions.length).toBeGreaterThan(0);
+  expect(db.profile_pet_actions.every(row => row.profileId === 'two')).toBe(true);
 });
