@@ -32,6 +32,8 @@ jest.unstable_mockModule('../../worker/yeongnyangi/repository.js',()=>({
   readRequest:read,resumeRequest:read,ownerId:value=>value,YeongnyangiRequest:{find},userCanRetry:row=>row.errorCode==='AUTOMATIC_RECOVERY_STOPPED'||Boolean(row.hold?.retryLeft),
 }));
 jest.unstable_mockModule('../../worker/yeongnyangi/retry.js',()=>({retryFortune:generate}));
+const supportHandler=jest.fn();
+jest.unstable_mockModule('../../worker/yeongnyangi/support.ts',()=>({handleSupportQuestion:supportHandler}));
 let handleYeongnyangiRoutes;
 beforeAll(async()=>{({handleYeongnyangiRoutes}=await import('../../worker/routes/yeongnyangi.js'));});
 const env={GEMINIF_API_KEY:'fixture-not-called'};
@@ -269,4 +271,15 @@ test('library carries the repository retry decision and selects the grant fields
  const body=await(await handleYeongnyangiRoutes(request('requests'),env)).json();
  expect(body.fortunes.map(row=>row.canRetry)).toEqual([false,true,true]);
  expect(select.mock.calls[0][0].split(' ')).toEqual(expect.arrayContaining(['manualRecoveryGrants','systemRecoveryGrants','hold']));
+});
+
+test('support questions need login, pass the write guard and reach the support desk with the authenticated user only',async()=>{
+ supportHandler.mockResolvedValue(json({ok:true,source:'faq'}));
+ const req=request('support','POST',{question:'가격이 얼마예요?',userId:'someone-else'});
+ expect((await handleYeongnyangiRoutes(req,env)).status).toBe(200);
+ expect(supportHandler).toHaveBeenCalledWith(req,env,userId);
+ expect(security).toHaveBeenCalledWith(expect.objectContaining({endpoint:'yeongnyangi:POST:support',userId}));
+ auth.mockRejectedValue(createHttpError(401,'로그인이 필요해요.',{code:'LOGIN_REQUIRED'}));supportHandler.mockClear();
+ expect((await handleYeongnyangiRoutes(request('support','POST',{question:'가격'}),env)).status).toBe(401);
+ expect(supportHandler).not.toHaveBeenCalled();
 });

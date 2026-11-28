@@ -27,9 +27,14 @@ function heukwolRetryWindowOpen(doc, now) {
 // pending (browser resume and the free retry read status pending), nextRetryAt moves to the retry-first
 // refund point (created + 7 days, docs/handoff/paid-retry-delivery-2026-11-19.md) and the C2 settle
 // refunds it there or on a customer request. Exhaustion mirrors paid-narrative-delivery.js limited/v2Exhausted;
-// the 24h window mirrors paid-narrative-recovery-task.js MAX_AGE_MS. A run still progressing stays recoverable.
+// The server resume window mirrors paid-narrative-recovery-task.js MAX_AGE_MS. A run still progressing stays recoverable.
+// 2026-11-28: the window from createdAt is 6 days (was 24h), one day short of the 7-day refund point, so the
+// cron keeps resuming a stalled run while the customer still waits for it; the per-part attempt budget, not
+// this window, bounds provider cost. A customer retry still opens 24h from that retry.
 const PAID_NARRATIVE_FEATURES = new Set(["pet-saju-ai-consultation", "pet-compatibility-ai", "animal-totem-basic", "animal-totem-deep", "dream-psycho-analysis", "geomancy", "yoga-guru-per-use", "compat-saju-compatibility", "tarot-prompt-maker", "tarot-prompt-maker-standard", "tarot-prompt-maker-deep", "tarot-prompt-maker-master", "tarot-mindscan", "tarot-love-relationship"]);
-const DAY_MS = 86400000, PAID_NARRATIVE_RESUME_WINDOW_MS = DAY_MS, PAID_NARRATIVE_REFUND_AFTER_MS = 7 * DAY_MS;
+const DAY_MS = 86400000, PAID_NARRATIVE_REFUND_AFTER_MS = 7 * DAY_MS;
+export const PAID_NARRATIVE_SERVER_RESUME_WINDOW_MS = PAID_NARRATIVE_REFUND_AFTER_MS - DAY_MS;
+const PAID_NARRATIVE_RETRY_RESUME_WINDOW_MS = DAY_MS;
 function isPaidNarrativeExecution(execution) {
   return Boolean(execution?.metadata?.paidNarrative?.tasks) && (PAID_NARRATIVE_FEATURES.has(execution.featureKey)
     || PAID_NARRATIVE_SERVER_RESUME_KEYS.includes(`${execution.featureKey}|${execution.reportType}`));
@@ -49,8 +54,9 @@ export function paidNarrativeHoldCode(execution, { includeResumable = true, now 
     : tasks.some(task => !parts[task.id] && (attempts[task.id] || 0) >= 2));
   if (exhausted) return "PAID_NARRATIVE_EXHAUSTED";
   // A customer retry (C2 /api/paid-narrative/retry) opens a fresh resume window from that retry.
-  const opened = Math.max(new Date(execution.createdAt ?? NaN).getTime() || 0, new Date(retry.reopenedAt ?? NaN).getTime() || 0);
-  if (opened > 0 && now - opened > PAID_NARRATIVE_RESUME_WINDOW_MS) return "PAID_NARRATIVE_RESUME_WINDOW_CLOSED";
+  const created = new Date(execution.createdAt ?? NaN).getTime() || 0, reopened = new Date(retry.reopenedAt ?? NaN).getTime() || 0;
+  const openUntil = Math.max(created ? created + PAID_NARRATIVE_SERVER_RESUME_WINDOW_MS : 0, reopened ? reopened + PAID_NARRATIVE_RETRY_RESUME_WINDOW_MS : 0);
+  if (openUntil > 0 && now > openUntil) return "PAID_NARRATIVE_RESUME_WINDOW_CLOSED";
   // includeResumable gate: an explicit close of a run with nothing saved is not retried, and not refunded here either.
   if (!includeResumable && Object.keys(parts).length === 0) return "PAID_NARRATIVE_CLOSE_REQUESTED";
   return "";

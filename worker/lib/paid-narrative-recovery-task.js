@@ -7,8 +7,10 @@ import {
   PAID_NARRATIVE_SERVER_RESUME_FEATURE_KEYS,
   PAID_NARRATIVE_SERVER_RESUME_REPORT_TYPES,
 } from './paid-narrative-adapters.js';
+import { PAID_NARRATIVE_SERVER_RESUME_WINDOW_MS } from './checkpoint-refund-guard.js';
 
-const IDLE_MS = 300000, MAX_AGE_MS = 86400000, TASK_BUDGET_MS = 240000, WAVE_BUDGET_MS = 65000, MAX_PER_TICK = 3;
+// MAX_AGE_MS is the same server resume window the timeout sweep uses to hold a run (6 days, 2026-11-28; was 24h).
+const IDLE_MS = 300000, MAX_AGE_MS = PAID_NARRATIVE_SERVER_RESUME_WINDOW_MS, TASK_BUDGET_MS = 240000, WAVE_BUDGET_MS = 65000, MAX_PER_TICK = 3;
 const MAX_ERRORS = 5, BACKOFF_MS = 600000, MAX_BACKOFF_MS = 3600000;
 
 // Engine saves move timeoutAt ten minutes ahead, so timeoutAt <= now + 5 min is

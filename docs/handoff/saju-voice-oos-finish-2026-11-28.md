@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-28
-next: 1단계 — 1664bf8f40 의 PR CI(46138585760) 결과만 한 번 확인(워크트리 4개 배수는 끝남), 초록이면 2단계 묶음 A 머지·push
+next: 2단계 — 묶음 A 검증·커밋·pre-push·push. 1664bf8f40 CI 성공 확인.
 ---
 
 # 사주 말투·문장 다듬기 + 범위 밖 결함 마무리 (세션 ccbee9c2 인수인계)
@@ -77,7 +77,7 @@ next: 1단계 — 1664bf8f40 의 PR CI(46138585760) 결과만 한 번 확인(워
 ## 단계
 - [x] P0 CI 복구, P1 신살 카드, P2a/P2b 화자 이미지, P3-3 일주 다듬기 (push됨)
 - [x] P3-1·P3-2·P3-6·P4 + D·F·H 머지·push (1664bf8f40 계열, CI 결과 확인 필요)
-- [ ] **1. CI 확인** (배수 4개는 2026-11-28 머지 에이전트가 완료: natal-polish·cycle-polish·career-style-voice·oos-dfh 워크트리·브랜치 제거. push 51a30225df..f661f85f5f 는 94fd55ac61·ff4954d979 PR CI success로 덮였고, Secret Scan 오탐(VOICE_KEY)은 1664bf8f40 .gitleaksignore 로 고쳐 46138585756 success. 남은 것은 46138585760 결과뿐): run 46138585760(또는 최신 main PR CI)이 초록이면 워크트리 4개(natal-polish, cycle-polish, career-style-voice, oos-dfh)를 배수한다. 우리 탓으로 빨가면 고쳐서 앞으로 나아가거나 해당 머지를 `git revert`한다. 상태 파일에 결과를 적는다.
+- [x] **1. CI 확인**: 1664bf8f40 / 46138585760 success. 선행 커밋 5개 포함 확인.
 - [ ] **2. 묶음 A 머지·push**: oos-a 워크트리에서 `git merge origin/main`을 한다. paid-renderers.src.js·runtime·parity가 겹치므로 runtime과 parity는 다시 만든다. 그 뒤 sync:public → check:fast → pre-push → push → CI 1회 → oos-a 배수. 이 문서도 같이 main에 올라간다.
 - [ ] **3. 묶음 C** (P1-4, P1-5, P3-2-3): index.html, i18n, manse-view.js, reading-personas.js. 분류표는 `D:\Development\Temp\claude\40e1d9fc07e84b89\ccbee9c2-3d47-4c20-84f5-28095eec105d\scratchpad\oos\triage.md`
 - [ ] **4. 묶음 B** (P3-3-1, P3-2-1, P3-2-2, P3-2-4, P3-2-5)와 새 문구 후보

@@ -57,6 +57,18 @@ export function lifeCalibrationOn(env, id) {
   return raw.split(',').map((part) => part.trim()).filter(Boolean).includes(want);
 }
 
+// 인생 보정 LLM 블록 핀(P4). 신살 핀과 같은 규칙: 새 기록에만 meta.lifeCalibration 을 넣고, 생성·재시도·재개는
+// lifeCalibrationPinned 로 읽는다. 키 없는 기존 기록은 플래그를 켜도 off, 플래그를 비우면 핀이 있어도 off(킬 스위치).
+export const LIFE_CALIBRATION_META = 'life-calibration-v1';
+
+export function selectLifeCalibration(env, id) {
+  return lifeCalibrationOn(env, id) ? LIFE_CALIBRATION_META : null;
+}
+
+export function lifeCalibrationPinned(meta, env, id) {
+  return meta?.lifeCalibration === LIFE_CALIBRATION_META && lifeCalibrationOn(env, id);
+}
+
 // 신살 사실 블록 소비처 스위치. env.SAJU_SHINSAL_FACTS_V1 이 'true' 면 전부, CSV 면 목록에 든 id 만 켠다.
 export function shinsalFactsOn(env, id) {
   const raw = String(env?.SAJU_SHINSAL_FACTS_V1 ?? '').trim();

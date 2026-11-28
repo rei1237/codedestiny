@@ -187,8 +187,17 @@ describe('paid narrative terminal hold',()=>{
  test('is held once server recovery marked it for review',async()=>{
   execution.metadata.paidNarrativeRecovery={reviewRequired:true,code:'DELIVERY_REVIEW_REQUIRED'};expect(await inspect(execution)).toBe('held');
  });
- test('is held after the 24h server resume window',async()=>{
-  execution.createdAt=new Date(Date.now()-DAY-60000);expect(await inspect(execution)).toBe('held');
+ // 2026-11-28: the server resume window is 6 days (one day before the 7-day refund point), not 24h.
+ test('keeps resuming a stalled run past the first day, inside the 6-day server window',async()=>{
+  execution.createdAt=new Date(Date.now()-DAY-60000);expect(await inspect(execution)).toBe('recoverable');
+  execution.createdAt=new Date(Date.now()-6*DAY+60000);expect(await inspect(execution)).toBe('recoverable');
+ });
+ test('is held after the 6-day server resume window',async()=>{
+  execution.createdAt=new Date(Date.now()-6*DAY-60000);expect(await inspect(execution)).toBe('held');
+ });
+ test('a customer retry past the server window opens 24h from the retry only',async()=>{
+  execution.createdAt=new Date(Date.now()-6*DAY-60000);execution.metadata.paidNarrativeRetry={reopenedAt:new Date(Date.now()-DAY-60000)};
+  expect(await inspect(execution)).toBe('held');
  });
  test('a v2 record keeps resuming until its own 4-attempt budget is spent',async()=>{
   Object.assign(execution.metadata.paidNarrative,{deliveryPlanVersion:2,attempts:{a:1,b:3}});expect(await inspect(execution)).toBe('recoverable');

@@ -50,7 +50,7 @@
   list-style: none;
 }
 .list[hidden] { display: none; }
-.item { min-width: 0; }
+.item { min-width: 0; container-type: inline-size; }
 
 .card {
   min-width: 0;
@@ -87,6 +87,7 @@
   font-size: 0.9375rem;
   line-height: 1.65;
   word-break: keep-all;
+  text-wrap: pretty;
 }
 
 .say {
@@ -193,4 +194,11 @@
 @media (min-width: 600px) {
   .card { padding: 22px 22px 18px; }
   .frame { flex-basis: 6.75rem; width: 6.75rem; }
+}
+
+/* 좁은 카드(찻집 시트·재열람 등 260px 이하)에서는 그림 위·말풍선 아래로 쌓아(600px 미디어 규칙보다 뒤에 둬야 그림 높이가 flex-basis 로 바뀌지 않는다) 말풍선이 그림보다 길게 늘어지지 않게 한다. */
+@container (max-width: 260px) {
+  .say { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .frame { flex: 0 0 auto; }
+  .bubble { align-self: stretch; margin: 0; border-radius: var(--cd-r-sm, 8px) var(--cd-r-card, 20px) var(--cd-r-card, 20px) var(--cd-r-card, 20px); }
 }

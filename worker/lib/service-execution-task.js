@@ -1496,7 +1496,9 @@ async function lockNextTimedOutExecution() {
       },
     },
     {
-      sort: { timeoutAt: 1, createdAt: 1 },
+      // nextRetryAt 먼저(2026-11-28): "recoverable" 판정 건은 환불 없이 nextRetryAt 만 10분 미뤄진다. timeoutAt 순이면
+      // 오래 멈춘 그런 건 몇 개가 10분 크론의 소량 한도를 매번 다 차지해 다른 타임아웃 건이 굶는다. 방금 미룬 건은 뒤로 간다.
+      sort: { nextRetryAt: 1, timeoutAt: 1, createdAt: 1 },
       returnDocument: "after",
     },
   ).lean();
@@ -1534,11 +1536,13 @@ export async function sweepStaleServiceExecutions(env, options = {}) {
   return result;
 }
 
-export async function runServiceExecutionTimeoutTask(env) {
+// options.limit — 10분 크론은 소량(5건)으로, 일일 크론은 env 기본값(30)으로 부른다(2026-11-28).
+// 예전에는 일일 크론에만 있어서 백오프(30s→15m)가 사실상 "하루 1회"였다. 건별 락 CAS 가 겹친 실행을 막는다.
+export async function runServiceExecutionTimeoutTask(env, options = {}) {
   const startedAt = Date.now();
   try {
     const result = await sweepStaleServiceExecutions(env, {
-      limit: clampInt(env?.SERVICE_EXEC_SWEEP_LIMIT, 30, 1, 200),
+      limit: clampInt(options.limit ?? env?.SERVICE_EXEC_SWEEP_LIMIT, 30, 1, 200),
     });
     console.log("[CRON] service-execution timeout task completed", JSON.stringify({
       ...result,

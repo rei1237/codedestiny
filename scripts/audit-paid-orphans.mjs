@@ -20,6 +20,8 @@ const DONE_RESULT = new Set(['completed', 'complete', 'delivered', 'ready']);
 const DONE_EXECUTION = new Set(['completed']);
 const DONE_TRANSACTION = new Set(['delivered']);
 const PALM = 'palm-reading-general';
+// worker/lib/payment-refund.js REFUND_RETRY_NOT_BEFORE: the 10-minute retry only picks failures from this instant on.
+const REFUND_RETRY_NOT_BEFORE = Date.parse('2026-11-28T15:00:00.000Z'), REFUND_RETRY_LOOKBACK_MS = 3 * 86400000;
 const ref = value => createHash('sha256').update(String(value)).digest('hex').slice(0, 12);
 const id = value => (value == null ? '' : String(value));
 
@@ -29,7 +31,8 @@ function refunded(order) {
 
 /** Pure join. Every match requires the same owner; a token match from another account never counts. */
 export function classifyPaidOrphans({ payments = [], executions = [], transactions = [], results = [],
-  tossPurchases = [], tossConsultations = [], now = new Date(), minAgeHours = 24 } = {}) {
+  yeongnyangiRequests = [], tossPurchases = [], tossConsultations = [], now = new Date(), minAgeHours = 24 } = {}) {
+  const time = value => new Date(value ?? NaN).getTime();
   const cutoff = now.getTime() - minAgeHours * 3600000;
   const old = row => new Date(row.paidAt || row.createdAt || now).getTime() <= cutoff;
   const orders = [];
@@ -45,11 +48,17 @@ export function classifyPaidOrphans({ payments = [], executions = [], transactio
       ...tx.flatMap(row => [id(row._id), row.reportId, row.sessionId])].filter(Boolean));
     const docs = results.filter(row => mine(row) && ((key && row.idempotencyKey === key)
       || resultTokens.has(row.paymentId) || resultTokens.has(id(row._id)) || resultTokens.has(row.id)));
+    // yeongnyangi_requests: the 영냥이 product pays under `yn-<request _id>` (worker/yeongnyangi/repository.js attachDirectPayment)
+    // and the 연이·네오 consultation room (persona set) under `fc-<request _id>` (access-methods.js chatPaymentRequestId).
+    // A prefix only counts for its own service; a direct paymentId / per-use payment evidence link is exact.
+    const yn = yeongnyangiRequests.filter(row => mine(row) && (tokens.has(id(row.paymentId))
+      || (row.perUseSource === 'payment' && tokens.has(row.perUseEvidenceId))
+      || (key && key === `${row.persona ? 'fc' : 'yn'}-${id(row._id)}`)));
     const delivered = docs.some(row => DONE_RESULT.has(row.status)) || exec.some(row => DONE_EXECUTION.has(row.status))
-      || tx.some(row => DONE_TRANSACTION.has(row.deliveryStatus));
-    const state = delivered ? 'delivered' : (docs.length || exec.length || tx.length) ? 'undelivered' : 'evidenceNotFound';
+      || tx.some(row => DONE_TRANSACTION.has(row.deliveryStatus)) || yn.some(row => row.state === 'COMPLETED');
+    const state = delivered ? 'delivered' : (docs.length || exec.length || tx.length || yn.length) ? 'undelivered' : 'evidenceNotFound';
     orders.push({ ref: ref(order._id), featureKey: order.featureKey, paidAt: order.paidAt || order.createdAt, state,
-      resultStatuses: docs.map(row => row.status), executionStatuses: exec.map(row => row.status),
+      resultStatuses: docs.map(row => row.status), yeongnyangiStates: yn.map(row => row.state), executionStatuses: exec.map(row => row.status),
       deliveryStatuses: tx.map(row => row.deliveryStatus), palm: order.featureKey === PALM });
   }
   const stuckExecutions = executions.filter(row => row.status === 'paid_pending_generation' && old(row))
@@ -64,6 +73,27 @@ export function classifyPaidOrphans({ payments = [], executions = [], transactio
     .filter(row => !row.executionId || !executions.some(doc => id(doc._id) === row.executionId && DONE_EXECUTION.has(doc.status)))
     .map(row => ({ ref: ref(row._id), sku: row.sku, nativeService: row.nativeService, serviceId: row.serviceId,
       environment: row.environment, verifiedAt: row.verifiedAt }));
+  // 2026-11-28 S7: card refunds that failed at the PG (Payment stays paid). autoRetry says whether the S1 cron will pick it up;
+  // false means only an operator (approved dry-run, then execution) closes it.
+  const refundFailures = payments.filter(row => PAID.includes(row.status) && row.metadata?.refundStatus === 'refund_failed')
+    .map(row => { const failedAt = row.metadata?.refundFailedAt || row.lastErrorAt || null, retry = row.metadata?.refundRetry || {};
+      const at = time(failedAt);
+      return { ref: ref(row._id), featureKey: row.featureKey, amount: Number(row.paymentAmount ?? row.amount ?? 0), paidAt: row.paidAt || row.createdAt,
+        failedAt, retryCount: Number(retry.count || 0), manualReview: retry.manualReview === true,
+        autoRetry: retry.manualReview !== true && at >= REFUND_RETRY_NOT_BEFORE && at >= now.getTime() - REFUND_RETRY_LOOKBACK_MS }; });
+  // Paid narrative runs the retry-first settle held for an operator (no restorable evidence, unconfirmed or failed refund).
+  const heldNarratives = transactions.filter(row => row.metadata?.paidNarrativeRetry?.heldAt || row.metadata?.paidNarrativeRetry?.refundFailedAt)
+    .filter(row => !['refunded', 'completed'].includes(row.status))
+    .map(row => { const retry = row.metadata.paidNarrativeRetry;
+      return { ref: ref(row._id), featureKey: row.featureKey, status: row.status, code: retry.refundFailedAt ? 'REFUND_FAILED' : retry.holdCode || row.reasonCode || '',
+        toss: row.metadata?.tossPaidNarrative === true, createdAt: row.createdAt, heldAt: retry.heldAt || retry.refundFailedAt,
+        alerted: Boolean(retry.alertedAt) }; });
+  // Consultation docs the shared refund cron cannot close: toss (no partner refund API) and *_REVIEW manual review.
+  const consultationReviews = results.filter(row => row.status === 'generation_failed'
+      && ((row.accessSource === 'toss' && row.llmMeta?.refundEligibleAt) || row.llmMeta?.deliveryRefund?.status === 'manual_review'))
+    .map(row => ({ ref: ref(row._id), collection: row.collection || '', toss: row.accessSource === 'toss',
+      code: row.accessSource === 'toss' ? 'TOSS_ORDER_REVIEW_REQUIRED' : row.llmMeta?.deliveryRefund?.code || 'MANUAL_REVIEW',
+      createdAt: row.createdAt, alerted: Boolean(row.llmMeta?.operatorAlertedAt) }));
   const byFeature = {};
   for (const row of orders) {
     const bucket = byFeature[row.featureKey] ||= { delivered: 0, undelivered: 0, evidenceNotFound: 0 };
@@ -73,7 +103,7 @@ export function classifyPaidOrphans({ payments = [], executions = [], transactio
     byFeature,
     leads: orders.filter(row => row.state !== 'delivered'),
     palmOrders: orders.filter(row => row.palm).map(row => ({ ref: row.ref, state: row.state })),
-    stuckExecutions, stuckTransactions, tossOrphans,
+    stuckExecutions, stuckTransactions, tossOrphans, refundFailures, heldNarratives, consultationReviews,
   };
 }
 
@@ -101,24 +131,33 @@ async function main() {
     const recent = { createdAt: { $gte: since } };
     const payments = await read('payments', { ...recent, status: { $in: PAID }, featureKey: { $in: PER_USE_PAID_FEATURE_KEYS } },
       { userId: 1, status: 1, featureKey: 1, merchantUid: 1, impUid: 1, requestId: 1, idempotencyKey: 1, paidAt: 1, createdAt: 1,
-        refundLock: 1, 'metadata.refundStatus': 1, 'metadata.unlockRevoked': 1 });
+        refundLock: 1, 'metadata.refundStatus': 1, 'metadata.unlockRevoked': 1, paymentAmount: 1, amount: 1, lastErrorAt: 1,
+        'metadata.refundFailedAt': 1, 'metadata.refundRetry.count': 1, 'metadata.refundRetry.manualReview': 1 });
     const executions = await read('paid_execution_records', recent,
       { userId: 1, status: 1, featureId: 1, accessMethod: 1, orderId: 1, paymentId: 1, resultId: 1, createdAt: 1 });
     const transactions = await read('serviceexecutiontransactions', recent,
       { userId: 1, status: 1, deliveryStatus: 1, featureKey: 1, merchantUid: 1, orderId: 1, paymentId: 1, 'paymentRef.merchantUid': 1,
-        reportId: 1, sessionId: 1, reasonCode: 1, retryCount: 1, createdAt: 1 });
+        reportId: 1, sessionId: 1, reasonCode: 1, retryCount: 1, createdAt: 1, 'metadata.tossPaidNarrative': 1,
+        'metadata.paidNarrativeRetry.heldAt': 1, 'metadata.paidNarrativeRetry.holdCode': 1, 'metadata.paidNarrativeRetry.refundFailedAt': 1,
+        'metadata.paidNarrativeRetry.alertedAt': 1 });
     const results = [];
     for (const name of RESULT_COLLECTIONS) {
-      results.push(...await read(name, recent, { userId: 1, status: 1, paymentId: 1, idempotencyKey: 1, id: 1 }));
+      results.push(...(await read(name, recent, { userId: 1, status: 1, paymentId: 1, idempotencyKey: 1, id: 1, accessSource: 1, createdAt: 1,
+        'llmMeta.refundEligibleAt': 1, 'llmMeta.deliveryRefund.status': 1, 'llmMeta.deliveryRefund.code': 1, 'llmMeta.operatorAlertedAt': 1 }))
+        .map(row => ({ ...row, collection: name })));
     }
+    const linked = payments.map(row => String(row.requestId || '')).filter(value => /^(yn|fc)-/.test(value)).map(value => value.slice(3));
+    const yeongnyangiRequests = await read('yeongnyangi_requests',
+      { $or: [{ _id: { $in: linked } }, { paymentId: { $in: payments.map(row => row._id) } }] },
+      { userId: 1, state: 1, paymentId: 1, persona: 1, perUseSource: 1, perUseEvidenceId: 1 });
     const tossPurchases = await read('toss_purchases', { verifiedAt: { $gte: since } },
       { ownerId: 1, status: 1, sku: 1, nativeService: 1, serviceId: 1, environment: 1, requestId: 1, executionId: 1, verifiedAt: 1 });
     const tossConsultations = (await read('toss_native_consultations', recent,
       { ownerId: 1, orderId: 1, requestId: 1, savedResult: 1 })).map(row => ({ ...row, savedResult: Boolean(row.savedResult) }));
-    const report = classifyPaidOrphans({ payments, executions, transactions, results, tossPurchases, tossConsultations, minAgeHours });
+    const report = classifyPaidOrphans({ payments, executions, transactions, results, yeongnyangiRequests, tossPurchases, tossConsultations, minAgeHours });
     console.log(JSON.stringify({ database, readOnly: true, days, minAgeHours, evidenceNotFoundIsNotProof: true,
       scanned: { payments: payments.length, executions: executions.length, transactions: transactions.length,
-        results: results.length, tossPurchases: tossPurchases.length }, ...report }, null, 2));
+        results: results.length, yeongnyangiRequests: yeongnyangiRequests.length, tossPurchases: tossPurchases.length }, ...report }, null, 2));
   } finally { await mongoose.disconnect(); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

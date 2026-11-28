@@ -53,7 +53,7 @@ next: "docs/handoff/2026-10-02-saju-rich-reading-premium-design.md 를 읽고 �
 ## 검증 방법 (실측된 명령)
 
 - 단위: `node --test __tests__/ui/saju-reading-*.test.mjs __tests__/ui/saju-service-analysis.test.mjs` (37/37)
-- 브라우저: `npm run dev`(포트 22042, mock) 뒤 `SAJU_READING_URL=http://127.0.0.1:22042 node scripts/verify-saju-reading-personas.mjs` (360/390/430/1440, 앵커 이동 ≤2.5px·유료 0·오류 0 이 현재 기준선), `npm run verify:saju-summary-browser`
+- 브라우저: `npm run dev`(포트 22042, mock) 뒤 `SAJU_READING_URL=http://127.0.0.1:22042 node scripts/verify-saju-reading-personas.mjs` (360/390/430/1440, 앵커 이동 ≤2.5px·유료 0·오류 0 이 현재 기준선), `npm run verify:saju-summary-browser` (2026-11-28 확인: 이 스크립트는 1ffce8b0ba 에서 삭제됐다. 대체 검사는 `__tests__/ui/saju-reading-personas.test.mjs` 와 `npm run verify:saju-summary-browser` 다.)
 - 섹션 캡처: playwright 로 `/ggulggul/` → `[aria-label="사주 분석 시작하기"]` 클릭 → `#nameInput`·`#birthDate`(19910220)·`#birthTimeText`(12:00) → `[data-action="checkPrivacyAndCalculate"]`·`agreeAndCalculate` 클릭 → `#dailyPanel .saju-reading` 대기. 연이/네오 전환은 `#sajuReadingHeader [data-saju-mode="neo"]`. 이미지는 visual-checker 로만 판정.
 - `npm run check:fast` 1회.
 

@@ -56,7 +56,7 @@ next: 패밀리 기존 구매자 적용, 공지·시행일, 상품명 확정 및
 
 ## 검증에서 남은 것
 
-- `scripts/verify-saju-reading-personas.mjs`: `public/`을 직접 띄우고 `/api/*`와 Swiss 요청을 막아 실제 해금 함수로 확인한다. 360·390·430·1440 모두 통과. 1440에서 `/js/swisseph-loader.js` 요청이 한 번 나오지만 막혀 실행되지 않으며, 누가 요청하는지는 추적하지 못했다.
+- `scripts/verify-saju-reading-personas.mjs`: `public/`을 직접 띄우고 `/api/*`와 Swiss 요청을 막아 실제 해금 함수로 확인한다. 360·390·430·1440 모두 통과. 1440에서 `/js/swisseph-loader.js` 요청이 한 번 나오지만 막혀 실행되지 않으며, 누가 요청하는지는 추적하지 못했다. (2026-11-28 확인: 이 스크립트는 1ffce8b0ba 에서 삭제됐다. 대체 검사는 `__tests__/ui/saju-reading-personas.test.mjs` 와 `npm run verify:saju-summary-browser` 다.)
 - `scripts/design/verify-compact-home.cjs`: 새 플래그 `--bundle-only`로 묶음 단정만 보면 통과한다. 인자 없이 돌리면 `image too small 360`(`.cd-concern__card-media` 폭 130 미만)에서 실패한다. 홈 개편 후의 디자인 단정이고 묶음과 무관하며 약화하지 않았다. 이 단계 뒤 홈 디자인 단정은 미검증이다. 이 가드의 묶음 단정은 표시 전용 고정값이라 `isTileKeyUnlocked` 덮어쓰기를 그대로 쓴다.
 - `scripts/design/verify-destiny-anatomy-browser.cjs`: 저장 프로필과 실제 해금 함수로 연다. 20케이스, defects·errors 없음.
 - `__tests__/ui/yeongnyangi-reading-invariance.test.mjs`, `yeongnyangi-consultation-kinds.test.mjs`, `__tests__/worker/saju-section.test.js`: 로컬에서 판정하지 않았다. 정적 import 그래프가 Swiss에 닿거나 스텁 없이 불러올 수 있어 CI에 맡긴다.

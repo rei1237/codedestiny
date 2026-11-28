@@ -116,6 +116,11 @@ export async function handleYeongnyangiRoutes(request, env) {
         allowedMethods:['POST'],requireJson:true,rateLimit:{limit:30,windowSeconds:60},rateLimitKey:`${auth.userId}:yeongnyangi:write`});
       if(!security.ok) return security.response;
     }
+    if(path==='support'&&method==='POST'){
+      // S9 고객센터 2층. 무료·로그인 전용, 본인 주문 요약만 주입한다(worker/yeongnyangi/support.ts).
+      const {handleSupportQuestion}=await import('../yeongnyangi/support.ts');
+      return handleSupportQuestion(request,env,auth.userId);
+    }
     if(path==='free/hat'&&method==='POST'){
       const security=await enforceSensitiveEndpointSecurity({env,request,userId:auth.userId,endpoint:'yeongnyangi:hat',allowedMethods:['POST'],requireJson:true,maxPayloadBytes:1024,rateLimit:{limit:6,windowSeconds:600},rateLimitKey:`${auth.userId}:yeongnyangi:hat`});
       if(!security.ok)return security.response;

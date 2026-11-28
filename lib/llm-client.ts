@@ -28,6 +28,12 @@ export interface LLMRequest {
    * `fallbackToWorkersAI: false` 는 언제나 우선한다(비전 입력 등).
    */
   finalProviderAttempt?: boolean;
+  /**
+   * "cloudflare" 이면 Workers AI 를 먼저 1회 시도하고(시간 예산의 절반), 안전 차단이 아닌 실패에만
+   * Gemini 로 넘어간다(Workers AI 재폴백 없음). 미지정은 종전 Gemini 우선 동작이다.
+   * 2026-11-28 S9 고객센터: 저비용 무료 안내 답변용. 유료 상담 생성에는 쓰지 않는다.
+   */
+  primaryProvider?: "cloudflare";
   prompt: string;
   systemPrompt?: string;
   /**
@@ -1255,6 +1261,25 @@ async function callLLMUncached(
   request: LLMRequest,
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
+  if (request.primaryProvider === "cloudflare") {
+    const totalMs = resolveTimeoutMs(request.timeoutMs);
+    const startedAt = Date.now();
+    const geminiNext: LLMRequest = { ...request, fallbackToWorkersAI: false };
+    delete geminiNext.primaryProvider;
+    if (isWorkersAiEnabled(env) && env?.AI?.run) {
+      try {
+        return await callCloudflareWorkersAI(request, env, startedAt + Math.max(1, Math.floor(totalMs / 2)), { remaining: 1 });
+      } catch (error) {
+        if (error instanceof ProviderContentBlocked) throw error;
+        console.warn("[llm-client] Workers AI primary failed. Trying Gemini once.", {
+          error: getErrorMessage(error),
+          taskType: request.taskType || "general",
+        });
+      }
+    }
+    geminiNext.timeoutMs = Math.max(1, totalMs - (Date.now() - startedAt));
+    return callLLMUncached(geminiNext, env);
+  }
   const requestModel = resolveGeminiModel(request, env);
   const finalAttempt = request.finalProviderAttempt;
   // 마지막 시도는 Gemini 일시 오류 재시도 1회를 보장한다(유료 컨텍스트가 1로 묶어도). 이 몫은

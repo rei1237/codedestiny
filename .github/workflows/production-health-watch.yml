@@ -1,0 +1,53 @@
+name: Production health watch
+
+# 2026-11-28 S8: 운영 외부 감시. 배포·머지 게이트가 아니다 — 아무것도 막지 않고, 운영이 응답하지 않거나
+# Pages 와 Worker 가 다른 커밋을 서빙할 때 이슈 하나로 알린다(회복되면 그 이슈를 닫는다).
+# 읽기 전용 GET 3개(/api/health, /version.json, /api/version)뿐이고 비밀값·npm ci·LLM 호출이 없다.
+# 일시 오류로 울리지 않도록 스크립트가 한 실행 안에서 2분 간격으로 두 번 검사해 두 번 다 실패할 때만 실패한다.
+on:
+  schedule:
+    - cron: "7,37 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: production-health-watch
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    name: Production health and version parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+      GH_TOKEN: ${{ github.token }}
+      ISSUE_TITLE: "[운영 감시] 운영 상태 이상"
+    steps:
+      - name: Check out scripts
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - name: Probe production
+        id: probe
+        run: |
+          set +e
+          node scripts/production-health-watch.mjs > probe.json
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+          cat probe.json
+      - name: Open or update the alert issue
+        if: steps.probe.outputs.code != '0'
+        run: |
+          number=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" --json number --jq '.[0].number // empty')
+          body=$(printf '운영 감시가 2회 연속 실패했습니다 (%s).\n\n```json\n%s\n```\n\n실행: %s/%s/actions/runs/%s' \
+            "$(date -u +%Y-%m-%dT%H:%MZ)" "$(cat probe.json)" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+          if [ -n "$number" ]; then gh issue comment "$number" --body "$body"; else gh issue create --title "$ISSUE_TITLE" --body "$body"; fi
+          exit 1
+      - name: Close the alert issue after recovery
+        if: steps.probe.outputs.code == '0'
+        run: |
+          number=$(gh issue list --state open --search "in:title \"$ISSUE_TITLE\"" --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then gh issue close "$number" --comment "운영 감시 회복 ($(date -u +%Y-%m-%dT%H:%MZ))."; fi
