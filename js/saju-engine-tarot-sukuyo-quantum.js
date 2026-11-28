@@ -4075,9 +4075,8 @@ function analyzeFortuneGZ(gz, p, label){
   });
 
   var JIHE={'子':'丑','丑':'子','寅':'亥','亥':'寅','卯':'戌','戌':'卯','辰':'酉','酉':'辰','巳':'申','申':'巳','午':'未','未':'午'};
-  var neoAdvice=_sajuQuantumCurrentLang()==='ko' && typeof _sajuPromptReadPersonaMode==='function' && _sajuPromptReadPersonaMode()==='neo';
   var heInfo=null;
-  if(JIHE[gz.j]&&natalBranches.indexOf(JIHE[gz.j])>=0)heInfo=gz.j+JIHE[gz.j]+(neoAdvice?'합(合) — 두 지지가 이어져. 이 합이 어떻게 작용하는지는 월령·통근·다른 합충까지 같이 봐야 해.':'합(合) — 두 지지가 연결됩니다. 합화 여부와 유불리는 월령·통근·다른 합충을 함께 살펴야 합니다.');
+  if(JIHE[gz.j]&&natalBranches.indexOf(JIHE[gz.j])>=0)heInfo=gz.j+JIHE[gz.j]+'합(合) — 두 지지가 연결됩니다. 합화 여부와 유불리는 월령·통근·다른 합충을 함께 살펴야 합니다.';
 
   var EL_K_LOCAL={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
 
@@ -4135,7 +4134,8 @@ function analyzeFortuneGZ(gz, p, label){
     adviceItems.push({
       type:'warn',
       title:_sajuQuantumText("sq_2677_prop_title"),
-      body:neoAdvice?'오늘 기운('+incomingElText+')은 원국에서 주의할 오행('+overlappedGiText+')과 겹쳐. 이미 맡은 일부터 세어 보고, 오늘 할 수 있는 만큼만 남겨 봐.':'오늘 들어오는 기운('+incomingElText+')이 원국의 주의 오행 '+overlappedGiText+'와(과) 겹칩니다. 원국의 균형을 더 치우치게 하는지 살필 대목입니다. 일정과 책임이 과도해진 부분이 있는지 확인하고 감당할 범위를 정하세요.'
+      bodyNeo:'오늘 기운('+incomingElText+')은 원국에서 주의할 오행('+overlappedGiText+')과 겹쳐. 이미 맡은 일부터 세어 보고, 오늘 할 수 있는 만큼만 남겨 봐.',
+      body:'오늘 들어오는 기운('+incomingElText+')이 원국의 주의 오행 '+overlappedGiText+'와(과) 겹칩니다. 원국의 균형을 더 치우치게 하는지 살필 대목입니다. 일정과 책임이 과도해진 부분이 있는지 확인하고 감당할 범위를 정하세요.'
     });
   }else if(isYong){
     adviceItems.push({type:'good',title:_sajuQuantumText("sq_2681_prop_title"),body:'오늘 들어오는 '+gGod+'·'+jGod+' 기운이 보완 후보로 분류된 오행과 연결됩니다. 준비해 온 일을 점검할 계기로 삼되, 계약이나 금전 결정은 실제 조건과 자료로 판단하세요.'});
@@ -4146,7 +4146,7 @@ function analyzeFortuneGZ(gz, p, label){
   chungAlerts.forEach(function(c){
     adviceItems.push({type:'warn',title:'💢 충(沖) — '+c.split(' — ')[0],body:c.split(' — ').slice(1).join(' — ')});
   });
-  if(heInfo)adviceItems.push({type:'good',title:_sajuQuantumText("sq_2689_prop_title"),body:heInfo});
+  if(heInfo)adviceItems.push({type:'good',title:_sajuQuantumText("sq_2689_prop_title"),body:heInfo,bodyNeo:gz.j+JIHE[gz.j]+'합(合) — 두 지지가 이어져. 이 합이 어떻게 작용하는지는 월령·통근·다른 합충까지 같이 봐야 해.'});
 
   var LUCKY_TIPS={
     wood:{color:'초록·민트 계열',action:'동쪽 방향 외출, 나무·식물과 가까이'},
