@@ -51,7 +51,7 @@ export function matchFaq(question:string){
 }
 
 export function supportKnowledge(){
- const yeongnyangi=BRAND_FACTS.characters.find(row=>row.key==='yeongnyangi');
+ const yeongnyangi=BRAND_FACTS.characters.find((row:{key:string})=>row.key==='yeongnyangi');
  const packageRows=(['assorted','omakase'] as const).map(tier=>{const product=products.find(p=>p.fishId===tier)!;return {name:packages[tier].name,price:won(product.priceKRW),followups:consultationBudget(tier).followups};});
  return {
   service:{name:BRAND_FACTS.service.name,operator:BRAND_FACTS.operator.name,homeUrl:BRAND_FACTS.service.homeUrl,consultation:yeongnyangi?.serviceName,path:yeongnyangi?.path},
