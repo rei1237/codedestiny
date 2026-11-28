@@ -284,7 +284,10 @@
       const isMobileHubLogo = className.indexOf('cd-mobile-hub__logo') !== -1;
       // Consultation scenes render eagerly on purpose: Safari can leave lazy images pending in a reopened modal.
       const isConsultScene = !!(img.closest && img.closest('.fc-entry__scene'));
-      if (!isLcp && !isMobileHubLogo && !isConsultScene) {
+      // Saju speaker faces are small and eager on purpose: the letter is parsed while #letterBox is display:none,
+      // and Chromium never re-requests a lazy image from such a subtree, so the face stayed blank on mobile.
+      const isSpeakerFace = !!(img.closest && img.closest('.cd-speaker__face'));
+      if (!isLcp && !isMobileHubLogo && !isConsultScene && !isSpeakerFace) {
         img.setAttribute('loading', 'lazy');
         if (!img.hasAttribute('fetchpriority')) img.setAttribute('fetchpriority', 'low');
       }
