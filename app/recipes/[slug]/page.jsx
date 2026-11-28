@@ -18,7 +18,7 @@ export default async function RecipePage({ params }) {
   const { slug } = await params;
   const recipe = RECIPES.find((r) => r.slug === slug);
   if (!recipe) notFound();
-  return <ReadingLayout illustrated title={recipe.name} description={recipe.description} image={recipeImage(recipe)} imageAlt={`${recipe.host ?? '연이'}의 ${recipe.name} 2D 일러스트`}>
+  return <ReadingLayout illustrated title={recipe.name} description={recipe.description} image={recipeImage(recipe)} imageAlt={recipe.ingredientTheme ? `${recipe.name} 완성 요리 일러스트` : `${recipe.host ?? '연이'}의 ${recipe.name} 2D 일러스트`}>
     <JsonLd value={recipeJsonLd(recipe, siteSeo.siteUrl)} />
     <RecipeArticle recipe={recipe} />
   </ReadingLayout>;

@@ -48,7 +48,7 @@ const fusion = extractDeclarations('../../worker/lib/fusion-fortune.js', [
   'FORBIDDEN', 'OVERCLAIM_GAP', 'OVERCLAIM_NEGATION', 'OVERCLAIM_ASSERTION', 'FORBIDDEN_ADVERB_PATTERNS', 'FORBIDDEN_MATCHERS', 'hasForbiddenPhrase',
 ]);
 const { deterministicFortuneRuntimePatterns: ADSENSE } = extractDeclarations('../../scripts/verify-adsense-readiness.mjs', ['deterministicFortuneRuntimePatterns']);
-const { BANNED_LEFT, OTHER_MIND } = extractDeclarations('../../lib/webtoon-result/narrator.mjs', ['BANNED_LEFT', 'OTHER_MIND']);
+const { BANNED_LEFT, OTHER_MIND } = extractDeclarations('../../lib/webtoon-result/line.mjs', ['BANNED_LEFT', 'OTHER_MIND']);
 
 const once = (re) => new RegExp(re.source, re.flags.replace('g', ''));
 // fortune UNSUPPORTED 의 specific-financial-product 는 RegExp 가 아니라 { test } 객체다.
