@@ -520,6 +520,8 @@ const handleBillingRoutes = createLazyRouteHandler("./routes/billing.js", () => 
 const handleNamingPromptRoutes = createLazyRouteHandler("./routes/naming-prompt.js", () => import("./routes/naming-prompt.js"), "handleNamingPromptRoutes");
 const handleAccessRoutes = createLazyRouteHandler("./routes/access.js", () => import("./routes/access.js"), "handleAccessRoutes");
 const handleRpgRoutes = createLazyRouteHandler("./routes/rpg.js", () => import("./routes/rpg.js"), "handleRpgRoutes");
+// 인생 보정(docs/context/life-calibration.md). 기본 OFF — 라우트가 lifeCalibrationOn(env, "api") 로 404 를 낸다.
+const handleLifeCalibrationRoutes = createLazyRouteHandler("./routes/life-calibration.js", () => import("./routes/life-calibration.js"), "handleLifeCalibrationRoutes");
 const handleFptiRoutes = createLazyRouteHandler("./routes/fpti.js", () => import("./routes/fpti.js"), "handleFptiRoutes");
 
 async function runAiRouteWithSecurity(request, env, serviceKey, handler, ctx) {
@@ -1513,6 +1515,10 @@ const app = {
 
       if (url.pathname === "/api/rpg" || url.pathname.startsWith("/api/rpg/")) {
         return withCorsHeaders(request, env, await handleRpgRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/life-calibration" || url.pathname.startsWith("/api/life-calibration/")) {
+        return withCorsHeaders(request, env, await handleLifeCalibrationRoutes(request, env));
       }
 
       // 홈 "오늘의 운세" 허브 — 무료·무인증. Swiss WASM 을 쓰므로 별도 모듈로 떼어

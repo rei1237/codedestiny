@@ -46,6 +46,17 @@ export function withEngineRollout(handlers) {
   ]));
 }
 
+// 인생 보정(docs/context/life-calibration.md) 스위치. 위 표에 일부러 넣지 않았다 = 기본 OFF.
+// 켤 때는 LIFE_CALIBRATION_V1 에 소비처 id CSV(api, saju-ai, ...) 또는 'true' 를 넣는다. 출시 선행 조건: 처리방침 국외이전 고지 시행.
+export function lifeCalibrationOn(env, id) {
+  const raw = String(env?.LIFE_CALIBRATION_V1 ?? '').trim();
+  if (!raw) return false;
+  if (raw === 'true') return true;
+  const want = String(id || '').trim();
+  if (!want) return false;
+  return raw.split(',').map((part) => part.trim()).filter(Boolean).includes(want);
+}
+
 // 신살 사실 블록 소비처 스위치. env.SAJU_SHINSAL_FACTS_V1 이 'true' 면 전부, CSV 면 목록에 든 id 만 켠다.
 export function shinsalFactsOn(env, id) {
   const raw = String(env?.SAJU_SHINSAL_FACTS_V1 ?? '').trim();

@@ -4304,9 +4304,11 @@ async function handleWithdraw(request, env) {
       { maxTimeMS: 8000 },
     );
     // Companion data uses string account IDs in native collections.
-    for (const collection of ['profile_pets', 'profile_pet_actions']) {
+    for (const collection of ['profile_pets', 'profile_pet_actions', 'life_events', 'life_calibrations']) {
       await User.db.collection(collection).deleteMany({ userId: String(userId) }, { maxTimeMS: 8000 });
     }
+    // Life-calibration consent history is keyed by _id = account id (worker/lib/life-calibration-models.js).
+    await User.db.collection('life_calibration_consents').deleteMany({ _id: String(userId) }, { maxTimeMS: 8000 });
   } catch (error) {
     partialFailure = true;
     console.error("[auth/withdraw] profile card delete failed:", error);

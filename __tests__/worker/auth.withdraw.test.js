@@ -320,6 +320,14 @@ describe("탈퇴 처리 — 비식별화 범위", () => {
     expect(String(account[0]._id)).toBe(USER_ID);expect(account[1].maxTimeMS).toBe(8000);
   });
 
+  test("인생 보정 입력·파생 캐시·동의 이력도 계정 범위로 삭제한다", async () => {
+    expect((await callWithdraw()).payload.partialFailure).toBe(false);
+    for(const collection of ['life_events','life_calibrations']){
+      expect(String(collectionCalls.get(collection).deleteMany.mock.calls[0][0].userId)).toBe(USER_ID);
+    }
+    expect(String(collectionCalls.get('life_calibration_consents').deleteMany.mock.calls[0][0]._id)).toBe(USER_ID);
+  });
+
   test("정상 탈퇴는 200 이고 인증 쿠키를 만료시킨다", async () => {
     const { status, payload, headers } = await callWithdraw();
     expect(status).toBe(200);
