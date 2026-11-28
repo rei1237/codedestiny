@@ -22126,8 +22126,6 @@
   "sajuReading": {
     "yeon": "Yeoni",
     "neo": "Yeongnyangi",
-    "garden": "Yeoni的月光四柱",
-    "room": "Yeongnyangi的星光閣樓",
     "same": "基礎四柱由Yeoni與Yeongnyangi共同解讀。以相同的計算依據為基礎，選擇您喜歡的講解風格。",
     "compareNeo": "切換到Yeongnyangi解讀",
     "compareYeon": "切換到Yeoni解讀",
@@ -22273,7 +22271,6 @@
       "8": "遇到陌生視角時，你會想深入探索。",
       "9": "你傾向於透過學習與互助做好準備。"
     },
-    "neoIntro": "我會先幫你理清走勢的依據，再一起選一個現在可以嘗試的小步驟。",
     "letterGreeting": "親愛的{name}：",
     "letterGuest": "正在讀這封信的你",
     "letterSignature": "Yeoni，懷著滿滿的心意",

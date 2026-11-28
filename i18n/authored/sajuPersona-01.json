@@ -11,16 +11,6 @@
       "Yeongnyangi",
       "Yeongnyangi"
     ],
-    "garden": [
-      "Yeoniの月明かり四柱推命",
-      "Yeoni的月光四柱",
-      "Yeoni的月光四柱"
-    ],
-    "room": [
-      "Yeongnyangiの星明かりの屋根裏",
-      "Yeongnyangi的星光阁楼",
-      "Yeongnyangi的星光閣樓"
-    ],
     "same": [
       "基本の四柱推命はYeoniとYeongnyangiがご案内します。同じ計算結果をもとに、好きな案内役の解説を選んで読めます。",
       "基础四柱由Yeoni与Yeongnyangi共同解读。以相同的计算依据为基础，选择您喜欢的讲解风格。",
@@ -684,34 +674,6 @@
     "de": "Yeongnyangi",
     "nl": "Yeongnyangi",
     "ms": "Yeongnyangi"
-  },
-  "sajuReading.garden": {
-    "ko": "연이의 달빛 사주",
-    "en": "Yeoni’s moonlit saju",
-    "ja": "Yeoniの月明かり四柱推命",
-    "zh-CN": "Yeoni的月光四柱",
-    "zh-TW": "Yeoni的月光四柱",
-    "vi": "Yeoni’s moonlit saju",
-    "hi": "Yeoni’s moonlit saju",
-    "es": "Yeoni’s moonlit saju",
-    "fr": "Yeoni’s moonlit saju",
-    "de": "Yeoni’s moonlit saju",
-    "nl": "Yeoni’s moonlit saju",
-    "ms": "Yeoni’s moonlit saju"
-  },
-  "sajuReading.room": {
-    "ko": "영냥이의 별빛 다락방",
-    "en": "Yeongnyangi’s starlit attic",
-    "ja": "Yeongnyangiの星明かりの屋根裏",
-    "zh-CN": "Yeongnyangi的星光阁楼",
-    "zh-TW": "Yeongnyangi的星光閣樓",
-    "vi": "Yeongnyangi’s starlit attic",
-    "hi": "Yeongnyangi’s starlit attic",
-    "es": "Yeongnyangi’s starlit attic",
-    "fr": "Yeongnyangi’s starlit attic",
-    "de": "Yeongnyangi’s starlit attic",
-    "nl": "Yeongnyangi’s starlit attic",
-    "ms": "Yeongnyangi’s starlit attic"
   },
   "sajuReading.same": {
     "ko": "기본 사주는 연이와 영냥이가 함께 맡아요. 같은 계산 근거를 바탕으로, 원하는 마스터의 해설을 골라 읽어보세요.",

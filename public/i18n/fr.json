@@ -22126,8 +22126,6 @@
   "sajuReading": {
     "yeon": "Yeoni",
     "neo": "Yeongnyangi",
-    "garden": "Yeoni’s moonlit saju",
-    "room": "Yeongnyangi’s starlit attic",
     "same": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
     "compareNeo": "Switch to Yeongnyangi’s reading",
     "compareYeon": "Switch to Yeoni’s reading",
@@ -22273,7 +22271,6 @@
       "8": "Deep exploration of unfamiliar views",
       "9": "Preparation through learning and support"
     },
-    "neoIntro": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
     "letterGreeting": "Dear {name},",
     "letterGuest": "You, the reader of this letter",
     "letterSignature": "With all my heart, Yeoni",

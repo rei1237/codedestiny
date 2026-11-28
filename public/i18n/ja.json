@@ -22126,8 +22126,6 @@
   "sajuReading": {
     "yeon": "Yeoni",
     "neo": "Yeongnyangi",
-    "garden": "Yeoniの月明かり四柱推命",
-    "room": "Yeongnyangiの星明かりの屋根裏",
     "same": "基本の四柱推命はYeoniとYeongnyangiがご案内します。同じ計算結果をもとに、好きな案内役の解説を選んで読めます。",
     "compareNeo": "Yeongnyangiの解説へ",
     "compareYeon": "Yeoniの解説へ",
@@ -22273,7 +22271,6 @@
       "8": "新しい視点に出会うと、深く掘り下げたくなるんだね。",
       "9": "学んだり助け合ったりしながら、準備するほうだね。"
     },
-    "neoIntro": "まず流れの根拠を確かめよう。そのあと、今試せる小さな一歩を一緒に選ぼう。",
     "letterGreeting": "{name}さんへ",
     "letterGuest": "この手紙を読んでいるあなた",
     "letterSignature": "心を込めて、Yeoniより",
