@@ -63,7 +63,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 
 ## 엔진별 연도 신호 (P3)
 
-모든 래퍼는 순수·결정적 함수. 기준 연도는 인자로 받는다(시간·랜덤 의존 금지). 위치는 `lib/calibration/`(서버 전용 엔진은 `worker/lib/` 쪽 래퍼).
+모든 래퍼는 순수·결정적 함수. 기준 연도는 인자로 받는다(시간·랜덤 의존 금지). 위치는 `lib/life-calibration/`(서버 전용 엔진은 `worker/lib/life-calibration-signals.js`). 🔴 `lib/calibration/` 은 `.gitignore` 의 `calibration/`(관상 측정용 사용자 사진 커밋 금지 규칙)에 걸려 커밋되지 않으므로 쓰지 않는다.
 
 | 엔진 | 쓸 함수 | 비고 |
 |---|---|---|
@@ -71,8 +71,24 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 | 자미두수 | `yearFlowTheory(chart, year)` `app/_lib/ziwei-year-flow.ts:158` | 유년 명궁 + 사화. 월 단위 함수 미확인 |
 | 서양점성술 | `AstroTransits.period` `js/core/astro/transits.js:398` + 서버 `createSwissTransitLonsAt` `worker/lib/swiss-ephemeris.js:1195` | 일식표가 2036-08 까지 — 그 뒤 연도는 일식 신호 제외 |
 | 베다 | `buildVimshottariDasha(moonLon, birthUtc, now)` `worker/lib/vedic-derived-calculations.js:172` | 서버 Swiss 차트 필요 |
-| 숙요 | `calculateSukuyoForMoment`(`worker/lib/sukuyo-astronomy.js`) + 출생 수 거리 | `buildSukuyoYearlyFortuneResultV2` 점수는 userId 시드 해시(천문 근거 없음)라 보정에 쓰지 않는다 |
+| 숙요 | `calculateSukuyoForMoment`(`worker/lib/sukuyo-astronomy.js`) + 출생 수 거리 | `buildSukuyoYearlyFortuneResultV2` 점수는 출생 정보 시드 해시(천문 근거 없음, 2026-11-28 userId 시드 제거)라 보정에 쓰지 않는다 |
 | 타로 | — | 연도 신호 없음. LLM 블록에는 과거 경험·패턴 요약만 |
+
+### P3 구현 (2026-11-28, 어떤 라우트에도 연결 안 됨)
+
+- 집계 `computeLifeCalibration({events, signals})` `lib/life-calibration/life-calibration.mjs` — 버전 `life-calibration-v1`, 정책 id `life-calibration-policy-v1`. 정책값은 v1 `CALIBRATION_POLICY` 를 그대로 읽는다(shrinkK 4, cap 0.15, minSignals 3, minYears 2). 식도 v1 과 같다: factor = clamp(raw × n/(n+4)) × 0.15, raw = (일치−불일치)/n. 강도 가중 없음. 마스터 프롬프트의 k=2·valence ±3 은 채택하지 않았다.
+- 결과: 엔진별 `overall`·`byDomain`(확장 분야 family·relocation·social·other 포함) + 분야별 엔진 나열 `domains`. 각 요약은 n·agree·disagree·years·direction·confidence(같은 방향 비율, 정확도 아님)·status(insufficient|applied)·factor·conflictFlag. 신호가 아닌 사건은 `unused` + 이유 코드(mixed-signal·not-a-signal:*·uncertain-memory·year-unavailable·boundary-ambiguous·neutral-period). 사용자 문구는 만들지 않는다.
+- `conflictFlag` = 불일치 방향 + 불일치 ≥ 3 + confidence ≥ 0.7 + 서로 다른 해 ≥ 2(`LIFE_CALIBRATION_POLICY` 에서만 조정).
+- 캐시: `lifeCalibrationInputHash`(`lc1-` + stableHash, 이벤트·키 순서 무관, 메모·channel 제외, 엔진 래퍼 버전·신호 포함) → `lifeCalibrationCacheFields` 가 LifeCalibration 모델의 inputHash·engineVersions(+aggregate)·result 를 만든다. computedAt 은 호출자가 넣는다(모듈은 시계를 읽지 않음).
+- 엔진 래퍼 상태 (신호 모양 `{engine, version, status, reason?, years:{y:{tone}}, months:{'y-m':{tone, periodYear}}}`):
+  - 사주 `sajuYearSignals` `lib/life-calibration/saju-signals.mjs` — 가능. v1 `analyzePeriods`·`resolveTones` 의 reading 판단을 그대로 쓴다(입춘·교운 경계 포함). 동결된 `analyzeNatalCore` 결과 + `cyclesFromDaeun(daeun())` 필요. 위 표의 `tenGodForStem`·`buildLuckNatalInteractions`·`evaluateLuckDynamics` 는 쓰지 않았다(v1 판단이 정본).
+  - 자미두수 `ziweiYearSignals` `lib/life-calibration/ziwei-signals.ts` — 가능(완성된 명반 필요). expand→유리, guard→불리, mixed·calm→중립. 음력 설 기준이라 1월 사건은 전년, 2월은 전년·당년 판단이 같을 때만.
+  - 베다 `vedicYearSignals` `worker/lib/life-calibration-signals.js` — 가능(사이드리얼 달·상승점 황경 + 출생 UTC 필요, Swiss 호출은 호출자). 마하·안타르 다샤 주인이 상승궁 기준 1·5·9궁을 다스리면 +1, 6·8·12궁이면 −1(개발 정책 보조값, 문헌 수치 아님). 열두 달 판단이 모두 같을 때만 연 판단.
+  - 숙요 `sukuyoYearSignals` — 조건부. 27수 순행 거리(`judgeDayFortune` 자리 등급)만 쓴다. 🔶 해마다 어느 시각의 달을 볼지(anchor) 미결정이라 호출자가 `yearMoonLongitudes`+`anchor` 를 넘기지 않으면 unavailable(`year-mansion-anchor-undecided`).
+  - 서양 `westernYearSignals` `lib/life-calibration/western-signals.mjs` — unavailable(`no-server-safe-pure-transit-path`). `AstroTransits` 는 정적 셸 전역, Swiss 는 비동기 WASM·env 의존. 붙일 때도 일식표 끝(2036-08) 뒤는 외삽하지 않는다.
+  - 타로 — 제외. 신호가 없는 엔진은 `no-adapter-input` 으로 채운다.
+- 테스트 `__tests__/ui/life-calibration-engine.test.mjs`: v1 집계와 수치 일치, 결정성·해시, 수축·상한, minSignals·minYears, 충돌 임계값, unavailable 처리, 래퍼가 입력을 바꾸지 않음, import 허용 가드(DB·env·http·swiss·LLM·`calculateLocalResult`·시계·난수 금지), 플래그 OFF 동일성(`lifeCalibrationOn` 기본 OFF + 런타임 코드가 보정 모듈을 import 하지 않음 — P4 에서 소비자를 붙일 때 이 허용 목록을 함께 갱신).
+- P4 할 일: 라우트에서 ProfileCard.birth → 원국·대운·명반·베다 차트 계산(차트 계산은 기존 엔진 호출만), 이벤트 년도 신호 생성 → `computeLifeCalibration` → LifeCalibration 캐시(inputHash 비교), `lifeCalibrationOn(env, <소비자 id>)` 뒤에서만. 숙요 anchor 결정, 서양 서버 경로 여부 결정.
 
 ## 충돌 처리 규칙
 
@@ -90,7 +106,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 
 ## 플래그
 
-- 워커 `[vars]` 예산이 가득 차 있고 `worker/wrangler.toml` 구조 변경은 금지다. 환경변수 `LIFE_CALIBRATION_ENABLED` 대신 코드 상수를 쓴다: 워커는 `ENGINE_ROLLOUT_FLAGS`, 클라이언트는 `lib/life-calibration/flags.mjs`(예정, 기존 `lib/*/flags.mjs` 패턴). 롤백은 상수 되돌림 + 재배포.
+- 워커 `[vars]` 예산이 가득 차 있고 `worker/wrangler.toml` 구조 변경은 금지다. 환경변수 `LIFE_CALIBRATION_ENABLED` 대신 코드 상수를 쓴다: 워커는 `ENGINE_ROLLOUT_FLAGS`, 클라이언트는 `lib/life-calibration/flags.mjs`(P2 에서 추가, 기존 `lib/*/flags.mjs` 패턴). 롤백은 상수 되돌림 + 재배포.
 
 ## 화면 (P2·P5·P6)
 
@@ -99,6 +115,18 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - 정적 결과 오버레이: `js/saju-engine.js` `renderLifeGraph`(canvas)·`renderDaewun` 위에 ★/☾ 마커. 그래프와 대운표는 모두 `attachKasiDaewunBridge` 를 거친 KASI `daeun()` 값을 쓴다(2026-11-28 재확인, lunar-javascript 로더는 이미 제거됨).
 - 다이어리 "나의 흐름": 다이어리는 localStorage 전용이고 프로필 구분이 없다(`lib/diary/diary-store.js`, `lib/diary/diary-ext-store.js`). 서버 타임라인을 읽어 보여 주는 읽기 전용 탭부터. 확장 지점 `app/diary/page.tsx`, `DiaryDayView.tsx`. 큐레이션은 i18n authored 템플릿 라이브러리.
 - 캐릭터: 꿀꿀 운세는 연이, 영냥이 브랜드는 영냥이. 브랜드는 라우트 prefix 와 `'ggulggul'|'yeongnyangi'` prop 으로 구분(중앙 헬퍼 없음). 사용자 문자열은 전부 i18n 키(`i18n/authored/<ns>-NN.json`, `useTPick`).
+
+## P2 입력 UX (구현 2026-11-28, 플래그 OFF)
+
+- 라우트 `/profile/life/?profileId=<id>` (`app/profile/life/`). `layout.tsx` 가 noindex·canonical `/profile/life/` 를 걸고, `/profile` 비공개 prefix 라 sitemap 에 들어가지 않는다.
+- 흐름: 로그인 확인 → 동의 시트(처리방침 초안 문구, 만 14세 확인) → "본인 카드" 선택(`isSelf`) → 인생 그래프 SVG(연도 탭) / 목록 보기 전환 → 항목 편집 시트(영역·좋았어요/힘들었어요/둘 다·강도·확실도·메모 80자 이하) → 저장(`/api/life-calibration/events`). 상태 문자열: loading·signin·consent·self·edit·error.
+- 클라이언트: `app/_lib/life-calibration-client.ts`(API, 오류 코드별 안내), `lib/life-calibration/input-state.mjs`(순수 상태·검증), `note-sensitive-keywords.mjs`(메모에 질병·종교·정치·범죄 낱말이 있으면 확인 창만, 저장을 막지 않음). 메모 본문은 로그에 남기지 않는다.
+- 사주 v2 localStorage 보정값은 자동 업로드하지 않는다. 첫 진입 때 한 번 "불러오기" 제안 → 사용자가 확인한 항목만 편집 목록에 채워지고 저장은 사용자가 누를 때만.
+- 문구는 `i18n/authored/lifeCalibration-01.json`(ko·en·ja·zh-CN·zh-TW) → `public/i18n/*/lifeCalibration.json`. "학습 미사용"·정확도 단언·건강 태그·공포 문구 금지는 `__tests__/ui/life-calibration-input.test.mjs` 가 검사한다.
+- 진입점: 프로필 저장 성공 직후 "한 걸음 더" 링크(`js/destiny-profile.js` `_dpShowLifeCalibrationNudge`). 플래그 OFF 면 아무것도 그리지 않는다.
+- 플래그: `LIFE_CALIBRATION_INPUT_ENABLED` — `lib/life-calibration/flags.mjs` 와 정적 셸 미러 상수 `js/destiny-profile.js` 두 곳(테스트가 두 값의 일치를 강제). 켜는 법: 두 상수를 `true` 로 바꾸고 `npm run sync:public` → 배포. OFF 면 `/profile/life/` 는 안내 화면만 보이고 API 를 부르지 않는다.
+- 로컬 미리보기: `next dev` 에서만 `?lcPreview=1` 로 화면을 켠다(`NODE_ENV==='development'` 조건, 프로덕션 빌드에서는 무시 — 테스트로 고정).
+- 레이어: 시트·대화상자는 앱 크롬(헤더 z70·하단 내비 z960) 위(z1000~1030). 저장 바는 하단 내비 위로 오프셋(`.cd-activation-guide` 와 같은 계산).
 
 ## 금지 사항
 
@@ -118,8 +146,8 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - [x] P0 진단(읽기 전용) — 2026-11-28
 - [x] P1a 설계 문서·법무 초안(이 문서)
 - [x] P1b 데이터 모델·API·연쇄 삭제 (RED: DB, 2026-11-28 승인, 플래그 OFF)
-- [ ] P2 입력 UX
-- [ ] P3 보정 엔진(래퍼·순수 함수·테스트: 결정성, 수축, 플래그 OFF 동일성, `calculateLocalResult` 불변)
+- [x] P2 입력 UX (2026-11-28, 플래그 OFF — 위 "P2 입력 UX" 절)
+- [x] P3 보정 엔진(래퍼·순수 함수·테스트: 결정성, 수축, 플래그 OFF 동일성, `calculateLocalResult` 불변) — 2026-11-28, 위 "P3 구현" 절
 - [ ] P4 LLM 블록·모순 가드
 - [ ] P5 사주 정적 결과 오버레이
 - [ ] P6 다이어리 "나의 흐름"·월간 체크인
@@ -140,5 +168,5 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - 처리방침에 LLM 국외이전 미고지(위 출시 선행 조건).
 - ~~프로필 삭제 때 `profile_pets` 가 지워지지 않는다~~ — 2026-11-28 수정(`deleteProfilePetData`).
 - ~~인생 그래프 대운이 lunar-javascript 계산~~ — 이미 KASI 브리지로 고쳐져 있음(2026-11-28 확인).
-- 숙요 연운 점수가 userId 시드 해시라 같은 생년월일이라도 사용자마다 다르다(`worker/lib/sukuyo-yearly.js:33`). 고치면 무료 전환(2026-11-11) 전 구매자가 다시 열 때 점수가 바뀌므로(저장 없이 매번 계산) 운영자 결정 대기.
+- ~~숙요 연운 점수가 userId 시드 해시라 같은 생년월일이라도 사용자마다 다르다~~ — 2026-11-28 사용자 승인(옵션 1 "출생 정보 기반으로 일괄 전환")으로 수정. 시드는 양력 정규화 생년월일·입력 시각·성별·대상 연도다. 무료 전환(2026-11-11) 전 구매자도 다시 열면 새 점수를 본다(레거시 시드 분기 없음, 승인됨).
 - 사주 인생 그래프의 대운(lunar-javascript)과 KASI `daeun()` 불일치 가능성.
