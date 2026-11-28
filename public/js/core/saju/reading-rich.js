@@ -172,7 +172,7 @@
       '<figcaption><strong>' + esc(o.names[at]) + '</strong> · ' + esc(o.caption) + '</figcaption></figure>';
   }
   // 표 칸은 기본 줄바꿈 없음(360px 에서 '금(金)'·'+13' 이 글자 중간에서 끊기던 문제). 긴 문장 칸만 줄바꿈을 허용하되 '수(水)' 같은 한글(한자) 묶음은 붙여 둔다.
-  function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function cellHtml(cell, i, label) {</span>'); }
+  function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, function(label){ return '<span class="saju-element-label">'+label+'</span>'; }); }
   function cellHtml(cell, i, label) {
     var t = String(cell), long = t.length > 12, wrap = long ? ' class="saju-table__wrap"' : '';
     var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : elementTextHtml(t);

@@ -617,7 +617,7 @@ function build(input, selected, lang) {
     }
     return model;
   }
-function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function markup(reading, model, heading) {</span>'); }
+function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, function(label){ return '<span class="saju-element-label">'+label+'</span>'; }); }
 function markup(reading, model, heading) {
     var c=langCopy(locale());
     return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+elementTextHtml(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+elementTextHtml(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
@@ -882,7 +882,7 @@ function gauge(o) {
       '<div class="saju-gauge__ends" aria-hidden="true"><span>' + esc(o.ends[0]) + '</span><span>' + esc(o.ends[1]) + '</span></div>' +
       '<figcaption><strong>' + esc(o.names[at]) + '</strong> · ' + esc(o.caption) + '</figcaption></figure>';
   }
-function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function cellHtml(cell, i, label) {</span>'); }
+function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, function(label){ return '<span class="saju-element-label">'+label+'</span>'; }); }
 function cellHtml(cell, i, label) {
     var t = String(cell), long = t.length > 12, wrap = long ? ' class="saju-table__wrap"' : '';
     var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : elementTextHtml(t);

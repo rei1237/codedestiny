@@ -390,7 +390,7 @@
     if(root.SajuReadingDepth) facts.depth=root.SajuReadingDepth.buildDepthFacts(facts);
     return facts;
   }
-  function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function markup(reading, model, heading) {</span>'); }
+  function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, function(label){ return '<span class="saju-element-label">'+label+'</span>'; }); }
   function markup(reading, model, heading) {
     var c=langCopy(locale());
     return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+elementTextHtml(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+elementTextHtml(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
