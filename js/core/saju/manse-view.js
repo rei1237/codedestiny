@@ -157,6 +157,15 @@
     'posMean.month': '일·사회생활을 비추는 자리',
     'posMean.day': '나 자신과 배우자·가까운 관계를 비추는 자리',
     'posMean.hour': '앞으로의 계획·자녀·말년을 비추는 자리',
+    /* 천간·지지 자리마다 따로 비추는 영역(궁위). 간지 전체(백호 등)는 위 기둥 뜻을 그대로 쓴다. */
+    'posMean.yearStem': '집안·조상의 뿌리를 비추는 자리',
+    'posMean.yearBranch': '어린 시절·자란 환경을 비추는 자리',
+    'posMean.monthStem': '부모·형제와 사회에 드러나는 모습을 비추는 자리',
+    'posMean.monthBranch': '일·사회생활의 바탕을 비추는 자리',
+    'posMean.dayStem': '나 자신을 비추는 자리',
+    'posMean.dayBranch': '배우자·가까운 관계를 비추는 자리',
+    'posMean.hourStem': '앞으로의 계획·자녀를 비추는 자리',
+    'posMean.hourBranch': '말년·노후의 터전을 비추는 자리',
     'luck.title': '대운·세운·월운 흐름',
     'luck.daewoon': '대운',
     'luck.sewoon': '세운',
@@ -738,16 +747,21 @@
   }
 
   /* ── 신살 요약 ───────────────────────────────────────── */
-  /* 말하는 캐릭터. 둘 다 160px 정사각 컷아웃(알파)이고, 화면에서는 48px 고정 틀에 담는다.
+  /* 말하는 캐릭터. 사주 풀이와 같은 화자 얼굴(CdSajuSpeaker: 상반신 그림에서 얼굴만 잘라 둥근 48px 틀)을 쓰고,
+     번들이 없을 때만 예전 160px 컷아웃을 48px 고정 틀에 담는다.
      #manseShinsalList 가 aria-live 라 얼굴은 장식(alt="")으로 두고 이름은 말풍선 글자로 읽힌다. */
   var SPEAKERS = {
     yeoni: { src: '/images/saju/yeoni-clue-160.webp', name: 'sum.yeoniName' },
     nyang: { src: '/images/saju/yeongnyangi-160.webp', name: 'sum.nyangName' }
   };
+  function sayFace(who) {
+    var kit = root.CdSajuSpeaker;
+    if (kit && typeof kit.faceHtml === 'function') return kit.faceHtml({ who: who, size: 48 });
+    return '<span class="mxv-say__face" aria-hidden="true"><img src="' + SPEAKERS[who].src + '" alt="" width="160" height="160" loading="eager" decoding="async"></span>';
+  }
   function sayHtml(who, inner) {
-    var sp = SPEAKERS[who];
-    return '<div class="mxv-say mxv-say--' + who + '"><span class="mxv-say__face" aria-hidden="true"><img src="' + sp.src + '" alt="" width="160" height="160" loading="eager" decoding="async"></span>' +
-      '<div class="mxv-say__bubble"><strong class="mxv-say__who">' + esc(mt(sp.name)) + '</strong>' + inner + '</div></div>';
+    return '<div class="mxv-say mxv-say--' + who + '">' + sayFace(who) +
+      '<div class="mxv-say__bubble"><strong class="mxv-say__who">' + esc(mt(SPEAKERS[who].name)) + '</strong>' + inner + '</div></div>';
   }
   function sayText(text) { return '<p class="mxv-say__text">' + esc(text) + '</p>'; }
   function summaryHtml(result, s) {
@@ -801,6 +815,11 @@
     h += '<span class="mxv-expand__label">' + esc(mt(open ? 'sum.collapse' : 'sum.expand')) + '</span><span class="mxv-expand__icon" aria-hidden="true"></span></button>';
     return h + '<div id="mxvShinsalLines" class="mxv-lines" aria-live="off" data-html2canvas-ignore="true"' + (open ? '' : ' hidden') + '>' + (open ? linesInner() : '') + '</div>';
   }
+  /* 원국 자리의 뜻: 천간·지지 자리는 그 칸의 궁위(일간 = 나 자신, 일지 = 배우자·가까운 관계 …), 간지 전체는 기둥 뜻. */
+  function posMeaning(pillar, pos) {
+    var side = pos === 'stem' ? 'Stem' : pos === 'branch' ? 'Branch' : '';
+    return mt('posMean.' + pillar + side);
+  }
   /* 신살 한 개가 잡힌 자리들. 원국 기둥이면 자리의 뜻을 붙이고, 운 자리·관계는 뜻 없이 둔다. */
   function placesOf(items, position, withMeaning, withChar) {
     var seen = {};
@@ -811,7 +830,7 @@
         var spot = spotOf(n, position || it.position) + (withChar && n.char ? ' ' + n.char : '');
         if (seen[spot]) return;
         seen[spot] = 1;
-        out.push({ spot: spot, mean: withMeaning && NATAL[n.pillar] ? mt('posMean.' + n.pillar) : '' });
+        out.push({ spot: spot, mean: withMeaning && NATAL[n.pillar] ? posMeaning(n.pillar, position || it.position || n.position || 'branch') : '' });
       });
     });
     return out;

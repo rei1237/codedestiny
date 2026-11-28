@@ -23254,7 +23254,15 @@
       "year": "reflects roots, family and childhood",
       "month": "reflects work and social life",
       "day": "reflects yourself, your partner and close ties",
-      "hour": "reflects plans, children and later life"
+      "hour": "reflects plans, children and later life",
+      "yearStem": "reflects your family line and ancestral roots",
+      "yearBranch": "reflects childhood and the home you grew up in",
+      "monthStem": "reflects parents, siblings and how you show up in society",
+      "monthBranch": "reflects the ground of your work and social life",
+      "dayStem": "reflects yourself",
+      "dayBranch": "reflects your partner and close ties",
+      "hourStem": "reflects plans ahead and children",
+      "hourBranch": "reflects later life and where you settle in your later years"
     }
   }
 }
