@@ -12537,6 +12537,14 @@ function _sajuLuckFlowHtml(dyn){
 }
 // 세운 한 해의 간지·판정·영역 문구. 대운 풀이의 10년 세운과 종합의 올해·내년 처방이 이 한 경로로 읽는다.
 // daeun(간지 두 글자)을 주지 않으면 그 해가 속한 대운을 대운표에서 찾는다.
+// 세운을 계산할 수 있는 마지막 해. 코어가 범위를 알려 주지 않으면 상한을 두지 않는다(예전 동작).
+function _sajuSeunMaxYear(){
+  try{
+    var range=_koreanCalendar().supportedRange();
+    var max=Number(range&&range.maxYear);
+    return isFinite(max)?max:Infinity;
+  }catch(e){return Infinity;}
+}
 function _sajuSeunYearReading(yr,daeun){
   var jg=G_JONG,pw=window.__cdShownPower||G_POWER,jh=G_JOHU;
   var yBazi=_coreEightChar(yr,6,15,12,0);
@@ -12606,7 +12614,14 @@ function buildDaewunDetailHtml(age,gan,zhi){
   var guideHtml=buildDaewunReadingGuide(age,gan,zhi,ev);
 
   var yearHTML='';
+  // 만세력 코어가 답하는 마지막 해(2100) 뒤의 세운은 계산하지 않고 안내 한 줄로 끝낸다.
+  // 예전에는 2101년 이후 해마다 코어가 예외를 던져 콘솔 오류만 남기고 칸이 조용히 비었다.
+  var seunMaxYear=_sajuSeunMaxYear();
   for(var yr=startYear;yr<=startYear+9;yr++){
+    if(yr>seunMaxYear){
+      yearHTML+='<p class="year-range-note" style="margin:8px 0 0;font-size:.85rem;line-height:1.6;color:var(--reading-muted,#6f5a68)">'+yr+'년부터는 만세력 지원 범위('+seunMaxYear+'년까지) 밖이라 세운을 싣지 않았어요.</p>';
+      break;
+    }
     try{
       var sy=_sajuSeunYearReading(yr,gan+zhi);
       var yg2=sy.yg,yz2=sy.yz,ygd=sy.ygd,yzd=sy.yzd,yEv=sy.ev,yGaeun=sy.gaeun,johuYText=sy.johu;
