@@ -1104,11 +1104,11 @@ function renderSummary(p,johu,natal){
      1. 사주 총평 & 일간 분석
   ─────────────────────────────── */
   html+=box('chongpyeong','🌿 ① 나의 사주 총평 — 일간(日干) '+dg+' 풀이',
-    subHead('일간 근본 기운','#2e7d32')+
+    subHead('나를 읽는 기준, 일간','#2e7d32')+
     kv('일간','<b>'+dg+' ('+dayMaster+')</b> — '+(ganChar[dg]||dg))+
     kv('핵심 키워드',ganKeyword[dg]||'추진력·독립')+
-    kv('천생 재능',ganTalent[dg]||'다방면에서 두각')+
-    kv('약점 포인트',ganWeakPoint[dg]||'균형 조율 필요')+
+    kv('힘을 쓰기 편한 일',ganTalent[dg]||'다방면에서 두각')+
+    kv('지칠 때 살필 점',ganWeakPoint[dg]||'균형 조율 필요')+
     kv('연애 스타일',ganRel[dg]||'진심 있는 연애')+
     '<br><div style="background:rgba(255,255,255,.6);border-radius:8px;padding:10px;font-size:.85rem;line-height:1.78;color:#333">'+
     (_isNeoSaju
@@ -1128,9 +1128,9 @@ function renderSummary(p,johu,natal){
   html+=box('johu','🌡️ ② 조후(調候) 판정 — 계절 에너지 분석',
     '<span class="johu-badge '+johu.badgeCls+'">'+johu.badgeTxt+'</span><br>'+
     johu.advice+'<br><br>'+
-    subHead('조후(調候)란 무엇인가','#1565C0')+
+    subHead('태어난 계절은 어떻게 읽을까','#1565C0')+
     '<div style="font-size:.84rem;line-height:1.85">'+
-    (_isNeoSaju?'조후는 사주의 계절적 균형을 보는 명리학의 핵심 이론이야. 태어난 달이 정하는 계절에 따라 사주 전체의 차갑고 따뜻한 균형이 달라지거든. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 넘치니까 차고 적신 수(水)와 금(金) 기운이 보완 후보가 돼. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해서 화(火)와 목(木)으로 온기를 보태 줘야 해. 조후가 맞는 운이 들어오면 삶의 전반적인 컨디션이 좋아지고 일·건강·관계가 한결 유연해질 수 있어. 조후가 어긋난 운에는 의욕이 떨어지거나 몸이 먼저 신호를 보낼 수도 있어. 그러니까 대운을 읽을 때는 조후부터 꼭 챙겨 봐.</div>':'조후는 사주의 계절적 균형을 분석하는 명리학의 핵심 이론입니다. 생월(태어난 달)이 결정하는 계절에 따라 사주 전체의 차갑고 따뜻함의 균형이 달라집니다. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 과잉이므로 차고 적신 수(水)와 금(金) 기운이 보완 후보가 됩니다. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해 화(火)와 목(木)으로 온기를 보강해야 합니다. 조후가 맞는 운이 들어올 때 삶의 전반적인 컨디션이 좋아지고 사업·건강·대인관계가 유연해집니다. 조후가 어긋난 운에는 의욕 저하나 건강 이상으로 나타날 수 있으니, 대운 해석 시 반드시 조후를 먼저 체크해야 합니다.</div>')+
+    (_isNeoSaju?'조후는 사주의 계절적 균형을 보는 명리학의 핵심 이론이야. 태어난 달이 정하는 계절에 따라 사주 전체의 차갑고 따뜻한 균형이 달라지거든. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 넘치니까 차고 적신 수(水)와 금(金) 기운이 보완 후보가 돼. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해서 화(火)와 목(木)으로 온기를 보태 줘야 해. 이건 계절에 빗댄 풀이야. 몸 상태를 판정하는 기준은 아니야. 요즘 어느 때 일하기 편하고 어느 때 쉬고 싶은지 떠올려 봐.</div>':'조후는 사주의 계절적 균형을 분석하는 명리학의 핵심 이론입니다. 생월(태어난 달)이 결정하는 계절에 따라 사주 전체의 차갑고 따뜻함의 균형이 달라집니다. 여름 사주(巳·午·未월 출생)는 이미 화(火) 기운이 과잉이므로 차고 적신 수(水)와 금(金) 기운이 보완 후보가 됩니다. 반대로 겨울 사주(亥·子·丑월 출생)는 수(水)가 강해 화(火)와 목(木)으로 온기를 보강해야 합니다. 조후는 계절에 빗댄 풀이이지 건강 상태를 알려 주는 지표는 아니에요. 대운을 읽을 때는 지금의 생활 리듬과 맞는 부분부터 살펴보세요.</div>')+
     '<br>'+subHead('실생활 적용법','#1976D2')+
     '<div style="font-size:.84rem;line-height:1.85">'+
     (_isNeoSaju
@@ -1144,7 +1144,7 @@ function renderSummary(p,johu,natal){
        '<div style="margin-top:6px;font-size:.85rem;line-height:1.78">'+
        (_isNeoSaju
          ?'이 사주는 기운 하나가 전체를 압도하는 <b>종격 사주</b>야. '+
-          '억부(신강/신약)를 따지기보다, '+EL_KO[jg.dominant]+' 에너지를 돕는 운이 오면 길(吉), 거스르면 흉(凶)으로 보거든. 단순해서 오히려 편한 사주지.<br><br>'+
+          '억부(신강/신약)를 따지기보다, '+EL_KO[jg.dominant]+' 에너지를 돕는 운이 오면 길(吉), 거스르면 흉(凶)으로 보거든. 한 기운이 두드러진다는 뜻이지, 사는 일이 쉽다는 뜻은 아니야.<br><br>'+
           '✓ 종격이란 — 오행 중 하나가 75% 이상을 차지하면, 그 기운에 순응하는 게 답이라는 뜻이야. 억지로 거스르면 너만 힘들어질 수 있어.'
          :'이 사주는 하나의 기운이 사주 전체를 압도하는 <b>종격 사주</b>입니다. '+
           '억부(신강/신약) 원칙을 우선적으로 배제하고, '+EL_KO[jg.dominant]+' 에너지를 돕는 운이 길(吉)하고, 거스르는 운은 흉(凶)합니다.<br><br>'+
@@ -1233,7 +1233,7 @@ function renderSummary(p,johu,natal){
         :natal.counts[domE]>=4?'🟠 <b>'+EL_K[domE]+' 기운이 강하게 쏠려</b> 있네. 적극적으로 손봐 주는 게 좋은 수준이야.'
         :natal.counts[domE]>=3?'🟡 <b>'+EL_K[domE]+' 기운이 조금 강하게 자리</b>잡았어. 신경은 써야 하지만, 큰일은 아니야.'
         :'🟢 오행이 고르게 분포돼 있어. 딱히 손댈 데 없는 사주네.')
-      :(natal.counts[domE]>=5?'🔴 <b>'+EL_K[domE]+' 기운이 매우 강하게 편중</b>되어 있어요! 반드시 균형 조절이 필요합니다.'
+      :(natal.counts[domE]>=5?'🔴 <b>'+EL_K[domE]+' 기운이 매우 강하게 편중</b>되어 있어요! 자주 쓰는 방식이 부담이 된 적은 없는지 살펴보세요.'
         :natal.counts[domE]>=4?'🟠 <b>'+EL_K[domE]+' 기운이 강하게 쏠려</b> 있습니다. 적극적인 균형 조절을 권합니다.'
         :natal.counts[domE]>=3?'🟡 <b>'+EL_K[domE]+' 기운이 다소 강하게 자리</b>잡고 있습니다. 의식적인 균형이 도움이 됩니다.'
         :'🟢 오행이 비교적 고르게 분포되어 있습니다. 균형잡힌 사주입니다.'))+
@@ -1265,7 +1265,7 @@ function renderSummary(p,johu,natal){
   tsRankHtml+='</div>';
 
   html+=box('sipseong','⭐ ⑤ 십성(十星) 심층 분석 — 내 삶의 에너지 구성',
-    subHead('보유 십성 랭킹','#5c35c8')+
+    subHead('원국에서 자주 보이는 십성','#5c35c8')+
     tsRankHtml+
     '<br>'+subHead('주 십성 '+dominant+' — 성향 상세','#7c3aed')+
     '<div style="font-size:.85rem;line-height:1.78;margin-top:4px">'+
@@ -1339,7 +1339,7 @@ function renderSummary(p,johu,natal){
     subHead('핵심 성향','#c2185b')+
     '<div style="font-size:.85rem;line-height:1.85;margin-top:6px">'+
     ((_isNeoSaju?personalityByGanNeo:personalityByGan)[dg]||deep.nature)+'</div>'+
-    '<br>'+subHead('심층 기질 분석','#c2185b')+
+    '<br>'+subHead('익숙한 상황에서 보이는 모습','#c2185b')+
     '<div style="font-size:.84rem;line-height:1.85;margin-top:4px">'+
     ((_isNeoSaju?charBoxDetailNeo:charBoxDetail)[dg]||deep.nature)+'</div>'+
     '<br>'+subHead('보완이 필요한 부분','#d32f2f')+
@@ -1364,7 +1364,7 @@ function renderSummary(p,johu,natal){
     water:['연구·분석·데이터','외교·무역·관광','심리·상담·철학','글쓰기·시·문학','음악·영화·순수예술']
   };
 
-  html+=box('jinro','💼 ⑦ 진로 적성 & 성공 천기 — 운명이 알려주는 직업 지도',
+  html+=box('jinro','💼 ⑦ 진로 적성 — 편하게 힘을 쓰는 일',
     subHead('천성 맞춤 분야 ('+EL_KO[dayMaster]+' 에너지 기반)','#1565C0')+
     li(careerByEl[dayMaster]||[])+
     subHead('십성 '+dominant+' 기반 추천','#0d47a1')+
@@ -1400,7 +1400,7 @@ function renderSummary(p,johu,natal){
   };
 
   html+=box('yeonae','💘 ⑧ 연애·결혼 심층 풀이',
-    subHead('사랑의 패턴','#ad1457')+
+    subHead('마음을 표현하는 방식','#ad1457')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+deep.love+'<br><br>'+(_isNeoSaju?loveByElNeo:loveByEl)[dayMaster||'earth']+'</div>'+
     '<br>'+subHead('인연의 신호 — 어떤 사람과 맞는가','#c2185b')+
     li(_isNeoSaju
@@ -1472,7 +1472,7 @@ function renderSummary(p,johu,natal){
       ?'주요 신살 해당 없음 — 신살 없이도 순수한 오행 매력으로 승부하는 타입이야. 보완 후보 오행이랑 일간 기질 자체가 이미 네 강점이라는 뜻이지.'
       :'주요 신살 해당 없음 — 신살에 의존하지 않는 순수한 오행 매력의 소유자입니다. 보완 후보 오행과 일간의 기질 자체가 당신의 매력과 강점을 만들어냅니다.')+'</div>';
   }
-  html+=box('sinsal','💫 ⑨ 신살(神殺) 분석 — 타고난 특수 에너지',
+  html+=box('sinsal','💫 ⑨ 신살(神殺) 분석 — 원국에서 찾은 보조 단서',
     subHead('내 사주의 신살 목록','#6a1b9a')+
     _sinsalBodyHtml+
     '<br>'+subHead('신살이란?','#7b1fa2')+
@@ -1502,7 +1502,7 @@ function renderSummary(p,johu,natal){
   };
 
   html+=box('geongang','🥗 ⑨ 건강·소울 푸드 & 스트레스 신호 분석',
-    subHead('타고난 건강 약점','#2e7d32')+
+    subHead('생활 리듬을 돌아보는 단서','#2e7d32')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
     kv('취약 부위',health.weak)+
     kv('추천 음식',health.food)+
@@ -1520,7 +1520,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      9. 재물운 & 투자 전략
   ─────────────────────────────── */
-  html+=box('jaemul',(_isNeoSaju?'💰 ⑩ 재물운 — 돈이 들고 나는 네 패턴':'💰 ⑩ 재물운 & 투자 전략 상세'),
+  html+=box('jaemul',(_isNeoSaju?'💰 ⑩ 재물운 — 돈이 들고 나는 네 패턴':'💰 ⑩ 재물운 — 돈을 쓰고 모으는 습관'),
     subHead('재물 패턴','#e65100')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
     (_isNeoSaju?tsMoneyPatternNeo:tsMoneyPattern)[dominant]+'</div>'+
@@ -1550,7 +1550,7 @@ function renderSummary(p,johu,natal){
     '<br>'+subHead('인간관계 패턴','#1976D2')+
     '<div style="font-size:.84rem;line-height:1.78;margin-top:4px">'+
     (_isNeoSaju?tsRelPatternNeo:tsRelPattern)[dominant]+'</div>'+
-    '<br>'+subHead('관계에서 주의할 시그널','#d32f2f')+
+    '<br>'+subHead('관계에서 잠깐 멈춰 볼 때','#d32f2f')+
     li(_isNeoSaju
        ?['내가 성장하는 걸 시기하고 깎아내리는 사람 — 걸러도 되는 사람이야',
          '돈·감정·시간을 계속 빨아들이는 관계 — 그건 착취에 가까워',
@@ -1575,7 +1575,7 @@ function renderSummary(p,johu,natal){
     '<div class="tip-chip"><strong>설기(분산): '+EL_K[tips.drain]+'</strong>'+
     '🎨 '+tips.dtips.color+'<br>🏠 '+tips.dtips.place+'<br>🧭 '+tips.dtips.action+'<br>🍽️ '+tips.dtips.food+'</div>'+
     '</div>'+
-    '<br>'+subHead('일상 개운 행동 루틴 7가지','#2e7d32')+
+    '<br>'+subHead('생활에서 하나씩 해볼 일곱 가지','#2e7d32')+
     li(_isNeoSaju
       ?['매일 아침 '+domE+'과 반대 색상의 소품('+tips.ctips.color+') 하나 챙겨 봐',
         '정리정돈은 정기적으로 — 물건이 정체되면 운도 같이 정체되기 쉽거든',
@@ -1596,7 +1596,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      12. 인생 전략 요약
   ─────────────────────────────── */
-  html+=box('jeollyak',speakerTitle(_isNeoSaju?'🚀 ⑬ 앞으로의 길 — 영냥이의 종합 정리':'🚀 ⑬ 인생 전략 로드맵 — 연이의 종합 천기','cheer'),
+  html+=box('jeollyak',speakerTitle(_isNeoSaju?'🚀 ⑬ 앞으로의 길 — 영냥이의 종합 정리':'🚀 ⑬ 앞으로의 선택 — 연이와 함께 정리해요','cheer'),
     subHead('지금 당장 실천할 것','#7b1fa2')+
     li(_isNeoSaju
       ?['강점인 <b>'+dominant+'</b> 에너지, 일이랑 관계에 마음껏 써 봐',
@@ -1748,8 +1748,8 @@ function renderSummary(p,johu,natal){
     if(!body)return;
     html+='<!--saju-ext-->'+box('olhae','🗓️ ⑭ 올해·내년 처방 — '+thisYear+'·'+(thisYear+1)+'년 세운',
       '<div style="font-size:.84rem;line-height:1.78;margin-bottom:8px">'+(_isNeoSaju
-        ?'올해랑 내년, 영역별로 뭘 하면 되는지만 골라 봤어. 판정은 대운 풀이의 연도별 세운과 같은 기준이야.'
-        :'해마다 바뀌는 세운으로 올해와 내년을 미리 읽어 볼게요. 판정은 대운 풀이의 연도별 세운과 같은 기준이고, 연애·돈·일·관계·건강 습관마다 할 일을 정리했습니다.')+'</div>'+body,
+        ?'올해와 내년을 나란히 놓고 봐. 지금 네가 가장 신경 쓰는 일부터 한 칸 골라 읽으면 돼. 판정은 대운 풀이의 연도별 세운과 같은 기준이야.'
+        :'해마다 바뀌는 세운으로 올해와 내년을 미리 읽어 볼게요. 대운 풀이와 같은 기준으로 두 해를 비교했어요. 연애·돈·일·관계·건강 습관 중 요즘 가장 궁금한 곳부터 읽어 보세요.')+'</div>'+body,
       '#c62828','rgba(255,235,238,.7)')+'<!--/saju-ext-->';
   })();
 
@@ -1758,7 +1758,7 @@ function renderSummary(p,johu,natal){
   ─────────────────────────────── */
   if(_remedyBody){
     html+='<!--saju-ext-->'+box('remedy','🛡️ ⑮ '+(_isNeoSaju?'너한테':'나에게')+' 맞는 액땜 — '+(Number(BIRTH_YEAR)+Number(CURRENT_AGE)-1)+'년 기준',
-      _remedyBody,'#6d4c41','rgba(239,235,233,.7)')+'<!--/saju-ext-->';
+      '<p>'+(_isNeoSaju?'아래 제안 중 네 생활에 맞는 것 하나만 골라 봐. 전부 해야 하는 건 아니야.':'아래 제안을 모두 따를 필요는 없어요. 지금 생활에서 부담 없이 해볼 수 있는 것 하나면 충분해요.')+'</p>'+_remedyBody,'#6d4c41','rgba(239,235,233,.7)')+'<!--/saju-ext-->';
   }
 
   /* ───────────────────────────────
