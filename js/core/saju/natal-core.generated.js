@@ -1145,7 +1145,7 @@ var SajuNatalCore = (() => {
   var YANGIN_BY_STEM = Object.freeze({ 甲: "卯", 丙: "午", 戊: "午", 庚: "酉", 壬: "子" });
   var HONGYEOM_BY_STEM = Object.freeze({ 甲: "午", 乙: "午", 丙: "寅", 丁: "未", 戊: "辰", 己: "辰", 庚: "戌", 辛: "酉", 壬: "子", 癸: "申" });
   var CHEONEUL_BY_STEM = Object.freeze({ 甲: ["丑", "未"], 乙: ["子", "申"], 丙: ["亥", "酉"], 丁: ["亥", "酉"], 戊: ["丑", "未"], 己: ["子", "申"], 庚: ["丑", "未"], 辛: ["寅", "午"], 壬: ["卯", "巳"], 癸: ["卯", "巳"] });
-  var GOEGANG_GANJI = Object.freeze(["庚辰", "庚戌", "壬辰", "戊戌"]);
+  var GOEGANG_GANJI = Object.freeze(["庚辰", "庚戌", "壬辰", "壬戌", "戊戌"]);
   var BAEKHO_GANJI = Object.freeze(["甲辰", "乙未", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"]);
   var GONGMANG_BY_SUN = Object.freeze([
     Object.freeze({ sun: "甲子", branches: Object.freeze(["戌", "亥"]) }),
@@ -1206,7 +1206,7 @@ var SajuNatalCore = (() => {
     괴강살: {
       head: ["간지", "구성"],
       rows: GOEGANG_GANJI.map((ganji) => [g(ganji), `${s(ganji[0])} + ${b(ganji[1])}`]),
-      basis: "천간과 지지를 한 쌍으로 대조해 네 기둥 어디에든 이 네 간지가 있으면 표시합니다. 사주 풀이는 대운·세운 간지도 함께 봅니다."
+      basis: "천간과 지지를 한 쌍으로 대조해 네 기둥 어디에든 이 다섯 간지가 있으면 표시합니다. 사주 풀이는 대운·세운 간지도 함께 봅니다."
     },
     백호살: {
       head: ["간지", "구성"],

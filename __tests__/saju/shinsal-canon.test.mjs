@@ -332,8 +332,6 @@ const MANSE_TO_CANON = {
   귀문관살: ['gwimun'], 원진살: ['wonjin'],
 };
 const nodesOf = (hit) => hit.pair || [{ pillar: hit.pillar, char: hit.char, luckIndex: hit.luckIndex }];
-// 의도한 차이: 괴강 壬戌 은 정본에만 있다. 대조할 때 정본 쪽에서 뺀다.
-const comparable = (hit) => !(hit.ruleId === 'goegang' && hit.char === '壬戌');
 
 function randomChart(rand, { hour = true } = {}) {
   const pillars = { year: pickFrom(rand, SIXTY), month: pickFrom(rand, SIXTY), day: pickFrom(rand, SIXTY) };
@@ -353,7 +351,7 @@ test('manse-shinsal.js(만세력 화면)와 무작위 3000명식 대조: 별신�
     const manseExtras = Object.fromEntries(fromManse.extras.map((row) => [row.name, [...row.positions].sort()]));
     for (const [name, ids] of Object.entries(MANSE_TO_CANON)) {
       const labels = new Set();
-      canon.hits.filter((hit) => ids.includes(hit.ruleId) && comparable(hit)).forEach((hit) => nodesOf(hit).forEach((node) => labels.add(LABEL[node.pillar])));
+      canon.hits.filter((hit) => ids.includes(hit.ruleId)).forEach((hit) => nodesOf(hit).forEach((node) => labels.add(LABEL[node.pillar])));
       assert.deepEqual([...labels].sort(), manseExtras[name] || [], `${name} ${JSON.stringify(pillars)}`);
     }
     for (const row of fromManse.twelve) {
@@ -385,9 +383,9 @@ test('buildLoveShinsal(연애 상담)과 무작위 2000명식 + 세운 1행 대�
       const expected = new Set(canon.hits.filter((hit) => hit.ruleId === ruleId).map((hit) => lovePosition(hit)));
       assert.deepEqual([...new Set(love.byName[name].hits.map((hit) => hit.position))].sort(), [...expected].sort(), `${name} ${where}`);
     }
-    // 괴강: 연애 상담은 운 행도 보고 壬戌 이 없다(의도한 차이). 원국 · 壬戌 제외로만 대조한다.
+    // 연애 상담은 운 행도 본다. 원국 자리만 대조한다.
     const loveGoegang = love.byName.괴강살.hits.filter((hit) => !hit.position.startsWith('luck')).map((hit) => hit.position).sort();
-    assert.deepEqual(loveGoegang, canon.hits.filter((hit) => hit.ruleId === 'goegang' && comparable(hit)).map((hit) => hit.pillar).sort(), `괴강 ${where}`);
+    assert.deepEqual(loveGoegang, canon.hits.filter((hit) => hit.ruleId === 'goegang').map((hit) => hit.pillar).sort(), `괴강 ${where}`);
     for (const [name, ruleId] of [['귀문관살', 'gwimun'], ['원진살', 'wonjin']]) {
       const lovePairs = love.byName[name].hits.map((hit) => splitLovePair(hit.position).sort().join('|')).sort();
       const canonPairs = canon.hits.filter((hit) => hit.ruleId === ruleId).map((hit) => hit.pair.map(lovePosition).sort().join('|')).sort();
@@ -397,12 +395,12 @@ test('buildLoveShinsal(연애 상담)과 무작위 2000명식 + 세운 1행 대�
 });
 
 test('의도한 차이를 고정한다(정본이 지시서 표를 따른 결과)', () => {
-  // 1) 괴강 壬戌: 정본에만 있다. 기존 3벌(sinsal-rules·manse-shinsal·saju-shinsal)은 빠져 있다 — 범위 밖 결함으로 보고만 한다.
+  // 1) 임술은 세 소비처가 같은 원국 위치에서 검출한다.
   const imsul = { year: '甲子', month: '丙寅', day: '壬戌', hour: '甲子' };
   assert.equal(at(run(imsul), 'goegang', 'day').length, 1);
-  assert.ok(!rules.GOEGANG_GANJI.includes('壬戌'));
-  assert.ok(!manse.build({ y: toGj('甲子'), m: toGj('丙寅'), d: toGj('壬戌'), h: toGj('甲子') }).extras.some((row) => row.name === '괴강살'));
-  assert.equal(buildLoveShinsal({ pillars: { year: { stem: '甲', branch: '子' }, month: { stem: '丙', branch: '寅' }, day: { stem: '壬', branch: '戌' } } }).byName.괴강살.present, false);
+  assert.ok(rules.GOEGANG_GANJI.includes('壬戌'));
+  assert.ok(manse.build({ y: toGj('甲子'), m: toGj('丙寅'), d: toGj('壬戌'), h: toGj('甲子') }).extras.some((row) => row.name === '괴강살'));
+  assert.equal(buildLoveShinsal({ pillars: { year: { stem: '甲', branch: '子' }, month: { stem: '丙', branch: '寅' }, day: { stem: '壬', branch: '戌' } } }).byName.괴강살.present, true);
   // 2) 괴강은 원국 한정: 연애 상담은 세운 庚辰 도 괴강으로 센다.
   const luckGoegang = { pillars: { year: { stem: '甲', branch: '子' }, month: { stem: '丙', branch: '寅' }, day: { stem: '丁', branch: '卯' } }, luckRows: [{ scope: 'sewoon', stem: '庚', branch: '辰' }] };
   assert.deepEqual(buildLoveShinsal(luckGoegang).byName.괴강살.hits.map((hit) => hit.position), ['luck-0']);

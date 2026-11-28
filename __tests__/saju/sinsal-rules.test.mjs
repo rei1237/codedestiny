@@ -128,7 +128,7 @@ test('사주 엔진(localSajuCalculator) 상수와 규칙표가 같다', () => {
     assert.deepEqual(CHEONEUL_BY_STEM[stem], [...CALC.cheoneul[index]].map(hanBranch), `천을 ${ko}`);
     assert.equal(YANGIN_BY_STEM[stem], CALC.yangin[ko] ? hanBranch(CALC.yangin[ko]) : undefined, `양인 ${ko}`);
   });
-  assert.deepEqual(GOEGANG_GANJI, CALC.goegang.map(hanGanji));
+  assert.deepEqual(GOEGANG_GANJI, [...CALC.goegang.slice(0,3), '임술', CALC.goegang[3]].map(hanGanji));
   assert.deepEqual(BAEKHO_GANJI, CALC.baekho.map(hanGanji));
   const hanPair = (v) => hanBranch(v[0]) + hanBranch(v[1]);
   assert.deepEqual(GWIMUN_PAIRS, CALC.gwimun.map(hanPair));

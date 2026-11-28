@@ -86,7 +86,7 @@
     addByTargets('월덕귀인', [(['申','子','辰'].indexOf(month.j)>=0?'壬':['亥','卯','未'].indexOf(month.j)>=0?'甲':['寅','午','戌'].indexOf(month.j)>=0?'丙':['巳','酉','丑'].indexOf(month.j)>=0?'庚':'')], [], []);
     var cheondeok = ({寅:{s:'丁'},卯:{b:'申'},辰:{s:'壬'},巳:{s:'辛'},午:{b:'亥'},未:{s:'甲'},申:{s:'癸'},酉:{b:'寅'},戌:{s:'丙'},亥:{s:'乙'},子:{b:'巳'},丑:{s:'庚'}})[month.j] || {};
     addByTargets('천덕귀인', cheondeok.s ? [cheondeok.s] : [], cheondeok.b ? [cheondeok.b] : [], []);
-    addByTargets('괴강살', [], [], ['庚辰','庚戌','壬辰','戊戌']);
+    addByTargets('괴강살', [], [], ['庚辰','庚戌','壬辰','壬戌','戊戌']);
     addByTargets('백호살', [], [], ['甲辰','乙未','丙戌','丁丑','戊辰','壬戌','癸丑']);
     addByTargets('양인살', [], ({甲:['卯'],丙:['午'],戊:['午'],庚:['酉'],壬:['子']})[day.g] || [], []);
     addByTargets('공망', [], gongmangBranches(day.g, day.j), []);

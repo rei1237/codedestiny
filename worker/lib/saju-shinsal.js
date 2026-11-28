@@ -78,7 +78,7 @@ const MUNCHANG_BY_STEM = Object.freeze({
 });
 // 양인은 양간에만 성립한다.
 const YANGIN_BY_STEM = Object.freeze({ 甲: "卯", 丙: "午", 戊: "午", 庚: "酉", 壬: "子" });
-const GOEGANG_GANJI = Object.freeze(["庚辰", "庚戌", "壬辰", "戊戌"]);
+const GOEGANG_GANJI = Object.freeze(["庚辰", "庚戌", "壬辰", "壬戌", "戊戌"]);
 const BAEKHO_GANJI = Object.freeze(["甲辰", "乙未", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"]);
 // 순(旬) 시작 지지 → 공망 지지 2개.
 const GONGMANG_BY_XUN_START = Object.freeze({

@@ -70,14 +70,9 @@ function compare(love, canon, luck, where, tally) {
     tally.agree += mine.length;
   }
   // 괴강(의도한 차이): 연애 상담은 운 행 간지도 괴강으로 센다. 정본은 원국 한정이다. 원국 자리만 대조한다.
-  // 보고: 연애 상담 괴강 표에 壬戌 이 없다(정본은 庚辰·庚戌·壬辰·壬戌·戊戌). 고치지 않고 현재 동작을 고정한다.
   const loveGoegang = love.byName.괴강살.hits.map((hit) => keyOf(hit.position));
   const canonGoegang = canonHits('goegang');
-  assert.deepEqual(loveGoegang.filter((key) => !isLuckKey(key)).sort(), canonGoegang.filter((hit) => hit.char !== '壬戌').map(canonKey).sort(), `괴강 ${where}`);
-  for (const hit of canonGoegang.filter((row) => row.char === '壬戌')) {
-    assert.ok(!loveGoegang.includes(hit.pillar), `괴강 壬戌 ${where}`);
-    tally.imsulMissing += 1;
-  }
+  assert.deepEqual(loveGoegang.filter((key) => !isLuckKey(key)).sort(), canonGoegang.map(canonKey).sort(), `괴강 ${where}`);
   tally.goegangLuck += loveGoegang.filter(isLuckKey).length;
   // 귀문·원진(의도한 차이): 연애 상담은 운 행끼리(대운×세운, 세운×세운)도 짝짓는다. 정본은 원국 i<j 와 운×원국만 본다.
   for (const [name, ruleId] of Object.entries(PAIR)) {
@@ -100,7 +95,7 @@ function compare(love, canon, luck, where, tally) {
   }
 }
 
-const newTally = () => ({ charts: 0, timeUnknown: 0, rejected: 0, agree: 0, goegangLuck: 0, luckPairs: 0, imsulMissing: 0, noDaewoon: 0 });
+const newTally = () => ({ charts: 0, timeUnknown: 0, rejected: 0, agree: 0, goegangLuck: 0, luckPairs: 0, noDaewoon: 0 });
 // 계산기가 거부하는 시각(utc830-start-before: UTC+8:30 전환 경계)은 두 소비처 모두 신살 전에 막힌다.
 // 거부가 일관된지만 보고, 그 건은 시간 미상으로 대조한다.
 const rejectionOf = (input) => {
@@ -223,17 +218,14 @@ test('saju-compat-premium: 원국만 넣는 실제 호출과 이성 기질 근�
 
 // 골든 60건에는 壬戌 원국이 없어 실제 생일 하나로 두 경로에 따로 고정한다.
 // 운 행 괴강·운×운 짝은 shinsal-canon.test.mjs '의도한 차이' 2·3 이 같은 함수로 고정한다.
-test('壬戌 일주: 정본만 괴강으로 센다(두 소비처 실제 경로)', () => {
-  // 보고: worker/lib/saju-shinsal.js GOEGANG_GANJI 에 壬戌 이 빠져 있다(정본·지시서 표에는 있다). 범위 밖이라 고치지 않고
-  // 현재 동작을 고정한다. 영향은 love-secret 프롬프트 신살 줄(summaryLines)에서 괴강살이 빠지는 것이고,
-  // premium 이성 기질은 괴강을 쓰지 않아 영향이 없다.
+test('壬戌 일주: 두 소비처가 모두 괴강으로 센다(두 소비처 실제 경로)', () => {
   const birth = { gender: 'female', birthDate: '1992-02-16', birthTime: '12:00', birthTimeUnknown: false, calendarType: 'solar', isLeapMonth: false };
   const normalized = normalizeLoveSecretAiInput({ myInfo: { name: '나', ...birth }, relationshipStatus: '솔로', topic: '전체 연애 흐름' });
   const chart = calculateLoveSecretAiSaju(normalized, { nowMs: NOW_MS }).myChart;
   assert.equal(chart.dayPillar, '壬戌');
   assert.deepEqual(canonFor(chart.pillarDetails, false, []).hits.filter((hit) => hit.ruleId === 'goegang').map((hit) => hit.pillar), ['day']);
-  assert.equal(chart.shinsal.byName.괴강살.hits.some((hit) => hit.position === 'day'), false);
-  assert.ok(!chart.shinsal.summaryLines.some((line) => line.startsWith('괴강살:') && line.includes('일지 壬戌')));
+  assert.equal(chart.shinsal.byName.괴강살.hits.some((hit) => hit.position === 'day'), true);
+  assert.ok(chart.shinsal.summaryLines.some((line) => line.startsWith('괴강살:') && line.includes('일지 壬戌')));
 
   const details = calculateLifeBookAiSaju(birth, { year: YEAR }).pillarDetails;
   const premium = buildLoveShinsal({
@@ -241,5 +233,5 @@ test('壬戌 일주: 정본만 괴강으로 센다(두 소비처 실제 경로)'
     dayStem: details.day.heavenlyStem,
     luckRows: [],
   });
-  assert.equal(premium.byName.괴강살.present, false);
+  assert.equal(premium.byName.괴강살.present, true);
 });
