@@ -28,20 +28,6 @@
     "nl": "Letter",
     "ms": "Letter"
   },
-  "sajuReading.neoIntro": {
-    "ko": "흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.",
-    "en": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
-    "ja": "まず流れの根拠を確かめよう。そのあと、今試せる小さな一歩を一緒に選ぼう。",
-    "zh-CN": "我会先帮你理清走势的依据，再一起选一个现在可以尝试的小步骤。",
-    "zh-TW": "我會先幫你理清走勢的依據，再一起選一個現在可以嘗試的小步驟。",
-    "vi": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
-    "hi": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
-    "es": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
-    "fr": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
-    "de": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
-    "nl": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
-    "ms": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now."
-  },
   "sajuReading.letterGreeting": {
     "ko": "{name}님께,",
     "en": "Dear {name},",

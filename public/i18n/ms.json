@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "Baca semula bacaan Saju ringkas dan kitaran sepuluh tahun bagi profil kelahiran yang dibeli tanpa had masa. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian. Konsultasi AI ialah produk berasingan dan hanya dicaj apabila dipilih.",
       "inlineDescFreePolicy": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan bacaan kitaran sepuluh tahun. Bacaan Saju asas dan santai adalah percuma; konsultasi AI dikenakan bayaran berasingan."
+    },
+    "voice": {
+      "title": "Saju reading",
+      "ask": "Whose voice would you like to hear?",
+      "yeonTone": "Warm and polite",
+      "neoTone": "Casual and straight to the point"
     }
   },
   "_comment": "Code Destiny — Malay premium localization (ms.json)",
@@ -22120,8 +22126,6 @@
   "sajuReading": {
     "yeon": "Yeoni",
     "neo": "Yeongnyangi",
-    "garden": "Yeoni’s moonlit saju",
-    "room": "Yeongnyangi’s starlit attic",
     "same": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
     "compareNeo": "Switch to Yeongnyangi’s reading",
     "compareYeon": "Switch to Yeoni’s reading",
@@ -22267,7 +22271,6 @@
       "8": "Deep exploration of unfamiliar views",
       "9": "Preparation through learning and support"
     },
-    "neoIntro": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
     "letterGreeting": "Dear {name},",
     "letterGuest": "You, the reader of this letter",
     "letterSignature": "With all my heart, Yeoni",
@@ -22976,7 +22979,12 @@
       "yeoni": "Your chart holds {n} symbols. Tap a badge for a simple explanation and how it was found.",
       "nyang": "These marks don't decide good or bad, meow. How you use them matters more, meow.",
       "empty": "No extra symbols appear directly in your natal chart. Having none doesn't mean lack or bad luck.",
-      "basisNote": "12 spirits basis: {basis}. Other symbols use their own set basis (day stem, month branch and so on); tap a badge to see it. Bases differ a little between schools."
+      "basisNote": "12 spirits basis: {basis}. Other symbols use their own set basis (day stem, month branch and so on); tap a badge to see it. Bases differ a little between schools.",
+      "expand": "Show one-line notes",
+      "collapse": "Hide one-line notes",
+      "linesLabel": "One-line notes on symbols",
+      "linesLoading": "Loading the notes…",
+      "linesFailed": "Couldn't load the notes. Showing names and positions first."
     },
     "luck": {
       "title": "Major, yearly and monthly luck",
@@ -23238,6 +23246,20 @@
         "name": "Harm",
         "short": "A subtly crossed relationship"
       }
+    },
+    "posMean": {
+      "year": "reflects roots, family and childhood",
+      "month": "reflects work and social life",
+      "day": "reflects yourself, your partner and close ties",
+      "hour": "reflects plans, children and later life",
+      "yearStem": "reflects your family line and ancestral roots",
+      "yearBranch": "reflects childhood and the home you grew up in",
+      "monthStem": "reflects parents, siblings and how you show up in society",
+      "monthBranch": "reflects the ground of your work and social life",
+      "dayStem": "reflects yourself",
+      "dayBranch": "reflects your partner and close ties",
+      "hourStem": "reflects plans ahead and children",
+      "hourBranch": "reflects later life and where you settle in your later years"
     }
   }
 }

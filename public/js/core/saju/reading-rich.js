@@ -70,6 +70,12 @@
   /* ── 공통 조각 ── */
   function section(title, body, cls) { return '<section class="saju-rich__block' + (cls ? ' ' + cls : '') + '"><h4>' + esc(title) + '</h4>' + body + '</section>'; }
   function para(text) { return '<p>' + esc(text) + '</p>'; }
+  // 화자의 한마디는 지금 화자(연이·영냥이) 얼굴이 붙은 말풍선으로 그린다(lib/saju/speaker → 전역 CdSajuSpeaker). 번들이 없으면 일반 블록.
+  function voice(title, text, mode) {
+    var s = root.CdSajuSpeaker;
+    if (!s || typeof s.speakerHtml !== 'function') return section(title, para(text));
+    return '<section class="saju-rich__block saju-rich__voice">' + s.speakerHtml({who:s.speakerFor(mode), label:title, html:para(text)}) + '</section>';
+  }
   // 표시 전용 물상: 일간과 월지는 이미 계산된 글자를 그대로 사용한다.
   var STEM_ART = {
     '甲':['gap','wood','갑목 · 곧게 자라는 큰 나무'], '乙':['eul','wood','을목 · 유연하게 뻗는 풀과 꽃'],
@@ -325,11 +331,11 @@
     html += section(neo ? '체크 포인트' : '이건 꼭 챙겨 주세요', items.length ? chips(items) : para(neo ? '특이한 관계는 없어. 중요한 메시지는 보내기 전에 한 번 더 확인해 봐.' : '원국과 크게 부딪히는 관계는 없어요. 중요한 메시지는 보내기 전에 한 번 더 읽어 보면 좋아요.'));
     var boost = [['행운 컬러', lb.color, '色'], ['장소 · 방향', lt.action, '方'], [when + '의 한 끗', lb.item, '物'], ['무드 세팅', lb.material, '感']].filter(function (x) { return x[1]; });
     if (boost.length) html += section('행운의 부스터', tiles(boost) + '<p class="saju-rich__note">' + esc(neo ? '보완 후보 오행을 채우는 생활 팁이야. 효과를 약속하진 않아.' : '부족한 기운을 생활에서 가볍게 더하는 팁이에요. 분위기를 바꾸는 정도로 즐겨 주세요.') + '</p>');
-    html += section(neo ? '영냥이의 정리' : '연이의 한마디', para(DAY_TONE[good ? 'open' : 'care'][k]));
+    html += voice(neo ? '영냥이의 정리' : '연이의 한마디', DAY_TONE[good ? 'open' : 'care'][k], mode);
     return wrap(mode, html, facts);
   }
 
   root.SajuReadingRich = {stemThumb:stemThumb, stemArt:stemArt, seasonArt:seasonArt, decorateDelivered:decorateDelivered, daily:daily, flow:flow, powerParts:powerParts, johuParts:johuParts, powerMatches:powerMatches, johuMatches:johuMatches, stage:stage, godMap:godMap, escape:esc,
     // 비한국어 판(reading-rich-intl.js)이 같은 조각·계산 보조를 재사용한다. 문구는 들어 있지 않다.
-    kit:{esc:esc, fmt:fmt, num:num, pct:pct, lib:lib, elOf:elOf, family:family, section:section, para:para, gauge:gauge, table:table, hero:hero, tiles:tiles, chips:chips, more:more, wrap:wrap, familyEl:familyEl, roleOf:roleOf, SEASON:SEASON, BRANCH_TEMP:BRANCH_TEMP, GOD_FAMILY:GOD_FAMILY, FAMILY_ORDER:FAMILY_ORDER}};
+    kit:{esc:esc, fmt:fmt, num:num, pct:pct, lib:lib, elOf:elOf, family:family, section:section, para:para, voice:voice, gauge:gauge, table:table, hero:hero, tiles:tiles, chips:chips, more:more, wrap:wrap, familyEl:familyEl, roleOf:roleOf, SEASON:SEASON, BRANCH_TEMP:BRANCH_TEMP, GOD_FAMILY:GOD_FAMILY, FAMILY_ORDER:FAMILY_ORDER}};
 })(typeof window === 'undefined' ? globalThis : window);

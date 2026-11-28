@@ -9,6 +9,15 @@
   var FAMILY = {same:'비겁(比劫)', parent:'인성(印星)', drain:'식상(食傷)', wealth:'재성(財星)', control:'관성(官星)'};
   var FAMILY_MEANING = {same:'나와 같은 기운 · 동료와 자기 힘', parent:'나를 돕는 기운 · 배움과 후원', drain:'내가 내보내는 기운 · 표현과 재능', wealth:'내가 다스리는 기운 · 재물과 현실 성과', control:'나를 다스리는 기운 · 책임과 조직'};
   function hourMark(facts, k) { return k === 'h' && facts.unknown ? ' (정오 대입)' : ''; }
+  // 화자(연이·영냥이)가 직접 말하는 문단은 지금 화자 얼굴이 붙은 말풍선으로 그린다(lib/saju/speaker → 전역 CdSajuSpeaker).
+  // 칸 제목(h4)이 이미 화자를 밝히므로 말풍선에는 이름표를 두지 않는다(얼굴 alt 가 화자 이름). 모듈이 없으면 예전 문단 그대로.
+  // name: 번역판에서 얼굴 그림의 대체 텍스트를 그 언어의 화자 이름으로 바꾼다(기본값은 한국어 이름).
+  function say(text, mode, mood, name) {
+    var s = root.CdSajuSpeaker;
+    if (!s || typeof s.speakerHtml !== 'function') return para(text);
+    var out = s.speakerHtml({who: s.speakerFor(mode), mood: mood, html: para(text)});
+    return name ? out.replace(/ alt="[^"]+"/, ' alt="' + esc(name) + '"') : out;
+  }
   /* ── 한난조습 ── */
   var TEMP_NAMES = ['차가운 쪽', '서늘한 쪽', '고른 온도', '따뜻한 쪽', '뜨거운 쪽'];
   var TEMP_INDEX = {cold:0, cool:1, neutral:2, warm:3, hot:4};
@@ -94,7 +103,7 @@
     var season = j.season || (parts && parts.season) || '';
     var env = hanPending || moistPending ? null : ENV[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
     var verdictVars = {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName};
-    var html = section(c.lead, hero(env ? env.title : '기후 판단 보류', [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + para(env ? fmt(c.verdict, verdictVars) : climatePendingVerdict(neo, season, hanPending, moistPending, typeName, moistName)), 'saju-rich__lead');
+    var html = section(c.lead, hero(env ? env.title : '기후 판단 보류', [typeName, '습조 ' + moistName, '온도 점수 ' + num(j.score)]) + say(env ? fmt(c.verdict, verdictVars) : climatePendingVerdict(neo, season, hanPending, moistPending, typeName, moistName), mode, 'read'), 'saju-rich__lead');
     html += '<div class="saju-rich__gauges">' +
       gauge({kind:'temp', value:j.score, min:-9, max:9, zones:[-5, -2, 2, 5], names:TEMP_NAMES, ends:['차가움 寒', '뜨거움 暖'], caption:'온도 점수 ' + num(j.score), aria:'한난 게이지: 온도 점수 ' + num(j.score) + ', ' + typeName}) +
       gauge({kind:'humid', value:diff, min:-6, max:6, zones:[-2.5, 3], names:['건조한 편', '고른 편', '습한 편'], ends:['건조함 燥', '촉촉함 濕'], caption:'습 ' + (j.moistCnt || 0) + ' · 조 ' + (j.dryCnt || 0) + ' (편차 ' + num(diff) + ')', aria:'조습 게이지: 습한 신호 ' + (j.moistCnt || 0) + '개, 건조한 신호 ' + (j.dryCnt || 0) + '개, ' + moistName}) + '</div>';
@@ -162,12 +171,12 @@
     var html = '';
     var gaugeHtml = gauge({kind:'power', value:pw.score, min:-71, max:88, base:30, zones:[-20, 10, 30, 50, 70], names:['극신약', '신약', '중화에 가까운 신약', '중화에 가까운 신강', '신강', '극신강'], ends:['신약 쪽', '신강 쪽'], baseLabel:'기준 30', caption:'억부 점수 ' + pw.score + '점 (판정 기준 30점)', aria:'억부 게이지: 점수 ' + pw.score + '점, ' + st + ', 판정 기준 30점'});
     if (pw.strengthPending) {
-      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero('판정 보류', ['억부 참고 ' + pw.score + '점']) + para(neo ? '판정 보류. 출생 시각이 없거나 근거가 모자라서 신강·신약을 확정하지 않아. 게이지 점수는 참고로만 봐.' : '출생 시각이 없거나 근거가 모자라 신강·신약을 확정하지 않았어요. 아래 점수와 게이지는 참고값으로만 살펴보세요.'), 'saju-rich__lead');
+      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero('판정 보류', ['억부 참고 ' + pw.score + '점']) + say(neo ? '판정 보류. 출생 시각이 없거나 근거가 모자라서 신강·신약을 확정하지 않아. 게이지 점수는 참고로만 봐.' : '출생 시각이 없거나 근거가 모자라 신강·신약을 확정하지 않았어요. 아래 점수와 게이지는 참고값으로만 살펴보세요.', mode, 'read'), 'saju-rich__lead');
       html += gaugeHtml;
       if ((pw.yongshin || []).length) html += section(neo ? '보완 후보' : '살펴볼 보완 후보', chips(godChips(L, dayEl, pw.yongshin, ['보완 후보'], 'good')));
     } else if (jg && jg.isJong) {
       var dom = EL[jg.dominant] || '';
-      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero(jg.name || '종격', [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), '억부 ' + pw.score + '점 (참고)']) + para(neo ? '판정: ' + (jg.name || '종격') + '. ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '원국을 이끌어. 그래서 일반적인 신강·신약 공식은 대지 않아.' : '당신의 원국은 ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '크게 모인 ' + (jg.name || '종격') + '으로 검토됐어요. 이런 구조는 일반적인 신강·신약 잣대로 재지 않고, 모인 기세를 따르는 쪽으로 읽어요.'), 'saju-rich__lead');
+      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero(jg.name || '종격', [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), '억부 ' + pw.score + '점 (참고)']) + say(neo ? '판정: ' + (jg.name || '종격') + '. ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '원국을 이끌어. 그래서 일반적인 신강·신약 공식은 대지 않아.' : '당신의 원국은 ' + dom + ' 기운이 ' + (jg.pct != null ? jg.pct + '%로 ' : '') + '크게 모인 ' + (jg.name || '종격') + '으로 검토됐어요. 이런 구조는 일반적인 신강·신약 잣대로 재지 않고, 모인 기세를 따르는 쪽으로 읽어요.', mode, 'read'), 'saju-rich__lead');
       html += gaugeHtml;
       html += section('종격(從格)이란', para(neo ? '한 오행이 원국 전체를 압도하면 그 기세를 누르지 말고 따르는 게 해법이라는 이론이야. 그래서 억부 점수는 참고값으로만 둬.' : '한 가지 오행이 원국 전체를 압도할 만큼 강하면, 그 기세를 억지로 누르기보다 따르는 쪽이 자연스럽다고 보는 이론이에요. 그래서 위의 억부 점수는 참고로만 보고, 아래의 격 설명을 중심에 둬요.'));
       html += section(neo ? '격의 종류' : '당신의 격', para((jg.name || '종격') + ' — ' + jongKind(jg.name, neo) + '.'));
@@ -176,7 +185,7 @@
     } else {
       var lead = neo ? '판정: ' + st + '(' + (strong ? '신강' : '신약') + '). 억부 점수 ' + pw.score + '점, 기준선 30점에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '야.' : '억부 점수는 ' + pw.score + '점으로 ' + st + '으로 읽혀요. 신강과 신약을 가르는 기준선은 30점이고, 당신의 ' + dayName + ' 일간은 그 기준선에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '에 있어요.';
       var tagline = strong ? (neo ? '유형: 스스로 밀고 나가는 주체형이야.' : '스스로 밀고 나가는 주체형에 가까워요.') : (neo ? '유형: 섬세하게 살피고 함께 가는 공감형이야.' : '섬세하게 살피고 함께 가는 공감형에 가까워요.');
-      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero(st, ['억부 ' + pw.score + '점', '기준 30점', strong ? '주체형' : '공감형']) + para(lead + ' ' + tagline), 'saju-rich__lead');
+      html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero(st, ['억부 ' + pw.score + '점', '기준 30점', strong ? '주체형' : '공감형']) + say(lead + ' ' + tagline, mode, 'read'), 'saju-rich__lead');
       html += gaugeHtml;
       var mRow = parts && parts.rows.filter(function (r) { return r.group === 'month'; })[0];
       if (ok) {
@@ -302,9 +311,9 @@
     var max = Math.max.apply(null, fams.map(function (x) { return x.surface; }));
     var top = fams.filter(function (x) { return x.surface === max; }), none = fams.filter(function (x) { return x.surface === 0; });
     var names = function (list) { return list.map(function (x) { return FAMILY[x.f]; }).join(', '); };
-    html += section(neo ? '영냥이의 진단' : '연이가 본 십성의 무게', hero(names(top), [(neo ? '우세 ' : '가장 많은 계열 ') + max + '개', none.length ? (neo ? '부재 ' : '비어 있음 ') + names(none) : (neo ? '부재 없음' : '다섯 계열 모두')]) + para(neo ?
+    html += section(neo ? '영냥이의 진단' : '연이가 본 십성의 무게', hero(names(top), [(neo ? '우세 ' : '가장 많은 계열 ') + max + '개', none.length ? (neo ? '부재 ' : '비어 있음 ') + names(none) : (neo ? '부재 없음' : '다섯 계열 모두')]) + say(neo ?
       '판정: ' + names(top) + ' 우세(일간 빼고 일곱 글자 중 ' + max + '개). ' + (none.length ? '부재: ' + names(none) + '.' : '다섯 계열이 모두 드러나 있어.') :
-      '일간을 뺀 일곱 글자 가운데 가장 무게가 실린 것은 ' + names(top) + '이에요. ' + FAMILY_MEANING[top[0].f].split(' · ')[1] + '의 결이 생활 곳곳에서 드러나기 쉬워요. ' + (none.length ? '반면 ' + names(none) + '은 겉으로 드러나지 않았어요.' : '다섯 계열이 모두 겉으로 드러나 있어 쓸 수 있는 도구가 고른 편이에요.')), 'saju-rich__lead');
+      '일간을 뺀 일곱 글자 가운데 가장 무게가 실린 것은 ' + names(top) + '이에요. ' + FAMILY_MEANING[top[0].f].split(' · ')[1] + '의 결이 생활 곳곳에서 드러나기 쉬워요. ' + (none.length ? '반면 ' + names(none) + '은 겉으로 드러나지 않았어요.' : '다섯 계열이 모두 겉으로 드러나 있어 쓸 수 있는 도구가 고른 편이에요.'), mode, 'read'), 'saju-rich__lead');
     html += section(neo ? '계열별 분포' : '다섯 계열의 분포',
       '<ul class="saju-bars">' + fams.map(function (x) { return '<li data-el="' + x.el + '"><span class="saju-bars__label">' + esc(FAMILY[x.f]) + '</span><span class="saju-bars__track" aria-hidden="true"><i style="--pos:' + pct(x.surface, 0, 7) + '%"></i></span><span class="saju-bars__value">' + x.surface + '</span></li>'; }).join('') + '</ul>' +
       table('십성 분포', ['계열', '겉 글자', '지장간', '세부 십성', '억부에서'], fams.map(function (x) {
@@ -338,14 +347,14 @@
     if (!d || !m) return '';
     var neo = mode === 'neo', k = neo ? 1 : 0, f = GOD_FAMILY[key], dayEl = L.GAN[p.d.g].e, role = roleOf(facts, familyEl(L, dayEl, f));
     var where = m.where[key] || [], html = '<h3>' + esc(key + '(' + GOD_HANJA[key] + ') · ' + FAMILY[f]) + '</h3>';
-    html += section(neo ? '영냥이의 진단' : '연이가 읽은 성격과 기질', para(d.nature[k]));
+    html += voice(neo ? '영냥이의 진단' : '연이가 읽은 성격과 기질', d.nature[k], mode);
     var rows = where.map(function (w) { var pal = palaceOf(L, w.key); return [w.label + hourMark(facts, w.key), w.char, pal ? pal.label + ' · ' + pal.palace : '—', (w.side === 'g' ? '겉으로 드러나는 모습' : '생활의 바탕') + (pal ? ' · ' + pal.domain : '')]; });
     html += section(neo ? '계산 근거' : '당신 원국에서의 자리', (rows.length ? table(key + '의 자리', ['자리', '글자', '궁위', '드러나는 영역'], rows) : '') +
       para((neo ? '겉 글자 ' + where.length + '곳, 지장간 ' + (m.hidden[key] || 0) + '곳. ' : '겉으로 ' + where.length + '곳, 지장간까지 보면 ' + (m.hidden[key] || 0) + '곳에 이 기운이 있어요. ') +
         (role ? (neo ? '억부로 보면 이 계열은 ' + role + (role === '보완 후보' ? '야.' : '이야.') : '억부로 보면 이 계열은 당신에게 ' + role + (role === '보완 후보' ? '예요. ' : '이에요. ') + (role === '보완 후보' || role === '보조 후보' ? '북돋울수록 균형이 잡히는 쪽이에요.' : '지나치지 않게 조절할 때 편안한 쪽이에요.')) : '')));
     html += section('일과 적성', para(d.career[k]));
     html += section(neo ? '관계' : '관계의 모습', para(d.love[k]));
-    html += section(neo ? '영냥이의 조언' : '연이의 조언', para(d.advice[k]));
+    html += voice(neo ? '영냥이의 조언' : '연이의 조언', d.advice[k], mode);
     return wrap(mode, html, facts);
   }
   /* ── 일주 · 원국 네 기둥 ── */
@@ -456,9 +465,9 @@
       return [pal.label, col.g + ' · ' + (pal.key === 'd' ? '일간(나)' : god(col.g)), col.j + ' · ' + god(col.j), hiddenText(L, col.j), twelve(dg, col.j) || '—', span];
     });
     var spouseGod = god(dj), spouseStage = twelve(dg, dj), spouseFam = GOD_FAMILY[spouseGod];
-    html += section(neo ? '영냥이의 진단' : '연이가 펼쳐 본 네 기둥', hero(dg + dj, [dayName + ' 일간', spouseGod ? '일지 ' + spouseGod : '', spouseStage ? '12운성 ' + spouseStage : ''], true) + para(neo ?
+    html += section(neo ? '영냥이의 진단' : '연이가 펼쳐 본 네 기둥', hero(dg + dj, [dayName + ' 일간', spouseGod ? '일지 ' + spouseGod : '', spouseStage ? '12운성 ' + spouseStage : ''], true) + say(neo ?
       dayName + '(' + dg + ') 일간, 일지 ' + dj + '(' + (spouseGod || '—') + ' · ' + (spouseStage || '—') + '). 아래 표가 계산 근거야.' :
-      '당신의 중심은 ' + dayName + '(' + dg + ') 일간이고, 바로 아래 일지 ' + dj + '에는 ' + (spouseGod || '—') + jo(spouseGod || '—', '이', '가') + ' ' + (spouseStage || '—') + '의 자리로 앉아 있어요. 네 기둥을 한눈에 펼쳐 보면 이렇게 읽혀요.') +
+      '당신의 중심은 ' + dayName + '(' + dg + ') 일간이고, 바로 아래 일지 ' + dj + '에는 ' + (spouseGod || '—') + jo(spouseGod || '—', '이', '가') + ' ' + (spouseStage || '—') + '의 자리로 앉아 있어요. 네 기둥을 한눈에 펼쳐 보면 이렇게 읽혀요.', mode, 'read') +
       more('계산 근거 펼치기 · 네 기둥과 지장간', table('원국 네 기둥', ['기둥', '천간 · 십성', '지지 · 십성', '지장간', '12운성', '궁위'], rows)) +
       '<p class="saju-rich__note">' + esc(neo ? '12운성은 일간 기준이고, 음간은 거꾸로 도는 음생양사 정본을 따라. 궁위 나이는 전통적인 근묘화실 구분이야.' : '12운성은 일간을 기준으로 지지마다 기운이 어느 단계인지 본 것이고, 음간은 거꾸로 도는 음생양사 정본을 따라요. 궁위의 나이는 전통적인 근묘화실 구분이에요.') + '</p>', 'saju-rich__lead saju-rich__wide');
     html += section('일간 ' + dayName + '의 물상', para(neo ? dayName + ' 일간: ' + (STEM_NOTE[dg] || '') + '이야. 일간은 원국의 기준점이라서, 나머지 일곱 글자는 전부 이 글자와의 관계로 읽어.' : '일간 ' + dayName + jo(dayName, '은', '는') + ' ' + (STEM_NOTE[dg] || '') + '이에요. 사주의 모든 글자는 이 일간과의 관계로 읽기 때문에, 일간의 결을 아는 것이 해석의 첫걸음이에요.'));
@@ -478,7 +487,7 @@
         '<p class="saju-rich__note">' + esc(neo ? '공망 해석은 학파마다 비중이 달라. 참고 지표로만 봐.' : '공망은 학파마다 무게를 다르게 두는 지표라 참고로만 읽어 주세요.') + '</p>');
     }
     html += shinsalSection(facts, L, neo, k);
-    html += section(neo ? '영냥이의 한 줄 정리' : '연이의 한마디', para((ILJU_WORD[dg] || ['', ''])[k]));
+    html += voice(neo ? '영냥이의 한 줄 정리' : '연이의 한마디', (ILJU_WORD[dg] || ['', ''])[k], mode);
     return wrap(mode, html, facts);
   }
 
@@ -877,6 +886,17 @@ function buildNatalTermsPart(ctx) {
   var sfc = buildSeasonalFortuneContext(tctx, ctx.p);
   if (!sfc) return '';
   var known = ctx.unknown !== true;
+  // 이름표·얼굴은 지금 화자(연이·영냥이)를 따른다. 본문 문장은 아직 연이 말투 한 벌이다(영냥이판 문장은 따로 다듬는다).
+  var neo = ctx.mode === 'neo', who = neo ? '영냥이' : '연이';
+  var kickerImg = neo
+    ? '<img src="/images/saju/yeongnyangi-listen.webp" width="270" height="360" alt="" aria-hidden="true" loading="lazy" decoding="async">'
+    : '<img src="/images/fortune-chat/persona/yeoni-greet.webp" width="264" height="372" alt="" aria-hidden="true" loading="lazy" decoding="async">';
+  var spk = root.CdSajuSpeaker;
+  var tipLabel = who + ' 한마디';
+  var tipHtml = !sfc.tip ? ''
+    : spk && typeof spk.speakerHtml === 'function'
+      ? '<div class="t24-tip t24-tip--voice" style="padding:0;border:0;background:none">' + spk.speakerHtml({who: spk.speakerFor(ctx.mode), mood: 'cheer', label: tipLabel, html: '<p style="margin:0">' + _t24Escape(sfc.tip) + '</p>', size: 48}) + '</div>'
+      : '<p class="t24-tip"><strong>' + tipLabel + '</strong>' + _t24Escape(sfc.tip) + '</p>';
   var cautionLine = known && sfc.nearBoundary
     ? '<div class="t24-caution" role="note"><strong>절입 경계 출생</strong>출생 시각이 조금 달라지면 월주 판정이 민감해질 수 있어, 기록된 시간을 기준으로 해석합니다.</div>'
     : '';
@@ -896,7 +916,7 @@ function buildNatalTermsPart(ctx) {
       + artFigure
       + '<div class="t24-rhythm-head">'
         + '<div>'
-          + '<p class="t24-kicker t24-yeoni"><img src="/images/fortune-chat/persona/yeoni-greet.webp" width="264" height="372" alt="" aria-hidden="true" loading="lazy" decoding="async"><span>연이의 계절 이야기</span></p>'
+          + '<p class="t24-kicker t24-yeoni">' + kickerImg + '<span>' + who + '의 계절 이야기</span></p>'
           + '<h3 class="t24-headline">' + _t24Escape(sfc.headline) + '</h3>'
           + '<p class="t24-summary">' + _t24Escape(sfc.summary) + '</p>'
         + '</div>'
@@ -915,9 +935,9 @@ function buildNatalTermsPart(ctx) {
       + '<div class="t24-basis">' + chips + '</div>'
       + cautionLine
     + '</section>'
-    + '<div class="t24-section-label"><span>연이가 본 ' + _t24Escape(sfc.season.when) + '생의 생활 속 모습</span><span>성향 · 사람 · 연애 · 일과 돈 · 컨디션</span></div>'
+    + '<div class="t24-section-label"><span>' + who + '가 본 ' + _t24Escape(sfc.season.when) + '생의 생활 속 모습</span><span>성향 · 사람 · 연애 · 일과 돈 · 컨디션</span></div>'
     + '<div class="t24-domain-grid">' + _t24RenderDomainCards(sfc.domains) + '</div>'
-    + (sfc.tip ? '<p class="t24-tip"><strong>연이 한마디</strong>' + _t24Escape(sfc.tip) + '</p>' : '')
+    + tipHtml
     + _t24RenderTermsTable(terms, sfc.termName);
   return natalSlot('terms24Grid', html);
 }

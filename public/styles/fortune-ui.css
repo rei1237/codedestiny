@@ -17581,11 +17581,11 @@ body.neo-mode .mxv-sheet {
   --mx-gold-line: rgba(227,201,143,.30);
   --mx-paper: rgba(255,255,255,.045);
 }
-#resultPage #sajuCard .mxv-badge--gwiin, #resultPage #sajuCard .mxv-chip--gwiin, #resultPage #sajuCard .mxv-legend__item--gwiin, .mxv-sheet .mxv-chip--gwiin { --mxv-c-ink: var(--mxv-gwiin-ink); --mxv-c-bg: var(--mxv-gwiin-bg); --mxv-c-line: var(--mxv-gwiin-line); }
-#resultPage #sajuCard .mxv-badge--gil, #resultPage #sajuCard .mxv-chip--gil, #resultPage #sajuCard .mxv-legend__item--gil, .mxv-sheet .mxv-chip--gil, .mxv-sheet .mxv-pol--good { --mxv-c-ink: var(--mxv-gil-ink); --mxv-c-bg: var(--mxv-gil-bg); --mxv-c-line: var(--mxv-gil-line); }
-#resultPage #sajuCard .mxv-badge--hyung, #resultPage #sajuCard .mxv-chip--hyung, #resultPage #sajuCard .mxv-legend__item--hyung, #resultPage #sajuCard .mxv-rel--chung, .mxv-sheet .mxv-chip--hyung, .mxv-sheet .mxv-pol--caution { --mxv-c-ink: var(--mxv-hyung-ink); --mxv-c-bg: var(--mxv-hyung-bg); --mxv-c-line: var(--mxv-hyung-line); }
-#resultPage #sajuCard .mxv-chip--relation, #resultPage #sajuCard .mxv-legend__item--relation, #resultPage #sajuCard .mxv-rel--hap, .mxv-sheet .mxv-chip--relation { --mxv-c-ink: var(--mxv-relation-ink); --mxv-c-bg: var(--mxv-relation-bg); --mxv-c-line: var(--mxv-relation-line); }
-#resultPage #sajuCard .mxv-badge--twelve, #resultPage #sajuCard .mxv-chip--twelve, #resultPage #sajuCard .mxv-legend__item--twelve, #resultPage #sajuCard .mxv-rel--soft, .mxv-sheet .mxv-chip--twelve, .mxv-sheet .mxv-pol--neutral { --mxv-c-ink: var(--mxv-twelve-ink); --mxv-c-bg: var(--mxv-twelve-bg); --mxv-c-line: var(--mxv-twelve-line); }
+#resultPage #sajuCard .mxv-badge--gwiin, #resultPage #sajuCard .mxv-chip--gwiin, #resultPage #sajuCard .mxv-line--gwiin, #resultPage #sajuCard .mxv-legend__item--gwiin, .mxv-sheet .mxv-chip--gwiin { --mxv-c-ink: var(--mxv-gwiin-ink); --mxv-c-bg: var(--mxv-gwiin-bg); --mxv-c-line: var(--mxv-gwiin-line); }
+#resultPage #sajuCard .mxv-badge--gil, #resultPage #sajuCard .mxv-chip--gil, #resultPage #sajuCard .mxv-line--gil, #resultPage #sajuCard .mxv-legend__item--gil, .mxv-sheet .mxv-chip--gil, .mxv-sheet .mxv-pol--good { --mxv-c-ink: var(--mxv-gil-ink); --mxv-c-bg: var(--mxv-gil-bg); --mxv-c-line: var(--mxv-gil-line); }
+#resultPage #sajuCard .mxv-badge--hyung, #resultPage #sajuCard .mxv-chip--hyung, #resultPage #sajuCard .mxv-line--hyung, #resultPage #sajuCard .mxv-legend__item--hyung, #resultPage #sajuCard .mxv-rel--chung, .mxv-sheet .mxv-chip--hyung, .mxv-sheet .mxv-pol--caution { --mxv-c-ink: var(--mxv-hyung-ink); --mxv-c-bg: var(--mxv-hyung-bg); --mxv-c-line: var(--mxv-hyung-line); }
+#resultPage #sajuCard .mxv-chip--relation, #resultPage #sajuCard .mxv-line--relation, #resultPage #sajuCard .mxv-legend__item--relation, #resultPage #sajuCard .mxv-rel--hap, .mxv-sheet .mxv-chip--relation { --mxv-c-ink: var(--mxv-relation-ink); --mxv-c-bg: var(--mxv-relation-bg); --mxv-c-line: var(--mxv-relation-line); }
+#resultPage #sajuCard .mxv-badge--twelve, #resultPage #sajuCard .mxv-chip--twelve, #resultPage #sajuCard .mxv-line--twelve, #resultPage #sajuCard .mxv-legend__item--twelve, #resultPage #sajuCard .mxv-rel--soft, .mxv-sheet .mxv-chip--twelve, .mxv-sheet .mxv-pol--neutral { --mxv-c-ink: var(--mxv-twelve-ink); --mxv-c-bg: var(--mxv-twelve-bg); --mxv-c-line: var(--mxv-twelve-line); }
 
 #resultPage #sajuCard .manse-grid.mxv-host { display: block; max-width: 760px; margin-inline: auto; }
 #resultPage #sajuCard .manse-shinsal__list.mxv-sumhost { display: block; }
@@ -17918,21 +17918,46 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
 #resultPage #sajuCard .mxv-bar--water .mxv-bar__fill { background: var(--mx-water-ink); }
 #resultPage #sajuCard .mxv-bar__n { font-variant-numeric: tabular-nums; text-align: right; }
 
-/* 신살 요약 */
-#resultPage #sajuCard .mxv-say {
-  margin: 0 0 12px;
+/* 신살 요약·설명 시트의 말풍선: 연이는 왼쪽, 영냥이는 오른쪽에서 말한다(얼굴 48px 고정 틀 + 말풍선) */
+#resultPage #sajuCard .mxv-say,
+.mxv-sheet .mxv-say { display: flex; align-items: flex-end; gap: 10px; margin: 0 0 12px; }
+#resultPage #sajuCard .mxv-say--nyang { margin: 14px 0 0; }
+.mxv-sheet .mxv-say { margin: 12px 0 0; }
+#resultPage #sajuCard .mxv-say--nyang,
+.mxv-sheet .mxv-say--nyang { flex-direction: row-reverse; }
+#resultPage #sajuCard .mxv-say__face,
+.mxv-sheet .mxv-say__face {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border: 1px solid var(--mx-gold-line);
+  border-radius: 14px;
+  background: var(--mx-paper);
+}
+#resultPage #sajuCard .mxv-say__face img,
+.mxv-sheet .mxv-say__face img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: bottom; }
+#resultPage #sajuCard .mxv-say__bubble,
+.mxv-sheet .mxv-say__bubble {
+  flex: 1 1 auto;
+  min-width: 0;
   padding: 10px 14px;
   border: 1px solid var(--mx-gold-line);
-  border-radius: 16px;
+  border-radius: 16px 16px 16px 6px;
   background: var(--mx-paper);
   color: var(--mx-ink);
   font-size: 14px;
   line-height: 1.65;
   word-break: keep-all;
 }
-#resultPage #sajuCard .mxv-say__who { margin-right: 4px; color: var(--mx-rose); font-weight: 700; }
-#resultPage #sajuCard .mxv-say--nyang { margin: 14px 0 0; border-style: dashed; background: transparent; }
-#resultPage #sajuCard .mxv-say--nyang .mxv-say__who { color: var(--mxv-twelve-ink); }
+.mxv-sheet .mxv-say__bubble { background: var(--mxv-sheet-tint); font-size: 15px; }
+#resultPage #sajuCard .mxv-say--nyang .mxv-say__bubble,
+.mxv-sheet .mxv-say--nyang .mxv-say__bubble { border-color: var(--mxv-twelve-line); border-radius: 16px 16px 6px 16px; background: var(--mxv-twelve-bg); }
+#resultPage #sajuCard .mxv-say__who,
+.mxv-sheet .mxv-say__who { display: block; margin: 0 0 2px; color: var(--mx-rose); font-size: 13px; font-weight: 700; line-height: 1.5; }
+#resultPage #sajuCard .mxv-say--nyang .mxv-say__who,
+.mxv-sheet .mxv-say--nyang .mxv-say__who { color: var(--mxv-twelve-ink); }
+#resultPage #sajuCard .mxv-say__text { margin: 0; }
 #resultPage #sajuCard .mxv-legend { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 4px; padding: 0; list-style: none; }
 #resultPage #sajuCard .mxv-legend__item {
   padding: 3px 10px;
@@ -17947,6 +17972,36 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
 #resultPage #sajuCard .mxv-group__title { margin: 0 0 6px; color: var(--mx-ink); font-family: var(--font-body, sans-serif); font-size: 14px; font-weight: 700; }
 #resultPage #sajuCard .mxv-chips,
 .mxv-sheet .mxv-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* 한 줄 설명 펼쳐 보기. 단추와 목록은 공유 이미지에서 빠진다(data-html2canvas-ignore). */
+#resultPage #sajuCard .mxv-expand { margin: 10px 0 0; color: var(--mx-rose); font-weight: 700; }
+#resultPage #sajuCard .mxv-expand__icon { width: 7px; height: 7px; margin: -4px 0 0 2px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg); }
+#resultPage #sajuCard .mxv-expand[aria-expanded="true"] .mxv-expand__icon { margin-top: 4px; transform: rotate(-135deg); }
+#resultPage #sajuCard .mxv-lines { margin: 8px 0 0; }
+#resultPage #sajuCard .mxv-lines[hidden] { display: none; }
+#resultPage #sajuCard .mxv-lines__note { margin: 0 0 8px; color: var(--mx-muted); font-size: 13px; line-height: 1.6; }
+#resultPage #sajuCard .mxv-lines__list { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+#resultPage #sajuCard .mxv-line {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--mxv-c-line);
+  border-radius: 12px;
+  background: var(--mx-paper);
+  color: var(--mx-ink);
+  font-size: 14px;
+  line-height: 1.6;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+#resultPage #sajuCard .mxv-line__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 8px; margin: 0; }
+#resultPage #sajuCard .mxv-line__name { color: var(--mxv-c-ink); font-size: 15px; font-weight: 700; }
+#resultPage #sajuCard .mxv-line__han { color: var(--mxv-gold-ink); font-family: var(--mx-han); font-size: 14px; font-weight: 600; }
+#resultPage #sajuCard .mxv-line__where { margin: 2px 0 0; color: var(--mx-muted); font-size: 13px; }
+#resultPage #sajuCard .mxv-line__place { display: block; }
+#resultPage #sajuCard .mxv-line__spot { color: var(--mx-ink); font-weight: 700; }
+#resultPage #sajuCard .mxv-line__short { margin: 4px 0 0; }
+@media (max-width: 640px) {
+  #resultPage #sajuCard .mxv-expand { display: flex; width: 100%; }
+}
 
 /* 대운·세운·월운 */
 #resultPage #sajuCard .mxv-luck {
@@ -18080,6 +18135,13 @@ html:not(:lang(ko)):not(:lang(ja)):not(:lang(zh)) #resultPage #sajuCard .mxv-row
 .mxv-sheet .mxv-how__row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 12px; padding: 6px 0; border-bottom: 1px solid var(--mx-gold-line); font-size: 14px; }
 .mxv-sheet .mxv-how__row dt { color: var(--mx-muted); }
 .mxv-sheet .mxv-how__row dd { margin: 0; }
+/* 대화형 시트: 설명 칸이 말풍선 안에 들어가면 칸 바탕을 걷어 내고 제목만 작게 남긴다. */
+.mxv-sheet .mxv-say .mxv-copy { margin: 6px 0 0; padding: 0; border-radius: 0; background: transparent; }
+.mxv-sheet .mxv-say .mxv-copy + .mxv-copy { margin-top: 10px; }
+.mxv-sheet .mxv-say .mxv-copy__title { margin: 0 0 2px; font-size: 13px; }
+.mxv-sheet .mxv-how__place { display: block; }
+.mxv-sheet .mxv-how__place + .mxv-how__place { margin-top: 4px; }
+.mxv-sheet .mxv-how__mean { display: block; color: var(--mx-muted); font-size: 13px; line-height: 1.55; }
 .mxv-sheet .mxv-sheet__sub { margin: 14px 0 6px; font-size: 14px; font-weight: 700; }
 .mxv-sheet .mxv-sheet__note { margin: 8px 0; color: var(--mx-muted); font-size: 14px; }
 .mxv-sheet .mxv-sheet__foot { margin: 16px 0 0; color: var(--mx-muted); font-size: 13px; line-height: 1.6; }

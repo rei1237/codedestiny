@@ -5,7 +5,7 @@
   var gods = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
   var copy = {
     ko: {
-      yeon: '연이', neo: '영냥이', garden: '연이의 달빛 사주', room: '영냥이의 별빛 다락방',
+      yeon: '연이', neo: '영냥이',
       same: '기본 사주는 연이와 영냥이가 함께 맡아요. 같은 계산 근거를 바탕으로, 원하는 마스터의 해설을 골라 읽어보세요.',
       compareNeo: '영냥이 상담으로 전환하기', compareYeon: '연이 상담으로 전환하기',
       observe: '연이가 발견한 단서', life: '생활에서 만나는 모습', practice: '오늘의 작은 실천', diagnosis: '영냥이가 짚은 핵심', basis: '계산 근거', action: '행동 기준',
@@ -49,7 +49,7 @@
       paidBundle: '라이트 사주 풀이 · 라이트 사주와 대운 풀이를 한 번 결제로 영구히 읽어요. 기본·재미 사주는 무료이고 AI 생성 상담은 별도예요.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
-      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '라이트 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
+      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '라이트 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
       letterVerdictJong: '한 방향으로 흐르는 힘을 따라가는 구조', letterVerdictStrong: '스스로 길을 내는 힘이 비교적 넉넉한 구조', letterVerdictWeak: '곁의 도움과 준비된 시간이 있을 때 더 편안히 빛나는 구조',
       letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
@@ -108,8 +108,6 @@
     en: {
       "yeon": "Yeoni",
       "neo": "Yeongnyangi",
-      "garden": "Yeoni’s moonlit saju",
-      "room": "Yeongnyangi’s starlit attic",
       "same": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
       "compareNeo": "Switch to Yeongnyangi’s reading",
       "compareYeon": "Switch to Yeoni’s reading",
@@ -257,7 +255,6 @@
         "Deep exploration of unfamiliar views",
         "Preparation through learning and support"
       ],
-      "neoIntro": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
       "letterGreeting": "Dear {name},",
       "letterGuest": "You, the reader of this letter",
       "letterSignature": "With all my heart, Yeoni",
@@ -397,9 +394,26 @@
     var c=langCopy(locale());
     return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+esc(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
   }
+  // 화자 말풍선(lib/saju/speaker → 전역 CdSajuSpeaker). 번들이 없으면 기존 글자 머리말로 그린다.
+  function speaker(){var s=root.CdSajuSpeaker;return s&&typeof s.speakerHtml==='function'&&typeof s.faceHtml==='function'?s:null;}
+  // markup 의 첫 블록(연이가 발견한 단서 · 영냥이가 짚은 핵심)만 지금 화자의 말풍선으로 바꾼다. markup 자체는 워커와 같은 정본이라 건드리지 않는다.
+  function voiceMarkup(reading, model, heading) {
+    var html=markup(reading,model,heading), s=speaker(), first=reading.blocks[0];
+    if(!s||!first)return html;
+    var plain='<section><h4>'+esc(first.label)+'</h4><p>'+esc(first.text)+'</p></section>';
+    var bubble='<section class="saju-reading__voice">'+s.speakerHtml({who:s.speakerFor(model.mode),label:first.label,html:'<p>'+esc(first.text)+'</p>'})+'</section>';
+    if(html.indexOf(plain)<0)return html;
+    return html.replace('<div class="saju-reading__body">',function(){return '<div class="saju-reading__body saju-reading__body--voice">';}).replace(plain,function(){return bubble;});
+  }
   function letterMarkup(model) {
-    var r=model.letter,c=langCopy(locale());
-    return '<article class="saju-reading saju-letter" data-reading-mode="'+model.mode+'"><p class="saju-letter__greeting">'+esc(r.greeting)+'</p><div class="saju-letter__prose">'+r.paragraphs.map(function(text){return '<p>'+esc(text)+'</p>';}).join('')+'</div><p class="saju-letter__signature">'+esc(r.signature)+'</p><details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(r.evidence)+'</p></details>'+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</article>';
+    var r=model.letter,c=langCopy(locale()),s=speaker(),neo=model.mode==='neo';
+    var greeting='<p class="saju-letter__greeting">'+esc(r.greeting)+'</p>', signature='<p class="saju-letter__signature">'+esc(r.signature)+'</p>';
+    if(s){
+      var who=s.speakerFor(model.mode);
+      greeting='<div class="saju-letter__opening">'+s.speakerHtml({who:who,mood:neo?'read':'greet',label:neo?c.neo:c.yeon,html:greeting})+'</div>';
+      signature='<div class="saju-letter__sign">'+signature+s.faceHtml({who:who,size:44})+'</div>';
+    }
+    return '<article class="saju-reading saju-letter" data-reading-mode="'+model.mode+'">'+greeting+'<div class="saju-letter__prose">'+r.paragraphs.map(function(text){return '<p>'+esc(text)+'</p>';}).join('')+'</div>'+signature+'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(r.evidence)+'</p></details>'+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</article>';
   }
   function write(id, html) {
     var el=document.getElementById(id);if(!el)return;
@@ -413,14 +427,28 @@
     var result=document.getElementById('resultPage');if(!result)return;
     if(!document.getElementById('sajuReadingHeader')) {var header=document.createElement('section');header.id='sajuReadingHeader';header.className='saju-reading-header';var natal=document.getElementById('sajuCard');if(natal)natal.insertAdjacentElement('afterend',header);else result.prepend(header);}
   }
-  // 연이/영냥이 풀이 전환. 라이트·다크는 상단 토글이 따로 맡는다.
+  // 말투 선택 머리글 문구. 워커가 떼어 가는 copy 표·sajuReading 사전과 섞지 않으려고 saju.voice.* 사전과 이 표를 따로 둔다.
+  var VOICE = {
+    ko:{title:'사주 풀이',ask:'누구 말투로 들을까요?',yeonTone:'다정한 존댓말',neoTone:'반말로 콕 짚어줌'},
+    en:{title:'Saju reading',ask:'Whose voice would you like to hear?',yeonTone:'Warm and polite',neoTone:'Casual and straight to the point'}
+  };
+  function voiceCopy(lang) {
+    var base=VOICE[lang]||VOICE.en, out={};
+    Object.keys(base).forEach(function(key){
+      var full='saju.voice.'+key, found=typeof root.cdTranslate==='function'&&lang!=='ko'?root.cdTranslate(full,{},''):'';
+      out[key]=found&&found!==full&&found!=='Translation pending'?String(found):base[key];
+    });
+    return out;
+  }
+  // 연이/영냥이 말투 선택 카드. 고르면 정적 풀이 문장의 말투가 바뀐다. 라이트·다크는 상단 토글이 따로 맡는다.
+  function face(m, size) {var s=speaker();return s?s.faceHtml({who:s.speakerFor(m),size:size}):'';}
   function controls() {
-    var c=langCopy(locale()), selected=mode();
-    return '<div class="saju-reading-switch" role="group" aria-label="'+esc(c.same)+'">'+['pig','neo'].map(function(m){return '<button type="button" data-saju-mode="'+m+'" aria-pressed="'+(selected===m)+'">'+esc(m==='neo'?c.neo:c.yeon)+'</button>';}).join('')+'</div>';
+    var c=langCopy(locale()), v=voiceCopy(locale()), selected=mode();
+    return '<div class="saju-reading-switch saju-voice-cards" role="group" aria-labelledby="sajuVoiceAsk">'+['pig','neo'].map(function(m){return '<button type="button" class="saju-voice-card" data-saju-mode="'+m+'" aria-pressed="'+(selected===m)+'">'+face(m,48)+'<span class="saju-voice-card__text"><strong>'+esc(m==='neo'?c.neo:c.yeon)+'</strong><span>'+esc(m==='neo'?v.neoTone:v.yeonTone)+'</span></span></button>';}).join('')+'</div>';
   }
   function renderHeader() {
-    var c=langCopy(locale()), selected=mode(), neo=selected==='neo';ensureHeader();
-    write('sajuReadingHeader','<img src="/images/saju/'+(neo?'yeongnyangi':'yeoni-clue')+'-160.webp" width="80" height="80" alt="" decoding="async"><div><h2>'+esc(neo?c.room:c.garden)+'</h2><p>'+esc(neo?c.neoIntro:c.yeonIntro)+'</p>'+controls()+'</div>');
+    var c=langCopy(locale()), v=voiceCopy(locale()), selected=mode(), neo=selected==='neo';ensureHeader();
+    write('sajuReadingHeader','<div class="saju-reading-header__body"><h2>'+esc(v.title)+'</h2><p id="sajuVoiceAsk" class="saju-reading-header__ask">'+esc(v.ask)+'</p>'+controls()+'</div>');
     var header=document.getElementById('sajuReadingHeader');
     if(header&&locale()==='ko'&&!header.querySelector('.saju-reading-toc')){
       var toc=document.createElement('details');toc.className='saju-reading-toc';
@@ -429,7 +457,7 @@
     }
     var form=document.getElementById('destinyCardForm');
     if(form&&!document.getElementById('sajuInputModes')){var host=document.createElement('div');host.id='sajuInputModes';host.className='saju-input-modes';form.prepend(host);}
-    write('sajuInputModes','<img src="/images/first-visit/yeoni-profile-guide-v1.webp" width="64" height="96" alt="" decoding="async"><div><strong>'+esc(c.yeon)+'</strong><p>'+esc(c.garden)+'</p></div>');
+    write('sajuInputModes',face(selected,56)+'<div><strong>'+esc(neo?c.neo:c.yeon)+'</strong><p>'+esc(neo?v.neoTone:v.yeonTone)+'</p></div>');
   }
   // 풍부한 판: 한국어는 reading-rich.js, 그 밖의 로케일은 reading-rich-intl.js(없으면 짧은 블록).
   function richFor(lang){return lang==='ko'?(root.SajuReadingRich||null):(root.SajuReadingRichIntl?root.SajuReadingRichIntl.forLang(lang):null);}
@@ -439,13 +467,13 @@
     // 한국어는 그래프·표가 있는 풍부한 판(reading-rich.js). 그 밖의 로케일과 자료 부족 시에는 기존 짧은 블록.
     var rich=richFor(locale()), facts=Object.assign({},state,{warning:pick(c,'unknown',model.mode==='neo')});
     // 일주·십성·조후·억부 본문은 라이트 사주 풀이 서버 전달이다(CdSajuSectionClient.loadNatalReading). 여기서는 그리지 않는다.
-    if(section==='flow'||section==='all') write('currentSeasonSummary',(rich&&rich.flow(facts,model.mode))||model.flow.map(function(r){return markup(r,model,true);}).join(''));
+    if(section==='flow'||section==='all') write('currentSeasonSummary',(rich&&rich.flow(facts,model.mode))||model.flow.map(function(r){return voiceMarkup(r,model,true);}).join(''));
     if(section==='daily'||section==='all') daily.forEach(function(row,i){
       var gi=gods.indexOf(row.gGod), good=row.batteryPercent>=60;
       var title=i===0?c.today:c.month;
       var dn=model.mode==='neo', reading={title:title,evidence:fmt(pick(c,'flowBasis',dn),{label:title,stem:row.gz.g,branch:row.gz.j,score:row.batteryPercent}),blocks:[]};
       reading.blocks=dn?[{label:c.diagnosis,text:pick(c,good?'flowOpen':'flowCare',dn)},{label:c.basis,text:reading.evidence},{label:c.action,text:gi>=0?pick(c,'godRules',dn)[gi]:pick(c,'strengthAction',dn)}]:[{label:c.observe,text:good?c.flowOpen:c.flowCare},{label:c.life,text:gi>=0?c.godLife[gi]:c.scenes[0]},{label:c.practice,text:gi>=0?c.godRules[gi]:c.strengthAction}];
-      write(i===0?'dailyPanel':'monthlyPanel',(rich&&rich.daily(row,i,facts,model.mode))||markup(reading,model,true));
+      write(i===0?'dailyPanel':'monthlyPanel',(rich&&rich.daily(row,i,facts,model.mode))||voiceMarkup(reading,model,true));
     });
     if(section==='letter'||section==='all') {write('letterTitle',mode()==='neo'?esc(c.neo)+' · '+esc(model.letter.title):esc(c.yeon)+(locale()==='ko'?'의 ':' · ')+esc(model.letter.title));write('letterContent',letterMarkup(model));}
     renderHeader();
@@ -463,7 +491,7 @@
       // 개별 가격 표기는 판매 종료로 없어졌다. 가격이 있으면 그 값을, 없으면 라이트 사주 풀이 가격을 보여 준다.
       var price=document.querySelector('[data-saju-price-key="'+key+'"]');
       var bundlePrice=root.CdSajuBundleOffer&&root.CdSajuBundleOffer.PRICE_LABEL;
-      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'yeongnyangi-320.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><strong class="saju-static-offer__price">'+esc(price?price.textContent:(bundlePrice||c.pricePending))+'</strong><p class="saju-static-offer__bundle">'+esc(c.paidBundle)+'</p><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+markup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p>';
+      el.innerHTML='<img class="saju-static-offer__guide" src="/images/saju/'+(mode()==='neo'?'yeongnyangi-320.webp':'yeoni-moonlight-reading.webp')+'" width="384" height="256" alt="" loading="lazy" decoding="async"><strong class="saju-static-offer__price">'+esc(price?price.textContent:(bundlePrice||c.pricePending))+'</strong><p class="saju-static-offer__bundle">'+esc(c.paidBundle)+'</p><p>'+esc(key==='section_daewun'?c.paidDaeun:c.paidSummary)+'</p><details data-saju-sample="'+key+'"><summary>'+esc(c.sample)+'</summary>'+voiceMarkup(key==='section_daewun'?sample.flow[0]:sample.elements,sample,false)+'<p>'+esc(c.sampleNote)+'</p></details><p>'+esc(c.inputs)+'</p>';
     });
   }
   // 십성 상세 본문은 라이트 사주 풀이 서버가 카드와 함께 보낸 것을 CdSajuSectionClient 가 들고 있다. 없으면 열지 않는다.
@@ -496,6 +524,6 @@
   });
   root.addEventListener('cd:locale-ready',changed);
   document.addEventListener('toggle',function(event){var el=event.target;if(el.open&&el.matches('[data-saju-sample]')&&typeof root.cdTrack==='function')root.cdTrack('saju_static_detail_view',{item_id:el.getAttribute('data-saju-sample'),mode:mode()});},true);
-  function init(){renderHeader();refreshCopy();['yeoni-clue','yeongnyangi'].forEach(function(name){var asset=new Image();asset.decoding='async';asset.src='/images/saju/'+name+'-160.webp';});}
+  function init(){renderHeader();refreshCopy();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })(typeof window==='undefined'?globalThis:window);

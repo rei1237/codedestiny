@@ -1,10 +1,6 @@
 /* Compact reading owns layout; existing cards retain their content and gates. */
 #resultPage[data-compact-reading] {max-width:860px;margin-inline:auto;color:var(--cd-text);font-family:var(--font-body)}
 #resultPage[data-compact-reading]>.top-hero,#resultPage[data-compact-reading]>.saju-result-guide,#resultPage[data-compact-reading]>.saju-reading-nav,#resultPage[data-compact-reading] .saju-reading-toc{display:none}
-#resultPage[data-compact-reading] #sajuReadingHeader{padding:12px 16px;margin-bottom:12px;display:flex;gap:12px;border-radius:var(--cd-r-card);background:var(--cd-surface-2);border-color:var(--cd-border)}
-#resultPage[data-compact-reading] #sajuReadingHeader>img{width:48px;height:48px;object-fit:contain}
-#resultPage[data-compact-reading] #sajuReadingHeader h2{font:400 24px/1.35 var(--font-display);margin:0}
-#resultPage[data-compact-reading] #sajuReadingHeader p{display:none}
 .saju-compact-overview{display:grid;grid-template-columns:1fr auto;gap:8px;padding:16px;background:var(--cd-surface);border:1px solid var(--cd-border);border-radius:var(--cd-r-card)}
 .saju-compact-overview>div{font-weight:600;align-self:center}.saju-compact-overview button{font:inherit;color:var(--cd-accent);background:var(--cd-surface-2);border:1px solid var(--cd-border);border-radius:var(--cd-r-control);min-height:44px;padding:8px 12px}
 .saju-compact-overview p,.saju-compact-overview dl{grid-column:1/-1;margin:0}.saju-compact-overview dl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;text-align:center}.saju-compact-overview dl>div{background:var(--cd-surface-2);border-radius:var(--cd-r-sm);padding:10px 2px}.saju-compact-overview dt{font-size:14px}.saju-compact-overview dd{margin:6px 0 0;font-size:20px;font-family:var(--font-body)}
@@ -19,5 +15,3 @@
 .cd-concern[data-cd-cross-sell="saju_question"] .cdh-actions a{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;border:1px solid var(--cd-border);border-radius:var(--cd-r-control);background:var(--cd-surface-2);color:var(--cd-accent);font:500 16px/1.5 var(--font-body);text-decoration:none}
 .saju-compact-overview{grid-template-columns:minmax(0,1fr) auto}
 .saju-compact-overview>div{min-width:0;overflow-wrap:anywhere}
-#resultPage[data-compact-reading] #sajuReadingHeader>div{min-width:0;flex:1}
-#resultPage[data-compact-reading] .saju-reading-switch{flex-wrap:wrap}

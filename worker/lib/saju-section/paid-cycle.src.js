@@ -134,7 +134,12 @@ function buildCycle(input, selected) {
   section.slice(originalCount).forEach(function(row){row.extension=true;});
   return {title:input.stem.char+input.branch.char+' 대운 · '+input.startYear+'–'+end+'년',intro:(neo?'이번 대운에서 내가 짚는 핵심은 이거야 — ':'이번 열 해에는 ')+a.name+(a===b?'':', 그리고 '+b.name)+(neo?'. 근거부터 확인하고, 감당할 수 있는 행동 하나부터 정해 봐.':'의 주제를 함께 살펴볼게요. 익숙한 강점과 새롭게 필요한 태도를 구분해 보세요.'),sections:section,warning:neo?(input.unknown?'출생시간 미상이라서 시주를 뺀 자리만 관계 설명에 표시했어. 정오를 넣어 계산한 원국의 비율·강약과 대운 시작 시기는 참고용이고, 확정할 수는 없어.':'이 해석은 지금 명식의 상징적 흐름을 설명하는 거야. 실제 사건·수익·관계의 결말을 보장하지 않아.'):input.unknown?'출생시간 미상: 시주를 제외한 자리만 관계 설명에 표시했습니다. 정오를 대입한 원국의 비율·강약과 대운 시작 시기는 참고용이며 확정할 수 없습니다.':'해석은 현재 명식의 상징적 흐름을 설명하며 실제 사건·수익·관계의 결말을 보장하지 않습니다.'};
 }
+// 대운 머리말(이번 열 해의 핵심)은 지금 화자(연이·영냥이)의 말이라 얼굴이 붙은 말풍선으로 그린다(lib/saju/speaker → root.CdSajuSpeaker). 없으면 문단 그대로.
+function cycleIntro(text, selected) {
+  var s=root.CdSajuSpeaker, p='<p>'+esc(text)+'</p>';
+  return s&&typeof s.speakerHtml==='function'?s.speakerHtml({who:s.speakerFor(selected),mood:'read',html:p}):p;
+}
 function cycleMarkup(input, selected) {
   var model=buildCycle(input,selected);if(!model)return '';
-  return '<section class="saju-cycle-guide" data-cycle-age="'+esc(input.age)+'" data-cycle-gan="'+esc(input.stem.char)+'" data-cycle-zhi="'+esc(input.branch.char)+'"><h3>'+esc(model.title)+'</h3><p>'+esc(model.intro)+'</p><p class="saju-reading__uncertain">'+esc(model.warning)+'</p><dl>'+model.sections.map(function(section,index){return (section.extension?'<!--saju-ext-->':'')+'<dt><strong>'+String(index+1).padStart(2,'0')+'. '+esc(section.title)+'</strong></dt><dd>'+section.text.split('\n\n').map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</dd>'+(section.extension?'<!--/saju-ext-->':'');}).join('')+'</dl></section>';
+  return '<section class="saju-cycle-guide" data-cycle-age="'+esc(input.age)+'" data-cycle-gan="'+esc(input.stem.char)+'" data-cycle-zhi="'+esc(input.branch.char)+'"><h3>'+esc(model.title)+'</h3>'+cycleIntro(model.intro,selected)+'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p><dl>'+model.sections.map(function(section,index){return (section.extension?'<!--saju-ext-->':'')+'<dt><strong>'+String(index+1).padStart(2,'0')+'. '+esc(section.title)+'</strong></dt><dd>'+section.text.split('\n\n').map(function(p){return '<p>'+esc(p)+'</p>';}).join('')+'</dd>'+(section.extension?'<!--/saju-ext-->':'');}).join('')+'</dl></section>';
 }

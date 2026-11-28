@@ -7,7 +7,7 @@
   'use strict';
   var Rich = root.SajuReadingRich, K = Rich && Rich.kit;
   if (!K) return;
-  var esc = K.esc, fmt = K.fmt, lib = K.lib, section = K.section, para = K.para, gauge = K.gauge, table = K.table, hero = K.hero, tiles = K.tiles, chips = K.chips, wrap = K.wrap, roleOf = K.roleOf;
+  var esc = K.esc, fmt = K.fmt, lib = K.lib, section = K.section, para = K.para, voice = K.voice || function (title, text) { return section(title, para(text)); }, gauge = K.gauge, table = K.table, hero = K.hero, tiles = K.tiles, chips = K.chips, wrap = K.wrap, roleOf = K.roleOf;
   var GOD_FAMILY = K.GOD_FAMILY;
   var BRANCH_ANIMAL = {'子':'Rat', '丑':'Ox', '寅':'Tiger', '卯':'Rabbit', '辰':'Dragon', '巳':'Snake', '午':'Horse', '未':'Goat', '申':'Monkey', '酉':'Rooster', '戌':'Dog', '亥':'Pig'};
 
@@ -222,7 +222,7 @@
       html += section(fmt(d.godHead[k], {when:when}), advice.length ? chips(advice) : para(d.tone[good ? 'open' : 'care'][k]));
       html += section(d.checkHead[k], para(d.nothing[k]));
       if (C.el[row.luckyEl]) html += section(d.boostHead, tiles([[d.boostLabel, C.el[row.luckyEl], '氣']]) + '<p class="saju-rich__note">' + esc(d.boostNote[k]) + '</p>');
-      html += section(d.sumHead[k], para(d.tone[good ? 'open' : 'care'][k]));
+      html += voice(d.sumHead[k], d.tone[good ? 'open' : 'care'][k], mode);
       return wrap(mode, html, facts);
     }
 
