@@ -750,6 +750,11 @@ function runInstantPgLatencyTests() {
     "if (item.snapshotVerdictOnly === true && !isBackgroundPassRecord) {",
     "indeterminate snapshot must open the checkout instead of asking the server",
   );
+  // ②-b 판매 종료 키는 스냅샷이 확답하지 못한다 — canUseByPass:false 를 확정 거부로 쓰지 않고 미확답(결제창)으로
+  //      떨어져야 새 기기의 기존 구매자가 '이용권 미적용' 안내 없이 결제창 카드에서 서버 보유 판정을 받는다.
+  //      진입 서버 왕복은 되살리지 않는다(2026-11-28).
+  assertContains(indexSource, "var saleClosedKey = !!(_cdSaleClosedApi && typeof _cdSaleClosedApi.isSaleClosedKey === 'function' && _cdSaleClosedApi.isSaleClosedKey(featureKey || item.featureKey));", "sale-closed keys must be detected before the snapshot verdict");
+  assertContains(verdictBody, "if (_cdSnapCoverage && _cdSnapCoverage.canUseByPass === false && !saleClosedKey) {", "sale-closed keys must not turn the snapshot's unknown verdict into a definitive deny");
   // ③ 이용권 확인에는 꽃돼지 대기 UI를 보이되, 단건 결제 대기 화면으로 바뀌어서는 안 된다.
   assertContains(indexSource, "suppressWaitUi: false", "entry gate must show the pass-checking wait screen");
   assertContains(indexSource, "if (opts.suppressWaitUi !== true) {", "paid-feature gate must honour suppressWaitUi");
