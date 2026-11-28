@@ -71,10 +71,10 @@ test('같은 날짜라도 시주에 따라 근거와 상세 문장이 달라지�
  assert.equal(new Set(results.map(r=>JSON.stringify(r.sections[1].insights))).size,3);
  const unknown=buildCareerReport({birthDate:'2000-03-15',birthTimeUnknown:true});
  assert.equal(unknown.evidence.hidden.some(h=>h.pos==='h'),false);
- assert.ok(unknown.sections[6].insights.some(i=>i.id==='uncertainty'));
+ assert.ok(unknown.sections[3].insights.some(i=>i.id==='uncertainty'));
  for(const r of [...results,unknown]){
   assert.ok(r.sections.every(s=>s.insights.length));
-  assert.match(r.sections[3].analysisNote,/형·파·해/);
+  assert.match(r.sections[2].analysisNote,/형·파·해/);
   assert.deepEqual(Object.keys(careerShare(r)),['title','text','url']);
   for(const s of r.sections)assert.equal(new Set(s.insights.map(i=>i.id)).size,s.insights.length);
  }
