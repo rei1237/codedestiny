@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 const bundles=[
   {entry:'lib/saju/natal-core/index.mjs',outfile:'js/core/saju/natal-core.generated.js',globalName:'SajuNatalCore',label:'natal-core bundle matches lib/saju/natal-core',edit:'lib/saju/natal-core/*.mjs'},
   {entry:'lib/saju/natal-core/shinsal/copy.ko.mjs',outfile:'js/core/saju/shinsal-copy.generated.js',globalName:'SajuShinsalCopy',label:'shinsal copy bundle matches lib/saju/natal-core/shinsal/copy.ko.mjs',edit:'lib/saju/natal-core/shinsal/copy.ko.mjs'},
+  // 화자 말풍선(연이·영냥이). 워커는 lib/saju/speaker 를 직접 import 하고, 정적 셸은 전역 CdSajuSpeaker 를 쓴다.
+  {entry:'lib/saju/speaker/index.mjs',outfile:'js/core/saju/speaker.generated.js',globalName:'CdSajuSpeaker',label:'speaker bundle matches lib/saju/speaker',edit:'lib/saju/speaker/index.mjs'},
 ];
 for(const bundle of bundles){
   const result=buildSync({entryPoints:[bundle.entry],bundle:true,format:'iife',globalName:bundle.globalName,platform:'browser',target:'es2020',charset:'utf8',write:false});

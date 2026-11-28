@@ -14,7 +14,7 @@ const inlineScriptLimit = 24 * 1024;
 
 // These classic scripts supply Saju and astrology result text. None renders the welcome area.
 const readingHelpers = new Set([
-  '/js/core/saju/reading-depth.generated.js', '/js/core/saju/reading-rich.js',
+  '/js/core/saju/reading-depth.generated.js', '/js/core/saju/speaker.generated.js', '/js/core/saju/reading-rich.js',
   '/js/core/saju/reading-rich-intl.js', '/js/core/saju/reading-personas.js',
   '/js/core/saju/natal-one-liner.generated.js', '/js/core/astro/natal-reading.js',
   '/js/core/astro/transits.js', '/js/core/astro/transit-reading.js',
