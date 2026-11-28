@@ -1,12 +1,17 @@
 ---
 status: in-progress
 updated: 2026-11-28
-next: 2단계 — 묶음 A 검증·커밋·pre-push·push. 1664bf8f40 CI 성공 확인.
+next: 아래 '스테이징 전달 상태'의 미완료 항목부터. 다른 세션의 main CI 실패가 해소되기 전에는 push·staging 금지. 운영은 결과 보고 후 사용자의 별도 지시 전까지 금지.
 ---
 
 # 사주 말투·문장 다듬기 + 범위 밖 결함 마무리 (세션 ccbee9c2 인수인계)
 
 ## 첫 행동
+### 스테이징 전달 상태 (2026-11-28, 이후 본문의 예전 상태보다 우선)
+- A와 전문가 상담 영상은 원격 main `3ee2917109`에 포함. CI 46143022631 실패: 고객센터 커밋 `c41f82d9c9`의 `worker/yeongnyangi/support-knowledge.ts:54`에서 Toss 타입 검사 TS7006. 실패 파일은 A·영상 diff에 없다. 다른 세션 소유 파일·워크트리는 수정하지 않는다.
+- 후속 작업 트리: `D:\Development\codedestiny-worktrees\saju-voice-20261128-082248`. C `f18b91949d`, B 일부 `0f7f3fbee9`·`61f758145a`, 범례 포커스 `ef11733db8`, 일 스타일 테마 `2958ea6491`, 통합 `221f69a851`, 괴강 세 소비처 보정 `f875eb9c02`. 아직 미push. 범례 9건·일 스타일 26건·괴강 관련 33건 통과. 375/960px 테마 검사 범위는 브라우저 CSS 픽스처이며 최종 화면 검수를 대신하지 않는다.
+- 미완료: B의 오행 비율 출처·남은 문구/줄바꿈, E의 현행 브라우저 시나리오 배선, G의 공유 캡처 글자 밀림, P3-5, P5. 각각의 변경과 통합본의 검증을 끝낸 뒤 main 상태 재확인. 최종본을 push한 뒤 **staging만** dispatch하고 `verify:staging -- --sha=<최종 SHA>`로 검증. 배수·정리·문서 종료는 검증 후. 운영 배포 승인은 없다.
+
 1. `d:\Development\code-destiny\CLAUDE.md`를 읽는다. 공유 체크아웃 `d:\Development\code-destiny`에서는 reset·stash·checkout·merge·pull·commit을 하지 않는다. 옆 세션의 미커밋 작업이 있고, 로컬 main이 수백 커밋 뒤처져 있다. 모든 작업은 워크트리에서 한다.
 2. 세부 기록은 세션 상태 파일 `d:\Development\code-destiny\.claude\state\ccbee9c2.md`에 있다(약 1300줄, 미커밋). 끝부분의 "추가 요청 4", "P3 머지·push", "OOS A", "OOS D+F+H", "조정 메모" 절을 읽는다. 수치는 기억에 기대지 말고 git과 파일로 다시 확인한다.
 3. `git fetch` 뒤 `gh run list --branch main --limit 5`로 main CI를 확인한다.
