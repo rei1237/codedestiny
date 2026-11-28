@@ -109,7 +109,7 @@ const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
 const SIGNUP_MONTHLY_CREDIT_GRANT = 0;
 const AUTH_TERMS_VERSION = "2026-11-05";
 // 🔴 app/privacy-policy/PrivacyPolicyContent.jsx 의 PRIVACY_POLICY_EFFECTIVE_DATE 와 같아야 한다.
-const AUTH_PRIVACY_VERSION = "2026-11-15";
+const AUTH_PRIVACY_VERSION = "2026-11-28";
 const REFERRAL_REWARD_MONTHLY_CREDIT = 100;
 const REFERRAL_DAILY_MONTHLY_CREDIT_CAP = 500;
 const withdrawRateLimitMap = new Map();
@@ -4304,9 +4304,11 @@ async function handleWithdraw(request, env) {
       { maxTimeMS: 8000 },
     );
     // Companion data uses string account IDs in native collections.
-    for (const collection of ['profile_pets', 'profile_pet_actions']) {
+    for (const collection of ['profile_pets', 'profile_pet_actions', 'life_events', 'life_calibrations']) {
       await User.db.collection(collection).deleteMany({ userId: String(userId) }, { maxTimeMS: 8000 });
     }
+    // Life-calibration consent history is keyed by _id = account id (worker/lib/life-calibration-models.js).
+    await User.db.collection('life_calibration_consents').deleteMany({ _id: String(userId) }, { maxTimeMS: 8000 });
   } catch (error) {
     partialFailure = true;
     console.error("[auth/withdraw] profile card delete failed:", error);

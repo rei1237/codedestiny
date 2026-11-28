@@ -1516,6 +1516,24 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace, env) {
     return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
   }
   invalidateBirthScopedAccessCachesForUser(auth.userId);
+  // The card is gone; its pet and life-calibration inputs must not outlive it. Best effort: never fail the delete.
+  if (trace) trace.stage = "delete_cascade";
+  try {
+    const { deleteProfilePetData } = await import("../lib/profile-pet.js");
+    await deleteProfilePetData(env, auth.userId, profileId);
+  } catch (error) {
+    console.error("[profile/delete] pet cascade failed:", error?.name || "Error");
+  }
+  try {
+    // Native collections by name, like handleWithdraw (models: worker/lib/life-calibration-models.js).
+    const uid = String(auth.userId);
+    await withMongoRetry(env, async () => {
+      await ProfileCard.db.collection("life_events").deleteMany({ userId: uid, profileId }, { maxTimeMS: 8000 });
+      await ProfileCard.db.collection("life_calibrations").deleteOne({ _id: `${uid}:${profileId}` }, { maxTimeMS: 8000 });
+    });
+  } catch (error) {
+    console.error("[profile/delete] life-calibration cascade failed:", error?.name || "Error");
+  }
 
   await recordProfileMutationCompleted(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,

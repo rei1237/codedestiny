@@ -11,7 +11,7 @@ import { OPERATOR_NAME, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-pol
 
 // 🔴 worker/routes/auth.js 의 AUTH_PRIVACY_VERSION 과 **같은 값이어야 한다**(수동 동기화).
 // 한쪽만 고치면 사용자가 본 방침과 DB 에 기록되는 동의 버전이 조용히 어긋난다.
-export const PRIVACY_POLICY_EFFECTIVE_DATE = "2026-11-15";
+export const PRIVACY_POLICY_EFFECTIVE_DATE = "2026-11-28";
 
 export const PRIVACY_POLICY_SECTIONS = [
   {
@@ -159,6 +159,41 @@ export const PRIVACY_POLICY_SECTIONS = [
         </ul>
         <p>
           위탁받은 업체는 위탁 목적 범위에서만 정보를 처리하며, 보유 기간은 위탁 계약 종료 시 또는 관계 법령이 정한 기간까지입니다.
+        </p>
+        <h3 id="processing-overseas">개인정보 처리 위탁 및 국외 이전</h3>
+        <p>
+          회사는 AI 풀이 생성, 메일 발송, 앱 결제 확인, 로그인처럼 서비스 제공에 필요한 범위에서 아래와 같이 개인정보 처리를 위탁합니다. 아래 업체는 국외에 있으므로 해당 정보가 국외로 이전되거나 국외에서 처리됩니다.
+          이전 일시와 방법: 각 기능을 이용하는 시점에 암호화된 통신망을 통해 전송합니다. 이전받는 자의 보유·이용 기간: 위탁 업무의 목적 달성 또는 위탁 계약 종료 시까지이며, 각 사가 별도로 정한 기간이 있으면 그에 따릅니다.
+          각 사의 개인정보 관련 연락처와 처리 기준은 각 사의 개인정보 처리방침에서 확인할 수 있습니다.
+        </p>
+        <ul>
+          <li>
+            <strong>Google LLC (미국) — Gemini API</strong> — AI 상담·운세 풀이 생성. 이전 항목: 이름 또는 별칭, 생년월일·출생시간, 성별, 상담 질문과 입력 내용(궁합·연애 상담 등에서 입력한 상대방 정보 포함), 손금 풀이를 이용하는 경우 손 사진
+          </li>
+          <li>
+            <strong>Cloudflare, Inc. (미국 등) — Workers AI</strong> — 기본 AI 생성이 실패한 경우의 대체 풀이 생성. 이전 항목: AI 풀이 생성에 쓰는 위와 같은 입력(손 사진 제외)
+          </li>
+          <li>
+            <strong>Cloudflare, Inc. (미국, privacyquestions@cloudflare.com)</strong> — 웹·API 호스팅, 전송 구간 보호, 트래픽 보안과 오류 기록 처리. 이전 항목: 접속 정보와 서비스 이용 중 전송되는 입력·결과
+          </li>
+          <li>
+            <strong>MongoDB, Inc. (미국, privacy@mongodb.com)</strong> — 데이터베이스 호스팅과 운영 지원. 이전 항목: 계정 정보, 구매·이용 기록, 저장 대상 상담의 입력·결과. 주 데이터 저장 지역은 대한민국 서울이며, 국외 처리는 미국 법인의 서비스 운영과 지원 범위에서 이루어질 수 있습니다.
+          </li>
+          <li>
+            <strong>Resend (미국)</strong> — 결제 영수증, 상담 완료 안내, 알림, 수신 동의한 광고성 정보 등 이메일 발송. 이전 항목: 이메일 주소, 이름, 메일 본문(상담 결과의 일부가 포함될 수 있음)
+          </li>
+          <li>
+            <strong>Google LLC (미국) — Google Play</strong> — Android 앱 인앱 결제의 확인과 결제 상태 조회. 이전 항목: 구매 토큰, 주문 번호, 상품 식별자
+          </li>
+          <li>
+            <strong>Apple Inc. (미국)</strong> — Apple 로그인 인증과 회원 탈퇴 시 Apple 계정 연결 해제. 이전 항목: Apple 로그인 인증 코드와 토큰
+          </li>
+          <li>
+            <strong>OpenStreetMap Foundation (영국) — Nominatim</strong> — 입력한 출생지의 좌표·시간대 변환. 이전 항목: 출생지 검색어(이름·계정 등 이용자를 식별하는 정보는 함께 보내지 않음)
+          </li>
+        </ul>
+        <p>
+          이용자는 개인정보의 국외 이전을 거부할 수 있습니다. 국외 이전을 원하지 않으시면 해당 기능(AI 상담·풀이, 메일 수신, 앱 인앱 결제, Apple 로그인, 출생지 검색 등)을 이용하지 않거나 <a href="/contact/">고객센터</a>로 거부를 요청하실 수 있으며, 이 경우 해당 기능의 제공이 제한됩니다.
         </p>
         <h3 id="overseas-transfer">앱인토스 이용자의 개인정보 국외 이전</h3>
         <p>

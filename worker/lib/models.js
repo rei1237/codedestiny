@@ -300,6 +300,8 @@ const profileCardSchema = new mongoose.Schema({
   // 사주 원석 추천 답변 기록 {v, answers, answersKey, resultKey, versions, updatedAt}. 결과 본문은 두지 않는다.
   // 쓰기는 PATCH /api/profile/:id 의 sajuCrystal 전용 분기만 하고, 그 분기가 lib/saju/crystal-flow.mjs sanitizeCrystalRecord로 검사한다.
   sajuCrystal: { type: mongoose.Schema.Types.Mixed, default: undefined },
+  // 인생 보정의 "본인" 카드 표시(선택, forward-add). 계정당 하나만 true 다. 쓰기는 POST /api/life-calibration/self 만 한다.
+  isSelf: { type: Boolean, default: undefined },
 }, { timestamps: true });
 
 profileCardSchema.index({ userId: 1, profileId: 1 }, { unique: true });

@@ -174,3 +174,13 @@ export async function careForProfilePet(env, userId, body, now = new Date()) {
     return run();
   }
 }
+
+/** Profile-card deletion cascade: the pet and its care receipts belong to that card only.
+ * The anonymous appearance reservation and the honey ledger stay (no profile identity / wallet history). */
+export async function deleteProfilePetData(env, userId, rawProfileId) {
+  const uid = String(userId), profileId = validateProfileId(rawProfileId);
+  await withMongoRetry(env, async () => {
+    await states().deleteOne({ _id: `${uid}:${profileId}` });
+    await receipts().deleteMany({ userId: uid, profileId });
+  });
+}
