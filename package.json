@@ -84,6 +84,7 @@
     "og:render": "node scripts/og/render-og-card.mjs",
     "verify:og-route-contract": "node scripts/verify-og-route-contract.mjs",
     "og:cache-bust": "node scripts/og/set-og-cache-bust.mjs",
+    "test:career-style:browser": "node __tests__/ui/career-style.browser.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs && npm run sync:marketing-copy",
     "sync:marketing-copy": "node scripts/sync-feature-marketing-copy.mjs",
     "sync:music-track-count": "node scripts/sync-music-track-count.mjs",
