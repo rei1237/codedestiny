@@ -90,7 +90,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 
 ## 플래그
 
-- 워커 `[vars]` 예산이 가득 차 있고 `worker/wrangler.toml` 구조 변경은 금지다. 환경변수 `LIFE_CALIBRATION_ENABLED` 대신 코드 상수를 쓴다: 워커는 `ENGINE_ROLLOUT_FLAGS`, 클라이언트는 `lib/life-calibration/flags.mjs`(예정, 기존 `lib/*/flags.mjs` 패턴). 롤백은 상수 되돌림 + 재배포.
+- 워커 `[vars]` 예산이 가득 차 있고 `worker/wrangler.toml` 구조 변경은 금지다. 환경변수 `LIFE_CALIBRATION_ENABLED` 대신 코드 상수를 쓴다: 워커는 `ENGINE_ROLLOUT_FLAGS`, 클라이언트는 `lib/life-calibration/flags.mjs`(P2 에서 추가, 기존 `lib/*/flags.mjs` 패턴). 롤백은 상수 되돌림 + 재배포.
 
 ## 화면 (P2·P5·P6)
 
@@ -99,6 +99,18 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - 정적 결과 오버레이: `js/saju-engine.js` `renderLifeGraph`(canvas)·`renderDaewun` 위에 ★/☾ 마커. 그래프와 대운표는 모두 `attachKasiDaewunBridge` 를 거친 KASI `daeun()` 값을 쓴다(2026-11-28 재확인, lunar-javascript 로더는 이미 제거됨).
 - 다이어리 "나의 흐름": 다이어리는 localStorage 전용이고 프로필 구분이 없다(`lib/diary/diary-store.js`, `lib/diary/diary-ext-store.js`). 서버 타임라인을 읽어 보여 주는 읽기 전용 탭부터. 확장 지점 `app/diary/page.tsx`, `DiaryDayView.tsx`. 큐레이션은 i18n authored 템플릿 라이브러리.
 - 캐릭터: 꿀꿀 운세는 연이, 영냥이 브랜드는 영냥이. 브랜드는 라우트 prefix 와 `'ggulggul'|'yeongnyangi'` prop 으로 구분(중앙 헬퍼 없음). 사용자 문자열은 전부 i18n 키(`i18n/authored/<ns>-NN.json`, `useTPick`).
+
+## P2 입력 UX (구현 2026-11-28, 플래그 OFF)
+
+- 라우트 `/profile/life/?profileId=<id>` (`app/profile/life/`). `layout.tsx` 가 noindex·canonical `/profile/life/` 를 걸고, `/profile` 비공개 prefix 라 sitemap 에 들어가지 않는다.
+- 흐름: 로그인 확인 → 동의 시트(처리방침 초안 문구, 만 14세 확인) → "본인 카드" 선택(`isSelf`) → 인생 그래프 SVG(연도 탭) / 목록 보기 전환 → 항목 편집 시트(영역·좋았어요/힘들었어요/둘 다·강도·확실도·메모 80자 이하) → 저장(`/api/life-calibration/events`). 상태 문자열: loading·signin·consent·self·edit·error.
+- 클라이언트: `app/_lib/life-calibration-client.ts`(API, 오류 코드별 안내), `lib/life-calibration/input-state.mjs`(순수 상태·검증), `note-sensitive-keywords.mjs`(메모에 질병·종교·정치·범죄 낱말이 있으면 확인 창만, 저장을 막지 않음). 메모 본문은 로그에 남기지 않는다.
+- 사주 v2 localStorage 보정값은 자동 업로드하지 않는다. 첫 진입 때 한 번 "불러오기" 제안 → 사용자가 확인한 항목만 편집 목록에 채워지고 저장은 사용자가 누를 때만.
+- 문구는 `i18n/authored/lifeCalibration-01.json`(ko·en·ja·zh-CN·zh-TW) → `public/i18n/*/lifeCalibration.json`. "학습 미사용"·정확도 단언·건강 태그·공포 문구 금지는 `__tests__/ui/life-calibration-input.test.mjs` 가 검사한다.
+- 진입점: 프로필 저장 성공 직후 "한 걸음 더" 링크(`js/destiny-profile.js` `_dpShowLifeCalibrationNudge`). 플래그 OFF 면 아무것도 그리지 않는다.
+- 플래그: `LIFE_CALIBRATION_INPUT_ENABLED` — `lib/life-calibration/flags.mjs` 와 정적 셸 미러 상수 `js/destiny-profile.js` 두 곳(테스트가 두 값의 일치를 강제). 켜는 법: 두 상수를 `true` 로 바꾸고 `npm run sync:public` → 배포. OFF 면 `/profile/life/` 는 안내 화면만 보이고 API 를 부르지 않는다.
+- 로컬 미리보기: `next dev` 에서만 `?lcPreview=1` 로 화면을 켠다(`NODE_ENV==='development'` 조건, 프로덕션 빌드에서는 무시 — 테스트로 고정).
+- 레이어: 시트·대화상자는 앱 크롬(헤더 z70·하단 내비 z960) 위(z1000~1030). 저장 바는 하단 내비 위로 오프셋(`.cd-activation-guide` 와 같은 계산).
 
 ## 금지 사항
 
@@ -118,7 +130,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - [x] P0 진단(읽기 전용) — 2026-11-28
 - [x] P1a 설계 문서·법무 초안(이 문서)
 - [x] P1b 데이터 모델·API·연쇄 삭제 (RED: DB, 2026-11-28 승인, 플래그 OFF)
-- [ ] P2 입력 UX
+- [x] P2 입력 UX (2026-11-28, 플래그 OFF — 위 "P2 입력 UX" 절)
 - [ ] P3 보정 엔진(래퍼·순수 함수·테스트: 결정성, 수축, 플래그 OFF 동일성, `calculateLocalResult` 불변)
 - [ ] P4 LLM 블록·모순 가드
 - [ ] P5 사주 정적 결과 오버레이
