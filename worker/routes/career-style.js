@@ -6,6 +6,10 @@ import { upsertPaidResultArchive } from '../lib/paid-result-archive.js';
 import { json, readJson, methodNotAllowed, handleRouteError } from '../lib/http.js';
 import { enforceSensitiveEndpointSecurity } from '../lib/security/index.js';
 import { readCareerStyle } from '../lib/career-style-access.js';
+import { buildCareerReport } from '../../lib/saju/career-style/report.mjs';
+
+// Voice is a render choice only: it never changes access, pricing or a stored original.
+export function careerVoiceMode(value) { return value === 'neo' ? 'neo' : 'pig'; }
 
 export async function handleCareerStyle(request, env) {
   let response;
@@ -19,9 +23,11 @@ export async function handleCareerStyle(request, env) {
       if (!security.ok) return security.response;
     }
     const body = request.method === 'POST' ? await readJson(request) : null;
-    const profileId = String(body?.profileId || new URL(request.url).searchParams.get('profileId') || '').trim();
+    const params = new URL(request.url).searchParams;
+    const profileId = String(body?.profileId || params.get('profileId') || '').trim();
+    const mode = careerVoiceMode(body?.mode || params.get('mode'));
     await connectDb(env);
-    const result = await readOwnedCareerStyle(env, { userId: String(auth.userId), profileId, statusOnly: request.method === 'GET' });
+    const result = await readOwnedCareerStyle(env, { userId: String(auth.userId), profileId, statusOnly: request.method === 'GET', mode });
     response = json({ ok: true, ...result });
   } catch (error) { response = await handleRouteError(error, { request, env }); }
   response.headers.set('Cache-Control', 'private, no-store');
@@ -29,7 +35,9 @@ export async function handleCareerStyle(request, env) {
 }
 
 export function readOwnedCareerStyle(env, input) {
+  const mode = careerVoiceMode(input.mode);
   return readCareerStyle(input, {
+    buildReport: natalInput => buildCareerReport(natalInput, { mode }),
     findProfile: query => withMongoRetry(env, () => ProfileCard.findOne(query).lean()),
     findUnlock: findActivePaidContentUnlock,
     findResult: query => withMongoRetry(env, () => ServiceExecutionTransaction.findOne(query).lean()),
@@ -43,6 +51,7 @@ export function readOwnedCareerStyle(env, input) {
           sections: report.sections.map(section => ({ title: section.title, body: [
             ...section.paragraphs, ...section.analysisParagraphs,
             ...(section.axes || []).map(axis => `${axis.title}\n${axis.basis}\n${axis.reading}\n${axis.easy}\n${axis.support}`),
+            ...(section.items || []).map(item => [item.title, item.basis, item.body, item.examples].filter(Boolean).join('\n')),
             ...(section.roles || []).map(role => `${role.title}\n${role.reason}\n${role.skill}\n${role.activity}`),
             ...(section.insights || []).map(item => `${item.title}\n${item.basis}\n${item.scene}\n${item.condition}\n${item.action}`),
             section.analysisNote || '',
