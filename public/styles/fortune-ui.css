@@ -4451,6 +4451,10 @@ body.neo-mode .qm-wrap{border-color:rgba(250,204,21,.22)!important;box-shadow:0 
 .fortune-tab-wrap{display:flex;gap:0;background:linear-gradient(135deg,#F3E5F5 0%,#FCE4EC 100%);border-radius:14px;padding:4px;margin-bottom:16px;box-shadow:0 4px 16px rgba(233,30,99,.1),inset 0 1px 0 rgba(255,255,255,.6)}
 .fortune-tab{flex:1;border:none;padding:10px 6px;border-radius:11px;background:transparent;font-size:.85rem;font-weight:700;color:#BBA0B7;cursor:pointer;font-family:inherit;transition:all .3s;position:relative}
 .fortune-tab.active{background:linear-gradient(135deg,#FFF,#FFF5F8);color:var(--pink);box-shadow:0 4px 12px rgba(255,139,167,.25),inset 0 1px 2px rgba(255,255,255,.8);font-weight:800}
+/* 오늘·이달의 운세 카드: 흰 바탕 위 --pink(2.2:1) 대신 진한 로즈로 4.5:1 이상을 지킨다. --pink 토큰은 사이트 공용이라 이 카드에서만 바꾼다. */
+#dailyMonthlyCard .sec-title{color:#c2335f}
+#dailyMonthlyCard .fortune-tab{color:#7a5470}
+#dailyMonthlyCard .fortune-tab.active{color:#c2335f}
 .fortune-tab:active{transform:scale(.95);opacity:.85}
 .fortune-panel{display:none}.fortune-panel.active{display:block;animation:fadeInUp .4s ease-out}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
@@ -5191,7 +5195,7 @@ body.neo-mode .ts-desc{color:#666!important}
 body.neo-mode .ts-hint{color:rgba(255,215,0,.6)!important}
 body.neo-mode .johu-box{background:rgba(255,255,255,.04)!important;border-color:rgba(100,150,255,.2)!important}
 body.neo-mode .fortune-tab-wrap{background:rgba(255,255,255,.06)!important}
-body.neo-mode .fortune-tab{color:#444!important}
+body.neo-mode .fortune-tab{color:#b9b3c9!important}
 body.neo-mode .fortune-tab.active{background:rgba(255,215,0,.1)!important;color:#FFD700!important;box-shadow:none!important}
 body.neo-mode .prem-box{background:rgba(255,255,255,.04)!important;border-color:rgba(255,255,255,.1)!important}
 body.neo-mode .prem-title{color:#FFD700!important}
