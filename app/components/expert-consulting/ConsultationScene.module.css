@@ -1,5 +1,16 @@
 .scene { overflow:hidden; aspect-ratio:16/9; width:100%; border-radius:16px; background:#332335; }
 .scene img,.scene video { display:block; width:100%; height:100%; object-fit:contain; }
+.scene video {
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  opacity: 0;
+  transition: opacity 240ms ease-out;
+}
+.scene video[data-playing="true"] { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .scene video { transition: none; }
+}
 
 .roomFrame {
   box-sizing: border-box;

@@ -42,9 +42,9 @@ export default function ConsultationScene({ poster, clip, loop = false, priority
   }, [active, mounted, clip]);
 
   return <div ref={gate.ref} className={styles.scene} aria-hidden="true">
-    {mounted
-      ? <video key={clip} ref={video} src={clip} poster={poster} muted playsInline loop={loop}
-          preload="none" onError={() => setFailedClip(clip)} />
-      : <img src={poster} alt="" width="960" height="540" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" />}
+    <img src={poster} alt="" width="960" height="540" loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : "auto"} decoding="async" />
+    {mounted && <video key={clip} ref={video} src={clip} muted playsInline loop={loop}
+      preload="none" onPlaying={event => { event.currentTarget.dataset.playing = "true"; }}
+      onError={() => setFailedClip(clip)} />}
   </div>;
 }
