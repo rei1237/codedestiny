@@ -3,7 +3,7 @@
 생성일: 2026-09-30. 도구: built-in image_gen. 기존 캐릭터 자산을 참조해 생성했으며 외부 스톡 이미지를 사용하지 않았다.
 
 - 교체 자산: public/fuctionassets/연이.webp (512×512, 투명 배경). 사용자가 첨부한 구형 연이의 URL을 유지하고 직접 참조에 버전 쿼리를 추가했다.
-- 제휴 자산: public/assets/yeongnyangi/payment-alliance/yeoni-alliance-v1.webp (1200×800).
+- 제휴 자산: yeoni-alliance-v1.webp (1200×800) — 2026-11-28 삭제(결제창 제휴 삽화 미사용). 아래 프롬프트는 기록으로 남긴다.
 - 현재 꽃돼지 기준 이미지: public/images/reviews/yeoni-moonstone-gift-v1.webp.
 - 영냥이 기준 이미지: public/icons/yeongnyangi.webp.
 

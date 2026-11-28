@@ -29,11 +29,7 @@ export type CheckoutCopy = {
   noticeTitle: string;
   noticeBody: string;
   noticeLink: string;
-  rowComposition: string;
   chapters: (count: number) => string;
-  rowMethod: string;
-  methodDirect: string;
-  rowAmount: string;
   policyLine1: string;
   policyLine2: string;
   payAuthChecking: string;
@@ -68,11 +64,7 @@ const EN: CheckoutCopy = {
   noticeTitle: "Please pick a fish again",
   noticeBody: "We couldn't confirm the product you selected. Please choose the consultation again in Yeongnyangi's room.",
   noticeLink: "Back to Yeongnyangi's room",
-  rowComposition: "Consultation",
   chapters: (count) => `${count} chapter${count === 1 ? "" : "s"}`,
-  rowMethod: "Payment type",
-  methodDirect: "Family Honey Jar · Moonstone · one-time payment",
-  rowAmount: "One-time price",
   policyLine1: "Family Honey Jar · Moonstone · one-time payment",
   policyLine2: "Family Honey Jar terms are unchanged. Other general Pass tiers do not apply.",
   payAuthChecking: "Checking your sign-in status",
@@ -108,11 +100,7 @@ const CHECKOUT_COPY: Partial<Record<LoadingLocale, CheckoutCopy>> = {
     noticeTitle: "생선을 다시 골라 주세요",
     noticeBody: "선택한 상품을 확인하지 못했어요. 영냥이 방에서 상담을 다시 선택해 주세요.",
     noticeLink: "영냥이 방으로 돌아가기",
-    rowComposition: "상담 구성",
     chapters: (count) => `${count}개 챕터`,
-    rowMethod: "결제 방식",
-    methodDirect: "패밀리 꿀단지 이용권 · 월정석 · 단건 결제",
-    rowAmount: "단건 결제 금액",
     policyLine1: "패밀리 꿀단지 이용권 · 월정석 · 단건 결제",
     policyLine2: "패밀리 꿀단지 이용권은 기존 조건 그대로 적용되며, 다른 일반 이용권은 사용할 수 없어요.",
     payAuthChecking: "로그인 상태 확인 중",
@@ -145,11 +133,7 @@ const CHECKOUT_COPY: Partial<Record<LoadingLocale, CheckoutCopy>> = {
     noticeTitle: "魚をもう一度選んでください",
     noticeBody: "選択した商品を確認できませんでした。ヨンニャンイの部屋で相談をもう一度選んでください。",
     noticeLink: "ヨンニャンイの部屋に戻る",
-    rowComposition: "相談の構成",
     chapters: (count) => `${count}章`,
-    rowMethod: "決済方法",
-    methodDirect: "ファミリーはちみつ壺 · 月精石 · 都度払い",
-    rowAmount: "都度払いの金額",
     policyLine1: "ファミリーはちみつ壺 · 月精石 · 都度払い",
     policyLine2: "ファミリーはちみつ壺の利用条件は従来どおりです。他の一般パスは使えません。",
     payAuthChecking: "ログイン状態を確認中",
@@ -182,11 +166,7 @@ const CHECKOUT_COPY: Partial<Record<LoadingLocale, CheckoutCopy>> = {
     noticeTitle: "请重新挑选一条鱼",
     noticeBody: "无法确认你选择的商品。请在灵猫的房间重新选择咨询。",
     noticeLink: "返回灵猫的房间",
-    rowComposition: "咨询构成",
     chapters: (count) => `${count} 个章节`,
-    rowMethod: "支付方式",
-    methodDirect: "家庭蜜罐通行券 · 月精石 · 单次支付",
-    rowAmount: "单次支付金额",
     policyLine1: "家庭蜜罐通行券 · 月精石 · 单次支付",
     policyLine2: "家庭蜜罐通行券沿用现有条件，其他普通通行券不适用。",
     payAuthChecking: "正在确认登录状态",
@@ -219,11 +199,7 @@ const CHECKOUT_COPY: Partial<Record<LoadingLocale, CheckoutCopy>> = {
     noticeTitle: "請重新挑選一條魚",
     noticeBody: "無法確認你選擇的商品。請在靈貓的房間重新選擇諮詢。",
     noticeLink: "返回靈貓的房間",
-    rowComposition: "諮詢組成",
     chapters: (count) => `${count} 個章節`,
-    rowMethod: "付款方式",
-    methodDirect: "家庭蜜罐通行券 · 月精石 · 單次付款",
-    rowAmount: "單次付款金額",
     policyLine1: "家庭蜜罐通行券 · 月精石 · 單次付款",
     policyLine2: "家庭蜜罐通行券沿用現有條件，其他一般通行券不適用。",
     payAuthChecking: "正在確認登入狀態",

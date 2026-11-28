@@ -393,7 +393,8 @@ try {
       assert.equal(await page.locator('[data-saju-offer="section_daewun"]').isVisible(),false,'confirmed paid access hides the purchase offer');
       assert.equal(await page.locator('#sajuReadingHeader .saju-reading-compare').count(),0);
       // 모드를 바꾸면 펼친 대운을 서버에서 새 말투로 다시 받는다 — 도착할 때까지 기다린다.
-      await page.waitForFunction(word => (document.querySelector('.saju-cycle-guide > p')?.textContent || '').includes(word), mode === 'neo' ? '핵심은' : '살펴볼게요');
+      // 머리말은 지금 화자의 얼굴이 붙은 말풍선이다 — 영냥이 모드는 영냥이, 아니면 연이.
+      await page.waitForFunction(([word, who]) => (document.querySelector('.saju-cycle-guide > .cd-speaker--' + who)?.textContent || '').includes(word), mode === 'neo' ? ['핵심은', 'nyang'] : ['살펴볼게요', 'yeoni']);
       assert.equal(await page.locator('#dwGrid .dw-item').count() > 0,true,'persona switch preserves paid access');
     }
     const firstDwItem = page.locator('#dwGrid .dw-item').first();
