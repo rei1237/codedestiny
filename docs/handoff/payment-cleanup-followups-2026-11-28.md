@@ -1,7 +1,7 @@
 ---
-status: in-progress
+status: done
 updated: 2026-11-28
-next: A1 미사용 checkout 문구 키 deletion-auditor 3면 확인 후 삭제
+next: 없음 — 메인 세션이 wt/change-20261128-141745 를 main 에 머지하고 워크트리를 배수한다
 ---
 
 # 결제 정리 후속 과제 (SoulCat 모드 제거 뒤)
@@ -14,7 +14,7 @@ next: A1 미사용 checkout 문구 키 deletion-auditor 3면 확인 후 삭제
 
 - 브랜치: `wt/change-20261128-141745` (base `7feed900a7`)
 - 워크트리: `D:\Development\codedestiny-worktrees\change-20261128-141745`
-- 마지막 커밋: 이 문서 커밋 (단계 체크 시 SHA 기록)
+- 마지막 커밋: 이 문서의 done 커밋 (단계별 SHA 는 아래)
 - push·머지는 하지 않는다. 메인 세션이 머지한다.
 - 옆 세션: `change-20261128-141727` 이 `/records/` (lib/records, worker/lib/record-library.js, app/records) 작업 중 — 건드리지 않는다. 루트 체크아웃 `d:\Development\code-destiny` 는 손대지 않는다.
 
@@ -52,10 +52,10 @@ index.html ~23243 "달빛 이용권 상점" → 현재 브랜드 "꿀단지 이�
 
 ## 단계
 
-- [ ] 0. 이 문서 커밋
-- [ ] A1. 미사용 checkout 문구 키 삭제
-- [ ] A2. yeoni-alliance-v1.webp 삭제
-- [ ] A3. `.cd-soulcat-entry*` CSS·`[data-soulcat-price]` 삭제 + 미러 재생성
-- [ ] B. "달빛 이용권 상점" 문구 교체
-- [ ] C. featureKey 전달 + 판매 종료 키 보유자 경로
-- [ ] 마무리: status done
+- [x] 0. 이 문서 커밋 — 4a01307eec
+- [x] A1. 미사용 checkout 문구 키 삭제 — ce96e08673 (deletion-auditor SAFE, sitemap lastmod 재생성 포함). check:fast 첫 실행의 test:node 실패는 동시 실행 잡음: 단독 재실행 5988 pass / 0 fail
+- [x] A2. yeoni-alliance-v1.webp 삭제 — 45759ef418 (provenance.md 6행에 삭제 기록, 프롬프트는 기록으로 유지)
+- [x] A3. `.cd-soulcat-entry*` CSS·`[data-soulcat-price]` 삭제 + 미러 재생성 — 730f94e775 (check:fast 통과: test:node 0 fail, jest 8866 pass). 후속: `__cdSajuCatPrice`·`catPrice` 문구는 소비처 없이 남음(보고만)
+- [x] B. "달빛 이용권 상점" 문구 교체 — 코드 변경 없음: 82fd0491d3(2026-11-19)에서 이미 "꿀단지 이용권 상점으로" 로 바뀌어 있음. 남은 달빛: 분류 정규식(의도적 유지), billing-client.ts:1175 주석(동결 파일), i18n/.rest.json:183·i18n/.w1-strings.json:85(참조 없는 캐시 — 보고만), public/_redirects:66 주석
+- [x] C. featureKey 전달 + 판매 종료 키 보유자 경로 — 6462c97041. 1차안(판매 종료 키를 진입 서버 pass-check 로 보냄)은 paid-gate-auditor FAIL(payment-gating.md 247–251 "진입 서버 이용권 선검사 부활 금지")로 기각. 채택안: 스냅샷의 canUseByPass:false 를 판매 종료 키에서만 확정 거부로 쓰지 않고 pass_snapshot_indeterminate 로 결제창을 연다 → "이용권 미적용" 안내 대신 확인 안내, 보유자는 결제창의 이용권·단건 카드에서 서버 ALREADY_UNLOCKED 로 무과금 열림. 진입 서버 왕복 0 유지, 동결 영역 해시 불변. verify-portone-single-payment-regression 에 단언 추가
+- [x] 마무리: status done
