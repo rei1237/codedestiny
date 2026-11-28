@@ -137,7 +137,7 @@ node --test __tests__/ui/yeongnyangi-reading-invariance.test.mjs
 
 # 브라우저(mock). dev 서버와 check:fast 를 동시에 돌리지 않는다.
 npm run dev                       # 포트 22042
-SAJU_READING_URL=http://127.0.0.1:22042 node scripts/verify-saju-reading-personas.mjs
+SAJU_READING_URL=http://127.0.0.1:22042 node scripts/verify-saju-reading-personas.mjs   # 2026-11-28: 1ffce8b0ba 에서 삭제됨. 대체: node --test __tests__/ui/saju-reading-personas.test.mjs
 npm run verify:saju-summary-browser
 
 # 전달 전

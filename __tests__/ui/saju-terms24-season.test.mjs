@@ -62,3 +62,40 @@ test('영냥이 모드 절기 리듬은 영냥이 얼굴·표제만 쓰고 연�
   assert.ok(!/yeoni-|cd-speaker--yeoni/.test(html), '연이 그림이 남았다');
   assert.ok(!/(^|[^냥])연이/.test(text(html)), '연이 표제가 남았다');
 });
+// 말투는 모드를 따른다: 영냥이 절기 본문은 반말("너")만, 연이 절기 본문은 해요체만 쓴다.
+const BANMAL_END = /[가-힣](?:이야|거야|있어|없어|돼|해|줘|가|봐)[.!]/;
+const YO_END = /[가-힣]요[.!]/;
+const renderPart = async (date, mode, part) => {
+  const { buildSajuSectionHtml } = await import('../../worker/lib/saju-section/report.js');
+  return buildSajuSectionHtml({
+    featureKey: 'saju_lifetime_bundle', birth: { calendarDate: date, calType: 'solar', hour: 12, minute: 0, timeKnown: true },
+    gender: 'F', name: '검증', mode, lang: 'ko',
+  }).parts[part];
+};
+
+test('영냥이 절기 본문은 12개 월지 모두 반말이고 당신·해요체가 없다', async () => {
+  for (const [branch, date] of CASES) {
+    const body = text(await renderPart(date, 'neo', 'terms'));
+    assert.match(body, BANMAL_END, `${branch}월 반말 문장`);
+    assert.ok(!body.includes('당신'), `${branch}월에 당신이 남았다`);
+    assert.ok(!YO_END.test(body), `${branch}월에 해요체가 섞였다: ${(body.match(YO_END) || [])[0]}`);
+  }
+});
+
+test('연이 절기 본문은 12개 월지 모두 반말 어미를 쓰지 않는다', async () => {
+  for (const [branch, date] of CASES) {
+    const body = text(await renderPart(date, 'pig', 'terms'));
+    assert.ok(!BANMAL_END.test(body), `${branch}월에 반말이 섞였다: ${(body.match(BANMAL_END) || [])[0]}`);
+  }
+});
+
+test('영냥이 모드 일주 요약은 dayReading 의 영냥이 갈래를 쓴다', async () => {
+  const { dayReading } = await import('../../lib/saju/reading-depth.mjs');
+  const neoSummary = [].concat(dayReading('戊申', 'neo').summary)[0];
+  const pigSummary = [].concat(dayReading('戊申').summary)[0];
+  assert.notEqual(neoSummary, pigSummary);
+  const neo = text(await renderPart('2000-02-20', 'neo', 'ilju'));
+  const pig = text(await renderPart('2000-02-20', 'pig', 'ilju'));
+  assert.ok(neo.includes(neoSummary) && !neo.includes(pigSummary), '영냥이 일주 요약');
+  assert.ok(pig.includes(pigSummary) && !pig.includes(neoSummary), '연이 일주 요약');
+});

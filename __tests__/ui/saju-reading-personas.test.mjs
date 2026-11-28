@@ -154,7 +154,7 @@ test('cycle explains only supplied roots and hidden stems, filtering unknown-hou
   assert.doesNotMatch(cycleApi.buildCycle(input,'pig').sections[1].text,/시주 亥/);
   const unavailable=cycleApi.buildCycle(cycleFixture,'pig');
   assert.doesNotMatch(unavailable.sections[1].text,/통근은 천간이/);
-  assert.doesNotMatch(unavailable.sections[2].text,/이번 지지에서 제공된 장간은/);
+  assert.doesNotMatch(unavailable.sections[2].text,/장간이 담겨 있어/);
 });
 
 test('cycle distinguishes an observed combination from verified transformation and explains other relations',()=>{
@@ -162,7 +162,7 @@ test('cycle distinguishes an observed combination from verified transformation a
   input.relations=[{src:'甲',partner:'己',type:'간합(天干)',hapEl:'earth',transformed:false,positions:['월주'],conditions:['월령의 지원 미확인']}];
   const candidate=cycleApi.buildCycle(input,'pig').sections[4].text;
   assert.match(candidate,/합화 후보/);
-  assert.match(candidate,/합이 있다는 것과 다른 오행으로 합화하는 것은 다릅니다/);
+  assert.match(candidate,/합이 있다는 것과 다른 오행으로 합화하는 것은 별개예요/);
   assert.doesNotMatch(candidate,/합화 조건이 함께 확인/);
   input.relations[0].transformed=true;input.relations[0].conditions=['월령의 지원 확인'];
   assert.match(cycleApi.buildCycle(input,'pig').sections[4].text,/합화 조건이 함께 확인/);
@@ -191,7 +191,18 @@ test('matching cycle roles do not repeat a definition, and missing strength stay
   const report=cycleApi.buildCycle(input,'pig');
   assert.match(report.sections[0].text,/강약을 확인할 자료가 없어/);
   assert.match(report.sections[2].text,/생활의 기반에서도 반복/);
-  assert.equal(report.sections.map(s=>s.text).join('').split('정재가 있다고 재산이 안정되는 것은 아닙니다.').length,2);
+  assert.equal(report.sections.map(s=>s.text).join('').split('정재가 있다고 재산이 곧 안정되는 건 아니에요.').length,2);
+});
+
+test('cycle copy keeps each voice and picks particles from the final syllable',()=>{
+  const text=report=>[report.intro,report.warning,...report.sections.map(s=>s.text)].join('\n');
+  const yeon=text(cycleApi.buildCycle(cycleFixture,'pig')),neo=text(cycleApi.buildCycle(cycleFixture,'neo'));
+  assert.match(yeon,/당신/);
+  assert.doesNotMatch(yeon,/(이야|해 봐|둬|않아)\./);
+  assert.doesNotMatch(neo,/당신|(요|니다)\./);
+  assert.match(yeon,/일간 辛에게는 편관이에요/);
+  assert.match(neo,/일간 辛에게는 편관이야/);
+  assert.doesNotMatch(yeon+neo,/(관|견|신|인)로 |甲가|午이 /);
 });
 
 test('the header offers two voice cards and the letter opens in the current speaker bubble',async()=>{
