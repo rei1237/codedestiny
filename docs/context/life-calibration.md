@@ -63,7 +63,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 
 ## 엔진별 연도 신호 (P3)
 
-모든 래퍼는 순수·결정적 함수. 기준 연도는 인자로 받는다(시간·랜덤 의존 금지). 위치는 `lib/calibration/`(서버 전용 엔진은 `worker/lib/` 쪽 래퍼).
+모든 래퍼는 순수·결정적 함수. 기준 연도는 인자로 받는다(시간·랜덤 의존 금지). 위치는 `lib/life-calibration/`(서버 전용 엔진은 `worker/lib/life-calibration-signals.js`). 🔴 `lib/calibration/` 은 `.gitignore` 의 `calibration/`(관상 측정용 사용자 사진 커밋 금지 규칙)에 걸려 커밋되지 않으므로 쓰지 않는다.
 
 | 엔진 | 쓸 함수 | 비고 |
 |---|---|---|
@@ -73,6 +73,22 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 | 베다 | `buildVimshottariDasha(moonLon, birthUtc, now)` `worker/lib/vedic-derived-calculations.js:172` | 서버 Swiss 차트 필요 |
 | 숙요 | `calculateSukuyoForMoment`(`worker/lib/sukuyo-astronomy.js`) + 출생 수 거리 | `buildSukuyoYearlyFortuneResultV2` 점수는 출생 정보 시드 해시(천문 근거 없음, 2026-11-28 userId 시드 제거)라 보정에 쓰지 않는다 |
 | 타로 | — | 연도 신호 없음. LLM 블록에는 과거 경험·패턴 요약만 |
+
+### P3 구현 (2026-11-28, 어떤 라우트에도 연결 안 됨)
+
+- 집계 `computeLifeCalibration({events, signals})` `lib/life-calibration/life-calibration.mjs` — 버전 `life-calibration-v1`, 정책 id `life-calibration-policy-v1`. 정책값은 v1 `CALIBRATION_POLICY` 를 그대로 읽는다(shrinkK 4, cap 0.15, minSignals 3, minYears 2). 식도 v1 과 같다: factor = clamp(raw × n/(n+4)) × 0.15, raw = (일치−불일치)/n. 강도 가중 없음. 마스터 프롬프트의 k=2·valence ±3 은 채택하지 않았다.
+- 결과: 엔진별 `overall`·`byDomain`(확장 분야 family·relocation·social·other 포함) + 분야별 엔진 나열 `domains`. 각 요약은 n·agree·disagree·years·direction·confidence(같은 방향 비율, 정확도 아님)·status(insufficient|applied)·factor·conflictFlag. 신호가 아닌 사건은 `unused` + 이유 코드(mixed-signal·not-a-signal:*·uncertain-memory·year-unavailable·boundary-ambiguous·neutral-period). 사용자 문구는 만들지 않는다.
+- `conflictFlag` = 불일치 방향 + 불일치 ≥ 3 + confidence ≥ 0.7 + 서로 다른 해 ≥ 2(`LIFE_CALIBRATION_POLICY` 에서만 조정).
+- 캐시: `lifeCalibrationInputHash`(`lc1-` + stableHash, 이벤트·키 순서 무관, 메모·channel 제외, 엔진 래퍼 버전·신호 포함) → `lifeCalibrationCacheFields` 가 LifeCalibration 모델의 inputHash·engineVersions(+aggregate)·result 를 만든다. computedAt 은 호출자가 넣는다(모듈은 시계를 읽지 않음).
+- 엔진 래퍼 상태 (신호 모양 `{engine, version, status, reason?, years:{y:{tone}}, months:{'y-m':{tone, periodYear}}}`):
+  - 사주 `sajuYearSignals` `lib/life-calibration/saju-signals.mjs` — 가능. v1 `analyzePeriods`·`resolveTones` 의 reading 판단을 그대로 쓴다(입춘·교운 경계 포함). 동결된 `analyzeNatalCore` 결과 + `cyclesFromDaeun(daeun())` 필요. 위 표의 `tenGodForStem`·`buildLuckNatalInteractions`·`evaluateLuckDynamics` 는 쓰지 않았다(v1 판단이 정본).
+  - 자미두수 `ziweiYearSignals` `lib/life-calibration/ziwei-signals.ts` — 가능(완성된 명반 필요). expand→유리, guard→불리, mixed·calm→중립. 음력 설 기준이라 1월 사건은 전년, 2월은 전년·당년 판단이 같을 때만.
+  - 베다 `vedicYearSignals` `worker/lib/life-calibration-signals.js` — 가능(사이드리얼 달·상승점 황경 + 출생 UTC 필요, Swiss 호출은 호출자). 마하·안타르 다샤 주인이 상승궁 기준 1·5·9궁을 다스리면 +1, 6·8·12궁이면 −1(개발 정책 보조값, 문헌 수치 아님). 열두 달 판단이 모두 같을 때만 연 판단.
+  - 숙요 `sukuyoYearSignals` — 조건부. 27수 순행 거리(`judgeDayFortune` 자리 등급)만 쓴다. 🔶 해마다 어느 시각의 달을 볼지(anchor) 미결정이라 호출자가 `yearMoonLongitudes`+`anchor` 를 넘기지 않으면 unavailable(`year-mansion-anchor-undecided`).
+  - 서양 `westernYearSignals` `lib/life-calibration/western-signals.mjs` — unavailable(`no-server-safe-pure-transit-path`). `AstroTransits` 는 정적 셸 전역, Swiss 는 비동기 WASM·env 의존. 붙일 때도 일식표 끝(2036-08) 뒤는 외삽하지 않는다.
+  - 타로 — 제외. 신호가 없는 엔진은 `no-adapter-input` 으로 채운다.
+- 테스트 `__tests__/ui/life-calibration-engine.test.mjs`: v1 집계와 수치 일치, 결정성·해시, 수축·상한, minSignals·minYears, 충돌 임계값, unavailable 처리, 래퍼가 입력을 바꾸지 않음, import 허용 가드(DB·env·http·swiss·LLM·`calculateLocalResult`·시계·난수 금지), 플래그 OFF 동일성(`lifeCalibrationOn` 기본 OFF + 런타임 코드가 보정 모듈을 import 하지 않음 — P4 에서 소비자를 붙일 때 이 허용 목록을 함께 갱신).
+- P4 할 일: 라우트에서 ProfileCard.birth → 원국·대운·명반·베다 차트 계산(차트 계산은 기존 엔진 호출만), 이벤트 년도 신호 생성 → `computeLifeCalibration` → LifeCalibration 캐시(inputHash 비교), `lifeCalibrationOn(env, <소비자 id>)` 뒤에서만. 숙요 anchor 결정, 서양 서버 경로 여부 결정.
 
 ## 충돌 처리 규칙
 
@@ -131,7 +147,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - [x] P1a 설계 문서·법무 초안(이 문서)
 - [x] P1b 데이터 모델·API·연쇄 삭제 (RED: DB, 2026-11-28 승인, 플래그 OFF)
 - [x] P2 입력 UX (2026-11-28, 플래그 OFF — 위 "P2 입력 UX" 절)
-- [ ] P3 보정 엔진(래퍼·순수 함수·테스트: 결정성, 수축, 플래그 OFF 동일성, `calculateLocalResult` 불변)
+- [x] P3 보정 엔진(래퍼·순수 함수·테스트: 결정성, 수축, 플래그 OFF 동일성, `calculateLocalResult` 불변) — 2026-11-28, 위 "P3 구현" 절
 - [ ] P4 LLM 블록·모순 가드
 - [ ] P5 사주 정적 결과 오버레이
 - [ ] P6 다이어리 "나의 흐름"·월간 체크인
