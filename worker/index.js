@@ -2051,6 +2051,11 @@ const app = {
       ctx.waitUntil(import("./lib/payment-refund.js").then(({ runRefundRetryTask }) => runRefundRetryTask(env)).catch((error) => {
         console.error("[refund-retry] task failed:", error?.message || error);
       }));
+      // 서비스 실행 원장(결제 후 생성 대기) 타임아웃 스윕을 10분마다 소량으로(2026-11-28). 일일 크론의 30건 실행은 유지.
+      // 태스크가 실패를 다시 던지므로 여기서 잡는다.
+      ctx.waitUntil(import("./lib/service-execution-task.js").then(({ runServiceExecutionTimeoutTask }) => runServiceExecutionTimeoutTask(env, { limit: 5 })).catch((error) => {
+        console.error("[service-execution-timeout] 10m task failed:", error?.message || error);
+      }));
       // 🔴 SNS 일일 발행의 **같은 날** 자기복구. 22:00Z 일일 크론이 잠금만 잡고 죽으면(2026-09-03 실사고)
       // 그 문서는 processing 으로 굳고, 이후 시도는 전부 unique 인덱스에 걸려 already_posted 로 조용히
       // 건너뛴다. 회수 조건(sns-daily-post-task.js 의 buildReclaimFilter 분기 ②)을 열어 놓아도 그날
