@@ -390,9 +390,10 @@
     if(root.SajuReadingDepth) facts.depth=root.SajuReadingDepth.buildDepthFacts(facts);
     return facts;
   }
+  function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function markup(reading, model, heading) {</span>'); }
   function markup(reading, model, heading) {
     var c=langCopy(locale());
-    return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+esc(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
+    return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+elementTextHtml(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+elementTextHtml(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
   }
   // 화자 말풍선(lib/saju/speaker → 전역 CdSajuSpeaker). 번들이 없으면 기존 글자 머리말로 그린다.
   function speaker(){var s=root.CdSajuSpeaker;return s&&typeof s.speakerHtml==='function'&&typeof s.faceHtml==='function'?s:null;}
@@ -400,8 +401,8 @@
   function voiceMarkup(reading, model, heading) {
     var html=markup(reading,model,heading), s=speaker(), first=reading.blocks[0];
     if(!s||!first)return html;
-    var plain='<section><h4>'+esc(first.label)+'</h4><p>'+esc(first.text)+'</p></section>';
-    var bubble='<section class="saju-reading__voice">'+s.speakerHtml({who:s.speakerFor(model.mode),label:first.label,html:'<p>'+esc(first.text)+'</p>'})+'</section>';
+    var plain='<section><h4>'+esc(first.label)+'</h4><p>'+elementTextHtml(first.text)+'</p></section>';
+    var bubble='<section class="saju-reading__voice">'+s.speakerHtml({who:s.speakerFor(model.mode),label:first.label,html:'<p>'+elementTextHtml(first.text)+'</p>'})+'</section>';
     if(html.indexOf(plain)<0)return html;
     return html.replace('<div class="saju-reading__body">',function(){return '<div class="saju-reading__body saju-reading__body--voice">';}).replace(plain,function(){return bubble;});
   }

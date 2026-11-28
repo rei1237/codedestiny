@@ -617,9 +617,10 @@ function build(input, selected, lang) {
     }
     return model;
   }
+function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function markup(reading, model, heading) {</span>'); }
 function markup(reading, model, heading) {
     var c=langCopy(locale());
-    return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+esc(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+esc(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
+    return '<div class="saju-reading" data-reading-mode="'+model.mode+'">'+(heading?'<h3>'+esc(reading.title)+'</h3>':'')+'<div class="saju-reading__body">'+reading.blocks.map(function(b){return '<section><h4>'+esc(b.label)+'</h4><p>'+elementTextHtml(b.text)+'</p></section>';}).join('')+'</div>'+(model.mode==='pig'?'<details class="saju-reading__evidence"><summary>'+esc(c.basis)+'</summary><p>'+elementTextHtml(reading.evidence)+'</p></details>':'')+(model.unknown?'<p class="saju-reading__uncertain">'+esc(model.warning)+'</p>':'')+'</div>';
   }
 // 대운 풀이 안내(cycle) 유료 문구 정본. 원래 js/core/saju/reading-personas.js 안에 있었다.
 // 생성기가 personas 의 elements·copy·esc 와 함께 root 클로저로 감싼다.
@@ -881,9 +882,10 @@ function gauge(o) {
       '<div class="saju-gauge__ends" aria-hidden="true"><span>' + esc(o.ends[0]) + '</span><span>' + esc(o.ends[1]) + '</span></div>' +
       '<figcaption><strong>' + esc(o.names[at]) + '</strong> · ' + esc(o.caption) + '</figcaption></figure>';
   }
+function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function cellHtml(cell, i, label) {</span>'); }
 function cellHtml(cell, i, label) {
     var t = String(cell), long = t.length > 12, wrap = long ? ' class="saju-table__wrap"' : '';
-    var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : esc(t);
+    var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : elementTextHtml(t);
     return i === 0 ? '<th scope="row"' + (label === true ? ' role="rowheader"' : '') + wrap + '>' + body + '</th>' : '<td' + (label ? ' data-label="' + esc(label) + '" role="cell"' : '') + wrap + '>' + body + '</td>';
   }
 function table(caption, head, rows, foot) {
@@ -896,7 +898,7 @@ function table(caption, head, rows, foot) {
 function hero(title, badges, ganji) {
     var list = (badges || []).filter(Boolean);
     return '<div class="saju-hero' + (ganji ? ' saju-hero--ganji' : '') + '"><p class="saju-hero__title">' + esc(title) + '</p>' +
-      (list.length ? '<ul class="saju-hero__badges">' + list.map(function (b, i) { return '<li' + (i === 0 ? ' data-primary' : '') + '>' + esc(b) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
+      (list.length ? '<ul class="saju-hero__badges">' + list.map(function (b, i) { return '<li' + (i === 0 ? ' data-primary' : '') + '>' + elementTextHtml(b) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
   }
 function tiles(items) { return '<ul class="saju-tiles saju-tiles--seal">' + items.map(function (x) { return '<li><b><i aria-hidden="true">' + esc(x[2]) + '</i>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></li>'; }).join('') + '</ul>'; }
 function chips(items, cls) { return '<ul class="saju-chips' + (cls ? ' ' + cls : '') + '">' + items.map(function (it) { return '<li class="saju-chip"' + (it.tone ? ' data-tone="' + it.tone + '"' : '') + (it.el ? ' data-el="' + it.el + '"' : '') + '>' + (it.tag ? '<b>' + esc(it.tag) + '</b>' : '') + esc(it.text) + (it.note ? '<small>' + esc(it.note) + '</small>' : '') + '</li>'; }).join('') + '</ul>'; }

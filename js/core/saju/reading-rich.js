@@ -172,9 +172,10 @@
       '<figcaption><strong>' + esc(o.names[at]) + '</strong> · ' + esc(o.caption) + '</figcaption></figure>';
   }
   // 표 칸은 기본 줄바꿈 없음(360px 에서 '금(金)'·'+13' 이 글자 중간에서 끊기던 문제). 긴 문장 칸만 줄바꿈을 허용하되 '수(水)' 같은 한글(한자) 묶음은 붙여 둔다.
+  function elementTextHtml(value) { return esc(value).replace(/[목화토금수]\([木火土金水]\)/g, '<span class="saju-element-label">  function cellHtml(cell, i, label) {</span>'); }
   function cellHtml(cell, i, label) {
     var t = String(cell), long = t.length > 12, wrap = long ? ' class="saju-table__wrap"' : '';
-    var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : esc(t);
+    var body = long ? esc(t).replace(/([가-힣]+\([一-鿿]+\))/g, '<span class="saju-table__keep">$1</span>') : elementTextHtml(t);
     return i === 0 ? '<th scope="row"' + (label === true ? ' role="rowheader"' : '') + wrap + '>' + body + '</th>' : '<td' + (label ? ' data-label="' + esc(label) + '" role="cell"' : '') + wrap + '>' + body + '</td>';
   }
   // 네 칸 이상인 표는 좁은 화면에서 행마다 카드로 쌓는다(칸 이름은 data-label). 360px 에서 오른쪽 칸이 잘리던 문제.
@@ -190,7 +191,7 @@
   function hero(title, badges, ganji) {
     var list = (badges || []).filter(Boolean);
     return '<div class="saju-hero' + (ganji ? ' saju-hero--ganji' : '') + '"><p class="saju-hero__title">' + esc(title) + '</p>' +
-      (list.length ? '<ul class="saju-hero__badges">' + list.map(function (b, i) { return '<li' + (i === 0 ? ' data-primary' : '') + '>' + esc(b) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
+      (list.length ? '<ul class="saju-hero__badges">' + list.map(function (b, i) { return '<li' + (i === 0 ? ' data-primary' : '') + '>' + elementTextHtml(b) + '</li>'; }).join('') + '</ul>' : '') + '</div>';
   }
   // 두 칸 표(항목·추천)를 대신하는 카드. 셋째 값은 한자 인장.
   function tiles(items) { return '<ul class="saju-tiles saju-tiles--seal">' + items.map(function (x) { return '<li><b><i aria-hidden="true">' + esc(x[2]) + '</i>' + esc(x[0]) + '</b><span>' + esc(x[1]) + '</span></li>'; }).join('') + '</ul>'; }
