@@ -74,6 +74,7 @@
   var _dpProfileEditTargetId = '';
   var DP_TEXT_TRANSLATIONS = {
     ko: {
+      lifeCalibrationNudge: '한 걸음 더: 지난 좋았던 해·힘들었던 해 남기기',
       apiCooldown: '서버 응답이 불안정하여 잠시 대기 중입니다. 잠시 후 다시 시도해 주세요.',
       apiConnectionFailed: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.',
       networkError: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
@@ -129,6 +130,7 @@
       levelRewardGuest: '레벨 보상 · 로그인 후 지급',
     },
     en: {
+      lifeCalibrationNudge: 'One more step: note your good and hard years',
       apiCooldown: 'The server response is unstable, so we are waiting briefly. Please try again soon.',
       apiConnectionFailed: 'API connection failed. Please try again soon.',
       networkError: 'A network error occurred. Please try again soon.',
@@ -179,6 +181,7 @@
       levelRewardGuest: 'Level rewards · granted after you sign in',
     },
     ja: {
+      lifeCalibrationNudge: 'もう一歩：良かった年・大変だった年を残す',
       apiCooldown: 'サーバー応答が不安定なため、しばらく待機しています。少し後でもう一度お試しください。',
       apiConnectionFailed: 'API接続に失敗しました。少し後でもう一度お試しください。',
       networkError: 'ネットワークエラーが発生しました。少し後でもう一度お試しください。',
@@ -229,6 +232,7 @@
       levelRewardGuest: 'レベル報酬 · ログイン後に付与',
     },
     'zh-CN': {
+      lifeCalibrationNudge: '再走一步：记下顺利与艰难的年份',
       apiCooldown: '服务器响应不稳定，正在短暂等待。请稍后再试。',
       apiConnectionFailed: 'API 连接失败。请稍后再试。',
       networkError: '发生网络错误。请稍后再试。',
@@ -279,6 +283,7 @@
       levelRewardGuest: '等级奖励 · 登录后发放',
     },
     'zh-TW': {
+      lifeCalibrationNudge: '再走一步：記下順利與艱難的年份',
       apiCooldown: '伺服器回應不穩定，正在短暫等待。請稍後再試。',
       apiConnectionFailed: 'API 連線失敗。請稍後再試。',
       networkError: '發生網路錯誤。請稍後再試。',
@@ -9899,6 +9904,7 @@
       broadcastProfileChange(curr || created || null);
       notifyForestCard('saved');
       _dpUpdateSaveBtn();
+      _dpShowLifeCalibrationNudge(createProfileId);
       if (isUpdate) {
         var savedBirthProfile = _dpFindProfileById(DPStorage.list(), createProfileId) || created || curr || null;
         var savedBirthSignature = _dpBirthScopeSignature(savedBirthProfile);
@@ -11124,6 +11130,26 @@
      그 화면이 확인을 마치면 입력 초안(sessionStorage, 30분)을 남기고 이 진입으로 돌아온다 — 초안은 기존 프로필 폼에 채우기만 하고,
      저장·동의·로그인은 기존 dpSaveProfile 그대로다. 결과(점성술 모달·유료 패널)는 바뀌지 않는다.
      false 면 지금처럼 프로필 폼으로 간다. lib/guided-flow/flags.mjs 와 값을, lib/guided-flow/astro-draft.mjs 와 키·만료를 함께 바꾼다(테스트가 묶는다). */
+  /* 인생 보정 P2(2026-11-28): 프로필 저장 뒤 "한 걸음 더" 링크로 /profile/life/ 입력 화면을 연다.
+     처리방침 시행 전까지 false — false 면 아무것도 그리지 않는다. lib/life-calibration/flags.mjs LIFE_CALIBRATION_INPUT_ENABLED 와 값을 함께 바꾼다(테스트가 묶는다). */
+  var LIFE_CALIBRATION_INPUT_ENABLED = false;
+  function _dpShowLifeCalibrationNudge(profileId) {
+    if (LIFE_CALIBRATION_INPUT_ENABLED !== true) return null;
+    try {
+      var anchor = document.getElementById('dpSaveBtn');
+      if (!anchor || !anchor.parentNode) return null;
+      var link = document.getElementById('dpLifeCalibrationNudge');
+      if (!link) {
+        link = document.createElement('a');
+        link.id = 'dpLifeCalibrationNudge';
+        link.className = 'dp-life-calibration-nudge';
+        anchor.parentNode.insertBefore(link, anchor.nextSibling);
+      }
+      link.textContent = _dpText('lifeCalibrationNudge');
+      link.href = '/profile/life/' + (profileId ? '?profileId=' + encodeURIComponent(String(profileId)) : '');
+      return link;
+    } catch (_) { return null; }
+  }
   var GUIDED_ASTRO_ENABLED = true;
   var _dpAstroDraftKey = 'cd:guided-astro-draft:v1';
   var _dpAstroDraftTtl = 30 * 60 * 1000;
