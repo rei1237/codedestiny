@@ -11,7 +11,8 @@ function fixture(){
  const card=dom.window.document.getElementById('currentSeasonCard');
  const box=dom.window.document.getElementById('currentSeasonSummary');
  const rows=[];
- const ctx={document:dom.window.document,console,CURRENT_AGE:35,unlocked:false,
+ const ctx={document:dom.window.document,console,CURRENT_AGE:35,unlocked:false,voice:'pig',
+  _sajuPromptReadPersonaMode:()=>ctx.voice,
   GAN:{甲:{e:'wood',n:'갑목'}},JI:{子:{e:'water',a:'쥐'}},
   _coreEightChar:()=>({getYearGan:()=> '甲',getYearZhi:()=> '子'}),
   evalDaewun:()=>({score:60,label:'준비를 펼칠 때',tagCls:'good',emoji:'',evalSummary:'흐름을 살펴요'}),
@@ -29,7 +30,8 @@ test('current-year chapter follows the same unlock and clears after relocking',(
  assert.equal(box.innerHTML,'');assert.equal(card.style.display,'none');assert.equal(rows.length,0);
  ctx.unlocked=true;ctx.renderCurrentSeasonSummary();
  assert.match(box.textContent,/현재 대운/);assert.match(box.textContent,/올해의 나/);
- assert.match(box.textContent,/아래 대운표에서 시기를 선택/);
+ assert.match(box.textContent,/궁금한 시기를 골라 보세요/);
+ ctx.voice='neo';ctx.renderCurrentSeasonSummary();assert.match(box.textContent,/궁금한 시기를 골라 봐/);
  assert.doesNotMatch(box.textContent,/무료|프리미엄에서 이어/);
  assert.equal(rows.length,2);assert.equal(card.style.display,'block');
  ctx.unlocked=false;ctx.renderCurrentSeasonSummary();
