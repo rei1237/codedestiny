@@ -8,6 +8,7 @@ import {yeongnyangiOgImage} from '../_lib/share-image';
 import {YeongnyangiBeforeGuide,YEONGNYANGI_FAQS} from '../_components/YeongnyangiGuide';
 import KoreanOnly from '../_components/KoreanOnly';
 import ServiceNavigation from '../_home/ServiceNavigation';
+import SupportDesk from '../_components/SupportDesk';
 
 // 영냥이 결제 전 안내·자주 묻는 질문 전용 페이지(2026-11-21). 홈에서 접힌 안내를 걷어 내고 이곳으로 옮겼다.
 // FAQPage JSON-LD 는 화면에 보이는 YEONGNYANGI_FAQS 와 같은 배열에서 만든다. 가격·챕터는 YeongnyangiGuide 가 카탈로그에서 읽는다.
@@ -26,6 +27,6 @@ const jsonLd=[
  buildFaqPageJsonLd(YEONGNYANGI_FAQS),
 ];
 export default function Page(){return <>
- <div className="ynOriginal"><main><KoreanOnly><YeongnyangiBeforeGuide/></KoreanOnly></main><ServiceNavigation/></div>
+ <div className="ynOriginal"><main><KoreanOnly><YeongnyangiBeforeGuide/><SupportDesk/></KoreanOnly></main><ServiceNavigation/></div>
  {jsonLd.map((item,index)=><script key={index} type="application/ld+json" dangerouslySetInnerHTML={{__html:serializeJsonLd(item)}}/>)}
 </>;}

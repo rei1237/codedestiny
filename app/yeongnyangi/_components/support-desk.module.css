@@ -1,0 +1,109 @@
+/* 영냥이 고객센터(S9). 밤 토큰(--yn-*)만 쓴다. 새 색 없음. 버튼은 .yeongnyangi_page button(0,1,1)을 이기도록 .desk 아래로 쓴다. FAQ(.ynOriginal)와 내 상담(main[data-yn-night]) 모두 토큰을 내려 준다. */
+.desk {
+  margin: 28px auto;
+  max-width: 720px;
+  padding: 0 16px;
+  color: var(--yn-ivory);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.title {
+  margin: 0 0 6px;
+  font-size: var(--yn-t-section);
+  line-height: 1.35;
+}
+.lead { margin: 0 0 14px; color: var(--yn-muted); line-height: 1.7; }
+.card {
+  margin: 0 0 12px;
+  border: 1px solid var(--yn-line);
+  border-radius: var(--yn-radius);
+  background: var(--yn-surface);
+}
+.card > summary {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.card[open] > summary { border-bottom: 1px solid var(--yn-line); }
+.body { padding: 14px 16px 16px; line-height: 1.75; }
+.body p { margin: 0 0 10px; text-wrap: pretty; }
+.body a:not(.primary):not(.secondary) { color: var(--yn-gold); text-decoration: underline; text-underline-offset: 3px; }
+.desk .primary,
+.desk .secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  margin: 0 0 10px;
+  padding: 10px 16px;
+  border-radius: var(--yn-btn-radius);
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+.desk .primary { border: 1px solid var(--yn-gold); background: var(--yn-gold); color: var(--yn-deep); }
+.desk .primary:hover { background: var(--yn-gold-hover); }
+.desk .primary:disabled { opacity: 0.7; cursor: progress; }
+.desk .secondary { border: 1px solid var(--yn-line); background: var(--yn-raised); color: var(--yn-ivory); }
+.note { color: var(--yn-muted); font-size: 0.92rem; }
+.error { color: var(--yn-gold); }
+.list { margin: 0; padding: 0; list-style: none; }
+.list > li { padding: 0 0 14px; margin: 0 0 14px; border-bottom: 1px solid var(--yn-line); }
+.list > li:last-child { margin-bottom: 4px; }
+.rowTitle { font-weight: 700; }
+.rowTitle span { display: block; color: var(--yn-muted); font-size: 0.92rem; font-weight: 400; }
+.ref { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ref span { color: var(--yn-muted); font-size: 0.92rem; }
+.ref code {
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: var(--yn-deep);
+  color: var(--yn-ivory);
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  user-select: all;
+}
+.desk .ref button {
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--yn-line);
+  border-radius: var(--yn-btn-radius);
+  background: var(--yn-raised);
+  color: var(--yn-ivory);
+  font: inherit;
+  cursor: pointer;
+}
+.body label { display: block; margin: 0 0 6px; font-weight: 700; }
+.body textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 96px;
+  padding: 12px;
+  border: 1px solid var(--yn-line);
+  border-radius: 12px;
+  background: var(--yn-deep);
+  color: var(--yn-ivory);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.count { margin: 4px 0 10px; color: var(--yn-muted); font-size: 0.85rem; text-align: right; }
+.answer {
+  margin: 4px 0 12px;
+  padding: 14px;
+  border: 1px solid var(--yn-line);
+  border-radius: 12px;
+  background: var(--yn-raised);
+}
+.answer p { margin: 0 0 10px; white-space: pre-line; }
+.desk :focus-visible { outline: 2px solid var(--yn-gold); outline-offset: 2px; }

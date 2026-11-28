@@ -13,6 +13,7 @@ const { build } = require('esbuild');
 const entry = fileURLToPath(new URL('../../app/yeongnyangi/_components/Library.tsx', import.meta.url));
 const fixtures = {
   './OrderRecovery': 'export const OrderLookup=()=>null;',
+  './SupportDesk': 'export default function SupportDesk(){return null;}',
   '../_lib/reading-copy': 'export const readingCopy=()=>({library:"영냥이 보관함",loading:"불러오는 중",empty:"기록 없음",more:"더 보기",retry:"다시 불러오기",recovery:"이어쓰기",view:"결과 보기",login:"로그인",loginHint:"로그인이 필요합니다",language:"언어"});',
   '../_lib/result-state-copy': 'export const resultStateCopy=()=>({loadFailed:"조회 실패"});',
   '@/worker/yeongnyangi/fortune/reading-locale': 'export const readingLanguageNames={ko:"한국어"};',
