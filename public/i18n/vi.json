@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "Đọc lại luận giải Tứ Trụ cơ bản và đại vận cho hồ sơ ngày sinh đã mua mà không giới hạn thời gian. Các bài cơ bản và giải trí công khai miễn phí không cần mua. Tư vấn AI là sản phẩm riêng, chỉ tính phí khi bạn chọn.",
       "inlineDescFreePolicy": "Thanh toán một lần để đọc vĩnh viễn Luận giải Tứ Trụ cơ bản và đại vận. Các nội dung Tứ Trụ cơ bản và giải trí được cung cấp miễn phí; tư vấn AI được tính phí riêng."
+    },
+    "voice": {
+      "title": "Saju reading",
+      "ask": "Whose voice would you like to hear?",
+      "yeonTone": "Warm and polite",
+      "neoTone": "Casual and straight to the point"
     }
   },
   "_comment": "Code Destiny - Vietnamese premium localization (vi.json)",

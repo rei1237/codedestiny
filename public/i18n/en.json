@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "Revisit the Light Saju reading and ten-year cycles for the purchased birth profile without a time limit. Public free basic and fun readings need no purchase. AI consultations are separate products and are charged only when you choose them.",
       "inlineDescFreePolicy": "One payment gives permanent access to the Light Saju reading and ten-year cycle readings. The basic chart and entertainment readings are available at no charge; AI consultations are billed separately."
+    },
+    "voice": {
+      "title": "Saju reading",
+      "ask": "Whose voice would you like to hear?",
+      "yeonTone": "Warm and polite",
+      "neoTone": "Casual and straight to the point"
     }
   },
   "_comment": "Code Destiny — English premium localization (en.json)",

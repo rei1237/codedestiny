@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "Lesen Sie die kompakte Saju-Deutung und Zehnjahreszyklen des gekauften Geburtsprofils zeitlich unbegrenzt erneut. Öffentlich kostenlose Basis- und Unterhaltungsdeutungen erfordern keinen Kauf. KI-Beratungen sind separate Produkte und werden nur bei Auswahl berechnet.",
       "inlineDescFreePolicy": "Eine einmalige Zahlung gewährt dauerhaften Zugriff auf die kompakte Saju-Deutung und die Deutung der Zehnjahreszyklen. Grundlegende und unterhaltsame Saju-Deutungen sind kostenlos; KI-Beratungen werden separat berechnet."
+    },
+    "voice": {
+      "title": "Saju reading",
+      "ask": "Whose voice would you like to hear?",
+      "yeonTone": "Warm and polite",
+      "neoTone": "Casual and straight to the point"
     }
   },
   "_comment": "Code Destiny — German premium localization (de.json)",

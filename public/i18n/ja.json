@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "購入した生年月日のライト鑑定と大運を、期限なく読み返せます。無料公開の基本・お楽しみ鑑定に購入は不要です。AI相談は別商品で、選択した場合のみ課金されます。",
       "inlineDescFreePolicy": "一度の支払いでライト四柱推命鑑定と大運鑑定を期限なく読めます。基本・お楽しみ鑑定は無料で、AI相談は別途有料です。"
+    },
+    "voice": {
+      "title": "四柱推命の読み解き",
+      "ask": "誰の口調で聞きますか？",
+      "yeonTone": "やさしい丁寧語",
+      "neoTone": "タメ口でズバッと指摘"
     }
   },
   "_comment": "Code Destiny — Japanese premium localization (ja.json)",

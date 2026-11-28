@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "Baca semula bacaan Saju ringkas dan kitaran sepuluh tahun bagi profil kelahiran yang dibeli tanpa had masa. Bacaan asas dan santai yang diterbitkan percuma tidak memerlukan pembelian. Konsultasi AI ialah produk berasingan dan hanya dicaj apabila dipilih.",
       "inlineDescFreePolicy": "Satu bayaran memberi akses kekal kepada bacaan Saju ringkas dan bacaan kitaran sepuluh tahun. Bacaan Saju asas dan santai adalah percuma; konsultasi AI dikenakan bayaran berasingan."
+    },
+    "voice": {
+      "title": "Saju reading",
+      "ask": "Whose voice would you like to hear?",
+      "yeonTone": "Warm and polite",
+      "neoTone": "Casual and straight to the point"
     }
   },
   "_comment": "Code Destiny — Malay premium localization (ms.json)",

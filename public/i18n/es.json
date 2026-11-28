@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "Vuelve a leer la lectura ligera de Saju y los ciclos de diez años del perfil adquirido sin límite de tiempo. Las lecturas básicas y divertidas publicadas gratis no requieren compra. Las consultas con IA son productos aparte y solo se cobran si las eliges.",
       "inlineDescFreePolicy": "Un solo pago da acceso permanente a la lectura ligera de Saju y a los ciclos de diez años. Las lecturas básicas y divertidas de Saju son gratis; las consultas con IA se cobran aparte."
+    },
+    "voice": {
+      "title": "Saju reading",
+      "ask": "Whose voice would you like to hear?",
+      "yeonTone": "Warm and polite",
+      "neoTone": "Casual and straight to the point"
     }
   },
   "_comment": "Code Destiny — Spanish premium localization (es.json)",

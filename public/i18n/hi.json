@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "खरीदे गए जन्म-प्रोफ़ाइल की लाइट साजू व्याख्या और दस-वर्षीय चक्र बिना समय सीमा दोबारा पढ़ें। सार्वजनिक निःशुल्क मूल और मनोरंजक व्याख्याओं के लिए खरीद आवश्यक नहीं है। AI परामर्श अलग उत्पाद हैं और केवल चुनने पर शुल्क लगता है।",
       "inlineDescFreePolicy": "एक बार भुगतान करके लाइट साजू व्याख्या और दस-वर्षीय भाग्य चक्रों की व्याख्या हमेशा पढ़ें। मूल और मनोरंजक साजू व्याख्याएँ निःशुल्क हैं; AI परामर्श का शुल्क अलग से लिया जाता है।"
+    },
+    "voice": {
+      "title": "Saju reading",
+      "ask": "Whose voice would you like to hear?",
+      "yeonTone": "Warm and polite",
+      "neoTone": "Casual and straight to the point"
     }
   },
   "_comment": "Code Destiny — Hindi premium localization (hi.json)",

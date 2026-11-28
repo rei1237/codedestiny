@@ -1,0 +1,59 @@
+{
+  "_comment": "Saju reading header: voice picker cards (Yeoni polite / Yeongnyangi casual). Choosing a card changes the tone of the static reading text. Authored in en, ja, zh-CN, zh-TW; other locales copy English.",
+  "saju.voice.title": {
+    "ko": "사주 풀이",
+    "en": "Saju reading",
+    "ja": "四柱推命の読み解き",
+    "zh-CN": "四柱解读",
+    "zh-TW": "四柱解讀",
+    "vi": "Saju reading",
+    "hi": "Saju reading",
+    "es": "Saju reading",
+    "fr": "Saju reading",
+    "de": "Saju reading",
+    "nl": "Saju reading",
+    "ms": "Saju reading"
+  },
+  "saju.voice.ask": {
+    "ko": "누구 말투로 들을까요?",
+    "en": "Whose voice would you like to hear?",
+    "ja": "誰の口調で聞きますか？",
+    "zh-CN": "想听谁的语气？",
+    "zh-TW": "想聽誰的語氣？",
+    "vi": "Whose voice would you like to hear?",
+    "hi": "Whose voice would you like to hear?",
+    "es": "Whose voice would you like to hear?",
+    "fr": "Whose voice would you like to hear?",
+    "de": "Whose voice would you like to hear?",
+    "nl": "Whose voice would you like to hear?",
+    "ms": "Whose voice would you like to hear?"
+  },
+  "saju.voice.yeonTone": {
+    "ko": "다정한 존댓말",
+    "en": "Warm and polite",
+    "ja": "やさしい丁寧語",
+    "zh-CN": "温柔有礼的敬语",
+    "zh-TW": "溫柔有禮的敬語",
+    "vi": "Warm and polite",
+    "hi": "Warm and polite",
+    "es": "Warm and polite",
+    "fr": "Warm and polite",
+    "de": "Warm and polite",
+    "nl": "Warm and polite",
+    "ms": "Warm and polite"
+  },
+  "saju.voice.neoTone": {
+    "ko": "반말로 콕 짚어줌",
+    "en": "Casual and straight to the point",
+    "ja": "タメ口でズバッと指摘",
+    "zh-CN": "随意直接，一针见血",
+    "zh-TW": "隨意直接，一針見血",
+    "vi": "Casual and straight to the point",
+    "hi": "Casual and straight to the point",
+    "es": "Casual and straight to the point",
+    "fr": "Casual and straight to the point",
+    "de": "Casual and straight to the point",
+    "nl": "Casual and straight to the point",
+    "ms": "Casual and straight to the point"
+  }
+}

@@ -23,6 +23,12 @@
       ],
       "ownFreePolicy": "购买对应出生资料的轻量命理解读与大运解析可不限时重读。已免费公开的基础与趣味解读无需购买。AI咨询为独立商品，仅在主动选择时付费。",
       "inlineDescFreePolicy": "一次付费即可永久阅读轻量四柱命理解读与大运解析。基础与趣味命理解读免费，AI咨询另行收费。"
+    },
+    "voice": {
+      "title": "四柱解读",
+      "ask": "想听谁的语气？",
+      "yeonTone": "温柔有礼的敬语",
+      "neoTone": "随意直接，一针见血"
     }
   },
   "_comment": "Code Destiny - Chinese Simplified premium localization (zh-cn.json)",

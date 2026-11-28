@@ -20,6 +20,7 @@
 #resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading,#tsModal .modal-box,#tsGrid,#iljuCard,#resultPage .saju-nature-report,#resultPage .cd-section-gate {
   --reading-ink:var(--cd-text);--reading-muted:var(--cd-text-muted);--reading-accent:var(--cd-accent);--reading-paper:var(--cd-surface);--reading-line:var(--cd-border);
   --reading-card:#fff;--reading-gold:#c9a25e;--reading-on-accent:#fff;
+  --cd-speaker-ink:var(--reading-ink);--cd-speaker-accent:var(--reading-accent);--cd-speaker-line:var(--reading-line);--cd-speaker-bubble:#fff5f8;
   --reading-el-wood:#17766b;--reading-el-fire:#c24732;--reading-el-earth:#a87925;--reading-el-metal:#8196a5;--reading-el-water:#285e94;
 }
 #resultPage #letterBox,#resultPage .saju-reading,#sajuReadingHeader,.saju-input-modes,.saju-static-offer,#modalBody .saju-reading {
@@ -27,11 +28,10 @@
 }
 body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,body.neo-mode #sajuReadingHeader,body.neo-mode .saju-input-modes,body.neo-mode .saju-static-offer,body.neo-mode #modalBody .saju-reading,body.neo-mode #tsModal .modal-box,body.neo-mode #tsGrid,body.neo-mode #iljuCard,body.neo-mode #resultPage .saju-nature-report,body.neo-mode #resultPage .cd-section-gate {
   --reading-ink:#f4eafa;--reading-muted:#d6c7e5;--reading-accent:#e8c985;--reading-paper:#21182f;--reading-line:#685277;
-  --reading-card:#2a2040;--reading-gold:#e8c985;--reading-on-accent:#21182f;
+  --reading-card:#2a2040;--reading-gold:#e8c985;--reading-on-accent:#21182f;--cd-speaker-bubble:#2a2040;
   --reading-el-wood:#8bd4ba;--reading-el-fire:#f29b85;--reading-el-earth:#dfbd73;--reading-el-metal:#dce4ed;--reading-el-water:#9ac7ef;
 }
 #sajuReadingHeader {display:flex;align-items:center;gap:24px;padding:32px;border:1px solid var(--reading-line);border-radius:20px;margin:0 0 24px;}
-#sajuReadingHeader img {flex:none;object-fit:contain;}
 #sajuReadingHeader h2 {font-family:var(--font-reading);font-weight:500;text-wrap:balance;color:var(--reading-ink);font-size:clamp(1.2rem,3vw,1.65rem);margin:0 0 8px;line-height:1.4;}
 #sajuReadingHeader p,.saju-input-modes p {font-size:.9rem;line-height:1.65;color:var(--reading-muted);margin:0 0 12px;}
 .saju-reading-switch {display:flex;gap:8px;flex-wrap:wrap;}
@@ -40,7 +40,19 @@ body.neo-mode #resultPage #letterBox,body.neo-mode #resultPage .saju-reading,bod
 body.neo-mode .saju-reading-switch [aria-pressed="true"] {color:#21182f;}
 .saju-reading-compare {text-align:left;border:0;text-decoration:underline;text-underline-offset:4px;padding-left:0;color:var(--reading-accent);font-size:.875rem;}
 .saju-input-modes {display:flex;align-items:center;gap:16px;padding:14px 16px;border-radius:14px;margin-bottom:20px;}
-.saju-input-modes>img {flex:none;width:64px;height:96px;object-fit:contain;background:transparent;}
+.saju-reading-header__ask {font-weight:600;}
+/* 말투 선택 카드(연이·영냥이). 고른 카드는 강조색 테두리와 얼굴 고리로 표시한다(채움색 대신 — 두 테마 모두 글자 대비 유지). */
+.saju-voice-cards {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:520px;}
+#sajuReadingHeader .saju-voice-card {display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px;text-align:left;border-radius:16px;background:var(--reading-paper);color:var(--reading-ink);}
+#sajuReadingHeader .saju-voice-card[aria-pressed="true"] {background:var(--cd-speaker-bubble);border-color:var(--reading-accent);box-shadow:0 0 0 1px var(--reading-accent);color:var(--reading-ink);}
+#sajuReadingHeader .saju-voice-card[aria-pressed="true"] .cd-speaker__face {box-shadow:0 0 0 3px var(--reading-accent);}
+.saju-voice-card__text {display:flex;flex-direction:column;gap:2px;min-width:0;}
+#sajuReadingHeader .saju-voice-card__text strong {font-size:1rem;line-height:1.4;color:var(--reading-ink);}
+#sajuReadingHeader .saju-voice-card__text span {font-size:.8125rem;line-height:1.45;color:var(--reading-muted);word-break:keep-all;}
+@media(max-width:420px) {.saju-voice-cards {grid-template-columns:minmax(0,1fr);}}
+/* 화자 말풍선(lib/saju/speaker) 안의 문단은 바깥 여백·폭 제한을 받지 않는다. */
+.saju-reading .cd-speaker__bubble p {margin:0;max-width:none;}
+.saju-reading[data-reading-mode="neo"] .saju-reading__body--voice {grid-template-columns:minmax(0,1fr);}
 .saju-input-modes p {margin:8px 0 0;}
 .saju-reading {padding:20px;border-radius:16px;line-height:1.8;font-size:1rem;overflow-wrap:anywhere;text-align:left;}
 .saju-reading h3 {margin:0 0 20px;font-size:1.2rem;color:var(--reading-ink);}
@@ -127,14 +139,12 @@ body.neo-mode .saju-reading-switch [aria-pressed="true"] {color:#21182f;}
 }
 @media(max-width:600px) {
   #sajuReadingHeader {padding:22px 18px;gap:14px;align-items:flex-start;}
-  #sajuReadingHeader img {width:64px;height:64px;}
   .saju-reading {padding:18px 14px;}
   .saju-reading[data-reading-mode="neo"] .saju-reading__body {grid-template-columns:1fr;}
   #tsGrid {grid-template-columns:1fr;}
 }
 @media(prefers-reduced-motion:reduce) {.saju-reading,.saju-reading-header,.cd-soulcat-entry,#tsGrid .saju-ten-button {animation:none;transition:none;scroll-behavior:auto;}}
 
-#sajuReadingHeader img {background:transparent;}
 .saju-static-offer__price {display:block;font-size:1.1rem;margin-bottom:12px;}
 
 #resultPage {overflow-anchor:none;}
@@ -175,6 +185,11 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 #resultPage .saju-letter__prose p + p {margin-top:1.5em;}
 #resultPage .saju-letter .saju-letter__greeting {margin-bottom:1.8em;color:var(--reading-accent);font-size:1.15rem;font-weight:700;}
 #resultPage .saju-letter .saju-letter__signature {margin-top:2em;padding-top:1.2em;border-top:1px solid var(--reading-line);text-align:right;color:var(--reading-accent);}
+/* 편지 첫인사는 화자 말풍선, 맺음말은 서명 옆 작은 얼굴. */
+#resultPage .saju-letter .saju-letter__opening {max-width:62ch;margin:0 auto 1.8em;}
+#resultPage .saju-letter .cd-speaker__bubble .saju-letter__greeting {margin:0;max-width:none;color:var(--reading-ink);font-size:1.05rem;line-height:1.75;}
+#resultPage .saju-letter .saju-letter__sign {display:flex;align-items:center;justify-content:flex-end;gap:12px;max-width:62ch;margin:2em auto 0;padding-top:1.2em;border-top:1px solid var(--reading-line);}
+#resultPage .saju-letter .saju-letter__sign .saju-letter__signature {margin:0;padding:0;border:0;max-width:none;}
 #resultPage .saju-letter .saju-reading__evidence {max-width:62ch;margin:32px auto 0;}
 #resultPage .saju-letter .saju-reading__evidence:focus-within {outline:2px solid var(--reading-accent);outline-offset:4px;}
 
@@ -470,7 +485,6 @@ html body #resultPage .saju-report-cover .hero-animal img {width:48px;height:48p
 }
 html body #resultPage #sajuReadingHeader {gap:16px;padding:20px;margin:20px 0;}
 html body #resultPage #sajuReadingHeader > div {min-width:0;flex:1;}
-html body #resultPage #sajuReadingHeader > img {width:56px;height:56px;}
 html body #resultPage #sajuReadingHeader h2 {font-size:1.2rem;}
 #resultPage .saju-section-icon {display:inline-block;flex:none;width:24px;height:24px;color:var(--cd-accent);vertical-align:middle;}
 #resultPage .saju-section-heading {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}

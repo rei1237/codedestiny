@@ -193,3 +193,33 @@ test('matching cycle roles do not repeat a definition, and missing strength stay
   assert.match(report.sections[2].text,/생활의 기반에서도 반복/);
   assert.equal(report.sections.map(s=>s.text).join('').split('정재가 있다고 재산이 안정되는 것은 아닙니다.').length,2);
 });
+
+test('the header offers two voice cards and the letter opens in the current speaker bubble',async()=>{
+  const {JSDOM}=await import('jsdom');
+  const dom=new JSDOM('<html lang="ko"><body><div id="resultPage"><section id="sajuCard"></section><h3 id="letterTitle"></h3><div id="letterContent"></div></div></body></html>',{runScripts:'outside-only',url:'https://example.invalid/'});
+  const w=dom.window;w.requestAnimationFrame=()=>0;
+  w.eval(readFileSync('js/core/saju/speaker.generated.js','utf8'));
+  w.eval(readFileSync('js/core/saju/reading-personas.js','utf8'));
+  w.SajuReadingPresentation.render('letter',fixture);
+  const header=w.document.getElementById('sajuReadingHeader');
+  assert.equal(header.querySelector('h2').textContent,'사주 풀이');
+  assert.doesNotMatch(header.textContent,/달빛|별빛/);
+  const cards=()=>[...header.querySelectorAll('button[data-saju-mode]')];
+  assert.deepEqual(cards().map(b=>[b.dataset.sajuMode,b.getAttribute('aria-pressed')]),[['pig','true'],['neo','false']]);
+  assert.match(cards()[0].textContent,/연이다정한 존댓말/);
+  assert.match(cards()[1].textContent,/영냥이반말로 콕 짚어줌/);
+  let letter=w.document.querySelector('#letterContent .saju-letter');
+  assert.ok(letter.querySelector('.saju-letter__opening .cd-speaker--yeoni .saju-letter__greeting'));
+  assert.ok(letter.querySelector('.saju-letter__sign .cd-speaker__face img[src*="yeoni-"]'));
+  assert.equal(letter.querySelectorAll('.saju-letter__prose p').length,8);
+  cards()[1].click();
+  assert.deepEqual(cards().map(b=>b.getAttribute('aria-pressed')),['false','true']);
+  assert.equal(w.localStorage.getItem('cdSajuPersonaV1'),'neo');
+  w.SajuReadingPresentation.render('letter',fixture);
+  letter=w.document.querySelector('#letterContent .saju-letter');
+  assert.equal(letter.dataset.readingMode,'neo');
+  assert.ok(letter.querySelector('.saju-letter__opening .cd-speaker--nyang'));
+  assert.equal(letter.querySelectorAll('.cd-speaker--yeoni').length,0);
+  assert.equal(letter.querySelectorAll('.saju-letter__prose p').length,5);
+  dom.window.close();
+});
