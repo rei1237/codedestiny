@@ -183,7 +183,7 @@
       html += section('대운·세운의 방향', para(neo ? dom + ' 기운을 북돋는 운에서는 흐름이 순하게 이어지기 쉽고, 기세를 거스르는 운에서는 조율할 일이 늘 수 있어. 강점 하나에 힘을 모으는 쪽이 잘 맞아.' : dom + ' 기운을 북돋는 운이 오면 흐름이 순하게 이어지기 쉽고, 그 기세를 거스르는 운에서는 조율할 일이 늘 수 있어요. 여러 갈래로 힘을 나누기보다 타고난 강점 하나를 깊게 가꾸는 쪽이 잘 맞는 구조예요.'));
       html += section(jg.isGaJong ? '가종격(假從格)' : '진종격(眞從格)에 가까움', para(jg.isGaJong ? (neo ? '일간을 돕는 글자가 있어도 실제 뿌리로 작용하지 못해서 지배 오행을 따르는 가종(假從) 조건이야.' : '일간을 돕는 글자가 있지만 실제 뿌리로 작용하지 못해 지배 오행을 따르는 가종(假從)의 조건이에요.') : (neo ? '지배 오행을 따르는 흐름이 뚜렷해.' : '지배하는 오행을 따르는 흐름이 뚜렷한 편이에요.')));
     } else {
-      var lead = neo ? '판정: ' + st + '(' + (strong ? '신강' : '신약') + '). 억부 점수 ' + pw.score + '점, 기준선 30점에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '야.' : '억부 점수는 ' + pw.score + '점으로 ' + st + '으로 읽혀요. 신강과 신약을 가르는 기준선은 30점이고, 당신의 ' + dayName + ' 일간은 그 기준선에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '에 있어요.';
+      var lead = neo ? st + (st === (strong ? '신강' : '신약') ? '' : ' (' + (strong ? '신강' : '신약') + ')') + jo(st, '으로', '로') + ' 읽혀. 억부 점수 ' + pw.score + '점, 기준선 30점에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '야.' : '억부 점수는 ' + pw.score + '점으로 ' + st + '으로 읽혀요. 신강과 신약을 가르는 기준선은 30점이고, 당신의 ' + dayName + ' 일간은 그 기준선에서 ' + Math.abs(pw.score - 30) + '점 ' + (pw.score >= 30 ? '위' : '아래') + '에 있어요.';
       var tagline = strong ? (neo ? '유형: 스스로 밀고 나가는 주체형이야.' : '스스로 밀고 나가는 주체형에 가까워요.') : (neo ? '유형: 섬세하게 살피고 함께 가는 공감형이야.' : '섬세하게 살피고 함께 가는 공감형에 가까워요.');
       html += section(neo ? '영냥이의 진단' : '연이가 읽은 힘의 모양', hero(st, ['억부 ' + pw.score + '점', '기준 30점', strong ? '주체형' : '공감형']) + say(lead + ' ' + tagline, mode, 'read'), 'saju-rich__lead');
       html += gaugeHtml;
@@ -312,7 +312,7 @@
     var top = fams.filter(function (x) { return x.surface === max; }), none = fams.filter(function (x) { return x.surface === 0; });
     var names = function (list) { return list.map(function (x) { return FAMILY[x.f]; }).join(', '); };
     html += section(neo ? '영냥이의 진단' : '연이가 본 십성의 무게', hero(names(top), [(neo ? '우세 ' : '가장 많은 계열 ') + max + '개', none.length ? (neo ? '부재 ' : '비어 있음 ') + names(none) : (neo ? '부재 없음' : '다섯 계열 모두')]) + say(neo ?
-      '판정: ' + names(top) + ' 우세(일간 빼고 일곱 글자 중 ' + max + '개). ' + (none.length ? '부재: ' + names(none) + '.' : '다섯 계열이 모두 드러나 있어.') :
+      '일간을 뺀 일곱 글자를 보면 ' + names(top) + ' 계열이 ' + (top.length > 1 ? '각각 ' : '') + max + '개로 가장 많아. ' + (none.length ? names(none) + ' 계열은 겉에 드러나지 않아.' : '다섯 계열이 모두 드러나 있어.') :
       '일간을 뺀 일곱 글자 가운데 가장 무게가 실린 것은 ' + names(top) + '이에요. ' + FAMILY_MEANING[top[0].f].split(' · ')[1] + '의 결이 생활 곳곳에서 드러나기 쉬워요. ' + (none.length ? '반면 ' + names(none) + '은 겉으로 드러나지 않았어요.' : '다섯 계열이 모두 겉으로 드러나 있어 쓸 수 있는 도구가 고른 편이에요.'), mode, 'read'), 'saju-rich__lead');
     html += section(neo ? '계열별 분포' : '다섯 계열의 분포',
       '<ul class="saju-bars">' + fams.map(function (x) { return '<li data-el="' + x.el + '"><span class="saju-bars__label">' + esc(FAMILY[x.f]) + '</span><span class="saju-bars__track" aria-hidden="true"><i style="--pos:' + pct(x.surface, 0, 7) + '%"></i></span><span class="saju-bars__value">' + x.surface + '</span></li>'; }).join('') + '</ul>' +
@@ -467,7 +467,7 @@
     });
     var spouseGod = god(dj), spouseStage = twelve(dg, dj), spouseFam = GOD_FAMILY[spouseGod];
     html += section(neo ? '영냥이의 진단' : '연이가 펼쳐 본 네 기둥', hero(dg + dj, [dayName + ' 일간', spouseGod ? '일지 ' + spouseGod : '', spouseStage ? '12운성 ' + spouseStage : ''], true) + say(neo ?
-      dayName + '(' + dg + ') 일간, 일지 ' + dj + '(' + (spouseGod || '—') + ' · ' + (spouseStage || '—') + '). 아래 표가 계산 근거야.' :
+      dayName + '(' + dg + ') 일간, 일지 ' + dj + '(' + (spouseGod || '—') + ' · ' + (spouseStage || '—') + '). ‘계산 근거 펼치기’를 열면 네 기둥과 지장간을 볼 수 있어.' :
       '당신의 중심은 ' + dayName + '(' + dg + ') 일간이고, 바로 아래 일지 ' + dj + '에는 ' + (spouseGod || '—') + jo(spouseGod || '—', '이', '가') + ' ' + (spouseStage || '—') + '의 자리로 앉아 있어요. 네 기둥을 한눈에 펼쳐 보면 이렇게 읽혀요.', mode, 'read') +
       more('계산 근거 펼치기 · 네 기둥과 지장간', table('원국 네 기둥', ['기둥', '천간 · 십성', '지지 · 십성', '지장간', '12운성', '궁위'], rows)) +
       '<p class="saju-rich__note">' + esc(neo ? '12운성은 일간 기준이고, 음간은 거꾸로 도는 음생양사 정본을 따라. 궁위 나이는 전통적인 근묘화실 구분이야.' : '12운성은 일간을 기준으로 지지마다 기운이 어느 단계인지 본 것이고, 음간은 거꾸로 도는 음생양사 정본을 따라요. 궁위의 나이는 전통적인 근묘화실 구분이에요.') + '</p>', 'saju-rich__lead saju-rich__wide');

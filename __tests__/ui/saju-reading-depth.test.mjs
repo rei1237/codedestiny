@@ -23,6 +23,16 @@ test('same pillar changes with seasonal, strength and conflicting climate eviden
  assert.match(contextualReading({...cold,unknown:true}).find(s=>s.key==='unknown').text,/시주는.*제외/);
  assert.ok(!buildDepthFacts({...cold,unknown:true}).roots.some(s=>s.startsWith('시주')));
 });
+test('climate copy only compares two available sets of candidates',()=>{
+ for(const [climate,power] of [[['fire'],[]],[[],['water']],[[],[]],[['fire'],['fire']]]){
+  const input=facts();input.johu.yongshin=climate;input.power.yongshin=power;
+  const text=contextualReading(input).find(s=>s.key==='climate').text;
+  assert.equal(text.includes('조후에서는'),!!climate.length);
+  assert.equal(text.includes('억부에서는'),!!power.length);
+  assert.equal(text.includes('겹치는 기운'),!!(climate.length && power.length));
+  assert.doesNotMatch(text,/,\s*활동/);
+ }
+});
 test('display reuses the canonical prompt gyeokguk verdict',()=>{
  for(const stem of STEM_ORDER) for(const month of MONTH_ORDER){
   const input=facts(month); input.p.d.g=stem;
