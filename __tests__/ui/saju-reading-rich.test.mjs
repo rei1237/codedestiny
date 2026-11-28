@@ -251,6 +251,18 @@ test('daily: the closing word is a bubble from the current speaker only, with th
   } finally { delete context.CdSajuSpeaker; }
 });
 
+test('ilju: the lead and the one-line word are bubbles from the current speaker only',()=>{
+  const facts=factsOf(charts[2]);
+  vm.runInContext(readFileSync('js/core/saju/speaker.generated.js','utf8'),context);
+  try {
+    const yeon=rich.ilju(facts,'pig'),neo=rich.ilju(facts,'neo');
+    assert.match(yeon,/saju-rich__voice"><div class="cd-speaker cd-speaker--yeoni"[\s\S]*?연이의 한마디<\/strong>/);
+    assert.match(neo,/saju-rich__voice"><div class="cd-speaker cd-speaker--nyang"[\s\S]*?영냥이의 한 줄 정리<\/strong>/);
+    assert.ok((yeon.match(/cd-speaker--yeoni/g)||[]).length>=2,'일주 머리말도 연이 말풍선이다');
+    assert.doesNotMatch(yeon,/cd-speaker--nyang|영냥이/);assert.doesNotMatch(neo,/cd-speaker--yeoni|yeoni-|연이(의|가|는) /);
+  } finally { delete context.CdSajuSpeaker; }
+});
+
 test('climate base follows the month branch (12 steps) and the worker policy copy agrees',async()=>{
   const {analyzeJohu:policyJohu}=await import('../../worker/lib/saju-yongshin-policy.js');
   const p={y:{g:'辛',j:'未'},m:{g:'庚',j:'寅'},d:{g:'辛',j:'酉'},h:{g:'壬',j:'辰'}};

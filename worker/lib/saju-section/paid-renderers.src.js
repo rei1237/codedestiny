@@ -929,6 +929,12 @@ function renderSummary(p,johu,natal){
       '</div>'+
       '<div id="'+id+'" class="prem-text saju-summary-chapter__body">'+body+summaryDepth(key)+summaryPersonalDepth(key)+'</div></article>';
   }
+  // 화자(연이·영냥이)가 이름으로 말하는 제목에는 지금 화자 얼굴을 붙인다(lib/saju/speaker → window.CdSajuSpeaker). 없으면 글자 제목 그대로.
+  function speakerTitle(title,mood){
+    var s=window.CdSajuSpeaker;
+    if(!s||typeof s.faceHtml!=='function')return title;
+    return '<span class="saju-speaker-title" style="display:flex;align-items:center;gap:10px">'+s.faceHtml({who:s.speakerFor(_isNeoSaju?'neo':'pig'),mood:mood,size:44})+'<span style="min-width:0">'+title+'</span></span>';
+  }
   function subHead(txt,c){return '<b class="saju-summary-subhead" style="--saju-subhead-color:'+(c||'var(--cd-accent,#b31955)')+'">'+txt+'</b>';}
   function li(items){return '<ul class="saju-summary-list">'+items.map(function(t){return '<li>'+t+'</li>';}).join('')+'</ul>';}
   function kv(k,v){return '<div class="saju-summary-kv"><b>'+k+'</b><span>'+v+'</span></div>';}
@@ -1329,7 +1335,7 @@ function renderSummary(p,johu,natal){
     癸:'계수(癸水)는 맑은 이슬이야. 공감 능력이 탁월하고 일대일 관계에서 깊고 따뜻한 거 인정해. 다만 우유부단함, 지나친 내성이 가장 큰 약점일 수 있어. 결정을 미루다 기회를 놓치지 않게, 직관을 믿고 움직이는 용기를 조금 내 봐. 꾸준함이 네 무기인 건 맞으니까, 생각한 다음엔 한 걸음 실천을 꼭 붙여 봐.'
   };
 
-  html+=box('seonggyeok',(_isNeoSaju?'🐱 ⑥ 성격·기질 심층 분석 — 영냥이가 본 너':'🌸 ⑥ 성격·기질 심층 분석 — 나를 이해하는 시간'),
+  html+=box('seonggyeok',(_isNeoSaju?speakerTitle('🐱 ⑥ 성격·기질 심층 분석 — 영냥이가 본 너','read'):'🌸 ⑥ 성격·기질 심층 분석 — 나를 이해하는 시간'),
     subHead('핵심 성향','#c2185b')+
     '<div style="font-size:.85rem;line-height:1.85;margin-top:6px">'+
     ((_isNeoSaju?personalityByGanNeo:personalityByGan)[dg]||deep.nature)+'</div>'+
@@ -1590,7 +1596,7 @@ function renderSummary(p,johu,natal){
   /* ───────────────────────────────
      12. 인생 전략 요약
   ─────────────────────────────── */
-  html+=box('jeollyak',(_isNeoSaju?'🚀 ⑬ 앞으로의 길 — 영냥이의 종합 정리':'🚀 ⑬ 인생 전략 로드맵 — 연이의 종합 천기'),
+  html+=box('jeollyak',speakerTitle(_isNeoSaju?'🚀 ⑬ 앞으로의 길 — 영냥이의 종합 정리':'🚀 ⑬ 인생 전략 로드맵 — 연이의 종합 천기','cheer'),
     subHead('지금 당장 실천할 것','#7b1fa2')+
     li(_isNeoSaju
       ?['강점인 <b>'+dominant+'</b> 에너지, 일이랑 관계에 마음껏 써 봐',
@@ -1760,11 +1766,11 @@ function renderSummary(p,johu,natal){
   ─────────────────────────────── */
   if (_isNeoSaju) {
     html+='<div class="prem-box" style="background:var(--cd-surface-2);border-color:var(--cd-border)">'+
-      '<span class="prem-title" style="border-color:var(--cd-accent);color:var(--cd-accent)">🐱 영냥이의 현실 체크 — '+(USER_NAME||'너')+'에게 해 주는 이야기</span>'+
+      speakerTitle('<span class="prem-title" style="border-color:var(--cd-accent);color:var(--cd-accent)">🐱 영냥이의 현실 체크 — '+(USER_NAME||'너')+'에게 해 주는 이야기</span>','think')+
       '<div class="prem-text">'+generateNeoFactPunch(p,pw,jg,dominant,dayMaster,domE,natal,deep)+'</div></div>';
   } else {
     html+='<div class="prem-box" style="background:linear-gradient(135deg,#E8F5E9,#F1F8E9);border-color:#A5D6A7">'+
-      '<span class="prem-title" style="border-color:#4CAF50;color:#2E7D32">🍀 연이의 현실 조언 — '+(USER_NAME||'당신')+'님만을 위한 이야기</span>'+
+      speakerTitle('<span class="prem-title" style="border-color:#4CAF50;color:#2E7D32">🍀 연이의 현실 조언 — '+(USER_NAME||'당신')+'님만을 위한 이야기</span>','cheer')+
       '<div class="prem-text">'+generateDetailedAdvice(p,pw,jg,dominant,dayMaster,domE,natal,deep)+'</div></div>';
   }
 

@@ -711,7 +711,7 @@ var natalIntl = (function () {
       var parts = johuParts(p, L), ok = johuMatches(parts, j), diff = (j.moistCnt || 0) - (j.dryCnt || 0);
       var tIdx = {cold:0, cool:1, neutral:2, warm:3, hot:4}, typeName = C.temp[tIdx[j.type] != null ? tIdx[j.type] : 2], moistName = C.moist[j.moistType] || C.moist.balanced;
       var season = seasonOf(j, parts, p), env = C.env[(Math.max(-6, Math.min(6, j.score)) < 0 ? 'cold' : 'hot') + (diff < 0 ? 'dry' : 'wet')];
-      var html = section(c.lead[k], hero(env.title, [typeName, moistName, fmt(c.tempBadge, {s:num(j.score)})]) + para(fmt(c.verdict[k], {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName.toLowerCase()})), 'saju-rich__lead');
+      var html = section(c.lead[k], hero(env.title, [typeName, moistName, fmt(c.tempBadge, {s:num(j.score)})]) + say(fmt(c.verdict[k], {season:season, base:num(parts ? parts.seasonTemp : (BRANCH_TEMP[p.m.j] || 0)), score:num(j.score), type:typeName, wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName.toLowerCase()}), mode, 'read', C.voice[k]), 'saju-rich__lead');
       html += '<div class="saju-rich__gauges">' +
         gauge({kind:'temp', value:j.score, min:-9, max:9, zones:[-5, -2, 2, 5], names:C.temp, ends:c.gaugeTemp.ends, caption:fmt(c.gaugeTemp.caption, {score:num(j.score)}), aria:fmt(c.gaugeTemp.aria, {score:num(j.score), type:typeName})}) +
         gauge({kind:'humid', value:diff, min:-6, max:6, zones:[-2.5, 3], names:[C.moist.dry, C.moist.balanced, C.moist.wet], ends:c.gaugeHumid.ends, caption:fmt(c.gaugeHumid.caption, {wet:j.moistCnt || 0, dry:j.dryCnt || 0, diff:num(diff)}), aria:fmt(c.gaugeHumid.aria, {wet:j.moistCnt || 0, dry:j.dryCnt || 0, moist:moistName.toLowerCase()})}) + '</div>';
@@ -747,12 +747,12 @@ var natalIntl = (function () {
       var parts = powerParts(p, L), ok = powerMatches(parts, pw), strong = !!pw.isStrong, st = stageName(pw.score), html = '';
       var g = s.gauge, gaugeHtml = gauge({kind:'power', value:pw.score, min:-71, max:88, base:30, zones:[-20, 10, 30, 50, 70], names:C.stage, ends:g.ends, baseLabel:g.baseLabel, caption:fmt(g.caption, {score:pw.score}), aria:fmt(g.aria, {score:pw.score, stage:st})});
       if (pw.strengthPending) {
-        html += section(C.strengthLead[k], hero(s.pendBadge, [fmt(s.pendRef, {score:pw.score})]) + para(s.pendText[k]), 'saju-rich__lead');
+        html += section(C.strengthLead[k], hero(s.pendBadge, [fmt(s.pendRef, {score:pw.score})]) + say(s.pendText[k], mode, 'read', C.voice[k]), 'saju-rich__lead');
         html += gaugeHtml;
         if ((pw.yongshin || []).length) html += section(s.godHead[k], chips(godChips(L, dayEl, pw.yongshin, s.godTags.good, 'good', facts)));
       } else if (jg && jg.isJong) {
         var dom = C.el[jg.dominant] || '', pc = jg.pct != null ? fmt(s.jongPct, {pct:jg.pct}) : '', key = jongKey(jg.name), kindName = s.jongHead[k];
-        html += section(C.strengthLead[k], hero(kindName, [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), fmt(s.jongBadge, {score:pw.score})]) + para(fmt(s.jongLead[k], {dom:dom, pct:pc, name:kindName})), 'saju-rich__lead');
+        html += section(C.strengthLead[k], hero(kindName, [dom + (jg.pct != null ? ' ' + jg.pct + '%' : ''), fmt(s.jongBadge, {score:pw.score})]) + say(fmt(s.jongLead[k], {dom:dom, pct:pc, name:kindName}), mode, 'read', C.voice[k]), 'saju-rich__lead');
         html += gaugeHtml;
         html += section(s.jongWhat, para(s.jongWhatText[k]));
         html += section(s.kindHead[k], para(s.jongKind[key] ? s.jongKind[key].charAt(0).toUpperCase() + s.jongKind[key].slice(1) + '.' : ''));
@@ -761,7 +761,7 @@ var natalIntl = (function () {
       } else {
         var sw = strong ? s.strongWord : s.weakWord, gap = Math.abs(pw.score - 30);
         var lead = fmt(s.leadNormal[k], {score:pw.score, stage:st, stem:stemName, gap:gap, dir:pw.score >= 30 ? s.above : s.below, sw:sw}), tagline = (strong ? s.tagStrong : s.tagWeak)[k];
-        html += section(C.strengthLead[k], hero(st, [fmt(s.badge, {score:pw.score}), s.baseBadge, strong ? s.typeStrong : s.typeWeak]) + para(lead + ' ' + tagline), 'saju-rich__lead');
+        html += section(C.strengthLead[k], hero(st, [fmt(s.badge, {score:pw.score}), s.baseBadge, strong ? s.typeStrong : s.typeWeak]) + say(lead + ' ' + tagline, mode, 'read', C.voice[k]), 'saju-rich__lead');
         html += gaugeHtml;
         var mRow = parts && parts.rows.filter(function (r) { return r.group === 'month'; })[0];
         if (ok) {
@@ -794,7 +794,7 @@ var natalIntl = (function () {
       });
       var max = Math.max.apply(null, fams.map(function (x) { return x.surface; })), top = fams.filter(function (x) { return x.surface === max; }), none = fams.filter(function (x) { return x.surface === 0; });
       var tail = none.length ? fmt(t.tailNone[k], {list:famList(none)}) : t.tailAll[k];
-      html += section(t.lead[k], hero(famList(top), [fmt(t.mostBadge[k], {n:max}), none.length ? fmt(t.noneBadge[k], {list:famList(none)}) : t.allBadge[k]]) + para(fmt(t.leadText[k], {top:famList(top), meaning:C.famMeaning[top[0].f][1], n:max, tail:tail})), 'saju-rich__lead');
+      html += section(t.lead[k], hero(famList(top), [fmt(t.mostBadge[k], {n:max}), none.length ? fmt(t.noneBadge[k], {list:famList(none)}) : t.allBadge[k]]) + say(fmt(t.leadText[k], {top:famList(top), meaning:C.famMeaning[top[0].f][1], n:max, tail:tail}), mode, 'read', C.voice[k]), 'saju-rich__lead');
       html += section(t.distHead[k], '<ul class="saju-bars">' + fams.map(function (x) { return '<li data-el="' + x.el + '"><span class="saju-bars__label">' + esc(C.fam[x.f]) + '</span><span class="saju-bars__track" aria-hidden="true"><i style="--pos:' + pct(x.surface, 0, 7) + '%"></i></span><span class="saju-bars__value">' + x.surface + '</span></li>'; }).join('') + '</ul>' +
         table(t.distCap, t.cols, fams.map(function (x) { return [C.fam[x.f] + ' · ' + C.el[x.el], String(x.surface), String(x.hidden), x.gods.map(function (g) { return (C.godShort ? C.godShort[g] : C.godName[g].replace(/ \(.*\)$/, '')) + ' ' + (m.surface[g] || 0); }).join(' · '), x.role ? C.roleShort[roleOf(facts, x.el)] : '—']; })) +
         '<p class="saju-rich__note">' + esc(t.distNote[k]) + (facts.unknown ? ' ' + esc(t.noonNote[k]) : '') + '</p>', 'saju-rich__wide');
@@ -825,13 +825,13 @@ var natalIntl = (function () {
       if (!d || !m) return '';
       var k = mode === 'neo' ? 1 : 0, t = C.ten, f = GOD_FAMILY[key], dayEl = L.GAN[p.d.g].e, role = roleOf(facts, familyEl(L, dayEl, f));
       var where = m.where[key] || [], html = '<h3>' + esc(C.godName[key] + ' · ' + C.fam[f]) + '</h3>';
-      html += section(t.natureHead[k], para(d.nature[k]));
+      html += voice(t.natureHead[k], d.nature[k], mode);
       var rows = where.map(function (w) { var pal = C.palace[w.key]; return [C.pos[w.key + w.side] + hourMark(facts, w.key), w.char, pal.label + ' · ' + pal.palace, (w.side === 'g' ? t.outer : t.base) + ' · ' + pal.domain]; });
       html += section(t.sitHead[k], (rows.length ? table(fmt(t.modalCap, {god:C.godName[key]}), t.modalCols, rows) : '') +
         para(fmt(t.sitText[k], {n:where.length, h:m.hidden[key] || 0}) + (role ? fmt(t.roleText[k], {role:C.roleShort[role], tail:k === 0 ? (role === '보완 후보' ? t.roleGood : t.roleCare) : ''}) : '')));
       html += section(t.careerHead, para(d.career));
       html += section(t.loveHead[k], para(d.love));
-      html += section(t.adviceHead[k], para(d.advice[k]));
+      html += voice(t.adviceHead[k], d.advice[k], mode);
       return wrap(mode, html, facts);
     }
 
@@ -848,7 +848,7 @@ var natalIntl = (function () {
       });
       var sg = L.getTenGod(dg, dj), spouseGod = sg && sg !== '?' ? sg : '', spouseName = spouseGod ? C.godName[spouseGod] : '—', spouseStage = stageOf(L, dg, dj), spouseFam = GOD_FAMILY[spouseGod];
       html += section(c.leadHead[k], hero(dg + dj, [fmt(c.dayBadge, {name:stemName}), spouseGod ? fmt(c.branchBadge, {god:spouseName}) : '', spouseStage ? fmt(c.stageBadge, {stage:spouseStage[0]}) : ''], true) +
-        para(fmt(c.leadText[k], {name:stemName, dg:dg, dj:dj, god:spouseName, stage:spouseStage ? spouseStage[0] : '—'})) + table(c.cap, c.cols, rows) + '<p class="saju-rich__note">' + esc(c.note[k]) + '</p>', 'saju-rich__lead saju-rich__wide');
+        say(fmt(c.leadText[k], {name:stemName, dg:dg, dj:dj, god:spouseName, stage:spouseStage ? spouseStage[0] : '—'}), mode, 'read', C.voice[k]) + table(c.cap, c.cols, rows) + '<p class="saju-rich__note">' + esc(c.note[k]) + '</p>', 'saju-rich__lead saju-rich__wide');
       html += section(fmt(c.imgHead, {name:stemName}), para(fmt(c.imgText[k], {name:stemName, dg:dg, note:C.stemNote[dg] || ''})));
       html += section(c.spouseHead[k], para(spouseFam ? c.spouse[spouseFam][k] : '') + (spouseStage ? para(k === 0 ? fmt(c.stageText[0], {stage:spouseStage[0], first:spouseStage[1].split(' · ')[0], second:spouseStage[1].split(' · ')[1]}) : fmt(c.stageText[1], {stage:spouseStage[0], desc:spouseStage[1]})) : ''));
       var stages = ['y', 'm', 'd', 'h'].filter(function (key) { return !(key === 'h' && facts.unknown) && p[key] && p[key].j && stageOf(L, dg, p[key].j); }).map(function (key) {
@@ -861,7 +861,7 @@ var natalIntl = (function () {
         var hit = ['y', 'm', 'h'].filter(function (key) { return !(key === 'h' && facts.unknown) && p[key] && gm.indexOf(p[key].j) >= 0; }).map(function (key) { return C.palace[key].label + ' (' + C.palace[key].domain + ')'; });
         html += section(c.gmHead, para(fmt(c.gmText[k], {list:gm.join(' · '), hit:hit.length ? fmt(c.gmHit[k], {list:hit.join(C.sep || ', ')}) : c.gmMiss[k]})) + '<p class="saju-rich__note">' + esc(c.gmNote[k]) + '</p>');
       }
-      html += section(c.wordHead[k], para((c.word[dg] || ['', ''])[k]));
+      html += voice(c.wordHead[k], (c.word[dg] || ['', ''])[k], mode);
       return wrap(mode, html, facts);
     }
 

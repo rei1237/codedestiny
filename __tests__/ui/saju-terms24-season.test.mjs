@@ -39,7 +39,7 @@ test('절기 리듬은 12개 월지마다 계절 그림·연이 이야기·생�
       assert.ok(body.length > 40, `${label} ${title} 본문이 짧다`);
       if (title !== '컨디션') bodies.add(body);
     }
-    assert.match(html, /<p class="t24-tip"><strong>연이 한마디<\/strong>[^<]{20,}<\/p>/, `${label} 연이 한마디`);
+    assert.match(html, /<div class="cd-speaker cd-speaker--yeoni"[\s\S]*?연이 한마디<\/strong><p style="margin:0">[^<]{20,}<\/p>/, `${label} 연이 한마디 말풍선`);
     assert.match(html, /<p class="t24-phase-note">[^<]{20,}<\/p>/, `${label} 구간 보정`);
     // 예전 행동 지침 문장과 단정형 요약은 나오지 않는다.
     assert.ok(!html.includes('t24-action'), `${label} 행동 지침 줄이 남았다`);
@@ -48,4 +48,17 @@ test('절기 리듬은 12개 월지마다 계절 그림·연이 이야기·생�
   }
   assert.equal(headlines.size, 12, '월지마다 헤드라인이 달라야 한다');
   assert.equal(bodies.size, 48, '월지마다 카드 본문이 달라야 한다');
+});
+
+test('영냥이 모드 절기 리듬은 영냥이 얼굴·표제만 쓰고 연이 표제를 남기지 않는다', async () => {
+  const { buildSajuSectionHtml } = await import('../../worker/lib/saju-section/report.js');
+  const html = buildSajuSectionHtml({
+    featureKey: 'saju_lifetime_bundle', birth: { calendarDate: '2000-02-20', calType: 'solar', hour: 12, minute: 0, timeKnown: true },
+    gender: 'F', name: '검증', mode: 'neo', lang: 'ko',
+  }).parts.terms;
+  assert.match(html, /yeongnyangi-listen\.webp/, '영냥이 아이콘');
+  assert.match(html, /<div class="cd-speaker cd-speaker--nyang"[\s\S]*?영냥이 한마디<\/strong>/, '영냥이 한마디 말풍선');
+  for (const word of ['영냥이의 계절 이야기', '영냥이가 본 ']) assert.ok(text(html).includes(word), word);
+  assert.ok(!/yeoni-|cd-speaker--yeoni/.test(html), '연이 그림이 남았다');
+  assert.ok(!/(^|[^냥])연이/.test(text(html)), '연이 표제가 남았다');
 });
