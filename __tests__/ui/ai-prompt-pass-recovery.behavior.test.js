@@ -237,6 +237,7 @@ for (const priorStatus of [null, 'generation_failed', 'generating']) {
       buildSajuAIProgress: () => ({ status: 'generating' }),
       // 새 기록의 신살 블록 핀(SAJU_SHINSAL_FACTS_V1 'saju-ai')도 실제 판정으로 돈다.
       selectShinsalFacts: rollout.selectShinsalFacts,
+      selectLifeCalibration: rollout.selectLifeCalibration,
       withMongoRetry: async (_env, action) => action(),
       PaidExecutionRecord: { findOneAndUpdate: (filter, update, options) => db.findOneAndUpdate({}, filter,
         { ...update, $set: { ...update.$set, updatedAt: new Date() } }, { ...options, returnDocument: 'after' }) },
