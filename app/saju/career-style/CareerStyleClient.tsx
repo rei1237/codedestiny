@@ -5,6 +5,7 @@ import ProfilePicker from '@/app/yeongnyangi/_components/ProfilePicker';
 import {useProfiles,profileKey,isProfileBillingSyncEvent} from '@/app/yeongnyangi/_lib/use-profiles';
 import {authFetch,AUTH_SESSION_INVALIDATED_EVENT} from '@/app/_lib/auth-client';
 import {careerShare,CAREER_URL} from '@/lib/saju/career-style/share.mjs';
+import {YEONI_GUIDE_ART} from '@/lib/brand/yeoni-guide-art';
 import {SPEAKER_ART,speakerFor} from '@/lib/saju/speaker/index.mjs';
 import styles from './career.module.css';
 
@@ -31,6 +32,11 @@ function Face({voice,mood,size=48}:{voice:Voice;mood?:string;size?:number}){
 type Insight={id:string;title:string;basis:string;scene:string;condition:string;action:string};
 const chapterArt:Record<number,{src:string;alt:string;width:number;height:number;caption:string}>={
  0:{src:'/images/career-style/yeoni-work-style.webp',alt:'노트와 나침반으로 일의 방향을 살펴보는 연이',width:1536,height:1024,caption:'직업의 이름보다 나에게 맞는 일의 조건부터.'},
+ 1:{...YEONI_GUIDE_ART.reading,caption:'평소 당연하게 해온 수고에도 나만의 감각이 숨어 있어요.'},
+ 3:{...YEONI_GUIDE_ART.welcome,caption:'내 속도와 함께하는 사람의 속도를 다정하게 맞춰 봐요.'},
+ 4:{...YEONI_GUIDE_ART.reading,caption:'어떤 하루를 보내고 싶은지 차 한 잔 사이에 떠올려 보세요.'},
+ 6:{...YEONI_GUIDE_ART.welcome,caption:'애쓰는 마음에도 편히 쉬어 갈 자리가 필요해요.'},
+ 2:{src:'/images/saju/yeoni-moonlight-reading.webp',alt:'달빛이 들어오는 창가에서 책을 읽는 연이',width:960,height:640,caption:'같은 성향도 어떤 환경을 만나느냐에 따라 다르게 쓰일 수 있어요.'},
  5:{src:'/images/career-style/yeoni-role-exploration-v1.webp',alt:'창작과 분석, 기획과 협업의 여러 활동을 살펴보는 연이',width:1200,height:800,caption:'직업 이름보다 그 일에서 매일 하는 동작을 먼저 살펴보세요.'},
  7:{src:'/images/yeoni/welcome/yeoni-welcome-v1-640.webp',alt:'꽃을 들고 새로운 시작을 응원하는 연이',width:640,height:960,caption:'작은 경험 하나가 나를 설명하는 새로운 문장이 됩니다.'},
 };
