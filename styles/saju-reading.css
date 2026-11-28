@@ -269,7 +269,7 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 }
 .saju-bars {list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px;}
 .saju-bars li {display:grid;grid-template-columns:minmax(6.5em,auto) minmax(0,1fr) 2ch;align-items:center;gap:10px;font-size:.9rem;}
-.saju-bars__track {height:12px;border-radius:999px;background:color-mix(in srgb,var(--reading-muted) 8%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--reading-muted) 50%,transparent);overflow:hidden;}
+.saju-bars__track {height:12px;border-radius:999px;background:color-mix(in srgb,var(--reading-muted) 8%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--reading-muted) 65%,transparent);overflow:hidden;}
 .saju-bars__track i {display:block;height:100%;width:var(--pos);border-radius:inherit;background:var(--el,var(--reading-accent));}
 .saju-bars__value {text-align:right;font-variant-numeric:tabular-nums;font-weight:700;}
 /* 모바일: 결과 카드 안에 읽기 종이·블록 카드가 겹쳐 본문 폭이 250px 대로 줄던 것을 되돌린다. */
