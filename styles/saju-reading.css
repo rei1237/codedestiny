@@ -48,7 +48,7 @@ body.neo-mode .saju-reading-switch [aria-pressed="true"] {color:#21182f;}
 #sajuReadingHeader .saju-voice-card[aria-pressed="true"] .cd-speaker__face {box-shadow:0 0 0 3px var(--reading-accent);}
 .saju-voice-card__text {display:flex;flex-direction:column;gap:2px;min-width:0;}
 #sajuReadingHeader .saju-voice-card__text strong {font-size:1rem;line-height:1.4;color:var(--reading-ink);}
-#sajuReadingHeader .saju-voice-card__text span {font-size:.8125rem;line-height:1.45;color:var(--reading-muted);word-break:keep-all;}
+#sajuReadingHeader .saju-voice-card__text span {font-size:.875rem;line-height:1.45;color:var(--reading-muted);word-break:keep-all;}
 @media(max-width:420px) {.saju-voice-cards {grid-template-columns:minmax(0,1fr);}}
 /* 화자 말풍선(lib/saju/speaker) 안의 문단은 바깥 여백·폭 제한을 받지 않는다. */
 .saju-reading .cd-speaker__bubble p {margin:0;max-width:none;}
@@ -494,6 +494,7 @@ html body #resultPage #sajuReadingHeader h2 {font-size:1.2rem;}
 #resultPage :is(#johuCard,#ukbuCard,#terms24Card) {scroll-margin-top:100px;}
 @media(max-width:600px) {
   html body #resultPage #sajuReadingHeader {padding:16px;gap:12px;}
+  html body #resultPage #sajuReadingHeader > .saju-reading-header__body {flex-basis:100%;}
   #resultPage .saju-section-icon-pair {gap:2px;}
   #resultPage .saju-section-icon-pair .saju-section-icon {width:22px;height:22px;}
 }
