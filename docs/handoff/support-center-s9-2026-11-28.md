@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-28
-next: "단계 1 — scripts/audit-paid-orphans.mjs 에 영냥이(yeongnyangi_requests) 전달 판정 추가 (mock 테스트까지, 운영 재실행 없음)"
+next: "단계 2a — 6건·멈춘 4건 dry-run 운영 읽기 전용 조회 1회 승인 요청 (3a~3c 완료, 단계 4 머지·push 는 부모 세션)"
 ---
 
 # 결제 전달 후속 + 영냥이 고객센터(S9) 인수인계
@@ -88,7 +88,7 @@ next: "단계 1 — scripts/audit-paid-orphans.mjs 에 영냥이(yeongnyangi_req
 - [ ] 2a. 6건·멈춘 4건 dry-run 을 위한 운영 읽기 전용 조회 1회 승인 요청
 - [ ] 2b. dry-run 보고서(마스킹) 작성 → 건별 실행 범위 1회 승인 요청
 - [ ] 2c. 승인 범위만 실행 → 전달 확인 결과 기록
-- [ ] 3a. 고객센터 방향·성공 기준 공유 → 지식 생성·도구·HelpDesk 카드 구현(mock)
-- [ ] 3b. 속도·호출 상한, 사람 넘김, 권한 테스트
-- [ ] 3c. 모바일 실제 화면 캡처 검수, check:fast → commit
+- [x] 3a. 고객센터 방향·성공 기준 공유 → 지식 생성·도구·HelpDesk 카드 구현(mock) → c41f82d9c9(API·지식·인벤토리), e8d58bfeec(SupportDesk FAQ 본문 아래·library 상단)
+- [x] 3b. 속도·호출 상한, 사람 넘김, 권한 테스트 → c41f82d9c9 (__tests__/ui/yeongnyangi-support.test.mjs 7/7, mock only. 변이: 상한 fail-open→2건 실패, 소유자 필터 제거→1건 실패)
+- [x] 3c. 모바일 실제 화면 캡처 검수, check:fast → commit → e8d58bfeec, 문서 af64b21f66. 390px headed 캡처 4장 visual-checker 3차 PASS, FAQ title/description/H1/JSON-LD 불변. 실 Workers AI 는 NOT_TESTED(정확한 1회 승인 필요)
 - [ ] 4. check:pre-push → push → main CI 1회 확인 → 워크트리 배수 → 이 문서 status: done
