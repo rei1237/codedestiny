@@ -233,7 +233,6 @@ test('copy follows the rules: no training claim, no accuracy promise, no health 
   const authored = JSON.parse(read('i18n/authored/lifeCalibration-01.json'));
   const keys = [...copy.matchAll(/^\s{2}(\w+): "/gm)].map((m) => m[1]);
   for (const loc of ['en', 'ja', 'zh-CN', 'zh-TW']) {
-    // 공개 사전 폴더는 소문자(zh-cn·zh-tw, lib/i18n/dictionary.ts). 리눅스 CI 는 대소문자를 가린다.
     const pub = JSON.parse(read(`public/i18n/${loc.toLowerCase()}/lifeCalibration.json`));
     for (const k of keys) assert.ok(typeof pub.lifeCalibration[k] === 'string' && pub.lifeCalibration[k], `${loc} ${k}`);
   }
