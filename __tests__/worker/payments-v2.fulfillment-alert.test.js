@@ -86,7 +86,7 @@ test("A 는 paid·결제 30분+·미지급(재지급과 같은 정의)만, B 는
     verifyFailureRow("b-old", "AMOUNT_MISMATCH", { updatedAt: ago(31 * DAY) }),
   ]);
   const notify = deliveredNotify();
-  expect(await alertPaymentAnomalies(db, { notify, now: NOW })).toEqual({ unfulfilled: 2, verifyFailures: 4, delivered: true, marked: 6 });
+  expect(await alertPaymentAnomalies(db, { notify, now: NOW })).toEqual({ unfulfilled: 2, verifyFailures: 4, refundFailures: 0, delivered: true, marked: 6 });
   expect(notify).toHaveBeenCalledTimes(1);
   const { subject, text } = notify.mock.calls[0][0];
   expect(subject).toBe("[결제 알림] 미지급 2건 · PG 대조 실패 4건");
@@ -103,7 +103,7 @@ test("전달 후 다시 돌면 보내지 않는다 — 대조 실패는 주문�
   const db = await seed([unfulfilledRow("a1"), verifyFailureRow("b1", "AMOUNT_MISMATCH")]);
   await alertPaymentAnomalies(db, { notify: deliveredNotify(), now: NOW });
   const again = deliveredNotify();
-  expect(await alertPaymentAnomalies(db, { notify: again, now: later(10 * MIN) })).toEqual({ unfulfilled: 0, verifyFailures: 0, delivered: false, marked: 0 });
+  expect(await alertPaymentAnomalies(db, { notify: again, now: later(10 * MIN) })).toEqual({ unfulfilled: 0, verifyFailures: 0, refundFailures: 0, delivered: false, marked: 0 });
   expect(await alertPaymentAnomalies(db, { notify: again, now: later(23 * HOUR) })).toMatchObject({ unfulfilled: 0, verifyFailures: 0 });
   expect(again).not.toHaveBeenCalled();
 });
@@ -193,4 +193,36 @@ test("🔴 결제 알림 모듈은 공개 대화방 헬퍼를 모른다 — 운�
   expect(source).not.toMatch(/telegram/i);
   expect(source).toContain('await import("../lib/feedback-notify.js")');
   expect(readFileSync("worker/payments/reconcile.js", "utf8")).not.toMatch(/telegram/i);
+});
+
+const refundFailureRow = (name, overrides = {}) => ({
+  merchantUid: uid(name), status: "paid", orderState: "ERROR", paymentType: "digital_content", featureKey: "master-love-codex",
+  paymentAmount: 30000, failureCode: "llm_generation_failed_refund_failed", updatedAt: ago(20 * MIN),
+  metadata: { refundStatus: "refund_failed", refundFailedAt: ago(20 * MIN), purchaseGrantVersion: 1 }, entitlementGrantedAt: ago(40 * MIN), paidAt: ago(40 * MIN),
+  ...PII, ...overrides,
+});
+
+test("C 자동 환불 실패는 재시도 중 1회, 사람 처리 단계에서 1회 더 알리고 그 뒤에는 멈춘다(취소·30일 밖 제외)", async () => {
+  const db = await seed([
+    refundFailureRow("c1"),
+    refundFailureRow("c-cancelled", { status: "cancelled" }),
+    refundFailureRow("c-old", { metadata: { refundStatus: "refund_failed", refundFailedAt: ago(31 * DAY), purchaseGrantVersion: 1 } }),
+  ]);
+  const notify = deliveredNotify();
+  expect(await alertPaymentAnomalies(db, { notify, now: NOW })).toMatchObject({ refundFailures: 1, delivered: true, marked: 1 });
+  const { subject, text } = notify.mock.calls[0][0];
+  expect(subject).toBe("[결제 알림] 미지급 0건 · PG 대조 실패 0건 · 자동 환불 실패 1건");
+  expect(text).toContain(`${maskId(uid("c1"))} · master-love-codex · digital_content · 30,000원 · 환불 실패 후 20분 · 자동 재시도 0회`);
+  for (const secret of [USER_ID, EMAIL, PHONE, "raw-pg-tx-0001"]) expect(text).not.toContain(secret);
+  expect(rowOf(db, "c1").metadata.refundFailureAlert).toEqual({ stage: "retrying", lastAlertedAt: NOW });
+  expect(rowOf(db, "c-cancelled").metadata.refundFailureAlert).toBeUndefined();
+  expect(rowOf(db, "c-old").metadata.refundFailureAlert).toBeUndefined();
+
+  expect(await alertPaymentAnomalies(db, { notify, now: later(10 * MIN) })).toMatchObject({ refundFailures: 0 });
+  rowOf(db, "c1").metadata.refundRetry = { count: 5, manualReview: true };
+  expect(await alertPaymentAnomalies(db, { notify, now: later(20 * MIN) })).toMatchObject({ refundFailures: 1, delivered: true, marked: 1 });
+  expect(notify.mock.calls[1][0].text).toContain("재시도 5회 끝 — 사람 처리 필요");
+  expect(rowOf(db, "c1").metadata.refundFailureAlert).toEqual({ stage: "manual_review", lastAlertedAt: later(20 * MIN) });
+  expect(await alertPaymentAnomalies(db, { notify, now: later(30 * MIN) })).toMatchObject({ refundFailures: 0 });
+  expect(notify).toHaveBeenCalledTimes(2);
 });
