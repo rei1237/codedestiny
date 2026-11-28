@@ -36,7 +36,8 @@ const collection = name => ({
     for (const stage of pipeline.filter(stage => stage.$lookup)) {
       const lookup = stage.$lookup;
       if (lookup.as === '_mirror') rows = rows.filter(doc => !(stores[lookup.from] || []).some(other => matches(other, library.ownerQuery(user)) && other.featureId === 'premium-naming-prompt' && doc.merchantUid && doc.merchantUid === other.paymentId));
-      if (lookup.as === '_profile') rows = rows.map(doc => ({ ...doc, profileName: (stores[lookup.from] || []).find(other => matches(other, library.ownerQuery(user)) && other.profileId === doc.purchaseProfileId)?.name }));
+      if (lookup.as === '_canonical') { const { $expr, ...base } = lookup.pipeline[0].$match; rows = rows.filter(doc => !(stores[lookup.from] || []).some(other => matches(other, base) && doc.orderId && other.orderId === doc.orderId && String(other._id) < String(doc._id))); }
+      if (lookup.as === '_profile') rows = rows.map(doc => { const ref = doc.purchaseProfileId || (doc.scope === 'PROFILE' ? doc.profileId : undefined); const card = (stores[lookup.from] || []).find(other => matches(other, library.ownerQuery(user)) && other.profileId === ref); return { ...doc, profileName: card?.name, profileCardId: card?.profileId }; });
       if (lookup.as === '_conversation') rows = rows.filter(doc => !(stores[lookup.from] || []).some(other => matches(other, library.ownerQuery(user)) && doc.featureKey === 'fortune-chat-consultation' && doc.metadata?.paidNarrative?.body?.requestId && other.messages?.some(message => message.id === doc.metadata.paidNarrative.body.requestId + ':1')));
     }
     rows.sort((a,b) => (+b.createdAt || 0) - (+a.createdAt || 0) || String(b._id).localeCompare(String(a._id)));
@@ -378,19 +379,50 @@ test('light saju bundle unlocks are listed for their owner and reopen the saju r
   const cards=models.ProfileCard.collection.collectionName, href='/ggulggul/?action=cdOneStepFreeSajuEntry&section=summaryCard';
   stores[cards]=[{userId:owner,profileId:'p-me',name:'나'},{userId:foreign,profileId:'p-me',name:'남의 프로필'}];
   stores.content_entitlements=[
-    seed('1','01',{featureKey:'saju_lifetime_bundle',status:'ACTIVE',scope:'BIRTH',profileId:'birth:secret',purchaseProfileId:'p-me',orderId:'order-1'}),
+    seed('1','01',{topic:undefined,featureKey:'saju_lifetime_bundle',status:'ACTIVE',scope:'BIRTH',profileId:'birth:secret',purchaseProfileId:'p-me',orderId:'order-1'}),
     seed('2','02',{featureKey:'saju_lifetime_bundle',status:'REFUNDED',purchaseProfileId:'p-me'}),
     seed('3','03',{featureKey:'other_feature',status:'ACTIVE'}),
     seed('4','04',{featureKey:'saju_lifetime_bundle',status:'ACTIVE',userId:foreign}),
   ];
   const body=await (await route(request('?source=saju-bundle'),{})).json();
   expect(body.items).toHaveLength(1);
-  expect(body.items[0]).toMatchObject({source:'saju-bundle',status:'saved',href,nativeHref:href,question:'나 프로필',reviewProductId:expect.any(String)});
+  expect(body.items[0]).toMatchObject({source:'saju-bundle',status:'saved',href:href+'&profile=p-me',nativeHref:href+'&profile=p-me',serviceName:'라이트 사주 풀이',title:'나 프로필',question:'',reviewProductId:expect.any(String)});
   expect(JSON.stringify(body.items[0])).not.toMatch(/birth:secret|order-1/);
   const detail=await (await route(request('/detail?source=saju-bundle&id='+body.items[0].id),{})).json();
-  expect(detail.content).toEqual({});expect(detail.record.nativeHref).toBe(href);
+  expect(detail.content).toEqual({});expect(detail.record.nativeHref).toBe(href+'&profile=p-me');
   user=foreign;
   const other=await (await route(request('?source=saju-bundle'),{})).json();
   expect(other.items.map(item=>item.id)).not.toContain(body.items[0].id);
   expect((await route(request('/detail?source=saju-bundle&id='+body.items[0].id),{})).status).toBe(404);
+});
+test('light saju bundle migration copies list one purchase once and reopen only the owner card',async()=>{
+  const models=await import('../../worker/lib/models.js');
+  const cards=models.ProfileCard.collection.collectionName, href='/ggulggul/?action=cdOneStepFreeSajuEntry&section=summaryCard';
+  stores[cards]=[{userId:owner,profileId:'p-mom',name:'엄마'},{userId:foreign,profileId:'p-other',name:'남의 프로필'}];
+  const bundle=extra=>({topic:undefined,featureKey:'saju_lifetime_bundle',status:'ACTIVE',...extra});
+  stores.content_entitlements=[
+    // 같은 주문 A: 원 PROFILE 행 + 출생 기반 BACKFILL 사본 → 원 행(가장 작은 _id) 하나만.
+    seed('11','05',bundle({scope:'PROFILE',profileId:'p-mom',orderId:'order-A'})),
+    seed('12','09',bundle({scope:'BIRTH',profileId:'birth:aaa',purchaseProfileId:'p-mom',orderId:'order-A',source:'BACKFILL'})),
+    // 원 행이 환불되면 남은 열람 가능 사본이 대표가 된다(구매가 사라지지 않는다).
+    seed('13','06',bundle({status:'REFUNDED',scope:'PROFILE',profileId:'p-mom',orderId:'order-B'})),
+    seed('14','10',bundle({scope:'BIRTH',profileId:'birth:bbb',purchaseProfileId:'p-mom',orderId:'order-B'})),
+    // 주문 번호가 없으면 묶지 않는다.
+    seed('15','07',bundle({scope:'BIRTH',profileId:'birth:ccc',purchaseProfileId:'p-gone'})),
+    seed('16','08',bundle({scope:'BIRTH',profileId:'birth:ddd',purchaseProfileId:'p-gone'})),
+    // 다른 계정의 같은 주문 번호·작은 _id 는 이 계정 행을 가리지 않고, 남의 카드 id 를 링크에 싣지 않는다.
+    seed('10','04',bundle({userId:foreign,scope:'BIRTH',purchaseProfileId:'p-other',orderId:'order-C'})),
+    seed('17','11',bundle({scope:'BIRTH',profileId:'birth:eee',purchaseProfileId:'p-other',orderId:'order-C'})),
+  ];
+  const body=await (await route(request('?source=saju-bundle'),{})).json();
+  expect(body.items.map(item=>item.id).sort()).toEqual(['11','14','15','16','17'].map(id=>id.padStart(24,'0')).sort());
+  const byId=Object.fromEntries(body.items.map(item=>[item.id.replace(/^0+/,''),item]));
+  expect(byId['11']).toMatchObject({href:href+'&profile=p-mom',title:'엄마 프로필'});
+  expect(byId['14'].href).toBe(href+'&profile=p-mom');
+  expect(byId['15']).toMatchObject({href,title:'라이트 사주 풀이'});
+  expect(byId['17'].href).toBe(href);
+  expect(JSON.stringify(body.items)).not.toMatch(/birth:|order-|p-other|p-gone/);
+  // 가려진 사본도 소유자의 직접 열람은 막지 않는다(숨김이 아니라 목록 중복 제거).
+  const copy=await (await route(request('/detail?source=saju-bundle&id='+'12'.padStart(24,'0')),{})).json();
+  expect(copy.record.nativeHref).toBe(href+'&profile=p-mom');
 });

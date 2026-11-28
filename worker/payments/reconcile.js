@@ -330,12 +330,21 @@ const UNFULFILLED_ALERT_MAX_COUNT = 7;
 const VERIFY_ALERT_LOOKBACK_MS = 30 * 24 * 60 * 60_000;
 /** PG 가 말하는 사실과 주문이 어긋난 코드만(errors.js 422). PG_PAYMENT_NOT_PAID 는 돈이 나가지 않은 주문이라 뺀다. */
 const VERIFY_ALERT_CODES = Object.freeze(["AMOUNT_MISMATCH", "CURRENCY_MISMATCH", "PAYMENT_ID_MISMATCH", "STORE_ID_MISMATCH", "CHANNEL_MISMATCH"]);
+/** 환불 실패 알림 단계. 처음 실패(재시도 중)와 재시도 한도 도달(사람 처리) 때 한 번씩 알린다. */
+const REFUND_ALERT_STAGE_RETRYING = "retrying";
+const REFUND_ALERT_STAGE_MANUAL = "manual_review";
+
+function refundAlertStage(order) {
+  return order?.metadata?.refundRetry?.manualReview === true ? REFUND_ALERT_STAGE_MANUAL : REFUND_ALERT_STAGE_RETRYING;
+}
 
 /**
  * 결제 후 미이행·PG 대조 실패를 운영자에게 알린다(해외카드 1단계 C7). 알림뿐이다 — 지급·환불은 하지 않는다.
  *
  *   A 미지급: paid · 결제 30분+ · 권한 없음(unfulfilledClause) · (미알림 또는 마지막 알림 24시간+ 이고 7회 미만)
  *   B PG 대조 실패: failed · failureStage "pg-verify" · 30일 내 · VERIFY_ALERT_CODES · 주문당 1회
+ *   C 자동 환불 실패: refundStatus "refund_failed" · 미취소 · 30일 내 · 단계(재시도 중 → 사람 처리)마다 1회
+ *     (재시도는 worker/lib/payment-refund.js retryFailedSinglePaymentRefunds 가 맡는다)
  *
  * @param {(message: {subject: string, text: string}) => Promise<{delivered: boolean}>} notify
  *   발송기(fulfillment-alert.js createOperatorAlertSender). 채널을 아는 쪽이 넘긴다.
@@ -374,10 +383,29 @@ export async function alertPaymentAnomalies(db, { notify, now = new Date(), limi
     },
     { limit, sort: { updatedAt: 1 } },
   );
-  const summary = { unfulfilled: unfulfilled.length, verifyFailures: verifyFailures.length, delivered: false, marked: 0 };
-  if (!unfulfilled.length && !verifyFailures.length) return summary;
+  const refundFailures = await db.find(
+    Payment,
+    {
+      "metadata.refundStatus": "refund_failed",
+      status: { $ne: "cancelled" },
+      "metadata.refundFailedAt": { $gte: new Date(now.getTime() - VERIFY_ALERT_LOOKBACK_MS) },
+      $or: [
+        { "metadata.refundFailureAlert": { $exists: false } },
+        { "metadata.refundRetry.manualReview": true, "metadata.refundFailureAlert.stage": { $ne: REFUND_ALERT_STAGE_MANUAL } },
+      ],
+    },
+    { limit, sort: { "metadata.refundFailedAt": 1 } },
+  );
+  const summary = {
+    unfulfilled: unfulfilled.length,
+    verifyFailures: verifyFailures.length,
+    refundFailures: refundFailures.length,
+    delivered: false,
+    marked: 0,
+  };
+  if (!unfulfilled.length && !verifyFailures.length && !refundFailures.length) return summary;
 
-  const message = buildPaymentAlert({ unfulfilled, verifyFailures, now });
+  const message = buildPaymentAlert({ unfulfilled, verifyFailures, refundFailures, now });
   try {
     summary.delivered = (await notify({ subject: message.subject, text: message.text }))?.delivered === true;
   } catch {
@@ -403,6 +431,16 @@ export async function alertPaymentAnomalies(db, { notify, now = new Date(), limi
       status: "failed",
       "metadata.verifyAlert": { $exists: false },
     }, { $set: { "metadata.verifyAlert.lastAlertedAt": now } });
+    summary.marked += Number(result?.modifiedCount || 0);
+  }
+  for (const order of message.included.refundFailures) {
+    const stage = refundAlertStage(order);
+    const previousStage = order?.metadata?.refundFailureAlert?.stage;
+    const result = await db.updateOne(Payment, {
+      merchantUid: order.merchantUid,
+      "metadata.refundStatus": "refund_failed",
+      ...(previousStage ? { "metadata.refundFailureAlert.stage": previousStage } : { "metadata.refundFailureAlert": { $exists: false } }),
+    }, { $set: { "metadata.refundFailureAlert.stage": stage, "metadata.refundFailureAlert.lastAlertedAt": now } });
     summary.marked += Number(result?.modifiedCount || 0);
   }
   return summary;

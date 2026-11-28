@@ -45,6 +45,7 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   PASS_SALE_ENDED: { status: 409 },
   PRODUCT_SALE_ENDED: { status: 409 },
   PRODUCT_SALE_DISABLED: { status: 409 },
+  PRODUCT_SALE_PAUSED: { status: 409 },
   NEO_QUOTE_INVALID: { status: 409 },
   FEATURE_NOW_FREE: { status: 409 },
   PASS_SALE_NOT_READY: { status: 409 },

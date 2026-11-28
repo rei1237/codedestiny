@@ -161,6 +161,23 @@ export function assertProductSaleOpen(productOrKey) {
   });
 }
 
+/**
+ * 운영 비상 판매 중지(2026-11-28 S8). 생성 장애 등으로 결제 뒤 결과를 못 줄 때 운영자가 배포 없이
+ * env PAYMENT_SALE_PAUSED_FEATURE_KEYS(쉼표 구분 featureKey, "*" = 전체)로 **새 PG 주문만** 막는다.
+ * createOrder 만 부른다 — 확정·환불·복구·재열람·이미 만든 주문은 이 함수를 타지 않는다. 비어 있으면 아무 일도 없다.
+ * @throws {PaymentError} PRODUCT_SALE_PAUSED (409)
+ */
+export function assertProductSaleNotPaused(productOrKey, env = {}) {
+  const raw = String(env?.PAYMENT_SALE_PAUSED_FEATURE_KEYS || "").trim();
+  if (!raw) return;
+  const featureKey = normalizePaidFeatureKey(
+    typeof productOrKey === "string" ? productOrKey : (productOrKey?.featureKey || productOrKey?.productId || ""),
+  );
+  const paused = new Set(raw.split(",").map(key => key.trim()).filter(Boolean).map(key => (key === "*" ? key : normalizePaidFeatureKey(key))));
+  if (!paused.has("*") && !paused.has(featureKey)) return;
+  throw paymentError("PRODUCT_SALE_PAUSED", "지금은 이 상담의 새 결제를 잠시 멈췄어요. 이미 결제한 내역과 결과는 그대로 볼 수 있어요.", { featureKey });
+}
+
 /** 상품이 존재하고 결제 가능한가. 예외를 흐름 제어로 쓰지 않으려는 호출부용. */
 export function hasProduct(input = {}) {
   try {

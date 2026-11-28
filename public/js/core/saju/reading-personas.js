@@ -481,8 +481,6 @@
   function refreshCopy() {
     var c=langCopy(locale());
     document.querySelectorAll('[data-saju-copy]').forEach(function(el){var key=el.getAttribute('data-saju-copy');if(c[key])el.textContent=c[key];});
-    var cat=document.querySelector('[data-soulcat-price]');
-    if(cat)cat.textContent=root.__cdSajuCatPrice?fmt(c.catPrice,{price:new Intl.NumberFormat(locale(),{style:'currency',currency:'KRW',maximumFractionDigits:0}).format(root.__cdSajuCatPrice)}):c.pricePending;
     document.querySelectorAll('[data-saju-offer]').forEach(function(el){
       var key=el.getAttribute('data-saju-offer');
       if(el.dataset.readingLocale===locale()+':'+mode())return;

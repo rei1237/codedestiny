@@ -62,20 +62,34 @@ function verifyFailureRow(order, now) {
   ].join(" · ");
 }
 
+function refundFailureRow(order, now) {
+  const retry = order?.metadata?.refundRetry || {};
+  const manual = retry.manualReview === true;
+  return [
+    ...describeOrder(order),
+    `환불 실패 후 ${formatElapsed(order?.metadata?.refundFailedAt, now)}`,
+    manual ? `재시도 ${Number(retry.count || 0)}회 끝 — 사람 처리 필요` : `자동 재시도 ${Number(retry.count || 0)}회`,
+    token(order?.failureCode, 40) || "-",
+  ].join(" · ");
+}
+
 /**
  * 한 틱의 알림 메시지. included 는 본문에 실제로 실린 주문이다 — 표식은 이것만 찍어야 잘린 주문이
  * 다음 틱에 다시 실린다.
  */
-export function buildPaymentAlert({ unfulfilled = [], verifyFailures = [], now = new Date() } = {}) {
-  const subject = `[결제 알림] 미지급 ${unfulfilled.length}건 · PG 대조 실패 ${verifyFailures.length}건`;
+export function buildPaymentAlert({ unfulfilled = [], verifyFailures = [], refundFailures = [], now = new Date() } = {}) {
+  const subject = refundFailures.length
+    ? `[결제 알림] 미지급 ${unfulfilled.length}건 · PG 대조 실패 ${verifyFailures.length}건 · 자동 환불 실패 ${refundFailures.length}건`
+    : `[결제 알림] 미지급 ${unfulfilled.length}건 · PG 대조 실패 ${verifyFailures.length}건`;
   const sections = [
     { key: "unfulfilled", title: "■ 결제 완료·권한 미지급(30분+) — 크론이 재지급 중, 원인 확인 필요", orders: unfulfilled, render: unfulfilledRow },
     { key: "verifyFailures", title: "■ PG 대조 실패로 FAILED 확정 — 결제 취소·환불 여부 확인 필요", orders: verifyFailures, render: verifyFailureRow },
+    { key: "refundFailures", title: "■ 결과 전달 실패 후 자동 환불 실패 — 고객은 결과도 환불도 없음", orders: refundFailures, render: refundFailureRow },
   ];
   const lines = [subject];
   let length = subject.length;
   let omitted = 0;
-  const included = { unfulfilled: [], verifyFailures: [] };
+  const included = { unfulfilled: [], verifyFailures: [], refundFailures: [] };
   for (const section of sections) {
     const orders = section.orders.slice(0, PAYMENT_ALERT_SECTION_LIMIT);
     omitted += section.orders.length - orders.length;

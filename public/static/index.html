@@ -6789,16 +6789,8 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter h2{font-size:clamp(1.25rem,2vw,1.6rem);margin-bottom:8px}
 #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter p{font-size:.9rem;line-height:1.7;margin:8px 0}
 #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__details{margin-top:8px}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(160px,.7fr);gap:16px;padding:24px;margin:0;min-height:0}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__copy{min-width:0}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry h2{font-size:clamp(1.2rem,2.2vw,1.7rem);line-height:1.5;margin:0 0 8px}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__sub{margin:8px 0;font-size:.9rem}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__stage{position:relative;inset:auto;align-self:start;min-height:0;width:100%;height:auto;grid-column:2;grid-row:1}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__art{position:relative;inset:auto;width:100%;height:auto;max-width:280px;transform:none;animation:none}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__eyebrow,#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__price{display:none}
 #cdHomeFunnel .cdh-consult-details{margin:12px 0}
 #cdHomeFunnel .cdh-consult-details>summary{min-height:44px;display:list-item;align-content:center;cursor:pointer;font-size:.9rem}
-#cdHomeFunnel .cdh-consult-details .cd-soulcat-entry__story{font-size:.9rem;line-height:1.7}
 #cdHomeFunnel .cdh-concern-scroll{display:none;align-items:center;justify-content:space-between;gap:12px;color:var(--cdh-muted);font-size:.875rem;margin-bottom:8px}
 #cdHomeFunnel .cdh-concern-scroll>div{display:flex;gap:6px}
 #cdHomeFunnel .cdh-concern-scroll button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--cdh-line);border-radius:var(--cd-r-control);color:var(--cdh-ink);background:var(--cdh-card);cursor:pointer}
@@ -6812,16 +6804,9 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
  #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter{grid-template-columns:minmax(0,1fr)}
  #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__art img{aspect-ratio:2/1;height:auto;object-fit:cover;object-position:center 35%}
  #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__copy{padding:16px}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry{grid-template-columns:minmax(0,1fr);padding:16px}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__stage{grid-column:1;grid-row:1;max-width:160px;justify-self:center}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__copy{grid-row:2}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{flex-wrap:wrap;gap:8px}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{width:100%;min-height:48px}
 }
 
 #cdHomeFunnel #cdhQuestionSlot>.cdh-other{width:100%;margin-inline:0}
-
-@media(max-width:599px){#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{display:grid;grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{box-sizing:border-box;min-width:0}}
 
 /* Keep pass discovery near the home introduction without changing checkout controls. */
 #cdHomeFunnel .cdh-nav{flex-wrap:wrap;gap:8px}
@@ -28155,7 +28140,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     } catch (_e) {}
   }
 
-  function _cdGetActiveMembershipCoverageFromCache(cost) {
+  function _cdGetActiveMembershipCoverageFromCache(cost, featureKey) {
     try {
       var requiredCoins = Number(cost || 0);
       if (!(requiredCoins > 0)) return null;
@@ -28163,7 +28148,8 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
       // 열기 **직전에** 쓰이는 미결제 표식이라, 결제창에서 탭을 닫으면 그대로 남아 유료 기능이
       // 영구 무료로 열렸다. 실제 보유자는 결제 확정 시 persistSubscriptionCache 가
       // cd_subscription_snapshot_v2 를 써 주므로 아래 스냅샷 판정으로 그대로 커버된다.
-      var snapshotCoverage = _cdCoverageFromSubscriptionSnapshot(requiredCoins);
+      // 판매 종료 키는 featureKey 가 있어야 "아직 모름"으로 내려온다 — 없으면 이용권 커버로 잘못 확답한다.
+      var snapshotCoverage = _cdCoverageFromSubscriptionSnapshot(requiredCoins, { featureKey: featureKey });
       if (snapshotCoverage && snapshotCoverage.hasActivePass === true) return snapshotCoverage;
       var user = readAuthUser();
       var sub = user && user.profileSubscription;
@@ -28173,7 +28159,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
       var userId = __cdResolveAuthScopeId(user);
       if (!verdictApi || !userId) return null;
       var hydratedSnapshot = verdictApi.storeStatus(userId, sub, 'verified-auth-cache');
-      var hydratedCoverage = hydratedSnapshot ? _cdCoverageFromSubscriptionSnapshot(requiredCoins) : null;
+      var hydratedCoverage = hydratedSnapshot ? _cdCoverageFromSubscriptionSnapshot(requiredCoins, { featureKey: featureKey }) : null;
       return hydratedCoverage && hydratedCoverage.hasActivePass === true ? hydratedCoverage : null;
     } catch (_e) {
       return null;
@@ -28183,7 +28169,7 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
   async function _cdRefreshMembershipCoverage(cost, pricingOptions) {
     var opts = pricingOptions && typeof pricingOptions === 'object' ? pricingOptions : {};
     var hasPricingLookup = Boolean(opts.featureKey || opts.categoryKey || opts.subFeatureKey || opts.reason);
-    var snapshotCoverage = _cdCoverageFromSubscriptionSnapshot(cost);
+    var snapshotCoverage = _cdCoverageFromSubscriptionSnapshot(cost, { featureKey: opts.featureKey });
     if (snapshotCoverage && !hasPricingLookup) return snapshotCoverage;
     var cached = hasPricingLookup ? null : _cdGetActiveMembershipCoverageFromCache(cost);
     if (cached) return cached;
@@ -28866,12 +28852,19 @@ html:not(.neo-mode) #resultPage .pf-showcase__yeoni{display:block;width:96px;hei
     // 스냅샷 none-TTL이 짧아 안전하고, 드문 stale-none 보유자는 결제창의 '이용권 다시 확인'(forceRefreshMembershipCoverage
     // 재검사, allowSnapshotFastPath 미설정)으로 서버 재검증되어 무료 통과된다. 진입 pass-first 호출에만 opt-in한다.
     var isBackgroundPassRecord = item.__cdBackgroundPassRecord === true;
+    // 🔴 판매 종료 키는 스냅샷이 확답할 수 없다(이용권 유무와 무관하게 서버가 보유 여부로 ALREADY_UNLOCKED /
+    // PRODUCT_SALE_ENDED 를 가른다). 스냅샷의 canUseByPass:false 를 확정 거부로 쓰면 새 기기의 기존 구매자가
+    // '이용권 미적용' 안내를 단 결제창을 만난다. 진입 서버 왕복은 되살리지 않는다 — 확정 거부만 건너뛰어
+    // 아래 snapshotVerdictOnly(pass_snapshot_indeterminate)로 결제창을 열고, 보유 판정은 결제창의 이용권·단건
+    // 카드가 서버에서 받는다(보유자는 ALREADY_UNLOCKED 로 무과금 열림).
+    var _cdSaleClosedApi = _cdPassVerdict();
+    var saleClosedKey = !!(_cdSaleClosedApi && typeof _cdSaleClosedApi.isSaleClosedKey === 'function' && _cdSaleClosedApi.isSaleClosedKey(featureKey || item.featureKey));
     if (item.allowSnapshotFastPath === true && !isBackgroundPassRecord && coinCost > 0 && typeof _cdCoverageFromSubscriptionSnapshot === 'function') {
       // stale 'none' 은 읽되(SWR 갱신 예약) 미보유 확정으로 쓰지 않는다 — null 이 돌아와 아래
       // snapshotVerdictOnly 분기(pass_snapshot_indeterminate)로 간다. 아래 낙관 통과 분기는 stale 이 아닌 'active' 만
       // 만들어 내므로(_cdReadSubscriptionSnapshot 이 stale-active 를 애초에 돌려주지 않는다) 안전하다.
       var _cdSnapCoverage = _cdCoverageFromSubscriptionSnapshot(coinCost, { allowStaleNone: true, featureKey: featureKey || item.featureKey });
-      if (_cdSnapCoverage && _cdSnapCoverage.canUseByPass === false) {
+      if (_cdSnapCoverage && _cdSnapCoverage.canUseByPass === false && !saleClosedKey) {
         // deniedReason 이 월 한도 소진(monthly_pass_limit_exceeded)이면 결제창이 상점 대신 한도 소진 문구를 낸다.
         return { status: 'payment_required', reason: _cdSnapCoverage.deniedReason || _cdSnapCoverage.source || 'subscription_snapshot_none', membershipCoverage: _cdSnapCoverage };
       }
@@ -32825,7 +32818,7 @@ function updateBadge() {
       }
 
       var productId = resolveUnlockProductIdByFeatureKey(featureKey);
-      var membershipCoverage = _cdGetActiveMembershipCoverageFromCache(cost);
+      var membershipCoverage = _cdGetActiveMembershipCoverageFromCache(cost, featureKey);
       var requestId = 'unlock:' + (productId || featureKey) + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
       var passAccess = typeof _cdResolvePaidContentAccess === 'function'
         ? await _cdResolvePaidContentAccess({
@@ -33651,7 +33644,7 @@ function updateBadge() {
       // 게이트를 건너뛰는 예외를 뒀다. 지금은 게이트 자체가 로컬 힌트 판정(네트워크 0)이라 그 예외가
       // 성능상 필요하진 않지만, "확답 커버 = 로그인 프롬프트 없이 즉시 통과" 동작은 그대로 유지한다.
       var earlySnapshotCoverage = tileCoinCost > 0 && typeof _cdCoverageFromSubscriptionSnapshot === 'function'
-        ? _cdCoverageFromSubscriptionSnapshot(tileCoinCost, { allowStaleNone: false })
+        ? _cdCoverageFromSubscriptionSnapshot(tileCoinCost, { allowStaleNone: false, featureKey: paidGateFeatureKey })
         : null;
       var snapshotConfirmsPassCoverage = !!(earlySnapshotCoverage && earlySnapshotCoverage.canUseByPass === true && earlySnapshotCoverage.hasActivePass === true && !_cdOptimisticPassDisabled());
       if (!snapshotConfirmsPassCoverage && !ensureCoinApiSessionHint('/')) {
@@ -33692,7 +33685,7 @@ function updateBadge() {
             : (isZiweiAIConsultationEntry
               ? '자미두수 전문가 상담이 시작됩니다.'
               : (isSukuyoAIConsultationEntry ? '숙요점 궁합 전문가 상담이 시작됩니다.' : 'PDF 생성이 시작됩니다.')));
-        var membershipCoverage = _cdGetActiveMembershipCoverageFromCache(tileCoinCost);
+        var membershipCoverage = _cdGetActiveMembershipCoverageFromCache(tileCoinCost, perUseFeatureKey);
         var passAccessRequest = {
           title: fname,
           coinPrice: tileCoinCost,
@@ -34335,7 +34328,7 @@ function updateBadge() {
         var _unlockOverlayOpened = false;
         try {
           var tileRequestId = 'unlock:' + tileLockKey + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-          var tileMembershipCoverage = _cdGetActiveMembershipCoverageFromCache(tileLockCost);
+          var tileMembershipCoverage = _cdGetActiveMembershipCoverageFromCache(tileLockCost, tileLockKey);
           var tilePassAccess = typeof _cdResolvePaidContentAccess === 'function'
             ? await _cdResolvePaidContentAccess({
               title: fname,

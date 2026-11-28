@@ -1646,16 +1646,8 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
 #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter h2{font-size:clamp(1.25rem,2vw,1.6rem);margin-bottom:8px}
 #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter p{font-size:.9rem;line-height:1.7;margin:8px 0}
 #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__details{margin-top:8px}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(160px,.7fr);gap:16px;padding:24px;margin:0;min-height:0}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__copy{min-width:0}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry h2{font-size:clamp(1.2rem,2.2vw,1.7rem);line-height:1.5;margin:0 0 8px}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__sub{margin:8px 0;font-size:.9rem}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__stage{position:relative;inset:auto;align-self:start;min-height:0;width:100%;height:auto;grid-column:2;grid-row:1}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__art{position:relative;inset:auto;width:100%;height:auto;max-width:280px;transform:none;animation:none}
-#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__eyebrow,#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__price{display:none}
 #cdHomeFunnel .cdh-consult-details{margin:12px 0}
 #cdHomeFunnel .cdh-consult-details>summary{min-height:44px;display:list-item;align-content:center;cursor:pointer;font-size:.9rem}
-#cdHomeFunnel .cdh-consult-details .cd-soulcat-entry__story{font-size:.9rem;line-height:1.7}
 #cdHomeFunnel .cdh-concern-scroll{display:none;align-items:center;justify-content:space-between;gap:12px;color:var(--cdh-muted);font-size:.875rem;margin-bottom:8px}
 #cdHomeFunnel .cdh-concern-scroll>div{display:flex;gap:6px}
 #cdHomeFunnel .cdh-concern-scroll button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid var(--cdh-line);border-radius:var(--cd-r-control);color:var(--cdh-ink);background:var(--cdh-card);cursor:pointer}
@@ -1669,16 +1661,9 @@ html.neo-mode #cdHomeFunnel .cdh-scene-art #honeypigLogo{box-shadow:none!importa
  #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter{grid-template-columns:minmax(0,1fr)}
  #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__art img{aspect-ratio:2/1;height:auto;object-fit:cover;object-position:center 35%}
  #cdHomeFunnel .cdh-consult-browser .cdh-neo-letter__copy{padding:16px}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry{grid-template-columns:minmax(0,1fr);padding:16px}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__stage{grid-column:1;grid-row:1;max-width:160px;justify-self:center}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__copy{grid-row:2}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{flex-wrap:wrap;gap:8px}
- #cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{width:100%;min-height:48px}
 }
 
 #cdHomeFunnel #cdhQuestionSlot>.cdh-other{width:100%;margin-inline:0}
-
-@media(max-width:599px){#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__actions{display:grid;grid-template-columns:minmax(0,1fr)}#cdHomeFunnel .cdh-consult-browser .cd-soulcat-entry__cta{box-sizing:border-box;min-width:0}}
 
 /* Keep pass discovery near the home introduction without changing checkout controls. */
 #cdHomeFunnel .cdh-nav{flex-wrap:wrap;gap:8px}

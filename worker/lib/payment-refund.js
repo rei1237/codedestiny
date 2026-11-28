@@ -530,3 +530,209 @@ export async function autoRefundSinglePaymentDeliveryFailure(env, payment, reaso
     return { refunded: false, refundFailed: true, payment: failedPayment || payment, reason: String(error?.message || error || "") };
   }
 }
+
+// ── 전달 실패 자동 환불 재시도(2026-11-28) ─────────────────────────────────────────────
+// 위 autoRefundSinglePaymentDeliveryFailure 가 PG 취소에 실패하면 Payment 는 paid 로 남고
+// metadata.refundStatus 만 "refund_failed" 가 된다. 예전에는 이 상태를 다시 읽는 곳이 없어서
+// 고객이 결과도 환불도 받지 못한 채 남았다. 10분 크론이 아래 함수로 다시 시도한다.
+//
+// 🔴 중복 환불 방지 세 겹:
+//   1) 선점: nextAt 을 미래로 미는 원자적 findOneAndUpdate 로 한 틱·한 워커만 같은 주문을 잡는다.
+//   2) PG 사전 조회: 이미 전액 취소돼 있으면 PG 를 다시 부르지 않고 로컬 상태만 맞춘다.
+//      부분 취소는 자동으로 손대지 않고 운영자 검토로 넘긴다.
+//   3) 같은 멱등 키: buildSinglePaymentRefundIdempotencyKey 는 같은 주문이면 같은 키를 만든다.
+// 한도를 넘으면 metadata.refundRetry.manualReview=true 로 멈추고, 운영자 알림
+// (worker/payments/reconcile.js alertPaymentAnomalies 의 refundFailures)이 사람에게 넘긴다.
+export const REFUND_RETRY_MAX_ATTEMPTS = 5;
+export const REFUND_RETRY_BATCH_LIMIT = 10;
+/** 첫 실패 직후 요청 경로가 아직 정리 중일 수 있어 이 시간이 지난 건만 잡는다. 재시도 간격의 기본값이기도 하다. */
+export const REFUND_RETRY_MIN_AGE_MS = 10 * 60_000;
+const REFUND_RETRY_MAX_BACKOFF_MS = 6 * 60 * 60_000;
+/** 재시도는 최근 실패만 본다. 오래 묵은 건은 운영자가 이미 다르게 처리했을 수 있다. */
+export const REFUND_RETRY_LOOKBACK_MS = 3 * 24 * 60 * 60_000;
+/**
+ * 🔴 이 장치가 생기기 전에 실패한 건은 자동으로 환불하지 않는다. 기존 데이터에 대한 일괄 환불은
+ * 조사 보고서(docs/operations/PAYMENT_DELIVERY_AUDIT.md)와 운영자 승인을 먼저 거친다.
+ */
+export const REFUND_RETRY_NOT_BEFORE = new Date("2026-11-28T15:00:00.000Z");
+const REFUND_FAILED_SUFFIX = /_refund_failed$/;
+
+export function refundRetryBackoffMs(attempt) {
+  const n = Math.max(1, Number(attempt) || 1);
+  return Math.min(REFUND_RETRY_MIN_AGE_MS * 2 ** (n - 1), REFUND_RETRY_MAX_BACKOFF_MS);
+}
+
+/** 재시도 대상 조건. 선점 CAS 도 같은 조건을 다시 건다 — 겹친 틱은 한쪽만 잡는다. */
+export function buildRefundRetryFilter(now = new Date(), { maxAttempts = REFUND_RETRY_MAX_ATTEMPTS } = {}) {
+  return {
+    "metadata.refundStatus": "refund_failed",
+    status: { $ne: "cancelled" },
+    orderState: { $ne: PAYMENT_ORDER_STATES.CANCELLED },
+    "metadata.refundRetry.manualReview": { $ne: true },
+    "metadata.refundFailedAt": {
+      $lte: new Date(now.getTime() - REFUND_RETRY_MIN_AGE_MS),
+      $gte: new Date(Math.max(now.getTime() - REFUND_RETRY_LOOKBACK_MS, REFUND_RETRY_NOT_BEFORE.getTime())),
+    },
+    $and: [
+      { $or: [
+        { "metadata.refundRetry.count": { $exists: false } },
+        { "metadata.refundRetry.count": { $lt: maxAttempts } },
+      ] },
+      { $or: [
+        { "metadata.refundRetry.nextAt": { $exists: false } },
+        { "metadata.refundRetry.nextAt": null },
+        { "metadata.refundRetry.nextAt": { $lte: now } },
+      ] },
+    ],
+  };
+}
+
+function rawPortOneStatus(pgPayment) {
+  // 정규화된 status 는 부분 취소도 "cancelled" 로 뭉개므로 PG 원본 상태만 본다.
+  return String(pgPayment?.rawV2?.status || "").trim().toUpperCase();
+}
+
+async function finalizeAlreadyCancelledRefund(model, payment, pgPayment, now, revoke) {
+  const reasonCode = String(payment.failureCode || "").replace(REFUND_FAILED_SUFFIX, "") || "delivery_refund_retry";
+  const revocation = await revoke(payment, {
+    status: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+    reason: reasonCode,
+  });
+  await model.updateOne(
+    { _id: payment._id, status: { $ne: "cancelled" } },
+    {
+      $set: {
+        status: "cancelled",
+        orderState: PAYMENT_ORDER_STATES.CANCELLED,
+        failureCode: reasonCode,
+        lastErrorAt: now,
+        "metadata.deliveryStatus": "refunded",
+        "metadata.refundStatus": "refunded",
+        "metadata.autoRefundedAt": now,
+        "metadata.refundRetry.resolvedBy": "pg_already_cancelled",
+        "metadata.refundRetry.pgStatus": rawPortOneStatus(pgPayment).slice(0, 40),
+        "metadata.unlockRevoked": revocation.unlockRevoked === true,
+        "metadata.unlockRevocationStatus": revocation.status || CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+        "metadata.unlockRevocationError": revocation.error || "",
+      },
+    },
+  );
+}
+
+async function markRefundRetryManualReview(model, payment, reason, now) {
+  await model.updateOne(
+    { _id: payment._id },
+    {
+      $set: {
+        "metadata.refundRetry.manualReview": true,
+        "metadata.refundRetry.manualReviewAt": now,
+        "metadata.refundRetry.manualReviewReason": String(reason || "").slice(0, 200),
+      },
+    },
+  );
+}
+
+/**
+ * refund_failed 단건 주문을 다시 환불한다. 크론 전용. 던지지 않는다.
+ * 돌려주는 값은 건수만 — 주문번호·사용자 정보는 싣지 않는다.
+ */
+export async function retryFailedSinglePaymentRefunds(env, {
+  now = new Date(),
+  limit = REFUND_RETRY_BATCH_LIMIT,
+  maxAttempts = REFUND_RETRY_MAX_ATTEMPTS,
+  model = Payment,
+  // 조회 함수는 지연 로드 — portone.js 를 cancel 만 흉내 내는 기존 테스트 목을 깨지 않는다.
+  fetchPayment = async (...args) => (await import("./portone.js")).fetchPortOnePayment(...args),
+  refund = autoRefundSinglePaymentDeliveryFailure,
+  revoke = revokeSinglePaymentContentAccess,
+} = {}) {
+  const summary = { scanned: 0, claimed: 0, refunded: 0, alreadyCancelled: 0, failed: 0, manualReview: 0, errors: 0 };
+  let candidates = [];
+  try {
+    candidates = await model.find(buildRefundRetryFilter(now, { maxAttempts }))
+      .sort({ "metadata.refundFailedAt": 1 })
+      .limit(limit)
+      .lean();
+  } catch (error) {
+    summary.errors += 1;
+    logSwallowedPaymentError("refund_retry_query")(error);
+    return summary;
+  }
+  summary.scanned = candidates.length;
+
+  for (const candidate of candidates) {
+    const ids = { merchantUid: String(candidate?.merchantUid || "").slice(-8) };
+    try {
+      const attempt = Number(candidate?.metadata?.refundRetry?.count || 0) + 1;
+      const claimed = await model.findOneAndUpdate(
+        { _id: candidate._id, ...buildRefundRetryFilter(now, { maxAttempts }) },
+        {
+          $set: {
+            "metadata.refundRetry.lastAttemptAt": now,
+            "metadata.refundRetry.nextAt": new Date(now.getTime() + refundRetryBackoffMs(attempt)),
+          },
+          $inc: { "metadata.refundRetry.count": 1 },
+        },
+        { returnDocument: "after" },
+      ).lean();
+      if (!claimed) continue;
+      summary.claimed += 1;
+      const count = Number(claimed?.metadata?.refundRetry?.count || attempt);
+      const paymentId = String(claimed.impUid || claimed.merchantUid || "").trim();
+
+      let pgPayment = null;
+      if (paymentId) {
+        try {
+          pgPayment = await fetchPayment(env, paymentId);
+        } catch (error) {
+          // 조회 실패는 취소 시도를 막지 않는다 — 같은 멱등 키와 PG 측 잔액 검증이 중복을 막는다.
+          logSwallowedPaymentError("refund_retry_pg_lookup", ids)(error);
+        }
+      }
+      const pgStatus = rawPortOneStatus(pgPayment);
+      if (pgStatus === "CANCELLED" || pgStatus === "CANCELED") {
+        await finalizeAlreadyCancelledRefund(model, claimed, pgPayment, now, revoke);
+        summary.alreadyCancelled += 1;
+        continue;
+      }
+      if (pgStatus === "PARTIAL_CANCELLED") {
+        await markRefundRetryManualReview(model, claimed, "pg_partial_cancelled", now);
+        summary.manualReview += 1;
+        continue;
+      }
+
+      const reasonCode = String(claimed.failureCode || "").replace(REFUND_FAILED_SUFFIX, "") || "delivery_refund_retry";
+      const reasonMessage = String(claimed.metadata?.refundReason || claimed.failureMessage || "결과 전달 실패 자동 환불 재시도").slice(0, 120);
+      const result = await refund(env, claimed, reasonCode, reasonMessage, claimed.failureStage || "refund_retry");
+      if (result?.refunded) {
+        summary.refunded += 1;
+        continue;
+      }
+      summary.failed += 1;
+      if (count >= maxAttempts) {
+        await markRefundRetryManualReview(model, claimed, "max_attempts", now);
+        summary.manualReview += 1;
+      }
+    } catch (error) {
+      summary.errors += 1;
+      logSwallowedPaymentError("refund_retry_item", ids)(error);
+    }
+  }
+  if (summary.claimed > 0 || summary.errors > 0) {
+    console.info("[refund-retry]", JSON.stringify(summary));
+  }
+  return summary;
+}
+
+/** 10분 크론 진입점. 절대 throw 하지 않는다(scheduled 의 다른 태스크를 함께 죽이지 않기 위해). */
+export async function runRefundRetryTask(env, options = {}) {
+  try {
+    // 지연 로드 — db.js 를 일부만 흉내 내는 기존 테스트 목을 깨지 않는다.
+    const { connectDb } = await import("./db.js");
+    await connectDb(env);
+    return await retryFailedSinglePaymentRefunds(env, options);
+  } catch (error) {
+    console.error("[refund-retry] task failed", String(error?.message || error).slice(0, 200));
+    return { ok: false };
+  }
+}
