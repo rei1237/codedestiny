@@ -1,11 +1,11 @@
 // 액땜 카드끼리 방법·풍속이 겹치지 않게 고르는 규칙(2026-11-28 R9) 계약 테스트.
-// 앞 카드가 쓴 id 는 그 케이스에 안 쓴 후보가 있으면 건너뛰고, 후보가 모자랄 때만 겹친다. 프롬프트 블록·저장 케이스는 바뀌지 않는다.
+// 앞 카드가 쓴 id(와 그 같은 축 짝)는 그 케이스에 안 쓴 후보가 있으면 건너뛰고, 후보가 모자랄 때만 겹친다. 프롬프트 블록·저장 케이스는 바뀌지 않는다.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   computeRemedyCases, serializeRemedyForPrompt, buildRemedyCardModel, methodsFor,
-  CASE_META, REMEDY_METHODS, REMEDY_NARRATORS, CUSTOM_FALLBACK_IDS, CUSTOM_NEEDS_METHOD,
+  CASE_META, REMEDY_METHODS, REMEDY_NARRATORS, CUSTOM_FALLBACK_IDS, CUSTOM_NEEDS_METHOD, SAME_AXIS_PAIRS,
 } from '../../lib/saju/remedy/index.mjs';
 import { calculateLifeBookAiSaju } from '../../worker/lib/life-book-ai-saju.js';
 import { calculateZiweiAiChart } from '../../worker/lib/ziwei-ai-chart.js';
@@ -28,6 +28,12 @@ const resultOf = (rows) => ({ valid: true, locale: 'ko', cases: rows });
 const methodIdsOf = (card) => card.methods.map((m) => m.id);
 const ownMethods = (r) => r.methodIds.filter((id) => REMEDY_METHODS[id]?.kind !== 'custom').slice(0, 3);
 const ownCustom = (r) => r.methodIds.find((id) => REMEDY_METHODS[id]?.kind === 'custom');
+/** 쓴 id 와 그 같은 축 짝을 모은다. */
+const blockedBy = (...groups) => {
+  const out = new Set(groups.flatMap((group) => [...group]));
+  for (const pair of SAME_AXIS_PAIRS) if (pair.some((id) => out.has(id))) pair.forEach((id) => out.add(id));
+  return out;
+};
 
 /** 카드마다 앞 카드들이 쓴 id 를 모아 규칙을 확인한다. 어긋난 것을 문자열로 돌려준다. */
 function violations(result, model, where) {
@@ -38,7 +44,8 @@ function violations(result, model, where) {
     const r = result.cases[index];
     const at = `${where} #${index + 1} ${card.caseId}${card.variant ? `:${card.variant}` : ''}`;
     const own = ownMethods(r);
-    const fresh = own.filter((id) => !usedM.has(id));
+    const blockedM = blockedBy(usedM, usedC);
+    const fresh = own.filter((id) => !blockedM.has(id));
     const ids = methodIdsOf(card);
     if (fresh.length >= 2) {
       if (ids.join() !== fresh.join()) bad.push(`${at}: 안 쓴 방법 ${fresh.join()} 대신 ${ids.join()}`);
@@ -49,7 +56,8 @@ function violations(result, model, where) {
     const needs = CUSTOM_NEEDS_METHOD[card.custom.id];
     if (needs && !ids.includes(needs)) bad.push(`${at}: ${card.custom.id} 에 ${needs} 가 없다`);
     const pool = [ownCustom(r), ...CUSTOM_FALLBACK_IDS].filter((id) => !CUSTOM_NEEDS_METHOD[id] || ids.includes(CUSTOM_NEEDS_METHOD[id]));
-    if (pool.some((id) => !usedC.has(id)) && usedC.has(card.custom.id)) bad.push(`${at}: 안 쓴 풍속이 있는데 ${card.custom.id} 를 겹쳤다`);
+    const blockedC = blockedBy(usedC, usedM, ids);
+    if (pool.some((id) => !blockedC.has(id)) && blockedC.has(card.custom.id)) bad.push(`${at}: 안 쓴 풍속이 있는데 ${card.custom.id} 를 겹쳤다`);
     ids.forEach((id) => usedM.add(id));
     usedC.add(card.custom.id);
   });
@@ -120,8 +128,27 @@ test('결정론: 같은 입력·저장본(JSON 왕복)·화자마다 같은 선�
   for (const narrator of REMEDY_NARRATORS) assert.deepEqual(pick(buildRemedyCardModel(result, { narrator })), pick(first), narrator);
   assert.deepEqual(result, stored, '입력은 바뀌지 않는다');
   assert.deepEqual(violations(result, first, 'blood'), []);
-  // 피 케이스 셋: 헌혈은 첫 카드에만, 피를 먼저 보는 액땜 풍속도 첫 카드에만.
-  assert.equal(first.cards.filter((card) => card.custom.id === 'custom-blood-first').length, 1);
+  // 피 케이스 셋: 헌혈은 첫 카드에만, 같은 축인 피를 먼저 보는 액땜 풍속은 헌혈과 함께 나오지 않는다.
+  assert.equal(first.cards.filter((card) => methodIdsOf(card).includes('donation-blood')).length, 1);
+  assert.equal(first.cards.filter((card) => card.custom.id === 'custom-blood-first').length, 0);
+});
+
+test('같은 축 짝: 방향 걷기와 방향 나들이, 헌혈과 피 풍속은 카드 모음에서 하나만 나온다', () => {
+  const bothOfPair = (model) => {
+    const ids = new Set(model.cards.flatMap((card) => [...methodIdsOf(card), card.custom.id]));
+    return SAME_AXIS_PAIRS.filter((pair) => pair.every((id) => ids.has(id)));
+  };
+  // 기신 해가 방향을 정한 나들이를 쓰면, 뒤의 조후 카드는 방향 정해 걷기를 건너뛴다.
+  const direction = buildRemedyCardModel(resultOf([row('gisin-year'), row('johu-urgent:warm')]));
+  assert.ok(methodIdsOf(direction.cards[0]).includes('travel-direction-trip'));
+  assert.deepEqual(methodIdsOf(direction.cards[1]), ['lifestyle-sun-warm', 'lifestyle-rhythm']);
+  // 한 카드 안에서는 헌혈 방법이 이기고, 풍속은 피 풍속 대신 대체 풍속이 된다.
+  const blood = buildRemedyCardModel(resultOf([row('baekho')]));
+  assert.ok(methodIdsOf(blood.cards[0]).includes('donation-blood'));
+  assert.equal(blood.cards[0].custom.id, CUSTOM_FALLBACK_IDS[0]);
+  assert.deepEqual([...bothOfPair(direction), ...bothOfPair(blood)], []);
+  // 프롬프트 블록은 케이스 자신의 풍속을 그대로 쓴다.
+  assert.ok(serializeRemedyForPrompt(resultOf([row('baekho')])).includes('풍속 소개: 피를 먼저 보는 액땜'));
 });
 
 test('대체 후보가 없을 때만 겹친다: 방법은 2개까지 채우고, 풍속은 케이스 풍속으로 돌아간다', () => {

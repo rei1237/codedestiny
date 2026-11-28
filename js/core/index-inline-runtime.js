@@ -1985,10 +1985,10 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-6b6ff6061234'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-6b6ff6061234'); },
-  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-6b6ff6061234'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-6b6ff6061234'); },
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
+  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
   openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-9ca3288edd38'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
@@ -2303,7 +2303,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/entertain-engine.js?v=build-59f95bf8647d',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-29e89ecdad4c',
-    '/js/core/saju/manse-view.js?v=build-9e3bc9e8ddb2'
+    '/js/core/saju/manse-view.js?v=build-3155f4c1bc27'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
@@ -8572,7 +8572,7 @@ function _dfEnsureShareScript(done) {
     done();
     return;
   }
-  window.__cdLoadScriptOnce('/js/share.js?v=build-6b6ff6061234').then(function() { done(); }, function() { done(); });
+  window.__cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0').then(function() { done(); }, function() { done(); });
 }
 
 function _dfOnShareCard(st) {

@@ -960,6 +960,126 @@ function _cdEnsureHtml2Canvas(cb){
   s.onerror = function(){ cb(null); };
   document.head.appendChild(s);
 }
+// ── h2c-capture-colors:start
+// html2canvas 1.4.1 은 color-mix()·oklch() 등의 계산값(크롬은 color(srgb …) 로 낸다)을 읽지 못해 캡처 전체가 실패한다.
+// 복제 문서(onclone)에서 그런 값만 rgba 로 바꿔 인라인 !important 로 넣는다. 원본 화면은 건드리지 않는다.
+// 배경은 투명 대신 대상 요소부터 위로 올라가며 처음 만나는 불투명 배경색을 쓴다(없으면 흰색) — 밝은 뷰어에서 네오 글자가 사라지지 않게.
+var CD_H2C_COLOR_FN = /(?:color-mix|color|oklch|oklab|lab|lch)\(/i;
+var CD_H2C_COLOR_PROPS = ['color', 'background-color', 'background-image', 'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color', 'outline-color', 'box-shadow', 'text-shadow', 'text-decoration-color', 'caret-color', 'column-rule-color', '-webkit-text-fill-color', '-webkit-text-stroke-color', 'fill', 'stroke'];
+var _cdH2cColorCache = {};
+/** value 안의 색 함수(괄호 균형 포함)를 toRgba(토큰) 결과로 바꾼다. rgb()·hsl()·이름 색은 그대로 둔다. */
+function _cdReplaceColorFns(value, toRgba){
+  var text = String(value || '');
+  var out = '';
+  var re = /(^|[^\w-])((?:color-mix|color|oklch|oklab|lab|lch)\()/ig;
+  var last = 0;
+  var m;
+  while ((m = re.exec(text))) {
+    var start = m.index + m[1].length;
+    var depth = 0;
+    var end = -1;
+    for (var i = start + m[2].length - 1; i < text.length; i++) {
+      if (text[i] === '(') depth++;
+      else if (text[i] === ')' && --depth === 0) { end = i + 1; break; }
+    }
+    if (end < 0) break;
+    out += text.slice(last, start) + toRgba(text.slice(start, end));
+    last = end;
+    re.lastIndex = end;
+  }
+  return out + text.slice(last);
+}
+/** 아무 CSS 색을 1px 캔버스에 칠해 rgba(r, g, b, a) 로 읽는다. */
+function _cdColorToRgba(token){
+  if (Object.prototype.hasOwnProperty.call(_cdH2cColorCache, token)) return _cdH2cColorCache[token];
+  var rgba = 'rgba(0, 0, 0, 0)';
+  try {
+    var canvas = document.createElement('canvas');
+    canvas.width = 1; canvas.height = 1;
+    var ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.clearRect(0, 0, 1, 1);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+    ctx.fillStyle = token;
+    ctx.fillRect(0, 0, 1, 1);
+    var d = ctx.getImageData(0, 0, 1, 1).data;
+    rgba = 'rgba(' + d[0] + ', ' + d[1] + ', ' + d[2] + ', ' + (Math.round(d[3] / 255 * 1000) / 1000) + ')';
+  } catch (_) {}
+  _cdH2cColorCache[token] = rgba;
+  return rgba;
+}
+/** 복제된 대상과 그 하위(가상 요소를 옮긴 요소 포함)의 읽지 못하는 색 계산값을 rgba 로 고정한다. */
+function _cdNormalizeCloneColors(root, toRgba){
+  var convert = toRgba || _cdColorToRgba;
+  var win = root && root.ownerDocument && root.ownerDocument.defaultView;
+  if (!win || !root.querySelectorAll) return 0;
+  var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')));
+  var changed = 0;
+  for (var n = 0; n < nodes.length; n++) {
+    var el = nodes[n];
+    var cs = win.getComputedStyle(el);
+    for (var p = 0; p < CD_H2C_COLOR_PROPS.length; p++) {
+      var prop = CD_H2C_COLOR_PROPS[p];
+      var v = cs.getPropertyValue(prop);
+      if (v && CD_H2C_COLOR_FN.test(v) && el.style) { el.style.setProperty(prop, _cdReplaceColorFns(v, convert), 'important'); changed++; }
+    }
+  }
+  return changed;
+}
+/** content-visibility:auto 는 화면 밖 복제 iframe 에서 내용을 건너뛰어 대상이 contain-intrinsic-size 높이로 잘린다
+ *  (실측: #sajuCard 3317px → 234px). 복제본의 대상과 하위만 visible 로 푼다. */
+function _cdRevealSkippedContent(root){
+  var win = root && root.ownerDocument && root.ownerDocument.defaultView;
+  if (!win || !root.querySelectorAll) return 0;
+  var nodes = [root].concat(Array.prototype.slice.call(root.querySelectorAll('*')));
+  var changed = 0;
+  for (var n = 0; n < nodes.length; n++) {
+    if (win.getComputedStyle(nodes[n]).getPropertyValue('content-visibility') === 'auto' && nodes[n].style) {
+      nodes[n].style.setProperty('content-visibility', 'visible', 'important');
+      changed++;
+    }
+  }
+  return changed;
+}
+/** html2canvas 는 닫힌 <details> 의 내용도 그려 아래 카드와 겹친다(실측: #sajuCard 입묘 근거). 복제본에서 summary 밖 자식을 숨긴다. */
+function _cdHideClosedDetails(root){
+  if (!root || !root.querySelectorAll) return 0;
+  var list = Array.prototype.slice.call(root.querySelectorAll('details:not([open])'));
+  if (root.matches && root.matches('details:not([open])')) list.unshift(root);
+  var hidden = 0;
+  for (var d = 0; d < list.length; d++) {
+    for (var c = list[d].firstElementChild, summarySeen = false; c; c = c.nextElementSibling) {
+      if (!summarySeen && c.tagName === 'SUMMARY') { summarySeen = true; continue; }
+      if (c.style) { c.style.setProperty('display', 'none', 'important'); hidden++; }
+    }
+  }
+  return hidden;
+}
+/** 대상부터 조상으로 올라가며 처음 만나는 불투명 배경색. 없으면 흰색. */
+function _cdOpaqueBackground(target, toRgba){
+  var convert = toRgba || _cdColorToRgba;
+  for (var el = target; el && el.nodeType === 1; el = el.parentElement) {
+    var win = el.ownerDocument && el.ownerDocument.defaultView;
+    if (!win) break;
+    var rgba = convert(win.getComputedStyle(el).getPropertyValue('background-color') || 'transparent');
+    var m = /^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(rgba);
+    if (m && Number(m[4]) >= 0.99) return 'rgb(' + m[1] + ', ' + m[2] + ', ' + m[3] + ')';
+  }
+  return '#ffffff';
+}
+function _cdH2cOptions(target, extra){
+  var opts = { backgroundColor: '#ffffff', scale: 2, useCORS: true, logging: false };
+  try { opts.backgroundColor = _cdOpaqueBackground(target); } catch (_) {}
+  opts.onclone = function(doc, clonedTarget){
+    try { _cdRevealSkippedContent(clonedTarget || doc.body); } catch (_) {}
+    try { _cdHideClosedDetails(clonedTarget || doc.body); } catch (_) {}
+    // html2canvas 는 대상 자신의 radial-gradient 장식을 평평한 회색 판으로 그리고 모서리 반경에서 칼같이 자른다(실측: 라이트 #sajuCard). 대상의 장식만 뺀다.
+    try { if (clonedTarget && /radial-gradient/.test(doc.defaultView.getComputedStyle(clonedTarget).backgroundImage)) clonedTarget.style.setProperty('background-image', 'none', 'important'); } catch (_) {}
+    try { _cdNormalizeCloneColors(clonedTarget || doc.body); } catch (_) {}
+  };
+  if (extra) for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) opts[k] = extra[k];
+  return opts;
+}
+// ── h2c-capture-colors:end
 function cdShareResultCardImage(options){
   var opts = options || {};
   var contentId = opts.contentId || 'saju';
@@ -973,7 +1093,7 @@ function cdShareResultCardImage(options){
         cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption });
         return;
       }
-      h2c(target, { backgroundColor: null, scale: 2, useCORS: true, logging: false }).then(function(canvas){
+      h2c(target, _cdH2cOptions(target)).then(function(canvas){
         var url = cdBuildShareUrl(contentId);
         canvas.toBlob(function(blob){
           if (!blob) { cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption }); return; }
@@ -1002,7 +1122,7 @@ function cdRenderElementToPngBlob(element, cb){
   if (!element) { done(null); return; }
   _cdEnsureHtml2Canvas(function(h2c){
     if (!h2c) { done(null); return; }
-    h2c(element, { backgroundColor: null, scale: 2, useCORS: true, logging: false, scrollX: 0, scrollY: 0 }).then(function(canvas){
+    h2c(element, _cdH2cOptions(element, { scrollX: 0, scrollY: 0 })).then(function(canvas){
       try { canvas.toBlob(function(blob){ done(blob || null); }, 'image/png'); } catch (_) { done(null); }
     }).catch(function(){ done(null); });
   });
