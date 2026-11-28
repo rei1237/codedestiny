@@ -1,7 +1,7 @@
 ---
 status: in-progress
 updated: 2026-11-28
-next: "단계 2a — 6건·멈춘 4건 dry-run 운영 읽기 전용 조회 1회 승인 요청 (3a~3c 완료, 단계 4 머지·push 는 부모 세션)"
+next: "단계 2a — 사용자에게 10개 ref 한정 운영 읽기 전용 조회 1회 승인을 받는다(2026-11-28 요청함, 답 대기). 승인 전 운영 접근 금지"
 ---
 
 # 결제 전달 후속 + 영냥이 고객센터(S9) 인수인계
@@ -84,11 +84,11 @@ next: "단계 2a — 6건·멈춘 4건 dry-run 운영 읽기 전용 조회 1회 
 
 ## 단계
 
-- [x] 1. 감사 스크립트 영냥이 판정 추가 + node --test + 변이 + 보고서 갱신 → commit (SHA 는 단계 4 머지 뒤 기록)
+- [x] 1. 감사 스크립트 영냥이 판정 추가 + node --test + 변이 + 보고서 갱신 → commit → da9336c0c1
 - [ ] 2a. 6건·멈춘 4건 dry-run 을 위한 운영 읽기 전용 조회 1회 승인 요청
 - [ ] 2b. dry-run 보고서(마스킹) 작성 → 건별 실행 범위 1회 승인 요청
 - [ ] 2c. 승인 범위만 실행 → 전달 확인 결과 기록
 - [x] 3a. 고객센터 방향·성공 기준 공유 → 지식 생성·도구·HelpDesk 카드 구현(mock) → c41f82d9c9(API·지식·인벤토리), e8d58bfeec(SupportDesk FAQ 본문 아래·library 상단)
 - [x] 3b. 속도·호출 상한, 사람 넘김, 권한 테스트 → c41f82d9c9 (__tests__/ui/yeongnyangi-support.test.mjs 7/7, mock only. 변이: 상한 fail-open→2건 실패, 소유자 필터 제거→1건 실패)
 - [x] 3c. 모바일 실제 화면 캡처 검수, check:fast → commit → e8d58bfeec, 문서 af64b21f66. 390px headed 캡처 4장 visual-checker 3차 PASS, FAQ title/description/H1/JSON-LD 불변. 실 Workers AI 는 NOT_TESTED(정확한 1회 승인 필요)
-- [ ] 4. check:pre-push → push → main CI 1회 확인 → 워크트리 배수 → 이 문서 status: done
+- [x] 4. (단계 1·3 몫) check:pre-push exit 0 → main fast-forward push 2760fdf8d5(2026-11-28) → 워크트리 support-s9-20261128-180306 배수. 단계 2 가 남아 status 는 in-progress 유지. 운영 승격 안 함
