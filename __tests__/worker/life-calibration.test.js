@@ -158,6 +158,26 @@ test('동의 철회는 입력과 파생 캐시를 즉시 지우고 이력은 남
   expect((await call('GET', '/events?profileId=me')).status).toBe(403);
 });
 
+test('GET /calibration: 동의·본인 프로필 필수, 사건 없으면 null, 계산 뒤 캐시 hit, 응답에 메모 없음', async () => {
+  expect((await call('GET', '/calibration?profileId=me')).body.code).toBe('LIFE_CALIBRATION_CONSENT_REQUIRED');
+  await grant();
+  expect((await call('GET', '/calibration?profileId=me')).body.code).toBe('PROFILE_NOT_SELF');
+  await call('POST', '/self', { profileId: 'me' });
+  expect((await call('GET', '/calibration?profileId=me')).body).toEqual({ ok: true, profileId: 'me', calibration: null });
+  await call('PUT', '/events', { profileId: 'me', events: sample });
+  const miss = await call('GET', '/calibration?profileId=me');
+  expect(miss.status).toBe(200);
+  expect(miss.cache).toMatch(/no-store/);
+  expect(miss.body.cache).toBe('miss');
+  expect(Object.keys(miss.body.calibration.engines)).toEqual(['saju', 'ziwei', 'western', 'vedic', 'sukuyo']);
+  const hit = await call('GET', '/calibration?profileId=me');
+  expect(hit.body.cache).toBe('hit');
+  expect(hit.body.calibration).toEqual(miss.body.calibration);
+  expect(JSON.stringify([miss.body, db.calibrations])).not.toContain('첫 직장 합격');
+  expect((await call('POST', '/calibration?profileId=me')).status).toBe(405);
+  expect((await call('GET', '/calibration?profileId=me', undefined, {})).status).toBe(404);
+});
+
 describe('normalizeLifeEvents', () => {
   const opts = { minYear: 1990, maxYear: 2026 };
   test('정렬·기본값·메모 정리', () => {

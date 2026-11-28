@@ -19,6 +19,7 @@ import {
   LifeEventInputError,
   normalizeLifeEvents,
 } from "../../lib/life-calibration/life-events.mjs";
+import { loadSelfLifeCalibration } from "../lib/life-calibration-compute.js";
 
 const NOTE_PURPOSE = "life-event-note";
 const fail = (status, code, message) => createHttpError(status, message, { code });
@@ -143,6 +144,18 @@ async function handleEvents(request, env, uid, method) {
   return json({ ok: true, profileId, events: await readEvents(env, uid, profileId) });
 }
 
+// 서버 보정 결과(P4). 동의·본인 프로필 필수. 캐시(inputHash)가 맞으면 다시 계산하지 않는다. 메모는 응답에 없다.
+async function handleCalibration(request, env, uid, method) {
+  if (method !== "GET") return methodNotAllowed();
+  await requireConsent(env, uid);
+  const profileId = readProfileId(new URL(request.url).searchParams.get("profileId"));
+  await requireSelfProfile(env, uid, profileId);
+  const out = await loadSelfLifeCalibration(env, { uid, profileId });
+  if (out.status === "no-events") return json({ ok: true, profileId, calibration: null });
+  if (out.status !== "ok") throw fail(403, "LIFE_CALIBRATION_UNAVAILABLE", "지금은 보정을 계산할 수 없어요.");
+  return json({ ok: true, profileId, cache: out.cache, calibration: out.calibration });
+}
+
 export async function handleLifeCalibrationRoutes(request, env) {
   try {
     if (!lifeCalibrationOn(env, "api")) return notFound();
@@ -153,6 +166,7 @@ export async function handleLifeCalibrationRoutes(request, env) {
     if (path === "/consent") return await handleConsent(request, env, uid, method);
     if (path === "/self") return await handleSelf(request, env, uid, method);
     if (path === "/events") return await handleEvents(request, env, uid, method);
+    if (path === "/calibration") return await handleCalibration(request, env, uid, method);
     return notFound();
   } catch (error) {
     return handleRouteError(error);
