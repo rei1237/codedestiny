@@ -69,7 +69,7 @@ next: "A의 남은 Google·JWT·관리자·MongoDB 키 판정과 Secret Scan 해
 - 검증: `node scripts/verify-yeongnyangi-browser.mjs --build-static` → `node scripts/verify-yeongnyangi-browser.mjs`, 그다음 `gh workflow run yeongnyangi-browser-shadow.yml --ref main -R rei1237/codedestiny`.
 
 ### D. ✅ 완료 — 조사(로/가/와) 받침 오류 — 연이·영냥이 공통
-- 감지: `node scripts/audit-saju-josa.mjs`. 2026-10-13 기준 11종이 나온다(근육와·근육가·시력와·시력가·오행로·보석로 등).
+- 감지: (2026-11-28 확인: `scripts/audit-saju-josa.mjs` 는 1ffce8b0ba 에서 삭제돼 없다. 조사 받침은 `js/core/saju/reading-rich.js` 의 `jo()` 정리로 다룬다.) 2026-10-13 기준 11종이 나온다(근육와·근육가·시력와·시력가·오행로·보석로 등).
 - 원인: 렌더러가 `값+'와 '`·`값+'가 '` 처럼 조사를 고정으로 붙인다. 예: `worker/lib/saju-section/paid-renderers.src.js:607`(`health.weak+'와'`), `:611`(`+'가'`).
 - 할 일: 서버 렌더러에 받침 조사 도우미를 하나 두고, 고정 접합을 그것으로 바꾼다. 클라 쪽 정본 도우미는 `js/core/saju/reading-rich.js:507` 의 `jo()` 다.
 - 연이 문구도 바뀌므로 패리티 픽스처의 pig 해시도 바뀐다. 의도된 변경이라고 커밋 메시지에 적는다.
@@ -96,7 +96,7 @@ next: "A의 남은 Google·JWT·관리자·MongoDB 키 판정과 Secret Scan 해
 
 ## 검증
 ```bash
-node scripts/audit-saju-josa.mjs
+# node scripts/audit-saju-josa.mjs — 2026-11-28 확인: 스크립트 삭제됨(1ffce8b0ba)
 node scripts/extract-saju-section-runtime.mjs --check
 npm run test:node
 node scripts/run-mock-tests.mjs jest
