@@ -52,6 +52,8 @@ body.neo-mode .saju-reading-switch [aria-pressed="true"] {color:#21182f;}
 @media(max-width:420px) {.saju-voice-cards {grid-template-columns:minmax(0,1fr);}}
 /* 화자 말풍선(lib/saju/speaker) 안의 문단은 바깥 여백·폭 제한을 받지 않는다. */
 .saju-reading .cd-speaker__bubble p {margin:0;max-width:none;}
+/* 한국어는 어절 단위로 줄을 바꾼다(마지막 줄에 "요." 한 음절만 남지 않게). 긴 영문·숫자는 anywhere 가 받친다. pretty 는 마지막 줄에 짧은 낱말 하나만 남지 않게 줄을 고른다. */
+.cd-speaker__bubble {word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty;}
 .saju-reading[data-reading-mode="neo"] .saju-reading__body--voice {grid-template-columns:minmax(0,1fr);}
 .saju-input-modes p {margin:8px 0 0;}
 .saju-reading {padding:20px;border-radius:16px;line-height:1.8;font-size:1rem;overflow-wrap:anywhere;text-align:left;}
@@ -188,7 +190,7 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 .saju-gauge__mark {position:absolute;top:50%;left:var(--pos);box-sizing:border-box;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:var(--reading-card);border:4px solid var(--reading-ink);box-shadow:var(--cd-shade-2);}
 .saju-gauge__base {position:absolute;top:-6px;bottom:-6px;left:var(--pos);border-left:2px dashed var(--reading-muted);}
 .saju-gauge__base::after {content:attr(data-label);position:absolute;bottom:calc(100% + 2px);left:0;transform:translateX(-50%);font-size:.75rem;font-style:normal;white-space:nowrap;color:var(--reading-muted);}
-.saju-gauge__ends {display:flex;justify-content:space-between;gap:8px;font-size:.8125rem;color:var(--reading-muted);}
+.saju-gauge__ends {display:flex;justify-content:space-between;gap:8px;font-size:max(12px,.8125rem);color:var(--reading-muted);}
 .saju-gauge--temp .saju-gauge__ends > :first-child {color:color-mix(in srgb,var(--reading-el-water) 75%,var(--reading-ink));font-weight:600;}
 .saju-gauge--temp .saju-gauge__ends > :last-child {color:color-mix(in srgb,var(--reading-el-fire) 75%,var(--reading-ink));font-weight:600;}
 .saju-gauge--humid .saju-gauge__ends > :first-child {color:color-mix(in srgb,var(--reading-el-earth) 60%,var(--reading-ink));font-weight:600;}
@@ -207,7 +209,8 @@ body.neo-mode .saju-cycle-guide {background:#21182f;color:#f4eafa;border-color:#
 .saju-table tbody th {font-weight:700;}
 .saju-table tfoot th,.saju-table tfoot td {font-weight:700;border-bottom:0;border-top:1px solid var(--reading-line);background:color-mix(in srgb,var(--reading-gold) 10%,var(--reading-card));}
 @media (max-width:560px) {
-  .saju-table--stack thead {position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
+  /* neo 의 `body.neo-mode .sacred-mirror-card *{position:relative}` 가 이기면 숨긴 머리줄이 64px 빈칸으로 남는다. */
+  .saju-table--stack thead {position:absolute!important;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;}
   .saju-table--stack,.saju-table--stack tbody,.saju-table--stack tfoot,.saju-table--stack tr {display:block;}
   .saju-table--stack tr {padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--reading-line) 70%,transparent);}
   .saju-table--stack tbody tr:last-child {border-bottom:0;}
@@ -266,7 +269,7 @@ body.neo-mode #modalBody .saju-reading > h3 {padding-right:44px;}
 }
 .saju-bars {list-style:none;margin:0 0 12px;padding:0;display:grid;gap:10px;}
 .saju-bars li {display:grid;grid-template-columns:minmax(6.5em,auto) minmax(0,1fr) 2ch;align-items:center;gap:10px;font-size:.9rem;}
-.saju-bars__track {height:12px;border-radius:999px;background:color-mix(in srgb,var(--reading-line) 55%,transparent);box-shadow:inset 0 1px 2px rgb(0 0 0 / .1);overflow:hidden;}
+.saju-bars__track {height:12px;border-radius:999px;background:color-mix(in srgb,var(--reading-muted) 8%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--reading-muted) 65%,transparent);overflow:hidden;}
 .saju-bars__track i {display:block;height:100%;width:var(--pos);border-radius:inherit;background:var(--el,var(--reading-accent));}
 .saju-bars__value {text-align:right;font-variant-numeric:tabular-nums;font-weight:700;}
 /* 모바일: 결과 카드 안에 읽기 종이·블록 카드가 겹쳐 본문 폭이 250px 대로 줄던 것을 되돌린다. */

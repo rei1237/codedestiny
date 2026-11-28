@@ -313,6 +313,24 @@ test.each(PARITY.renders.map((render) => [render.id, render.mode, render]))("ser
   expect(daewun).toEqual(render.daewun);
 });
 
+test("daewun years past the calendar core range end with a note instead of console errors", () => {
+  const c = PARITY.cases.find((entry) => entry.id === "young-f-2015");
+  const spy = jest.spyOn(console, "error").mockImplementation(() => {});
+  try {
+    const html = buildSajuSectionHtml({
+      birth: { calendarDate: c.date, calType: c.calType, hour: c.hour, minute: c.minute, timeKnown: c.timeKnown !== false },
+      gender: c.gender, name: c.name, mode: "pig", place: c.place, jongDecision: c.jong, now: new Date(PARITY.now),
+      featureKey: "section_daewun", daewun: { age: 83, gan: "丁", zhi: "酉" },
+    }).html;
+    expect(html).toContain("2100년 · ");
+    expect(html).toContain("2101년부터는 만세력 지원 범위(2100년까지) 밖이라 세운을 싣지 않았어요.");
+    expect(html).not.toContain("2101년 · ");
+    expect(spy.mock.calls.filter((args) => /년 오류/.test(String(args[0])))).toEqual([]);
+  } finally {
+    spy.mockRestore();
+  }
+});
+
 test.each([
   ["종왕격", { calendarDate: "1960-08-13", calType: "solar", hour: 2, minute: 0, timeKnown: true }],
   ["가종재격", { calendarDate: "1960-01-07", calType: "solar", hour: 10, minute: 0, timeKnown: true }],

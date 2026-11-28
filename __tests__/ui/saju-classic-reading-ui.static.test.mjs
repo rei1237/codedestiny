@@ -31,3 +31,8 @@ test('interpretation icons use a single decorative line vocabulary while labels 
   assert.match(shell,/내 절기 리듬 \(月令\)/);
   assert.match(css,/\.saju-section-icon[^}]*color:var\(--cd-accent\)/);
 });
+test('reading text wraps by word, keeps small labels legible and hides the stacked table head in every theme',()=>{
+  assert.match(css,/\.cd-speaker__bubble \{word-break:keep-all;overflow-wrap:anywhere;text-wrap:pretty;\}/);
+  assert.match(css,/\.saju-gauge__ends \{[^}]*font-size:max\(12px,\.8125rem\)/);
+  assert.match(css,/\.saju-table--stack thead \{position:absolute!important;/);
+});
