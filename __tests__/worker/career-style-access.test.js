@@ -96,3 +96,14 @@ test('HTTP 직접 호출은 인증·저장 프로필·서버 권리가 필요하
   const data = await response.json(); expect(data.report.analysis.natal).toEqual((await f.run()).report.analysis.natal);
   expect(saveArchive).not.toHaveBeenCalled(); expect(f.store.saveResult).not.toHaveBeenCalled();
 });
+
+test('말투 선택은 렌더 매개변수일 뿐 권리·가격을 바꾸지 않고 낯선 값은 연이로 돌아간다', async () => {
+  const f = fixture(); f.own(false); findProfile.mockImplementation(f.store.findProfile); findUnlock.mockImplementation(f.store.findUnlock); findResult.mockImplementation(f.store.findResult);
+  const req = body => new Request('https://example.test/api/saju/career-style', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer owner' }, body: JSON.stringify({ profileId: 'one', ...body }) });
+  const neo = await (await handleCareerStyle(req({ mode: 'neo' }), {})).json();
+  const pig = await (await handleCareerStyle(req({ mode: 'admin' }), {})).json();
+  expect(neo).toMatchObject({ accessSource: 'public', priceKRW: 0, saved: false }); expect(pig).toMatchObject({ accessSource: 'public', priceKRW: 0, saved: false });
+  expect(neo.report.mode).toBe('neo'); expect(pig.report.mode).toBe('pig');
+  expect(neo.report.analysis.natal).toEqual(pig.report.analysis.natal);
+  expect(neo.report.sections.map(s => s.title)).toEqual(pig.report.sections.map(s => s.title));
+});

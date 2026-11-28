@@ -95,7 +95,8 @@ import { correctGyeokgukText, gyeokgukClaimFact } from "../../lib/saju/gyeokguk-
 import { NATAL_CORE_VERSION } from "../../lib/saju/natal-core/version.mjs";
 import { buildShinsalFactsBlock } from "../../lib/saju/shinsal-facts-block.mjs";
 import { GEMINI_INPUT_TOKEN_HARD_LIMIT } from "../../lib/gemini-input-token-limit.mjs";
-import { selectShinsalFacts, shinsalFactsPinned } from "../lib/engine-rollout.js";
+import { selectShinsalFacts, shinsalFactsPinned, selectLifeCalibration, lifeCalibrationPinned } from "../lib/engine-rollout.js";
+import { buildPersonalHistoryBlock, lifeHistoryGuardFacts, guardLifeHistoryContradiction } from "../../lib/life-calibration/personal-history-block.mjs";
 import {
   buildAstrologyAIPrompt,
   buildAstrologyAIPromptWithDomain,
@@ -461,6 +462,8 @@ function buildSajuAISectionPromptPrefix(builtPrompt) {
     // 신살 사실 블록(핀 있는 기록만, attachSajuAIShinsalBlock). 비면 filter 로 빠져 이전과 바이트가 같다.
     // 접두사에 한 번만 둔다 — 다섯 묶음이 같은 접두사(명시적 캐시)를 공유한다.
     String(builtPrompt?.shinsalBlock || "").trim(),
+    // 인생 보정 블록(LIFE_CALIBRATION_V1 'saju-ai' 핀 기록만, attachSajuAILifeHistoryBlock). 비면 filter 로 빠져 바이트가 같다.
+    String(builtPrompt?.lifeHistoryBlock || "").trim(),
     "내부 프롬프트:",
     internalPrompt,
   ].filter(Boolean).join("\n\n").trim();
@@ -526,6 +529,35 @@ async function attachSajuAIShinsalBlock(builtPrompt, { env, existingExecution, s
     const block = sajuAIShinsalBlock(builtPrompt, sajuResult);
     if (!block) return builtPrompt;
     const withBlock = { ...builtPrompt, shinsalBlock: block };
+    const systemTokens = estimateSajuAIPromptTokens(await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT));
+    const largest = Math.max(...SAJU_AI_SECTION_GROUPS.map((group) => estimateSajuAIPromptTokens(buildSajuAISectionPrompt(withBlock, group))));
+    return systemTokens + largest <= SAJU_AI_SHINSAL_PROMPT_BUDGET ? withBlock : builtPrompt;
+  } catch {
+    return builtPrompt;
+  }
+}
+
+// ── 인생 보정 블록(LIFE_CALIBRATION_V1 'saju-ai', docs/context/life-calibration.md P4) ──────────
+// 신살 블록과 같은 자리·같은 계약: 해시·다이제스트·기록 선점 뒤에 붙이고, 핀(result.lifeCalibration)이 있는 기록만 받는다.
+// 동의 + 본인 프로필 + 서버 사건이 있을 때만 서버 보정값(캐시)으로 블록을 만든다. 클라이언트 v1 calibration 경로는 그대로다.
+// 블록과 함께 가드 사실(lifeHistoryFacts)을 실어 runSajuAISectionWaves 의 결정적 교정에 쓴다. 어떤 실패도 블록만 뺀다.
+// 동적 import: 플래그 OFF 경로는 보정 모델·엔진 모듈을 읽지 않는다.
+async function loadSajuAILifeCalibration(env, args) {
+  const { loadSelfLifeCalibration } = await import("../lib/life-calibration-compute.js");
+  return loadSelfLifeCalibration(env, args);
+}
+
+async function attachSajuAILifeHistoryBlock(builtPrompt, { env, existingExecution, auth, profileId, loadCalibration } = {}) {
+  try {
+    const meta = existingExecution ? existingExecution.result : { lifeCalibration: selectLifeCalibration(env, "saju-ai") };
+    if (!lifeCalibrationPinned(meta, env, "saju-ai")) return builtPrompt;
+    const uid = String(auth?.userId || "").trim();
+    if (!uid || !profileId) return builtPrompt;
+    const out = await (loadCalibration || loadSajuAILifeCalibration)(env, { uid, profileId });
+    if (out?.status !== "ok") return builtPrompt;
+    const block = buildPersonalHistoryBlock(out.calibration);
+    if (!block) return builtPrompt;
+    const withBlock = { ...builtPrompt, lifeHistoryBlock: block, lifeHistoryFacts: lifeHistoryGuardFacts(out.calibration) };
     const systemTokens = estimateSajuAIPromptTokens(await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT));
     const largest = Math.max(...SAJU_AI_SECTION_GROUPS.map((group) => estimateSajuAIPromptTokens(buildSajuAISectionPrompt(withBlock, group))));
     return systemTokens + largest <= SAJU_AI_SHINSAL_PROMPT_BUDGET ? withBlock : builtPrompt;
@@ -818,7 +850,10 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
       // 엔진 격국과 다른 격국 단정은 재생성하지 않고 고정 문장으로 바꾸거나 지운다(lib/saju/gyeokguk-claim-guard.mjs).
       const guarded = correctGyeokgukText(normalizeSajuAIResultText(ai?.text), gyeokgukClaimFact(builtPrompt.factSnapshot?.majorStructures?.gyeokguk));
       if (guarded.replaced || guarded.dropped) console.info("[SajuMyeongsikAI] gyeokguk correction", JSON.stringify({ requestId, group: group.key, replaced: guarded.replaced, dropped: guarded.dropped }));
-      return { group, ok: isCompleteLlmResponse(ai), text: guarded.text, ai };
+      // 인생 보정 모순 가드: 블록을 받은 기록만(lifeHistoryFacts). 사용자가 적은 경험의 반대를 단정한 문장을 중립 문장으로 바꾼다.
+      const life = builtPrompt.lifeHistoryFacts?.length ? guardLifeHistoryContradiction(guarded.text, builtPrompt.lifeHistoryFacts) : null;
+      if (life && (life.replaced || life.dropped)) console.info("[SajuMyeongsikAI] life history correction", JSON.stringify({ requestId, group: group.key, replaced: life.replaced, dropped: life.dropped }));
+      return { group, ok: isCompleteLlmResponse(ai), text: life ? life.text : guarded.text, ai };
     } catch (groupError) {
       console.warn("[SajuMyeongsikAI] section group threw", {
         requestId,
@@ -1366,6 +1401,7 @@ async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, 
           ...(!existingExecution && sajuAIDeliveryV2Enabled(env) ? { deliveryPlanVersion: SAJU_AI_DELIVERY_PLAN_VERSION } : {}),
           // 신살 블록 핀도 새 기록에만 넣는다. 기존 기록은 위 펼침으로 있던 값을 그대로 이어받는다.
           ...(!existingExecution && selectShinsalFacts(env, "saju-ai") ? { shinsalFacts: selectShinsalFacts(env, "saju-ai") } : {}),
+          ...(!existingExecution && selectLifeCalibration(env, "saju-ai") ? { lifeCalibration: selectLifeCalibration(env, "saju-ai") } : {}),
           ...(sajuAuthority ? { sajuAuthority } : {}),
           leaseToken,
           payloadHash,
@@ -5152,6 +5188,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   // 🔴 payloadHash·promptDigest 계산과 기록 선점 뒤에 붙인다. shinsalBlock 은 해시에 들어가지 않는 필드라
   // 플래그를 바꿔 재시도·재개해도 409(REQUEST_CONFLICT)가 나지 않는다.
   builtPrompt = await attachSajuAIShinsalBlock(builtPrompt, { env, existingExecution, sajuResult });
+  builtPrompt = await attachSajuAILifeHistoryBlock(builtPrompt, { env, existingExecution, auth, profileId });
 
   logSajuAIPromptStage("LLM_JOB_STARTED", {
     userId: auth.userId,
@@ -7429,6 +7466,7 @@ export const __sajuAiSectionTestUtils = {
   buildSajuAISectionPromptPrefix,
   sajuAIShinsalBlock,
   attachSajuAIShinsalBlock,
+  attachSajuAILifeHistoryBlock,
   estimateSajuAIPromptTokens,
   SAJU_AI_SHINSAL_PROMPT_BUDGET,
   extractSajuAIPersonaSummaries,

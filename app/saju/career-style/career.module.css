@@ -83,3 +83,28 @@
 }
 
 .paymentActions { display:flex; flex-wrap:wrap; gap:12px; }
+
+/* 말투 선택(연이·영냥이)과 화자 얼굴. 얼굴 틀 색은 lib/saju/speaker 의 frame 값을 인라인으로 받는다. */
+.voiceAsk { margin:24px 0 10px; font-weight:700; }
+.voiceCards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin:0 0 20px; }
+.page .voiceCard { display:flex; align-items:center; gap:12px; min-height:64px; padding:10px 14px; border:1px solid var(--cd-border); border-radius:16px; background:var(--cd-surface); color:var(--cd-text); font:inherit; text-align:left; cursor:pointer; }
+.page .voiceCard[aria-pressed="true"] { border-color:var(--cd-primary); box-shadow:0 0 0 2px var(--cd-primary); }
+.voiceText { display:flex; flex-direction:column; gap:2px; min-width:0; line-height:1.4; }
+.voiceText span { font-size:.875rem; word-break:keep-all; }
+.face { position:relative; display:block; flex:0 0 auto; border:2px solid; border-radius:50%; overflow:hidden; box-sizing:border-box; }
+.face img { position:absolute; display:block; max-width:none; height:auto; }
+.voiceLead { display:flex; align-items:flex-start; gap:14px; }
+.voiceLead .chapterLead { flex:1; min-width:0; padding:14px 18px; border-radius:4px 18px 18px 18px; background:var(--cd-bg); }
+.neoPortrait { max-width:180px; }
+.items { list-style:none; margin:32px 0; padding:0; display:grid; gap:16px; }
+.item { padding:20px 22px; border:1px solid var(--cd-border); border-radius:16px; background:var(--cd-bg); }
+.item h4 { font-size:1.15rem; margin:0 0 10px; }
+.item p { margin-bottom:10px; }
+.examples strong { display:block; font-size:.875rem; }
+.itemBasis { margin:0; font-size:.875rem; line-height:1.7; }
+@media(max-width:640px){
+ .page .voiceCard { padding:10px; gap:10px; }
+ .voiceLead { gap:10px; }
+ .voiceLead .chapterLead { padding:12px 14px; }
+ .item { padding:18px 16px; }
+}
