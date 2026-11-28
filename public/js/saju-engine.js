@@ -25464,7 +25464,7 @@ function renderCurrentSeasonSummary(bazi){
         '</div>');
     }
     if(!parts.length)return;
-    parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">현재 대운과 올해의 흐름을 살펴봤다면, 아래 대운표에서 시기를 선택해 연도별 변화를 이어 읽어보세요.</div>');
+    parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">'+(_sajuPromptReadPersonaMode()==='neo'?'아래 대운표에서 궁금한 시기를 골라 봐. 해마다 무엇이 달라지는지 살펴보자.':'아래 대운표에서 궁금한 시기를 골라 보세요. 해마다 무엇이 달라지는지 이어서 볼 수 있어요.')+'</div>');
     box.innerHTML=parts.join('');
     card.style.display='block';
     // 풍부한 판(reading-rich.js)은 이미 계산한 평가·합충만 받아 그린다. 재계산하지 않는다.

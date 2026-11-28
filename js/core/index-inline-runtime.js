@@ -1985,10 +1985,10 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
-  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0'); },
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-4022d8bddae0'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-4022d8bddae0'); },
+  shareAstroKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-4022d8bddae0'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-4022d8bddae0'); },
   openSajuCompatArchive: function() { return __cdLoadScriptOnce('/js/saju-compat-archive.js?v=build-9ca3288edd38'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
@@ -2291,11 +2291,11 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/core/kasi-calendar-service.js?v=build-2004797c0450',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
     '/js/core/saju/manse-shinsal.js',
-    '/js/saju-engine.js?v=build-9ed6d33528b9',
+    '/js/saju-engine.js?v=build-1fad77344b9a',
       '/js/core/saju/extremeTResult.js?v=build-5f0576c62518',
       /* 숙요 정본(Swiss 항성 달 황경). quantum.js 의 calcSukuyoData 가 이것 없이는 수(宿)를 내지 않는다. */
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a150de26add3',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-6870703b2587',
     '/js/core/saju/basicFortunePresentation.js?v=build-f38a0da126c0',
     '/js/core/saju/modalProfileState.js?v=build-70bc2c91ff63',
     '/js/core/saju/reportDashboard.js?v=build-21e2a9a7819a',
@@ -2303,7 +2303,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/entertain-engine.js?v=build-59f95bf8647d',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-29e89ecdad4c',
-    '/js/core/saju/manse-view.js?v=build-157044ede2d3'
+    '/js/core/saju/manse-view.js?v=build-df1c517dfc8d'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
@@ -8572,7 +8572,7 @@ function _dfEnsureShareScript(done) {
     done();
     return;
   }
-  window.__cdLoadScriptOnce('/js/share.js?v=build-9ac2af0941c0').then(function() { done(); }, function() { done(); });
+  window.__cdLoadScriptOnce('/js/share.js?v=build-4022d8bddae0').then(function() { done(); }, function() { done(); });
 }
 
 function _dfOnShareCard(st) {
@@ -9171,9 +9171,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
     '/js/core/saju/natal-core.generated.js?v=build-bb07a3eebbed',
     '/js/compat-llm-prompts.js?v=build-f4b380e036d0',
       '/js/core/saju/manse-shinsal.js',
-      '/js/saju-engine.js?v=build-9ed6d33528b9',
+      '/js/saju-engine.js?v=build-1fad77344b9a',
       '/js/core/sukuyo-astronomy.js?v=build-5198c8e4c8b2',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-a150de26add3'
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-6870703b2587'
   ];
 
   /* 🔴 예전에는 이 체인 앞에 lunar-javascript CDN 대기가 있었고, 그것이 reject 되면 생년월일

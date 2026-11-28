@@ -13,7 +13,7 @@
 
   var STORE_KEY = 'cd.manse.settings.v1';
   var COPY_SRC = '/js/core/saju/shinsal-copy.generated.js?v=build-ebf3c0b4c4f6';
-  var SHARE_SRC = '/js/share.js?v=build-9ac2af0941c0';
+  var SHARE_SRC = '/js/share.js?v=build-4022d8bddae0';
   var NS = 'manseView.';
 
   var COLS = [

@@ -5847,7 +5847,7 @@
     "ilju": {
       "dashboard": "日支柱仪表板",
       "hanjaTitle": "日柱汉字标记",
-      "balanceTitle": "五行平衡度",
+      "balanceTitle": "按字数计算的五行占比",
       "summaryTitle": "三行摘要",
       "showDetail": "查看详细分析 ▼",
       "detailTitle": "详细分析",
