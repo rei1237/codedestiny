@@ -118,9 +118,11 @@ export async function settlePaidNarrativeRefund(env, doc, reasonCode, { now = Da
   if (live(doc, now)) return "busy";
   const at = new Date(now), state = doc.metadata.paidNarrative;
   const owned = { _id: doc._id, status: "pending", refundStatus: { $in: [null, "none"] }, $or: [{ "lock.until": null }, { "lock.until": { $lte: at } }] };
+  // S5 (2026-11-28): alertPending feeds the operator alert (paid-delivery-review-alert.js); a held run leaves SETTLE_CODES and no sweep reads it again.
   const hold = async code => {
     await withMongoRetry(env, () => model.updateOne(owned, { $set: { reasonCode: code, "compensation.adminReviewRequired": true,
-      "metadata.paidNarrativeRetry.heldAt": at, "metadata.paidNarrativeRetry.holdCode": code, nextRetryAt: new Date(now + 86400000) } }), { retries: 0 });
+      "metadata.paidNarrativeRetry.heldAt": at, "metadata.paidNarrativeRetry.holdCode": code,
+      "metadata.paidNarrativeRetry.alertPending": true, nextRetryAt: new Date(now + 86400000) } }), { retries: 0 });
     return "admin_review";
   };
   if (state.exhaustionClaimed) {
@@ -143,7 +145,7 @@ export async function settlePaidNarrativeRefund(env, doc, reasonCode, { now = Da
   if (result?.status === "failed") {
     // No refunder restored anything although the evidence looked valid: make it visible to an operator.
     await withMongoRetry(env, () => model.updateOne({ _id: doc._id, status: "failed" }, { $set: { "compensation.adminReviewRequired": true,
-      "metadata.paidNarrativeRetry.refundFailedAt": at } }), { retries: 0 });
+      "metadata.paidNarrativeRetry.refundFailedAt": at, "metadata.paidNarrativeRetry.alertPending": true } }), { retries: 0 });
     return "refund_failed";
   }
   return "pending";

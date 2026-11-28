@@ -2051,6 +2051,10 @@ const app = {
       ctx.waitUntil(import("./lib/payment-refund.js").then(({ runRefundRetryTask }) => runRefundRetryTask(env)).catch((error) => {
         console.error("[refund-retry] task failed:", error?.message || error);
       }));
+      // 자동 환불이 닿지 않는 유료 전달 실패(보류된 서사·토스·수동 검토 상담) 운영자 알림(2026-11-28 S5). 알림·표식만 쓴다.
+      ctx.waitUntil(import("./lib/paid-delivery-review-alert.js").then(({ runPaidDeliveryReviewAlertTask }) => runPaidDeliveryReviewAlertTask(env)).catch((error) => {
+        console.error("[paid-delivery-review-alert] task failed:", error?.message || error);
+      }));
       // 서비스 실행 원장(결제 후 생성 대기) 타임아웃 스윕을 10분마다 소량으로(2026-11-28). 일일 크론의 30건 실행은 유지.
       // 태스크가 실패를 다시 던지므로 여기서 잡는다.
       ctx.waitUntil(import("./lib/service-execution-task.js").then(({ runServiceExecutionTimeoutTask }) => runServiceExecutionTimeoutTask(env, { limit: 5 })).catch((error) => {
