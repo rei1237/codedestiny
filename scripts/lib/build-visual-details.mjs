@@ -153,19 +153,41 @@ const GENERATED_ASSET_PATTERN = /^(.+)-(?:\d+|og)\.webp$/;
  * column both downloaded the full original. Every crafted panel gets a 540w
  * sibling (recorded as `variants` in its public manifest, which the popup and
  * product pages fetch), and editions shown as a card a 144px (2x) cover. These
- * suffixes belong to this generator and are pruned here; a variant newer than
- * its source is kept so sync:public does not re-encode hundreds of panels.
+ * suffixes belong to this generator and are pruned here. A variant is re-encoded
+ * only when it is missing or its source's content hash differs from the one in
+ * scripts/data/crafted-variants.lock.json. File mtimes are not compared: a fresh
+ * checkout or worktree stamps files in arbitrary order, so an mtime test made
+ * sync:public re-encode (and dirty) variants whose source never changed.
  */
 const CRAFTED_DIRECTORY = path.join(root, 'public/feature-details/crafted');
 const CRAFTED_PANEL_SOURCE = /^\/feature-details\/crafted\/[a-z0-9-]+\/[^/]+\.webp$/;
 const CRAFTED_VARIANT_PATTERN = /-(?:540|144)\.webp$/;
-async function craftedVariant(src, width, written) {
+const CRAFTED_VARIANT_LOCK = path.join(root, 'scripts/data/crafted-variants.lock.json');
+const sourceDigest = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex').slice(0, 16);
+/** A variant without a recorded hash is adopted as is (the lock's first run); only a recorded, different hash re-encodes. */
+export function craftedVariantIsStale({ outputExists, recordedHash, sourceHash }) {
+  return !outputExists || (Boolean(recordedHash) && recordedHash !== sourceHash);
+}
+function readCraftedVariantLock() {
+  return { previous: fs.existsSync(CRAFTED_VARIANT_LOCK) ? JSON.parse(fs.readFileSync(CRAFTED_VARIANT_LOCK, 'utf8')) : {}, next: {} };
+}
+function writeCraftedVariantLock(lock) {
+  const sorted = Object.fromEntries(Object.entries(lock.next).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)));
+  const text = JSON.stringify(sorted, null, 2) + '\n';
+  if (!fs.existsSync(CRAFTED_VARIANT_LOCK) || fs.readFileSync(CRAFTED_VARIANT_LOCK, 'utf8') !== text) writeJsonAtomic(CRAFTED_VARIANT_LOCK, sorted, 2);
+}
+async function craftedVariant(src, width, written, lock) {
   const source = path.resolve(root, 'public', decodeURIComponent(src.slice(1)));
   if (!source.startsWith(CRAFTED_DIRECTORY + path.sep)) throw new Error('Crafted image outside its directory');
   const output = source.replace(/\.webp$/, `-${width}.webp`);
   written.add(output);
-  if (!fs.existsSync(output) || fs.statSync(output).mtimeMs < fs.statSync(source).mtimeMs) {
-    await writeImageAtomic(sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }), output);
+  const key = path.relative(CRAFTED_DIRECTORY, output).split(path.sep).join('/');
+  if (!lock.next[key]) {
+    const sourceHash = sourceDigest(source);
+    if (craftedVariantIsStale({ outputExists: fs.existsSync(output), recordedHash: lock.previous[key], sourceHash })) {
+      await writeImageAtomic(sharp(source).resize({ width, withoutEnlargement: true }).webp({ quality: 78 }), output);
+    }
+    lock.next[key] = sourceHash;
   }
   return src.replace(/\.webp$/, `-${width}.webp`);
 }
@@ -316,6 +338,7 @@ export async function writeVisualDetails(html, book) {
   const knownSlugs = new Set(Object.keys(data.items));
   const writtenAssets = new Set();
   const writtenCrafted = new Set();
+  const craftedLock = readCraftedVariantLock();
   for (const [slug, item] of Object.entries(data.items)) {
     const destination = path.join(directory, `${slug}.json`);
     if (item.verification === 'verified') {
@@ -384,7 +407,7 @@ export async function writeVisualDetails(html, book) {
       for (const essay of item.crafted || []) {
         const panels = (essay.panels || []).filter(panel => panel.src && panel.text);
         for (const panel of panels) {
-          if (CRAFTED_PANEL_SOURCE.test(panel.src) && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted), width: 540 }];
+          if (CRAFTED_PANEL_SOURCE.test(panel.src) && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted, craftedLock), width: 540 }];
         }
         // A single edition renders open without a card, so it needs no cover.
         const cover = panels[0];
@@ -392,7 +415,7 @@ export async function writeVisualDetails(html, book) {
           const thumb = [...(cover.variants || [])].sort((a,b) => a.width - b.width)[0];
           if (thumb) essay.cover = { src: thumb.src, width: thumb.width, height: Math.round(thumb.width * cover.height / cover.width) };
         } else if (item.crafted.length > 1 && cover && CRAFTED_PANEL_SOURCE.test(cover.src)) {
-          essay.cover = { src: await craftedVariant(cover.src, 144, writtenCrafted), width: 144, height: Math.round(144 * (Number(cover.height) || 1440) / (Number(cover.width) || 1080)) };
+          essay.cover = { src: await craftedVariant(cover.src, 144, writtenCrafted, craftedLock), width: 144, height: Math.round(144 * (Number(cover.height) || 1440) / (Number(cover.width) || 1080)) };
         }
       }
       writeJsonAtomic(destination, item);
@@ -426,7 +449,7 @@ export async function writeVisualDetails(html, book) {
       manifest.panels[0] = { ...authored.panels[0] };
     }
     for (const panel of manifest.panels || []) {
-      if (CRAFTED_PANEL_SOURCE.test(panel.src || '') && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted), width: 540 }];
+      if (CRAFTED_PANEL_SOURCE.test(panel.src || '') && Number(panel.width) > 540) panel.variants = [{ src: await craftedVariant(panel.src, 540, writtenCrafted, craftedLock), width: 540 }];
     }
     writeJsonAtomic(file, manifest, 2);
   }
@@ -439,6 +462,7 @@ export async function writeVisualDetails(html, book) {
       if (CRAFTED_VARIANT_PATTERN.test(name) && !writtenCrafted.has(path.join(folder, name))) fs.unlinkSync(path.join(folder, name));
     }
   }
+  writeCraftedVariantLock(craftedLock);
   const cmsFile = path.join(root, 'app/_content/cms.generated.json');
   const detailOverrides = fs.existsSync(cmsFile) ? JSON.parse(fs.readFileSync(cmsFile, 'utf8')).entries?.['feature-detail'] || {} : {};
   for (const item of Object.values(data.items)) {
