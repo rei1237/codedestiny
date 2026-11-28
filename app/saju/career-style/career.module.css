@@ -1,4 +1,4 @@
-.page { --cd-bg:var(--cd-samples-paper); --cd-text:var(--cd-samples-ink); --cd-primary:var(--cd-samples-rose); --cd-surface:var(--cd-samples-sheet); background:var(--cd-bg); color:var(--cd-text); min-height:100vh; padding:0 20px; font-family:var(--font-body); font-size:1rem; line-height:1.85; letter-spacing:0; }
+.page { background:var(--cd-bg); color:var(--cd-text); min-height:100vh; padding:0 20px; font-family:var(--font-body); font-size:1rem; line-height:1.85; letter-spacing:0; }
 .wrap { max-width:1040px; margin:auto; }
 .top a,.bottom a { display:inline-flex; align-items:center; min-height:44px; }
 .top { display:flex; justify-content:space-between; gap:16px; align-items:center; min-height:72px; font-weight:700; font-size:.9rem; }
@@ -13,7 +13,7 @@
 .heroCopy h1 { font-size:clamp(2rem,4.6vw,3.5rem); letter-spacing:-.04em; margin:8px 0 18px; }
 .heroCopy p { margin-bottom:12px; }
 .heroCopy span { display:block; margin-top:12px; font-size:.875rem; }
-.page .primary { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 24px; border:0; border-radius:999px; background:var(--cd-primary); color:var(--cd-on-primary,white); font:inherit; font-weight:700; text-decoration:none; cursor:pointer; }
+.page .primary { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:12px 24px; border:0; border-radius:999px; background:var(--cd-primary); color:var(--cd-primary-ink); font:inherit; font-weight:700; text-decoration:none; cursor:pointer; }
 .page .primary:disabled { opacity:.6; cursor:wait; }
 .page :is(a,button,input,summary):focus-visible { outline:3px solid var(--cd-primary); outline-offset:4px; }
 .intro h2 { word-break:keep-all; }
@@ -38,7 +38,8 @@
 .contents a { min-height:56px; display:flex; gap:12px; align-items:center; border-bottom:1px solid var(--cd-border); text-decoration:none; font-size:.9rem; word-break:keep-all; }
 .contents span { font-variant-numeric:tabular-nums; color:var(--cd-primary); }
 .chapter { padding:48px 28px; margin:32px -28px; border:3px double var(--cd-yehwa-line-deep); border-radius:4px; background:var(--cd-surface); scroll-margin-top:24px; }
-.chapterHeading { display:flex; flex-direction:column; align-items:center; gap:16px; margin-bottom:32px; padding:16px 24px 24px; text-align:center; background:url(/icons/yehwa-branch.svg) right top / 64px auto no-repeat; }
+.chapterHeading { display:flex; flex-direction:column; align-items:center; gap:16px; margin-bottom:32px; padding:16px 24px 24px; text-align:center; position:relative; }
+.chapterHeading::after { content:""; display:block; width:min(12rem,60%); height:1.25rem; background:var(--cd-primary); mask:url(/icons/yehwa-branch.svg) center / contain no-repeat; pointer-events:none; }
 .chapterHeading>span { color:var(--cd-primary); font-family:var(--font-serif); font-size:1.2rem; font-weight:400; font-variant-numeric:tabular-nums; line-height:1; }
 .chapterHeading h3 { margin:0; }
 .chapterLead { font-size:1.08em; line-height:1.9; }
