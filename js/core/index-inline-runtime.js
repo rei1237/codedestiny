@@ -2303,7 +2303,7 @@ function __cdEnsureSajuCoreLoaded() {
     '/js/entertain-engine.js?v=build-59f95bf8647d',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
     '/js/core/saju/dopamineResult.js?v=build-29e89ecdad4c',
-    '/js/core/saju/manse-view.js?v=build-3155f4c1bc27'
+    '/js/core/saju/manse-view.js?v=build-c2f00559cc2f'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */

@@ -480,6 +480,8 @@
   }
   function refreshCopy() {
     var c=langCopy(locale());
+    var intro=document.getElementById('terms24Intro'), neoIntro=document.getElementById('terms24IntroNeo');
+    if(intro && neoIntro){var neoKorean=locale()==='ko' && mode()==='neo';intro.hidden=neoKorean;neoIntro.hidden=!neoKorean;}
     document.querySelectorAll('[data-saju-copy]').forEach(function(el){var key=el.getAttribute('data-saju-copy');if(c[key])el.textContent=c[key];});
     document.querySelectorAll('[data-saju-offer]').forEach(function(el){
       var key=el.getAttribute('data-saju-offer');

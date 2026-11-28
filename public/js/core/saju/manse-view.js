@@ -773,7 +773,7 @@
     if (!groups.length && !rels.length) return '<p class="manse-shinsal__empty">' + esc(mt('sum.empty')) + '</p>';
     var byCat = {};
     groups.forEach(function (g) { (byCat[g.category] = byCat[g.category] || []).push(g); });
-    var h = sayHtml('yeoni', sayText(mt('sum.yeoni', { n: groups.length })));
+    var h = sayHtml('yeoni', sayText(mt('sum.yeoni', { n: groups.length + rels.length })));
     h += '<ul class="mxv-legend">';
     CATS.forEach(function (c) {
       var n = c === 'relation' ? rels.length : (byCat[c] || []).length;

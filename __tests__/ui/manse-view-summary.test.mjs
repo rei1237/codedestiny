@@ -22,6 +22,32 @@ function lookup(dict, key) {
   return key.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), dict);
 }
 
+test('season introduction follows the Korean speaker, not the site theme, and restores translated copy', () => {
+  const html = read('index.html');
+  const excerpt = html.slice(html.indexOf('<p class="terms24-intro"'), html.indexOf('<div class="terms24-wrap"'));
+  const dom = new JSDOM(excerpt, { url: 'https://example.test/', runScripts: 'outside-only' });
+  try {
+    const { window } = dom, doc = window.document;
+    doc.documentElement.lang = 'ko';
+    window.eval(read('js/core/saju/reading-personas.js'));
+    const intro = doc.getElementById('terms24Intro'), neo = doc.getElementById('terms24IntroNeo');
+    const refresh = () => window.SajuReadingPresentation.refreshCopy();
+    doc.body.classList.add('neo-mode'); refresh();
+    assert.deepEqual([intro.hidden, neo.hidden], [false, true]);
+    window.localStorage.setItem('cdSajuPersonaV1', 'neo'); refresh();
+    assert.deepEqual([intro.hidden, neo.hidden], [true, false]);
+    for (const lang of ['en', 'ja', 'zh-cn', 'zh-tw']) {
+      const dict = JSON.parse(read('public/i18n/' + lang + '.json'));
+      doc.documentElement.lang = lang;
+      intro.textContent = lookup(dict, intro.dataset.cdTrans); refresh();
+      assert.deepEqual([intro.hidden, neo.hidden], [false, true]);
+      for (const key of ['summaryTitle', 'summaryHelp', 'seasonIntro']) {
+        assert.ok(dict.manseView[key]); assert.doesNotMatch(dict.manseView[key], /[가-힣]/);
+      }
+    }
+  } finally { dom.window.close(); }
+});
+
 function mount({ lang = 'ko', copy = 'ok', speaker = false } = {}) {
   const dom = new JSDOM('<body><div id="sajuCard"><div id="manseGrid"></div><section class="manse-shinsal"><div id="manseShinsalList"></div><p id="manseShinsalBasis"></p></section></div>', { url: 'https://example.test/', runScripts: 'outside-only' });
   const win = dom.window;
@@ -50,6 +76,9 @@ test('speaker lines show Yeoni on top and Yeongnyangi below with fixed-size deco
     assert.equal(says.length, 2);
     assert.ok(says[0].classList.contains('mxv-say--yeoni'));
     assert.ok(says[1].classList.contains('mxv-say--nyang'));
+    const counts = [...doc.querySelectorAll('.mxv-legend__item strong')];
+    assert.ok(doc.querySelector('.mxv-legend__item--relation'));
+    assert.equal(Number(says[0].querySelector('.mxv-say__text').textContent.match(/\d+/)[0]), counts.reduce((sum, el) => sum + Number(el.textContent), 0));
     for (const img of doc.querySelectorAll('#manseShinsalList .mxv-say img')) {
       assert.equal(img.getAttribute('alt'), '');
       assert.equal(img.getAttribute('loading'), 'eager');

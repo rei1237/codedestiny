@@ -1,0 +1,44 @@
+{
+  "manseView.summaryTitle": {
+    "ko": "명식에 머문 신살",
+    "en": "Symbolic stars in your birth chart",
+    "ja": "命式に現れる神殺",
+    "zh-CN": "命盘中的神煞",
+    "zh-TW": "命盤中的神煞",
+    "vi": "Symbolic stars in your birth chart",
+    "hi": "Symbolic stars in your birth chart",
+    "es": "Symbolic stars in your birth chart",
+    "fr": "Symbolic stars in your birth chart",
+    "de": "Symbolic stars in your birth chart",
+    "nl": "Symbolic stars in your birth chart",
+    "ms": "Symbolic stars in your birth chart"
+  },
+  "manseView.summaryHelp": {
+    "ko": "신살은 성격이나 사건을 단정하지 않고, 원국의 기운을 더 섬세하게 읽는 보조 단서예요.",
+    "en": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events.",
+    "ja": "神殺は命式をより細かく読むための補助的な手がかりです。性格や出来事を決めつけるものではありません。",
+    "zh-CN": "神煞是细读命盘的辅助线索，并不能断定性格或具体事件。",
+    "zh-TW": "神煞是細讀命盤的輔助線索，並不能斷定性格或具體事件。",
+    "vi": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events.",
+    "hi": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events.",
+    "es": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events.",
+    "fr": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events.",
+    "de": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events.",
+    "nl": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events.",
+    "ms": "Symbolic stars add detail to a birth chart reading. They do not define your personality or predict specific events."
+  },
+  "manseView.seasonIntro": {
+    "ko": "태어난 날의 절기를 보면 사주의 월주(月柱)가 어느 계절에 놓이는지 알 수 있어요. 그 계절을 기준으로 일과 관계에서 힘을 쓰기 편한 때를 함께 살펴볼게요.",
+    "en": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships.",
+    "ja": "生まれた日の節気を手がかりに、月柱がどの季節にあたるかを読みます。その季節から、仕事や人間関係で力を発揮しやすい時期を見ていきましょう。",
+    "zh-CN": "出生当天的节气能帮助你了解月柱所处的季节。以这个季节为线索，一起看看你在工作和人际交往中何时更容易发挥所长。",
+    "zh-TW": "出生當天的節氣能幫助你了解月柱所處的季節。以這個季節為線索，一起看看你在工作和人際交往中何時更容易發揮所長。",
+    "vi": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships.",
+    "hi": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships.",
+    "es": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships.",
+    "fr": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships.",
+    "de": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships.",
+    "nl": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships.",
+    "ms": "The solar term on your birthday places your month pillar in its season. We use that season to explore the rhythms of work and relationships."
+  }
+}
