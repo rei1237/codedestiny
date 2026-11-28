@@ -88,7 +88,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
   - 서양 `westernYearSignals` `lib/life-calibration/western-signals.mjs` — unavailable(`no-server-safe-pure-transit-path`). `AstroTransits` 는 정적 셸 전역, Swiss 는 비동기 WASM·env 의존. 붙일 때도 일식표 끝(2036-08) 뒤는 외삽하지 않는다.
   - 타로 — 제외. 신호가 없는 엔진은 `no-adapter-input` 으로 채운다.
 - 테스트 `__tests__/ui/life-calibration-engine.test.mjs`: v1 집계와 수치 일치, 결정성·해시, 수축·상한, minSignals·minYears, 충돌 임계값, unavailable 처리, 래퍼가 입력을 바꾸지 않음, import 허용 가드(DB·env·http·swiss·LLM·`calculateLocalResult`·시계·난수 금지), 플래그 OFF 동일성(`lifeCalibrationOn` 기본 OFF + 런타임 코드가 보정 모듈을 import 하지 않음 — P4 에서 소비자를 붙일 때 이 허용 목록을 함께 갱신).
-- P4 할 일: 라우트에서 ProfileCard.birth → 원국·대운·명반·베다 차트 계산(차트 계산은 기존 엔진 호출만), 이벤트 년도 신호 생성 → `computeLifeCalibration` → LifeCalibration 캐시(inputHash 비교), `lifeCalibrationOn(env, <소비자 id>)` 뒤에서만. 숙요 anchor 결정, 서양 서버 경로 여부 결정.
+- (P4 에서 처리, 위 "P4 구현" 절) 라우트에서 ProfileCard.birth → 원국·대운·명반·베다 차트 계산(차트 계산은 기존 엔진 호출만), 이벤트 년도 신호 생성 → `computeLifeCalibration` → LifeCalibration 캐시(inputHash 비교), `lifeCalibrationOn(env, <소비자 id>)` 뒤에서만. 숙요 anchor 결정, 서양 서버 경로 여부 결정.
 
 ## 충돌 처리 규칙
 
@@ -101,8 +101,24 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - 공통 주입 지점(`lib/llm-client.ts` `applyOutputLocale`)에는 넣지 않는다. 모든 기능의 캐시 키가 바뀌고 프롬프트 바이트 고정 테스트가 깨진다.
 - 기존 패턴을 따른다: 기능별 opt-in 블록 헬퍼(예 `buildShinsalFactsBlock` `lib/saju/shinsal-facts-block.mjs`) + 소비자 CSV 롤아웃(`ENGINE_ROLLOUT_FLAGS`, `worker/lib/engine-rollout.js`). 이 기능의 키는 `LIFE_CALIBRATION_V1` — `lifeCalibrationOn(env, id)`(`worker/lib/engine-rollout.js`). `ENGINE_ROLLOUT_FLAGS` 에 넣지 않았으므로 기본 OFF. 소비자 id: `api`(P1b), 이후 LLM 소비자별 id.
 - 블록 ≤ 600 토큰. 동의·데이터가 없으면 블록 자체를 넣지 않는다(빈 블록 금지). 플래그 OFF 면 프롬프트 바이트 동일.
-- 모순 가드: 규칙 기반으로 연도+긍부정 표현 추출 → 위반 시 1회 재생성 → 남으면 해당 문장만 중립 치환. 결제 결과 보장 계약(`docs/context/ai-and-db.md`)을 따르며 결과를 막지 않는다.
+- 모순 가드: 규칙 기반으로 연도+긍부정 표현 추출 → 위반 문장만 결정적 중립 치환(재생성 계층은 만들지 않는다 — 코딩 원칙 6, P4 결정). 결제 결과 보장 계약(`docs/context/ai-and-db.md`)을 따르며 결과를 막지 않는다.
 - 통과해야 할 가드: `config/ai-locale-call-inventory.json`(`scripts/audit-ai-locale-calls.mjs`), `verify:paid-llm-delivery`, 프롬프트 바이트 고정 테스트, CMS 카탈로그 커버리지, `verify-i18n-no-hardcoded-korean`.
+
+### P4 구현 (2026-11-28, 플래그 OFF)
+
+- 서버 계산 `worker/lib/life-calibration-compute.js` `loadSelfLifeCalibration(env, {uid, profileId})`: 동의(현재 버전)·본인 프로필(`isSelf`)·사건을 확인 → `ProfileCard.birth/gender/location` → 기존 엔진 호출만(`calculateNatalSaju`·`analyzeNatalCore`·`daeun`, 자미 `calculateZiweiChart`, 베다 `getSwissVedicPlanets(..., {localOnly:true})` — 외부 천문 API 없음) → P3 래퍼 → `computeLifeCalibration` → `LifeCalibration` 캐시(`_id = uid:profileId`, `inputHash` 같으면 hit). 캐시 쓰기 실패는 결과를 막지 않는다. 메모(`noteCipher`)는 읽지도 복호화하지도 않는다.
+  - 엔진 하나가 던지면 그 엔진만 `unavailable: engine-error`(로그에는 엔진 이름·오류 코드만). 성별 없음 → 사주·자미 `gender-required`, 시각 모름 → 자미·베다 `birth-time-required`, 장소(위경도·tz) 없음 → 베다 `birth-place-required`.
+  - **숙요는 계속 unavailable**(연도 anchor 미결정), **서양은 계속 unavailable**(서버 경로 없음). 결정 전까지 대조에 쓰이지 않는다.
+  - API: `GET /api/life-calibration/calibration?profileId=`(`lifeCalibrationOn(env,'api')` 뒤, 동의·본인 필수, 사건 없으면 `calibration: null`, 응답에 메모 없음, no-store).
+- 블록 `lib/life-calibration/personal-history-block.mjs` `buildPersonalHistoryBlock(calibration)`: 결정적·≤600 토큰(넘으면 오래된 사건 줄부터 빼고, 그래도 넘으면 블록 없음). 엔진이 대조에 쓴(`used`) 사건만 (연도, 분야)로 모으고 같은 칸에 좋음·힘듦이 섞이면 버린다. 건강 분야는 받지 않는다. "직접 적은 기억·약한 참고 가중치"로만 설명하고 정확도·적중·운명 표현과 수치 노출을 금지한다.
+- 첫 소비자 = **사주 AI 상담(`saju-ai`)만.** 신살 블록과 같은 계약:
+  - 핀 `result.lifeCalibration = 'life-calibration-v1'`은 새 기록에만(`selectLifeCalibration`), 생성·재시도·재개는 `lifeCalibrationPinned`. 키 없는 기존 기록은 영구 off, 플래그를 비우면 핀이 있어도 off(킬 스위치).
+  - 블록은 payloadHash·promptDigest·기록 선점 **뒤**에 `attachSajuAILifeHistoryBlock` 이 붙이고 접두사(`buildSajuAISectionPromptPrefix`)에 들어간다. 해시·저장 결과·캐시 접미에 넣지 않아 플래그를 바꿔도 409 가 나지 않는다. 계산 모듈은 동적 import 라 OFF 경로는 읽지 않는다. 동의 없음·계산 실패·예산(`SAJU_AI_SHINSAL_PROMPT_BUDGET`) 초과는 블록만 뺀다.
+  - 🔴 클라이언트 v1 보정(`calibration` 본문 필드)은 건드리지 않았다. 다만 `SAJU_GYEOKGUK_AUTHORITY_V2:'true'` 에서 새 실행은 `buildPinnedSajuPrompt` 로 다시 빌드되어 클라이언트 `calibration` 을 쓰지 않는다(실측: calibrationApplied 0) — v1 클라이언트 경로는 새 실행에서 사실상 죽어 있다. 서버 경로가 `calibration` 필드를 거치지 않는 이유이기도 하다(그 필드는 payloadHash 에 들어가 플래그 전환 때 409).
+- 모순 가드 `guardLifeHistoryContradiction(text, facts)`: 블록을 받은 기록의 그룹 생성문에만, 격국 교정 바로 뒤(기존 교정 훅 안, 새 재생성 계층 없음). 문장이 사용자가 적은 해(`YYYY년`)를 말하면서 적은 결과의 반대만 단정하면(긍·부정 어휘가 함께 있으면 건드리지 않음, 그 해 분야가 여럿이면 분야 낱말 필요) 고정 문장 `YYYY년 <분야> 흐름은 겪은 대로 보세요.`로 바꾸고 같은 그룹 안의 반복은 지운다. 제목 줄은 건드리지 않고, 어떤 오류도 원문을 돌려준다.
+  - 🔴 중립 문장은 공백 뺀 24자 미만으로 둔다: `hasRepeatedReportPassage` 가 24자 이상 문장이 챕터 사이에 되풀이되면 결과를 버리기 때문이다(처음 쓴 긴 문장이 mock 에서 실제로 503 을 냈다). 테스트가 모든 분야에서 길이를 잰다.
+- 테스트: `__tests__/worker/life-calibration-compute.test.js`(동의·본인·사건 없음, 캐시 miss/hit/입력 변경, 엔진 실패 격리, 실제 사주 엔진 경로, 블록 결정성·토큰 상한·메모 미포함·금지어, 가드 치환·무해 입력), `__tests__/worker/life-calibration.test.js`(GET /calibration), `__tests__/worker/saju-paid-delivery-recovery.test.js`("life history block": OFF·다른 id 바이트 동일, ON 그룹마다 한 번·해시 동일·저장 안 함, 동의 없음·실패·킬 스위치, 가드 치환은 핀 기록만), 허용 목록 `__tests__/ui/life-calibration-engine.test.mjs`.
+- 남은 소비자(TODO, 각자 별도 작업): `neo`, `tea-house`, `love-codex`, `fusion`, `yeongnyangi`. 영냥이는 결제 지문(`service.ts` 231행 부근)에 닿지 않는 지점에 붙여야 한다.
 
 ## 플래그
 
@@ -148,7 +164,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - [x] P1b 데이터 모델·API·연쇄 삭제 (RED: DB, 2026-11-28 승인, 플래그 OFF)
 - [x] P2 입력 UX (2026-11-28, 플래그 OFF — 위 "P2 입력 UX" 절)
 - [x] P3 보정 엔진(래퍼·순수 함수·테스트: 결정성, 수축, 플래그 OFF 동일성, `calculateLocalResult` 불변) — 2026-11-28, 위 "P3 구현" 절
-- [ ] P4 LLM 블록·모순 가드
+- [x] P4 서버 계산·캐시·LLM 블록·모순 가드 — 2026-11-28, 플래그 OFF, 첫 소비자 saju-ai 만(위 "P4 구현" 절). 남은 소비자: neo·tea-house·love-codex·fusion·yeongnyangi
 - [ ] P5 사주 정적 결과 오버레이
 - [ ] P6 다이어리 "나의 흐름"·월간 체크인
 - [ ] P7 검증(360px·960px·Android WebView·앱인토스 실화면)·출시
