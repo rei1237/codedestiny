@@ -5,7 +5,7 @@
   var gods = ['비견', '겁재', '식신', '상관', '편재', '정재', '편관', '정관', '편인', '정인'];
   var copy = {
     ko: {
-      yeon: '연이', neo: '영냥이', garden: '연이의 달빛 사주', room: '영냥이의 별빛 다락방',
+      yeon: '연이', neo: '영냥이',
       same: '기본 사주는 연이와 영냥이가 함께 맡아요. 같은 계산 근거를 바탕으로, 원하는 마스터의 해설을 골라 읽어보세요.',
       compareNeo: '영냥이 상담으로 전환하기', compareYeon: '연이 상담으로 전환하기',
       observe: '연이가 발견한 단서', life: '생활에서 만나는 모습', practice: '오늘의 작은 실천', diagnosis: '영냥이가 짚은 핵심', basis: '계산 근거', action: '행동 기준',
@@ -49,7 +49,7 @@
       paidBundle: '라이트 사주 풀이 · 라이트 사주와 대운 풀이를 한 번 결제로 영구히 읽어요. 기본·재미 사주는 무료이고 AI 생성 상담은 별도예요.',
       recovery: '기존 계정과 프로필로 사주 결과를 다시 열고 해당 풀이의 해금 상태를 확인하세요. 결제 후 열리지 않으면 새로 결제하지 말고 결제 내역과 함께 고객센터에 문의하세요.',
       inputs: '현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.',
-      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '라이트 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', yeonIntro: '달빛 아래 한 장씩, 타고난 마음과 지금의 계절을 함께 읽어볼게요.', neoIntro: '흐름의 근거부터 짚어 줄게. 그다음 지금 해 볼 작은 걸음 하나를 같이 고르자.', paidRead: '풀이 확인하기',
+      pricePending: '가격 확인 중', priceUnavailable: '가격은 결제 안내에서 확인해 주세요', summaryTitle: '라이트 사주 풀이', daeunTitle: '대운 분석 · 지금부터 다음 시기까지', graphTitle: '대운 흐름 비교', paidRead: '풀이 확인하기',
       catTitle: '영냥이 상담', catPurpose: '명식의 흐름을 고양이 상담사와', catGo: '살펴보기', catPrice: '{price}부터',
       letterVerdictJong: '한 방향으로 흐르는 힘을 따라가는 구조', letterVerdictStrong: '스스로 길을 내는 힘이 비교적 넉넉한 구조', letterVerdictWeak: '곁의 도움과 준비된 시간이 있을 때 더 편안히 빛나는 구조',
       letterGreeting: '{name}님께,', letterGuest: '이 편지를 읽는 당신', letterSignature: '연이가 온 마음을 담아',
@@ -108,8 +108,6 @@
     en: {
       "yeon": "Yeoni",
       "neo": "Yeongnyangi",
-      "garden": "Yeoni’s moonlit saju",
-      "room": "Yeongnyangi’s starlit attic",
       "same": "Yeoni and Yeongnyangi both guide the basic saju reading. Choose the voice you prefer; both use the same chart calculations.",
       "compareNeo": "Switch to Yeongnyangi’s reading",
       "compareYeon": "Switch to Yeoni’s reading",
@@ -257,7 +255,6 @@
         "Deep exploration of unfamiliar views",
         "Preparation through learning and support"
       ],
-      "neoIntro": "I’ll start with the reasons behind the patterns. Then let’s choose one small step you can try now.",
       "letterGreeting": "Dear {name},",
       "letterGuest": "You, the reader of this letter",
       "letterSignature": "With all my heart, Yeoni",
