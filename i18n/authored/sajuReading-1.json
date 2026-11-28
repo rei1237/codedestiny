@@ -392,7 +392,7 @@
     "ms": "observing and adapting"
   },
   "sajuReading.scenes.0": {
-    "ko": "관심사가 많아 여러 일을 시작할 수 있어요. 끝맺을 자리를 남겨두면 성장의 힘이 더 잘 쓰입니다.",
+    "ko": "관심사가 많아 여러 일을 한꺼번에 벌이기 쉬워요. 끝낼 날짜도 함께 정해 두면 마무리가 한결 쉬워요.",
     "en": "You may start several things at once. Leave room to finish them.",
     "ja": "You may start several things at once. Leave room to finish them.",
     "zh-CN": "You may start several things at once. Leave room to finish them.",
@@ -406,7 +406,7 @@
     "ms": "You may start several things at once. Leave room to finish them."
   },
   "sajuReading.scenes.1": {
-    "ko": "대화에 생기를 더할 수 있어요. 마음이 앞설 때는 상대가 답할 틈도 함께 남겨보세요.",
+    "ko": "대화 자리에 활기를 더하는 편이에요. 말이 빨라질 때는 상대가 답할 틈을 남겨 주세요.",
     "en": "You may bring energy to conversations. Give others time to respond.",
     "ja": "You may bring energy to conversations. Give others time to respond.",
     "zh-CN": "You may bring energy to conversations. Give others time to respond.",
@@ -420,7 +420,7 @@
     "ms": "You may bring energy to conversations. Give others time to respond."
   },
   "sajuReading.scenes.2": {
-    "ko": "익숙한 역할을 지키는 데 마음이 놓일 수 있어요. 다른 사람의 몫까지 떠안고 있는지도 살펴보세요.",
+    "ko": "익숙한 역할을 맡고 있을 때 마음이 놓여요. 다른 사람 몫까지 떠안고 있지 않은지 가끔 살펴보세요.",
     "en": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
     "ja": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
     "zh-CN": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share.",
@@ -434,7 +434,7 @@
     "ms": "Familiar responsibilities may feel reassuring. Check whether you are carrying someone else’s share."
   },
   "sajuReading.scenes.3": {
-    "ko": "모호한 상황에서 기준을 찾을 수 있어요. 기준이 너무 촘촘해지면 나와 타인의 여유가 줄기도 합니다.",
+    "ko": "애매한 상황에서도 기준을 잘 세우는 편이에요. 기준이 너무 촘촘해지면 나도 주변도 숨 돌릴 틈이 줄어요.",
     "en": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
     "ja": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
     "zh-CN": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe.",
@@ -448,7 +448,7 @@
     "ms": "Clear standards may help with uncertainty. Too many rules can leave little room to breathe."
   },
   "sajuReading.scenes.4": {
-    "ko": "쉽게 지나치는 변화를 알아차릴 수 있어요. 생각이 길어질 때는 작은 실행으로 확인해 보세요.",
+    "ko": "남들이 지나치는 작은 변화를 먼저 알아차려요. 생각이 길어지면 작은 일 하나를 직접 해 보며 확인해 보세요.",
     "en": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
     "ja": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
     "zh-CN": "You may notice subtle changes. When reflection stretches on, try a small experiment.",
@@ -504,7 +504,7 @@
     "ms": "Write down the boundary of one responsibility this week."
   },
   "sajuReading.actions.3": {
-    "ko": "꼭 지킬 기준 하나와 유연하게 바꿀 기준 하나를 나눠 보세요.",
+    "ko": "꼭 지킬 기준 하나와 상황 따라 바꿔도 되는 기준 하나를 나눠 보세요.",
     "en": "Separate one essential standard from one flexible preference.",
     "ja": "Separate one essential standard from one flexible preference.",
     "zh-CN": "Separate one essential standard from one flexible preference.",
@@ -532,7 +532,7 @@
     "ms": "Choose one thing to research and one thing to test now."
   },
   "sajuReading.rules.0": {
-    "ko": "목표와 마감이 정해졌을 때 밀고 나가 봐. 시작만 자꾸 늘어난다면 새 과제부터 줄여 보자.",
+    "ko": "목표와 마감이 정해졌을 때 밀어붙여. 시작만 자꾸 늘면 새 과제부터 줄이자.",
     "en": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
     "ja": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
     "zh-CN": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows.",
@@ -546,7 +546,7 @@
     "ms": "Proceed with a clear goal and deadline. Reduce new tasks if unfinished work grows."
   },
   "sajuReading.rules.1": {
-    "ko": "전할 내용과 상대의 여유가 맞을 때 꺼내 봐. 감정이 앞설 때는 답을 재촉하지 않는 편이 좋아.",
+    "ko": "상대가 들을 여유가 있을 때 말을 꺼내 봐. 감정이 앞설 땐 답을 재촉하지 마.",
     "en": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
     "ja": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
     "zh-CN": "Speak when the message and the listener’s availability align. Do not press for an immediate answer.",
@@ -560,7 +560,7 @@
     "ms": "Speak when the message and the listener’s availability align. Do not press for an immediate answer."
   },
   "sajuReading.rules.2": {
-    "ko": "책임과 쓸 수 있는 자원이 맞을 때 맡는 게 좋아. 네 몫이 계속 늘어난다면 범위를 다시 맞춰 보자.",
+    "ko": "책임만큼 쓸 시간과 힘이 있을 때 맡아. 네 몫이 계속 늘어나면 범위부터 다시 정하자.",
     "en": "Accept a role when resources match its demands. Renegotiate a growing workload.",
     "ja": "Accept a role when resources match its demands. Renegotiate a growing workload.",
     "zh-CN": "Accept a role when resources match its demands. Renegotiate a growing workload.",
@@ -574,7 +574,7 @@
     "ms": "Accept a role when resources match its demands. Renegotiate a growing workload."
   },
   "sajuReading.rules.3": {
-    "ko": "기준이 목적에 도움이 될 때 꺼내 써. 완벽하려다 멈춰 버린다면 최소 조건부터 정해 봐.",
+    "ko": "기준은 목적에 도움이 될 때만 꺼내 써. 완벽하려다 멈췄다면 최소 조건부터 정해 봐.",
     "en": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
     "ja": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
     "zh-CN": "Apply standards that serve the goal. Define a minimum if perfection stalls progress.",
@@ -588,7 +588,7 @@
     "ms": "Apply standards that serve the goal. Define a minimum if perfection stalls progress."
   },
   "sajuReading.rules.4": {
-    "ko": "확인할 질문이 분명할 때 알아봐. 정보만 쌓인다면 작게 시험해 볼 날짜부터 정해 봐.",
+    "ko": "확인할 질문이 분명할 때만 찾아봐. 정보만 쌓이면 작게 시험해 볼 날짜부터 잡아.",
     "en": "Research a specific question. Set a small test deadline if information only accumulates.",
     "ja": "Research a specific question. Set a small test deadline if information only accumulates.",
     "zh-CN": "Research a specific question. Set a small test deadline if information only accumulates.",
@@ -742,7 +742,7 @@
     "ms": "Learning · support"
   },
   "sajuReading.godLife.0": {
-    "ko": "스스로 결정할 때 편안할 수 있어요. 다른 의견도 한 번 들어보세요.",
+    "ko": "스스로 결정할 때 마음이 편해요. 정하기 전에 다른 의견도 한 번 들어 보세요.",
     "en": "Making your own decisions may feel comfortable. Hear another view too.",
     "ja": "Making your own decisions may feel comfortable. Hear another view too.",
     "zh-CN": "Making your own decisions may feel comfortable. Hear another view too.",
@@ -756,7 +756,7 @@
     "ms": "Making your own decisions may feel comfortable. Hear another view too."
   },
   "sajuReading.godLife.1": {
-    "ko": "다른 사람과 나란히 달릴 때 힘이 날 수 있어요. 비교가 소모로 이어지는지도 살펴보세요.",
+    "ko": "누군가와 나란히 달릴 때 힘이 나기 쉬워요. 비교하다 지치고 있지 않은지도 살펴보세요.",
     "en": "Working alongside others may energise you. Notice when comparison becomes draining.",
     "ja": "Working alongside others may energise you. Notice when comparison becomes draining.",
     "zh-CN": "Working alongside others may energise you. Notice when comparison becomes draining.",
@@ -770,7 +770,7 @@
     "ms": "Working alongside others may energise you. Notice when comparison becomes draining."
   },
   "sajuReading.godLife.2": {
-    "ko": "익숙한 일을 꾸준히 표현하고 다듬는 데 강점이 있을 수 있어요.",
+    "ko": "익숙한 일을 꾸준히 다듬어 보여 주는 데 강한 편이에요.",
     "en": "Regular practice and expression may help you develop a skill.",
     "ja": "Regular practice and expression may help you develop a skill.",
     "zh-CN": "Regular practice and expression may help you develop a skill.",
@@ -784,7 +784,7 @@
     "ms": "Regular practice and expression may help you develop a skill."
   },
   "sajuReading.godLife.3": {
-    "ko": "당연한 규칙에도 질문을 던질 수 있어요. 바꾸려는 이유를 먼저 설명해 보세요.",
+    "ko": "당연해 보이는 규칙에도 질문을 던지는 편이에요. 바꾸자고 할 때는 이유부터 설명해 보세요.",
     "en": "You may question familiar rules. Explain the reason for a proposed change.",
     "ja": "You may question familiar rules. Explain the reason for a proposed change.",
     "zh-CN": "You may question familiar rules. Explain the reason for a proposed change.",
@@ -798,7 +798,7 @@
     "ms": "You may question familiar rules. Explain the reason for a proposed change."
   },
   "sajuReading.godLife.4": {
-    "ko": "여러 기회를 연결하는 데 관심이 갈 수 있어요. 감당할 수 있는 범위를 함께 살펴보세요.",
+    "ko": "여러 기회를 서로 잇는 데 눈이 가요. 내가 감당할 수 있는 범위도 같이 살펴보세요.",
     "en": "Connecting opportunities may interest you. Check what you can realistically manage.",
     "ja": "Connecting opportunities may interest you. Check what you can realistically manage.",
     "zh-CN": "Connecting opportunities may interest you. Check what you can realistically manage.",
@@ -812,7 +812,7 @@
     "ms": "Connecting opportunities may interest you. Check what you can realistically manage."
   },
   "sajuReading.godLife.5": {
-    "ko": "작은 수입과 약속을 지키며 안정감을 얻을 수 있어요.",
+    "ko": "작은 수입과 약속을 지켜 가며 마음이 놓이는 편이에요.",
     "en": "Keeping small financial commitments and promises may bring stability.",
     "ja": "Keeping small financial commitments and promises may bring stability.",
     "zh-CN": "Keeping small financial commitments and promises may bring stability.",
@@ -826,7 +826,7 @@
     "ms": "Keeping small financial commitments and promises may bring stability."
   },
   "sajuReading.godLife.6": {
-    "ko": "어려운 과제에서 집중력이 살아날 수 있어요. 회복할 시간도 일정에 넣어보세요.",
+    "ko": "어려운 과제 앞에서 오히려 집중이 잘 되기도 해요. 쉬는 시간도 일정에 미리 넣어 두세요.",
     "en": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
     "ja": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
     "zh-CN": "Demanding tasks may focus your attention. Make recovery part of the schedule.",
@@ -840,7 +840,7 @@
     "ms": "Demanding tasks may focus your attention. Make recovery part of the schedule."
   },
   "sajuReading.godLife.7": {
-    "ko": "역할과 기준이 분명할 때 편안할 수 있어요. 기준이 바뀌는 상황도 연습해 보세요.",
+    "ko": "역할과 기준이 분명할 때 마음이 편한 편이에요. 기준이 바뀌는 상황에도 조금씩 익숙해져 보세요.",
     "en": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
     "ja": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
     "zh-CN": "Clear roles may feel comfortable. Practise adjusting when expectations change.",
@@ -854,7 +854,7 @@
     "ms": "Clear roles may feel comfortable. Practise adjusting when expectations change."
   },
   "sajuReading.godLife.8": {
-    "ko": "익숙하지 않은 관점을 깊이 살필 수 있어요. 생각을 현실에서 확인할 기회를 만들어 보세요.",
+    "ko": "낯선 관점을 깊이 파고들어요. 떠오른 생각을 실제로 시험해 볼 기회도 만들어 보세요.",
     "en": "You may explore unfamiliar perspectives deeply. Test them against experience.",
     "ja": "You may explore unfamiliar perspectives deeply. Test them against experience.",
     "zh-CN": "You may explore unfamiliar perspectives deeply. Test them against experience.",
@@ -868,7 +868,7 @@
     "ms": "You may explore unfamiliar perspectives deeply. Test them against experience."
   },
   "sajuReading.godLife.9": {
-    "ko": "배우거나 도움을 주고받으며 힘을 얻을 수 있어요. 배운 것을 작게 써보세요.",
+    "ko": "배우고 도움을 주고받을 때 힘이 나요. 배운 것 하나를 작게라도 써 보세요.",
     "en": "Learning and support may renew your energy. Put one lesson into practice.",
     "ja": "Learning and support may renew your energy. Put one lesson into practice.",
     "zh-CN": "Learning and support may renew your energy. Put one lesson into practice.",
@@ -882,7 +882,7 @@
     "ms": "Learning and support may renew your energy. Put one lesson into practice."
   },
   "sajuReading.godRules.0": {
-    "ko": "내 결정과 공동 결정을 구분하고, 협의가 필요한 일에는 의견을 확인하세요.",
+    "ko": "혼자 정할 일과 함께 정할 일을 나눠 보세요. 함께 정할 일은 의견부터 물어보세요.",
     "en": "Separate individual from shared decisions and consult where needed.",
     "ja": "Separate individual from shared decisions and consult where needed.",
     "zh-CN": "Separate individual from shared decisions and consult where needed.",
@@ -896,7 +896,7 @@
     "ms": "Separate individual from shared decisions and consult where needed."
   },
   "sajuReading.godRules.1": {
-    "ko": "경쟁 전에 비용과 역할을 합의하세요. 비교가 목표를 바꾸면 잠시 멈추세요.",
+    "ko": "경쟁 전에 비용과 역할부터 맞춰 두세요. 비교가 목표를 흔들면 잠시 쉬어 가세요.",
     "en": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
     "ja": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
     "zh-CN": "Agree on costs and roles before competing. Pause if comparison replaces the goal.",
@@ -910,7 +910,7 @@
     "ms": "Agree on costs and roles before competing. Pause if comparison replaces the goal."
   },
   "sajuReading.godRules.2": {
-    "ko": "반복할 수 있는 분량으로 시작하세요. 완성된 결과를 기준으로 다음 단계를 정하세요.",
+    "ko": "매일 이어 갈 수 있는 분량으로 시작해 보세요. 다음 단계는 하나를 끝낸 뒤에 정해요.",
     "en": "Start with a repeatable workload. Use completed work to plan the next step.",
     "ja": "Start with a repeatable workload. Use completed work to plan the next step.",
     "zh-CN": "Start with a repeatable workload. Use completed work to plan the next step.",
@@ -924,7 +924,7 @@
     "ms": "Start with a repeatable workload. Use completed work to plan the next step."
   },
   "sajuReading.godRules.3": {
-    "ko": "문제를 지적할 때 대안을 함께 제시하세요. 상대를 평가하는 말은 빼세요.",
+    "ko": "문제를 짚을 때는 대안도 함께 말해 주세요. 상대를 평가하는 말은 빼는 게 좋아요.",
     "en": "Offer an alternative when identifying a problem. Avoid judging the person.",
     "ja": "Offer an alternative when identifying a problem. Avoid judging the person.",
     "zh-CN": "Offer an alternative when identifying a problem. Avoid judging the person.",
@@ -938,7 +938,7 @@
     "ms": "Offer an alternative when identifying a problem. Avoid judging the person."
   },
   "sajuReading.godRules.4": {
-    "ko": "기회마다 필요한 시간과 손실 한도를 적으세요. 범위를 넘으면 보류하세요.",
+    "ko": "기회마다 드는 시간과 잃어도 되는 한도를 적어 두세요. 그 선을 넘으면 잠시 미뤄요.",
     "en": "List time and downside limits for each opportunity. Defer what exceeds them.",
     "ja": "List time and downside limits for each opportunity. Defer what exceeds them.",
     "zh-CN": "List time and downside limits for each opportunity. Defer what exceeds them.",
@@ -952,7 +952,7 @@
     "ms": "List time and downside limits for each opportunity. Defer what exceeds them."
   },
   "sajuReading.godRules.5": {
-    "ko": "수입·지출과 약속을 기록하세요. 안정 때문에 필요한 변화까지 미루지는 마세요.",
+    "ko": "수입·지출과 약속을 적어 두세요. 안정이 좋다고 꼭 필요한 변화까지 미루지는 마세요.",
     "en": "Record income, costs and commitments. Do not let stability prevent necessary change.",
     "ja": "Record income, costs and commitments. Do not let stability prevent necessary change.",
     "zh-CN": "Record income, costs and commitments. Do not let stability prevent necessary change.",
@@ -966,7 +966,7 @@
     "ms": "Record income, costs and commitments. Do not let stability prevent necessary change."
   },
   "sajuReading.godRules.6": {
-    "ko": "압박을 감당할 자원부터 확인하세요. 수면과 회복이 무너지면 일을 나누세요.",
+    "ko": "부담을 버틸 시간과 도움이 있는지 먼저 보세요. 잠이 무너지면 일을 나눠 맡기세요.",
     "en": "Check resources before accepting pressure. Share work if rest suffers.",
     "ja": "Check resources before accepting pressure. Share work if rest suffers.",
     "zh-CN": "Check resources before accepting pressure. Share work if rest suffers.",
@@ -980,7 +980,7 @@
     "ms": "Check resources before accepting pressure. Share work if rest suffers."
   },
   "sajuReading.godRules.7": {
-    "ko": "책임 범위를 먼저 확인하세요. 규칙이 목적과 어긋나면 근거를 들고 조정하세요.",
+    "ko": "내 책임이 어디까지인지 먼저 확인해 두세요. 규칙이 목적과 어긋나면 근거를 들어 고쳐 보세요.",
     "en": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
     "ja": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
     "zh-CN": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose.",
@@ -994,7 +994,7 @@
     "ms": "Clarify responsibility. Adjust rules with evidence when they undermine their purpose."
   },
   "sajuReading.godRules.8": {
-    "ko": "직관은 가설로 두고 실제 사례로 확인하세요. 근거 없이 큰 결정을 내리지 마세요.",
+    "ko": "떠오른 직감은 메모해 두고 실제 사례로 확인해 보세요. 큰 결정은 근거가 생긴 뒤에 내려요.",
     "en": "Treat intuition as a hypothesis. Verify before making a major decision.",
     "ja": "Treat intuition as a hypothesis. Verify before making a major decision.",
     "zh-CN": "Treat intuition as a hypothesis. Verify before making a major decision.",
@@ -1008,7 +1008,7 @@
     "ms": "Treat intuition as a hypothesis. Verify before making a major decision."
   },
   "sajuReading.godRules.9": {
-    "ko": "배운 내용 하나를 직접 적용하세요. 도움을 받더라도 최종 선택은 점검하세요.",
+    "ko": "배운 것 하나를 직접 써 보세요. 도움을 받더라도 마지막 선택은 스스로 살펴보세요.",
     "en": "Apply one lesson directly. Review the final choice even when receiving help.",
     "ja": "Apply one lesson directly. Review the final choice even when receiving help.",
     "zh-CN": "Apply one lesson directly. Review the final choice even when receiving help.",
@@ -1022,7 +1022,7 @@
     "ms": "Apply one lesson directly. Review the final choice even when receiving help."
   },
   "sajuReading.distribution": {
-    "ko": "월지 가중치를 포함한 기존 계산 비율입니다. 많고 적음은 우열이나 성공 확률이 아닙니다.",
+    "ko": "월지에 가중치를 둔 계산 비율이에요. 많고 적음이 우열이나 성공 확률을 뜻하지는 않아요.",
     "en": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
     "ja": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
     "zh-CN": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success.",
@@ -1036,7 +1036,7 @@
     "ms": "Existing chart ratios include the month-branch weighting. A larger share is not a rank or a probability of success."
   },
   "sajuReading.dominant": {
-    "ko": "{element} {value}%가 상대적으로 두드러집니다. {trait}을 살펴볼 단서예요.",
+    "ko": "{element} {value}%가 가장 두드러져요. {trait}을 눈여겨볼 단서예요.",
     "en": "{element} at {value}% is relatively prominent: a clue to {trait}.",
     "ja": "{element} at {value}% is relatively prominent: a clue to {trait}.",
     "zh-CN": "{element} at {value}% is relatively prominent: a clue to {trait}.",
@@ -1050,7 +1050,7 @@
     "ms": "{element} at {value}% is relatively prominent: a clue to {trait}."
   },
   "sajuReading.balanced": {
-    "ko": "가장 큰 비율이 여러 오행에 걸쳐 있습니다. 하나의 성향으로만 묶기보다 상황에 따라 달라지는 힘을 살펴보세요.",
+    "ko": "가장 큰 비율을 여러 오행이 나눠 갖고 있어요. 한 가지 성향으로 묶지 말고 상황마다 달라지는 모습을 살펴보세요.",
     "en": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
     "ja": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
     "zh-CN": "Several elements share the largest proportion. Consider how different situations bring out different strengths.",
@@ -1064,7 +1064,7 @@
     "ms": "Several elements share the largest proportion. Consider how different situations bring out different strengths."
   },
   "sajuReading.dayBasis": {
-    "ko": "일간 {stem} · 일지 {branch}. 일간은 나를 읽는 기준 글자이며, 여기서는 {element}의 상징을 생활 언어로 풉니다.",
+    "ko": "일간 {stem} · 일지 {branch}. 일간은 나를 읽는 기준 글자예요. 여기서는 {element}의 상징을 일상의 말로 풀어요.",
     "en": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
     "ja": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
     "zh-CN": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life.",
@@ -1078,7 +1078,7 @@
     "ms": "Day stem {stem} · day branch {branch}. The day stem is the reference for this reading; here its {element} symbolism is translated into daily life."
   },
   "sajuReading.godBasis": {
-    "ko": "현재 명식에서 {name}이 {count}곳에 나타납니다. 일간과 다른 글자의 관계를 센 값이며 성격의 확정 진단은 아닙니다.",
+    "ko": "지금 명식에는 {name}이 {count}곳에 있어요. 일간과 다른 글자의 관계를 센 값이라 이것만으로 성격을 단정하지는 않아요.",
     "en": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
     "ja": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
     "zh-CN": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis.",
@@ -1092,7 +1092,7 @@
     "ms": "{name} appears in {count} chart positions. This counts relationships to the day stem, not a definitive personality diagnosis."
   },
   "sajuReading.unknown": {
-    "ko": "출생시간 미상: 정오를 대입한 참고 계산입니다. 시주와 시간에 영향을 받는 오행 비율·강약·시기 해석은 확정할 수 없어요.",
+    "ko": "출생시간 미상: 정오를 대입한 참고 계산이에요. 시주와 시간에 따라 달라지는 오행 비율·강약·시기 해석은 확정하지 않아요.",
     "en": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
     "ja": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
     "zh-CN": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain.",
@@ -1106,7 +1106,7 @@
     "ms": "Birth time unknown: noon is used as a reference. The hour pillar and time-dependent ratios, strength and timing cannot be treated as certain."
   },
   "sajuReading.cold": {
-    "ko": "차가운 쪽의 조후 신호입니다. 활동을 시작하기 전 몸과 마음이 준비될 시간을 살펴보세요.",
+    "ko": "조후가 차가운 쪽으로 기울어 있어요. 일을 시작하기 전에 몸과 마음이 데워질 시간을 넉넉히 두세요.",
     "en": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
     "ja": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
     "zh-CN": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity.",
@@ -1120,7 +1120,7 @@
     "ms": "The seasonal score leans cooler. Notice what helps you prepare before starting an activity."
   },
   "sajuReading.hot": {
-    "ko": "따뜻한 쪽의 조후 신호입니다. 속도를 높일 때 회복할 간격도 함께 살펴보세요.",
+    "ko": "조후가 따뜻한 쪽으로 기울어 있어요. 속도를 낼 때는 쉬어 갈 틈도 같이 챙겨 주세요.",
     "en": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
     "ja": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
     "zh-CN": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace.",
@@ -1134,7 +1134,7 @@
     "ms": "The seasonal score leans warmer. Leave recovery intervals when increasing your pace."
   },
   "sajuReading.neutral": {
-    "ko": "온도 점수가 가운데에 있습니다. 한 방향으로 보완하기보다 실제 생활 리듬을 관찰해 보세요.",
+    "ko": "온도 점수가 가운데쯤이에요. 어느 한쪽을 채우려 하지 말고 실제 생활 리듬부터 지켜보세요.",
     "en": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
     "ja": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
     "zh-CN": "The temperature score is centred. Observe your actual routine rather than compensating in one direction.",
@@ -1148,7 +1148,7 @@
     "ms": "The temperature score is centred. Observe your actual routine rather than compensating in one direction."
   },
   "sajuReading.climateBasis": {
-    "ko": "조후 온도 점수 {score} · 습한 신호 {wet} / 건조한 신호 {dry}. 계절과 글자의 상징적 계산이며 건강 진단이 아닙니다.",
+    "ko": "조후 온도 점수 {score} · 습한 신호 {wet} / 건조한 신호 {dry}. 계절과 글자를 상징으로 계산한 값이라 건강 진단으로 쓰지는 않아요.",
     "en": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
     "ja": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
     "zh-CN": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment.",
@@ -1162,7 +1162,7 @@
     "ms": "Temperature score {score} · moist signals {wet} / dry signals {dry}. These are symbolic seasonal calculations, not a medical assessment."
   },
   "sajuReading.climateAction": {
-    "ko": "잘 지낸 날의 활동과 휴식 간격을 기록하세요. 상징 점수보다 실제 컨디션을 기준으로 조절하세요.",
+    "ko": "컨디션이 좋았던 날 얼마나 움직이고 쉬었는지 적어 보세요. 점수보다 실제 몸 상태에 맞춰 조절하면 돼요.",
     "en": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
     "ja": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
     "zh-CN": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score.",
@@ -1176,7 +1176,7 @@
     "ms": "Record activity and rest on days that went well. Adjust to actual wellbeing, not a symbolic score."
   },
   "sajuReading.strong": {
-    "ko": "일간을 지지하는 힘이 비교적 큰 구조입니다. 혼자 끌고 가는 힘과 나누어 맡기는 여유를 함께 살펴보세요.",
+    "ko": "일간을 받쳐 주는 힘이 큰 편이에요. 혼자 끌고 갈 힘이 있으니 일을 나눠 맡기는 여유도 챙겨 보세요.",
     "en": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
     "ja": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
     "zh-CN": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities.",
@@ -1190,7 +1190,7 @@
     "ms": "The day stem receives relatively strong support. Consider both independent effort and sharing responsibilities."
   },
   "sajuReading.weak": {
-    "ko": "일간의 힘에 비해 주변 역할의 요구가 큰 구조입니다. 도움과 준비 시간을 확보하는 방식이 단서가 됩니다.",
+    "ko": "일간의 힘보다 주변에서 바라는 몫이 큰 편이에요. 도움받을 곳과 준비할 시간을 먼저 마련해 두면 한결 수월해요.",
     "en": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
     "ja": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
     "zh-CN": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore.",
@@ -1204,7 +1204,7 @@
     "ms": "Surrounding demands are relatively large compared with support for the day stem. Preparation and help are useful questions to explore."
   },
   "sajuReading.jong": {
-    "ko": "한 방향의 기세를 따르는 종격 가능성이 검토된 구조입니다. 일반 신강·신약 조언을 그대로 적용하지 않습니다.",
+    "ko": "한쪽 기세를 따르는 종격일 가능성을 따져 본 명식이에요. 그래서 보통의 신강·신약 조언을 그대로 적용하지 않아요.",
     "en": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
     "ja": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
     "zh-CN": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged.",
@@ -1218,7 +1218,7 @@
     "ms": "The engine considers a following structure. Ordinary strong/weak advice does not apply unchanged."
   },
   "sajuReading.strengthBasis": {
-    "ko": "기존 억부 점수 {score} · 보완 후보 {support}. 점수는 사람의 능력이나 가치를 매기는 등급이 아닙니다.",
+    "ko": "기존 억부 점수 {score} · 보완 후보 {support}. 이 점수로 사람의 능력이나 가치를 매기지는 않아요.",
     "en": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
     "ja": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
     "zh-CN": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth.",
@@ -1232,7 +1232,7 @@
     "ms": "Existing support score {score} · balancing candidates {support}. This does not rank your ability or worth."
   },
   "sajuReading.strengthAction": {
-    "ko": "역할을 늘리기 전에 시간과 지원을 확인하세요. 선택 후의 집중력·소모·회복을 기록해 기준을 조정하세요.",
+    "ko": "역할을 늘리기 전에 시간과 도움이 충분한지 보세요. 맡은 뒤 얼마나 지치고 회복했는지 적어 두면 기준이 잡혀요.",
     "en": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
     "ja": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
     "zh-CN": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice.",
@@ -1246,7 +1246,7 @@
     "ms": "Check time and support before adding a responsibility. Review focus, effort and recovery after the choice."
   },
   "sajuReading.flowBasis": {
-    "ko": "{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉의 확정 예측이 아닌 흐름을 비교하는 참고값입니다.",
+    "ko": "{label} {stem}{branch} · 기존 평가 점수 {score}. 길흉을 정하는 예측은 아니고 시기끼리 비교해 보는 참고값이에요.",
     "en": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
     "ja": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
     "zh-CN": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction.",
@@ -1260,7 +1260,7 @@
     "ms": "{label} {stem}{branch} · existing score {score}. A comparison aid, not a certain prediction."
   },
   "sajuReading.flowOpen": {
-    "ko": "기존 평가에서 비교적 수월한 쪽으로 읽히는 흐름입니다. 준비해 온 일을 작은 범위에서 시험해 보세요.",
+    "ko": "비교적 수월한 쪽으로 읽히는 흐름이에요. 준비해 온 일을 작은 범위에서 먼저 해 보세요.",
     "en": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
     "ja": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
     "zh-CN": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale.",
@@ -1274,7 +1274,7 @@
     "ms": "The existing assessment reads this as relatively supportive. Test a prepared idea on a small scale."
   },
   "sajuReading.flowCare": {
-    "ko": "기존 평가에서 조율이 필요한 쪽으로 읽히는 흐름입니다. 속도를 낮추고 역할과 일정을 정돈해 보세요.",
+    "ko": "조율이 필요한 쪽으로 읽히는 흐름이에요. 속도를 조금 늦추고 역할과 일정을 정리해 보세요.",
     "en": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
     "ja": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
     "zh-CN": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules.",
@@ -1288,7 +1288,7 @@
     "ms": "The existing assessment suggests adjustment. Review pace, responsibilities and schedules."
   },
   "sajuReading.flowRuleOpen": {
-    "ko": "자원과 계획이 준비됐을 때 작은 실행부터 시작하세요. 점수가 결과를 보장하지는 않습니다.",
+    "ko": "시간과 계획이 갖춰졌다면 작은 일부터 시작해 보세요. 점수가 결과를 보장하지는 않아요.",
     "en": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
     "ja": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
     "zh-CN": "Start small when resources and plans are ready. A score does not guarantee an outcome.",
@@ -1302,7 +1302,7 @@
     "ms": "Start small when resources and plans are ready. A score does not guarantee an outcome."
   },
   "sajuReading.flowRuleCare": {
-    "ko": "일정을 조정하고 선택지를 남기세요. 점수만으로 관계·직업·투자의 결론을 내리지 마세요.",
+    "ko": "일정에 여유를 두고 다른 선택지도 남겨 두세요. 관계·직업·투자는 점수만 보고 결론 내리지 마세요.",
     "en": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
     "ja": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
     "zh-CN": "Adjust schedules and keep options open. Do not make relationship, career or investment decisions from a score alone.",
@@ -1372,7 +1372,7 @@
     "ms": "Sample · a fictional chart"
   },
   "sajuReading.sampleNote": {
-    "ko": "설명 형식을 보여주는 예시이며 회원님의 결과가 아닙니다.",
+    "ko": "풀이 형식을 보여 주는 예시예요. 회원님의 결과가 아니에요.",
     "en": "An example of the format, not your personal result.",
     "ja": "An example of the format, not your personal result.",
     "zh-CN": "An example of the format, not your personal result.",
@@ -1442,7 +1442,7 @@
     "ms": "Reopen the chart with the same account and profile and check access. If payment succeeded but access is missing, do not pay again; contact support with the payment record."
   },
   "sajuReading.inputs": {
-    "ko": "현재 사주에 입력한 생년 정보와 계산값을 사용합니다. 출생시간을 모르면 시간에 의존하는 해석은 참고 범위가 제한됩니다.",
+    "ko": "지금 사주에 입력한 생년 정보와 계산값을 그대로 써요. 출생시간을 모르면 시간에 따라 달라지는 해석은 참고로만 봐 주세요.",
     "en": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "ja": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
     "zh-CN": "Uses the birth information and calculations already entered for this chart. Unknown birth time limits time-dependent interpretation.",
@@ -1680,7 +1680,7 @@
     "ms": "A preference for self-directed choices"
   },
   "sajuReading.godTraits.1": {
-    "ko": "함께 뛰거나 겨룰 때 오히려 힘이 나는 편이야.",
+    "ko": "누군가와 같이 뛰거나 겨룰 때 힘이 나는 쪽이야.",
     "en": "Energy from cooperation and competition",
     "ja": "Energy from cooperation and competition",
     "zh-CN": "Energy from cooperation and competition",
@@ -1722,7 +1722,7 @@
     "ms": "A habit of reviewing familiar rules"
   },
   "sajuReading.godTraits.4": {
-    "ko": "여러 기회를 서로 이어 보고 싶어질 수 있어.",
+    "ko": "기회가 보이면 여러 개를 엮어 보고 싶어지지.",
     "en": "Interest in connecting opportunities",
     "ja": "Interest in connecting opportunities",
     "zh-CN": "Interest in connecting opportunities",
@@ -1750,7 +1750,7 @@
     "ms": "Steady attention to resources and commitments"
   },
   "sajuReading.godTraits.6": {
-    "ko": "부담이 큰 일 앞에서 오히려 집중이 살아날 수도 있어.",
+    "ko": "부담이 큰 일 앞에서 오히려 집중이 잘 되는 편이야.",
     "en": "Focus on demanding tasks",
     "ja": "Focus on demanding tasks",
     "zh-CN": "Focus on demanding tasks",
