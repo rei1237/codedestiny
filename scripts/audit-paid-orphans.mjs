@@ -31,7 +31,7 @@ function refunded(order) {
 
 /** Pure join. Every match requires the same owner; a token match from another account never counts. */
 export function classifyPaidOrphans({ payments = [], executions = [], transactions = [], results = [],
-  tossPurchases = [], tossConsultations = [], now = new Date(), minAgeHours = 24 } = {}) {
+  yeongnyangiRequests = [], tossPurchases = [], tossConsultations = [], now = new Date(), minAgeHours = 24 } = {}) {
   const time = value => new Date(value ?? NaN).getTime();
   const cutoff = now.getTime() - minAgeHours * 3600000;
   const old = row => new Date(row.paidAt || row.createdAt || now).getTime() <= cutoff;
@@ -48,11 +48,17 @@ export function classifyPaidOrphans({ payments = [], executions = [], transactio
       ...tx.flatMap(row => [id(row._id), row.reportId, row.sessionId])].filter(Boolean));
     const docs = results.filter(row => mine(row) && ((key && row.idempotencyKey === key)
       || resultTokens.has(row.paymentId) || resultTokens.has(id(row._id)) || resultTokens.has(row.id)));
+    // yeongnyangi_requests: the 영냥이 product pays under `yn-<request _id>` (worker/yeongnyangi/repository.js attachDirectPayment)
+    // and the 연이·네오 consultation room (persona set) under `fc-<request _id>` (access-methods.js chatPaymentRequestId).
+    // A prefix only counts for its own service; a direct paymentId / per-use payment evidence link is exact.
+    const yn = yeongnyangiRequests.filter(row => mine(row) && (tokens.has(id(row.paymentId))
+      || (row.perUseSource === 'payment' && tokens.has(row.perUseEvidenceId))
+      || (key && key === `${row.persona ? 'fc' : 'yn'}-${id(row._id)}`)));
     const delivered = docs.some(row => DONE_RESULT.has(row.status)) || exec.some(row => DONE_EXECUTION.has(row.status))
-      || tx.some(row => DONE_TRANSACTION.has(row.deliveryStatus));
-    const state = delivered ? 'delivered' : (docs.length || exec.length || tx.length) ? 'undelivered' : 'evidenceNotFound';
+      || tx.some(row => DONE_TRANSACTION.has(row.deliveryStatus)) || yn.some(row => row.state === 'COMPLETED');
+    const state = delivered ? 'delivered' : (docs.length || exec.length || tx.length || yn.length) ? 'undelivered' : 'evidenceNotFound';
     orders.push({ ref: ref(order._id), featureKey: order.featureKey, paidAt: order.paidAt || order.createdAt, state,
-      resultStatuses: docs.map(row => row.status), executionStatuses: exec.map(row => row.status),
+      resultStatuses: docs.map(row => row.status), yeongnyangiStates: yn.map(row => row.state), executionStatuses: exec.map(row => row.status),
       deliveryStatuses: tx.map(row => row.deliveryStatus), palm: order.featureKey === PALM });
   }
   const stuckExecutions = executions.filter(row => row.status === 'paid_pending_generation' && old(row))
@@ -140,14 +146,18 @@ async function main() {
         'llmMeta.refundEligibleAt': 1, 'llmMeta.deliveryRefund.status': 1, 'llmMeta.deliveryRefund.code': 1, 'llmMeta.operatorAlertedAt': 1 }))
         .map(row => ({ ...row, collection: name })));
     }
+    const linked = payments.map(row => String(row.requestId || '')).filter(value => /^(yn|fc)-/.test(value)).map(value => value.slice(3));
+    const yeongnyangiRequests = await read('yeongnyangi_requests',
+      { $or: [{ _id: { $in: linked } }, { paymentId: { $in: payments.map(row => row._id) } }] },
+      { userId: 1, state: 1, paymentId: 1, persona: 1, perUseSource: 1, perUseEvidenceId: 1 });
     const tossPurchases = await read('toss_purchases', { verifiedAt: { $gte: since } },
       { ownerId: 1, status: 1, sku: 1, nativeService: 1, serviceId: 1, environment: 1, requestId: 1, executionId: 1, verifiedAt: 1 });
     const tossConsultations = (await read('toss_native_consultations', recent,
       { ownerId: 1, orderId: 1, requestId: 1, savedResult: 1 })).map(row => ({ ...row, savedResult: Boolean(row.savedResult) }));
-    const report = classifyPaidOrphans({ payments, executions, transactions, results, tossPurchases, tossConsultations, minAgeHours });
+    const report = classifyPaidOrphans({ payments, executions, transactions, results, yeongnyangiRequests, tossPurchases, tossConsultations, minAgeHours });
     console.log(JSON.stringify({ database, readOnly: true, days, minAgeHours, evidenceNotFoundIsNotProof: true,
       scanned: { payments: payments.length, executions: executions.length, transactions: transactions.length,
-        results: results.length, tossPurchases: tossPurchases.length }, ...report }, null, 2));
+        results: results.length, yeongnyangiRequests: yeongnyangiRequests.length, tossPurchases: tossPurchases.length }, ...report }, null, 2));
   } finally { await mongoose.disconnect(); }
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) await main();

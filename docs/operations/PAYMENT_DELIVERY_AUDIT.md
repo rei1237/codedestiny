@@ -61,7 +61,8 @@ human-design 원장 2건은 retry 0 으로 멈춰 있다. 이번 S2 변경(10분
 - 영냥이 결과는 `yeongnyangi_requests` 컬렉션(`worker/lib/yeongnyangi-models.js:69`)에 저장된다. 이 컬렉션이 감사 스크립트의 `RESULT_COLLECTIONS`(`scripts/audit-paid-orphans.mjs:11`)에 없다.
 - 그래서 109건은 "미전달 증거"가 아니라 "이 스크립트가 보지 않은 곳"이다(`evidenceNotFoundIsNotProof: true`).
 - 나머지 5건: compat-saju-compatibility 2, fortune-tea-house-saju(-joint) 2, fortune-chat-consultation 1 — 역시 결과 저장 위치를 스크립트가 덮지 않거나 결제 연결 키가 달라 대조되지 않은 상품이다.
-- 후속: 스크립트에 `yeongnyangi_requests` 결제 연결 키를 확인해 추가한 뒤, **읽기 전용 재조회 1회 승인**을 받아 다시 돌린다.
+- 2026-11-28 스크립트 보강 완료: `classifyPaidOrphans` 가 `yeongnyangi_requests` 를 같은 소유자 조건으로 대조한다. 연결 키는 `paymentId`(카드 결제 부착, `worker/yeongnyangi/repository.js` attachDirectPayment), 결제 `requestId` 의 `yn-<요청 _id>`(영냥이 상품, persona 없음)·`fc-<요청 _id>`(연이·네오 상담실, persona 있음 — 접두어는 자기 서비스 행에만), `perUseSource: payment` 의 `perUseEvidenceId`. 전달 판정은 `state === COMPLETED`. 테스트 `__tests__/ui/paid-orphans-audit.test.mjs`, 변이 2회(판정 제거·접두어 구분 제거) 모두 실패 확인.
+- **운영 재조회는 실행하지 않았다(NOT_TESTED).** 사용자 판단(2026-11-28): 영냥이 결제는 대부분 정상 생성됐다. 필요해지면 읽기 전용 1회 승인을 받아 `node scripts/audit-paid-orphans.mjs --db code_destiny` 로 다시 돌린다.
 
 ## 기존 구매자 402 조사 (S4)
 
@@ -74,4 +75,4 @@ human-design 원장 2건은 retry 0 으로 멈춰 있다. 이번 S2 변경(10분
 
 1. 미전달 의심 6건: 건별로 재생성 또는 환불을 결정한다. dry-run 목록 = 위 표.
 2. 멈춘 원장 4건: 관리자 HQ에서 상태를 확인한다.
-3. 영냥이 감사 범위 보강 후 읽기 전용 재조회 1회.
+3. 영냥이 감사 범위: 스크립트 보강 완료(2026-11-28). 운영 재조회는 사용자 판단으로 보류.

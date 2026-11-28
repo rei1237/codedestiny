@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { classifyPaidOrphans } from '../../scripts/audit-paid-orphans.mjs';
 
 const now = new Date('2026-11-22T00:00:00Z'), old = new Date('2026-11-20T00:00:00Z'), fresh = new Date('2026-11-21T23:00:00Z');
@@ -51,5 +52,23 @@ test('S7: refund failures, held narratives and manual-review consultations are l
   assert.equal(report.refundFailures[0].amount, 9900);
   assert.deepEqual(report.heldNarratives.map(row => [row.code, row.toss]), [['PAID_NARRATIVE_REFUND_EVIDENCE_MISSING', true]]);
   assert.deepEqual(report.consultationReviews.map(row => row.code), ['TOSS_ORDER_REVIEW_REQUIRED', 'X_REVIEW']);
+  assert.ok(!JSON.stringify(report).includes('owner'));
+});
+
+test('yeongnyangi_requests: same-owner rows prove delivery, and each payment prefix only matches its own service', () => {
+  const yn = (over = {}) => pay({ featureKey: 'yeongnyangi-saju-mackerel', merchantUid: `m-${over._id}`, ...over });
+  const report = classifyPaidOrphans({ now,
+    payments: [yn({ _id: 'y1', requestId: 'yn-r1' }), yn({ _id: 'y2', requestId: 'yn-r2' }), yn({ _id: 'y3', requestId: 'yn-r3' }),
+      yn({ _id: 'y4', requestId: 'yn-r4' }), yn({ _id: 'y5', requestId: 'fc-r5' }), yn({ _id: 'y6', requestId: '' })],
+    yeongnyangiRequests: [{ _id: 'r1', userId: 'owner', state: 'COMPLETED', paymentId: 'y1' },
+      { _id: 'r2', userId: 'owner', state: 'FORTUNE_FAILED', paymentId: null },
+      { _id: 'r3', userId: 'other', state: 'COMPLETED', paymentId: 'y3' },
+      { _id: 'r4', userId: 'owner', state: 'COMPLETED', persona: 'yeoni' },
+      { _id: 'r5', userId: 'owner', state: 'COMPLETED', persona: 'neo' },
+      { _id: 'r6', userId: 'owner', state: 'COMPLETED', perUseSource: 'payment', perUseEvidenceId: 'y6' }] });
+  const ref = value => createHash('sha256').update(value).digest('hex').slice(0, 12);
+  const states = Object.fromEntries(report.leads.map(row => [row.ref, row.state]));
+  assert.deepEqual(report.byFeature['yeongnyangi-saju-mackerel'], { delivered: 3, undelivered: 1, evidenceNotFound: 2 });
+  assert.deepEqual(states, { [ref('y2')]: 'undelivered', [ref('y3')]: 'evidenceNotFound', [ref('y4')]: 'evidenceNotFound' });
   assert.ok(!JSON.stringify(report).includes('owner'));
 });

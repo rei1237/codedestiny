@@ -75,9 +75,16 @@ next: "단계 1 — scripts/audit-paid-orphans.mjs 에 영냥이(yeongnyangi_req
 - 검증: mock LLM 으로 도구 권한 테스트(남의 데이터 거부), 모바일 너비 실제 브라우저 캡처(headed), SEO 영향 점검(비공개면 noindex 유지). Workers AI 실호출은 정확한 1회 승인 뒤.
 - 끝나면 `docs/operations/AI_SUPPORT_ARCHITECTURE.md`·`OPERATING_COST_REPORT.md` 를 실측으로 갱신.
 
+### 단계 3 방향·성공 기준 (2026-11-28 세션 404e5840 확정, 코딩 원칙 16 — 공유 후 자율 구현)
+
+- 위치: 새 클라이언트 컴포넌트 `app/yeongnyangi/_components/SupportDesk.tsx` 를 `/yeongnyangi/faq/` 본문 아래와 `/yeongnyangi/library/` 상단에 둔다. FAQ 페이지의 title/description/H1/FAQ JSON-LD 는 바꾸지 않는다.
+- 1층(LLM 없음, 먼저 구현): "결제했는데 결과가 없어요" 카드. 로그인 상태면 기존 `GET /api/yeongnyangi/requests`(`worker/routes/yeongnyangi.js:161`)로 본인 요청 중 결제됐지만 COMPLETED 가 아닌 것을 보여 주고 기존 결과 화면(재시도·대기 화면이 복구를 맡음)으로 보낸다. 비로그인이면 로그인 안내 + 기존 `OrderLookup`(`_components/OrderRecovery.tsx`). 사람 넘김은 `/contact/` 링크에 주문 ref(sha256 앞 12자)·featureKey 만 붙인다.
+- 2층: "영냥이에게 물어보기" → 새 `POST /api/yeongnyangi/support`(`worker/routes/yeongnyangi.js` 하위, 인증 필수, `Cache-Control: private, no-store`). 질문 길이 상한, 기존 `worker/lib/security`(`enforceAiRouteSecurity`/`enforceRateLimit`) 재사용, 사용자 일 상한·전체 일/월 상한. FAQ 일치면 LLM 을 부르지 않는다. LLM 에는 도구를 주지 않고, 서버가 본인 userId 로만 읽은 요청 상태 요약(이름·생년월일·상담 본문 제외)과 빌드 생성 지식(FAQ·가격·브랜드 JSON)만 넣는다. `callLLM` cloudflare → Gemini flash → FAQ·문의 안내 폴백. 새 LLM 호출 파일은 인벤토리·가드 배선이 필요하다(메모리: guard-and-test-pitfalls).
+- 성공 기준: (1) LLM 이 꺼져도 카드와 폴백이 동작 (2) 다른 계정 데이터가 응답·프롬프트에 0 (mock 테스트) (3) 상한 초과 시 429 + 폴백 안내 (4) 390px 모바일 실제 화면 캡처에서 잘림·대비 문제 없음 (5) `/yeongnyangi/faq/` SEO 메타·JSON-LD 불변, API 는 색인 대상 아님 (6) 실호출 없음(mock). Workers AI 실호출은 정확한 1회 승인 뒤.
+
 ## 단계
 
-- [ ] 1. 감사 스크립트 영냥이 판정 추가 + node --test + 변이 + 보고서 갱신 → commit
+- [x] 1. 감사 스크립트 영냥이 판정 추가 + node --test + 변이 + 보고서 갱신 → commit (SHA 는 단계 4 머지 뒤 기록)
 - [ ] 2a. 6건·멈춘 4건 dry-run 을 위한 운영 읽기 전용 조회 1회 승인 요청
 - [ ] 2b. dry-run 보고서(마스킹) 작성 → 건별 실행 범위 1회 승인 요청
 - [ ] 2c. 승인 범위만 실행 → 전달 확인 결과 기록
