@@ -10,6 +10,17 @@ const ctx = vm.createContext({});
 vm.runInContext(block, ctx);
 const stubRgba = (token) => (token === 'transparent' ? 'rgba(0, 0, 0, 0)' : /^rgba\(/.test(token) ? token : `rgba(1, 2, 3, 1)<${token}>`);
 
+test('temporary font probe styles are removed on success and on failure', async () => {
+  const live = new Set();
+  const env = vm.createContext({ document: {
+    createElement: () => ({ remove() { live.delete(this); } }),
+    head: { appendChild: node => live.add(node) },
+  } });
+  vm.runInContext(block, env);
+  await Promise.all([env._cdWithFontProbe(() => 'ok'), assert.rejects(env._cdWithFontProbe(() => { throw Error('offline'); }), /offline/)]);
+  assert.equal(live.size, 0);
+});
+
 test('unparsable color functions become rgba, nested and repeated, while rgb() and names stay', () => {
   const value = 'linear-gradient(color(srgb 1 0 0 / 0.5), color-mix(in srgb, color(srgb 0 0 1) 40%, white)) , rgb(4, 5, 6), oklch(0.7 0.1 30) 0px 1px 2px, red';
   const seen = [];

@@ -1079,6 +1079,14 @@ function _cdH2cOptions(target, extra){
   if (extra) for (var k in extra) if (Object.prototype.hasOwnProperty.call(extra, k)) opts[k] = extra[k];
   return opts;
 }
+// 1.4.1 measures font baselines in the live document, not the capture clone.
+// A block-level reset on its 1px GIF adds a line break to that measurement.
+function _cdWithFontProbe(render){
+  var style = document.createElement('style');
+  style.textContent = 'body>div[style*="visibility: hidden"]>img[width="1"][height="1"][src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"]{display:inline!important}';
+  document.head.appendChild(style);
+  return Promise.resolve().then(render).finally(function(){ style.remove(); });
+}
 // ── h2c-capture-colors:end
 function cdShareResultCardImage(options){
   var opts = options || {};
@@ -1093,7 +1101,7 @@ function cdShareResultCardImage(options){
         cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption });
         return;
       }
-      h2c(target, _cdH2cOptions(target)).then(function(canvas){
+      _cdWithFontProbe(function(){ return h2c(target, _cdH2cOptions(target)); }).then(function(canvas){
         var url = cdBuildShareUrl(contentId);
         canvas.toBlob(function(blob){
           if (!blob) { cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption }); return; }
@@ -1122,7 +1130,7 @@ function cdRenderElementToPngBlob(element, cb){
   if (!element) { done(null); return; }
   _cdEnsureHtml2Canvas(function(h2c){
     if (!h2c) { done(null); return; }
-    h2c(element, _cdH2cOptions(element, { scrollX: 0, scrollY: 0 })).then(function(canvas){
+      _cdWithFontProbe(function(){ return h2c(element, _cdH2cOptions(element, { scrollX: 0, scrollY: 0 })); }).then(function(canvas){
       try { canvas.toBlob(function(blob){ done(blob || null); }, 'image/png'); } catch (_) { done(null); }
     }).catch(function(){ done(null); });
   });
