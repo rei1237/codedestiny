@@ -233,7 +233,7 @@ test('copy follows the rules: no training claim, no accuracy promise, no health 
   const authored = JSON.parse(read('i18n/authored/lifeCalibration-01.json'));
   const keys = [...copy.matchAll(/^\s{2}(\w+): "/gm)].map((m) => m[1]);
   for (const loc of ['en', 'ja', 'zh-CN', 'zh-TW']) {
-    const pub = JSON.parse(read(`public/i18n/${loc}/lifeCalibration.json`));
+    const pub = JSON.parse(read(`public/i18n/${loc.toLowerCase()}/lifeCalibration.json`));
     for (const k of keys) assert.ok(typeof pub.lifeCalibration[k] === 'string' && pub.lifeCalibration[k], `${loc} ${k}`);
   }
   assert.ok(authored);
