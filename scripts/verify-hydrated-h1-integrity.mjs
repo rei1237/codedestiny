@@ -56,6 +56,7 @@ const buildDir = resolve(rootDir, outDir);
 const DECLARED_EXCEPTIONS = new Map([
   // ["/some/route", "왜 이 라우트는 하이드레이션 후 h1 이 2개여야 하는가"],
   ["/yeongnyangi/result", "h1 은 2개가 되지 않는다. SavedReadingBoundary 가 마운트 뒤에만 Result 를 그려 서버 h1 은 0개이고, Result 의 h1 과 SpiritResult 의 h1 은 조기 return 으로 배타다. 정적 분석은 둘 다 알 수 없다."],
+  ["/profile/life", "h1 은 2개가 되지 않는다. LifeCalibrationRouteClient 는 서버에서 enabled=null 로 빈 main 만 그려 서버 h1 은 0개이고, 마운트 뒤 LifeCalibrationOff(정적 import)와 LifeCalibrationScreen(ssr:false)중 하나만 삼항으로 그린다. 정적 분석은 배타 분기를 알 수 없다."],
 ]);
 
 const failures = [];
