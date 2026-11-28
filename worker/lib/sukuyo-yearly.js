@@ -5,7 +5,7 @@ const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY="sukyo_yearly_fortune_unlock";
 function clean(value) {
   return String(value == null ? "" : value).trim();
 }
-export async function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear, env = {}, requestUrl = "" }) {
+export async function buildSukuyoYearlyFortuneResultV2({ profile, targetYear, env = {}, requestUrl = "" }) {
   const lunar = resolveSukuyoLunarFromProfile(profile);
   if (!lunar) {
     const error = new Error("숙요점 1년운 계산에 필요한 생년월일이 부족합니다.");
@@ -30,15 +30,16 @@ export async function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYe
   const natalName = clean(natal.nameKo || natal.name || natal.label || natal.mansion || "본명숙");
   const natalIndex = Number.isFinite(Number(natal.index)) ? Number(natal.index) : 0;
   const birth = profile.birth || {};
+  // 같은 출생 정보면 계정·프로필과 무관하게 같은 1년운이 나온다(2026-11-28 D3: userId 시드 제거).
+  // 날짜는 양력으로 정규화해 양력/음력 입력이 같은 날이면 같은 시드가 된다. 시각은 입력이 있을 때만 쓴다.
   const seed = hashSukuyoYearlySeed([
-    auth.userId,
-    profile.profileId,
-    birth.year,
-    birth.month,
-    birth.day,
-    birth.hour,
-    birth.minute,
-    profile.gender,
+    "birth",
+    lunar.solarYear,
+    lunar.solarMonth,
+    lunar.solarDay,
+    normalizeSukuyoSeedClockPart(birth.hour),
+    normalizeSukuyoSeedClockPart(birth.minute),
+    clean(profile.gender).toUpperCase(),
     targetYear,
     SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
     "v2",
@@ -272,6 +273,11 @@ export function resolveSukuyoLunarFromProfile(profile) {
   };
 }
 
+function normalizeSukuyoSeedClockPart(value) {
+  if (value == null || clean(value) === "") return "";
+  const number = Math.trunc(Number(value));
+  return Number.isFinite(number) ? number : "";
+}
 export function hashSukuyoYearlySeed(value) {
   const text = clean(value);
   let h = 2166136261;

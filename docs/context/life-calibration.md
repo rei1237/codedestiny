@@ -71,7 +71,7 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 | 자미두수 | `yearFlowTheory(chart, year)` `app/_lib/ziwei-year-flow.ts:158` | 유년 명궁 + 사화. 월 단위 함수 미확인 |
 | 서양점성술 | `AstroTransits.period` `js/core/astro/transits.js:398` + 서버 `createSwissTransitLonsAt` `worker/lib/swiss-ephemeris.js:1195` | 일식표가 2036-08 까지 — 그 뒤 연도는 일식 신호 제외 |
 | 베다 | `buildVimshottariDasha(moonLon, birthUtc, now)` `worker/lib/vedic-derived-calculations.js:172` | 서버 Swiss 차트 필요 |
-| 숙요 | `calculateSukuyoForMoment`(`worker/lib/sukuyo-astronomy.js`) + 출생 수 거리 | `buildSukuyoYearlyFortuneResultV2` 점수는 userId 시드 해시(천문 근거 없음)라 보정에 쓰지 않는다 |
+| 숙요 | `calculateSukuyoForMoment`(`worker/lib/sukuyo-astronomy.js`) + 출생 수 거리 | `buildSukuyoYearlyFortuneResultV2` 점수는 출생 정보 시드 해시(천문 근거 없음, 2026-11-28 userId 시드 제거)라 보정에 쓰지 않는다 |
 | 타로 | — | 연도 신호 없음. LLM 블록에는 과거 경험·패턴 요약만 |
 
 ## 충돌 처리 규칙
@@ -152,5 +152,5 @@ forward-add 만 한다. 기존 문서·필드의 의미를 바꾸지 않는다. 
 - 처리방침에 LLM 국외이전 미고지(위 출시 선행 조건).
 - ~~프로필 삭제 때 `profile_pets` 가 지워지지 않는다~~ — 2026-11-28 수정(`deleteProfilePetData`).
 - ~~인생 그래프 대운이 lunar-javascript 계산~~ — 이미 KASI 브리지로 고쳐져 있음(2026-11-28 확인).
-- 숙요 연운 점수가 userId 시드 해시라 같은 생년월일이라도 사용자마다 다르다(`worker/lib/sukuyo-yearly.js:33`). 고치면 무료 전환(2026-11-11) 전 구매자가 다시 열 때 점수가 바뀌므로(저장 없이 매번 계산) 운영자 결정 대기.
+- ~~숙요 연운 점수가 userId 시드 해시라 같은 생년월일이라도 사용자마다 다르다~~ — 2026-11-28 사용자 승인(옵션 1 "출생 정보 기반으로 일괄 전환")으로 수정. 시드는 양력 정규화 생년월일·입력 시각·성별·대상 연도다. 무료 전환(2026-11-11) 전 구매자도 다시 열면 새 점수를 본다(레거시 시드 분기 없음, 승인됨).
 - 사주 인생 그래프의 대운(lunar-javascript)과 KASI `daeun()` 불일치 가능성.
