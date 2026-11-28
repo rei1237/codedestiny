@@ -11,6 +11,7 @@ const gyeokgukGuard = require("../../lib/saju/gyeokguk-claim-guard.mjs");
 const { NATAL_CORE_VERSION } = require("../../lib/saju/natal-core/version.mjs");
 const rollout = require("../../worker/lib/engine-rollout.js");
 const { buildShinsalFactsBlock } = require("../../lib/saju/shinsal-facts-block.mjs");
+const lifeHistory = require("../../lib/life-calibration/personal-history-block.mjs");
 const { GEMINI_INPUT_TOKEN_HARD_LIMIT } = require("../../lib/gemini-input-token-limit.mjs");
 const source = fs.readFileSync(require.resolve("../../worker/routes/fortune.js"), "utf8");
 const ast = ts.createSourceFile("fortune.js", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
@@ -26,7 +27,7 @@ const names = new Set([
   "findSajuAIExecutionForRead", "handleSajuAIConsultationStatus", "handleSajuAIConsultationResult",
   "sajuAIDeliveryV2Enabled", "isSajuAIDeliveryV2", "readSajuAIBestSectionText", "assembleSajuAIBestEffortText",
   "settleStuckDelivery", "readSajuAIPromptMonthlyRefundContext",
-  "estimateSajuAIPromptTokens", "sajuAIShinsalBlock", "attachSajuAIShinsalBlock",
+  "estimateSajuAIPromptTokens", "sajuAIShinsalBlock", "attachSajuAIShinsalBlock", "attachSajuAILifeHistoryBlock",
 ]);
 const constants = new Set([
   "SAJU_AI_REQUIRED_CHAPTER_PATTERNS",
@@ -95,7 +96,7 @@ function harness(mode = "single", env = V1_ENV) {
   const ctx = {
     toAiLocale, getAmbientAiLocale: () => 'ko',
     ...prompt, ...quality, ...gyeokgukGuard, NATAL_CORE_VERSION, isCompleteLlmResponse,
-    selectShinsalFacts: rollout.selectShinsalFacts, shinsalFactsPinned: rollout.shinsalFactsPinned, buildShinsalFactsBlock, GEMINI_INPUT_TOKEN_HARD_LIMIT, Request, Response, Headers, Date, crypto: webcrypto,
+    selectShinsalFacts: rollout.selectShinsalFacts, shinsalFactsPinned: rollout.shinsalFactsPinned, selectLifeCalibration: rollout.selectLifeCalibration, lifeCalibrationPinned: rollout.lifeCalibrationPinned, ...lifeHistory, buildShinsalFactsBlock, GEMINI_INPUT_TOKEN_HARD_LIMIT, Request, Response, Headers, Date, crypto: webcrypto,
     console: { info() {}, warn() {}, error() {} },
     SAJU_AI_PROMPT_ACCESS_MODE: "per_use", SAJU_AI_PROMPT_AMOUNT_KRW: 20000,
     SAJU_AI_RESULT_SYSTEM_PROMPT: "mock", FEATURE_AI_LLM_BUDGET_MS: 80000,
@@ -704,6 +705,106 @@ describe("shinsal facts block (SAJU_SHINSAL_FACTS_V1 saju-ai)", () => {
     const full = groups.join("\n\n");
     const result = h.ctx.validateSajuAIResultText(full, built.factSnapshot, { domain: "life_direction", categoryRubric: { validationKeywords: [["진로"], ["직업"], ["재물"], ["관계"]] } });
     expect(result.ok).toBe(true);
+  });
+});
+
+// ── 인생 보정 블록 (P4, LIFE_CALIBRATION_V1 'saju-ai') ──
+// 핀(result.lifeCalibration)은 새 기록에만 박힌다. 블록은 해시·기록 선점 뒤 접두사에 붙고 해시·저장 결과에는 들어가지 않는다.
+// 계산 실패·동의 없음·예산 초과는 블록만 뺀다. 모순 가드는 블록을 받은 기록의 생성문에만 돈다.
+describe("life history block (LIFE_CALIBRATION_V1 saju-ai)", () => {
+  const { createHash } = require("node:crypto");
+  const { computeLifeCalibration } = require("../../lib/life-calibration/life-calibration.mjs");
+  const sha = (text) => createHash("sha256").update(String(text)).digest("hex");
+  const HEADER = "[사용자가 직접 적은 지난 경험";
+  const ON = { ...V1_ENV, LIFE_CALIBRATION_V1: "saju-ai" };
+  const CALIBRATION = computeLifeCalibration({
+    events: [[2015, "career", "good"], [2016, "money", "good"], [2019, "career", "bad"]].map(([year, domain, outcome]) => ({ year, month: null, domain, outcome, certainty: "sure" })),
+    signals: [{ engine: "saju", version: "mock", status: "available", years: { 2015: { tone: "favorable" }, 2016: { tone: "unfavorable" }, 2019: { tone: "unfavorable" } }, months: {} }],
+  });
+  const BLOCK = lifeHistory.buildPersonalHistoryBlock(CALIBRATION);
+  function run(env, load = async () => ({ status: "ok", cache: "hit", calibration: CALIBRATION })) {
+    const h = harness("single", env);
+    h.ctx.loadSajuAILifeCalibration = jest.fn(load);
+    const drive = async (limit = 20) => {
+      const statuses = [];
+      for (let i = 0; i < limit; i += 1) {
+        const res = await h.post();
+        statuses.push(res.status);
+        if (res.status !== 202) break;
+      }
+      return statuses;
+    };
+    const prompts = () => h.ctx.callGeminiText.mock.calls.map((args) => args[1]);
+    return { ...h, drive, prompts };
+  }
+
+  test("off and other consumer ids keep the prompt bytes and never load the calibration", async () => {
+    const off = run(V1_ENV); const api = run({ ...V1_ENV, LIFE_CALIBRATION_V1: "api,neo" });
+    expect(await off.drive()).toEqual([202, 202, 202, 202, 200]);
+    expect(await api.drive()).toEqual([202, 202, 202, 202, 200]);
+    expect(api.prompts().map(sha)).toEqual(off.prompts().map(sha));
+    for (const text of off.prompts()) expect(text).not.toContain(HEADER);
+    expect(off.ctx.loadSajuAILifeCalibration).not.toHaveBeenCalled();
+    expect(api.ctx.loadSajuAILifeCalibration).not.toHaveBeenCalled();
+    expect(off.record().result.lifeCalibration).toBeUndefined();
+    const built = { prompt: "p" };
+    expect(await off.ctx.attachSajuAILifeHistoryBlock(built, { env: V1_ENV, existingExecution: null, auth: { userId: "u" }, profileId: "p" })).toBe(built);
+  });
+
+  test("on adds the block once per group, keeps hashes and stores neither block nor facts", async () => {
+    const off = run(V1_ENV); const on = run(ON);
+    expect(BLOCK.startsWith(HEADER)).toBe(true);
+    await off.post(); await on.post();
+    expect(on.record().result.lifeCalibration).toBe("life-calibration-v1");
+    expect(off.record().result.lifeCalibration).toBeUndefined();
+    expect(on.record().result.payloadHash).toBe(off.record().result.payloadHash);
+    expect(on.record().resultId).toBe(off.record().resultId);
+    expect(JSON.stringify(on.record())).not.toContain(HEADER);
+    expect(await on.drive()).toEqual([202, 202, 202, 200]);
+    await off.drive();
+    expect(on.ctx.loadSajuAILifeCalibration.mock.calls[0][1]).toEqual({ uid: "owner", profileId: "profile" });
+    on.prompts().forEach((text, index) => {
+      expect(text.split(BLOCK)).toHaveLength(2);
+      expect(text.replace(`${BLOCK}\n\n`, "")).toBe(off.prompts()[index]);
+    });
+    expect(on.record().result.promptDigest).toBe(off.record().result.promptDigest);
+    expect(JSON.stringify(on.record())).not.toContain(HEADER);
+    expect(JSON.stringify(on.record())).not.toContain("lifeHistoryFacts");
+  });
+
+  test("no consent, a failing loader or a kill switch drops only the block and still delivers", async () => {
+    for (const load of [async () => ({ status: "consent-required" }), async () => { throw new Error("db down"); }]) {
+      const h = run(ON, load);
+      expect((await h.drive()).at(-1)).toBe(200);
+      for (const text of h.prompts()) expect(text).not.toContain(HEADER);
+      expect(h.record().status).toBe("completed");
+    }
+    const pinned = run(ON);
+    expect((await pinned.post()).status).toBe(202);
+    pinned.setEnv(V1_ENV);
+    const statuses = await pinned.drive();
+    expect(statuses).not.toContain(409);
+    expect(statuses.at(-1)).toBe(200);
+    expect(pinned.prompts().slice(1).some((text) => text.includes(HEADER))).toBe(false);
+  });
+
+  test("the contradiction guard swaps a sentence that reverses a reported year, only for pinned records", async () => {
+    const wrong = "2015년 직업은 큰 시련이 이어진 해였어요.";
+    const inject = (h) => {
+      const base = h.ctx.callGeminiText.getMockImplementation();
+      h.ctx.callGeminiText.mockImplementation(async (...args) => {
+        const out = await base(...args);
+        return { ...out, text: out.text.replace(/\n/, `\n${wrong}\n`) };
+      });
+    };
+    const on = run(ON); inject(on);
+    const off = run(V1_ENV); inject(off);
+    expect((await on.drive()).at(-1)).toBe(200);
+    expect((await off.drive()).at(-1)).toBe(200);
+    const onText = on.record().result.consultation.resultText;
+    expect(onText).not.toContain(wrong);
+    expect(onText).toContain("2015년 직업 흐름은 겪은 대로 보세요.");
+    expect(off.record().result.consultation.resultText).toContain(wrong);
   });
 });
 

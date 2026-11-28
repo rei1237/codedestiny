@@ -209,11 +209,12 @@ test('가드: 보정 모듈은 DB·워커 런타임·천문력 WASM·LLM 을 imp
   }
 });
 
-test('가드(플래그 OFF 동일성): 기본 플래그는 꺼져 있고, 런타임 경로는 아직 보정 엔진을 import 하지 않는다', () => {
+test('가드(플래그 OFF 동일성): 기본 플래그는 꺼져 있고, 런타임은 계산 모듈 하나로만 보정 엔진에 닿는다', () => {
   assert.equal(lifeCalibrationOn({}, 'api'), false);
   assert.equal(lifeCalibrationOn({ LIFE_CALIBRATION_V1: '' }, 'engine'), false);
-  // P4 에서 소비자를 붙일 때 이 허용 목록을 함께 갱신한다(플래그 뒤에서만 부르도록).
-  const allowed = new Set([...CALIBRATION_FILES, '__tests__/ui/life-calibration-engine.test.mjs', 'docs/context/life-calibration.md']);
+  // P4: 런타임 진입점은 worker/lib/life-calibration-compute.js 하나다(라우트는 lifeCalibrationOn('api') 뒤, 사주 AI 는 핀 뒤 동적 import).
+  // 새 소비자를 붙일 때 이 허용 목록을 함께 갱신한다.
+  const allowed = new Set([...CALIBRATION_FILES, 'worker/lib/life-calibration-compute.js', '__tests__/ui/life-calibration-engine.test.mjs', '__tests__/worker/life-calibration-compute.test.js', '__tests__/worker/saju-paid-delivery-recovery.test.js', 'docs/context/life-calibration.md']);
   // 상대 경로 import('./saju-signals.mjs')까지 잡도록 파일 이름으로 찾는다. 미추적 새 파일도 본다. 일치 없음(종료 코드 1)만 빈 결과로 본다.
   let out = '';
   try {
@@ -223,4 +224,8 @@ test('가드(플래그 OFF 동일성): 기본 플래그는 꺼져 있고, 런타
   }
   const unexpected = out.trim().split(/\r?\n/).filter(Boolean).filter((f) => !allowed.has(f));
   assert.deepEqual(unexpected, []);
+  // 사주 AI 는 계산 모듈을 정적으로 import 하지 않는다(플래그 OFF 경로가 보정 모듈을 읽지 않게).
+  const fortune = readFileSync('worker/routes/fortune.js', 'utf8');
+  assert.doesNotMatch(fortune, /^import[^;]*life-calibration-compute/m);
+  assert.ok(fortune.includes('await import("../lib/life-calibration-compute.js")'));
 });
